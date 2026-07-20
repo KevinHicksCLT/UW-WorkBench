@@ -1,27 +1,32 @@
 import { useEffect, useMemo, useState } from 'react';
 import { EmptyState, ErrorMessage, LoadingState } from '../../../components/ui';
+import { useApi } from '../../../lib/useApi';
 import LensBar, { type WorkspaceLens } from '../LensBar';
-import { AMBER, INDIGO } from '../types';
+import { AMBER, GREEN, INDIGO } from '../types';
 import { Picker, ConsolidationRail, type PoolOption } from './SpineBoard';
 import {
   alignStages,
   compareSpineColumns,
+  spineKey,
   type SpineComparison,
   type SpineItem,
   type StageSlot,
 } from './spineCompare';
 import { useStreamDetails, useStreamList, type StreamDetail } from './useSpineData';
 
-// Value-streams lens, MAP-STYLE: every picked value stream renders as one
-// HORIZONTAL FLOW LANE of stage chevrons (its real L3 areas / L4 sub-processes
-// in flow order). Semantically-similar stages align into the same vertical
-// slot, so the flows read top-to-bottom: a filled column = the phase exists in
-// both flows, a gap = one flow lacks it. Chevron badges surface shared /
-// internal-dup steps; clicking an aligned phase opens a per-flow task diff.
+// Value-streams lens, MAP-STYLE (mirrors the Value Streams map view):
+// every picked stream is one HORIZONTAL FLOW LANE — its real L3 stages as
+// chevrons, and under each chevron the map's card language: one card per L4
+// sub-process listing its L5 atomic steps. A computed NEW PROCESS lane sits
+// BETWEEN the compared streams (both flows feed it — arrows in), carrying the
+// normalized flow: aligned stages, shared steps once, uniques carried over.
+// The By-product toggle fans each stream into per-product sub-lanes (stages
+// only — blank until per-product processes exist) and collapses step detail.
 
 interface LaneStage {
   id: string;
   name: string;
+  subs: { id: string; name: string; tasks: { id: string; name: string }[] }[];
   tasks: { id: string; name: string }[];
 }
 
@@ -32,189 +37,240 @@ interface Lane {
   stages: LaneStage[];
 }
 
-const LANE_LABEL_W = 190;
-const SLOT_W = 232;
+const LANE_LABEL_W = 150;
+const SLOT_W = 236;
 
-function laneStages(d: StreamDetail, level: 'L3' | 'L4'): LaneStage[] {
-  if (level === 'L3')
-    return d.areas.map((a) => ({
-      id: a.id,
-      name: a.name,
-      tasks: a.subs.flatMap((s) => s.tasks),
-    }));
-  return d.areas.flatMap((a) => a.subs.map((s) => ({ id: s.id, name: s.name, tasks: s.tasks })));
+function laneStages(d: StreamDetail): LaneStage[] {
+  return d.areas.map((a) => ({
+    id: a.id,
+    name: a.name,
+    subs: a.subs,
+    tasks: a.subs.flatMap((s) => s.tasks),
+  }));
 }
 
-/** One stage chevron — arrow-shaped card carrying its overlap badges. */
-function StageChevron({
-  stage,
-  cmp,
-  laneId,
+const markDot = (mark: 'shared' | 'dup' | 'unique' | undefined) => (
+  <span
+    style={{
+      width: 6,
+      height: 6,
+      borderRadius: 999,
+      flexShrink: 0,
+      marginTop: 4,
+      background: mark === 'shared' ? INDIGO : mark === 'dup' ? AMBER : '#93b7e0',
+    }}
+  />
+);
+
+/** Chevron stage header — same shape as the map's stage chevrons. */
+function Chevron({
+  label,
+  meta,
+  tone,
+  dimmed,
   selected,
-  onSelect,
+  onClick,
 }: {
-  stage: LaneStage;
-  cmp: SpineComparison;
-  laneId: string;
-  selected: boolean;
-  onSelect: () => void;
+  label: string;
+  meta?: string;
+  tone?: string;
+  dimmed?: boolean;
+  selected?: boolean;
+  onClick?: () => void;
 }) {
-  const shared = stage.tasks.filter((t) => cmp.markOf.get(`${laneId}:${t.id}`) === 'shared').length;
-  const dup = stage.tasks.filter((t) => cmp.markOf.get(`${laneId}:${t.id}`) === 'dup').length;
-  const tone = shared > 0 ? INDIGO : dup > 0 ? AMBER : '#94a3b8';
-  const bg = shared > 0 ? '#eef2ff' : dup > 0 ? '#fffbeb' : '#f8fafc';
   return (
     <button
       type="button"
-      onClick={onSelect}
-      title={stage.name}
+      onClick={onClick}
+      disabled={!onClick}
+      title={label}
       style={{
         width: '100%',
-        height: 62,
+        height: 46,
         border: 'none',
-        cursor: 'pointer',
+        cursor: onClick ? 'pointer' : 'default',
         font: 'inherit',
         textAlign: 'left',
-        padding: '6px 20px 6px 14px',
+        padding: '5px 18px 5px 14px',
         boxSizing: 'border-box',
-        background: selected ? '#171717' : bg,
-        color: selected ? '#fff' : '#171717',
+        background: selected ? '#171717' : dimmed ? '#f5f7fa' : (tone ?? '#eef4fb'),
+        color: selected ? '#fff' : dimmed ? '#b6c2d1' : '#1e3a5f',
         clipPath:
-          'polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 10px 50%)',
-        outline: selected ? 'none' : `1px solid ${tone}33`,
+          'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 9px 50%)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        gap: 3,
+        gap: 2,
       }}
     >
       <span
         style={{
-          fontSize: 11,
+          fontSize: 10.5,
           fontWeight: 700,
-          lineHeight: 1.25,
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
+          lineHeight: 1.2,
+          whiteSpace: 'nowrap',
           overflow: 'hidden',
+          textOverflow: 'ellipsis',
         }}
       >
-        {stage.name}
+        {label}
       </span>
-      <span
-        style={{ fontSize: 9.5, color: selected ? '#d4d4d4' : '#64748b', whiteSpace: 'nowrap' }}
-      >
-        {stage.tasks.length} steps
-        {shared > 0 && <b style={{ color: selected ? '#c7d2fe' : INDIGO }}> · {shared} shared</b>}
-        {dup > 0 && <b style={{ color: selected ? '#fde68a' : AMBER }}> · {dup} dup</b>}
-      </span>
+      {meta && (
+        <span style={{ fontSize: 9, color: selected ? '#d4d4d4' : dimmed ? '#c3cedb' : '#64748b' }}>
+          {meta}
+        </span>
+      )}
     </button>
   );
 }
 
-/** Per-phase task diff: the selected slot's tasks side by side per flow, with
- *  shared/unique verdicts scoped to that phase. */
-function PhaseDiff({
-  slot,
-  lanes,
-  onClose,
+/** Map-language L4 card: header + its L5 step rows. */
+function SubProcessCard({
+  name,
+  tasks,
+  markFor,
 }: {
-  slot: StageSlot;
-  lanes: Lane[];
-  onClose: () => void;
+  name: string;
+  tasks: { id: string; name: string }[];
+  markFor: (taskId: string) => 'shared' | 'dup' | 'unique' | undefined;
 }) {
-  const involved = lanes.filter((l) => slot.byLane.has(l.id));
-  const items: SpineItem[] = involved.flatMap((l) => {
-    const stage = l.stages.find((s) => s.id === slot.byLane.get(l.id));
-    return (stage?.tasks ?? []).map((t) => ({
-      id: `${l.id}:${t.id}`,
-      name: t.name,
-      column: l.id,
-      group: slot.label,
-    }));
-  });
-  const cmp = useMemo(() => compareSpineColumns(items), [items]);
   return (
     <div
       style={{
-        border: `1px solid #e2e8f0`,
-        borderTop: `3px solid ${INDIGO}`,
-        borderRadius: 12,
         background: '#fff',
-        padding: 14,
-        margin: '12px 0 0',
+        border: '1px solid #dbe6f5',
+        borderRadius: 10,
+        boxShadow: '0 1px 3px rgba(0,0,0,.05)',
+        overflow: 'hidden',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
-        <span style={{ fontSize: 13.5, fontWeight: 800 }}>{slot.label}</span>
-        <span style={{ fontSize: 11, color: '#64748b' }}>
-          phase diff · {cmp.current} steps → {cmp.normalized} normalized ·{' '}
-          <b style={{ color: INDIGO }}>{cmp.shared.length} shared</b> across {involved.length} flow
-          {involved.length === 1 ? '' : 's'}
-        </span>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close phase diff"
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '6px 8px',
+          borderBottom: '1px solid #edf2fa',
+          background: '#f8fbff',
+        }}
+      >
+        <span
           style={{
-            marginLeft: 'auto',
-            border: 'none',
-            background: 'transparent',
-            color: '#a3a3a3',
-            cursor: 'pointer',
-            fontSize: 13,
+            width: 16,
+            height: 16,
+            borderRadius: 4,
+            background: '#e3eefc',
+            border: '1px solid #c8dcf5',
+            color: '#2563eb',
+            fontSize: 9,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 800,
+            flexShrink: 0,
           }}
         >
-          ×
-        </button>
+          ▤
+        </span>
+        <span
+          style={{
+            fontSize: 10.5,
+            fontWeight: 700,
+            color: '#1e293b',
+            flex: 1,
+            minWidth: 0,
+            lineHeight: 1.2,
+          }}
+        >
+          {name}
+        </span>
+        <span style={{ fontSize: 9, color: '#94a3b8', fontVariantNumeric: 'tabular-nums' }}>
+          {tasks.length}
+        </span>
       </div>
-      <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', overflowX: 'auto' }}>
-        {involved.map((l) => {
-          const stage = l.stages.find((s) => s.id === slot.byLane.get(l.id));
-          return (
-            <div key={l.id} style={{ width: 320, flexShrink: 0 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#525252', marginBottom: 4 }}>
-                {l.title} <span style={{ color: '#a3a3a3', fontWeight: 400 }}>· {stage?.name}</span>
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 3,
-                  maxHeight: 300,
-                  overflowY: 'auto',
-                }}
-              >
-                {(stage?.tasks ?? []).map((t) => {
-                  const mark = cmp.markOf.get(`${l.id}:${t.id}`);
-                  return (
-                    <div key={t.id} style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                      <span
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: 999,
-                          flexShrink: 0,
-                          alignSelf: 'center',
-                          background:
-                            mark === 'shared' ? INDIGO : mark === 'dup' ? AMBER : '#cbd5e1',
-                        }}
-                      />
-                      <span style={{ fontSize: 11, color: '#171717' }}>{t.name}</span>
-                      {mark === 'shared' && (
-                        <span style={{ fontSize: 9, fontWeight: 700, color: INDIGO }}>shared</span>
-                      )}
-                      {mark === 'dup' && (
-                        <span style={{ fontSize: 9, fontWeight: 700, color: AMBER }}>dup</span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+      <div style={{ padding: '5px 8px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {tasks.map((t) => (
+          <div key={t.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+            {markDot(markFor(t.id))}
+            <span style={{ fontSize: 9.5, color: '#334155', lineHeight: 1.3 }}>{t.name}</span>
+          </div>
+        ))}
       </div>
+    </div>
+  );
+}
+
+/** The dark lane label pill (mirrors the map's segment chip). */
+function LaneChip({ title, meta, tone }: { title: string; meta?: string; tone?: string }) {
+  return (
+    <div style={{ paddingRight: 8 }}>
+      <div
+        style={{
+          display: 'inline-block',
+          background: tone ?? '#171717',
+          color: '#fff',
+          borderRadius: 8,
+          padding: '7px 11px',
+          fontSize: 11.5,
+          fontWeight: 700,
+          lineHeight: 1.25,
+          boxShadow: '0 2px 6px rgba(0,0,0,.18)',
+        }}
+      >
+        {title}
+      </div>
+      {meta && <div style={{ fontSize: 9.5, color: '#94a3b8', marginTop: 4 }}>{meta}</div>}
+    </div>
+  );
+}
+
+/** Normalized (new process) steps for one aligned slot. */
+function normalizedSteps(
+  slot: StageSlot,
+  lanes: Lane[],
+): { key: string; name: string; sources: number }[] {
+  const byKey = new Map<string, { name: string; sources: Set<string> }>();
+  for (const lane of lanes) {
+    const stageId = slot.byLane.get(lane.id);
+    const stage = stageId ? lane.stages.find((s) => s.id === stageId) : null;
+    for (const t of stage?.tasks ?? []) {
+      const k = spineKey(t.name);
+      const cur = byKey.get(k);
+      if (cur) {
+        cur.sources.add(lane.id);
+        if (t.name.length < cur.name.length) cur.name = t.name;
+      } else byKey.set(k, { name: t.name, sources: new Set([lane.id]) });
+    }
+  }
+  return [...byKey.entries()].map(([key, v]) => ({
+    key,
+    name: v.name,
+    sources: v.sources.size,
+  }));
+}
+
+/** Connector row: the compared flow feeds the new process. */
+function FeedArrow({ direction }: { direction: 'down' | 'up' }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        height: 26,
+        color: GREEN,
+        fontSize: 12,
+        fontWeight: 700,
+      }}
+    >
+      <span style={{ width: 1, height: 14, background: '#86efac' }} />
+      {direction === 'down' ? '▼' : '▲'}
+      <span style={{ fontSize: 9.5, color: '#059669', fontWeight: 600, letterSpacing: '.05em' }}>
+        FEEDS NEW PROCESS
+      </span>
+      {direction === 'down' ? '▼' : '▲'}
+      <span style={{ width: 1, height: 14, background: '#86efac' }} />
     </div>
   );
 }
@@ -228,17 +284,27 @@ export default function VsStreamBoard({
 }) {
   const { data: streams, loading: listLoading, error: listError } = useStreamList();
   const [ids, setIds] = useState<string[]>([]);
-  const [level, setLevel] = useState<'L3' | 'L4'>('L3');
+  const [byProduct, setByProduct] = useState(false);
+  const [detail, setDetail] = useState<'auto' | 'stages' | 'full'>('auto');
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
   useEffect(() => {
-    if (streams && streams.length > 1 && ids.length === 0) {
-      setIds([streams[0].id, streams[1].id]);
-    }
+    if (streams && streams.length > 1 && ids.length === 0) setIds([streams[0].id, streams[1].id]);
   }, [streams, ids.length]);
-  useEffect(() => setSelectedSlot(null), [ids.join(','), level]);
+  useEffect(() => setSelectedSlot(null), [ids.join(','), byProduct]);
 
   const { data: details, loading, error } = useStreamDetails(ids);
+  // Product segments for the By-product view (market › segment spine, L2).
+  const { data: productData } = useApi<{
+    roots: { id: string; name: string; children: { id: string; name: string }[] }[];
+  }>(byProduct ? '/product-spine/table' : null);
+  const segments = useMemo(
+    () =>
+      (productData?.roots ?? []).flatMap((m) =>
+        m.children.map((s) => ({ id: s.id, name: s.name, market: m.name })),
+      ),
+    [productData],
+  );
 
   const pool: PoolOption[] = useMemo(
     () =>
@@ -256,15 +322,9 @@ export default function VsStreamBoard({
     return ids
       .map((id) => details[id])
       .filter(Boolean)
-      .map((d) => ({
-        id: d.id,
-        title: d.name,
-        subtitle: d.domain,
-        stages: laneStages(d, level),
-      }));
-  }, [details, ids, level]);
+      .map((d) => ({ id: d.id, title: d.name, subtitle: d.domain, stages: laneStages(d) }));
+  }, [details, ids]);
 
-  // Task-level comparison across the whole picked set (drives badges + rail).
   const items: SpineItem[] = useMemo(
     () =>
       lanes.flatMap((l) =>
@@ -279,19 +339,186 @@ export default function VsStreamBoard({
       ),
     [lanes],
   );
-  const cmp = useMemo(() => compareSpineColumns(items), [items]);
-
-  // Stage alignment: similar phases share one vertical slot across the lanes.
+  const cmp: SpineComparison = useMemo(() => compareSpineColumns(items), [items]);
   const slots = useMemo(
     () => alignStages(lanes.map((l) => ({ lane: l.id, stages: l.stages }))),
     [lanes],
   );
-  const slot = slots.find((s) => s.key === selectedSlot) ?? null;
   const titleOf = (id: string) => lanes.find((l) => l.id === id)?.title ?? id;
+
+  // Detail level: full L4+L5 cards for a 2-stream compare, stages-only beyond
+  // that (or whenever By-product is on) — flip manually with the Detail toggle.
+  const showDetail = !byProduct && (detail === 'full' || (detail === 'auto' && lanes.length <= 2));
+  const grid = `${LANE_LABEL_W}px repeat(${slots.length}, ${SLOT_W}px)`;
+  // The NEW PROCESS lane sits between the flows (after the first lane).
+  const newProcessAt = Math.min(1, Math.max(0, lanes.length - 1));
 
   if (listLoading) return <LoadingState message="Loading value streams…" />;
   if (listError) return <ErrorMessage>{listError}</ErrorMessage>;
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
+
+  const renderStreamLane = (lane: Lane) => (
+    <div
+      key={lane.id}
+      style={{
+        display: 'grid',
+        gridTemplateColumns: grid,
+        gap: 8,
+        alignItems: 'start',
+        marginBottom: 4,
+      }}
+    >
+      <LaneChip
+        title={lane.title}
+        meta={`${lane.subtitle ? `${lane.subtitle} · ` : ''}${lane.stages.reduce((n, s) => n + s.tasks.length, 0)} steps`}
+      />
+      {slots.map((slot) => {
+        const stageId = slot.byLane.get(lane.id);
+        const stage = stageId ? lane.stages.find((s) => s.id === stageId) : null;
+        if (!stage)
+          return (
+            <div key={slot.key}>
+              <Chevron label={slot.label} meta="not applicable" dimmed />
+            </div>
+          );
+        const shared = stage.tasks.filter(
+          (t) => cmp.markOf.get(`${lane.id}:${t.id}`) === 'shared',
+        ).length;
+        const dup = stage.tasks.filter(
+          (t) => cmp.markOf.get(`${lane.id}:${t.id}`) === 'dup',
+        ).length;
+        return (
+          <div key={slot.key} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <Chevron
+              label={stage.name}
+              meta={`${stage.tasks.length} steps${shared ? ` · ${shared} shared` : ''}${dup ? ` · ${dup} dup` : ''}`}
+              selected={selectedSlot === slot.key}
+              onClick={() => setSelectedSlot(selectedSlot === slot.key ? null : slot.key)}
+            />
+            {showDetail && (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6,
+                  maxHeight: 340,
+                  overflowY: 'auto',
+                }}
+              >
+                {stage.subs.map((sub) => (
+                  <SubProcessCard
+                    key={sub.id}
+                    name={sub.name}
+                    tasks={sub.tasks}
+                    markFor={(tid) => cmp.markOf.get(`${lane.id}:${tid}`)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  const renderProductLanes = (lane: Lane) =>
+    segments.map((seg) => (
+      <div
+        key={`${lane.id}:${seg.id}`}
+        style={{
+          display: 'grid',
+          gridTemplateColumns: grid,
+          gap: 8,
+          alignItems: 'start',
+          marginBottom: 4,
+        }}
+      >
+        <LaneChip title={seg.name} meta={`${seg.market} · ${lane.title}`} tone="#3b5bdb" />
+        {slots.map((slot) => (
+          <div key={slot.key}>
+            <Chevron label={slot.label} meta="no process for this product yet" dimmed />
+          </div>
+        ))}
+      </div>
+    ));
+
+  const renderNewProcessLane = () => (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: grid,
+        gap: 8,
+        alignItems: 'start',
+        margin: '2px 0',
+        padding: '8px 0',
+        background: 'rgba(236,253,245,.7)',
+        borderRadius: 12,
+        outline: '2px solid #a7f3d0',
+      }}
+    >
+      <LaneChip title="New process" meta={`normalized · ${cmp.normalized} steps`} tone="#047857" />
+      {slots.map((slot) => {
+        const steps = normalizedSteps(slot, lanes);
+        return (
+          <div key={slot.key} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <Chevron
+              label={slot.label}
+              meta={`${steps.length} normalized · in ${slot.byLane.size}/${lanes.length} flows`}
+              tone="#d9f5e7"
+              selected={selectedSlot === slot.key}
+              onClick={() => setSelectedSlot(selectedSlot === slot.key ? null : slot.key)}
+            />
+            {showDetail && (
+              <div
+                style={{
+                  background: '#fff',
+                  border: '1px solid #bbe7cf',
+                  borderRadius: 10,
+                  boxShadow: '0 1px 3px rgba(0,0,0,.05)',
+                  padding: '6px 8px',
+                  maxHeight: 340,
+                  overflowY: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 3,
+                }}
+              >
+                {steps.map((s) => (
+                  <div key={s.key} style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                    <span
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: 999,
+                        flexShrink: 0,
+                        marginTop: 4,
+                        background: s.sources > 1 ? INDIGO : '#86efac',
+                      }}
+                    />
+                    <span style={{ fontSize: 9.5, color: '#14532d', lineHeight: 1.3, flex: 1 }}>
+                      {s.name}
+                    </span>
+                    {s.sources > 1 && (
+                      <span
+                        style={{
+                          fontSize: 8.5,
+                          fontWeight: 800,
+                          color: INDIGO,
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {s.sources}→1
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div
@@ -309,17 +536,35 @@ export default function VsStreamBoard({
           style={{
             display: 'inline-flex',
             alignItems: 'center',
+            gap: 5,
+            fontSize: 12,
+            color: '#525252',
+            marginBottom: 10,
+            cursor: 'pointer',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={byProduct}
+            onChange={(e) => setByProduct(e.target.checked)}
+          />
+          By product
+        </label>
+        <label
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
             gap: 6,
             fontSize: 12,
             color: '#525252',
             marginBottom: 10,
           }}
         >
-          Flow stages
+          Detail
           <select
-            value={level}
-            onChange={(e) => setLevel(e.target.value as 'L3' | 'L4')}
-            aria-label="Stage level"
+            value={detail}
+            onChange={(e) => setDetail(e.target.value as 'auto' | 'stages' | 'full')}
+            aria-label="Detail level"
             style={{
               border: '1px solid #e5e5e5',
               borderRadius: 6,
@@ -328,13 +573,14 @@ export default function VsStreamBoard({
               background: '#fff',
             }}
           >
-            <option value="L3">L3 process areas</option>
-            <option value="L4">L4 sub-processes</option>
+            <option value="auto">Auto</option>
+            <option value="stages">Stages only</option>
+            <option value="full">Full L4 + L5</option>
           </select>
         </label>
         <span style={{ fontSize: 10.5, color: '#64748b', marginBottom: 10 }}>
-          <b style={{ color: INDIGO }}>■</b> shared across flows · <b style={{ color: AMBER }}>■</b>{' '}
-          duplicated within · aligned columns = same phase · gap = missing in that flow
+          <b style={{ color: INDIGO }}>●</b> shared · <b style={{ color: AMBER }}>●</b> dup within ·{' '}
+          <b style={{ color: '#93b7e0' }}>●</b> unique — L5 atomic steps
         </span>
       </div>
 
@@ -368,106 +614,54 @@ export default function VsStreamBoard({
             }}
           >
             <div>
-              {/* Slot header row — the aligned phases across every flow. */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: `${LANE_LABEL_W}px repeat(${slots.length}, ${SLOT_W}px)`,
-                  gap: 8,
-                  marginBottom: 6,
-                }}
-              >
-                <div />
-                {slots.map((s) => {
-                  const inAll = s.byLane.size === lanes.length;
-                  return (
-                    <div
-                      key={s.key}
-                      style={{
-                        fontSize: 9.5,
-                        fontWeight: 800,
-                        letterSpacing: '.05em',
-                        textTransform: 'uppercase',
-                        color: inAll ? INDIGO : s.byLane.size > 1 ? '#475569' : '#94a3b8',
-                        padding: '2px 6px',
-                        borderBottom: `2px solid ${inAll ? '#c7d2fe' : '#e2e8f0'}`,
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                      title={s.label}
-                    >
-                      {s.label}
-                      <span style={{ fontWeight: 600, color: '#a3a3a3' }}>
-                        {' '}
-                        {s.byLane.size}/{lanes.length}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-              {/* One horizontal flow lane per stream. */}
-              {lanes.map((lane) => (
-                <div
-                  key={lane.id}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: `${LANE_LABEL_W}px repeat(${slots.length}, ${SLOT_W}px)`,
-                    gap: 8,
-                    alignItems: 'center',
-                    marginBottom: 10,
-                  }}
-                >
-                  <div style={{ paddingRight: 8 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.25 }}>
-                      {lane.title}
-                    </div>
-                    <div style={{ fontSize: 10, color: '#a3a3a3' }}>
-                      {lane.subtitle ? `${lane.subtitle} · ` : ''}
-                      {lane.stages.reduce((n, s) => n + s.tasks.length, 0)} steps
-                    </div>
-                  </div>
-                  {slots.map((s) => {
-                    const stageId = s.byLane.get(lane.id);
-                    const stage = stageId ? lane.stages.find((st) => st.id === stageId) : null;
-                    return stage ? (
-                      <StageChevron
-                        key={s.key}
-                        stage={stage}
-                        cmp={cmp}
-                        laneId={lane.id}
-                        selected={selectedSlot === s.key}
-                        onSelect={() => setSelectedSlot(selectedSlot === s.key ? null : s.key)}
-                      />
-                    ) : (
-                      <div
-                        key={s.key}
-                        style={{
-                          height: 62,
-                          border: '1px dashed #e2e8f0',
-                          borderRadius: 8,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: 9.5,
-                          color: '#cbd5e1',
-                          boxSizing: 'border-box',
-                        }}
-                      >
-                        not in this flow
-                      </div>
-                    );
-                  })}
+              {lanes.map((lane, i) => (
+                <div key={lane.id}>
+                  {renderStreamLane(lane)}
+                  {byProduct && renderProductLanes(lane)}
+                  {i === newProcessAt - 1 && lanes.length > 1 && (
+                    <>
+                      <FeedArrow direction="down" />
+                      {renderNewProcessLane()}
+                      <FeedArrow direction="up" />
+                    </>
+                  )}
                 </div>
               ))}
-              {slot && (
-                <PhaseDiff slot={slot} lanes={lanes} onClose={() => setSelectedSlot(null)} />
+              {lanes.length === 1 && renderNewProcessLane()}
+              {selectedSlot && (
+                <PhaseNote slot={slots.find((s) => s.key === selectedSlot) ?? null} lanes={lanes} />
               )}
             </div>
             <ConsolidationRail cmp={cmp} titleOf={titleOf} />
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/** Slot summary under the lanes when a phase chevron is selected. */
+function PhaseNote({ slot, lanes }: { slot: StageSlot | null; lanes: Lane[] }) {
+  if (!slot) return null;
+  const involved = lanes.filter((l) => slot.byLane.has(l.id));
+  const steps = normalizedSteps(slot, lanes);
+  const merged = steps.filter((s) => s.sources > 1).length;
+  return (
+    <div
+      style={{
+        marginTop: 10,
+        border: '1px solid #e2e8f0',
+        borderLeft: `3px solid ${INDIGO}`,
+        borderRadius: 10,
+        background: '#fff',
+        padding: '8px 12px',
+        fontSize: 11.5,
+        color: '#334155',
+      }}
+    >
+      <b>{slot.label}</b> — in {involved.length}/{lanes.length} flows · {steps.length} normalized
+      steps · <b style={{ color: INDIGO }}>{merged} merge across flows</b> · {steps.length - merged}{' '}
+      carry over from a single flow
     </div>
   );
 }
