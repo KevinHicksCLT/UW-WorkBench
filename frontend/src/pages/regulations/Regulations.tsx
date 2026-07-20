@@ -5,6 +5,7 @@ import { useApi } from '../../lib/useApi';
 import { withCompany, Tile } from '../../lib/portfolio';
 import { useRegisterCrumb } from '../../lib/breadcrumbs';
 import { RequirementsTable } from './RequirementsTable';
+import { COMPLIANCE_LENS_KEY } from './compliance/shared';
 
 // Regulations — three lenses, each a FLAT table where every row is ONE atomic
 // regulation. Rows open the regulation's own page (/regulations/requirement/:id);
@@ -104,7 +105,7 @@ const FLAG_PILL: Record<string, string> = {
   STATE_SPECIFIC: 'pill-amber',
 };
 const ACRONYMS = new Set(['SERFF', 'EDI', 'APCD', 'SBS']);
-const flagLabel = (v: string) =>
+export const flagLabel = (v: string) =>
   v
     .split('_')
     .map((w, i) =>
@@ -490,10 +491,16 @@ export default function Regulations() {
   const jurLabel =
     tab === 'State' ? 'Jurisdictions' : tab === 'Federal' ? 'Agencies' : 'Regulators';
 
-  // Compliance bucket — user-flagged requirements, cutting across all three
-  // lenses (not scoped to the active tab).
-  const { data: compliance } = useApi<{ count: number }>(
-    companyId ? withCompany('/regulations/compliance-summary', companyId) : null,
+  // Compliance register (SCRUM-46 v2) — scoped to the active lens; replaces
+  // the old complianceFlagged bucket (the "137" tile was a random placeholder).
+  const { data: compliance } = useApi<{
+    regulations: number;
+    items: number;
+    signOff: { confirmed: number };
+  }>(
+    companyId
+      ? withCompany(`/regulations/compliance-register/summary?lens=${LENS_PARAM[tab]}`, companyId)
+      : null,
   );
 
   return (
@@ -521,9 +528,13 @@ export default function Regulations() {
               compact
               tone="positive"
               label="Compliance"
-              value={compliance.count.toLocaleString()}
-              hint="requirements flagged as compliance practice"
-              onClick={() => navigate('/regulations/compliance')}
+              value={compliance.items.toLocaleString()}
+              hint={`items across ${compliance.regulations.toLocaleString()} ${tab.toLowerCase()} regulations · ${compliance.signOff.confirmed.toLocaleString()} confirmed`}
+              onClick={() => {
+                // Land the register on the lens the user was looking at.
+                sessionStorage.setItem(COMPLIANCE_LENS_KEY, LENS_PARAM[tab]);
+                navigate('/regulations/compliance');
+              }}
             />
           )}
           <Tile
