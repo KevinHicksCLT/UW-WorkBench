@@ -64,6 +64,41 @@ export function ScreenPreview({ screen }: { screen: BoardScreen }) {
       </div>
     );
   }
+  // Image screenshot (scan capture / reconstruction) — render directly instead
+  // of framing a live page.
+  if (/\.(png|jpe?g|webp|gif)$/i.test(screen.url)) {
+    return (
+      <div
+        style={{
+          border: '1px solid #eaeaea',
+          borderRadius: 8,
+          overflow: 'hidden',
+          background: '#fff',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '4px 10px',
+            borderBottom: '1px solid #eaeaea',
+            background: '#fafafa',
+          }}
+        >
+          <span style={{ width: 8, height: 8, borderRadius: 999, background: '#22c55e' }} />
+          <span style={{ fontSize: 10.5, color: '#525252', fontWeight: 600 }}>{screen.name}</span>
+          <span style={{ fontSize: 10, color: '#a3a3a3', marginLeft: 'auto' }}>screen capture</span>
+        </div>
+        <img
+          src={screen.url}
+          alt={`${screen.name} — screen capture`}
+          style={{ display: 'block', width: '100%', height: 'auto' }}
+        />
+      </div>
+    );
+  }
+
   // 1280×800 page scaled to fit the panel width (~500px inner).
   const scale = 0.39;
   return (
