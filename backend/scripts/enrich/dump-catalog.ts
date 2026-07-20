@@ -55,8 +55,22 @@ async function main() {
   });
   const techIds = techDesc.map((d) => d.descendantId);
 
+  // Roles the author may pick from: tech-org-homed roles UNION every role that
+  // currently touches a tech-domain task (guarantees per-VS coverage — e.g.
+  // SOC/IAM roles for Cybersecurity that may home outside TECH_ORGS).
+  const touchingRoles = await prisma.nodeRole.findMany({
+    where: { processNodeId: { in: techIds } },
+    select: { roleId: true },
+    distinct: ['roleId'],
+  });
   const roles = await prisma.role.findMany({
-    where: { companyId, orgUnit: { displayValue: { in: TECH_ORGS } } },
+    where: {
+      companyId,
+      OR: [
+        { orgUnit: { displayValue: { in: TECH_ORGS } } },
+        { id: { in: touchingRoles.map((r) => r.roleId) } },
+      ],
+    },
     select: { id: true, displayValue: true, orgUnit: { select: { displayValue: true } } },
     orderBy: { displayValue: 'asc' },
   });
