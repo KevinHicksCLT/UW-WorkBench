@@ -96,8 +96,10 @@ export function useRowAlignment(
         const target = Math.max(...present.map(eff));
         for (const c of present) {
           // Cap: a runaway measurement (duplicate anchors, mid-layout reads)
-          // must never spiral the board into six-figure margins.
-          const pad = Math.min(1200, Math.max(0, Math.round(target - eff(c))));
+          // must never spiral the board into six-figure margins. High enough
+          // for legit pads though — an expanded all-screens band pushes the
+          // floors below it thousands of px down (SCRUM-259).
+          const pad = Math.min(6000, Math.max(0, Math.round(target - eff(c))));
           next[c][row.key] = pad;
           offset[c] += pad;
         }

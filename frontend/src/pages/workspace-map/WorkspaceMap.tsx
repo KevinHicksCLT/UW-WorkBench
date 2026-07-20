@@ -16,9 +16,10 @@ import {
   computeCrossAppEntries,
   matchScreensAcrossApps,
   synthesizeGreenfield,
+  CORE_AREA,
 } from './compare';
 import { ALL_SCREENS, LAYERS, findingMoves, GREEN, RED, READABLE_FIT_MIN } from './types';
-import type { BoardDetail, Finding, Layer } from './types';
+import type { BoardDetail, Finding, Layer, NormalizationEntry } from './types';
 import { useLayerAlignment, type AlignRow } from './useLayerAlignment';
 import { entryAppIds } from './NormalizeCards';
 
@@ -516,13 +517,20 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
 
   // SCRUM-259: inside an EXPANDED layer, every brownfield step aligns with its
   // normalize card so the per-row connectors run dead horizontal. Pairs are
-  // listed in the Normalize column's render order (shared → unique → pass-
-  // through) so the engine's cumulative walk matches that column's DOM.
+  // listed in the Normalize column's EXACT render order — area sections on the
+  // "all screens" walk, then shared → unique → pass-through inside each — and
+  // the brownfield rows re-sort to the same order (bfRowOrder below), so the
+  // connectors stay parallel and never cross.
   const innerAlign = useMemo(() => {
     const byLayer: Partial<Record<Layer, AlignRow[]>> = {};
     const nzAnchorOf: Record<string, string> = {};
     if (!merged) return { byLayer, nzAnchorOf };
     const findingsById = new Map(merged.findings.map((f) => [f.id, f]));
+    const areaOfF = (f: Finding) => areas?.areaOf.get(f.id) ?? CORE_AREA;
+    const areaOfE = (e: NormalizationEntry) => {
+      const f = e.findingIds.map((id) => findingsById.get(id)).find(Boolean);
+      return f ? areaOfF(f) : CORE_AREA;
+    };
     for (const layer of LAYERS) {
       if (!expandedLayers[layer]) continue;
       const layerScoped = scoped.filter((f) => f.layer === layer);
@@ -531,25 +539,43 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
       const covered = new Set(layerEntries.flatMap((e) => e.findingIds));
       const shared = layerEntries.filter((e) => entryAppIds(e, findingsById).length > 1);
       const unique = layerEntries.filter((e) => entryAppIds(e, findingsById).length <= 1);
-      const rows: AlignRow[] = [];
-      for (const e of [...shared, ...unique]) {
-        const f = layerScoped.find((x) => e.findingIds.includes(x.id));
-        if (!f) continue;
-        const key = `f:${f.id}`;
-        rows.push({ key, bf: `bf:f:${f.id}`, nz: `nz:e:${e.id}`, gf: null });
-        nzAnchorOf[key] = `nz:e:${e.id}`;
-      }
       const pool =
         layerEntries.length > 0 ? layerScoped.filter((f) => !covered.has(f.id)) : layerScoped;
-      for (const f of pool) {
-        const key = `f:${f.id}`;
-        rows.push({ key, bf: `bf:f:${f.id}`, nz: `nz:f:${f.id}`, gf: null });
-        nzAnchorOf[key] = `nz:f:${f.id}`;
+      // Mirror LayerSection: multi-area layers group under functional areas.
+      const names = new Set([...layerEntries.map(areaOfE), ...pool.map(areaOfF)]);
+      const items: { e?: NormalizationEntry; f?: Finding }[] =
+        areas && names.size > 1
+          ? [
+              ...areas.order.filter((a) => names.has(a)),
+              ...[...names].filter((n) => !areas.order.includes(n)),
+            ].flatMap((area) => [
+              ...shared.filter((e) => areaOfE(e) === area).map((e) => ({ e })),
+              ...unique.filter((e) => areaOfE(e) === area).map((e) => ({ e })),
+              ...pool.filter((f) => areaOfF(f) === area).map((f) => ({ f })),
+            ])
+          : [
+              ...shared.map((e) => ({ e })),
+              ...unique.map((e) => ({ e })),
+              ...pool.map((f) => ({ f })),
+            ];
+      const rows: AlignRow[] = [];
+      for (const it of items) {
+        if (it.e) {
+          const f = layerScoped.find((x) => it.e!.findingIds.includes(x.id));
+          if (!f) continue;
+          const key = `f:${f.id}`;
+          rows.push({ key, bf: `bf:f:${f.id}`, nz: `nz:e:${it.e.id}`, gf: null });
+          nzAnchorOf[key] = `nz:e:${it.e.id}`;
+        } else if (it.f) {
+          const key = `f:${it.f.id}`;
+          rows.push({ key, bf: `bf:f:${it.f.id}`, nz: `nz:f:${it.f.id}`, gf: null });
+          nzAnchorOf[key] = `nz:f:${it.f.id}`;
+        }
       }
       byLayer[layer] = rows;
     }
     return { byLayer, nzAnchorOf };
-  }, [merged, scoped, modelEntries, expandedLayers]);
+  }, [merged, scoped, modelEntries, expandedLayers, areas]);
   // SCRUM-222: line each layer's rows up across the three columns so the
   // connectors run horizontally instead of criss-crossing diagonals.
   const pads = useLayerAlignment(

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { LAYERS, GREEN, STATUS_WEIGHT, formatTargetDate } from './types';
+import { entryAppIds } from './NormalizeCards';
 import type {
   BoardComponent,
   BoardMicroservice,
@@ -429,7 +430,14 @@ function MicrositeCard({
         {floors.map((layer) => {
           const comp = byLayer.get(layer);
           if (!comp) return null;
-          const lives = normalizationEntries.filter((e) => e.componentId === comp.id);
+          // Same order as the Normalize column's cards (shared entries first,
+          // then single-app ones) so the two columns' rows never cross.
+          const findingsById = new Map(findings.map((f) => [f.id, f]));
+          const lives = [...normalizationEntries.filter((e) => e.componentId === comp.id)].sort(
+            (a, b) =>
+              (entryAppIds(a, findingsById).length > 1 ? 0 : 1) -
+              (entryAppIds(b, findingsById).length > 1 ? 0 : 1),
+          );
           return (
             <LayerSlot
               key={layer}
@@ -459,13 +467,24 @@ export default function GreenfieldColumn({
   expandedLayers,
   onToggleLayer,
 }: Props) {
+  // Stack the service cards in LAYER order (a card sorts by the highest layer
+  // it hosts) so the connectors from the Normalize bands never cross between
+  // cards — the UI card sits above the Data card, mirroring the band order.
+  const layerRank = (ms: BoardMicroservice): number => {
+    const idxs = components
+      .filter((c) => c.microserviceId === ms.id)
+      .map((c) => LAYERS.indexOf(c.layer))
+      .filter((i) => i >= 0);
+    return idxs.length ? Math.min(...idxs) : LAYERS.length;
+  };
+  const orderedMs = [...microservices].sort((a, b) => layerRank(a) - layerRank(b));
   return (
     <div style={{ width: 340, flexShrink: 0, alignSelf: 'flex-start' }}>
       <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>
         Greenfield
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {microservices.map((ms) => (
+        {orderedMs.map((ms) => (
           <MicrositeCard
             key={ms.id}
             ms={ms}
