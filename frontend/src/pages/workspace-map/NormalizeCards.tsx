@@ -318,11 +318,14 @@ export function EntryCard({
   apps,
   findingsById,
   onResolved,
+  padTop,
 }: {
   entry: NormalizationEntry;
   apps: BoardApp[];
   findingsById: Map<string, Finding>;
   onResolved: () => void;
+  /** Extra top spacing that levels this card with its brownfield step (SCRUM-259). */
+  padTop?: number;
 }) {
   const review = entry.matchStatus === 'REVIEW' || entry.matchStatus === 'HELD';
   const sources = entry.findingIds
@@ -333,11 +336,13 @@ export function EntryCard({
   const border = review ? '#fcd34d' : shared ? '#c7d2fe' : '#e2e8f0';
   return (
     <div
+      data-anchor={`nz:e:${entry.id}`}
       style={{
         border: `1px solid ${border}`,
         borderRadius: 6,
         overflow: 'hidden',
         background: '#fff',
+        marginTop: padTop || undefined,
       }}
     >
       {/* SCRUM-222: instantly tell a consolidation card (fed by 2+ apps) from an
@@ -441,11 +446,12 @@ export function EntryCard({
 }
 
 /** Pass-through card: single-source board, one finding carries over 1→1. */
-export function PassThroughCard({ finding }: { finding: Finding }) {
+export function PassThroughCard({ finding, padTop }: { finding: Finding; padTop?: number }) {
   const moves = findingMoves(finding);
   const border = moves ? '#fecaca' : '#bbf7d0';
   return (
     <div
+      data-anchor={`nz:f:${finding.id}`}
       style={{
         border: `1px solid ${border}`,
         borderRadius: 6,
@@ -453,6 +459,7 @@ export function PassThroughCard({ finding }: { finding: Finding }) {
         display: 'grid',
         gridTemplateColumns: '1fr 140px',
         background: '#fff',
+        marginTop: padTop || undefined,
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>

@@ -96,8 +96,10 @@ export function useRowAlignment(
         const target = Math.max(...present.map(eff));
         for (const c of present) {
           // Cap: a runaway measurement (duplicate anchors, mid-layout reads)
-          // must never spiral the board into six-figure margins.
-          const pad = Math.min(1200, Math.max(0, Math.round(target - eff(c))));
+          // must never spiral the board into six-figure margins. High enough
+          // for legit pads though — an expanded all-screens band pushes the
+          // floors below it thousands of px down (SCRUM-259).
+          const pad = Math.min(6000, Math.max(0, Math.round(target - eff(c))));
           next[c][row.key] = pad;
           offset[c] += pad;
         }
@@ -134,7 +136,11 @@ export function useLayerAlignment(
   boardId: string | null,
   components: BoardComponent[],
   scale: number,
-): ColumnPads {
+  /** Per-row align pairs INSIDE an expanded layer (SCRUM-259: each brownfield
+   *  step lines up with its normalize card). Interleaved after their layer's
+   *  band row so the engine's cumulative walk matches the DOM order. */
+  innerRowsByLayer?: Partial<Record<Layer, AlignRow[]>>,
+): RowPads {
   // Greenfield anchor per layer: the layer's component names its target service.
   // A cross-board comparison brings SEVERAL components per layer (one per
   // board) whose floors stack vertically — aligning to any one of them while
@@ -153,11 +159,14 @@ export function useLayerAlignment(
       .filter(([, keys]) => keys.length === 1)
       .map(([l, keys]) => [l, keys[0]]),
   );
-  const rows: AlignRow[] = LAYERS.map((layer) => ({
-    key: layer,
-    bf: `bf:${layer}`,
-    nz: `nz:${layer}`,
-    gf: gfKey.get(layer) ?? null,
-  }));
-  return useRowAlignment(containerRef, boardId, rows, scale) as ColumnPads;
+  const rows: AlignRow[] = LAYERS.flatMap((layer) => [
+    {
+      key: layer,
+      bf: `bf:${layer}`,
+      nz: `nz:${layer}`,
+      gf: gfKey.get(layer) ?? null,
+    },
+    ...(innerRowsByLayer?.[layer] ?? []),
+  ]);
+  return useRowAlignment(containerRef, boardId, rows, scale);
 }

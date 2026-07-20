@@ -26,6 +26,11 @@ interface Props {
   onSelectFinding: (f: Finding | null) => void;
   /** Per-layer top spacing that lines the layer rows up with the other columns (SCRUM-222). */
   layerPads?: LayerPads;
+  /** Per-step top spacing (by finding id) that levels each expanded row with its normalize card (SCRUM-259). */
+  rowPads?: Record<string, number>;
+  /** Render order (by finding id) matching the Normalize column's card order —
+   *  keeps the per-row connectors parallel instead of crossing. */
+  rowOrder?: Record<string, number>;
   /** Shared per-layer expansion — one toggle opens the layer in every column. */
   expandedLayers: LayerExpansion;
   onToggleLayer: (layer: Layer) => void;
@@ -97,6 +102,8 @@ export default function ScreenView(props: Props) {
     selectedFindingId,
     onSelectFinding,
     layerPads,
+    rowPads,
+    rowOrder,
     expandedLayers,
     onToggleLayer,
   } = props;
@@ -243,137 +250,147 @@ export default function ScreenView(props: Props) {
             </button>
             {open && layerRows.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', padding: '4px 6px' }}>
-                {layerRows.map((f) => {
-                  const moved = findingMoves(f);
-                  const selected = f.id === selectedFindingId;
-                  return (
-                    <div key={f.id}>
-                      <button
-                        type="button"
-                        onClick={() => onSelectFinding(selected ? null : f)}
-                        style={{
-                          width: '100%',
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: 8,
-                          padding: '5px 8px',
-                          boxSizing: 'border-box',
-                          borderRadius: 6,
-                          cursor: 'pointer',
-                          font: 'inherit',
-                          textAlign: 'left',
-                          border: selected
-                            ? `1.5px solid ${moved ? '#fca5a5' : '#86efac'}`
-                            : '1.5px solid transparent',
-                          background: selected ? (moved ? '#fef2f2' : '#f0fdf4') : 'transparent',
-                        }}
+                {[...layerRows]
+                  .sort(
+                    (a, b) =>
+                      (rowOrder?.[a.id] ?? Number.MAX_SAFE_INTEGER) -
+                      (rowOrder?.[b.id] ?? Number.MAX_SAFE_INTEGER),
+                  )
+                  .map((f) => {
+                    const moved = findingMoves(f);
+                    const selected = f.id === selectedFindingId;
+                    return (
+                      <div
+                        key={f.id}
+                        data-anchor={`bf:f:${f.id}`}
+                        style={{ marginTop: rowPads?.[f.id] || undefined }}
                       >
-                        <span
+                        <button
+                          type="button"
+                          onClick={() => onSelectFinding(selected ? null : f)}
                           style={{
-                            width: 15,
-                            height: 15,
-                            borderRadius: 999,
-                            background: moved ? '#fee2e2' : '#dcfce7',
-                            border: `1px solid ${moved ? '#fca5a5' : '#86efac'}`,
-                            color: moved ? RED : GREEN,
-                            fontSize: 9,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontWeight: 700,
-                            flexShrink: 0,
-                            marginTop: 1,
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: 8,
+                            padding: '5px 8px',
+                            boxSizing: 'border-box',
+                            borderRadius: 6,
+                            cursor: 'pointer',
+                            font: 'inherit',
+                            textAlign: 'left',
+                            border: selected
+                              ? `1.5px solid ${moved ? '#fca5a5' : '#86efac'}`
+                              : '1.5px solid transparent',
+                            background: selected ? (moved ? '#fef2f2' : '#f0fdf4') : 'transparent',
                           }}
                         >
-                          {moved ? '✕' : '✓'}
-                        </span>
-                        <span style={{ flex: 1, minWidth: 0 }}>
                           <span
-                            style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}
+                            style={{
+                              width: 15,
+                              height: 15,
+                              borderRadius: 999,
+                              background: moved ? '#fee2e2' : '#dcfce7',
+                              border: `1px solid ${moved ? '#fca5a5' : '#86efac'}`,
+                              color: moved ? RED : GREEN,
+                              fontSize: 9,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 700,
+                              flexShrink: 0,
+                              marginTop: 1,
+                            }}
                           >
+                            {moved ? '✕' : '✓'}
+                          </span>
+                          <span style={{ flex: 1, minWidth: 0 }}>
                             <span
-                              style={{
-                                fontSize: 12.5,
-                                fontWeight: moved ? 700 : 600,
-                                color: moved ? '#991b1b' : '#171717',
-                                minWidth: 0,
-                              }}
+                              style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}
                             >
-                              {f.name}
-                            </span>
-                            {f.category && (
                               <span
                                 style={{
-                                  padding: '0 5px',
-                                  border: '1px solid #e2e8f0',
-                                  borderRadius: 4,
-                                  color: '#64748b',
-                                  fontSize: 9.5,
-                                  fontWeight: 600,
-                                  whiteSpace: 'nowrap',
-                                  flexShrink: 0,
+                                  fontSize: 12.5,
+                                  fontWeight: moved ? 700 : 600,
+                                  color: moved ? '#991b1b' : '#171717',
+                                  minWidth: 0,
                                 }}
                               >
-                                {f.category}
+                                {f.name}
+                              </span>
+                              {f.category && (
+                                <span
+                                  style={{
+                                    padding: '0 5px',
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: 4,
+                                    color: '#64748b',
+                                    fontSize: 9.5,
+                                    fontWeight: 600,
+                                    whiteSpace: 'nowrap',
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  {f.category}
+                                </span>
+                              )}
+                            </span>
+                            {f.plainSummary && (
+                              <span
+                                style={{
+                                  display: 'block',
+                                  fontSize: 11,
+                                  color: '#525252',
+                                  lineHeight: 1.4,
+                                  marginTop: 1,
+                                }}
+                              >
+                                {f.plainSummary}
+                              </span>
+                            )}
+                            {f.codeRef && (
+                              <span
+                                style={{
+                                  display: 'block',
+                                  fontSize: 9.5,
+                                  color: '#94a3b8',
+                                  fontFamily: 'ui-monospace, monospace',
+                                  marginTop: 2,
+                                  wordBreak: 'break-all',
+                                }}
+                              >
+                                {f.codeRef}
                               </span>
                             )}
                           </span>
-                          {f.plainSummary && (
+                          {moved && (
                             <span
                               style={{
-                                display: 'block',
-                                fontSize: 11,
-                                color: '#525252',
-                                lineHeight: 1.4,
-                                marginTop: 1,
+                                padding: '1px 7px',
+                                borderRadius: 4,
+                                background: RED,
+                                color: '#fff',
+                                fontSize: 10,
+                                fontWeight: 600,
+                                whiteSpace: 'nowrap',
+                                flexShrink: 0,
                               }}
                             >
-                              {f.plainSummary}
+                              →{' '}
+                              {f.deadCode
+                                ? 'Dead code'
+                                : f.capdan === 'Eliminate'
+                                  ? 'Retire'
+                                  : (f.targetLayer ?? f.recommendedLayer ?? 'move')}
                             </span>
                           )}
-                          {f.codeRef && (
-                            <span
-                              style={{
-                                display: 'block',
-                                fontSize: 9.5,
-                                color: '#94a3b8',
-                                fontFamily: 'ui-monospace, monospace',
-                                marginTop: 2,
-                                wordBreak: 'break-all',
-                              }}
-                            >
-                              {f.codeRef}
-                            </span>
-                          )}
-                        </span>
-                        {moved && (
-                          <span
-                            style={{
-                              padding: '1px 7px',
-                              borderRadius: 4,
-                              background: RED,
-                              color: '#fff',
-                              fontSize: 10,
-                              fontWeight: 600,
-                              whiteSpace: 'nowrap',
-                              flexShrink: 0,
-                            }}
-                          >
-                            →{' '}
-                            {f.deadCode
-                              ? 'Dead code'
-                              : f.capdan === 'Eliminate'
-                                ? 'Retire'
-                                : (f.targetLayer ?? f.recommendedLayer ?? 'move')}
-                          </span>
+                        </button>
+                        {selected && (f.whyThisMoves || f.plainSummary || f.codeRef) && (
+                          <WhyDetail f={f} />
                         )}
-                      </button>
-                      {selected && (f.whyThisMoves || f.plainSummary || f.codeRef) && (
-                        <WhyDetail f={f} />
-                      )}
-                    </div>
-                  );
-                })}
+                      </div>
+                    );
+                  })}
               </div>
             )}
           </div>

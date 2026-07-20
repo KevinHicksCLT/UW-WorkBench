@@ -29,6 +29,10 @@ interface Props {
   onSelectFinding: (f: Finding | null) => void;
   /** Per-layer top spacing that lines this panel's rows up with the other columns (SCRUM-222). */
   layerPads?: LayerPads;
+  /** Per-step top spacing (by finding id) that levels each expanded row with its normalize card (SCRUM-259). */
+  rowPads?: Record<string, number>;
+  /** Render order (by finding id) matching the Normalize column's card order. */
+  rowOrder?: Record<string, number>;
   /** Shared per-layer expansion — one toggle opens the layer in every column. */
   expandedLayers: LayerExpansion;
   onToggleLayer: (layer: Layer) => void;
@@ -101,6 +105,8 @@ export default function BrownfieldPanel(props: Props) {
     selectedFindingId,
     onSelectFinding,
     layerPads,
+    rowPads,
+    rowOrder,
     expandedLayers,
     onToggleLayer,
   } = props;
@@ -156,6 +162,8 @@ export default function BrownfieldPanel(props: Props) {
         selectedFindingId={selectedFindingId}
         onSelectFinding={onSelectFinding}
         layerPads={layerPads}
+        rowPads={rowPads}
+        rowOrder={rowOrder}
         expandedLayers={expandedLayers}
         onToggleLayer={onToggleLayer}
       />

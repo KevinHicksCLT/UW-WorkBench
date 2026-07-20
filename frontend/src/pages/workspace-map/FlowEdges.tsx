@@ -71,6 +71,11 @@ export function useEdges(
   containerRef: RefObject<HTMLElement | null>,
   specs: EdgeSpec[],
   scale: number,
+  /** Value key of the row-alignment pads. The alignment hook's ResizeObserver
+   *  mutates layout inside observer callbacks, and the browser DROPS the
+   *  resulting notifications for other observers in that frame — without this
+   *  dep the connectors freeze on pre-alignment geometry. */
+  refreshKey?: string,
 ): Edge[] {
   const [edges, setEdges] = useState<Edge[]>([]);
   // Effect dependency by value: the spec list is rebuilt each render, so key it.
@@ -118,30 +123,25 @@ export function useEdges(
       ro.disconnect();
       window.removeEventListener('resize', compute);
     };
-  }, [containerRef, specsKey, scale]);
+  }, [containerRef, specsKey, scale, refreshKey]);
 
   return edges;
 }
 
-// Smooth-step routing (orthogonal with rounded corners): out horizontally,
-// turn down the column gutter, turn again, land horizontally. Stays crisp on
-// the tall drops this board has — a bezier there degenerates into a kinked
-// near-vertical dive — and the arrowhead always enters its anchor flat.
-function bezier(e: Edge): string {
-  const { x0, y0, x1, y1 } = e;
-  const dy = y1 - y0;
-  if (Math.abs(dy) < 2) return `M${x0},${y0} L${x1},${y1}`;
-  const midX = (x0 + x1) / 2 + e.lane * 7;
-  const r = Math.min(14, Math.abs(dy) / 2, Math.abs(x1 - x0) / 2);
-  const sy = dy > 0 ? 1 : -1;
-  return [
-    `M${x0},${y0}`,
-    `L${(midX - r).toFixed(1)},${y0}`,
-    `Q${midX.toFixed(1)},${y0} ${midX.toFixed(1)},${(y0 + sy * r).toFixed(1)}`,
-    `L${midX.toFixed(1)},${(y1 - sy * r).toFixed(1)}`,
-    `Q${midX.toFixed(1)},${y1} ${(midX + r).toFixed(1)},${y1}`,
-    `L${x1},${y1}`,
-  ].join(' ');
+// Straight-line routing: each connector runs point to point. The arrowhead
+// markers use orient="auto", so they stay aligned with the line's angle.
+// Rows are aligned by useRowAlignment to within its tolerance; the few px of
+// rounding residual left over would still read as a slant, so anything close
+// to horizontal SNAPS to the midpoint and draws dead level. Genuinely
+// unaligned edges keep their true angle.
+const SNAP = 9;
+function straight(e: Edge): string {
+  const dy = e.y1 - e.y0;
+  if (dy !== 0 && Math.abs(dy) <= SNAP) {
+    const y = ((e.y0 + e.y1) / 2).toFixed(1);
+    return `M${e.x0},${y} L${e.x1},${y}`;
+  }
+  return `M${e.x0},${e.y0} L${e.x1},${e.y1}`;
 }
 
 /** SVG overlay of every connector plus its count pill. Non-interactive. */
@@ -171,7 +171,7 @@ export function FlowEdges({ edges }: { edges: Edge[] }) {
       {edges.map((e) => (
         <path
           key={e.id}
-          d={bezier(e)}
+          d={straight(e)}
           stroke={e.color}
           strokeWidth={e.width}
           opacity={e.dim ? 0.18 : 1}
