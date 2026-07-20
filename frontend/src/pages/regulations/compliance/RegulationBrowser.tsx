@@ -255,10 +255,10 @@ export function RegulationBrowser({
                   </td>
                   <td className="px-3 py-2 max-w-xl">
                     <div className="font-medium text-[#171717]">{r.name}</div>
-                    <div className="text-[12px] text-[#737373] line-clamp-2 mt-0.5">
+                    <div className="text-[12px] text-[#737373] mt-0.5">
                       {r.representativeRequirement}
                     </div>
-                    <div className="text-[11px] text-[#a3a3a3] mt-0.5 line-clamp-1">
+                    <div className="text-[11px] text-[#a3a3a3] mt-0.5">
                       {[
                         lobLabels(r.lineOfBusiness),
                         `Impacts: ${
