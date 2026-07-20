@@ -45,6 +45,7 @@ function GreenfieldSlot({
   decisions,
   dim,
   padTop,
+  rowPads,
   open,
   onToggle,
 }: {
@@ -52,6 +53,8 @@ function GreenfieldSlot({
   decisions: Decisions;
   dim: boolean;
   padTop: number;
+  /** Full pad map — inner rows read their `${component}:${groupKey}` pads (SCRUM-259). */
+  rowPads?: Record<string, number>;
   open: boolean;
   onToggle: () => void;
 }) {
@@ -170,7 +173,16 @@ function GreenfieldSlot({
               const el = Object.values(g.perVersion).find((e) => e) ?? null;
               const adopted = g.status !== 'COMMON' && g.status !== 'SINGLE';
               return (
-                <div key={g.key} style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <div
+                  key={g.key}
+                  data-anchor={`gf:model:${row.component}:${g.key}`}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1,
+                    marginTop: rowPads?.[`${row.component}:${g.key}`] || undefined,
+                  }}
+                >
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: '#166534' }}>
                       {g.name}
@@ -312,6 +324,7 @@ export default function ProductGreenfieldColumn({
               (matchFilter ? row.groups.filter((g) => g.status === matchFilter).length : 0) === 0
             }
             padTop={rowPads?.[row.component] ?? 0}
+            rowPads={rowPads}
             open={!!expandedComponents[row.component]}
             onToggle={() => onToggleComponent(row.component)}
           />

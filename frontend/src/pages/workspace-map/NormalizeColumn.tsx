@@ -37,6 +37,9 @@ interface Props {
   onResolved: () => void;
   /** Per-layer top spacing that lines this column's rows up with the others (SCRUM-222). */
   layerPads?: LayerPads;
+  /** Per-card top spacing (keyed by the card's connector anchor) that levels
+   *  each card with its brownfield step (SCRUM-259). */
+  cardPads?: Record<string, number>;
   /** Shared per-layer expansion — one toggle opens the layer in every column. */
   expandedLayers: LayerExpansion;
   onToggleLayer: (layer: Layer) => void;
@@ -121,6 +124,7 @@ function LayerSection({
   areas,
   onResolved,
   padTop,
+  cardPads,
   open,
   onToggle,
 }: {
@@ -131,6 +135,7 @@ function LayerSection({
   areas?: AreaModel;
   onResolved: () => void;
   padTop: number;
+  cardPads?: Record<string, number>;
   open: boolean;
   onToggle: () => void;
 }) {
@@ -268,6 +273,7 @@ function LayerSection({
                     apps={apps}
                     findingsById={findingsById}
                     onResolved={onResolved}
+                    padTop={cardPads?.[`nz:e:${e.id}`]}
                   />
                 ))}
                 {s.unique.map((e) => (
@@ -277,10 +283,11 @@ function LayerSection({
                     apps={apps}
                     findingsById={findingsById}
                     onResolved={onResolved}
+                    padTop={cardPads?.[`nz:e:${e.id}`]}
                   />
                 ))}
                 {s.pass.map((f) => (
-                  <PassThroughCard key={f.id} finding={f} />
+                  <PassThroughCard key={f.id} finding={f} padTop={cardPads?.[`nz:f:${f.id}`]} />
                 ))}
               </div>
             ))}
@@ -301,6 +308,7 @@ function LayerSection({
                     apps={apps}
                     findingsById={findingsById}
                     onResolved={onResolved}
+                    padTop={cardPads?.[`nz:e:${e.id}`]}
                   />
                 ))}
                 {grouped && uniqueEntries.length > 0 && (
@@ -313,19 +321,22 @@ function LayerSection({
                     apps={apps}
                     findingsById={findingsById}
                     onResolved={onResolved}
+                    padTop={cardPads?.[`nz:e:${e.id}`]}
                   />
                 ))}
                 {uncovered.length > 0 && (
                   <>
                     {grouped && <GroupHead kind="passthrough" count={uncovered.length} />}
                     {uncovered.map((f) => (
-                      <PassThroughCard key={f.id} finding={f} />
+                      <PassThroughCard key={f.id} finding={f} padTop={cardPads?.[`nz:f:${f.id}`]} />
                     ))}
                   </>
                 )}
               </>
             ) : (
-              rows.map((f) => <PassThroughCard key={f.id} finding={f} />)
+              rows.map((f) => (
+                <PassThroughCard key={f.id} finding={f} padTop={cardPads?.[`nz:f:${f.id}`]} />
+              ))
             )}
           </div>
         </div>
@@ -341,6 +352,7 @@ export default function NormalizeColumn({
   areas,
   onResolved,
   layerPads,
+  cardPads,
   expandedLayers,
   onToggleLayer,
 }: Props) {
@@ -470,6 +482,7 @@ export default function NormalizeColumn({
             areas={areas}
             onResolved={onResolved}
             padTop={layerPads?.[layer] ?? 0}
+            cardPads={cardPads}
             open={!!expandedLayers[layer]}
             onToggle={() => onToggleLayer(layer)}
           />

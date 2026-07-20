@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { LAYERS, GREEN, STATUS_WEIGHT, formatTargetDate } from './types';
+import { entryAppIds } from './NormalizeCards';
 import type {
   BoardComponent,
   BoardMicroservice,
@@ -29,6 +30,12 @@ interface Props {
   normalizationEntries: NormalizationEntry[];
   /** Per-layer top spacing that lines each service card up with its layer row (SCRUM-222). */
   layerPads?: LayerPads;
+  /** Per-row top spacing (keyed by the row's connector anchor) that levels
+   *  each expanded floor row with its normalize card (SCRUM-259). */
+  rowPads?: Record<string, number>;
+  /** Render order (keyed `e:<entryId>` / `f:<findingId>`) matching the
+   *  Normalize column's card order — keeps the connectors parallel. */
+  rowOrder?: Record<string, number>;
   /** Shared per-layer expansion — one toggle opens the layer in every column. */
   expandedLayers: LayerExpansion;
   onToggleLayer: (layer: Layer) => void;
@@ -69,6 +76,9 @@ function LayerSlot({
   lives,
   landed,
   anchor,
+  padTop,
+  rowPads,
+  rowOrder,
   open,
   onToggle,
 }: {
@@ -79,6 +89,13 @@ function LayerSlot({
   /** The findings that carry into this floor (pass-through boards list these). */
   landed: Finding[];
   anchor: string;
+  /** Alignment spacing that levels THIS floor with its layer band — applied per
+   *  floor (not per card) so several floors inside one card can spread apart. */
+  padTop?: number;
+  /** Per-row spacing keyed by the row's connector anchor (SCRUM-259). */
+  rowPads?: Record<string, number>;
+  /** Render order matching the Normalize column's cards. */
+  rowOrder?: Record<string, number>;
   open: boolean;
   onToggle: () => void;
 }) {
@@ -90,6 +107,16 @@ function LayerSlot({
   const covered = new Set(lives.flatMap((e) => e.findingIds));
   const passThrough = landed.filter((f) => !covered.has(f.id));
   const inCount = lives.length + passThrough.length;
+  // One merged list, in the Normalize column's order, so the per-row
+  // connectors from Normalize land here without crossing (SCRUM-259).
+  const floorRows: { key: string; e?: NormalizationEntry; f?: Finding }[] = [
+    ...lives.map((e) => ({ key: `e:${e.id}`, e })),
+    ...passThrough.map((f) => ({ key: `f:${f.id}`, f })),
+  ].sort(
+    (a, b) =>
+      (rowOrder?.[a.key] ?? Number.MAX_SAFE_INTEGER) -
+      (rowOrder?.[b.key] ?? Number.MAX_SAFE_INTEGER),
+  );
   return (
     <div
       data-anchor={anchor}
@@ -98,6 +125,7 @@ function LayerSlot({
         borderRadius: 8,
         background: '#f8fffb',
         overflow: 'hidden',
+        marginTop: padTop || undefined,
       }}
     >
       <button
@@ -214,41 +242,58 @@ function LayerSlot({
           {inCount === 0 && (
             <span style={{ fontSize: 10.5, color: '#a3a3a3' }}>Nothing lands on this floor.</span>
           )}
-          {lives.map((e) => (
-            <div key={e.id} style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-              {e.notation && (
-                <span
-                  style={{
-                    fontSize: 9,
-                    fontWeight: 800,
-                    color: '#4f46e5',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {e.notation}
+          {floorRows.map(({ key, e, f }) =>
+            e ? (
+              <div
+                key={key}
+                data-anchor={`${anchor}:${key}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  gap: 6,
+                  marginTop: rowPads?.[`${anchor}:${key}`] || undefined,
+                }}
+              >
+                {e.notation && (
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 800,
+                      color: '#4f46e5',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {e.notation}
+                  </span>
+                )}
+                <span style={{ fontSize: 11, color: '#1e1b4b', fontWeight: 600 }}>{e.name}</span>
+                <span style={{ fontSize: 10, color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                  {e.findingIds.length}→1
                 </span>
-              )}
-              <span style={{ fontSize: 11, color: '#1e1b4b', fontWeight: 600 }}>{e.name}</span>
-              <span style={{ fontSize: 10, color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                {e.findingIds.length}→1
-              </span>
-            </div>
-          ))}
-          {/* Findings no entry covers carry 1→1 — listed after the merged
-              entries so the floor stays comprehensive. */}
-          {passThrough.map((f) => (
-            <div key={f.id} style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                <span style={{ fontSize: 11, color: '#166534', fontWeight: 700 }}>{f.name}</span>
-                <span style={{ fontSize: 9.5, color: '#94a3b8', whiteSpace: 'nowrap' }}>1→1</span>
               </div>
-              {f.plainSummary && (
-                <span style={{ fontSize: 10, color: '#525252', lineHeight: 1.35 }}>
-                  {f.plainSummary}
-                </span>
-              )}
-            </div>
-          ))}
+            ) : (
+              <div
+                key={key}
+                data-anchor={`${anchor}:${key}`}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1,
+                  marginTop: rowPads?.[`${anchor}:${key}`] || undefined,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: '#166534', fontWeight: 700 }}>{f!.name}</span>
+                  <span style={{ fontSize: 9.5, color: '#94a3b8', whiteSpace: 'nowrap' }}>1→1</span>
+                </div>
+                {f!.plainSummary && (
+                  <span style={{ fontSize: 10, color: '#525252', lineHeight: 1.35 }}>
+                    {f!.plainSummary}
+                  </span>
+                )}
+              </div>
+            ),
+          )}
         </div>
       )}
     </div>
@@ -260,7 +305,9 @@ function MicrositeCard({
   components,
   findings,
   normalizationEntries,
-  padTop,
+  layerPads,
+  rowPads,
+  rowOrder,
   expandedLayers,
   onToggleLayer,
 }: {
@@ -268,7 +315,9 @@ function MicrositeCard({
   components: BoardComponent[];
   findings: Finding[];
   normalizationEntries: NormalizationEntry[];
-  padTop: number;
+  layerPads?: LayerPads;
+  rowPads?: Record<string, number>;
+  rowOrder?: Record<string, number>;
   expandedLayers: LayerExpansion;
   onToggleLayer: (layer: Layer) => void;
 }) {
@@ -309,7 +358,6 @@ function MicrositeCard({
         boxShadow: tone.shadow,
         boxSizing: 'border-box',
         overflow: 'hidden',
-        marginTop: padTop || undefined,
       }}
     >
       {/* compact header line — expand for stack / owner / target / progress */}
@@ -425,7 +473,14 @@ function MicrositeCard({
         {floors.map((layer) => {
           const comp = byLayer.get(layer);
           if (!comp) return null;
-          const lives = normalizationEntries.filter((e) => e.componentId === comp.id);
+          // Same order as the Normalize column's cards (shared entries first,
+          // then single-app ones) so the two columns' rows never cross.
+          const findingsById = new Map(findings.map((f) => [f.id, f]));
+          const lives = [...normalizationEntries.filter((e) => e.componentId === comp.id)].sort(
+            (a, b) =>
+              (entryAppIds(a, findingsById).length > 1 ? 0 : 1) -
+              (entryAppIds(b, findingsById).length > 1 ? 0 : 1),
+          );
           return (
             <LayerSlot
               key={layer}
@@ -434,6 +489,9 @@ function MicrositeCard({
               lives={lives}
               landed={landingFindings(layer)}
               anchor={`gf:${ms.id}:${layer}`}
+              padTop={layerPads?.[layer]}
+              rowPads={rowPads}
+              rowOrder={rowOrder}
               open={!!expandedLayers[layer]}
               onToggle={() => onToggleLayer(layer)}
             />
@@ -451,29 +509,38 @@ export default function GreenfieldColumn({
   findingsByMs,
   normalizationEntries,
   layerPads,
+  rowPads,
+  rowOrder,
   expandedLayers,
   onToggleLayer,
 }: Props) {
-  // The alignment pad of a service card is the pad of the layer whose
-  // component lands on it (each card hosts one layer's component here).
-  const padFor = (ms: BoardMicroservice): number => {
-    const layer = components.find((c) => c.microserviceId === ms.id)?.layer;
-    return (layer && layerPads?.[layer]) || 0;
+  // Stack the service cards in LAYER order (a card sorts by the highest layer
+  // it hosts) so the connectors from the Normalize bands never cross between
+  // cards — the UI card sits above the Data card, mirroring the band order.
+  const layerRank = (ms: BoardMicroservice): number => {
+    const idxs = components
+      .filter((c) => c.microserviceId === ms.id)
+      .map((c) => LAYERS.indexOf(c.layer))
+      .filter((i) => i >= 0);
+    return idxs.length ? Math.min(...idxs) : LAYERS.length;
   };
+  const orderedMs = [...microservices].sort((a, b) => layerRank(a) - layerRank(b));
   return (
     <div style={{ width: 340, flexShrink: 0, alignSelf: 'flex-start' }}>
       <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>
         Greenfield
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {microservices.map((ms) => (
+        {orderedMs.map((ms) => (
           <MicrositeCard
             key={ms.id}
             ms={ms}
             components={components}
             findings={findingsByMs?.get(ms.id) ?? findings}
             normalizationEntries={normalizationEntries}
-            padTop={padFor(ms)}
+            layerPads={layerPads}
+            rowPads={rowPads}
+            rowOrder={rowOrder}
             expandedLayers={expandedLayers}
             onToggleLayer={onToggleLayer}
           />
