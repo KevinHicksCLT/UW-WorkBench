@@ -464,6 +464,8 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
           });
         });
       } else {
+        // A stay/move pair splits SYMMETRICALLY (same offset both ends) so the
+        // two connectors run parallel and horizontal, never at a slant.
         if (stays > 0)
           out.push({
             id: `s-${layer}`,
@@ -474,7 +476,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
             count: stays,
             dim,
             y0Offset: both ? -12 : 0,
-            y1Offset: both ? -8 : 0,
+            y1Offset: both ? -12 : 0,
             lane: both ? base - 1 : base,
           });
         if (moves > 0)
@@ -487,7 +489,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
             count: moves,
             dim,
             y0Offset: both ? 14 : 0,
-            y1Offset: both ? 10 : 0,
+            y1Offset: both ? 14 : 0,
             lane: both ? base + 1 : base,
           });
       }

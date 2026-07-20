@@ -130,7 +130,17 @@ export function useEdges(
 
 // Straight-line routing: each connector runs point to point. The arrowhead
 // markers use orient="auto", so they stay aligned with the line's angle.
+// Rows are aligned by useRowAlignment to within its tolerance; the few px of
+// rounding residual left over would still read as a slant, so anything close
+// to horizontal SNAPS to the midpoint and draws dead level. Genuinely
+// unaligned edges keep their true angle.
+const SNAP = 9;
 function straight(e: Edge): string {
+  const dy = e.y1 - e.y0;
+  if (dy !== 0 && Math.abs(dy) <= SNAP) {
+    const y = ((e.y0 + e.y1) / 2).toFixed(1);
+    return `M${e.x0},${y} L${e.x1},${y}`;
+  }
   return `M${e.x0},${e.y0} L${e.x1},${e.y1}`;
 }
 

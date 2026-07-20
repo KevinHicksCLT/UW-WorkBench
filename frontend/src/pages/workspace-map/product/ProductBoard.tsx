@@ -360,6 +360,8 @@ export default function ProductBoard({
           });
         });
       } else {
+        // A settled/review pair splits SYMMETRICALLY (same offset both ends)
+        // so the two connectors run parallel and horizontal, never at a slant.
         if (settled > 0)
           out.push({
             id: `s-${row.component}`,
@@ -370,7 +372,7 @@ export default function ProductBoard({
             count: settled,
             dim,
             y0Offset: both ? -12 : 0,
-            y1Offset: both ? -8 : 0,
+            y1Offset: both ? -12 : 0,
             lane: both ? base - 1 : base,
           });
         if (review > 0)
@@ -383,7 +385,7 @@ export default function ProductBoard({
             count: review,
             dim,
             y0Offset: both ? 14 : 0,
-            y1Offset: both ? 10 : 0,
+            y1Offset: both ? 14 : 0,
             lane: both ? base + 1 : base,
           });
       }
