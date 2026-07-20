@@ -5,7 +5,7 @@ import { AMBER, INDIGO } from '../types';
 import { Picker, ConsolidationRail, type PoolOption } from './SpineBoard';
 import { LaneChip, MapCard, TaskCard, clamp2 } from './mapCards';
 import { compareSpineColumns, type SpineComparison, type SpineItem } from './spineCompare';
-import { useRoleDetails, useRoleList, type RoleDetail } from './useSpineData';
+import { useRoleDetails, useRoleList, useStreamList, type RoleDetail } from './useSpineData';
 
 // Roles lens — a TASK-level comparison in the map's card language, displayed
 // vertically: one column per picked role, the actual tasks compared head to
@@ -81,18 +81,24 @@ export default function RoleCompareBoard({
     () => [...new Set((roles ?? []).map((r) => r.division).filter((d): d is string => !!d))].sort(),
     [roles],
   );
-  // Division filter narrows WHICH ROLES can be picked.
+  // Both filters narrow the ROLE DROPDOWN: Division by org home, Value stream
+  // by where the role actually works. Already-picked roles stay listed so the
+  // current comparison never breaks.
   const pool: PoolOption[] = useMemo(
     () =>
       (roles ?? [])
-        .filter((r) => !division || r.division === division)
+        .filter(
+          (r) =>
+            ids.includes(r.id) ||
+            ((!division || r.division === division) && (!stream || r.streams.includes(stream))),
+        )
         .map((r) => ({
           id: r.id,
           label: r.name,
           group: [r.division, r.department].filter(Boolean).join(' › ') || 'Unassigned',
           hint: `${r.ownedTasks + r.participantTasks} tasks`,
         })),
-    [roles, division],
+    [roles, division, stream, ids],
   );
 
   const allColumns: RoleColumn[] = useMemo(() => {
@@ -103,14 +109,10 @@ export default function RoleCompareBoard({
       .map(toColumn);
   }, [details, ids]);
 
-  // Value-stream filter narrows the TASKS being compared.
-  const streams = useMemo(
-    () =>
-      [
-        ...new Set(allColumns.flatMap((c) => c.tasks.map((t) => t.valueStream ?? 'Unmapped'))),
-      ].sort(),
-    [allColumns],
-  );
+  // Value-stream filter options come from the full spine — it narrows both
+  // the role dropdown (above) and the TASKS being compared (below).
+  const { data: streamList } = useStreamList();
+  const streams = useMemo(() => (streamList ?? []).map((s) => s.name).sort(), [streamList]);
   const columns: RoleColumn[] = useMemo(
     () =>
       allColumns.map((c) => ({

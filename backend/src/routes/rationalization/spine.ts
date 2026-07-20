@@ -4,7 +4,7 @@
 // participated tasks — so the boards compare live data, nothing authored.
 import type { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../../db/prisma.js';
-import { ancestorNames, processSubtree } from '../../lib/resolvers/index.js';
+import { ancestorNames, processSubtree, streamAncestry } from '../../lib/resolvers/index.js';
 import { activeCompanyId } from './helpers.js';
 
 export function registerSpineRoutes(router: Router) {
@@ -140,6 +140,22 @@ export function registerSpineRoutes(router: Router) {
         byRole.set(c.roleId, r);
       }
 
+      // Which value streams each role works in — lets the comparison filter
+      // the ROLE DROPDOWN by stream, not just the compared tasks.
+      const links = await prisma.nodeRole.findMany({
+        where: { role: { companyId }, processNode: { isTask: true } },
+        select: { roleId: true, processNodeId: true },
+      });
+      const ancestry = await streamAncestry([...new Set(links.map((l) => l.processNodeId))]);
+      const streamsBy = new Map<string, Set<string>>();
+      for (const l of links) {
+        const vs = ancestry.get(l.processNodeId)?.valueStreamName;
+        if (!vs) continue;
+        const s = streamsBy.get(l.roleId) ?? new Set<string>();
+        s.add(vs);
+        streamsBy.set(l.roleId, s);
+      }
+
       res.json(
         roles.map((r) => ({
           id: r.id,
@@ -149,6 +165,7 @@ export function registerSpineRoutes(router: Router) {
           division: r.orgUnit?.parent?.displayValue ?? null,
           ownedTasks: byRole.get(r.id)?.owner ?? 0,
           participantTasks: byRole.get(r.id)?.participant ?? 0,
+          streams: [...(streamsBy.get(r.id) ?? [])].sort(),
         })),
       );
     } catch (e) {

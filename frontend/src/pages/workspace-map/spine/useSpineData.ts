@@ -31,6 +31,8 @@ export interface RoleSummary {
   division: string | null;
   ownedTasks: number;
   participantTasks: number;
+  /** Value streams this role works in (filters the role dropdown). */
+  streams: string[];
 }
 
 export interface RoleDetail {
