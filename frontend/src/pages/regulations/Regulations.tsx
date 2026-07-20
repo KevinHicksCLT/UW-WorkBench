@@ -490,11 +490,12 @@ export default function Regulations() {
   const jurLabel =
     tab === 'State' ? 'Jurisdictions' : tab === 'Federal' ? 'Agencies' : 'Regulators';
 
-  // Compliance bucket — user-flagged requirements, cutting across all three
-  // lenses (not scoped to the active tab).
-  const { data: compliance } = useApi<{ count: number }>(
-    companyId ? withCompany('/regulations/compliance-summary', companyId) : null,
-  );
+  // Compliance register (SCRUM-46 v2) — cross-lens; replaces the old
+  // complianceFlagged bucket (the "137" tile was a random placeholder).
+  const { data: compliance } = useApi<{
+    items: number;
+    signOff: { confirmed: number };
+  }>(companyId ? withCompany('/regulations/compliance-register/summary', companyId) : null);
 
   return (
     <div>
@@ -521,8 +522,8 @@ export default function Regulations() {
               compact
               tone="positive"
               label="Compliance"
-              value={compliance.count.toLocaleString()}
-              hint="requirements flagged as compliance practice"
+              value={compliance.items.toLocaleString()}
+              hint={`compliance items · ${compliance.signOff.confirmed.toLocaleString()} confirmed by Legal`}
               onClick={() => navigate('/regulations/compliance')}
             />
           )}

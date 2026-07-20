@@ -8,8 +8,52 @@
  * nothing is authoritative until signOff = CONFIRMED.
  */
 import type { Router, Request, Response, NextFunction } from 'express';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../db/prisma.js';
-import { activeCompanyId, str, list } from './helpers.js';
+import { activeCompanyId, str, list, lensRegulatorTypes } from './helpers.js';
+
+/**
+ * Classifies every regulation in the register into ONE lens (state / federal /
+ * international) by the majority regulator type of its linked L3 source rows —
+ * so per-lens tile counts always sum back to the workbook totals. Derived at
+ * read time from the FK linkage (one grouped query), never stored.
+ */
+async function regulationLensMap(companyId: string): Promise<Map<string, string>> {
+  const rows = await prisma.$queryRaw<
+    { regId: string; regulatorType: string; n: bigint }[]
+  >(Prisma.sql`
+    SELECT rr."complianceRegulationId" AS "regId", j."regulatorType", count(*)::bigint AS n
+    FROM "RegulatoryRequirement" rr
+    JOIN "Jurisdiction" j ON j.id = rr."jurisdictionId"
+    WHERE rr."companyId" = ${companyId} AND rr."complianceRegulationId" IS NOT NULL
+    GROUP BY 1, 2
+  `);
+  const toLens = (rt: string) =>
+    rt === 'INTERNATIONAL' ? 'international' : rt.startsWith('FEDERAL') ? 'federal' : 'state';
+  const tally = new Map<string, Map<string, number>>();
+  for (const r of rows) {
+    const perReg = tally.get(r.regId) ?? new Map<string, number>();
+    const lens = toLens(r.regulatorType);
+    perReg.set(lens, (perReg.get(lens) ?? 0) + Number(r.n));
+    tally.set(r.regId, perReg);
+  }
+  const map = new Map<string, string>();
+  for (const [regId, perReg] of tally) {
+    let best = 'state';
+    let bestN = -1;
+    for (const [lens, n] of perReg) if (n > bestN) [best, bestN] = [lens, n];
+    map.set(regId, best);
+  }
+  return map;
+}
+
+/** Regulation ids belonging to a lens, or null when no lens filter applies. */
+async function lensRegulationIds(companyId: string, lens: unknown): Promise<string[] | null> {
+  const v = str(lens);
+  if (!v || !['state', 'federal', 'international'].includes(v)) return null;
+  const map = await regulationLensMap(companyId);
+  return [...map.entries()].filter(([, l]) => l === v).map(([id]) => id);
+}
 
 const ITEM_LIST_SELECT = {
   id: true,
@@ -38,6 +82,14 @@ export function registerComplianceRoutes(router: Router): void {
       try {
         const companyId = await activeCompanyId(req, res);
         if (!companyId) return;
+        // Optional ?lens=state|federal|international scopes every tile to the
+        // regulations classified into that lens (per-lens tiles sum to the
+        // workbook totals). Informational rows carry no regulation link, so
+        // they scope by their own jurisdiction's regulator type.
+        const regIds = await lensRegulationIds(companyId, req.query.lens);
+        const regScope = regIds ? { regulationId: { in: regIds } } : {};
+        const itemWhere = { companyId, ...regScope };
+        const lensTypes = regIds ? lensRegulatorTypes(req.query.lens) : null;
         const [
           regulations,
           items,
@@ -49,20 +101,34 @@ export function registerComplianceRoutes(router: Router): void {
           variants,
           promoted,
         ] = await Promise.all([
-          prisma.complianceRegulation.count({ where: { companyId } }),
-          prisma.complianceItem.count({ where: { companyId } }),
-          prisma.regulatoryRequirement.count({ where: { companyId, complianceRequired: true } }),
-          prisma.regulatoryRequirement.count({ where: { companyId, complianceRequired: false } }),
-          prisma.complianceItem.groupBy({ by: ['signOff'], where: { companyId }, _count: true }),
-          prisma.complianceItem.groupBy({ by: ['confidence'], where: { companyId }, _count: true }),
+          regIds
+            ? Promise.resolve(regIds.length)
+            : prisma.complianceRegulation.count({ where: { companyId } }),
+          prisma.complianceItem.count({ where: itemWhere }),
+          prisma.regulatoryRequirement.count({
+            where: {
+              companyId,
+              complianceRequired: true,
+              ...(regIds ? { complianceRegulationId: { in: regIds } } : {}),
+            },
+          }),
+          prisma.regulatoryRequirement.count({
+            where: {
+              companyId,
+              complianceRequired: false,
+              ...(lensTypes ? { jurisdiction: { regulatorType: { in: lensTypes } } } : {}),
+            },
+          }),
+          prisma.complianceItem.groupBy({ by: ['signOff'], where: itemWhere, _count: true }),
+          prisma.complianceItem.groupBy({ by: ['confidence'], where: itemWhere, _count: true }),
           prisma.complianceItem.groupBy({
             by: ['groundingBasis'],
-            where: { companyId },
+            where: itemWhere,
             _count: true,
           }),
-          prisma.complianceJurisdictionVariant.count({ where: { companyId } }),
+          prisma.complianceJurisdictionVariant.count({ where: itemWhere }),
           prisma.complianceJurisdictionVariant.count({
-            where: { companyId, promotedItemId: { not: null } },
+            where: { ...itemWhere, promotedItemId: { not: null } },
           }),
         ]);
         const tally = (
@@ -121,7 +187,8 @@ export function registerComplianceRoutes(router: Router): void {
               }
             : {}),
         };
-        const [regs, signOffByReg, reqByReg, variantByReg] = await Promise.all([
+        const [lensMap, regs, signOffByReg, reqByReg, variantByReg] = await Promise.all([
+          regulationLensMap(companyId),
           prisma.complianceRegulation.findMany({
             where,
             orderBy: { regCode: 'asc' },
@@ -137,6 +204,9 @@ export function registerComplianceRoutes(router: Router): void {
               productImpact: true,
               processImpact: true,
               systemImpact: true,
+              evidenceRequired: true,
+              dueDate: true,
+              representativeRequirement: true,
             },
           }),
           prisma.complianceItem.groupBy({
@@ -164,14 +234,18 @@ export function registerComplianceRoutes(router: Router): void {
         }
         const reqCounts = new Map(reqByReg.map((r) => [r.complianceRegulationId, r._count]));
         const variantCounts = new Map(variantByReg.map((r) => [r.regulationId, r._count]));
+        const lens = str(req.query.lens);
         res.json({
-          rows: regs.map((r) => ({
-            ...r,
-            itemCount: itemStats.get(r.id)?.total ?? 0,
-            confirmedCount: itemStats.get(r.id)?.confirmed ?? 0,
-            requirementRowCount: reqCounts.get(r.id) ?? 0,
-            variantCount: variantCounts.get(r.id) ?? 0,
-          })),
+          rows: regs
+            .filter((r) => !lens || (lensMap.get(r.id) ?? 'state') === lens)
+            .map((r) => ({
+              ...r,
+              lens: lensMap.get(r.id) ?? 'state',
+              itemCount: itemStats.get(r.id)?.total ?? 0,
+              confirmedCount: itemStats.get(r.id)?.confirmed ?? 0,
+              requirementRowCount: reqCounts.get(r.id) ?? 0,
+              variantCount: variantCounts.get(r.id) ?? 0,
+            })),
         });
       } catch (e) {
         next(e);
@@ -216,8 +290,10 @@ export function registerComplianceRoutes(router: Router): void {
         const companyId = await activeCompanyId(req, res);
         if (!companyId) return;
         const search = str(req.query.search);
+        const lensIds = await lensRegulationIds(companyId, req.query.lens);
         const where = {
           companyId,
+          ...(lensIds ? { regulationId: { in: lensIds } } : {}),
           ...(list(req.query.signOff) ? { signOff: { in: list(req.query.signOff) } } : {}),
           ...(list(req.query.confidence) ? { confidence: { in: list(req.query.confidence) } } : {}),
           ...(str(req.query.groundingBasis)
@@ -316,7 +392,7 @@ export function registerComplianceRoutes(router: Router): void {
           }),
           prisma.regulatoryRequirement.findMany({
             where: { companyId, complianceRegulationId: item.regulation.id },
-            orderBy: [{ citationUrl: { sort: 'desc', nulls: 'last' } }, { title: 'asc' }],
+            orderBy: [{ jurisdiction: { name: 'asc' } }, { title: 'asc' }],
             take: 25,
             select: {
               id: true,
