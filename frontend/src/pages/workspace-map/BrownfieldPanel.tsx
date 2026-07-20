@@ -1,29 +1,110 @@
 import ScreenView from './ScreenView';
-import { findingMoves, GREEN, RED } from './types';
-import type { BoardScreen, Finding } from './types';
+import { APP_COLORS } from './types';
+import type { BoardApp, BoardScreen, Finding, Layer, LayerExpansion, LayerPads } from './types';
 
-// Left column — the current state of ONE application, walked screen by screen.
-// All the board's legacy sources (e.g. a frontend and a backend of the same
-// product) are merged into this single panel; every screen shows its full
-// vertical slice across the tech layers (see ScreenView).
+// Left column — the current state of ONE application of the comparison at a
+// time, walked screen by screen. When several applications are being compared,
+// a toggle strip switches which brownfield state the panel is showing —
+// Normalize and Greenfield keep aggregating the whole comparison regardless.
+// The layer decomposition leads; the live screen preview sits below it so the
+// layers and the Normalize column share the top of the viewport.
 
 interface Props {
-  /** Application title — the board's application name (one app per board). */
+  /** Panel title — the active application's name. */
   title: string;
-  /** All findings of the application (every legacy source merged). */
+  /** Every application in the comparison (the toggle strip). */
+  apps: BoardApp[];
+  /** Which application's brownfield state the panel is walking. */
+  activeAppId: string;
+  onActiveApp: (id: string) => void;
+  /** Findings of the ACTIVE application only. */
   findings: Finding[];
+  /** Screens of EVERY compared application — the picker lists the whole
+   *  comparison (identical dropdown on every app toggle); picking another
+   *  application's screen switches the walk to that application. */
   screens: BoardScreen[];
   screenName: string | null;
   onScreen: (name: string | null) => void;
   selectedFindingId: string | null;
   onSelectFinding: (f: Finding | null) => void;
+  /** Per-layer top spacing that lines this panel's rows up with the other columns (SCRUM-222). */
+  layerPads?: LayerPads;
+  /** Shared per-layer expansion — one toggle opens the layer in every column. */
+  expandedLayers: LayerExpansion;
+  onToggleLayer: (layer: Layer) => void;
+}
+
+/** Toggle strip: one chip per compared application, the active one filled. */
+function AppToggle({
+  apps,
+  activeAppId,
+  onActiveApp,
+}: {
+  apps: BoardApp[];
+  activeAppId: string;
+  onActiveApp: (id: string) => void;
+}) {
+  return (
+    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      {apps.map((a, i) => {
+        const active = a.id === activeAppId;
+        const color = APP_COLORS[i % APP_COLORS.length];
+        return (
+          <button
+            key={a.id}
+            type="button"
+            onClick={() => onActiveApp(a.id)}
+            aria-pressed={active}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '3px 10px',
+              borderRadius: 999,
+              border: `1px solid ${active ? '#171717' : '#e5e5e5'}`,
+              background: active ? '#171717' : '#fff',
+              color: active ? '#fff' : '#525252',
+              fontSize: 11,
+              fontWeight: 600,
+              cursor: 'pointer',
+              font: 'inherit',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 999,
+                background: color,
+                flexShrink: 0,
+              }}
+            />
+            {a.name}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function BrownfieldPanel(props: Props) {
-  const { title, findings, screens, screenName, onScreen, selectedFindingId, onSelectFinding } =
-    props;
-  const stays = findings.filter((f) => !findingMoves(f)).length;
-  const moves = findings.length - stays;
+  const {
+    title,
+    apps,
+    activeAppId,
+    onActiveApp,
+    findings,
+    screens,
+    screenName,
+    onScreen,
+    selectedFindingId,
+    onSelectFinding,
+    layerPads,
+    expandedLayers,
+    onToggleLayer,
+  } = props;
+  const activeApp = apps.find((a) => a.id === activeAppId) ?? null;
   const screenCount = new Set(findings.map((f) => f.screenRef).filter(Boolean)).size;
 
   return (
@@ -61,35 +142,22 @@ export default function BrownfieldPanel(props: Props) {
         </span>
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          minHeight: 20,
-          fontSize: 12,
-          color: '#525252',
-          fontVariantNumeric: 'tabular-nums',
-        }}
-      >
-        <span>what each screen captures · sends · processes · validates</span>
-        <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-          <span style={{ width: 12, height: 3, borderRadius: 99, background: GREEN }} />
-          <b style={{ fontWeight: 600, color: GREEN }}>{stays} correct</b>
-        </span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-          <span style={{ width: 12, height: 3, borderRadius: 99, background: RED }} />
-          <b style={{ fontWeight: 600, color: RED }}>{moves} move</b>
-        </span>
-      </div>
+      {apps.length > 1 && (
+        <AppToggle apps={apps} activeAppId={activeAppId} onActiveApp={onActiveApp} />
+      )}
 
       <ScreenView
+        apps={apps}
+        activeAppId={activeApp?.id ?? null}
         screens={screens}
         findings={findings}
         screenName={screenName}
         onScreen={onScreen}
         selectedFindingId={selectedFindingId}
         onSelectFinding={onSelectFinding}
+        layerPads={layerPads}
+        expandedLayers={expandedLayers}
+        onToggleLayer={onToggleLayer}
       />
     </div>
   );

@@ -38,6 +38,16 @@ export interface EdgeSpec {
   lane?: number;
 }
 
+/** Connectors and row alignment both target the row's HEADER line, not its
+ *  centre: an expanded section grows downward, so its anchor stays put at the
+ *  header and the three columns keep lining up top-aligned. ~half a collapsed
+ *  header's height; shorter elements fall back to their true centre. */
+export const HEADER_ANCHOR_Y = 17;
+
+export function anchorY(r: DOMRect): number {
+  return r.top + Math.min(r.height / 2, HEADER_ANCHOR_Y);
+}
+
 function anchorPoint(
   el: Element,
   side: Side,
@@ -46,7 +56,7 @@ function anchorPoint(
 ): { x: number; y: number } {
   const r = el.getBoundingClientRect();
   const x = side === 'right' ? r.right : r.left;
-  const y = r.top + r.height / 2;
+  const y = anchorY(r);
   return { x: (x - origin.left) / scale, y: (y - origin.top) / scale };
 }
 

@@ -788,6 +788,17 @@ model Application {
   name               String
   kind               String             @default("Tool") // SystemOfRecord | Tool | Service
   isInternal         Boolean            @default(true)
+  description        String? // what the app does — the detail page's "What it does"
+  // Codebase-scan block: the repo a knowledge-base agent reads plus the live
+  // app URL. scanStatus gates the Workspace map — only SCANNED apps appear.
+  repoUrl            String? // GitHub/GitLab repository URL
+  appUrl             String? // URL of the running application
+  scanStatus         String             @default("NOT_SCANNED") // NOT_SCANNED | SCANNED
+  scannedAt          DateTime?
+  // What the scan gathered: repo metadata (languages, size, activity) fetched
+  // from the GitHub/GitLab API at scan time. Board-derived contents are NOT
+  // stored here — they derive at read from the rationalization tables.
+  scanSummary        Json?
   // Preserved TCO / catalog fields (from the legacy Application model).
   ownershipModel     String? // Hybrid | In-house | SaaS
   licenseCost        Float?
@@ -816,6 +827,7 @@ model Application {
   nodeStandardEvidences     NodeStandardEvidence[]
   nodeRegulationEvidences   NodeRegulationEvidence[]
   rationalizationWorkspaces RationalizationWorkspace[]
+  rationalizationApps       RationalizationApp[]
 
   @@index([companyId])
   @@index([orgUnitId])
@@ -1901,6 +1913,10 @@ model RationalizationApp {
   companyId    String
   workspaceId  String
   workspace    RationalizationWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  // Estate-catalog link — every board app IS an Application row; board data
+  // hangs off the catalog as the single source of truth.
+  applicationId String?
+  applicationRef Application?            @relation(fields: [applicationId], references: [id], onDelete: SetNull)
   name         String
   description  String?
   kind         String                   @default("LEGACY") // LEGACY | SHARED_SERVICE — shared services (MDM/RDM, auth, docs) render in their own lane (WR-15)
@@ -1923,6 +1939,7 @@ model RationalizationApp {
 
   @@index([companyId])
   @@index([workspaceId])
+  @@index([applicationId])
 }
 
 model RationalizationComponent {

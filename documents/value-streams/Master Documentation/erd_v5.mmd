@@ -197,6 +197,12 @@ erDiagram
     string category
     string vendor
     bool illustrative
+    string description "what the app does (detail page)"
+    string repoUrl "GitHub/GitLab repo for the scan agent (nullable)"
+    string appUrl "live application URL (nullable)"
+    string scanStatus "NOT_SCANNED|SCANNED — gates the Workspace map"
+    datetime scannedAt "nullable"
+    json scanSummary "repo metadata fetched at scan time (languages, size, activity)"
   }
   IntegrationSource {
     string status "NEW v3 — systems-of-record sync + delta tracking"
@@ -768,6 +774,7 @@ erDiagram
     string id PK
     string companyId FK
     string workspaceId FK
+    string applicationId FK "-> Application (nullable) — estate catalog is the single source of truth"
     string name
     string kind "LEGACY|SHARED_SERVICE (WR-15)"
     string disposition
@@ -1248,6 +1255,7 @@ erDiagram
   Company ||--o{ RationalizationWorkspace : "rationalizes"
   ProcessNode |o--o{ RationalizationWorkspace : "value-stream link"
   RationalizationWorkspace ||--o{ RationalizationApp : "decomposes"
+  Application ||--o{ RationalizationApp : "board columns (single source of truth)"
   RationalizationWorkspace ||--o{ RationalizationComponent : "normalizes"
   RationalizationWorkspace ||--o{ RationalizationCapability : "finds"
   RationalizationWorkspace ||--o{ RationalizationMicroservice : "targets"
