@@ -104,7 +104,7 @@ const FLAG_PILL: Record<string, string> = {
   STATE_SPECIFIC: 'pill-amber',
 };
 const ACRONYMS = new Set(['SERFF', 'EDI', 'APCD', 'SBS']);
-const flagLabel = (v: string) =>
+export const flagLabel = (v: string) =>
   v
     .split('_')
     .map((w, i) =>

@@ -18,6 +18,7 @@ import {
   Select,
   StatusPill,
 } from '../../../components/ui';
+import { catLabel, flagLabel } from '../Regulations';
 import {
   ConfidenceBadge,
   SignOffBadge,
@@ -26,6 +27,20 @@ import {
   type RegulationRow,
   type VariantRow,
 } from './shared';
+
+/** "PRODUCT_FILING, LICENSING" → "Product filing, Licensing". */
+const categoryLabels = (raw: string) =>
+  raw
+    .split(',')
+    .map((c) => catLabel(c.trim()))
+    .join(', ');
+
+/** "ALL, LIFE, NON_LIFE" → "All lines, Life, Non life". */
+const lobLabels = (raw: string) =>
+  raw
+    .split(',')
+    .map((t) => (t.trim() === 'ALL' ? 'All lines' : flagLabel(t.trim())))
+    .join(', ');
 
 type RegDetail = RegulationRow & { items: ItemRow[]; variants: VariantRow[] };
 
@@ -203,7 +218,7 @@ export function RegulationBrowser({
           <option value="">All categories</option>
           {categories.map((c) => (
             <option key={c} value={c}>
-              {c}
+              {catLabel(c)}
             </option>
           ))}
         </Select>
@@ -248,7 +263,7 @@ export function RegulationBrowser({
                     </div>
                     <div className="text-[11px] text-[#a3a3a3] mt-0.5 line-clamp-1">
                       {[
-                        r.lineOfBusiness === 'ALL' ? 'All lines' : r.lineOfBusiness,
+                        lobLabels(r.lineOfBusiness),
                         `Impacts: ${
                           [
                             r.productImpact && 'Product',
@@ -266,7 +281,7 @@ export function RegulationBrowser({
                     </div>
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap">{LENS_LABEL[r.lens] ?? r.lens}</td>
-                  <td className="px-3 py-2 whitespace-nowrap">{r.category}</td>
+                  <td className="px-3 py-2 max-w-[220px]">{categoryLabels(r.category)}</td>
                   <td className="px-3 py-2 whitespace-nowrap">{r.jurisdictionScope}</td>
                   <td className="px-3 py-2">{r.ownerTeam}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{r.itemCount}</td>
