@@ -699,7 +699,86 @@ erDiagram
     string regime "GDPR|CCPA-CPRA|NYDFS-500|SERFF|IIPRC|IAIABC-EDI|..."
     string confidence "BASELINE|VERIFIED|DERIVED|STALE"
     string agentSkill "FB-59 — SDLC skill for migrated privacy/cyber regimes"
-    boolean complianceFlagged "user-flagged as a compliance practice the company follows"
+    boolean complianceFlagged "user-flagged as a compliance practice the company follows (superseded by register)"
+    string complianceRegulationId FK "nullable -> ComplianceRegulation (SCRUM-46 L3 linkage)"
+    boolean complianceRequired "nullable; true=binding(B) false=informational(I) null=not assessed"
+    string notRequiredReason "why an informational row carries no obligation"
+  }
+  ComplianceRegulation {
+    string status "SCRUM-46 L1 — enforced regime/program (what is the rule)"
+    string id PK
+    string companyId FK
+    string regCode "REG-001 natural key, unique per company"
+    string name "Regulation / Program"
+    string category "same vocabulary as RegulatoryRequirement.category"
+    string lineOfBusiness
+    string jurisdictionScope
+    boolean productImpact
+    boolean processImpact
+    boolean systemImpact
+    string ownerTeam
+    string frequency
+    string dueDate
+    string evidenceRequired
+    string auditStatus
+    string representativeRequirement "verbatim example from source rows"
+    string sampleCitations
+  }
+  ComplianceItem {
+    string status "SCRUM-46 L2 — atomic auditable task (what must we do)"
+    string id PK
+    string companyId FK
+    string regulationId FK "-> ComplianceRegulation"
+    string itemCode "REG-001-C01 natural key, unique per company"
+    string name "the task"
+    string ownerTeam
+    string frequency
+    string evidence
+    string jurisdictionScope
+    string auditStatus
+    int supportingReqRows "L3 rows backing this item"
+    string groundingBasis "ITEM|REGULATION"
+    int officialSourceRows
+    int jurisdictionsCovered
+    string representativeRequirement
+    string repJurisdiction
+    string supportingCitations "top 3, official first"
+    string frequencyDerived
+    string frequencyAlignment "MATCH|REVIEW|NO_SIGNAL"
+    string deadlineSignals
+    string determinationStatus "GROUNDED|GROUNDED_NON_OFFICIAL|PARTIAL|NOT_GROUNDED"
+    string confidence "HIGH|MEDIUM|LOW"
+    string signOff "PENDING|CONFIRMED|REJECTED|NEEDS_RESEARCH"
+    string reviewer
+    string reviewNotes
+  }
+  ComplianceItemRequirement {
+    string status "reviewer-selected supporting L3 rows for an item"
+    string id PK
+    string companyId FK
+    string complianceItemId FK "-> ComplianceItem"
+    string requirementId FK "-> RegulatoryRequirement"
+  }
+  ComplianceJurisdictionVariant {
+    string status "per-jurisdiction deadline variant; promotable to bespoke L2 item"
+    string id PK
+    string companyId FK
+    string regulationId FK "-> ComplianceRegulation"
+    string jurisdiction "free-text regulator/jurisdiction label"
+    string deadlineVariant
+    string requirementTitle
+    string citation
+    string promotedItemId FK "nullable -> ComplianceItem once promoted"
+  }
+  ComplianceSignOffEvent {
+    string status "append-only sign-off audit trail"
+    string id PK
+    string companyId FK
+    string complianceItemId FK "-> ComplianceItem"
+    string action "CONFIRM|REJECT|NEEDS_RESEARCH|RESET|PROMOTE"
+    string reviewer
+    string note
+    datetime createdAt
   }
   LineOfBusiness {
     string id PK
@@ -1155,6 +1234,13 @@ erDiagram
   Role ||--o{ RoleRegulation : "owns/contributes"
   RegulatoryRequirement ||--o{ RequirementLineOfBusiness : "applies-to"
   LineOfBusiness ||--o{ RequirementLineOfBusiness : "governs"
+  ComplianceRegulation ||--o{ ComplianceItem : "requires"
+  ComplianceRegulation ||--o{ RegulatoryRequirement : "grounded-in"
+  ComplianceRegulation ||--o{ ComplianceJurisdictionVariant : "varies-by"
+  ComplianceItem ||--o{ ComplianceItemRequirement : "supported-by"
+  RegulatoryRequirement ||--o{ ComplianceItemRequirement : "supports"
+  ComplianceItem ||--o{ ComplianceSignOffEvent : "audited-by"
+  ComplianceItem ||--o{ ComplianceJurisdictionVariant : "promoted-from"
   ProcessNode ||--o{ NodeStandard : ""
   Standard ||--o{ NodeStandard : ""
   Role ||--o{ RoleStandard : "owns/follows"
@@ -1369,6 +1455,11 @@ erDiagram
   style RiskScoringBand fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
   style Jurisdiction fill:#FEF9E7,stroke:#D4AC0D,stroke-width:2px,color:#7D6608
   style RegulatoryRequirement fill:#FEF9E7,stroke:#D4AC0D,stroke-width:2px,color:#7D6608
+  style ComplianceRegulation fill:#FEF9E7,stroke:#D4AC0D,stroke-width:2px,color:#7D6608
+  style ComplianceItem fill:#FEF9E7,stroke:#D4AC0D,stroke-width:2px,color:#7D6608
+  style ComplianceItemRequirement fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style ComplianceJurisdictionVariant fill:#FEF9E7,stroke:#D4AC0D,stroke-width:2px,color:#7D6608
+  style ComplianceSignOffEvent fill:#FEF9E7,stroke:#D4AC0D,stroke-width:2px,color:#7D6608
   style RegulatorySource fill:#FEF9E7,stroke:#D4AC0D,stroke-width:2px,color:#7D6608
   style RegulatoryBulletin fill:#FEF9E7,stroke:#D4AC0D,stroke-width:2px,color:#7D6608
   style ComplianceRule fill:#FEF9E7,stroke:#D4AC0D,stroke-width:2px,color:#7D6608

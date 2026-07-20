@@ -23,15 +23,15 @@ datasource db {
 // ─── Tenancy & Identity (reusable infra) ────────────────────────────────
 
 model Tenant {
-  id             String          @id @default(cuid())
-  name           String
-  slug           String          @unique
-  createdAt      DateTime        @default(now())
-  users          User[]
-  companies      Company[]
-  auditEntries   AuditEntry[]
-  permissionSets PermissionSet[]
-  apiKeys        ApiKey[]
+  id               String            @id @default(cuid())
+  name             String
+  slug             String            @unique
+  createdAt        DateTime          @default(now())
+  users            User[]
+  companies        Company[]
+  auditEntries     AuditEntry[]
+  permissionSets   PermissionSet[]
+  apiKeys          ApiKey[]
   approvalPolicies ApprovalPolicy[]
   approvalRequests ApprovalRequest[]
 }
@@ -322,57 +322,59 @@ model Company {
   dashboardConfig Json?
 
   // Org spine
-  orgLevelTypes             OrgLevelType[]
-  orgUnits                  OrgUnit[]
-  roles                     Role[]
+  orgLevelTypes                 OrgLevelType[]
+  orgUnits                      OrgUnit[]
+  roles                         Role[]
   // Value-stream spine
-  processLevelTypes         ProcessLevelType[]
-  processNodes              ProcessNode[]
+  processLevelTypes             ProcessLevelType[]
+  processNodes                  ProcessNode[]
   // Product spine
-  productLevelTypes         ProductLevelType[]
-  productNodes              ProductNode[]
+  productLevelTypes             ProductLevelType[]
+  productNodes                  ProductNode[]
   // Work & control
-  deliverables              Deliverable[]
-  checklists                Checklist[]
-  standards                 Standard[]
-  applications              Application[]
-  workTemplates             WorkTemplate[]
-  integrationSources        IntegrationSource[]
+  deliverables                  Deliverable[]
+  checklists                    Checklist[]
+  standards                     Standard[]
+  applications                  Application[]
+  workTemplates                 WorkTemplate[]
+  integrationSources            IntegrationSource[]
   // Initiative & metric
-  initiatives               Initiative[]
-  metrics                   Metric[]
+  initiatives                   Initiative[]
+  metrics                       Metric[]
   // External parties / agent enablement
-  externalParties           ExternalParty[]
-  knowledgeBases            KnowledgeBase[]
-  skillFiles                SkillFile[]
+  externalParties               ExternalParty[]
+  knowledgeBases                KnowledgeBase[]
+  skillFiles                    SkillFile[]
   // Admin & cross-cutting
-  terminology               Terminology[]
+  terminology                   Terminology[]
   // Portfolio SPM
-  programs                  Program[]
-  workstreams               Workstream[]
-  portfolioInitiatives      PortfolioInitiative[]
-  strategicObjectives       StrategicObjective[]
-  riskScoringBands          RiskScoringBand[]
+  programs                      Program[]
+  workstreams                   Workstream[]
+  portfolioInitiatives          PortfolioInitiative[]
+  strategicObjectives           StrategicObjective[]
+  riskScoringBands              RiskScoringBand[]
   // Regulations
-  jurisdictions             Jurisdiction[]
-  integrationSystems        IntegrationSystem[]
-  regulatoryRequirements    RegulatoryRequirement[]
-  regulatoryBulletins       RegulatoryBulletin[]
-  complianceRules           ComplianceRule[]
-  regulatorySources         RegulatorySource[]
-  linesOfBusiness           LineOfBusiness[]
-  requirementLinesOfBusiness RequirementLineOfBusiness[]
+  jurisdictions                 Jurisdiction[]
+  integrationSystems            IntegrationSystem[]
+  regulatoryRequirements        RegulatoryRequirement[]
+  regulatoryBulletins           RegulatoryBulletin[]
+  complianceRules               ComplianceRule[]
+  regulatorySources             RegulatorySource[]
+  linesOfBusiness               LineOfBusiness[]
+  requirementLinesOfBusiness    RequirementLineOfBusiness[]
+  complianceRegulations         ComplianceRegulation[]
+  complianceItems               ComplianceItem[]
   // App Rationalization
-  rationalizationWorkspaces RationalizationWorkspace[]
-  anatomyCategories         AnatomyCategory[]
+  rationalizationWorkspaces     RationalizationWorkspace[]
+  anatomyCategories             AnatomyCategory[]
   // Product Model Rationalization
-  productModelWorkspaces      ProductModelWorkspace[]
+  productModelWorkspaces        ProductModelWorkspace[]
   productModelAnatomyCategories ProductModelAnatomyCategory[]
-  workspaceVocabularies       WorkspaceVocabulary[]
+  workspaceVocabularies         WorkspaceVocabulary[]
   // Scenario / telemetry / analysis
-  scenarios                 Scenario[]
-  telemetrySignals          TelemetrySignal[]
-  analysisStatuses          AnalysisStatus[]
+  scenarios                     Scenario[]
+  telemetrySignals              TelemetrySignal[]
+  analysisStatuses              AnalysisStatus[]
 
   @@unique([tenantId, slug])
 }
@@ -464,10 +466,10 @@ model Role {
   checklistItems                ChecklistItem[]
   roleDeliverables              RoleDeliverable[]
   nodeRoles                     NodeRole[]
-  reassignedNodeRoles           NodeRole[]                   @relation("NodeRoleReassignedTo")
+  reassignedNodeRoles           NodeRole[]                    @relation("NodeRoleReassignedTo")
   roleStandards                 RoleStandard[]
   roleRegulations               RoleRegulation[]
-  ownedStandards                Standard[]                   @relation("StandardOwnerRole")
+  ownedStandards                Standard[]                    @relation("StandardOwnerRole")
   externalInteractions          ExternalInteraction[]
   metrics                       Metric[]
   auditEntries                  AuditEntry[]
@@ -527,26 +529,26 @@ model ProcessLevelType {
 
 // VALUE STREAM = ProcessNode at L2; L5/isTask = Task.
 model ProcessNode {
-  id                 String           @id @default(cuid())
-  companyId          String
-  company            Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  processLevelTypeId String
-  processLevelType   ProcessLevelType @relation(fields: [processLevelTypeId], references: [id])
-  parentId           String?
-  parent             ProcessNode?     @relation("ProcessNodeTree", fields: [parentId], references: [id])
-  children           ProcessNode[]    @relation("ProcessNodeTree")
-  dbValue            String
-  displayValue       String // EDITABLE label
-  description        String? // atomic task: what is done / definition of done
-  isTask             Boolean          @default(false)
-  automatability     String? // manual | augmented | automated
-  agentSkill            String?   // slug → generated agent-skill pack in SkillFile (task-scoped, e.g. "task-<id>")
+  id                    String           @id @default(cuid())
+  companyId             String
+  company               Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  processLevelTypeId    String
+  processLevelType      ProcessLevelType @relation(fields: [processLevelTypeId], references: [id])
+  parentId              String?
+  parent                ProcessNode?     @relation("ProcessNodeTree", fields: [parentId], references: [id])
+  children              ProcessNode[]    @relation("ProcessNodeTree")
+  dbValue               String
+  displayValue          String // EDITABLE label
+  description           String? // atomic task: what is done / definition of done
+  isTask                Boolean          @default(false)
+  automatability        String? // manual | augmented | automated
+  agentSkill            String? // slug → generated agent-skill pack in SkillFile (task-scoped, e.g. "task-<id>")
   agentSkillGeneratedAt DateTime? // when the task's agent-skill pack was last (re)generated
-  sortOrder          Int              @default(0)
-  code               String?
-  attributes         Json?
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
+  sortOrder             Int              @default(0)
+  code                  String?
+  attributes            Json?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
 
   // Closure (both directions)
   ancestorEdges   ProcessNodeClosure[] @relation("ProcessNodeClosureAncestor")
@@ -1078,7 +1080,7 @@ model WorkTemplate {
   isDefault   Boolean  @default(false) // seeded library default (Core evidence is always applied)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 
   keys            WorkTemplateKey[]
   nodeLinks       NodeWorkTemplate[]
@@ -1163,7 +1165,7 @@ model NodeTemplateAnswer {
   templateKeyId String?
   templateKey   WorkTemplateKey? @relation(fields: [templateKeyId], references: [id], onDelete: Cascade)
   customKey     String?
-  kind          String?          // CHECKLIST | TEST — block placement for custom steps (derived from the template for generic keys)
+  kind          String? // CHECKLIST | TEST — block placement for custom steps (derived from the template for generic keys)
   value         String?
   applicationId String?
   application   Application?     @relation(fields: [applicationId], references: [id], onDelete: SetNull)
@@ -1174,7 +1176,7 @@ model NodeTemplateAnswer {
   suppressed    Boolean          @default(false)
   sortOrder     Int              @default(0)
   createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt @default(now())
+  updatedAt     DateTime         @default(now()) @updatedAt
 
   @@unique([processNodeId, templateKeyId])
   @@index([processNodeId])
@@ -1190,7 +1192,7 @@ model StandardTemplateAnswer {
   templateKeyId String?
   templateKey   WorkTemplateKey? @relation(fields: [templateKeyId], references: [id], onDelete: Cascade)
   customKey     String?
-  kind          String?          // CHECKLIST | TEST — block placement for custom steps (derived from the template for generic keys)
+  kind          String? // CHECKLIST | TEST — block placement for custom steps (derived from the template for generic keys)
   value         String?
   applicationId String?
   application   Application?     @relation(fields: [applicationId], references: [id], onDelete: SetNull)
@@ -1201,7 +1203,7 @@ model StandardTemplateAnswer {
   suppressed    Boolean          @default(false)
   sortOrder     Int              @default(0)
   createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt @default(now())
+  updatedAt     DateTime         @default(now()) @updatedAt
 
   @@unique([standardId, templateKeyId])
   @@index([standardId])
@@ -1217,7 +1219,7 @@ model RegulationTemplateAnswer {
   templateKeyId String?
   templateKey   WorkTemplateKey?      @relation(fields: [templateKeyId], references: [id], onDelete: Cascade)
   customKey     String?
-  kind          String?               // CHECKLIST | TEST — block placement for custom steps (derived from the template for generic keys)
+  kind          String? // CHECKLIST | TEST — block placement for custom steps (derived from the template for generic keys)
   value         String?
   applicationId String?
   application   Application?          @relation(fields: [applicationId], references: [id], onDelete: SetNull)
@@ -1228,7 +1230,7 @@ model RegulationTemplateAnswer {
   suppressed    Boolean               @default(false)
   sortOrder     Int                   @default(0)
   createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt @default(now())
+  updatedAt     DateTime              @default(now()) @updatedAt
 
   @@unique([regId, templateKeyId])
   @@index([regId])
@@ -1258,7 +1260,7 @@ model NodeStandardEvidence {
   deliverable   Deliverable? @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
   sortOrder     Int          @default(0)
   createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt @default(now())
+  updatedAt     DateTime     @default(now()) @updatedAt
 
   @@index([processNodeId])
   @@index([standardId])
@@ -1283,7 +1285,7 @@ model NodeRegulationEvidence {
   deliverable   Deliverable?          @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
   sortOrder     Int                   @default(0)
   createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt @default(now())
+  updatedAt     DateTime              @default(now()) @updatedAt
 
   @@index([processNodeId])
   @@index([regId])
@@ -1804,25 +1806,25 @@ model InitiativeResource {
 }
 
 model WorkplanActivity {
-  id           String              @id @default(cuid())
-  initiativeId String
-  initiative   PortfolioInitiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
-  name         String
-  startDate    DateTime
-  endDate      DateTime
-  status       String              @default("PLANNED") // PLANNED | IN_PROGRESS | DONE
-  assignedTo   String?
-  dependsOnId  String?
-  dependsOn    WorkplanActivity?   @relation("ActivityDep", fields: [dependsOnId], references: [id], onDelete: SetNull)
-  dependents   WorkplanActivity[]  @relation("ActivityDep")
+  id              String              @id @default(cuid())
+  initiativeId    String
+  initiative      PortfolioInitiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  name            String
+  startDate       DateTime
+  endDate         DateTime
+  status          String              @default("PLANNED") // PLANNED | IN_PROGRESS | DONE
+  assignedTo      String?
+  dependsOnId     String?
+  dependsOn       WorkplanActivity?   @relation("ActivityDep", fields: [dependsOnId], references: [id], onDelete: SetNull)
+  dependents      WorkplanActivity[]  @relation("ActivityDep")
   // Typed dependency (FB-19): TEAM | ROLE | PERSON | PROJECT | CHANGE_APPROVAL.
   // refId points at the chosen entity when it comes from a list (org unit / role /
   // program); label is the human-readable value (also used for free-text types).
   dependencyType  String?
   dependencyRefId String?
   dependencyLabel String?
-  sortOrder    Int                 @default(0)
-  createdAt    DateTime            @default(now())
+  sortOrder       Int                 @default(0)
+  createdAt       DateTime            @default(now())
 
   @@index([initiativeId])
 }
@@ -1908,32 +1910,32 @@ model RationalizationWorkspace {
 }
 
 model RationalizationApp {
-  id           String                   @id @default(cuid())
-  tenantId     String
-  companyId    String
-  workspaceId  String
-  workspace    RationalizationWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  id             String                   @id @default(cuid())
+  tenantId       String
+  companyId      String
+  workspaceId    String
+  workspace      RationalizationWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   // Estate-catalog link — every board app IS an Application row; board data
   // hangs off the catalog as the single source of truth.
-  applicationId String?
-  applicationRef Application?            @relation(fields: [applicationId], references: [id], onDelete: SetNull)
-  name         String
-  description  String?
-  kind         String                   @default("LEGACY") // LEGACY | SHARED_SERVICE — shared services (MDM/RDM, auth, docs) render in their own lane (WR-15)
-  disposition  String                   @default("Refactor") // Retain | Refactor | Replace | Retire
-  techStack    String?
-  vendor       String?
-  hosting      String?
-  criticality  String?
-  ageYears     Int?
-  annualCost   Float?
-  position     Int                      @default(0)
-  illustrative Boolean                  @default(true)
-  createdAt    DateTime                 @default(now())
-  updatedAt    DateTime                 @updatedAt
+  applicationId  String?
+  applicationRef Application?             @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  name           String
+  description    String?
+  kind           String                   @default("LEGACY") // LEGACY | SHARED_SERVICE — shared services (MDM/RDM, auth, docs) render in their own lane (WR-15)
+  disposition    String                   @default("Refactor") // Retain | Refactor | Replace | Retire
+  techStack      String?
+  vendor         String?
+  hosting        String?
+  criticality    String?
+  ageYears       Int?
+  annualCost     Float?
+  position       Int                      @default(0)
+  illustrative   Boolean                  @default(true)
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
 
-  capabilities RationalizationCapability[]
-  screens      ScreenAsset[]
+  capabilities      RationalizationCapability[]
+  screens           ScreenAsset[]
   // Relocate findings whose destination is this shared service (WR-15).
   relocatedFindings RationalizationCapability[] @relation("CapabilitySharedService")
 
@@ -2015,47 +2017,47 @@ model ScreenAsset {
 }
 
 model RationalizationCapability {
-  id                String                    @id @default(cuid())
-  tenantId          String
-  companyId         String
-  workspaceId       String
-  workspace         RationalizationWorkspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  appId             String
-  app               RationalizationApp        @relation(fields: [appId], references: [id], onDelete: Cascade)
-  layer             String
-  name              String
-  category          String?
-  view              String                    @default("COMPONENT") // COMPONENT | BEHAVIOR — anatomy lens (WR-06)
-  screenRef         String? // UI findings: screen or modal it lives on (e.g. "User Admin › Users")
-  plainSummary      String? // one-sentence non-technical explanation (WR-10)
-  recommendedLayer  String? // rule/AI-suggested correct layer for misplaced items (targetLayer = the human decision)
-  capdan            String                    @default("Common") // Common | Different | Relocate | Eliminate
-  targetLayer       String?
+  id                   String                    @id @default(cuid())
+  tenantId             String
+  companyId            String
+  workspaceId          String
+  workspace            RationalizationWorkspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  appId                String
+  app                  RationalizationApp        @relation(fields: [appId], references: [id], onDelete: Cascade)
+  layer                String
+  name                 String
+  category             String?
+  view                 String                    @default("COMPONENT") // COMPONENT | BEHAVIOR — anatomy lens (WR-06)
+  screenRef            String? // UI findings: screen or modal it lives on (e.g. "User Admin › Users")
+  plainSummary         String? // one-sentence non-technical explanation (WR-10)
+  recommendedLayer     String? // rule/AI-suggested correct layer for misplaced items (targetLayer = the human decision)
+  capdan               String                    @default("Common") // Common | Different | Relocate | Eliminate
+  targetLayer          String?
   // Relocate findings can land in a SHARED_SERVICE app instead of a layer —
   // e.g. a hard-coded state list replaced by an MDM/RDM call (WR-15).
-  sharedServiceId   String?
-  sharedService     RationalizationApp?       @relation("CapabilitySharedService", fields: [sharedServiceId], references: [id], onDelete: SetNull)
-  treatment         String                    @default("Retain") // Retain | Eliminate
-  migrationStatus   String                    @default("Identified")
-  componentId       String?
-  component         RationalizationComponent? @relation(fields: [componentId], references: [id], onDelete: SetNull)
-  codeRef           String?
-  migrationApproach String?
-  targetTech        String?
-  rationale         String?
-  effort            String?
-  complexity        String?
-  notes             String?
+  sharedServiceId      String?
+  sharedService        RationalizationApp?       @relation("CapabilitySharedService", fields: [sharedServiceId], references: [id], onDelete: SetNull)
+  treatment            String                    @default("Retain") // Retain | Eliminate
+  migrationStatus      String                    @default("Identified")
+  componentId          String?
+  component            RationalizationComponent? @relation(fields: [componentId], references: [id], onDelete: SetNull)
+  codeRef              String?
+  migrationApproach    String?
+  targetTech           String?
+  rationale            String?
+  effort               String?
+  complexity           String?
+  notes                String?
   // v3 board: the Normalize-column entry this raw finding rolls up into.
   normalizationEntryId String?
-  normalizationEntry   NormalizationEntry?    @relation(fields: [normalizationEntryId], references: [id], onDelete: SetNull)
+  normalizationEntry   NormalizationEntry?       @relation(fields: [normalizationEntryId], references: [id], onDelete: SetNull)
   // v3 board: unreachable/superseded findings render in the dead-code lane.
-  deadCode          Boolean                   @default(false)
+  deadCode             Boolean                   @default(false)
   // v3 board "WHY THIS MOVES" panel: { captured, sent, processed, validated, lands }.
-  whyThisMoves      Json?
-  illustrative      Boolean                   @default(true)
-  createdAt         DateTime                  @default(now())
-  updatedAt         DateTime                  @updatedAt
+  whyThisMoves         Json?
+  illustrative         Boolean                   @default(true)
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
 
   @@index([companyId])
   @@index([workspaceId])
@@ -2210,15 +2212,15 @@ model WorkspaceVocabulary {
 // normalized, and land on canonical (north-star) product models.
 
 model ProductModelWorkspace {
-  id           String  @id @default(cuid())
+  id           String   @id @default(cuid())
   tenantId     String
   companyId    String
-  company      Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   name         String
   description  String?
   northstar    String?
-  status       String  @default("In Progress") // Proposed | In Progress | Migrating | Complete
-  illustrative Boolean @default(true)
+  status       String   @default("In Progress") // Proposed | In Progress | Migrating | Complete
+  illustrative Boolean  @default(true)
   layout       Json?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -2504,43 +2506,55 @@ model JurisdictionIntegration {
 // The core obligation rows — single regulation entity (NodeRegulation /
 // RegulationApplication / RegulationDeliverable all point here).
 model RegulatoryRequirement {
-  id             String       @id @default(cuid())
-  tenantId       String
-  companyId      String
-  company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  jurisdictionId String
-  jurisdiction   Jurisdiction @relation(fields: [jurisdictionId], references: [id], onDelete: Cascade)
-  category       String // PRODUCT_FILING | LICENSING | PREMIUM_TAX | ...
-  title          String
-  requirement    String // full obligation text (markdown)
-  lineOfBusiness String       @default("ALL")
-  citation       String?
-  citationUrl    String?
-  obligationType String       @default("ONGOING")
-  frequency      String?
-  status         String       @default("ACTIVE") // ACTIVE | SUPERSEDED | PENDING
-  effectiveDate  DateTime?
-  supersededById String?
+  id                String       @id @default(cuid())
+  tenantId          String
+  companyId         String
+  company           Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  jurisdictionId    String
+  jurisdiction      Jurisdiction @relation(fields: [jurisdictionId], references: [id], onDelete: Cascade)
+  category          String // PRODUCT_FILING | LICENSING | PREMIUM_TAX | ...
+  title             String
+  requirement       String // full obligation text (markdown)
+  lineOfBusiness    String       @default("ALL")
+  citation          String?
+  citationUrl       String?
+  obligationType    String       @default("ONGOING")
+  frequency         String?
+  status            String       @default("ACTIVE") // ACTIVE | SUPERSEDED | PENDING
+  effectiveDate     DateTime?
+  supersededById    String?
   // The named regulation / regime this obligation belongs to, surfaced as a
   // column so GDPR/CCPA/NYDFS/SERFF/IIPRC are visible without drilling in.
-  regime         String? // GDPR | CCPA-CPRA | NYDFS-500 | SERFF | IIPRC | IAIABC-EDI | ...
+  regime            String? // GDPR | CCPA-CPRA | NYDFS-500 | SERFF | IIPRC | IAIABC-EDI | ...
   // Market segment(s) the obligation applies to — PERSONAL, COMMERCIAL, or both
   // (an empty/both set means it applies enterprise-wide across markets). Filter
   // dimension distinct from lineOfBusiness (the granular product line).
-  markets        String[]     @default([]) // PERSONAL | COMMERCIAL
+  markets           String[]     @default([]) // PERSONAL | COMMERCIAL
   // Accuracy metadata
-  confidence     String       @default("BASELINE") // BASELINE | VERIFIED | DERIVED | STALE
-  sourceNote     String?
+  confidence        String       @default("BASELINE") // BASELINE | VERIFIED | DERIVED | STALE
+  sourceNote        String?
   // FB-59 — privacy/cyber regimes migrated from Standards carry their SDLC agent
   // skill (ccpa-cpra-sdlc-compliance, gdpr-sdlc-compliance, nydfs-500-sdlc-compliance)
   // so the regulation surfaces the same downloadable skill the standard did.
-  agentSkill     String?
-  lastVerifiedAt DateTime?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  agentSkill        String?
+  lastVerifiedAt    DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
   // User-flagged "we actually follow this as compliance practice" bucket —
   // surfaces as the Compliance card/page, cutting across all three lenses.
-  complianceFlagged Boolean   @default(false)
+  // Superseded by the SCRUM-46 compliance register (complianceRegulationId
+  // below); retained for backward compatibility.
+  complianceFlagged Boolean      @default(false)
+
+  // ── SCRUM-46 compliance register (v2 workbook) — L3 linkage ──
+  // The enforced regime/program this source row rolls up to. Null = row is not
+  // part of the determination-ready register (post-baseline additions).
+  complianceRegulationId String?
+  complianceRegulation   ComplianceRegulation? @relation(fields: [complianceRegulationId], references: [id], onDelete: SetNull)
+  // Workbook "Compliance Required": true = binding (B), false = informational
+  // (I, with notRequiredReason), null = not assessed by the register.
+  complianceRequired     Boolean?
+  notRequiredReason      String?
 
   nodeRegulations           NodeRegulation[]
   regulationApplications    RegulationApplication[]
@@ -2551,8 +2565,10 @@ model RegulatoryRequirement {
   regulationTemplateAnswers RegulationTemplateAnswer[]
   nodeRegulationEvidences   NodeRegulationEvidence[]
   lineOfBusinessLinks       RequirementLineOfBusiness[]
+  complianceItemLinks       ComplianceItemRequirement[]
 
   @@index([companyId])
+  @@index([complianceRegulationId])
   @@index([jurisdictionId])
   @@index([companyId, category])
   @@index([companyId, status])
@@ -2591,19 +2607,158 @@ model LineOfBusiness {
 // than the coarse RegulatoryRequirement.lineOfBusiness scalar (kept for the
 // simple filter + backward compatibility).
 model RequirementLineOfBusiness {
-  id        String                @id @default(cuid())
-  companyId String
-  company   Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  regId     String
+  id         String                @id @default(cuid())
+  companyId  String
+  company    Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  regId      String
   regulation RegulatoryRequirement @relation(fields: [regId], references: [id], onDelete: Cascade)
-  lobId     String
-  lob       LineOfBusiness        @relation(fields: [lobId], references: [id], onDelete: Cascade)
-  createdAt DateTime              @default(now())
+  lobId      String
+  lob        LineOfBusiness        @relation(fields: [lobId], references: [id], onDelete: Cascade)
+  createdAt  DateTime              @default(now())
 
   @@unique([regId, lobId])
   @@index([companyId])
   @@index([lobId])
   @@index([regId])
+}
+
+// ─── COMPLIANCE REGISTER (SCRUM-46 v2 — determination-ready workbook) ────
+// Three-level register: ComplianceRegulation (L1 regime/program, REG-###) →
+// ComplianceItem (L2 atomic "what must be done", REG-###-C##) → the existing
+// RegulatoryRequirement rows (L3 per-jurisdiction sources) linked via
+// RegulatoryRequirement.complianceRegulationId. Imported once from
+// documents/regulations/Regulation-Compliance-Determination-Ready.xlsx
+// (scripts/import-compliance-register.ts); the app is the system of record
+// for all subsequent changes (sign-offs, promotions, edits).
+
+// L1 — one row per enforced regime/program ("what is the rule?").
+model ComplianceRegulation {
+  id                        String   @id @default(cuid())
+  tenantId                  String
+  companyId                 String
+  company                   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  regCode                   String // REG-001 … natural key from the workbook
+  name                      String // Regulation / Program
+  category                  String // PRODUCT_FILING | LICENSING | … (same vocabulary as RegulatoryRequirement.category)
+  lineOfBusiness            String   @default("ALL")
+  jurisdictionScope         String // "51 jurisdictions" | "Federal" | …
+  productImpact             Boolean  @default(false)
+  processImpact             Boolean  @default(false)
+  systemImpact              Boolean  @default(false)
+  ownerTeam                 String // accountable function (free text from workbook, e.g. "Product Compliance / Filing Team")
+  frequency                 String
+  dueDate                   String   @default("Not Yet Determined")
+  evidenceRequired          String
+  auditStatus               String   @default("Not started")
+  representativeRequirement String // verbatim example from the source rows
+  sampleCitations           String
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  items        ComplianceItem[]
+  variants     ComplianceJurisdictionVariant[]
+  requirements RegulatoryRequirement[]
+
+  @@unique([companyId, regCode])
+  @@index([companyId, category])
+}
+
+// L2 — one row per atomic, auditable compliance task ("what must we do?").
+model ComplianceItem {
+  id                        String               @id @default(cuid())
+  tenantId                  String
+  companyId                 String
+  company                   Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  itemCode                  String // REG-001-C01 … natural key from the workbook
+  regulationId              String
+  regulation                ComplianceRegulation @relation(fields: [regulationId], references: [id], onDelete: Cascade)
+  name                      String // the task — "what must be done"
+  ownerTeam                 String
+  frequency                 String
+  evidence                  String
+  jurisdictionScope         String
+  auditStatus               String               @default("Not started")
+  // ── grounding evidence (workbook zone 2) ──
+  supportingReqRows         Int                  @default(0) // count of L3 source rows backing this item
+  groundingBasis            String // ITEM (item-level keyword match) | REGULATION (inherits all parent rows — counsel to map)
+  officialSourceRows        Int                  @default(0)
+  jurisdictionsCovered      Int                  @default(0)
+  representativeRequirement String
+  repJurisdiction           String
+  supportingCitations       String // "Jurisdiction: citation | …" top 3, official first
+  frequencyDerived          String // frequency read from actual source text
+  frequencyAlignment        String // MATCH | REVIEW | NO_SIGNAL
+  deadlineSignals           String // extracted phrases, e.g. "within 30 days (×12)"
+  // ── determination workflow (workbook zone 3) ──
+  determinationStatus       String // GROUNDED | GROUNDED_NON_OFFICIAL | PARTIAL | NOT_GROUNDED
+  confidence                String // HIGH | MEDIUM | LOW
+  signOff                   String               @default("PENDING") // PENDING | CONFIRMED | REJECTED | NEEDS_RESEARCH
+  reviewer                  String?
+  reviewNotes               String?
+  createdAt                 DateTime             @default(now())
+  updatedAt                 DateTime             @updatedAt
+
+  signOffEvents        ComplianceSignOffEvent[]
+  requirementLinks     ComplianceItemRequirement[]
+  promotedFromVariants ComplianceJurisdictionVariant[]
+
+  @@unique([companyId, itemCode])
+  @@index([regulationId])
+  @@index([companyId, confidence])
+  @@index([companyId, signOff])
+}
+
+// Junction: the specific L3 source rows a reviewer selected as supporting an
+// item (upgrades groundingBasis REGULATION → ITEM during confirmation).
+model ComplianceItemRequirement {
+  id               String                @id @default(cuid())
+  companyId        String
+  complianceItemId String
+  complianceItem   ComplianceItem        @relation(fields: [complianceItemId], references: [id], onDelete: Cascade)
+  requirementId    String
+  requirement      RegulatoryRequirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  createdAt        DateTime              @default(now())
+
+  @@unique([complianceItemId, requirementId])
+  @@index([complianceItemId])
+  @@index([requirementId])
+  @@index([companyId, complianceItemId])
+}
+
+// 51 rows where one regulation imposes different day-count deadlines by
+// jurisdiction — candidates to promote into bespoke L2 items (promotedItemId
+// set once promoted).
+model ComplianceJurisdictionVariant {
+  id               String               @id @default(cuid())
+  companyId        String
+  regulationId     String
+  regulation       ComplianceRegulation @relation(fields: [regulationId], references: [id], onDelete: Cascade)
+  jurisdiction     String // regulator/jurisdiction label from the workbook (free text — not always a Jurisdiction row)
+  deadlineVariant  String // e.g. "within 10 days"
+  requirementTitle String
+  citation         String
+  promotedItemId   String?
+  promotedItem     ComplianceItem?      @relation(fields: [promotedItemId], references: [id], onDelete: SetNull)
+  createdAt        DateTime             @default(now())
+
+  @@index([regulationId])
+  @@index([companyId, regulationId])
+  @@index([promotedItemId])
+}
+
+// Append-only sign-off audit trail — what makes a determination defensible.
+model ComplianceSignOffEvent {
+  id               String         @id @default(cuid())
+  companyId        String
+  complianceItemId String
+  complianceItem   ComplianceItem @relation(fields: [complianceItemId], references: [id], onDelete: Cascade)
+  action           String // CONFIRM | REJECT | NEEDS_RESEARCH | RESET | PROMOTE
+  reviewer         String // user email/name performing the action
+  note             String?
+  createdAt        DateTime       @default(now())
+
+  @@index([complianceItemId])
+  @@index([companyId, createdAt])
 }
 
 model RegulatoryBulletin {

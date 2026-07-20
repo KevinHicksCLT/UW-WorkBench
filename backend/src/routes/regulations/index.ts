@@ -17,6 +17,8 @@ import { requirePermission } from '../../middleware/permissions.js';
 import { registerLensRoutes } from './lenses.js';
 import { registerWriteRoutes } from './writes.js';
 import { registerFeedRoutes } from './feeds.js';
+import { registerComplianceRoutes } from './compliance.js';
+import { registerComplianceWriteRoutes } from './complianceWrites.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -27,5 +29,7 @@ router.use(requirePermission('regulations'));
 registerLensRoutes(router);
 registerWriteRoutes(router);
 registerFeedRoutes(router);
+registerComplianceRoutes(router);
+registerComplianceWriteRoutes(router);
 
 export default router;
