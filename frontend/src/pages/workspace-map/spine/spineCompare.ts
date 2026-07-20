@@ -61,6 +61,66 @@ export interface SpineComparison {
   normalized: number;
 }
 
+/** One aligned stage slot across the compared flows: which lane has which
+ *  stage in this phase. Lanes missing the slot render a gap — the difference
+ *  is visible at a glance. */
+export interface StageSlot {
+  key: string;
+  label: string;
+  /** lane (column) id → that lane's stage id in this slot. */
+  byLane: Map<string, string>;
+}
+
+function toks(s: string): string[] {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .split(' ')
+    .filter(Boolean);
+}
+
+function similar(a: string, b: string): boolean {
+  const ta = toks(a);
+  const tb = toks(b);
+  const sb = new Set(tb);
+  const inter = ta.filter((x) => sb.has(x)).length;
+  const union = new Set([...ta, ...tb]).size;
+  const la = a.toLowerCase().trim();
+  const lb = b.toLowerCase().trim();
+  const headA = ta.at(-1);
+  // Same head noun aligns the phase ("Claims Intake" ↔ "Submission Intake").
+  const sameHead = !!headA && headA.length > 3 && headA === tb.at(-1);
+  return (union ? inter / union : 0) >= 0.5 || la.includes(lb) || lb.includes(la) || sameHead;
+}
+
+/** Align each lane's ordered stages into shared vertical slots: stages whose
+ *  names semantically match cluster into ONE slot (so similar phases line up
+ *  across flows); unmatched stages keep their own slot in flow order. */
+export function alignStages(
+  lanes: { lane: string; stages: { id: string; name: string }[] }[],
+): StageSlot[] {
+  const slots: (StageSlot & { order: number })[] = [];
+  lanes.forEach((laneDef, laneIdx) => {
+    laneDef.stages.forEach((stage, stageIdx) => {
+      const hit = slots.find((s) => !s.byLane.has(laneDef.lane) && similar(s.label, stage.name));
+      if (hit) {
+        hit.byLane.set(laneDef.lane, stage.id);
+        // Shorter label wins — reads as the shared phase name.
+        if (stage.name.length < hit.label.length) hit.label = stage.name;
+      } else {
+        slots.push({
+          key: `slot:${laneIdx}:${stageIdx}:${stage.id}`,
+          label: stage.name,
+          byLane: new Map([[laneDef.lane, stage.id]]),
+          order: stageIdx + laneIdx * 0.001,
+        });
+      }
+    });
+  });
+  return slots.sort((a, b) => a.order - b.order);
+}
+
 export function compareSpineColumns(items: SpineItem[]): SpineComparison {
   const byKey = new Map<string, SpineItem[]>();
   for (const it of items) {

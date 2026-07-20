@@ -75,7 +75,7 @@ const badge = (kind: 'shared' | 'dup' | 'unique', extra?: string) => {
   return null;
 };
 
-function Picker({
+export function Picker({
   noun,
   pool,
   selectedIds,
@@ -306,7 +306,7 @@ function ColumnCard({ col, cmp }: { col: SpineColumn; cmp: SpineComparison }) {
   );
 }
 
-function ConsolidationRail({
+export function ConsolidationRail({
   cmp,
   titleOf,
 }: {

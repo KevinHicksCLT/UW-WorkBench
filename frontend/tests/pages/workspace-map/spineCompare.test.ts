@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  alignStages,
   compareSpineColumns,
   spineKey,
   type SpineItem,
@@ -52,6 +53,32 @@ describe('compareSpineColumns', () => {
     expect(cmp.markOf.get('a1')).toBe('dup');
     expect(cmp.markOf.get('b1')).toBe('unique');
     expect(cmp.stats.find((s) => s.column === 'roleA')?.withinDup).toBe(2);
+  });
+
+  it('aligns similar stages into one vertical slot and leaves gaps elsewhere', () => {
+    const slots = alignStages([
+      {
+        lane: 'claims',
+        stages: [
+          { id: 'c1', name: 'Claims Intake' },
+          { id: 'c2', name: 'Adjudication & Review' },
+        ],
+      },
+      {
+        lane: 'underwriting',
+        stages: [
+          { id: 'u1', name: 'Submission Intake' },
+          { id: 'u2', name: 'Risk Assessment' },
+        ],
+      },
+    ]);
+    // "Claims Intake" ↔ "Submission Intake" share the intake slot; the other
+    // two stages keep their own single-lane slots (rendered as gaps opposite).
+    const intake = slots.find((s) => s.byLane.size === 2);
+    expect(intake).toBeDefined();
+    expect(intake?.byLane.get('claims')).toBe('c1');
+    expect(intake?.byLane.get('underwriting')).toBe('u1');
+    expect(slots).toHaveLength(3);
   });
 
   it('handles fully disjoint columns — everything unique, nothing removed', () => {
