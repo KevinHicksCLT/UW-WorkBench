@@ -10,10 +10,12 @@ import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { prisma } from '../../src/db/prisma.js';
 
 const APPLY = process.argv.includes('--apply');
+const di = process.argv.indexOf('--domain');
+const DOMAIN = di >= 0 ? process.argv[di + 1] : 'Technology';
 
 async function main() {
   const tech = await prisma.processNode.findFirstOrThrow({
-    where: { displayValue: 'Technology', processLevelType: { levelNumber: 1 } },
+    where: { displayValue: DOMAIN, processLevelType: { levelNumber: 1 } },
     select: { id: true },
   });
   const desc = await prisma.processNodeClosure.findMany({

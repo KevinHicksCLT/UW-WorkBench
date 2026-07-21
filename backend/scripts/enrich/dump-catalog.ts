@@ -6,30 +6,15 @@
 // (the L5 tasks under one L3 area, with their current associations).
 //
 //   npx tsx --env-file=.env scripts/enrich/dump-catalog.ts "Data Engineering & Pipelines"
+//   npx tsx --env-file=.env scripts/enrich/dump-catalog.ts "Claims Adjudication" --domain "Core Business"
+//   ... --std-depts "Actuarial,Claims Operations,Data & Analytics"   (default: ALL departments)
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { prisma } from '../../src/db/prisma.js';
 
-// Org units whose roles are legitimately "technology" day-to-day.
-const TECH_ORGS = [
-  'Data Engineering',
-  'Data Governance',
-  'Analytics Delivery',
-  'Architecture & Analytics',
-  'Analysis & Quality',
-  'Cloud & Platform',
-  'Engineering Delivery',
-  'Operations',
-  'Data Leadership',
-  'Platform Engineering',
-  'Infrastructure & Networks',
-];
-const STANDARD_DEPTS = [
-  'Data & Analytics',
-  'Engineering & Development',
-  'Information Security',
-  'Enterprise & Solution Architecture',
-];
-const TECH_DOMAIN = 'Technology';
+function flag(name: string): string | undefined {
+  const i = process.argv.indexOf(`--${name}`);
+  return i >= 0 ? process.argv[i + 1] : undefined;
+}
 
 function slug(s: string): string {
   return s
@@ -39,38 +24,42 @@ function slug(s: string): string {
 }
 
 async function main() {
-  const areaName = process.argv[2];
-  if (!areaName) throw new Error('usage: dump-catalog.ts "<L3 area displayValue>"');
+  // Positional arg is the L3 area; --domain / --std-depts are optional flags.
+  const flagVals = new Set([flag('domain'), flag('std-depts')]);
+  const areaName = process.argv.slice(2).find((a) => !a.startsWith('--') && !flagVals.has(a));
+  const domainName = flag('domain') ?? 'Technology';
+  const stdDepts = flag('std-depts')
+    ?.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (!areaName)
+    throw new Error(
+      'usage: dump-catalog.ts "<L3 area displayValue>" [--domain "<Domain>"] [--std-depts "a,b"]',
+    );
 
-  const techDomain = await prisma.processNode.findFirstOrThrow({
-    where: { displayValue: TECH_DOMAIN, processLevelType: { levelNumber: 1 } },
+  const domain = await prisma.processNode.findFirstOrThrow({
+    where: { displayValue: domainName, processLevelType: { levelNumber: 1 } },
     select: { id: true, companyId: true },
   });
-  const companyId = techDomain.companyId;
+  const companyId = domain.companyId;
 
-  // descendant task ids of the tech domain (for reg scoping)
+  // descendant task ids of the domain (for role/app/reg scoping)
   const techDesc = await prisma.processNodeClosure.findMany({
-    where: { ancestorId: techDomain.id },
+    where: { ancestorId: domain.id },
     select: { descendantId: true },
   });
   const techIds = techDesc.map((d) => d.descendantId);
 
-  // Roles the author may pick from: tech-org-homed roles UNION every role that
-  // currently touches a tech-domain task (guarantees per-VS coverage — e.g.
-  // SOC/IAM roles for Cybersecurity that may home outside TECH_ORGS).
+  // Roles the author may pick from: every role that currently touches a task in
+  // this domain (the realistic day-to-day palette; the author drops cross-domain
+  // noise per task).
   const touchingRoles = await prisma.nodeRole.findMany({
     where: { processNodeId: { in: techIds } },
     select: { roleId: true },
     distinct: ['roleId'],
   });
   const roles = await prisma.role.findMany({
-    where: {
-      companyId,
-      OR: [
-        { orgUnit: { displayValue: { in: TECH_ORGS } } },
-        { id: { in: touchingRoles.map((r) => r.roleId) } },
-      ],
-    },
+    where: { companyId, id: { in: touchingRoles.map((r) => r.roleId) } },
     select: { id: true, displayValue: true, orgUnit: { select: { displayValue: true } } },
     orderBy: { displayValue: 'asc' },
   });
@@ -83,7 +72,7 @@ async function main() {
   const apps = appRows.map((a) => a.application);
 
   const standards = await prisma.standard.findMany({
-    where: { companyId, isArea: false, department: { in: STANDARD_DEPTS } },
+    where: { companyId, isArea: false, ...(stdDepts ? { department: { in: stdDepts } } : {}) },
     select: { id: true, name: true, department: true, category: true },
     orderBy: [{ department: 'asc' }, { name: 'asc' }],
   });
