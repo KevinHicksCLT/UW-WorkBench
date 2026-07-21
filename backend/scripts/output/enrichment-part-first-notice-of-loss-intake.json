@@ -1,0 +1,3763 @@
+[
+  {
+    "taskId": "c31e9872-2f50-4c36-91fb-35e89ab67fb0",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03spmbk8zaenx1v8",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozdb1mxmmbk8b9rkbrb5",
+      "cmqscof981lyimbk8s0tir7my",
+      "cmqscovmm1mqsmbk8gsj8jgej"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5tzn40j3fv880mh91gol4",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5idov03l1v880oset61qw",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Loss notice recorded in the system of record before the interaction ends",
+      "Acknowledgment timestamp captured and visible on the claim",
+      "Handler identity stamped on the intake record"
+    ],
+    "checklistSpecific": [
+      "Confirm the intake channel (phone, self-service portal, mobile app, EDI/agent feed) is selected on the FNOL wizard channel field",
+      "Verify the acknowledgment was issued within the 4-hour FNOL acknowledgment window measured from notice receipt, not from claim creation",
+      "For EDI/agent-feed notices, confirm the inbound transaction reference number is stored on the claim so the broker submission can be reconciled",
+      "Check that the acknowledgment text states the claim number, the assigned handling unit, and what the insured must do next",
+      "Confirm the acknowledgment was delivered on the channel the insured elected (SMS/email/portal message) and the delivery status is Sent, not Queued or Failed"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Summary > FNOL acknowledgment timestamp",
+        "checkType": "presence",
+        "expected": "Acknowledgment timestamp exists and is within 4 hours of the notice receipt time"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > History",
+        "checkType": "absence",
+        "expected": "No FNOL record sits in Draft/unacknowledged status past the 4-hour SLA"
+      }
+    ]
+  },
+  {
+    "taskId": "eadd3c7c-ba55-4865-9e98-7470c02a65c8",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03spmbk8zaenx1v8",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqscl3771hjrmbk8pxp23ll1",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscof981lyimbk8s0tir7my",
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscovko1mqombk8e7lb7kdj"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "CAT code applied only from the approved active-event list",
+      "Coding action written to the claim audit trail"
+    ],
+    "checklistSpecific": [
+      "Confirm the CAT event code selected matches an event whose status is Active and whose date window covers the reported loss date",
+      "Verify the loss location falls inside the declared CAT geography (state/county/ZIP band) before applying the code",
+      "Check that the PCS/event catalogue number is populated on the CAT event field, not a free-text description",
+      "Confirm the claim reserve category flips to the CAT bucket so event aggregation picks it up on the next roll-up",
+      "Where the loss is inside the window but outside the peril (e.g. a non-wind loss during a hurricane CAT), confirm the code was NOT applied and the reason is noted"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Loss Details > Catastrophe field",
+        "checkType": "presence",
+        "expected": "An active CAT event code with a matching event date window is set on the claim"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "CAT event > Associated claims list",
+        "checkType": "absence",
+        "expected": "No claim carries a CAT code for an event that is Closed or Cancelled"
+      }
+    ]
+  },
+  {
+    "taskId": "8d607610-44c3-4066-9558-2163f4881d1a",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03spmbk8zaenx1v8",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103z3mbk8c39oejng",
+        "use": "performed"
+      },
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscof7a1lyembk8mazp2zkl",
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscovdd1mqambk8nf5s8p4j"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5oy8o0bu9v880x8l0nto7",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Identity verification outcome recorded before any policy detail is disclosed",
+      "Failed verification attempts logged with the reason"
+    ],
+    "checklistSpecific": [
+      "Confirm at least two identifiers were matched against the policy record (named insured, policy number, address, date of birth or last four of the payment method)",
+      "Verify the caller relationship is captured as insured, additional insured, driver, agent/broker, or third-party claimant, and that third parties are not given insured-only policy detail",
+      "For agent or broker submissions, confirm the producer code on the notice matches the producer of record on the policy",
+      "Where verification fails, confirm the intake continues as an unverified third-party notice with restricted disclosure rather than being abandoned",
+      "Check the verification result flag is set on the claim contact record, not just noted in the free-text call summary"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Contacts > Reporting party record",
+        "checkType": "presence",
+        "expected": "Verification status and relationship-to-insured are populated on the reporting party"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Notes",
+        "checkType": "absence",
+        "expected": "No coverage limits or policy financials disclosed on a notice where verification status is Failed"
+      }
+    ]
+  },
+  {
+    "taskId": "6d3c7986-c5aa-431a-8150-c01e366f522b",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03spmbk8zaenx1v8",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscof981lyimbk8s0tir7my",
+      "cmqscozdb1mxmmbk8b9rkbrb5",
+      "cmqscplrp1o2imbk8md8zay6h"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5idov03l1v880oset61qw",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Claim number issued from the system sequence, never hand-written or reused",
+      "Communication of the number recorded on the claim"
+    ],
+    "checklistSpecific": [
+      "Read the full claim number back to the reporting party and confirm they repeat it correctly before ending the call",
+      "Confirm the claim number was also pushed to the insured in writing on their elected channel (SMS/email/portal) so it is not phone-only",
+      "Verify the number issued is the ClaimCenter claim number and not the internal exposure or activity id",
+      "Check the claims service phone number and hours are given alongside the claim number",
+      "Where the notice was matched to an existing claim, confirm the pre-existing claim number was quoted rather than a new one created"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Summary > Claim number",
+        "checkType": "presence",
+        "expected": "A system-generated claim number exists and is referenced in the outbound acknowledgment"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim search by policy and loss date",
+        "checkType": "absence",
+        "expected": "No duplicate claim number issued for the same policy, loss date and loss location"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhu2l06k9kfgz60nx35ot",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03spmbk8zaenx1v8",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sqmbk8170830f6",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscof981lyimbk8s0tir7my",
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscofd61lyombk8ef0uqvus"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5tzn40j3fv880mh91gol4",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Notification record created in the system of record, not held in a spreadsheet or inbox",
+      "All mandatory intake fields completed before submission"
+    ],
+    "checklistSpecific": [
+      "Confirm the policy number, named insured, loss date and loss description are populated on the new loss record",
+      "Verify the loss date is on or after policy inception and on or before expiry, and flag the notice if it is not",
+      "Check the line of business and coverage type selected match the policy the notice was written against",
+      "Confirm the FNOL record is submitted (status New/Open) rather than left in Draft at the end of the interaction",
+      "Verify the reporting party contact number and preferred contact method are stored so the adjuster can make first contact"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Summary",
+        "checkType": "presence",
+        "expected": "Claim exists in Open status with policy number, loss date and loss description populated"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "FNOL draft queue",
+        "checkType": "absence",
+        "expected": "No FNOL left in Draft status beyond end of shift"
+      }
+    ]
+  },
+  {
+    "taskId": "fc9516f9-8a4c-47a2-b6a2-412b97c7fd9f",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03spmbk8zaenx1v8",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sqmbk8170830f6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscof981lyimbk8s0tir7my",
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscpkr61o0mmbk8k0o0kemv"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Metadata written by the system clock, not typed by the handler",
+      "Channel value chosen from the controlled list"
+    ],
+    "checklistSpecific": [
+      "Confirm the notice received date/time is stamped from the inbound event (call connect, portal submit, EDI receipt), not the time the handler finished keying",
+      "Verify the reported-to-company date drives the acknowledgment and contact SLA clocks on the claim",
+      "Check the channel field is one of the controlled values (Phone, Portal, Mobile App, EDI/Agent, Email) with no free text",
+      "For after-hours or overflow vendor intake, confirm the original vendor receipt time is carried across rather than the time of re-key next morning",
+      "Confirm time zone is stored consistently with the loss location so late-night losses are not shifted a day"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Loss Details > Reported date and Reported by channel",
+        "checkType": "presence",
+        "expected": "Reported date/time and channel are populated from system capture"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Loss Details",
+        "checkType": "absence",
+        "expected": "No claim where the reported date/time is later than the claim creation timestamp"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhufx06oikfgzewnvn1xp",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03spmbk8zaenx1v8",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sqmbk8170830f6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03smmbk8w5rdn2uo",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103z3mbk8c39oejng",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscof981lyimbk8s0tir7my",
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscozkh1my0mbk8uzg517r4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Duplicate search performed before any new claim is created",
+      "Match or create decision recorded on the claim"
+    ],
+    "checklistSpecific": [
+      "Run the duplicate search on policy number plus loss date range before pressing Create, and record the search result",
+      "Where a matching claim exists, add the new information as an exposure or note on that claim rather than opening a second claim number",
+      "Confirm a genuinely new event on the same policy within the same week is opened as a separate claim with the differing loss date and cause noted",
+      "For multi-vehicle or multi-claimant losses, verify one claim is created with separate exposures per claimant, not one claim per caller",
+      "Check any duplicate opened in error is closed as Duplicate and cross-referenced to the surviving claim number"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Summary > Related claims",
+        "checkType": "presence",
+        "expected": "Either a link to the matched existing claim or a documented no-match search result exists"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim list by policy and loss date",
+        "checkType": "absence",
+        "expected": "No two open claims share the same policy, loss date and loss cause"
+      }
+    ]
+  },
+  {
+    "taskId": "207e4ffb-b603-4d19-8111-d45c5e4c7e37",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqscl4bq1hltmbk8hv6cs1av",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpm7t1o3embk8t2llzr5n",
+      "cmqscovse1mr4mbk8ylx8y8bb",
+      "cmqscof981lyimbk8s0tir7my",
+      "cmqscplk81o24mbk8koh9gv7q"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Queue position reviewed against the published service level at a fixed cadence",
+      "Every reassignment recorded with the reason"
+    ],
+    "checklistSpecific": [
+      "Check the oldest waiting item in each intake queue (phone, portal, email, EDI) against its SLA clock and act on any item past 75% of the window first",
+      "Move handlers between voice and back-office intake queues using the skill routing profile rather than assigning claims by hand",
+      "Confirm portal and EDI notices are not left ageing behind voice traffic when phone volume spikes",
+      "Verify overflow to the after-hours or BPO intake vendor is triggered before abandonment breaches the 5% threshold, not after",
+      "Record the rebalance action and volumes in the shift handover so the next supervisor inherits the picture"
+    ],
+    "testing": [
+      {
+        "system": "Genesys Cloud (Contact Center)",
+        "location": "Real-time queue dashboard",
+        "checkType": "presence",
+        "expected": "Each intake queue shows a longest-wait value within its published SLA"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Unassigned FNOL queue",
+        "checkType": "absence",
+        "expected": "No unassigned FNOL older than the intake SLA at end of shift"
+      }
+    ]
+  },
+  {
+    "taskId": "a18b56ff-163c-4dff-8c23-3fcc8c78c361",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03smmbk8w5rdn2uo",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqscl3771hjrmbk8pxp23ll1",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscoz9j1mxembk8549rcvct",
+      "cmqscof981lyimbk8s0tir7my",
+      "cmqscovko1mqombk8e7lb7kdj"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Routing driven by the configured rule set, not manual pick-up",
+      "Routing outcome visible on the claim"
+    ],
+    "checklistSpecific": [
+      "Confirm every claim carrying the active CAT code lands in the CAT surge queue rather than the standard territory queue",
+      "Verify the CAT adjuster pool assignment respects state adjuster licensing and emergency-licence status for the affected states",
+      "Check that life-safety and habitability cases (fire loss, uninhabitable dwelling, injury) are pulled to the priority CAT lane ahead of routine property damage",
+      "Confirm commercial and large-account CAT claims are routed to the large-loss CAT lane, not the personal-lines surge pool",
+      "Verify any claim that fails CAT routing lands in the exception queue with an owner rather than sitting unassigned"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Assignment > Group",
+        "checkType": "presence",
+        "expected": "CAT-coded claims are assigned to the CAT surge group with a named adjuster"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Standard territory queues",
+        "checkType": "absence",
+        "expected": "No CAT-coded claim remains in a non-CAT queue after the routing run"
+      }
+    ]
+  },
+  {
+    "taskId": "e2f42018-729f-48a5-b2a7-23595e8ee770",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sqmbk8170830f6",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03spmbk8zaenx1v8",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozdb1mxmmbk8b9rkbrb5",
+      "cmqscplpi1o2embk8tvck7l1h",
+      "cmqscofhd1lywmbk8ypyebzfv"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5idov03l1v880oset61qw",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5tzn40j3fv880mh91gol4",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Acknowledgment generated from the approved template version",
+      "Send status confirmed, not assumed"
+    ],
+    "checklistSpecific": [
+      "Confirm the acknowledgment template merges the claim number, loss date, assigned unit and the claims contact number without leaving unresolved merge tokens",
+      "Verify next steps are stated concretely (who will call, by when, what documents to gather) rather than a generic thank-you",
+      "Check the send channel matches the insured recorded preference and that email/SMS delivery status is Sent or Delivered",
+      "Confirm no coverage position, liability view or settlement expectation is implied anywhere in the acknowledgment text",
+      "Where delivery bounces, verify a retry on the alternate channel is raised as an activity rather than the failure being closed silently"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Documents > Outbound correspondence",
+        "checkType": "presence",
+        "expected": "An acknowledgment document exists with status Sent and the claim number in the body"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Documents",
+        "checkType": "absence",
+        "expected": "No acknowledgment containing unresolved merge fields or a coverage opinion"
+      }
+    ]
+  },
+  {
+    "taskId": "e173f4c1-d469-4fa3-9fcc-55de01e58f47",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03spmbk8zaenx1v8",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sqmbk8170830f6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03srmbk8iv57p5n0",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103z3mbk8c39oejng",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscof7a1lyembk8mazp2zkl",
+      "cmqscof981lyimbk8s0tir7my"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Minimum data set validated before the notice is released to assignment",
+      "Gaps raised as a follow-up activity with an owner and due date"
+    ],
+    "checklistSpecific": [
+      "Confirm the reporter has authority to report: named insured, additional insured, driver on the policy, producer of record, or an authorised representative with documented consent",
+      "Verify the minimum notice set is present: policy number, loss date, loss location, loss cause and a callable contact number",
+      "Check the policy status on the loss date is In Force and not cancelled, lapsed or not-taken-up",
+      "Where a third party reports the loss, confirm the insured is still contacted independently rather than relying on the third-party account",
+      "Confirm incomplete notices are still logged and assigned with an information-request activity, never rejected at the door"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Validation results",
+        "checkType": "presence",
+        "expected": "All mandatory FNOL validations pass or an open information-request activity exists for each gap"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Policy panel",
+        "checkType": "absence",
+        "expected": "No claim advanced to assignment where the policy was not in force on the loss date without a coverage-question flag"
+      }
+    ]
+  },
+  {
+    "taskId": "80899676-cd10-4f5b-ab72-d0a7682ec324",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03spmbk8zaenx1v8",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sqmbk8170830f6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozll1my2mbk8t8xqjo3n",
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscpkr61o0mmbk8k0o0kemv",
+      "cmqscovdd1mqambk8nf5s8p4j"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Every attachment indexed to a document type, never left untyped",
+      "Source and date of receipt recorded for each item"
+    ],
+    "checklistSpecific": [
+      "Confirm photographs and video are attached to the claim file itself rather than left in the intake mailbox or the agent email thread",
+      "Verify each attachment is tagged with the correct document type (loss photo, police report, estimate, receipt, medical bill) so downstream searches find it",
+      "Check that the correct exposure is selected when the claim has multiple claimants, so third-party evidence is not filed under the insured exposure",
+      "Confirm upload of large media from the self-service portal completed (no partial or zero-byte files) and the insured sees the item listed on their portal claim view",
+      "Verify sensitive items such as medical records or identity documents are filed to the restricted-access document class"
+    ],
+    "testing": [
+      {
+        "system": "claim file/document repository",
+        "location": "Claim > Documents list",
+        "checkType": "presence",
+        "expected": "At least one typed, indexed evidence document is linked to the claim and to the correct exposure"
+      },
+      {
+        "system": "claim file/document repository",
+        "location": "Claim > Documents list",
+        "checkType": "absence",
+        "expected": "No zero-byte or untyped attachments on the claim"
+      }
+    ]
+  },
+  {
+    "taskId": "4219f483-bbf1-4e75-9fb3-d7698882e0c4",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03spmbk8zaenx1v8",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscof981lyimbk8s0tir7my"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Structured date/time/location fields used rather than narrative text",
+      "Unknown values explicitly marked unknown, not left blank"
+    ],
+    "checklistSpecific": [
+      "Confirm the loss date and time are entered as discrete values and that the time of day is captured, not defaulted to midnight",
+      "Verify the loss address is validated against the address service and resolves to a rooftop or street-level match, not just a city centroid",
+      "For mobile or portal FNOL, check the captured GPS coordinates fall within a sensible distance of the entered street address and query the gap if not",
+      "Confirm the loss location is distinguished from the risk address on the policy when the loss happened away from the insured premises",
+      "Where the loss date is a range (e.g. theft discovered later), verify both the date of occurrence and date of discovery are captured"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Loss Details",
+        "checkType": "presence",
+        "expected": "Loss date, loss time and a validated loss location (with coordinates where captured) are populated"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Loss Details",
+        "checkType": "absence",
+        "expected": "No claim with a loss location left blank or set only to the policy risk address by default"
+      }
+    ]
+  },
+  {
+    "taskId": "f0667f22-b7fb-4515-9053-6274257335a5",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03spmbk8zaenx1v8",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03srmbk8iv57p5n0",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscof981lyimbk8s0tir7my",
+      "cmqscovgr1mqgmbk8d5ib3lk1"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Questionnaire completed in the guided flow rather than free-text notes",
+      "All conditional branches answered to the end"
+    ],
+    "checklistSpecific": [
+      "Confirm the questionnaire version selected matches the line of business and loss cause (auto collision, property water, liability bodily injury are different scripts)",
+      "Verify every conditional branch triggered by the answers has been completed, with no half-finished sub-sections",
+      "Check that answers driving downstream automation (injury yes/no, vehicle drivable, property habitable, third party involved) are set explicitly rather than left null",
+      "Confirm free-text is used only for the narrative and that facts captured in structured fields are not re-typed inconsistently in the notes",
+      "Verify the questionnaire is saved against the claim so the adjuster sees the same answer set the insured gave at intake"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > FNOL questionnaire",
+        "checkType": "presence",
+        "expected": "A completed questionnaire matching the line of business and loss cause is attached to the claim"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > FNOL questionnaire",
+        "checkType": "absence",
+        "expected": "No mandatory questionnaire item left unanswered on a submitted FNOL"
+      }
+    ]
+  },
+  {
+    "taskId": "399ae870-e420-4436-a4e8-af7d842fd395",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03spmbk8zaenx1v8",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03wfmbk80gbjy7ym",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103z3mbk8c39oejng",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscofla1lz4mbk85sg21l6z",
+      "cmqscof7a1lyembk8mazp2zkl"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Estimate captured as the reporting party stated it, with the source noted",
+      "No coverage or settlement commitment given while capturing detail"
+    ],
+    "checklistSpecific": [
+      "Record the damaged property description in enough detail to size the loss: building versus contents, rooms affected, vehicle make/model/year, mileage and drivability",
+      "Capture the insured own rough estimate of the loss value and mark it clearly as an unverified insured estimate, not a reserve figure",
+      "Confirm whether the property is currently habitable or the vehicle drivable, as this drives emergency mitigation and rental/ALE decisions",
+      "Note any emergency repairs already carried out or in progress and ask the insured to retain receipts and damaged materials",
+      "Check whether other insurance or a warranty may respond so potential other-carrier involvement is flagged at intake"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Exposures > Property/vehicle detail",
+        "checkType": "presence",
+        "expected": "Damaged item description and an initial loss estimate with its source are recorded"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Notes",
+        "checkType": "absence",
+        "expected": "No statement of coverage or payable amount recorded during detail capture"
+      }
+    ]
+  },
+  {
+    "taskId": "d20b1bdf-0f1d-4b65-b7fd-e51fcb778b75",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03spmbk8zaenx1v8",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sqmbk8170830f6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03v8mbk8mdgjfcp8",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscozoh1my8mbk8ghggk47n"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5oy8o0bu9v880x8l0nto7",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Each party added as a structured contact with a defined role",
+      "Contact detail captured well enough to reach the party without a follow-up call"
+    ],
+    "checklistSpecific": [
+      "Add each involved party as its own contact record with the role set (claimant, driver, passenger, witness, third-party insurer, property owner, repairer)",
+      "Capture the other party carrier name, policy number and claim number where a third-party vehicle or property is involved, since this drives subrogation",
+      "Record injuries reported by any party, including whether an ambulance attended or treatment was sought, on the injured party record",
+      "Confirm minors and vulnerable parties are recorded with the responsible adult contact rather than a direct contact number",
+      "Verify witness contact details are captured while the reporting party still has them to hand, not deferred to the adjuster call"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Contacts",
+        "checkType": "presence",
+        "expected": "Every party mentioned in the loss narrative exists as a typed contact with a role and reachable contact detail"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Contacts",
+        "checkType": "absence",
+        "expected": "No involved party recorded only in free-text notes without a contact record"
+      }
+    ]
+  },
+  {
+    "taskId": "c4c83b6c-b080-4061-ade1-a19ca1347fbd",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sqmbk8170830f6",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03srmbk8iv57p5n0",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscovgr1mqgmbk8d5ib3lk1"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5h7bk026hv880oq8vagwe",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "State-driven field set applied from the loss jurisdiction, not the policy mailing state",
+      "Completion validated before the claim leaves intake"
+    ],
+    "checklistSpecific": [
+      "Confirm the jurisdiction driving the mandatory field set is derived from the loss location and the policy issuing state, and that the resolved state is visible on the claim",
+      "Complete state-specific reportable fields such as injury/fatality indicators, uninsured-motorist involvement and total-loss indicators required for statistical reporting",
+      "Verify no-fault and PIP states have the additional injury and medical-provider fields populated where an injury is reported",
+      "Check the state-mandated acknowledgment and contact clocks configured for the jurisdiction are attached to the claim rather than the generic default",
+      "Confirm any state field left blank is because it is genuinely not applicable, and that the not-applicable reason is recorded"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Regulatory/statistical fields",
+        "checkType": "presence",
+        "expected": "All jurisdiction-mandated FNOL fields for the resolved loss state are populated"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Regulatory field validation report",
+        "checkType": "absence",
+        "expected": "No claim released from intake with an unresolved mandatory state field error"
+      }
+    ]
+  },
+  {
+    "taskId": "56bf2175-e1fc-4620-bc19-95f9fbc5bf11",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03spmbk8zaenx1v8",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscof7a1lyembk8mazp2zkl"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Narrative recorded in the insured own words without handler interpretation",
+      "Loss cause selected from the controlled cause-of-loss list"
+    ],
+    "checklistSpecific": [
+      "Select the cause of loss from the controlled list (wind, water non-weather, fire, theft, collision, liability slip/fall) and make sure it matches the narrative rather than defaulting to Other",
+      "Record the sequence of events in order: what happened first, what failed, what damage followed, so proximate cause can be assessed later",
+      "Capture facts that bear on coverage without arguing them: how long water had been leaking, whether the property was vacant, whether the vehicle was in business use",
+      "Keep the narrative factual and avoid recording the handler own opinion on liability or coverage",
+      "Confirm the narrative length and detail are sufficient that the adjuster can prepare the first contact without re-interviewing from scratch"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Loss Details > Cause of loss and description",
+        "checkType": "presence",
+        "expected": "A controlled cause-of-loss value and a sequenced narrative description are recorded"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Loss Details",
+        "checkType": "absence",
+        "expected": "No claim with cause of loss set to Other or Unknown without an explanatory note"
+      }
+    ]
+  },
+  {
+    "taskId": "5b4fa7e5-fa19-4501-b066-605b4af39d14",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03spmbk8zaenx1v8",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sqmbk8170830f6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl45p1hlhmbk8de06ghsf",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscoff31lysmbk835qpkul1",
+      "cmqscozkh1my0mbk8uzg517r4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Reference numbers stored in dedicated fields, not buried in notes",
+      "Issuing agency captured alongside every reference number"
+    ],
+    "checklistSpecific": [
+      "Capture the police or fire report number together with the issuing agency name and jurisdiction, since the number alone is not orderable",
+      "Where no report was filed, record explicitly that no report exists and why, rather than leaving the field blank",
+      "For theft, arson and injury losses, confirm a report number is pursued as a follow-up activity if not available at intake",
+      "Record the ambulance or hospital reference where emergency services attended an injury",
+      "Verify the report reference is placed on the claim so the report-ordering task can be raised without a call back to the insured"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Loss Details > Official report fields",
+        "checkType": "presence",
+        "expected": "Report number and issuing agency are recorded, or an explicit no-report-filed value is set"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Theft and fire claim list",
+        "checkType": "absence",
+        "expected": "No theft or fire claim without either a report reference or an open activity to obtain one"
+      }
+    ]
+  },
+  {
+    "taskId": "7241ea67-a6d3-4cb6-a706-e2b56810cc39",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03srmbk8iv57p5n0",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sqmbk8170830f6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03smmbk8w5rdn2uo",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofjb1lz0mbk80oj495hj",
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscp0201myymbk8as302qmc"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Completeness check run against the published intake data standard",
+      "Each identified gap raised as an owned activity with a due date"
+    ],
+    "checklistSpecific": [
+      "Cross-check the structured fields against the narrative: loss date, loss location and party count must agree with what the description says happened",
+      "Confirm the reported loss cause is consistent with the coverage and line of business selected, and query mismatches before assignment",
+      "Verify injury and third-party indicators are consistent with the contact records actually created on the claim",
+      "Check the intake record against the FNOL quality scorecard criteria and log the score so intake quality is trended, not just fixed silently",
+      "Raise each remaining gap as a follow-up activity assigned to a named handler with a due date rather than a general note"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Activities",
+        "checkType": "presence",
+        "expected": "An intake validation activity is completed and any gaps have owned follow-up activities"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Loss Details vs Contacts",
+        "checkType": "absence",
+        "expected": "No inconsistency between the injury/third-party indicators and the contacts recorded on the claim"
+      }
+    ]
+  },
+  {
+    "taskId": "59bb13fc-1ec6-4b31-bc14-7853142d3ce9",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03smmbk8w5rdn2uo",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sqmbk8170830f6",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscoz9j1mxembk8549rcvct",
+      "cmqscp0b31mzgmbk8b2rocjpq",
+      "cmqscp0561mz4mbk8dx4o04eh"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Assignment produced by the configured rule set rather than manual selection",
+      "Rule outcome and any override recorded on the claim"
+    ],
+    "checklistSpecific": [
+      "Confirm the assignment rule evaluated line of business, loss state/territory and complexity tier together, not just territory",
+      "Verify the selected handler holds an active adjuster licence for the loss jurisdiction and has authority for the assigned tier",
+      "Check claims above the senior-adjuster threshold are not routed to a general handler by the rule",
+      "Where the rule is overridden manually, confirm the reason is recorded and the override is visible to the supervisor",
+      "Confirm the rule outcome names an individual handler, not just a group, before the assignment SLA expires"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Assignment history",
+        "checkType": "presence",
+        "expected": "Assignment shows the rule that fired and a named licensed handler"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Assignment exception queue",
+        "checkType": "absence",
+        "expected": "No claim sitting on group-only assignment past the 24-hour assignment standard"
+      }
+    ]
+  },
+  {
+    "taskId": "332294dc-2070-4bcb-9f59-041a17ec73cf",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03smmbk8w5rdn2uo",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl3771hjrmbk8pxp23ll1",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofml1lz6mbk8ukgwn4aq",
+      "cmqscp0561mz4mbk8dx4o04eh",
+      "cmqscozkh1my0mbk8uzg517r4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Flags applied from the controlled flag list with a documented trigger",
+      "Flag changes written to the claim audit trail"
+    ],
+    "checklistSpecific": [
+      "Apply the catastrophe flag only where the loss matches a declared event by date, geography and peril",
+      "Set the major-account flag where the policy belongs to a named large or strategic account so account-level service protocols engage",
+      "Apply the mass-tort or aggregation flag where the loss shares a common defect, product or event with other open claims",
+      "Confirm flags that change reserving or reporting treatment are recorded with the reason, since they feed aggregate and reinsurance views",
+      "Verify a flag applied in error is removed with a reason rather than left on the claim"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Summary > Flags panel",
+        "checkType": "presence",
+        "expected": "Applicable severity flags are set with a recorded trigger reason"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > History",
+        "checkType": "absence",
+        "expected": "No flag added or removed without an accompanying audit entry"
+      }
+    ]
+  },
+  {
+    "taskId": "54f47f1c-311f-4f4f-9177-a122bbfd2698",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofml1lz6mbk8ukgwn4aq",
+      "cmqscofla1lz4mbk85sg21l6z",
+      "cmqscp0561mz4mbk8dx4o04eh",
+      "cmqscofic1lyymbk855ay7xj8"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Severity assessed against the published triage criteria, not handler judgement alone",
+      "Assigned tier recorded with a short written rationale"
+    ],
+    "checklistSpecific": [
+      "Score the claim against the triage criteria: injury severity, number of claimants, estimated damage value, coverage question and litigation likelihood",
+      "Compare the estimated exposure against the reserve benchmark table for the line of business before setting the tier",
+      "Escalate the tier where a coverage question, a fatality, a commercial third party or an attorney is already involved, regardless of the damage estimate",
+      "Confirm the assigned tier drives the handling track and adjuster authority level, and that a mismatch is corrected rather than worked around",
+      "Record the rationale in the triage note so a later file review can see why the tier was chosen"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Severity/complexity tier field",
+        "checkType": "presence",
+        "expected": "A severity tier is set with a triage rationale note referencing the criteria used"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim list by estimated exposure",
+        "checkType": "absence",
+        "expected": "No claim above the large-loss threshold carrying a low-severity tier without documented approval"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fji1n0yj3kfgzzg8sh0s2",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03smmbk8w5rdn2uo",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscoz9j1mxembk8549rcvct",
+      "cmqscp0b31mzgmbk8b2rocjpq",
+      "cmqscp0561mz4mbk8dx4o04eh"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Assignment made to a named individual within the assignment SLA",
+      "Licence and authority validated before the assignment is confirmed"
+    ],
+    "checklistSpecific": [
+      "Verify the adjuster licence for the loss state is active and unexpired on the assignment date, including any emergency CAT licence",
+      "Confirm the adjuster line-of-business authority covers the claim type (property, auto physical damage, bodily injury, commercial)",
+      "Check the assignment respects the settlement-authority ladder so the reserve estimate does not exceed the handler authority",
+      "Confirm the assignment was made within 24 hours of the notice and that the claim did not sit in a group queue overnight",
+      "Verify current workload and absence status were considered so the claim is not assigned to a handler on leave"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Assignment",
+        "checkType": "presence",
+        "expected": "A named adjuster with an active state licence and adequate authority is assigned within 24 hours"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Adjuster licence report",
+        "checkType": "absence",
+        "expected": "No claim assigned to a handler without an active licence in the loss jurisdiction"
+      }
+    ]
+  },
+  {
+    "taskId": "78cce858-d7ec-4c03-b8f2-290122d7212a",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03smmbk8w5rdn2uo",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03srmbk8iv57p5n0",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscoz9j1mxembk8549rcvct",
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscovgr1mqgmbk8d5ib3lk1"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Handling instructions issued from the approved template for the claim type",
+      "Receipt by the assigned handler confirmed, not assumed"
+    ],
+    "checklistSpecific": [
+      "Confirm the handling-instruction package attached to the claim covers coverage position to date, contact SLA, diary cadence and reserve expectations",
+      "Verify special account or programme instructions (large account service standards, TPA protocols, litigation handling rules) are included where applicable",
+      "Check the package names the escalation contact and the authority limits that apply to this claim",
+      "Confirm the assigned adjuster has acknowledged the assignment activity rather than the package merely being generated",
+      "Verify the package version matches the current published handling guideline, not a superseded copy"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Documents > Handling instructions",
+        "checkType": "presence",
+        "expected": "A current-version handling-instruction package is attached and its acknowledgment activity is complete"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Activities",
+        "checkType": "absence",
+        "expected": "No assignment activity left unacknowledged by the assigned handler"
+      }
+    ]
+  },
+  {
+    "taskId": "931b231c-8e1c-49e2-8061-4ce279fef429",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03wfmbk80gbjy7ym",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl4aq1hlrmbk86kv59ej3",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscof891lygmbk832o3rcvr",
+      "cmqscozni1my6mbk8t7hk46jp",
+      "cmqscpm321o34mbk8ffxa91dz",
+      "cmqscozkh1my0mbk8uzg517r4"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5tzn40j3fv880mh91gol4",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Mitigation decision made and recorded at first review, not deferred",
+      "Vendor instruction issued from the approved network"
+    ],
+    "checklistSpecific": [
+      "Ask directly whether the property is secure, dry and habitable and whether anyone has been displaced, and record the answers",
+      "Where emergency services are required, dispatch board-up, water extraction or tarping from the approved vendor network within the same working day",
+      "Confirm emergency accommodation or a hire vehicle is authorised where the insured cannot occupy the property or drive, and record the authorised duration and rate",
+      "Advise the insured to mitigate further damage and retain receipts and damaged items, and note that advice on the claim",
+      "Where mitigation is not needed, record the explicit not-required decision with the reason rather than leaving the question unanswered"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Activities > Emergency mitigation decision",
+        "checkType": "presence",
+        "expected": "A recorded mitigation decision exists, with a vendor assignment where services were required"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Habitability-flagged claim list",
+        "checkType": "absence",
+        "expected": "No claim flagged uninhabitable or undrivable without a mitigation or accommodation decision"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjr7l1321kfgzx3nesvca",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03srmbk8iv57p5n0",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscofjb1lz0mbk80oj495hj"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Decision documented in the claim file within 24 hours of being made",
+      "Author and timestamp captured automatically on the note"
+    ],
+    "checklistSpecific": [
+      "Record the triage note as a typed note category (Triage decision) so it is retrievable, not as a generic file note",
+      "State the severity tier chosen, the criteria that drove it and the handling track the claim was routed to",
+      "Document any deviation from the rule-based outcome and who approved the deviation",
+      "Confirm the note is written on the claim rather than in an email thread or the assignment spreadsheet",
+      "Verify the note is legible to a reviewer with no prior knowledge of the call, including what is still unknown"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Notes > Triage decision",
+        "checkType": "presence",
+        "expected": "A typed triage decision note exists within 24 hours of the triage action"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Notes",
+        "checkType": "absence",
+        "expected": "No triage decision recorded only outside the claim system"
+      }
+    ]
+  },
+  {
+    "taskId": "0f633d1a-7a51-4ab1-9224-ec8d6b89c742",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sqmbk8170830f6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozea1mxombk8gwfvpdyq",
+      "cmqscof891lygmbk832o3rcvr",
+      "cmqscozai1mxgmbk8r3yjdlah",
+      "cmqscofhd1lywmbk8ypyebzfv"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5tzn40j3fv880mh91gol4",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5idov03l1v880oset61qw",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Notification issued within the contact standard and logged on the claim",
+      "Each contact attempt recorded, whether or not it connected"
+    ],
+    "checklistSpecific": [
+      "Confirm the insured was told the handler name, direct phone number, email and working hours within 24 hours of assignment",
+      "Verify the notification also states what happens next and the expected timescale for the first substantive contact",
+      "Where the insured is not reached, confirm the attempt is logged and a second attempt on an alternate channel is diarised, not just left",
+      "Check the agent or broker of record is copied where the account service model requires it",
+      "Confirm the handler details are also visible on the insured self-service portal claim view, not only in the phone call"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Notes/Contact log",
+        "checkType": "presence",
+        "expected": "A logged notification of the assigned handler exists within 24 hours of assignment"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Assigned claim list",
+        "checkType": "absence",
+        "expected": "No assigned claim older than 24 hours with zero recorded contact attempts"
+      }
+    ]
+  },
+  {
+    "taskId": "3b673887-00d4-468c-9f27-50e5d4efb2bb",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqscl45p1hlhmbk8de06ghsf",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03spmbk8zaenx1v8",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5vh001xv8w0wjwgw9ud",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofan1lykmbk8vmtdn3yk",
+      "cmqscozf91mxqmbk8uwj62cr4",
+      "cmqscozji1mxymbk8v9j8ouku",
+      "cmqscofbl1lymmbk8n1rr7zoi"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc4ulv005rjv8f8bt3xusl5",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Screening completed on every notice, not only on suspicious ones",
+      "Screening outcome recorded even where no indicator is found"
+    ],
+    "checklistSpecific": [
+      "Run the documented red-flag checklist against the FNOL: loss shortly after inception or after a coverage increase, no police report on a theft, prior similar claims, reluctance to give detail, pressure for a fast cash settlement",
+      "Confirm the automated fraud score from the detection engine has returned and been reviewed, rather than the claim advancing before scoring completes",
+      "Check the sanctions and watchlist screening of the named parties has run at first notice and that any hit is escalated before any payment step",
+      "Where indicators are present, confirm the SIU referral is raised within 48 hours with the specific indicators cited, not a generic suspicion",
+      "Verify the insured was not told they are under fraud review and that the claim continues to be handled normally while screening proceeds"
+    ],
+    "testing": [
+      {
+        "system": "FRISS Fraud Detection",
+        "location": "Claim > Fraud score and indicator list",
+        "checkType": "presence",
+        "expected": "A completed fraud screening result with the red-flag checklist outcome is recorded on the claim"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > SIU referral",
+        "checkType": "absence",
+        "expected": "No claim with triggered red flags lacking an SIU referral beyond 48 hours"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjic60yockfgzhbox00qa",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03smmbk8w5rdn2uo",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0a31mzembk8hmjzblgt",
+      "cmqscofic1lyymbk855ay7xj8",
+      "cmqscozkh1my0mbk8uzg517r4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Diary dates set at assignment, not at first review",
+      "Every diary has a named owner"
+    ],
+    "checklistSpecific": [
+      "Set the first contact diary to fall inside the 24-hour insured contact standard rather than at the end of the week",
+      "Set the coverage confirmation diary within the 24-hour post-assignment coverage standard",
+      "Set reserve review diaries at 30, 60 and 90 days in line with the reserve review cadence",
+      "Confirm the diary cadence matches the severity tier, with tighter intervals on large-loss and litigated claims",
+      "Verify diaries are owned by the assigned handler and reassign automatically on handler change rather than going orphan"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Activities/Diary",
+        "checkType": "presence",
+        "expected": "Contact, coverage and 30/60/90-day reserve review diaries exist with a named owner"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Diary report",
+        "checkType": "absence",
+        "expected": "No open claim without a future-dated diary entry"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjqyc12xkkfgzky373y8a",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0761mz8mbk8zr3vrq47",
+      "cmqscofla1lz4mbk85sg21l6z",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscp0841mzambk8yfpw8urr"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Reserve posted within the initial reserve standard window",
+      "Written rationale recorded alongside every reserve figure"
+    ],
+    "checklistSpecific": [
+      "Post the initial indemnity reserve using the reserve worksheet for the severity tier and line of business rather than a round-number placeholder",
+      "Set expense reserves separately from indemnity, including anticipated adjuster, expert and legal costs",
+      "Confirm reserves are posted per exposure where the claim has multiple claimants, not as a single lump on the claim",
+      "Verify the initial reserve is posted within 72 hours of the notice and that the reserve rationale note cites the benchmark or estimate used",
+      "Where the reserve exceeds the handler authority or the $25K change threshold, confirm manager approval is captured before posting"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Financials > Reserves",
+        "checkType": "presence",
+        "expected": "Indemnity and expense reserves are posted per exposure within 72 hours with a rationale note"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Reserve change log",
+        "checkType": "absence",
+        "expected": "No reserve above the authority threshold posted without recorded manager approval"
+      }
+    ]
+  },
+  {
+    "taskId": "670d3fe6-6aee-4819-9562-fe4e9ac948f3",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03smmbk8w5rdn2uo",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sqmbk8170830f6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscoz9j1mxembk8549rcvct",
+      "cmqscp0b31mzgmbk8b2rocjpq",
+      "cmqscovgr1mqgmbk8d5ib3lk1"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Routing executed by the published rule set with a version reference",
+      "Routing result recorded on the claim audit trail"
+    ],
+    "checklistSpecific": [
+      "Confirm the routing rule set version in force is the current published one and note it on the routing result",
+      "Verify the claim landed on the correct handling track: fast-track low-complexity, standard, complex/large-loss, litigation or CAT",
+      "Check that fast-track eligibility criteria (no injury, single party, damage under threshold, no coverage question) are all satisfied before a claim is fast-tracked",
+      "Confirm specialty triggers (bodily injury, commercial liability, subrogation potential, total loss) redirect the claim before it reaches a generalist queue",
+      "Verify a claim that matches no rule lands in the routing exception queue with an owner rather than defaulting to an arbitrary group"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Assignment history > Routing rule",
+        "checkType": "presence",
+        "expected": "The routing rule that fired and the resulting handling track are recorded on the claim"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Routing exception queue",
+        "checkType": "absence",
+        "expected": "No claim in the routing exception queue without an assigned owner"
+      }
+    ]
+  },
+  {
+    "taskId": "29388d46-5519-4b0a-b324-71f72561b7c1",
+    "roles": [
+      {
+        "roleId": "cmqscl3771hjrmbk8pxp23ll1",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03smmbk8w5rdn2uo",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscoz9j1mxembk8549rcvct",
+      "cmqscp0b31mzgmbk8b2rocjpq",
+      "cmqscovko1mqombk8e7lb7kdj"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Assignment made from the CAT roster in force for the declared event",
+      "CAT management oversight recorded on the assignment"
+    ],
+    "checklistSpecific": [
+      "Assign only from the CAT adjuster roster activated for this event, including approved independent adjuster firms",
+      "Verify each assigned CAT adjuster holds a valid or emergency licence for the affected state before the first field visit",
+      "Confirm the CAT team lead is set as the supervisory contact on the claim so oversight is visible on the file",
+      "Balance assignments by geographic cluster so field routing is efficient rather than assigning by simple round-robin",
+      "Confirm complex or large-loss CAT claims are steered to the large-loss CAT lane rather than a general CAT handler"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Assignment > CAT team",
+        "checkType": "presence",
+        "expected": "CAT claims are assigned to a rostered CAT adjuster with a named CAT supervisor"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "CAT event claim list",
+        "checkType": "absence",
+        "expected": "No CAT claim assigned to a handler outside the activated CAT roster"
+      }
+    ]
+  },
+  {
+    "taskId": "d386416f-f838-4b2d-911f-f07cab95b64a",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03srmbk8iv57p5n0",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscofjb1lz0mbk80oj495hj",
+      "cmqscovcf1mq8mbk86bcg9d13"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Rationale recorded at the time of the decision, not reconstructed later",
+      "Audit trail entry links the decision to the person who made it"
+    ],
+    "checklistSpecific": [
+      "Record why the claim went to the track it did, referencing the specific trigger (injury reported, reserve above threshold, coverage question, attorney involvement)",
+      "Where the automated routing was overridden, document what the rule proposed, what was chosen instead and who authorised the change",
+      "Confirm escalation rationale names the receiving role or unit and what decision is being asked of them",
+      "Verify the rationale is written on the claim audit trail rather than in a routing spreadsheet or chat message",
+      "Check that a reviewer with no prior knowledge could follow the routing history end to end from the audit trail alone"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > History/Audit trail",
+        "checkType": "presence",
+        "expected": "Each routing and escalation event carries a rationale entry with an author and timestamp"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > History",
+        "checkType": "absence",
+        "expected": "No manual routing override recorded without a documented reason and approver"
+      }
+    ]
+  },
+  {
+    "taskId": "8b31b3e6-2c49-4c32-b621-0ddcc97e8c8d",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t2mbk8h6wx6ilk",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofml1lz6mbk8ukgwn4aq",
+      "cmqscp0561mz4mbk8dx4o04eh",
+      "cmqscp0931mzcmbk8kbuzaa1i",
+      "cmqscpkkv1o0cmbk8r8mqmd4c"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Escalation triggered against published thresholds, not personal judgement",
+      "Receiving reviewer acknowledges the escalation"
+    ],
+    "checklistSpecific": [
+      "Escalate where the incurred or estimated exposure crosses the large-loss threshold, and re-check after every reserve movement rather than only at intake",
+      "Confirm claims above $100K are moved to a senior adjuster and claims above $500K are placed under claims management oversight",
+      "Include the key facts, coverage position, current reserve and the specific decision being sought in the escalation summary",
+      "Verify the escalation is acknowledged by the receiving senior handler or manager within the escalation window, not just sent",
+      "Where the escalation is declined, confirm the reason and the agreed handling plan are recorded on the claim"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Escalation activity",
+        "checkType": "presence",
+        "expected": "An escalation record exists with the trigger threshold cited and an acknowledgment from the receiving reviewer"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Large-loss claim report",
+        "checkType": "absence",
+        "expected": "No claim above the large-loss threshold without a completed escalation"
+      }
+    ]
+  },
+  {
+    "taskId": "fe1783c8-66d9-467c-82f5-99886f1a6ed5",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqscl3ut1hkvmbk8ayobti2y",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03tembk82j23sobd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofgd1lyumbk8z1awrlqb",
+      "cmqscozqc1mycmbk8me2kbata",
+      "cmqscozrb1myembk85ilmptjr",
+      "cmqscozph1myambk8999mwsj4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Litigation flag applied against published thresholds and triggers",
+      "Legal unit notified through the standard channel with the file accessible"
+    ],
+    "checklistSpecific": [
+      "Flag the claim where any litigation trigger is present: attorney representation notified, suit papers served, a demand letter received, or a fatality/serious injury",
+      "Record the date of service or date the demand was received, since response deadlines run from it and are not extendable",
+      "Confirm the notification to the legal unit includes the coverage position, current reserve and the response deadline",
+      "Verify the reserve has been reviewed for legal exposure and defence costs at the point of flagging, not left at the pre-litigation level",
+      "Check defence counsel, where instructed, comes from the approved panel and the instruction is recorded on the claim"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Litigation panel",
+        "checkType": "presence",
+        "expected": "Litigation flag is set with the trigger date and a legal notification activity recorded"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Litigated claim list",
+        "checkType": "absence",
+        "expected": "No served suit or attorney representation on file without a litigation flag and legal notification"
+      }
+    ]
+  },
+  {
+    "taskId": "467eaff3-5ee2-40e0-99de-6f9dd70d3cf8",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03smmbk8w5rdn2uo",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sqmbk8170830f6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozea1mxombk8gwfvpdyq",
+      "cmqscof891lygmbk832o3rcvr",
+      "cmqscoz9j1mxembk8549rcvct",
+      "cmqscofic1lyymbk855ay7xj8"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5tzn40j3fv880mh91gol4",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Task list generated automatically on assignment, not built by hand",
+      "Every generated task has an owner and a due date"
+    ],
+    "checklistSpecific": [
+      "Confirm the generated task list matches the claim type and severity tier rather than a single generic list for all claims",
+      "Verify the customer contact SLA task is dated to the 24-hour insured contact standard measured from assignment",
+      "Check coverage verification, reserve setting and evidence collection tasks are all present with due dates inside their respective standards",
+      "Confirm state-specific contact and acknowledgment deadlines for the loss jurisdiction override the generic default where they are shorter",
+      "Verify the tasks and SLA clocks are attached to the claim so they surface on the adjuster diary, not just in the routing engine"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Activities",
+        "checkType": "presence",
+        "expected": "A generated intake task list with owners and SLA-derived due dates is attached to the claim"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Activities",
+        "checkType": "absence",
+        "expected": "No generated task without a due date or an owner"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fkk291frtkfgz2fswwnat",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03smmbk8w5rdn2uo",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscplf41o1umbk8h9az1264",
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscpkkv1o0cmbk8r8mqmd4c"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Exception monitoring run on a defined cadence with a named owner",
+      "Every identified exception logged rather than fixed silently"
+    ],
+    "checklistSpecific": [
+      "Review the routing exception queue at least daily and age each item against the assignment standard",
+      "Identify claims that fell through to a default group because no rule matched, and record the rule gap for configuration fix",
+      "Flag claims routed to a handler without the required licence or authority for the loss jurisdiction",
+      "Spot claims with a specialty trigger (injury, litigation, subrogation, total loss) sitting on a generalist track",
+      "Trend recurring exception causes so the routing rule set is corrected rather than the same claims being fixed by hand each day"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Routing exception dashboard",
+        "checkType": "presence",
+        "expected": "A dated exception review exists listing each exception with its cause and owner"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Routing exception queue",
+        "checkType": "absence",
+        "expected": "No exception older than the assignment SLA left unreviewed"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fkk9x1fxjkfgzx45enzjj",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03smmbk8w5rdn2uo",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sqmbk8170830f6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscoz9j1mxembk8549rcvct",
+      "cmqscp0b31mzgmbk8b2rocjpq",
+      "cmqscozkh1my0mbk8uzg517r4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Reassignment made to a handler with the correct licence and authority",
+      "Reason for the misroute recorded on the claim"
+    ],
+    "checklistSpecific": [
+      "Confirm the claim is reassigned to the correct handling track and a named handler, not simply pushed back to an unassigned queue",
+      "Verify the SLA clocks are recalculated from the original notice date so a misroute does not reset the insured contact deadline",
+      "Check the outgoing handler has recorded what was already done (contacts made, reserves posted, documents requested) before the handover",
+      "Confirm the insured is told of the handler change where contact had already been made in their name",
+      "Record the misroute cause so the routing rule or data-quality gap can be corrected upstream"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Assignment history",
+        "checkType": "presence",
+        "expected": "A reassignment entry exists with the misroute reason and the corrected handling track"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Reassigned claim list",
+        "checkType": "absence",
+        "expected": "No reassigned claim whose insured contact SLA was reset to the reassignment date"
+      }
+    ]
+  },
+  {
+    "taskId": "ed6eff85-5b61-4ce7-acc4-5cdf1765127b",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03v8mbk8mdgjfcp8",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03smmbk8w5rdn2uo",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscoz9j1mxembk8549rcvct",
+      "cmqscozxl1myqmbk897746fov",
+      "cmqscp0b31mzgmbk8b2rocjpq",
+      "cmqscofe51lyqmbk8piz66zqb"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Specialty routing applied as soon as the injury indicator is set",
+      "Assignment recorded to a named specialist, not a group"
+    ],
+    "checklistSpecific": [
+      "Route to a bodily-injury specialist as soon as any injury is reported, before medical detail is complete, rather than waiting for bills",
+      "Confirm serious-injury markers (fatality, hospitalisation, spinal or head injury, minor claimant) push the claim to the senior BI or complex lane",
+      "Verify a structured-settlement consultant is engaged where the exposure profile and claimant circumstances warrant it, and the engagement is recorded",
+      "Check medical management or nurse case review is triggered where treatment is ongoing, and that the referral is on the claim",
+      "Confirm the BI reserve is set on the injury exposure separately from property damage on the same claim"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Exposures > Bodily injury assignment",
+        "checkType": "presence",
+        "expected": "Injury exposures are assigned to a named bodily-injury specialist with a separate reserve"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Injury-flagged claim list",
+        "checkType": "absence",
+        "expected": "No injury-flagged claim left on a property-damage-only handler"
+      }
+    ]
+  },
+  {
+    "taskId": "b239a1e2-7879-4367-a038-a845588f27d5",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03smmbk8w5rdn2uo",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0a31mzembk8hmjzblgt",
+      "cmqscpkkv1o0cmbk8r8mqmd4c",
+      "cmqscofjb1lz0mbk80oj495hj",
+      "cmqscofic1lyymbk855ay7xj8"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Escalation diaries set at the point of escalation, not later",
+      "Diary owner is the reviewing manager, not the originating handler"
+    ],
+    "checklistSpecific": [
+      "Set the management review diary inside the escalation response window defined for the severity tier",
+      "Confirm large-loss claims carry recurring management review diaries at 30, 60 and 90 days rather than a single one-off date",
+      "Verify litigated claims carry a diary aligned to the response deadline for the served proceedings",
+      "Check the diary is owned by the reviewing manager so it does not close when the claim is reassigned between handlers",
+      "Confirm a missed escalation diary raises an overdue alert rather than silently ageing in the queue"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Activities > Escalation diary",
+        "checkType": "presence",
+        "expected": "An escalation diary exists owned by the reviewing manager with a date inside the review window"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Overdue diary report",
+        "checkType": "absence",
+        "expected": "No escalated claim with an overdue management review diary"
+      }
+    ]
+  },
+  {
+    "taskId": "d5853703-0c95-4162-8c08-d6ef6aed04e8",
+    "roles": [
+      {
+        "roleId": "cmqsck0rq03x4mbk86m34bpxr",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl45p1hlhmbk8de06ghsf",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5vh001xv8w0wjwgw9ud",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozji1mxymbk8v9j8ouku",
+      "cmqscofbl1lymmbk8n1rr7zoi",
+      "cmqscozf91mxqmbk8uwj62cr4",
+      "cmqscozi81mxwmbk8ci7pzq4z"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc4ulv005rjv8f8bt3xusl5",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Referral raised within the published referral window",
+      "Referral outcome tracked back onto the claim"
+    ],
+    "checklistSpecific": [
+      "Raise the SIU referral within 48 hours of the indicator being identified and record the date the indicator was first noted",
+      "Cite the specific red-flag indicators and the supporting facts rather than a general statement of suspicion",
+      "Attach the underlying evidence (recorded statement, prior claim history, inconsistent documents) to the referral so SIU does not have to rebuild it",
+      "Confirm claim handling continues within regulatory timeframes during the SIU review and that payments are held only where the handling guideline permits",
+      "Verify the SIU outcome (substantiated, unsubstantiated, referred to authorities) is written back to the claim and closes the referral activity"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > SIU referral record",
+        "checkType": "presence",
+        "expected": "An SIU referral exists within 48 hours citing named indicators, with supporting documents attached"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "SIU referral list",
+        "checkType": "absence",
+        "expected": "No SIU referral left open without a recorded outcome once the investigation is closed"
+      }
+    ]
+  },
+  {
+    "taskId": "7f5a47b0-cb73-4cf7-90be-434617c75238",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl3771hjrmbk8pxp23ll1",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofic1lyymbk855ay7xj8",
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscovko1mqombk8e7lb7kdj"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5h7bk026hv880oq8vagwe",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc4u40t051zv8f84tls5tut",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Timeframe changes applied from the issued regulatory bulletin, not from rumour",
+      "Configuration change recorded with the source document"
+    ],
+    "checklistSpecific": [
+      "Obtain the issued department of insurance bulletin or emergency order for each affected state and attach it as the source of the extended timeframes",
+      "Configure the extended acknowledgment, contact, decision and payment clocks per state rather than applying one blanket extension across the event",
+      "Confirm moratoria on cancellation, non-renewal and premium due dates are applied where the bulletin requires them",
+      "Verify the extended clocks apply only to claims tagged to the declared event and inside the affected geography",
+      "Diary the bulletin expiry date so standard timeframes resume automatically rather than extensions running on indefinitely"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "CAT event > Regulatory timeframe configuration",
+        "checkType": "presence",
+        "expected": "Per-state extended timeframes are configured with the source bulletin attached and an expiry date set"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "CAT event configuration",
+        "checkType": "absence",
+        "expected": "No extended timeframe applied to a state not covered by an issued bulletin"
+      }
+    ]
+  },
+  {
+    "taskId": "dbb56de4-a463-47c5-ab8b-d0d0dd8b4f3e",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqscl3771hjrmbk8pxp23ll1",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sqmbk8170830f6",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscovgr1mqgmbk8d5ib3lk1"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Auto-tagging driven by the configured event geography and date window",
+      "Tagging results reviewed for false positives before aggregation is trusted"
+    ],
+    "checklistSpecific": [
+      "Confirm the event geography is defined by state/county/ZIP list and the date window covers the full event period including the tail",
+      "Verify the loss date and loss location on each inbound FNOL are matched against the event definition, not the policy mailing address",
+      "Check that the peril reported on the claim is consistent with the event peril before the tag sticks, so unrelated losses are not swept in",
+      "Review the daily auto-tag exception list and manually tag or untag edge cases with a recorded reason",
+      "Confirm tagged claims flow into the event aggregate view within the same reporting day so exposure figures are current"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "CAT event > Tagged claim list",
+        "checkType": "presence",
+        "expected": "Inbound FNOLs matching the event geography, date window and peril carry the event tag"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "CAT event > Tagged claim list",
+        "checkType": "absence",
+        "expected": "No claim tagged to the event whose loss date or location falls outside the event definition"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi18s09tikfgzldxv0t3i",
+    "roles": [
+      {
+        "roleId": "cmqsck0rn03s7mbk85nkvof8n",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl3771hjrmbk8pxp23ll1",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscov9q1mq4mbk8ubdt32c4",
+      "cmqscpkhx1o06mbk881zf9jzp",
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscovko1mqombk8e7lb7kdj"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Declaration made by the authorised role against the published trigger criteria",
+      "Declaration and activation time recorded in the system of record"
+    ],
+    "checklistSpecific": [
+      "Confirm the declaration is made by the role holding CAT declaration authority and that the decision is recorded with a timestamp",
+      "Create the CAT event record with the event name, PCS or catalogue number, peril, affected geography and date window before any claim is tagged",
+      "Set the CAT severity level so the correct tier of the response plan (staffing, vendor call-off, reporting cadence) activates",
+      "Verify the response plan version activated is the current published one and is attached to the event record",
+      "Confirm reinsurance operations, exposure management and finance are on the declaration distribution so aggregate tracking starts immediately"
+    ],
+    "testing": [
+      {
+        "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "location": "CAT event record",
+        "checkType": "presence",
+        "expected": "A CAT event record exists with declaration timestamp, authorising role, peril, geography and date window"
+      },
+      {
+        "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "location": "CAT event list",
+        "checkType": "absence",
+        "expected": "No claims tagged to a CAT event that has not been formally declared"
+      }
+    ]
+  },
+  {
+    "taskId": "c4b58b6a-4536-4823-89d2-ea41db5dae41",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rn03rumbk8hgmfaf6f",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscov9q1mq4mbk8ubdt32c4",
+      "cmqscpkeg1o00mbk8q017rmlu",
+      "cmqscpkgn1o04mbk81lx1dhwh",
+      "cmqscovre1mr2mbk8wd5tuegb"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Command structure stood up with named role holders, not just a distribution list",
+      "Operating rhythm and communication protocol published to all responders"
+    ],
+    "checklistSpecific": [
+      "Name the CAT command roles explicitly: event commander, field operations lead, intake/queue lead, vendor lead, communications lead and reporting lead",
+      "Stand up the dedicated CAT triage queues in the claims platform and the CAT skill group in the contact centre before volume arrives",
+      "Publish the command rhythm: stand-up time, situation report cadence, escalation path and out-of-hours cover",
+      "Confirm alternate site or remote working capability is available and tested for the responders where the event affects the company own locations",
+      "Verify a single event channel is designated for command communications so decisions are not fragmented across email and chat"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "CAT event > Command team and queues",
+        "checkType": "presence",
+        "expected": "Named command role holders and dedicated CAT triage queues exist for the declared event"
+      },
+      {
+        "system": "Genesys Cloud (Contact Center)",
+        "location": "CAT skill group configuration",
+        "checkType": "absence",
+        "expected": "No CAT event live without an active CAT skill group and routing profile"
+      }
+    ]
+  },
+  {
+    "taskId": "b5d6b2d7-59b7-4363-a1b2-71c37faeffaa",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkgn1o04mbk81lx1dhwh",
+      "cmqscofhd1lywmbk8ypyebzfv",
+      "cmqscplpi1o2embk8tvck7l1h",
+      "cmqscovmm1mqsmbk8gsj8jgej"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5idov03l1v880oset61qw",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5tzn40j3fv880mh91gol4",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Communication issued from an approved template with a compliance-reviewed version",
+      "Distribution list scoped to affected policyholders only"
+    ],
+    "checklistSpecific": [
+      "Scope the distribution to policyholders with risk addresses inside the affected geography, not the whole book",
+      "State the claim-filing routes explicitly: dedicated CAT phone line, self-service portal and mobile app, with the hours of operation",
+      "Include practical emergency guidance: make safe, mitigate further damage, keep receipts, do not dispose of damaged property before inspection",
+      "Confirm the message contains no coverage assurances or blanket statements about what will be paid",
+      "Verify the same content is published on the portal and IVR announcement so channels do not contradict each other"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "CAT event campaign > Send log",
+        "checkType": "presence",
+        "expected": "An approved CAT policyholder communication was sent to the affected-geography list with claim-filing routes stated"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "CAT event campaign content",
+        "checkType": "absence",
+        "expected": "No coverage commitment or payment promise present in the outbound CAT communication"
+      }
+    ]
+  },
+  {
+    "taskId": "7ac5aefb-6822-4724-a51a-733099610933",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sqmbk8170830f6",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscpkhx1o06mbk881zf9jzp",
+      "cmqscovko1mqombk8e7lb7kdj"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "All activation actions logged in the system of record with timestamps",
+      "Supporting documents attached to the event record"
+    ],
+    "checklistSpecific": [
+      "Log the declaration decision, the authorising role and the declaration timestamp on the CAT event record",
+      "Attach the source trigger evidence (meteorological bulletin, PCS designation, regulator order) to the event record",
+      "Record each activation action with its time: command stand-up, queue creation, roster call-off, vendor activation, policyholder communication",
+      "Confirm the log is kept on the event record rather than in a personal spreadsheet or incident chat thread",
+      "Verify the activation log is complete enough to support a post-event review and any regulatory or reinsurance enquiry"
+    ],
+    "testing": [
+      {
+        "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "location": "CAT event > Activity log",
+        "checkType": "presence",
+        "expected": "A timestamped activation log with attached trigger evidence exists on the event record"
+      },
+      {
+        "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "location": "CAT event record",
+        "checkType": "absence",
+        "expected": "No activation action recorded only outside the claims system"
+      }
+    ]
+  },
+  {
+    "taskId": "e142971a-ea35-46d6-9929-37f00cdaf878",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqscl4aq1hlrmbk86kv59ej3",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03uembk8cjuvegt1",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovre1mr2mbk8wd5tuegb",
+      "cmqscpm321o34mbk8ffxa91dz",
+      "cmqscpm1y1o32mbk8p8nq98n0",
+      "cmqscov9q1mq4mbk8ubdt32c4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Mobilisation drawn from the pre-agreed CAT roster and vendor panel",
+      "Deployment recorded against the event with capacity numbers"
+    ],
+    "checklistSpecific": [
+      "Call off the internal CAT team, independent adjuster firms and restoration/mitigation vendors against pre-agreed CAT rate and capacity agreements",
+      "Confirm emergency adjuster licensing or state emergency registration is in place for every deployed resource before they take assignments",
+      "Match deployed capacity to the projected claim volume by geography and update the roster daily as volume becomes clearer",
+      "Verify travel, accommodation and safety arrangements are confirmed for field resources entering the affected area",
+      "Record the deployed headcount by firm and geography on the event record so vendor performance and cost can be tracked afterwards"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "CAT event > Resource roster",
+        "checkType": "presence",
+        "expected": "A deployed resource roster with firm, geography and licence status exists for the event"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "CAT adjuster assignment list",
+        "checkType": "absence",
+        "expected": "No deployed adjuster taking assignments without a valid or emergency state licence"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi1hq09ykkfgzmakcs8r6",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rn03s7mbk85nkvof8n",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl3771hjrmbk8pxp23ll1",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkgn1o04mbk81lx1dhwh",
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscovcf1mq8mbk86bcg9d13"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Notification issued to the pre-defined distribution within the activation window",
+      "Acknowledgment captured from each required recipient"
+    ],
+    "checklistSpecific": [
+      "Send the declaration notification to the standing CAT distribution: command team, claims leadership, underwriting, reinsurance, exposure management, finance and communications",
+      "Include the event definition, severity level, expected volume and the first situation-report time in the notification",
+      "Confirm acknowledgment from each command role holder rather than treating a sent email as notification complete",
+      "Chase non-acknowledgers via the escalation contact route within the activation window",
+      "Record the notification and acknowledgments on the event record so activation readiness is evidenced"
+    ],
+    "testing": [
+      {
+        "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "location": "CAT event > Notification log",
+        "checkType": "presence",
+        "expected": "Notification sent to the full CAT distribution with acknowledgments recorded per command role"
+      },
+      {
+        "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "location": "CAT event > Notification log",
+        "checkType": "absence",
+        "expected": "No command role holder left unacknowledged past the activation window"
+      }
+    ]
+  },
+  {
+    "taskId": "463dc77d-a922-4e28-9a68-fd57d753c5db",
+    "roles": [
+      {
+        "roleId": "cmqscl3771hjrmbk8pxp23ll1",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscozkh1my0mbk8uzg517r4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Trigger validated against the approved event source before any declaration",
+      "Validation evidence retained with the event record"
+    ],
+    "checklistSpecific": [
+      "Confirm the trigger comes from an approved source (national meteorological service, PCS designation, official emergency declaration) rather than news reporting",
+      "Check the reported event footprint against the company exposure so the trigger is assessed against actual in-force risk, not just event size",
+      "Validate the surge trigger where the driver is claim volume rather than a named event, using the intake volume threshold defined in the plan",
+      "Confirm the event date window and peril are precise enough to configure tagging without ambiguity",
+      "Record the validation decision, including a decision not to declare, so near-miss events are also evidenced"
+    ],
+    "testing": [
+      {
+        "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "location": "CAT event > Trigger validation record",
+        "checkType": "presence",
+        "expected": "A validation record exists citing the approved event source and the exposure assessment"
+      },
+      {
+        "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "location": "CAT event list",
+        "checkType": "absence",
+        "expected": "No CAT event declared without a validated trigger from an approved source"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fil0d0iypkfgz6p7t7vvj",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqscl3771hjrmbk8pxp23ll1",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rq03wzmbk8iu5btcuv",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscplf41o1umbk8h9az1264",
+      "cmqscofnt1lz8mbk8jldiwsv6",
+      "cmqscp0201myymbk8as302qmc"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Aggregation run from the claims system of record on a fixed cadence",
+      "Figures reconciled to the general ledger before circulation"
+    ],
+    "checklistSpecific": [
+      "Aggregate paid, outstanding reserve and incurred by event, splitting indemnity from expense so net figures are meaningful",
+      "Include an IBNR or expected-late-notification allowance so the aggregate is not understated in the first days of the event",
+      "Break the aggregate by state, line of business and peril so regulatory and reinsurance views can be produced without rework",
+      "Reconcile the aggregate to the claims financial ledger and explain any variance before circulating the number",
+      "Confirm the aggregate only includes claims correctly tagged to the event, and note the count of untagged suspects still under review"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "CAT event aggregate report",
+        "checkType": "presence",
+        "expected": "A dated event aggregate exists split by paid, outstanding and IBNR with a ledger reconciliation"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "CAT event claim list",
+        "checkType": "absence",
+        "expected": "No claim included in the aggregate that is not tagged to the declared event"
+      }
+    ]
+  },
+  {
+    "taskId": "0f2b310e-deea-49d9-bcc1-13287990a7eb",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03uembk8cjuvegt1",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03wfmbk80gbjy7ym",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozni1my6mbk8t7hk46jp",
+      "cmqscozll1my2mbk8t8xqjo3n",
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscoff31lysmbk835qpkul1"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc4u10l04wzv8f892l193bq",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Findings captured on site in the mobile claim record, not written up days later",
+      "Photographic evidence attached and linked to the correct exposure"
+    ],
+    "checklistSpecific": [
+      "Capture the full photo set on site: elevations, roof, interior room by room, serial and model plates, and a wide shot establishing the address",
+      "Record the damage estimate against the itemised estimating template rather than a single lump-sum figure",
+      "Note pre-existing damage, wear and maintenance issues separately from event damage so causation can be argued later",
+      "Confirm the inspection date, time and GPS location are stamped against the visit so the scene inspection standard can be evidenced",
+      "Record scope agreed with the insured or their contractor on site, including anything in dispute, before leaving the property"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Inspection record and photos",
+        "checkType": "presence",
+        "expected": "A dated, geo-stamped inspection record with an itemised estimate and photo set is attached to the claim"
+      },
+      {
+        "system": "claim file/document repository",
+        "location": "Claim > Documents",
+        "checkType": "absence",
+        "expected": "No inspection recorded without supporting photographs linked to the exposure"
+      }
+    ]
+  },
+  {
+    "taskId": "8a286a36-1302-4742-9e0c-be79efa6a67e",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03uembk8cjuvegt1",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03wfmbk80gbjy7ym",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl3771hjrmbk8pxp23ll1",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozni1my6mbk8t7hk46jp",
+      "cmqscozll1my2mbk8t8xqjo3n",
+      "cmqscofic1lyymbk855ay7xj8",
+      "cmqscp0111mywmbk8nbsr4gct"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Triage method and date recorded for every property assessed",
+      "Triage outcome drives the next handling step automatically"
+    ],
+    "checklistSpecific": [
+      "Use drive-by, aerial imagery or drone survey to sort properties into total loss, major repairable, minor repairable and no damage before booking full inspections",
+      "Confirm the imagery date post-dates the event so pre-event imagery is not mistaken for a damage assessment",
+      "Fast-track clear total losses to advance payment and additional living expense authorisation rather than queuing them behind full inspections",
+      "Verify no-damage and minor cases are closed or moved to desk/virtual adjustment so field capacity goes to the severe end",
+      "Record the triage basis (aerial, drive-by, insured-supplied photos) on each claim so the assessment quality is traceable"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Triage outcome field",
+        "checkType": "presence",
+        "expected": "Each CAT property claim carries a triage outcome with the assessment method and date"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "CAT property claim list",
+        "checkType": "absence",
+        "expected": "No untriaged CAT property claim beyond the event triage window"
+      }
+    ]
+  },
+  {
+    "taskId": "b7a9b763-3499-4d85-885c-c8d61dc48e33",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03srmbk8iv57p5n0",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovea1mqcmbk8um82vnx8",
+      "cmqscofjb1lz0mbk80oj495hj",
+      "cmqscp0201myymbk8as302qmc",
+      "cmqscozue1mykmbk80pz6lh9b"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Review held within a defined window after event stand-down",
+      "Actions assigned to named owners with due dates"
+    ],
+    "checklistSpecific": [
+      "Measure actual performance against plan: activation lead time, first contact and inspection cycle times, payment velocity and complaint volume",
+      "Review vendor and independent adjuster performance against the CAT capacity and quality commitments, and record findings for the panel review",
+      "Capture what failed operationally: routing gaps, licensing delays, communication breakdowns, system capacity limits",
+      "Sample-review closed CAT files against the quality scorecard to test whether surge handling degraded file quality",
+      "Log each improvement action with an owner and a date, and feed the CAT response plan update rather than leaving findings in a report"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Post-CAT review pack",
+        "checkType": "presence",
+        "expected": "A completed post-event review exists with measured metrics and owned improvement actions"
+      },
+      {
+        "system": "claim file/document repository",
+        "location": "CAT response plan document",
+        "checkType": "absence",
+        "expected": "No post-event review action left without an owner or a due date"
+      }
+    ]
+  },
+  {
+    "taskId": "9a59b931-f596-41f7-98fe-41c913a766d3",
+    "roles": [
+      {
+        "roleId": "cmqsck0rq03wrmbk89880tfdx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqscl3771hjrmbk8pxp23ll1",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "d887c40f-3240-46fb-ae51-e4ba5c2c91a5",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofkb1lz2mbk8bf6had6v",
+      "cmqscp0431mz2mbk8c0gkfukx",
+      "cmqscp0321mz0mbk8zlahkj7t",
+      "cmqscovko1mqombk8e7lb7kdj"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Notification made per the contract terms and within the contractual window",
+      "Cession figures reconciled to the gross claims aggregate"
+    ],
+    "checklistSpecific": [
+      "Confirm the event aggregate is measured against the CAT treaty attachment point and that the reinsurer is notified as it is approached, not only when breached",
+      "Apply the treaty hours clause correctly when defining the loss occurrence period so claims are grouped into the right event",
+      "Notify facultative reinsurers on individual large losses within the 72-hour facultative reporting standard",
+      "Provide the reinsurer the loss bordereau in the contractual format and cadence, split by state, peril and line",
+      "Reconcile ceded figures to the gross event aggregate and explain movements between reporting cycles"
+    ],
+    "testing": [
+      {
+        "system": "treaty repository",
+        "location": "CAT event > Reinsurance notification record",
+        "checkType": "presence",
+        "expected": "A dated reinsurer notification with event aggregate and hours-clause basis exists for the event"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Large loss report",
+        "checkType": "absence",
+        "expected": "No facultative-covered large loss unreported beyond the 72-hour standard"
+      }
+    ]
+  },
+  {
+    "taskId": "b207e663-b12a-43b8-9f25-9cd7138237c5",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03uembk8cjuvegt1",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl4aq1hlrmbk86kv59ej3",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovre1mr2mbk8wd5tuegb",
+      "cmqscpm321o34mbk8ffxa91dz",
+      "cmqscozni1my6mbk8t7hk46jp",
+      "cmqscofic1lyymbk855ay7xj8"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Deployment allocated against confirmed capacity, not aspirational numbers",
+      "Assignment routing recorded per adjuster and geography"
+    ],
+    "checklistSpecific": [
+      "Allocate field adjusters and independent appraisers by geographic cluster so travel time between inspections is minimised",
+      "Prioritise routing by severity and vulnerability: uninhabitable properties, injured or displaced insureds and vulnerable customers first",
+      "Confirm each deployed resource has active state licensing, safety briefing and access to the mobile claim application before assignments release",
+      "Verify daily inspection capacity per adjuster is set realistically for CAT conditions and that queues are not loaded beyond it",
+      "Confirm areas still closed by emergency services are excluded from routing until access is confirmed safe"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "CAT event > Field deployment plan",
+        "checkType": "presence",
+        "expected": "A deployment plan exists assigning adjusters to geographic clusters with priority-ordered routing"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "CAT inspection queue",
+        "checkType": "absence",
+        "expected": "No inspection assigned in an area flagged as closed or unsafe for access"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjvpk14unkfgzqbsq2v8v",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rq03wzmbk8iu5btcuv",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofnt1lz8mbk8jldiwsv6",
+      "cmqscp0841mzambk8yfpw8urr",
+      "cmqscp0931mzcmbk8kbuzaa1i",
+      "cmqscpkkv1o0cmbk8r8mqmd4c"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Deterioration escalated as soon as it is identified, not at the next scheduled review",
+      "Escalation includes the driver of the movement, not just the number"
+    ],
+    "checklistSpecific": [
+      "Escalate where incurred cost breaches the reserve by more than the published tolerance, or where a single claim moves past an authority threshold",
+      "State the driver of the deterioration: scope increase, hidden damage found, price inflation on materials and labour, or a newly identified injury",
+      "Confirm changes above the $25K change threshold carry manager approval and claims above $500K move under management oversight",
+      "Escalate event-level deterioration to exposure management and reinsurance where it changes the position against the treaty attachment",
+      "Verify the escalation is raised as an owned activity with a response date rather than mentioned in a routine file note"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "Claim > Reserve change history",
+        "checkType": "presence",
+        "expected": "Reserve deterioration beyond tolerance has an escalation activity citing the driver and approval"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "CAT reserve movement report",
+        "checkType": "absence",
+        "expected": "No reserve movement above the approval threshold posted without recorded manager approval"
+      }
+    ]
+  },
+  {
+    "taskId": "4c8917d0-1bf2-4f47-905d-7904b2ceb866",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl3771hjrmbk8pxp23ll1",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscplf41o1umbk8h9az1264",
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscofic1lyymbk855ay7xj8"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Reporting cadence published with a fixed time and named distribution",
+      "Metric definitions agreed once so figures are comparable day to day"
+    ],
+    "checklistSpecific": [
+      "Set a fixed daily cut-off time and publication time so figures across teams refer to the same snapshot",
+      "Include claim volume received and closed, open inventory, average reserve, paid to date and payment velocity on the daily pack",
+      "Report cycle-time metrics against the extended regulatory timeframes in force for the event, not the standard clocks",
+      "Show inspection completion and adjuster capacity utilisation so field resourcing decisions have a basis",
+      "Confirm the pack goes to the standing CAT distribution and that each metric has an owner accountable for its movement"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Daily CAT reporting pack",
+        "checkType": "presence",
+        "expected": "A dated daily CAT pack exists with volume, reserve, payment-velocity and cycle-time metrics"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "CAT reporting schedule",
+        "checkType": "absence",
+        "expected": "No missed daily publication during the event without a recorded reason"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjvhh14qgkfgzweg9sk3h",
+    "roles": [
+      {
+        "roleId": "cmqsck0rq03wzmbk8iu5btcuv",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofnt1lz8mbk8jldiwsv6",
+      "cmqscp0a31mzembk8hmjzblgt",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscovko1mqombk8e7lb7kdj"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Adequacy assessed at event level, not only claim by claim",
+      "Assessment conclusion documented with the method used"
+    ],
+    "checklistSpecific": [
+      "Compare average incurred per claim against the pre-event benchmark for the peril and adjust the event assumption where it diverges",
+      "Assess whether late-reported claim volume is tracking the expected reporting pattern and adjust the IBNR allowance accordingly",
+      "Review open claims where reserves have not moved since intake, as stale reserves understate event adequacy",
+      "Factor demand-surge inflation on materials and labour into the event-level adequacy view rather than only into individual claims",
+      "Record the adequacy conclusion, method and any recommended bulk reserve movement for actuarial and finance review"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "CAT event reserve adequacy assessment",
+        "checkType": "presence",
+        "expected": "A dated event-level adequacy assessment exists with method, assumptions and conclusion"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "CAT event open claim list",
+        "checkType": "absence",
+        "expected": "No material open CAT claim carrying an unchanged intake reserve past the review cadence"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2filap0j4xkfgzvwf6x2lv",
+    "roles": [
+      {
+        "roleId": "cmqscl3771hjrmbk8pxp23ll1",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rq03wrmbk89880tfdx",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "d887c40f-3240-46fb-ae51-e4ba5c2c91a5",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscofkb1lz2mbk8bf6had6v",
+      "cmqscplf41o1umbk8h9az1264",
+      "cmqscplh81o1ymbk8u8i73x3e"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Accumulation tracked against defined aggregation zones",
+      "Position refreshed on the reporting cadence, not on request only"
+    ],
+    "checklistSpecific": [
+      "Track accumulated incurred by aggregation zone (state, county, CRESTA or postcode band) so concentration is visible, not just the total",
+      "Compare actual accumulation against the modelled event loss estimate and explain divergence as claims mature",
+      "Track the position against reinsurance attachment points and per-event limits so recovery expectations are evidenced",
+      "Include in-force exposure not yet claimed within the footprint so the ultimate accumulation view is not limited to reported claims",
+      "Publish the accumulation view to exposure management, reinsurance and finance on the agreed cadence rather than ad hoc"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "CAT exposure accumulation report",
+        "checkType": "presence",
+        "expected": "An accumulation report by aggregation zone exists with modelled-versus-actual comparison and treaty position"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "CAT exposure accumulation report",
+        "checkType": "absence",
+        "expected": "No reporting cycle missed for the accumulation view during an active event"
+      }
+    ]
+  },
+  {
+    "taskId": "020c27cb-ac9c-4464-9189-685b4d28b4b5",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03snmbk82axdlit6",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03srmbk8iv57p5n0",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z2mbk8u1zgiax3",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofic1lyymbk855ay7xj8",
+      "cmqscp0111mywmbk8nbsr4gct",
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscozvj1mymmbk8xflcvgqb"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5h7bk026hv880oq8vagwe",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc4u40t051zv8f84tls5tut",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Ageing measured against the timeframe actually in force for each state",
+      "Claims approaching a deadline surfaced before breach, not after"
+    ],
+    "checklistSpecific": [
+      "Age every open CAT claim against the closure and decision timeframe for its loss state, applying any extended CAT timeframes in force",
+      "Surface claims inside the last quarter of their regulatory window as a priority worklist rather than reporting breaches after the fact",
+      "Confirm claims held open pending SIU, litigation or coverage review carry a documented reason that supports the delay",
+      "Verify required status-update letters to the insured have been issued at each interval the state requires while the claim remains open",
+      "Report breaches and near-breaches by state to claims management so remediation and any regulatory notification can be handled"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "CAT open claim ageing by state",
+        "checkType": "presence",
+        "expected": "An ageing report exists measuring each open CAT claim against its state timeframe with a pre-breach worklist"
+      },
+      {
+        "system": "Guidewire ClaimCenter",
+        "location": "CAT open claim list",
+        "checkType": "absence",
+        "expected": "No open CAT claim past its state closure timeframe without a documented justification and status letter"
+      }
+    ]
+  }
+]

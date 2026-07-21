@@ -1,0 +1,4499 @@
+{
+  "area": "Data Engineering & Pipelines",
+  "tasks": [
+    {
+      "taskId": "cmr2fke9q1cwdkfgzj4jv8g1m",
+      "verifier": "Data Architect",
+      "generic": {
+        "Defined scope/population": "The production change request for this ingestion pipeline and its approval gate",
+        "In-scope period": "This promotion cycle to production",
+        "Required fields populated and valid": "Change record has a CAB reference, rollback plan, and assigned owner and steward",
+        "Control totals or record counts reconcile": "All non-prod test-run counts are green and match expected before approval",
+        "Evidence retained with timestamp/version": "Approval decision timestamped on the ServiceNow change record",
+        "Exceptions logged with disposition": "Any failed quality gate blocks approval and is logged on the change record",
+        "Test population": "The change record for this ingestion pipeline",
+        "Pass/fail thresholds": "PASS = change record is in Approved state with a CAB reference before deploy",
+        "Exception handling path": "Missing gate or rollback plan returns the change to the requester",
+        "Documented acceptance criteria": "Change approved only with green gates, rollback plan, and assigned ownership",
+        "Evidence location": "ServiceNow change record and the linked GitHub PR"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Verify upstream quality gates in GitHub Enterprise",
+          "actor": "Data Engineer",
+          "sop": [
+            "Open the pipeline PR and its status checks in GitHub Enterprise",
+            "Confirm all quality gates report green",
+            "Confirm the non-prod test runs completed successfully",
+            "Done when every upstream gate is verified green"
+          ],
+          "verify": [
+            "Re-open the PR checks tab",
+            "Pass when all gates and non-prod runs show green"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Attach rollback plan and runbook in ServiceNow",
+          "actor": "Data Architect",
+          "sop": [
+            "Open the change record in ServiceNow ITSM",
+            "Attach the rollback plan and link the runbook",
+            "Confirm both are readable from the record",
+            "Done when rollback plan and runbook are attached"
+          ],
+          "verify": [
+            "Open the change record attachments",
+            "Pass when the rollback plan and runbook link are present"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm dataset owner and steward assigned",
+          "actor": "Data Product Owner",
+          "sop": [
+            "Check the dataset entry for a named owner and steward",
+            "Confirm both are assigned before promotion",
+            "Note the assignment on the change record",
+            "Done when owner and steward are confirmed assigned"
+          ],
+          "verify": [
+            "Review the ownership fields on the record",
+            "Pass when a named owner and steward are recorded"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Raise the CAB change request in ServiceNow",
+          "actor": "Data Product Owner",
+          "sop": [
+            "Create the production change request in ServiceNow",
+            "Attach the CAB reference for the change",
+            "Link the pipeline PR and evidence",
+            "Done when the change request carries a CAB reference"
+          ],
+          "verify": [
+            "Open the change request",
+            "Pass when a CAB reference is attached to the record"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the approval decision on the change",
+          "actor": "Data Product Owner",
+          "sop": [
+            "Review the assembled gate, rollback, and ownership evidence",
+            "Set the change record to Approved",
+            "Timestamp the approval",
+            "Done when the change is set to Approved"
+          ],
+          "verify": [
+            "Open the change record state",
+            "Pass when the record is Approved with a timestamp"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm promotion readiness with architecture",
+          "actor": "Data Architect",
+          "sop": [
+            "Review the approved change and its evidence bundle",
+            "Confirm no open blocking findings remain",
+            "Sign off promotion readiness",
+            "Done when architecture confirms readiness"
+          ],
+          "verify": [
+            "Review the sign-off note on the record",
+            "Pass when the change is Approved with no open blockers"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "902ab921-a825-4ed8-94ea-c786605c8e6e",
+      "verifier": "Data Engineer",
+      "generic": {
+        "Defined scope/population": "The incremental extract and landing-zone load for this source",
+        "In-scope period": "The current watermark delta since the last successful load",
+        "Required fields populated and valid": "High-watermark key present and landing files in Parquet/Delta with expected partitions",
+        "Control totals or record counts reconcile": "Extracted row count reconciles to the source watermark delta",
+        "Evidence retained with timestamp/version": "Landing files and watermark value retained per load with a load timestamp",
+        "Exceptions logged with disposition": "Failed loads leave the watermark unadvanced and are logged for retry",
+        "Test population": "The incremental rows landed for the current run",
+        "Pass/fail thresholds": "PASS = landed row count equals the source watermark delta with no duplicates",
+        "Exception handling path": "Duplicate or missing rows trigger a re-extract from the last good watermark",
+        "Documented acceptance criteria": "Incremental data lands idempotently with counts matching the source delta",
+        "Evidence location": "Landing zone tables and the orchestrator run log"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Implement the high-watermark incremental key",
+          "actor": "Data Engineer",
+          "sop": [
+            "Add a high-watermark column read to the extract in the orchestrator",
+            "Filter the source query to rows above the last watermark",
+            "Persist the watermark in run metadata",
+            "Done when the extract reads only rows above the watermark"
+          ],
+          "verify": [
+            "Inspect the extract query and watermark store",
+            "Pass when the query filters on the persisted watermark"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Write the extract to the landing zone in Parquet/Delta",
+          "actor": "ETL Developer",
+          "sop": [
+            "Write output to the landing zone in Parquet or Delta",
+            "Apply the expected partitioning layout",
+            "Confirm files land under the correct partitions",
+            "Done when files land in the expected partitioned layout"
+          ],
+          "verify": [
+            "List the landing-zone partitions",
+            "Pass when files are Parquet/Delta with expected partitioning"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Make the load idempotent",
+          "actor": "Data Engineer",
+          "sop": [
+            "Add merge or dedupe keyed on the natural key",
+            "Ensure re-running does not append duplicates",
+            "Test with an overlapping window",
+            "Done when a re-run produces no duplicate rows"
+          ],
+          "verify": [
+            "Re-run the extract over the same window",
+            "Pass when no duplicate rows appear in the landing zone"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Advance the watermark only on success",
+          "actor": "Data Engineer",
+          "sop": [
+            "Advance the watermark inside the success callback only",
+            "Leave it unchanged on any failure",
+            "Log the watermark value after each run",
+            "Done when the watermark advances only on a successful load"
+          ],
+          "verify": [
+            "Force a failure and inspect the watermark",
+            "Pass when the watermark stays put on failure"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile extracted count to the source delta",
+          "actor": "ETL Developer",
+          "sop": [
+            "Count landed rows for the run",
+            "Compare against the source watermark delta count",
+            "Log the reconciliation result",
+            "Done when landed count matches the source delta"
+          ],
+          "verify": ["Compare landed and source-delta counts", "Pass when the two counts match"]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the incremental land in the orchestrator log",
+          "actor": "Data Engineer",
+          "sop": [
+            "Open the run in the orchestrator",
+            "Confirm the load succeeded with a row count",
+            "Confirm the watermark advanced",
+            "Done when the run log shows a successful land"
+          ],
+          "verify": [
+            "Read the orchestrator run log",
+            "Pass when the run shows success with a matching row count"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "34745296-315e-474a-a0b9-d931972d42fa",
+      "verifier": "Data Engineer",
+      "generic": {
+        "Defined scope/population": "The ingestion connectors, CDC feeds, and API integrations for this source",
+        "In-scope period": "The current connector release",
+        "Required fields populated and valid": "Connector config references secrets by name with retry and dead-letter set",
+        "Control totals or record counts reconcile": "Backfill and incremental counts reconcile to source counts",
+        "Evidence retained with timestamp/version": "Connector config versioned in GitHub Enterprise with change history",
+        "Exceptions logged with disposition": "Failed events routed to the dead-letter queue with the reason recorded",
+        "Test population": "All connectors and CDC feeds for the source",
+        "Pass/fail thresholds": "PASS = config holds no plaintext credentials and secrets are name-referenced only",
+        "Exception handling path": "Connector restart resumes from the persisted slot/offset without data loss",
+        "Documented acceptance criteria": "Connectors move data with no plaintext secrets and clean restart",
+        "Evidence location": "GitHub Enterprise connector config and the orchestrator logs"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Configure the source connector or CDC feed",
+          "actor": "Integration Engineer",
+          "sop": [
+            "Create the connector or CDC feed for the source",
+            "Set the source topic/table and target landing path",
+            "Start an initial sync",
+            "Done when the connector moves data to the target"
+          ],
+          "verify": [
+            "Check the connector status and target rows",
+            "Pass when data lands from the connector"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Store source credentials in the secrets manager",
+          "actor": "Data Engineer",
+          "sop": [
+            "Move all source credentials into the secrets manager",
+            "Reference secrets by name in the connector config",
+            "Remove any inline credentials",
+            "Done when config references secrets by name only"
+          ],
+          "verify": [
+            "Scan the connector config in the repo",
+            "Pass when no plaintext credentials are present"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Persist the CDC slot/offset for restart",
+          "actor": "Integration Engineer",
+          "sop": [
+            "Enable durable slot/offset persistence",
+            "Restart the connector and confirm it resumes",
+            "Check for gaps or replays",
+            "Done when a restart resumes from the persisted offset"
+          ],
+          "verify": [
+            "Restart the connector and inspect the offset",
+            "Pass when it resumes cleanly with no data loss"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Configure retry, backoff, and dead-letter handling",
+          "actor": "Data Engineer",
+          "sop": [
+            "Set retry and backoff on transient failures",
+            "Route poison events to a dead-letter queue",
+            "Log the dead-letter reason",
+            "Done when failures retry and dead-letter as configured"
+          ],
+          "verify": [
+            "Inject a bad event and observe handling",
+            "Pass when the event lands in the dead-letter queue with a reason"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Validate backfill and incremental against source",
+          "actor": "ETL Developer",
+          "sop": [
+            "Run a backfill and record the count",
+            "Run incremental and record the count",
+            "Reconcile both against source counts",
+            "Done when both modes reconcile to source"
+          ],
+          "verify": [
+            "Compare backfill and incremental counts to source",
+            "Pass when both reconcile within tolerance"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Scan connector config for plaintext secrets",
+          "actor": "Data Engineer",
+          "sop": [
+            "Run a secret scan over the connector config in the repo",
+            "Confirm secrets are name-referenced only",
+            "Fix any finding",
+            "Done when the scan reports no plaintext secrets"
+          ],
+          "verify": [
+            "Review the secret-scan output",
+            "Pass when secrets are referenced by name only"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2f4zvi00j9bn7ihwh0up3g",
+      "verifier": "Site Reliability Engineer",
+      "generic": {
+        "Defined scope/population": "All alert rules for this ingestion load's failure and latency conditions",
+        "In-scope period": "The current release of the ingestion pipeline",
+        "Required fields populated and valid": "Each alert rule has a condition, severity, and routing target set",
+        "Control totals or record counts reconcile": "Freshness and row-count anomaly thresholds match the source SLA",
+        "Evidence retained with timestamp/version": "Alert rules versioned in Grafana with change history",
+        "Exceptions logged with disposition": "Silenced or acknowledged alerts recorded with reason and owner",
+        "Test population": "Every alert rule attached to the ingestion job",
+        "Pass/fail thresholds": "PASS = a forced failure fires the alert to on-call within 5 minutes",
+        "Exception handling path": "Missed or duplicate alerts raised to SRE on-call for tuning",
+        "Documented acceptance criteria": "Alert fires on real failure and routes to the correct pager",
+        "Evidence location": "Grafana alert rules and the alert history log"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Define the load-failure alert rule in Grafana",
+          "actor": "Data Engineer",
+          "sop": [
+            "Open the ingestion job dashboard in Grafana",
+            "Add an alert rule on the job-failed metric",
+            "Set severity and enable the rule",
+            "Done when the failure alert rule is saved and enabled"
+          ],
+          "verify": [
+            "Open the alert rule in Grafana",
+            "Pass when the rule shows enabled with a set severity"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Set freshness and row-count anomaly thresholds",
+          "actor": "Data Engineer",
+          "sop": [
+            "Configure freshness and row-count anomaly thresholds",
+            "Source the values from the source SLA",
+            "Attach them to the alert rules",
+            "Done when thresholds match the source SLA"
+          ],
+          "verify": [
+            "Compare thresholds against the source SLA",
+            "Pass when thresholds match the SLA values"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Configure the SLA-breach latency alert",
+          "actor": "Site Reliability Engineer",
+          "sop": [
+            "Add a latency alert on the SLA-breach condition",
+            "Set the breach duration and severity",
+            "Enable the rule",
+            "Done when the latency alert is enabled"
+          ],
+          "verify": [
+            "Open the latency alert rule",
+            "Pass when the SLA-breach latency alert is enabled"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Route alerts to the on-call pager",
+          "actor": "Site Reliability Engineer",
+          "sop": [
+            "Set the routing target to the on-call channel/pager",
+            "Match severity to the routing policy",
+            "Save the notification policy",
+            "Done when alerts route to on-call with the right severity"
+          ],
+          "verify": [
+            "Inspect the notification routing",
+            "Pass when alerts route to on-call with correct severity"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Link each alert to the failing run and runbook",
+          "actor": "DevOps Engineer",
+          "sop": [
+            "Add the run link and runbook URL to the alert annotations",
+            "Confirm the links resolve",
+            "Save the rule",
+            "Done when each alert links to its run and runbook"
+          ],
+          "verify": ["Open an alert annotation", "Pass when the run link and runbook resolve"]
+        },
+        {
+          "n": 6,
+          "title": "Force a test failure and confirm the alert fires",
+          "actor": "Data Engineer",
+          "sop": [
+            "Trigger a forced failure on the ingestion job",
+            "Watch the alert fire and route to on-call",
+            "Note the delivery time",
+            "Done when the alert fires to on-call within 5 minutes"
+          ],
+          "verify": [
+            "Check the alert history log",
+            "Pass when the forced failure fired to on-call within 5 minutes"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "fc7b5ed3-d863-44b3-8ddd-311e02784d3a",
+      "verifier": "Data Architect",
+      "generic": {
+        "Defined scope/population": "The ingestion pattern design for this source",
+        "In-scope period": "The current onboarding of this source",
+        "Required fields populated and valid": "Design states pattern choice, target latency, cadence, and medallion flow",
+        "Control totals or record counts reconcile": "Target latency and cadence agreed match the consumer SLA",
+        "Evidence retained with timestamp/version": "Design doc versioned in Confluence with an approval record",
+        "Exceptions logged with disposition": "Rejected pattern options noted with the reason for exclusion",
+        "Test population": "The approved ingestion pattern design document",
+        "Pass/fail thresholds": "PASS = design is approved by architecture with an SLA-justified pattern",
+        "Exception handling path": "Unmet SLA sends the design back for pattern re-selection",
+        "Documented acceptance criteria": "Pattern documented, SLA-justified, and approved before build",
+        "Evidence location": "Confluence design page and the architecture approval"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Analyze source SLA, latency, and cadence",
+          "actor": "Data Architect",
+          "sop": [
+            "Gather the consumer SLA, latency target, and refresh cadence",
+            "Capture source volume and arrival characteristics",
+            "Record the constraints in the design",
+            "Done when SLA and cadence constraints are captured"
+          ],
+          "verify": [
+            "Review the captured constraints",
+            "Pass when SLA, latency, and cadence are documented"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Choose the ingestion pattern with justification",
+          "actor": "Data Architect",
+          "sop": [
+            "Compare batch, micro-batch, and streaming against the SLA",
+            "Select the pattern that meets latency and cost",
+            "Record the justification and rejected options",
+            "Done when a pattern is chosen with justification"
+          ],
+          "verify": [
+            "Read the pattern-choice section",
+            "Pass when the choice is justified against the SLA"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Define the medallion flow for the source",
+          "actor": "Data Engineer",
+          "sop": [
+            "Define the landing to bronze to silver flow",
+            "Note each layer's transformation intent",
+            "Add it to the design",
+            "Done when the medallion flow is defined"
+          ],
+          "verify": [
+            "Review the medallion diagram/section",
+            "Pass when landing to bronze to silver is defined"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Agree target latency and cadence with the consumer",
+          "actor": "Data Product Owner",
+          "sop": [
+            "Confirm target latency and refresh cadence with the consumer",
+            "Record the agreement in the design",
+            "Note any consumer constraints",
+            "Done when latency and cadence are agreed with the consumer"
+          ],
+          "verify": [
+            "Check the agreement note",
+            "Pass when latency and cadence are agreed and recorded"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Document the design in Confluence",
+          "actor": "Data Architect",
+          "sop": [
+            "Write up the pattern, flow, and SLA in Confluence",
+            "Version the page",
+            "Link it to the onboarding ticket",
+            "Done when the design is published in Confluence"
+          ],
+          "verify": ["Open the Confluence page", "Pass when the design is published and linked"]
+        },
+        {
+          "n": 6,
+          "title": "Obtain architecture review and approval",
+          "actor": "Data Architect",
+          "sop": [
+            "Route the design for architecture review",
+            "Resolve any review comments",
+            "Record the approval on the page",
+            "Done when the design is approved"
+          ],
+          "verify": [
+            "Check the approval record",
+            "Pass when the design shows architecture approval"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "f697c6cf-1fa6-492b-9536-5172ec738b1c",
+      "verifier": "Data Engineer",
+      "generic": {
+        "Defined scope/population": "Connectivity and authentication to this source system",
+        "In-scope period": "The current source onboarding",
+        "Required fields populated and valid": "TLS connection, secrets-managed credentials, and firewall allow-list configured",
+        "Control totals or record counts reconcile": "Firewall allow-list rules match the approved source endpoints",
+        "Evidence retained with timestamp/version": "Connection config in Terraform state with the CMDB CI record",
+        "Exceptions logged with disposition": "Failed connection attempts logged with cause and remediation",
+        "Test population": "The authenticated connection from the orchestrator runtime",
+        "Pass/fail thresholds": "PASS = an authenticated TLS connection to the source succeeds and is logged",
+        "Exception handling path": "Auth or network failure escalated to DevOps for allow-list or credential fix",
+        "Documented acceptance criteria": "Encrypted authenticated connection verified and source registered in CMDB",
+        "Evidence location": "Orchestrator connection log and the CMDB CI entry"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Provision the network path via Terraform",
+          "actor": "DevOps Engineer",
+          "sop": [
+            "Define the firewall allow-list rules in Terraform Cloud",
+            "Apply the plan to open the source endpoints",
+            "Confirm the rules match approved endpoints",
+            "Done when the allow-list is applied"
+          ],
+          "verify": [
+            "Review the applied Terraform plan",
+            "Pass when allow-list rules match approved endpoints"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Store credentials in the secrets manager",
+          "actor": "Data Engineer",
+          "sop": [
+            "Load source credentials/keys into the secrets manager",
+            "Reference them by name from the pipeline",
+            "Set the rotation policy",
+            "Done when credentials are secrets-managed and rotatable"
+          ],
+          "verify": [
+            "Check the credential reference",
+            "Pass when credentials are stored and name-referenced"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Enforce TLS encryption in transit",
+          "actor": "Integration Engineer",
+          "sop": [
+            "Enable TLS on the source connection",
+            "Reject non-TLS fallback",
+            "Confirm the negotiated cipher",
+            "Done when the connection is TLS-encrypted"
+          ],
+          "verify": ["Inspect the connection handshake", "Pass when TLS is negotiated"]
+        },
+        {
+          "n": 4,
+          "title": "Register the source as a CI in the CMDB",
+          "actor": "Integration Engineer",
+          "sop": [
+            "Create the source system CI in the CMDB",
+            "Populate owner and environment attributes",
+            "Link it to the pipeline",
+            "Done when the source CI exists in the CMDB"
+          ],
+          "verify": ["Search the CMDB for the CI", "Pass when the source CI is present"]
+        },
+        {
+          "n": 5,
+          "title": "Run an authenticated test connection",
+          "actor": "Data Engineer",
+          "sop": [
+            "Run a test connection from the orchestrator runtime",
+            "Authenticate using the managed credentials",
+            "Capture the result in the log",
+            "Done when the authenticated connection succeeds"
+          ],
+          "verify": [
+            "Read the orchestrator connection log",
+            "Pass when an authenticated connection is logged as successful"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the successful connection is logged",
+          "actor": "Data Engineer",
+          "sop": [
+            "Locate the connection event in the run log",
+            "Confirm success and timestamp",
+            "Attach it to the onboarding ticket",
+            "Done when the successful connection is recorded"
+          ],
+          "verify": [
+            "Open the logged connection event",
+            "Pass when it shows a successful authenticated connect"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "fc5cee1e-92ff-4c7b-bd3f-fe292744606c",
+      "verifier": "Site Reliability Engineer",
+      "generic": {
+        "Defined scope/population": "The operations handoff of this pipeline",
+        "In-scope period": "The current production handoff",
+        "Required fields populated and valid": "Runbook has restart, backfill, and escalation steps with SLOs stated",
+        "Control totals or record counts reconcile": "On-call routing and SLOs in the ticket match the agreed operations SLA",
+        "Evidence retained with timestamp/version": "Runbook versioned in Confluence and linked from the handoff ticket",
+        "Exceptions logged with disposition": "Known issues and manual steps documented with an owner",
+        "Test population": "The published runbook and handoff ticket",
+        "Pass/fail thresholds": "PASS = operations acknowledges the handoff and SLOs on the ticket",
+        "Exception handling path": "Incomplete runbook returns the handoff to data engineering",
+        "Documented acceptance criteria": "Operations accepts the handoff with a complete runbook and alerting",
+        "Evidence location": "Confluence runbook and the ServiceNow handoff ticket"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Publish the runbook in Confluence",
+          "actor": "Data Engineer",
+          "sop": [
+            "Write the runbook with restart, backfill, and escalation steps",
+            "State the agreed SLOs",
+            "Version and publish the page",
+            "Done when the runbook is published"
+          ],
+          "verify": [
+            "Open the Confluence runbook",
+            "Pass when restart, backfill, and escalation steps are present"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Document known issues and manual steps",
+          "actor": "Data Engineer",
+          "sop": [
+            "List known issues and any manual steps",
+            "Assign an owner to each",
+            "Add them to the runbook",
+            "Done when known issues are documented with owners"
+          ],
+          "verify": ["Review the known-issues section", "Pass when each item has an owner"]
+        },
+        {
+          "n": 3,
+          "title": "Confirm on-call rotation and alert routing",
+          "actor": "Site Reliability Engineer",
+          "sop": [
+            "Confirm the on-call rotation covers the pipeline",
+            "Verify alert routing targets the rotation",
+            "Record the confirmation",
+            "Done when on-call and routing are confirmed"
+          ],
+          "verify": [
+            "Check the routing and rotation config",
+            "Pass when alerts route to the correct on-call rotation"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Raise the handoff ticket in ServiceNow",
+          "actor": "DevOps Engineer",
+          "sop": [
+            "Create the operations handoff ticket in ServiceNow",
+            "State the agreed SLOs on the ticket",
+            "Link the runbook",
+            "Done when the handoff ticket is raised with SLOs"
+          ],
+          "verify": [
+            "Open the handoff ticket",
+            "Pass when SLOs are stated and the runbook is linked"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Obtain operations acknowledgement",
+          "actor": "Site Reliability Engineer",
+          "sop": [
+            "Review the runbook and SLOs with operations",
+            "Capture the acknowledgement on the ticket",
+            "Note any conditions",
+            "Done when operations acknowledges the handoff"
+          ],
+          "verify": [
+            "Read the ticket acknowledgement",
+            "Pass when operations has acknowledged the handoff and SLOs"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Link the runbook from the handoff ticket",
+          "actor": "Data Engineer",
+          "sop": [
+            "Add the runbook URL to the handoff ticket",
+            "Confirm the link resolves",
+            "Close the handoff activity",
+            "Done when the runbook is linked from the ticket"
+          ],
+          "verify": [
+            "Follow the runbook link on the ticket",
+            "Pass when the link opens the published runbook"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "2350301e-b938-48d7-9d04-248bcb25d716",
+      "verifier": "Data Engineer",
+      "generic": {
+        "Defined scope/population": "Schema validation and data-contract enforcement at the ingestion boundary",
+        "In-scope period": "The current release of the ingestion pipeline",
+        "Required fields populated and valid": "Incoming records validated against the registered schema and data contract",
+        "Control totals or record counts reconcile": "Accepted plus rejected record counts equal total ingested",
+        "Evidence retained with timestamp/version": "Rejected records retained in quarantine with a run timestamp",
+        "Exceptions logged with disposition": "Nonconforming rows routed to quarantine with the reason logged",
+        "Test population": "Records crossing the ingestion boundary for this source",
+        "Pass/fail thresholds": "PASS = nonconforming test records land in quarantine, not the target",
+        "Exception handling path": "A breaking schema change raises an alert and halts the load",
+        "Documented acceptance criteria": "Nonconforming data is rejected or flagged at the boundary",
+        "Evidence location": "Quarantine/reject table and the validation logs"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Register the source schema in the catalog",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Register the source schema and data contract in the catalog tool",
+            "Confirm required fields and types are declared",
+            "Publish the contract version",
+            "Done when the schema/contract is registered"
+          ],
+          "verify": [
+            "Open the registered contract",
+            "Pass when the schema and required fields are declared"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Add schema validation at the boundary",
+          "actor": "Data Engineer",
+          "sop": [
+            "Add a validation step at the ingestion boundary in the orchestrator",
+            "Validate each record against the registered schema",
+            "Wire pass/fail routing",
+            "Done when records are validated at the boundary"
+          ],
+          "verify": [
+            "Inspect the validation step",
+            "Pass when it checks records against the registered schema"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Route nonconforming rows to quarantine",
+          "actor": "ETL Developer",
+          "sop": [
+            "Route failing rows to a quarantine/dead-letter table",
+            "Keep conforming rows flowing to the target",
+            "Tag each rejected row with the failed rule",
+            "Done when nonconforming rows land in quarantine"
+          ],
+          "verify": [
+            "Review the routing logic",
+            "Pass when failing rows go to quarantine, not the target"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Handle additive and breaking schema changes",
+          "actor": "Data Engineer",
+          "sop": [
+            "Allow additive changes without breaking the load",
+            "Detect breaking changes and raise an alert",
+            "Halt the load on a breaking change",
+            "Done when breaking changes alert and additive changes pass"
+          ],
+          "verify": [
+            "Feed an additive and a breaking change",
+            "Pass when additive passes and breaking alerts"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Log rejected-record count and reason",
+          "actor": "ETL Developer",
+          "sop": [
+            "Emit the rejected-record count per run",
+            "Log the failure reason per rejected row",
+            "Expose the metric to monitoring",
+            "Done when rejects are counted and reasoned in logs"
+          ],
+          "verify": ["Read the validation log", "Pass when reject count and reasons are observable"]
+        },
+        {
+          "n": 6,
+          "title": "Feed nonconforming records and confirm quarantine",
+          "actor": "Data Engineer",
+          "sop": [
+            "Send test records that violate the schema",
+            "Confirm they land in the quarantine table",
+            "Confirm none reach the target",
+            "Done when nonconforming records are quarantined"
+          ],
+          "verify": [
+            "Query the quarantine and target tables",
+            "Pass when nonconforming records are in quarantine only"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fkc7q1bzqkfgzlrvu4gel",
+      "verifier": "Site Reliability Engineer",
+      "generic": {
+        "Defined scope/population": "The pipeline's initial production runs",
+        "In-scope period": "The first production runs after go-live",
+        "Required fields populated and valid": "Each run has status, duration, and row counts recorded",
+        "Control totals or record counts reconcile": "Run row counts reconcile to expected source volumes",
+        "Evidence retained with timestamp/version": "Run health recorded in the dashboard and log with timestamps",
+        "Exceptions logged with disposition": "Errors and retries triaged and logged with a ticket",
+        "Test population": "The initial production run records for the pipeline",
+        "Pass/fail thresholds": "PASS = initial runs show success with durations within SLA",
+        "Exception handling path": "Any SLA breach is escalated to on-call for triage",
+        "Documented acceptance criteria": "Initial run health observed, within SLA, and recorded",
+        "Evidence location": "Grafana dashboard and the orchestrator run history"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Review the first production runs in the orchestrator",
+          "actor": "Data Engineer",
+          "sop": [
+            "Open the initial production runs in the orchestrator",
+            "Check status, duration, and row counts",
+            "Note anything abnormal",
+            "Done when the first runs are reviewed"
+          ],
+          "verify": ["Read the run history", "Pass when status, duration, and counts are captured"]
+        },
+        {
+          "n": 2,
+          "title": "Check latency and freshness in Grafana",
+          "actor": "Data Engineer",
+          "sop": [
+            "Open the pipeline dashboard in Grafana",
+            "Compare latency and freshness to the SLA",
+            "Flag any breach",
+            "Done when latency and freshness are within SLA or flagged"
+          ],
+          "verify": [
+            "Read the latency and freshness panels",
+            "Pass when both are within SLA on the initial runs"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Triage errors and retries",
+          "actor": "ETL Developer",
+          "sop": [
+            "Review errors and retries in the run logs",
+            "Triage each and log a ticket where needed",
+            "Record the disposition",
+            "Done when errors are triaged and logged"
+          ],
+          "verify": [
+            "Check the linked tickets",
+            "Pass when each error or retry is triaged and logged"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record run health in the dashboard/log",
+          "actor": "Data Engineer",
+          "sop": [
+            "Record the observed run health with timestamps",
+            "Note counts and durations",
+            "Save to the pipeline log",
+            "Done when run health is recorded"
+          ],
+          "verify": ["Open the run-health record", "Pass when health is recorded with timestamps"]
+        },
+        {
+          "n": 5,
+          "title": "Escalate any SLA breach to on-call",
+          "actor": "Site Reliability Engineer",
+          "sop": [
+            "Escalate any SLA breach to on-call",
+            "Attach the failing run detail",
+            "Track to resolution",
+            "Done when breaches are escalated"
+          ],
+          "verify": [
+            "Check the escalation record",
+            "Pass when any breach has an on-call escalation"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm initial runs succeed within SLA",
+          "actor": "Data Engineer",
+          "sop": [
+            "Confirm the initial runs show success",
+            "Confirm durations are within SLA",
+            "Close the monitoring window",
+            "Done when initial runs are green within SLA"
+          ],
+          "verify": [
+            "Review the initial run records",
+            "Pass when they show success and durations within SLA"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "5b87f075-1fb4-43c7-9ba0-a0cff1d1bac5",
+      "verifier": "Data Quality Analyst",
+      "generic": {
+        "Defined scope/population": "The source dataset being profiled for onboarding",
+        "In-scope period": "The profiling sample window for this source",
+        "Required fields populated and valid": "Profile captures types, null rates, cardinality, and min/max per column",
+        "Control totals or record counts reconcile": "Profiled volume matches the measured arrival cadence",
+        "Evidence retained with timestamp/version": "Profiling summary retained in the catalog with a run date",
+        "Exceptions logged with disposition": "Candidate PII or sensitive fields flagged for classification",
+        "Test population": "The profiled columns of the source dataset",
+        "Pass/fail thresholds": "PASS = profiling summary exists with null-rate, cardinality, and volume stats",
+        "Exception handling path": "Anomalous distributions flagged back to the requesting team",
+        "Documented acceptance criteria": "Profiling summary documented and shared with the requester",
+        "Evidence location": "Data catalog profile entry and the shared summary"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Run column-level profiling in the quality tool",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Point the quality tool at the source dataset",
+            "Capture types, null rates, cardinality, and min/max",
+            "Store the column profile",
+            "Done when the column-level profile is captured"
+          ],
+          "verify": [
+            "Open the profile output",
+            "Pass when types, nulls, cardinality, and min/max are present"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Measure volume and arrival cadence",
+          "actor": "ETL Developer",
+          "sop": [
+            "Measure row volume over the sample window",
+            "Measure the arrival cadence",
+            "Record both for sizing",
+            "Done when volume and cadence are measured"
+          ],
+          "verify": [
+            "Review the volume/cadence figures",
+            "Pass when volume matches the measured cadence"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Flag candidate PII fields",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Scan columns for candidate PII or sensitive data",
+            "Flag them for classification",
+            "Note them in the summary",
+            "Done when candidate PII fields are flagged"
+          ],
+          "verify": ["Review the PII flags", "Pass when candidate sensitive fields are flagged"]
+        },
+        {
+          "n": 4,
+          "title": "Compile the profiling summary",
+          "actor": "Data Engineer",
+          "sop": [
+            "Assemble the profile, volume, and PII flags into a summary",
+            "Note any anomalies",
+            "Prepare it for sharing",
+            "Done when the summary is compiled"
+          ],
+          "verify": ["Read the summary", "Pass when it includes null-rate, cardinality, and volume"]
+        },
+        {
+          "n": 5,
+          "title": "Record the profile in the data catalog",
+          "actor": "Data Engineer",
+          "sop": [
+            "Attach the profiling summary to the catalog entry",
+            "Set the run date",
+            "Confirm it is discoverable",
+            "Done when the profile is in the catalog"
+          ],
+          "verify": [
+            "Open the catalog profile entry",
+            "Pass when the summary is attached with a run date"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Share the summary with the requester",
+          "actor": "Data Engineer",
+          "sop": [
+            "Send the profiling summary to the requesting team",
+            "Confirm receipt",
+            "Record where it was shared",
+            "Done when the requester has the summary"
+          ],
+          "verify": [
+            "Check the share record",
+            "Pass when the summary was shared with the requester"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fkej61d25kfgzddueaweh",
+      "verifier": "Release Engineer",
+      "generic": {
+        "Defined scope/population": "The production deployment of the approved ingestion pipeline",
+        "In-scope period": "The current production release",
+        "Required fields populated and valid": "Deploy uses a versioned artifact with IaC-applied config",
+        "Control totals or record counts reconcile": "Deployed artifact version matches the approved release tag",
+        "Evidence retained with timestamp/version": "Deploy workflow run and artifact tag retained in GitHub",
+        "Exceptions logged with disposition": "Failed gates block the deploy and are logged on the run",
+        "Test population": "The production deployment workflow run",
+        "Pass/fail thresholds": "PASS = deploy workflow succeeds with all gates passed and a smoke run green",
+        "Exception handling path": "A failed smoke run triggers the documented rollback",
+        "Documented acceptance criteria": "Pipeline runs in production after passing gates via CI/CD",
+        "Evidence location": "GitHub Actions workflow run and the deployment logs"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm CI checks and gates pass",
+          "actor": "Data Engineer",
+          "sop": [
+            "Open the pipeline in GitHub Actions",
+            "Confirm CI checks and quality gates are green",
+            "Block deploy if any gate fails",
+            "Done when all gates pass"
+          ],
+          "verify": ["Read the CI run status", "Pass when all checks and gates are green"]
+        },
+        {
+          "n": 2,
+          "title": "Tag and version the pipeline artifact",
+          "actor": "Release Engineer",
+          "sop": [
+            "Tag the release in GitHub Enterprise",
+            "Version the pipeline artifact",
+            "Record the tag for the deploy",
+            "Done when the artifact is tagged and versioned"
+          ],
+          "verify": ["Check the release tag", "Pass when the artifact carries a version tag"]
+        },
+        {
+          "n": 3,
+          "title": "Apply infra and config via Terraform",
+          "actor": "DevOps Engineer",
+          "sop": [
+            "Apply infrastructure and config through Terraform Cloud",
+            "Make no manual production changes",
+            "Confirm the plan applied cleanly",
+            "Done when infra is applied via IaC"
+          ],
+          "verify": [
+            "Review the Terraform apply",
+            "Pass when config is applied with no manual changes"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Trigger the production deploy workflow",
+          "actor": "Data Engineer",
+          "sop": [
+            "Run the production deploy workflow in GitHub Actions",
+            "Deploy the tagged artifact",
+            "Watch the workflow to completion",
+            "Done when the deploy workflow completes"
+          ],
+          "verify": ["Open the deploy workflow run", "Pass when the deploy job succeeded"]
+        },
+        {
+          "n": 5,
+          "title": "Run a post-deploy smoke run",
+          "actor": "Data Engineer",
+          "sop": [
+            "Execute a smoke run of the pipeline in production",
+            "Confirm it executes end to end",
+            "Capture the result",
+            "Done when the smoke run passes"
+          ],
+          "verify": ["Read the smoke run result", "Pass when the pipeline executes in production"]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the deploy succeeded with gates passed",
+          "actor": "Release Engineer",
+          "sop": [
+            "Review the workflow run and gate results",
+            "Confirm all gates passed",
+            "Record the release",
+            "Done when the deploy is confirmed successful"
+          ],
+          "verify": [
+            "Open the workflow run summary",
+            "Pass when the deploy succeeded with all gates passed"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cb029cb4-c8e8-4f86-96fb-a264da7bd8b2",
+      "verifier": "Data Governance Lead",
+      "generic": {
+        "Defined scope/population": "The catalog registration of the ingested dataset",
+        "In-scope period": "The current dataset onboarding",
+        "Required fields populated and valid": "Entry has technical and business metadata, classification, and refresh frequency",
+        "Control totals or record counts reconcile": "Captured lineage matches the source-to-dataset flow",
+        "Evidence retained with timestamp/version": "Catalog entry versioned with created and updated timestamps",
+        "Exceptions logged with disposition": "Missing metadata flagged before the entry is published",
+        "Test population": "The registered dataset entry in the catalog",
+        "Pass/fail thresholds": "PASS = dataset appears in the catalog with owner, steward, and lineage",
+        "Exception handling path": "Unassigned ownership blocks publication of the entry",
+        "Documented acceptance criteria": "Dataset registered with assigned ownership and lineage",
+        "Evidence location": "Data catalog dataset entry"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Create the dataset entry with metadata",
+          "actor": "Data Steward",
+          "sop": [
+            "Create the dataset entry in the catalog tool",
+            "Populate technical and business metadata",
+            "Save the entry as draft",
+            "Done when the entry exists with metadata"
+          ],
+          "verify": [
+            "Open the draft entry",
+            "Pass when technical and business metadata are present"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Assign the named owner and steward",
+          "actor": "Data Steward",
+          "sop": [
+            "Assign a named owner on the entry",
+            "Assign a named steward",
+            "Confirm both are set",
+            "Done when owner and steward are assigned"
+          ],
+          "verify": ["Review the ownership fields", "Pass when a named owner and steward are set"]
+        },
+        {
+          "n": 3,
+          "title": "Record classification and refresh frequency",
+          "actor": "Data Steward",
+          "sop": [
+            "Set the data classification on the entry",
+            "Set the refresh frequency",
+            "Save the metadata",
+            "Done when classification and frequency are recorded"
+          ],
+          "verify": ["Check the classification and frequency", "Pass when both are recorded"]
+        },
+        {
+          "n": 4,
+          "title": "Capture source-to-dataset lineage",
+          "actor": "Data Engineer",
+          "sop": [
+            "Add lineage from source to the registered dataset",
+            "Confirm the edges resolve",
+            "Attach it to the entry",
+            "Done when upstream lineage is captured"
+          ],
+          "verify": ["Open the lineage view", "Pass when source-to-dataset lineage is present"]
+        },
+        {
+          "n": 5,
+          "title": "Confirm the entry against governance standards",
+          "actor": "Data Governance Lead",
+          "sop": [
+            "Review the entry against governance standards",
+            "Confirm ownership, classification, and lineage",
+            "Approve publication",
+            "Done when the entry meets governance standards"
+          ],
+          "verify": ["Review the governance checklist", "Pass when the entry meets the standards"]
+        },
+        {
+          "n": 6,
+          "title": "Verify the dataset appears in the catalog",
+          "actor": "Data Steward",
+          "sop": [
+            "Publish the entry",
+            "Search the catalog for the dataset",
+            "Confirm owner and lineage show",
+            "Done when the dataset is discoverable with ownership"
+          ],
+          "verify": [
+            "Search the catalog",
+            "Pass when the dataset appears with owner, steward, and lineage"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2f4z5y00iibn7i2n6vmm9e",
+      "verifier": "Data Engineer",
+      "generic": {
+        "Defined scope/population": "The scheduled ingestion job for this source",
+        "In-scope period": "The current pipeline release",
+        "Required fields populated and valid": "Schedule defined as code with cadence, sensors, and SLA timeout",
+        "Control totals or record counts reconcile": "Scheduled cadence matches the agreed refresh SLA",
+        "Evidence retained with timestamp/version": "Schedule versioned in GitHub Enterprise with change history",
+        "Exceptions logged with disposition": "Missed or timed-out runs handled by catch-up and backfill config",
+        "Test population": "The ingestion DAG/job in the orchestrator",
+        "Pass/fail thresholds": "PASS = the job is registered and enabled at the agreed cadence",
+        "Exception handling path": "Upstream not-ready holds the run via sensor until dependencies land",
+        "Documented acceptance criteria": "Job scheduled at the agreed cadence in the orchestrator",
+        "Evidence location": "Orchestrator schedule and the version-controlled DAG"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Define the schedule as code",
+          "actor": "Data Engineer",
+          "sop": [
+            "Define the schedule in the DAG/job at the agreed cadence",
+            "Set the timezone and start date",
+            "Commit the definition",
+            "Done when the schedule is defined as code"
+          ],
+          "verify": [
+            "Read the schedule definition",
+            "Pass when the cadence matches the agreed refresh"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Version-control the schedule",
+          "actor": "ETL Developer",
+          "sop": [
+            "Commit the schedule to GitHub Enterprise",
+            "Confirm it is under version control",
+            "Record the change history",
+            "Done when the schedule is version-controlled"
+          ],
+          "verify": ["Check the repo history", "Pass when the schedule is committed with history"]
+        },
+        {
+          "n": 3,
+          "title": "Add dependencies and sensors",
+          "actor": "Data Engineer",
+          "sop": [
+            "Add sensors so the job waits for upstream readiness",
+            "Wire task dependencies",
+            "Confirm the wait behavior",
+            "Done when dependencies and sensors are set"
+          ],
+          "verify": ["Inspect the sensors", "Pass when the job waits for upstream readiness"]
+        },
+        {
+          "n": 4,
+          "title": "Configure catch-up and SLA timeout",
+          "actor": "DevOps Engineer",
+          "sop": [
+            "Set catch-up/backfill behavior",
+            "Set the SLA timeout",
+            "Confirm the settings apply",
+            "Done when catch-up and SLA timeout are configured"
+          ],
+          "verify": ["Review the job config", "Pass when catch-up and SLA timeout are set"]
+        },
+        {
+          "n": 5,
+          "title": "Enable the job in the orchestrator",
+          "actor": "Data Engineer",
+          "sop": [
+            "Enable the scheduled job in the orchestrator",
+            "Confirm it is registered",
+            "Watch for the next scheduled trigger",
+            "Done when the job is enabled"
+          ],
+          "verify": [
+            "Open the orchestrator schedule",
+            "Pass when the job is registered and enabled"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the job runs at the cadence",
+          "actor": "Data Engineer",
+          "sop": [
+            "Confirm the job registers at the agreed cadence",
+            "Check the next run time",
+            "Record the confirmation",
+            "Done when the cadence is confirmed"
+          ],
+          "verify": [
+            "Read the next-run schedule",
+            "Pass when the job is enabled at the agreed cadence"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "c85c7998-c16d-4be5-8b71-ba581f5cfbbf",
+      "verifier": "QA Analyst",
+      "generic": {
+        "Defined scope/population": "The end-to-end ingestion pipeline run in non-production",
+        "In-scope period": "The current non-prod test cycle",
+        "Required fields populated and valid": "Representative test data present with the expected schema",
+        "Control totals or record counts reconcile": "Output row counts and key fields reconcile to the source",
+        "Evidence retained with timestamp/version": "Test run results retained with a run timestamp",
+        "Exceptions logged with disposition": "Failed negative-test cases logged with a disposition",
+        "Test population": "The non-prod pipeline run over representative data",
+        "Pass/fail thresholds": "PASS = end-to-end run completes with reconciled counts and no duplicates",
+        "Exception handling path": "Failed validations block promotion until fixed and re-run",
+        "Documented acceptance criteria": "End-to-end tests pass with reconciled output and idempotency",
+        "Evidence location": "Orchestrator non-prod run log and validation results"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Prepare representative test data",
+          "actor": "ETL Developer",
+          "sop": [
+            "Load representative test data into non-prod",
+            "Confirm it matches the expected schema",
+            "Note the expected counts",
+            "Done when representative data is ready"
+          ],
+          "verify": [
+            "Inspect the test dataset",
+            "Pass when it is representative and schema-conformant"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Run the pipeline end-to-end in non-prod",
+          "actor": "Data Engineer",
+          "sop": [
+            "Trigger the full pipeline in the non-prod orchestrator",
+            "Let it run every stage to completion",
+            "Capture the run result",
+            "Done when the end-to-end run completes"
+          ],
+          "verify": ["Read the non-prod run log", "Pass when the run completes successfully"]
+        },
+        {
+          "n": 3,
+          "title": "Reconcile output counts and key fields",
+          "actor": "Data Engineer",
+          "sop": [
+            "Compare output row counts to the source",
+            "Check key fields for correctness",
+            "Log the reconciliation",
+            "Done when counts and key fields reconcile"
+          ],
+          "verify": ["Compare source and output", "Pass when counts and key fields reconcile"]
+        },
+        {
+          "n": 4,
+          "title": "Re-run to confirm idempotency",
+          "actor": "Data Engineer",
+          "sop": [
+            "Re-run the pipeline over the same data",
+            "Confirm no duplicate rows appear",
+            "Record the result",
+            "Done when the re-run is idempotent"
+          ],
+          "verify": [
+            "Query the target for duplicates",
+            "Pass when no duplicate rows exist after re-run"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Exercise failure and retry paths",
+          "actor": "QA Analyst",
+          "sop": [
+            "Run negative test cases against the pipeline",
+            "Exercise failure and retry paths",
+            "Log each case disposition",
+            "Done when failure paths are exercised"
+          ],
+          "verify": [
+            "Review the negative-case results",
+            "Pass when failure and retry paths behave as expected"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the successful test run",
+          "actor": "QA Analyst",
+          "sop": [
+            "Record the passing end-to-end run with validations",
+            "Timestamp the result",
+            "Attach it to the test cycle",
+            "Done when the passing run is recorded"
+          ],
+          "verify": [
+            "Open the recorded run",
+            "Pass when a successful run with passing validations is logged"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "0a5aee3e-cb55-4a46-a353-8ca7c01b202c",
+      "verifier": "Data Architect",
+      "generic": {
+        "Defined scope/population": "The incoming ingestion request for this source",
+        "In-scope period": "The current intake of the request",
+        "Required fields populated and valid": "Ticket has source system, requesting owner, and business purpose",
+        "Control totals or record counts reconcile": "Assessed access path matches the source's stated connectivity",
+        "Evidence retained with timestamp/version": "Feasibility assessment recorded on the Jira ticket with a date",
+        "Exceptions logged with disposition": "Infeasible requests recorded with the blocking reason and next step",
+        "Test population": "The logged ingestion request",
+        "Pass/fail thresholds": "PASS = request is logged with source details and a recorded feasibility assessment",
+        "Exception handling path": "Unclear data contract sent back to the requester for clarification",
+        "Documented acceptance criteria": "Request recorded with source details and connectivity and contract assessed",
+        "Evidence location": "Jira ticket and the catalog contract reference"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Log the request in Jira",
+          "actor": "Data Engineer",
+          "sop": [
+            "Create the intake ticket in Jira",
+            "Capture source system, requesting owner, and business purpose",
+            "Set the intake status",
+            "Done when the request is logged with source details"
+          ],
+          "verify": ["Open the Jira ticket", "Pass when source, owner, and purpose are recorded"]
+        },
+        {
+          "n": 2,
+          "title": "Assess source connectivity and access path",
+          "actor": "Data Engineer",
+          "sop": [
+            "Identify the source connectivity method",
+            "Assess the access path for feasibility",
+            "Note constraints on the ticket",
+            "Done when connectivity is assessed"
+          ],
+          "verify": ["Review the connectivity note", "Pass when the access path is assessed"]
+        },
+        {
+          "n": 3,
+          "title": "Review the data contract with the requester",
+          "actor": "Data Product Owner",
+          "sop": [
+            "Review the expected schema and data contract",
+            "Confirm it with the requester",
+            "Reference it in the catalog",
+            "Done when the contract is reviewed"
+          ],
+          "verify": [
+            "Check the catalog contract reference",
+            "Pass when the data contract is reviewed with the requester"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Assess feasibility with architecture",
+          "actor": "Data Architect",
+          "sop": [
+            "Assess overall feasibility against platform patterns",
+            "Note risks and dependencies",
+            "Record the assessment",
+            "Done when feasibility is assessed"
+          ],
+          "verify": ["Read the feasibility note", "Pass when a feasibility assessment is recorded"]
+        },
+        {
+          "n": 5,
+          "title": "Record the decision and next step",
+          "actor": "Data Engineer",
+          "sop": [
+            "Record the feasibility decision on the ticket",
+            "State the next step or owner",
+            "Set the ticket status",
+            "Done when the decision and next step are recorded"
+          ],
+          "verify": [
+            "Open the ticket decision field",
+            "Pass when the decision and next step are captured"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the request is fully logged",
+          "actor": "Data Engineer",
+          "sop": [
+            "Confirm source details and assessment are on the ticket",
+            "Confirm the contract reference resolves",
+            "Close the intake activity",
+            "Done when the request is fully recorded"
+          ],
+          "verify": [
+            "Review the ticket",
+            "Pass when source details and a feasibility assessment are present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fkcks1c5nkfgzscksgluq",
+      "verifier": "Site Reliability Engineer",
+      "generic": {
+        "Defined scope/population": "Performance and error-handling tuning for this pipeline",
+        "In-scope period": "The tuning cycle following the initial runs",
+        "Required fields populated and valid": "Bottleneck fix, retry/backoff, and dead-letter settings applied",
+        "Control totals or record counts reconcile": "Post-tuning row counts unchanged versus the pre-tuning baseline",
+        "Evidence retained with timestamp/version": "Before and after run metrics retained in Grafana",
+        "Exceptions logged with disposition": "Transient failures routed to dead-letter with the reason logged",
+        "Test population": "The tuned pipeline run at production-scale load",
+        "Pass/fail thresholds": "PASS = post-tuning run duration and error rate meet the target SLA",
+        "Exception handling path": "A missed SLA after tuning triggers further optimization",
+        "Documented acceptance criteria": "Adjustments applied and the run meets the SLA",
+        "Evidence location": "Grafana run metrics and the orchestrator logs"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Identify the bottleneck from run metrics",
+          "actor": "Data Engineer",
+          "sop": [
+            "Open the run metrics in Grafana",
+            "Identify the dominant bottleneck stage",
+            "Capture the baseline duration",
+            "Done when the bottleneck is identified"
+          ],
+          "verify": [
+            "Review the metric breakdown",
+            "Pass when the bottleneck stage is identified with a baseline"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Apply a partitioning or parallelism fix",
+          "actor": "ETL Developer",
+          "sop": [
+            "Apply partitioning or parallelism at the bottleneck",
+            "Re-run the affected stage",
+            "Compare duration to baseline",
+            "Done when the fix reduces the bottleneck"
+          ],
+          "verify": ["Compare stage durations", "Pass when the bottleneck duration drops"]
+        },
+        {
+          "n": 3,
+          "title": "Tune retry, backoff, and dead-letter",
+          "actor": "Data Engineer",
+          "sop": [
+            "Tune retry and backoff for transient failures",
+            "Confirm dead-letter routing on exhaustion",
+            "Log the reason on dead-letter",
+            "Done when error handling is tuned"
+          ],
+          "verify": [
+            "Inject a transient failure",
+            "Pass when it retries then dead-letters with a reason"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Validate against a production-scale load",
+          "actor": "Site Reliability Engineer",
+          "sop": [
+            "Run the tuned pipeline at production-scale volume",
+            "Watch duration and error rate",
+            "Capture the metrics",
+            "Done when the scale run completes"
+          ],
+          "verify": ["Read the scale-run metrics", "Pass when the run holds up at production scale"]
+        },
+        {
+          "n": 5,
+          "title": "Confirm duration meets the SLA",
+          "actor": "Data Engineer",
+          "sop": [
+            "Compare the tuned run duration to the SLA",
+            "Confirm output row counts are unchanged",
+            "Record the result",
+            "Done when duration meets the SLA"
+          ],
+          "verify": [
+            "Compare duration to the SLA",
+            "Pass when duration meets the SLA with unchanged counts"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record post-tuning metrics",
+          "actor": "Data Engineer",
+          "sop": [
+            "Record before and after metrics in Grafana",
+            "Note the applied changes",
+            "Attach to the tuning ticket",
+            "Done when post-tuning metrics are recorded"
+          ],
+          "verify": [
+            "Open the recorded metrics",
+            "Pass when post-tuning duration and error rate meet the SLA"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "f9a01072-1058-4ad1-b41f-2f4d73dc0640",
+      "verifier": "Data Quality Analyst",
+      "generic": {
+        "Defined scope/population": "Ingested data validated against acceptance criteria",
+        "In-scope period": "The current ingested load",
+        "Required fields populated and valid": "Completeness, latency, and integrity checks executed on the load",
+        "Control totals or record counts reconcile": "Completeness meets the expected-volume threshold",
+        "Evidence retained with timestamp/version": "Validation result recorded with a run timestamp",
+        "Exceptions logged with disposition": "Failed criteria flagged with a disposition for remediation",
+        "Test population": "The ingested dataset for this load",
+        "Pass/fail thresholds": "PASS = completeness and latency both meet the defined acceptance criteria",
+        "Exception handling path": "Any failed criterion blocks acceptance until remediated",
+        "Documented acceptance criteria": "Completeness and latency pass the documented criteria",
+        "Evidence location": "Quality-tool validation results and the run log"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Check completeness against expected volume",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Run the completeness check in the quality tool",
+            "Compare against the expected volume",
+            "Record the result",
+            "Done when completeness is checked"
+          ],
+          "verify": ["Read the completeness result", "Pass when completeness meets the threshold"]
+        },
+        {
+          "n": 2,
+          "title": "Measure end-to-end latency",
+          "actor": "ETL Developer",
+          "sop": [
+            "Measure end-to-end latency for the load",
+            "Compare against the agreed SLA",
+            "Record the value",
+            "Done when latency is measured"
+          ],
+          "verify": ["Compare latency to the SLA", "Pass when latency is within the SLA"]
+        },
+        {
+          "n": 3,
+          "title": "Validate key and reference integrity",
+          "actor": "Data Engineer",
+          "sop": [
+            "Check primary-key uniqueness on the load",
+            "Check referential integrity to reference data",
+            "Log any violation",
+            "Done when integrity is validated"
+          ],
+          "verify": ["Review the integrity results", "Pass when key and reference integrity hold"]
+        },
+        {
+          "n": 4,
+          "title": "Compare results to acceptance criteria",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Compare all results to the documented criteria",
+            "Mark each criterion pass or fail",
+            "Summarize the outcome",
+            "Done when results are compared to criteria"
+          ],
+          "verify": [
+            "Read the comparison summary",
+            "Pass when results meet the documented criteria"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the validation result",
+          "actor": "Data Engineer",
+          "sop": [
+            "Record the overall pass result",
+            "Timestamp it",
+            "Attach it to the run/ticket",
+            "Done when the result is recorded"
+          ],
+          "verify": [
+            "Open the recorded result",
+            "Pass when a pass result is logged with a timestamp"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Flag any failed criterion",
+          "actor": "Data Engineer",
+          "sop": [
+            "Flag any failed criterion for remediation",
+            "Assign an owner",
+            "Block acceptance until fixed",
+            "Done when failures are flagged"
+          ],
+          "verify": ["Check the flagged items", "Pass when each failed criterion has a disposition"]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhwxx07yqkfgznc2dg42y",
+      "verifier": "Tech Lead",
+      "generic": {
+        "Defined scope/population": "The promotion approval for this transformation change",
+        "In-scope period": "This promotion cycle",
+        "Required fields populated and valid": "PR has a non-author approval, release tag, and rollback reference",
+        "Control totals or record counts reconcile": "All CI checks are green on the merge commit",
+        "Evidence retained with timestamp/version": "Approval and release tag recorded on the PR",
+        "Exceptions logged with disposition": "Failing checks block approval and are noted on the PR",
+        "Test population": "The merged PR for the transformation",
+        "Pass/fail thresholds": "PASS = merged PR shows a required approval and passing status checks",
+        "Exception handling path": "Failed checks return the PR to the author before promotion",
+        "Documented acceptance criteria": "Transformation approved with green checks and a rollback plan",
+        "Evidence location": "The PR record and GitHub Actions status checks"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm a non-author approval on the PR",
+          "actor": "Tech Lead",
+          "sop": [
+            "Open the transformation PR in the repository",
+            "Confirm an approving reviewer other than the author",
+            "Note the reviewer",
+            "Done when a non-author approval is present"
+          ],
+          "verify": ["Review the PR approvals", "Pass when a non-author reviewer has approved"]
+        },
+        {
+          "n": 2,
+          "title": "Verify CI checks on the merge commit",
+          "actor": "Data Engineer",
+          "sop": [
+            "Open the CI checks in GitHub Actions",
+            "Confirm build, tests, and quality gates are green",
+            "Block if any check fails",
+            "Done when all checks are green"
+          ],
+          "verify": ["Read the merge-commit checks", "Pass when all status checks are green"]
+        },
+        {
+          "n": 3,
+          "title": "Record the target release tag",
+          "actor": "Tech Lead",
+          "sop": [
+            "Record the target release version/tag on the approval",
+            "Confirm it matches the intended release",
+            "Save the note",
+            "Done when the release tag is recorded"
+          ],
+          "verify": ["Check the approval note", "Pass when the release tag is recorded"]
+        },
+        {
+          "n": 4,
+          "title": "Reference the rollback plan",
+          "actor": "Tech Lead",
+          "sop": [
+            "Add the rollback plan reference to the approval note",
+            "Confirm it resolves",
+            "Save the note",
+            "Done when the rollback plan is referenced"
+          ],
+          "verify": ["Follow the rollback reference", "Pass when the rollback plan is linked"]
+        },
+        {
+          "n": 5,
+          "title": "Approve the PR for promotion",
+          "actor": "Tech Lead",
+          "sop": [
+            "Confirm all conditions are met",
+            "Approve the PR for promotion",
+            "Timestamp the approval",
+            "Done when the PR is approved"
+          ],
+          "verify": ["Open the PR approval", "Pass when the PR is approved for promotion"]
+        },
+        {
+          "n": 6,
+          "title": "Confirm merged PR shows approval and checks",
+          "actor": "Data Engineer",
+          "sop": [
+            "Confirm the merged PR shows the approval",
+            "Confirm status checks passed",
+            "Record the promotion",
+            "Done when approval and checks are confirmed"
+          ],
+          "verify": ["Review the merged PR", "Pass when it shows an approval and passing checks"]
+        }
+      ]
+    },
+    {
+      "taskId": "02c4efdb-ef67-47cc-8136-6bc05894cb42",
+      "verifier": "Data Modeler",
+      "generic": {
+        "Defined scope/population": "Enrichment joins from source to reference and master data",
+        "In-scope period": "The current transformation build",
+        "Required fields populated and valid": "Join keys validated and reference/master version pinned",
+        "Control totals or record counts reconcile": "Post-join key count equals source key count within tolerance",
+        "Evidence retained with timestamp/version": "Reject table and match-rate metrics retained per run",
+        "Exceptions logged with disposition": "Unmatched or null-key rows routed to a reject table with counts",
+        "Test population": "The enriched output rows for the load",
+        "Pass/fail thresholds": "PASS = no duplicate rows introduced and the match rate meets threshold",
+        "Exception handling path": "A match rate below threshold flags reference data for review",
+        "Documented acceptance criteria": "Enriched output resolves joins with no fan-out",
+        "Evidence location": "Curated tables and the reject table in the lakehouse"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Validate join keys for cardinality",
+          "actor": "Data Modeler",
+          "sop": [
+            "Check join key cardinality against reference and master data",
+            "Confirm no unintended many-to-many fan-out",
+            "Adjust joins if needed",
+            "Done when join keys are validated"
+          ],
+          "verify": ["Inspect the join cardinality", "Pass when no unintended fan-out exists"]
+        },
+        {
+          "n": 2,
+          "title": "Pin the reference and master data version",
+          "actor": "Data Engineer",
+          "sop": [
+            "Pin the reference/master data version for the run",
+            "Record the pinned version",
+            "Confirm reproducibility",
+            "Done when the version is pinned"
+          ],
+          "verify": ["Check the pinned version", "Pass when the reference/master version is fixed"]
+        },
+        {
+          "n": 3,
+          "title": "Route unmatched keys to a reject table",
+          "actor": "ETL Developer",
+          "sop": [
+            "Route unmatched or null-key rows to a reject table",
+            "Record the reject count",
+            "Keep matched rows flowing",
+            "Done when unmatched rows are rejected and counted"
+          ],
+          "verify": [
+            "Query the reject table",
+            "Pass when unmatched keys are counted in the reject table"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reconcile post-join count to source",
+          "actor": "Data Engineer",
+          "sop": [
+            "Compare post-join key count to source key count",
+            "Confirm within tolerance",
+            "Log the reconciliation",
+            "Done when the count reconciles"
+          ],
+          "verify": ["Compare key counts", "Pass when post-join equals source within tolerance"]
+        },
+        {
+          "n": 5,
+          "title": "Confirm the match rate meets threshold",
+          "actor": "ETL Developer",
+          "sop": [
+            "Compute the match rate against master data",
+            "Compare to the agreed threshold",
+            "Record the value",
+            "Done when the match rate is confirmed"
+          ],
+          "verify": ["Read the match-rate metric", "Pass when the match rate meets the threshold"]
+        },
+        {
+          "n": 6,
+          "title": "Verify no duplicate rows from joins",
+          "actor": "Data Engineer",
+          "sop": [
+            "Check the enriched output for duplicate keys",
+            "Confirm post-join key count equals source",
+            "Log the result",
+            "Done when no duplicates are introduced"
+          ],
+          "verify": [
+            "Query for duplicate keys",
+            "Pass when no duplicate rows result from the joins"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "16598973-2396-40fe-9364-74e65e0aacd3",
+      "verifier": "Data Platform Engineer",
+      "generic": {
+        "Defined scope/population": "The CI/CD deployment of the transformation jobs",
+        "In-scope period": "The current production release",
+        "Required fields populated and valid": "Deploy from a tagged protected-branch commit with a rollback stage",
+        "Control totals or record counts reconcile": "Prod job version matches the approved artifact version",
+        "Evidence retained with timestamp/version": "Deploy run and artifact version retained in GitHub Actions",
+        "Exceptions logged with disposition": "A failed deploy triggers rollback with the event logged",
+        "Test population": "The deployment workflow run for the transformation jobs",
+        "Pass/fail thresholds": "PASS = deploy job succeeds with a configured rollback stage",
+        "Exception handling path": "A failed smoke run invokes the automated rollback",
+        "Documented acceptance criteria": "Jobs run in production with rollback enabled",
+        "Evidence location": "GitHub Actions deploy run and the orchestrator schedule"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Tag a protected-branch commit",
+          "actor": "Data Engineer",
+          "sop": [
+            "Tag the deploy commit on the protected branch",
+            "Confirm branch protection is satisfied",
+            "Record the tag",
+            "Done when the deploy commit is tagged"
+          ],
+          "verify": [
+            "Check the tag and branch",
+            "Pass when the tag is on a protected-branch commit"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Configure the automated rollback stage",
+          "actor": "Data Platform Engineer",
+          "sop": [
+            "Add an automated rollback stage to the pipeline",
+            "Wire it to the prior good version",
+            "Confirm it is reachable on failure",
+            "Done when the rollback stage is present"
+          ],
+          "verify": ["Inspect the pipeline stages", "Pass when a rollback stage is configured"]
+        },
+        {
+          "n": 3,
+          "title": "Dry-run verify the rollback step",
+          "actor": "Data Platform Engineer",
+          "sop": [
+            "Run the rollback step in dry-run mode",
+            "Confirm it targets the prior version",
+            "Capture the dry-run output",
+            "Done when the rollback dry-run passes"
+          ],
+          "verify": ["Read the dry-run output", "Pass when the rollback dry-run succeeds"]
+        },
+        {
+          "n": 4,
+          "title": "Trigger the deploy in GitHub Actions",
+          "actor": "Data Engineer",
+          "sop": [
+            "Trigger the deploy workflow in GitHub Actions",
+            "Deploy the tagged artifact to production",
+            "Watch it to completion",
+            "Done when the deploy completes"
+          ],
+          "verify": ["Open the deploy run", "Pass when the deploy job succeeded"]
+        },
+        {
+          "n": 5,
+          "title": "Confirm prod version matches the artifact",
+          "actor": "Data Engineer",
+          "sop": [
+            "Compare the deployed prod job version to the approved artifact",
+            "Confirm they match",
+            "Record the version",
+            "Done when the versions match"
+          ],
+          "verify": [
+            "Compare deployed and approved versions",
+            "Pass when the prod version matches the artifact"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Run a post-deploy smoke run",
+          "actor": "Data Engineer",
+          "sop": [
+            "Run a smoke run of the transformation job",
+            "Confirm it schedules and starts",
+            "Capture the result",
+            "Done when the smoke run passes"
+          ],
+          "verify": [
+            "Read the smoke-run result",
+            "Pass when the job schedules and starts in production"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "c8ab41a8-0ddd-4a39-a07d-3061140ce0d1",
+      "verifier": "Data Architect",
+      "generic": {
+        "Defined scope/population": "The transformation logic design for this data product",
+        "In-scope period": "The current transformation build",
+        "Required fields populated and valid": "Rules, joins, aggregations, grain, and source-to-target mapping documented",
+        "Control totals or record counts reconcile": "Every target column has a mapped source in the design",
+        "Evidence retained with timestamp/version": "Design doc versioned in Confluence linked to the ticket",
+        "Exceptions logged with disposition": "Open design questions logged with an owner",
+        "Test population": "The transformation design document",
+        "Pass/fail thresholds": "PASS = design has a complete source-to-target mapping and a stated grain",
+        "Exception handling path": "Unmapped target columns block sign-off of the design",
+        "Documented acceptance criteria": "Design documents rules, mapping, grain, and enrichment sources",
+        "Evidence location": "Confluence design page and the catalog references"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "List rules, joins, and aggregations",
+          "actor": "Data Engineer",
+          "sop": [
+            "List business rules, joins, aggregations, and enrichment sources",
+            "Structure them in the design doc",
+            "Confirm coverage of the requirements",
+            "Done when the logic inventory is listed"
+          ],
+          "verify": [
+            "Review the logic inventory",
+            "Pass when rules, joins, aggregations, and sources are listed"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Document the source-to-target mapping",
+          "actor": "Data Engineer",
+          "sop": [
+            "Map every target column to its source",
+            "Note transformations per column",
+            "Record it in the design",
+            "Done when the mapping covers all target columns"
+          ],
+          "verify": ["Check the mapping table", "Pass when every target column has a mapped source"]
+        },
+        {
+          "n": 3,
+          "title": "State the grain of each target model",
+          "actor": "ETL Developer",
+          "sop": [
+            "State the grain for each target model",
+            "Confirm it matches the aggregation intent",
+            "Add it to the design",
+            "Done when each model's grain is stated"
+          ],
+          "verify": ["Read the grain declarations", "Pass when each target model states its grain"]
+        },
+        {
+          "n": 4,
+          "title": "Name enrichment datasets with owners",
+          "actor": "Data Engineer",
+          "sop": [
+            "Name each enrichment reference/master dataset",
+            "Record the owner for each",
+            "Link them in the catalog",
+            "Done when enrichment datasets are named with owners"
+          ],
+          "verify": ["Check the enrichment section", "Pass when datasets are named with owners"]
+        },
+        {
+          "n": 5,
+          "title": "Review the design with architecture",
+          "actor": "Data Architect",
+          "sop": [
+            "Review the design for correctness and standards",
+            "Resolve open questions",
+            "Record sign-off",
+            "Done when architecture reviews the design"
+          ],
+          "verify": ["Read the review record", "Pass when architecture has reviewed the design"]
+        },
+        {
+          "n": 6,
+          "title": "Publish the design doc in Confluence",
+          "actor": "Data Engineer",
+          "sop": [
+            "Publish the design in Confluence",
+            "Link it to the ticket",
+            "Version the page",
+            "Done when the design is published and linked"
+          ],
+          "verify": [
+            "Open the Confluence page",
+            "Pass when the design is published and linked to the ticket"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "1af349ec-b60e-4009-bd53-bd2f5492c4ab",
+      "verifier": "Data Quality Analyst",
+      "generic": {
+        "Defined scope/population": "The cleansing and standardization transforms for this dataset",
+        "In-scope period": "The current transformation build",
+        "Required fields populated and valid": "Normalization, code conforming, and null/format handling applied per column",
+        "Control totals or record counts reconcile": "Record counts before and after cleansing reconcile",
+        "Evidence retained with timestamp/version": "Before and after counts logged per run with a timestamp",
+        "Exceptions logged with disposition": "Unconformable values routed for review with the reason logged",
+        "Test population": "The standardized output columns after cleansing",
+        "Pass/fail thresholds": "PASS = no non-conforming code values remain in standardized columns",
+        "Exception handling path": "Unmatched code values raised against the reference list",
+        "Documented acceptance criteria": "Transforms produce cleansed, standardized output",
+        "Evidence location": "The lakehouse cleansed tables and the run log"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Apply trim, case, and whitespace normalization",
+          "actor": "ETL Developer",
+          "sop": [
+            "Apply trim, case, and whitespace normalization to string fields",
+            "Confirm the rules cover standardized columns",
+            "Run over a sample",
+            "Done when normalization is applied"
+          ],
+          "verify": [
+            "Inspect standardized sample values",
+            "Pass when strings are trimmed and case-normalized"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Conform code values to the reference list",
+          "actor": "Data Engineer",
+          "sop": [
+            "Map free-text code variants to the central reference list",
+            "Reject values with no reference match",
+            "Log unmatched values",
+            "Done when code values are conformed"
+          ],
+          "verify": ["Scan standardized code columns", "Pass when no free-text variants remain"]
+        },
+        {
+          "n": 3,
+          "title": "Define null and default handling",
+          "actor": "Data Engineer",
+          "sop": [
+            "Define null handling and default values per column",
+            "Apply the rules in the transform",
+            "Document the choices",
+            "Done when null/default handling is defined"
+          ],
+          "verify": [
+            "Review the null-handling rules",
+            "Pass when each column has defined null/default handling"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Standardize date and number formats",
+          "actor": "ETL Developer",
+          "sop": [
+            "Cast date and number fields to the canonical type",
+            "Standardize formats",
+            "Confirm no parse failures",
+            "Done when formats are standardized"
+          ],
+          "verify": [
+            "Inspect date/number columns",
+            "Pass when formats are canonical with no parse failures"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile counts before and after cleansing",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Count records before and after cleansing",
+            "Reconcile the two counts",
+            "Log the result",
+            "Done when counts reconcile"
+          ],
+          "verify": ["Compare before/after counts", "Pass when the counts reconcile"]
+        },
+        {
+          "n": 6,
+          "title": "Confirm no non-conforming code values remain",
+          "actor": "Data Engineer",
+          "sop": [
+            "Scan standardized columns for non-conforming codes",
+            "Confirm all values match the reference list",
+            "Record the result",
+            "Done when no non-conforming values remain"
+          ],
+          "verify": [
+            "Query standardized code columns",
+            "Pass when no non-conforming values are found"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "f8633ead-1cd7-4e1a-a4d3-92516fd736c5",
+      "verifier": "Data Engineer",
+      "generic": {
+        "Defined scope/population": "Transformations implemented in the orchestration framework",
+        "In-scope period": "The current transformation build",
+        "Required fields populated and valid": "Models committed with dependencies and a materialization strategy set",
+        "Control totals or record counts reconcile": "Re-run output is identical, confirming idempotency",
+        "Evidence retained with timestamp/version": "Model code versioned in the repo with build history",
+        "Exceptions logged with disposition": "Build failures logged and blocked from merge",
+        "Test population": "The transform models in the orchestration DAG",
+        "Pass/fail thresholds": "PASS = the DAG runs all transform nodes to success",
+        "Exception handling path": "Unresolved refs or sources fail the build until fixed",
+        "Documented acceptance criteria": "Transforms run in the framework with idempotent output",
+        "Evidence location": "The orchestration DAG run and the source repo"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Commit the transform models",
+          "actor": "Data Engineer",
+          "sop": [
+            "Implement the transform models in the framework",
+            "Commit them to the source repo",
+            "Trigger the build",
+            "Done when the models build passes"
+          ],
+          "verify": ["Read the build result", "Pass when the model build passes"]
+        },
+        {
+          "n": 2,
+          "title": "Resolve model dependencies in the DAG",
+          "actor": "ETL Developer",
+          "sop": [
+            "Wire refs and sources between models",
+            "Confirm dependencies resolve in the DAG",
+            "Fix any unresolved reference",
+            "Done when dependencies resolve"
+          ],
+          "verify": ["Inspect the DAG graph", "Pass when all refs and sources resolve"]
+        },
+        {
+          "n": 3,
+          "title": "Set the materialization strategy",
+          "actor": "Data Engineer",
+          "sop": [
+            "Set incremental or materialization strategy per model",
+            "Confirm it matches the model grain",
+            "Commit the config",
+            "Done when strategy is set per model"
+          ],
+          "verify": ["Review the materialization config", "Pass when each model has a strategy set"]
+        },
+        {
+          "n": 4,
+          "title": "Run the build to green",
+          "actor": "ETL Developer",
+          "sop": [
+            "Run the full model build",
+            "Resolve any failing node",
+            "Confirm the build is green",
+            "Done when the build is green"
+          ],
+          "verify": ["Read the build log", "Pass when the build completes green"]
+        },
+        {
+          "n": 5,
+          "title": "Re-run to confirm idempotency",
+          "actor": "Data Engineer",
+          "sop": [
+            "Re-run the models over the same input",
+            "Compare output to the first run",
+            "Confirm they are identical",
+            "Done when the re-run is idempotent"
+          ],
+          "verify": ["Diff the two run outputs", "Pass when the output is identical"]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the DAG runs all nodes",
+          "actor": "Data Engineer",
+          "sop": [
+            "Run the full transform DAG end to end",
+            "Confirm all nodes succeed",
+            "Record the run",
+            "Done when the DAG completes successfully"
+          ],
+          "verify": ["Open the DAG run", "Pass when all transform nodes succeed"]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhwkw07q2kfgz9ju81bsu",
+      "verifier": "Data Modeler",
+      "generic": {
+        "Defined scope/population": "The curated data model materialized from the pipeline",
+        "In-scope period": "The latest load partition",
+        "Required fields populated and valid": "Curated tables have expected partitions and audit columns populated",
+        "Control totals or record counts reconcile": "The latest load partition returns the expected non-zero rows",
+        "Evidence retained with timestamp/version": "Prior version retained and a load timestamp on every row",
+        "Exceptions logged with disposition": "Missing partitions flagged before publish",
+        "Test population": "The curated Gold tables for the latest load",
+        "Pass/fail thresholds": "PASS = curated tables return non-zero rows for the latest load partition",
+        "Exception handling path": "An empty partition rolls back to the prior good version",
+        "Documented acceptance criteria": "Curated tables populated with expected partitions",
+        "Evidence location": "The curated tables in the lakehouse/warehouse"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Materialize the curated Gold tables",
+          "actor": "Data Engineer",
+          "sop": [
+            "Run the materialization for the curated Gold tables",
+            "Confirm the expected partitions are created",
+            "Capture the row counts",
+            "Done when the curated tables are populated"
+          ],
+          "verify": ["Query the curated tables", "Pass when expected partitions are present"]
+        },
+        {
+          "n": 2,
+          "title": "Populate audit columns",
+          "actor": "ETL Developer",
+          "sop": [
+            "Populate load timestamp and batch id on every row",
+            "Confirm no nulls in audit columns",
+            "Commit the transform",
+            "Done when audit columns are populated"
+          ],
+          "verify": [
+            "Check audit columns",
+            "Pass when load timestamp and batch id are set on all rows"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Refresh table statistics",
+          "actor": "Data Engineer",
+          "sop": [
+            "Refresh statistics on the curated tables",
+            "Confirm the optimizer sees fresh stats",
+            "Record the refresh",
+            "Done when statistics are refreshed"
+          ],
+          "verify": ["Check the stats metadata", "Pass when statistics are refreshed"]
+        },
+        {
+          "n": 4,
+          "title": "Retain the prior version for rollback",
+          "actor": "Data Modeler",
+          "sop": [
+            "Retain the prior table version or snapshot",
+            "Confirm it is swappable for rollback",
+            "Record the retention",
+            "Done when the prior version is retained"
+          ],
+          "verify": [
+            "Check the version history",
+            "Pass when a prior version is retained and swappable"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm the latest partition has rows",
+          "actor": "Data Engineer",
+          "sop": [
+            "Query the latest load partition",
+            "Confirm non-zero rows",
+            "Record the count",
+            "Done when the latest partition is non-empty"
+          ],
+          "verify": ["Count the latest partition", "Pass when it returns non-zero rows"]
+        },
+        {
+          "n": 6,
+          "title": "Verify partitions on the curated tables",
+          "actor": "Data Modeler",
+          "sop": [
+            "Verify the curated tables have the expected partitions",
+            "Confirm no gaps",
+            "Record the confirmation",
+            "Done when partitions are verified"
+          ],
+          "verify": ["List the partitions", "Pass when the expected partitions are present"]
+        }
+      ]
+    },
+    {
+      "taskId": "f4a6d470-ea40-4de5-b29e-931445917766",
+      "verifier": "Data Platform Engineer",
+      "generic": {
+        "Defined scope/population": "Post-deployment execution metrics for the transformation job",
+        "In-scope period": "The runs since the latest deployment",
+        "Required fields populated and valid": "Duration, row counts, and error rate captured per run",
+        "Control totals or record counts reconcile": "Row counts per run trend within the expected range",
+        "Evidence retained with timestamp/version": "Run metrics retained in Grafana with timestamps",
+        "Exceptions logged with disposition": "Anomalies flagged with a ticket raised",
+        "Test population": "The latest transformation job runs",
+        "Pass/fail thresholds": "PASS = dashboard shows duration, row-count, and error-rate for the latest run",
+        "Exception handling path": "A duration or error anomaly is escalated to the platform engineer",
+        "Documented acceptance criteria": "Metrics observed and anomalies flagged",
+        "Evidence location": "Grafana dashboard and the orchestrator run history"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Compare job duration to baseline",
+          "actor": "Data Engineer",
+          "sop": [
+            "Open the job duration panel in Grafana",
+            "Compare the latest run to the baseline and SLA",
+            "Flag any regression",
+            "Done when duration is compared"
+          ],
+          "verify": ["Read the duration panel", "Pass when duration is within SLA or flagged"]
+        },
+        {
+          "n": 2,
+          "title": "Record and trend row counts",
+          "actor": "Data Engineer",
+          "sop": [
+            "Record row counts per run",
+            "Trend them over recent runs",
+            "Note any drift",
+            "Done when row counts are trended"
+          ],
+          "verify": ["Read the row-count trend", "Pass when counts trend within the expected range"]
+        },
+        {
+          "n": 3,
+          "title": "Review error and retry rate",
+          "actor": "Data Platform Engineer",
+          "sop": [
+            "Review the error and retry rate for the latest run",
+            "Compare to the baseline",
+            "Flag anomalies",
+            "Done when the error rate is reviewed"
+          ],
+          "verify": [
+            "Read the error-rate panel",
+            "Pass when the error rate is reviewed with anomalies flagged"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the latest run panel is green",
+          "actor": "Data Engineer",
+          "sop": [
+            "Check the latest run status panel",
+            "Confirm it shows green",
+            "Record the status",
+            "Done when the latest run panel is confirmed"
+          ],
+          "verify": ["Open the status panel", "Pass when the latest run shows green"]
+        },
+        {
+          "n": 5,
+          "title": "Raise a ticket for any anomaly",
+          "actor": "Data Platform Engineer",
+          "sop": [
+            "Raise a ticket for each flagged anomaly",
+            "Attach the metric detail",
+            "Assign an owner",
+            "Done when anomalies are ticketed"
+          ],
+          "verify": ["Check the anomaly tickets", "Pass when each flagged anomaly has a ticket"]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the dashboard shows all metrics",
+          "actor": "Data Engineer",
+          "sop": [
+            "Confirm the dashboard shows duration, counts, and error rate",
+            "Confirm they cover the latest run",
+            "Record the confirmation",
+            "Done when the dashboard is confirmed complete"
+          ],
+          "verify": [
+            "Open the monitoring dashboard",
+            "Pass when duration, row-count, and error-rate show for the latest run"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fkhaa1ecykfgzlxggsrdg",
+      "verifier": "Data Steward",
+      "generic": {
+        "Defined scope/population": "Downstream consumers of the reprocessed dataset",
+        "In-scope period": "The reprocessing window and restated partitions",
+        "Required fields populated and valid": "Notification states window, restated partitions, and impact",
+        "Control totals or record counts reconcile": "Restated partition list matches the reprocessed data",
+        "Evidence retained with timestamp/version": "Notification and acknowledgements retained on the ticket",
+        "Exceptions logged with disposition": "Non-acknowledging consumers followed up and logged",
+        "Test population": "All downstream consumers identified from lineage",
+        "Pass/fail thresholds": "PASS = every downstream consumer is notified of the reprocessing",
+        "Exception handling path": "An unreachable consumer is escalated to the data steward",
+        "Documented acceptance criteria": "Downstream consumers are notified of the reprocessing",
+        "Evidence location": "The Jira notification ticket and Confluence note"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Identify affected consumers from lineage",
+          "actor": "Data Engineer",
+          "sop": [
+            "Trace lineage from the reprocessed dataset",
+            "List all downstream consumers",
+            "Record the affected assets",
+            "Done when consumers are identified"
+          ],
+          "verify": [
+            "Review the consumer list",
+            "Pass when all downstream consumers are identified"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Draft the reprocessing notification",
+          "actor": "Data Engineer",
+          "sop": [
+            "Draft the notification with window and restated partitions",
+            "State the impact on consumers",
+            "Prepare it for sending",
+            "Done when the notification is drafted"
+          ],
+          "verify": ["Read the draft", "Pass when window and restated partitions are stated"]
+        },
+        {
+          "n": 3,
+          "title": "Send the notification to consumers",
+          "actor": "Data Engineer",
+          "sop": [
+            "Send the notification to each downstream consumer",
+            "Record the recipients on the ticket",
+            "Note the send time",
+            "Done when the notification is sent"
+          ],
+          "verify": ["Check the send record", "Pass when every consumer received the notification"]
+        },
+        {
+          "n": 4,
+          "title": "Capture consumer acknowledgement",
+          "actor": "Data Steward",
+          "sop": [
+            "Collect consumer acknowledgements on the ticket",
+            "Follow up with non-responders",
+            "Record each acknowledgement",
+            "Done when acknowledgements are captured"
+          ],
+          "verify": [
+            "Review the acknowledgements",
+            "Pass when consumer acknowledgement is captured"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Note the restatement against the SLA",
+          "actor": "Data Steward",
+          "sop": [
+            "Note the restatement against the data contract/SLA",
+            "Record any breach or waiver",
+            "Attach to the ticket",
+            "Done when the restatement is noted"
+          ],
+          "verify": [
+            "Check the SLA note",
+            "Pass when the restatement is recorded against the contract"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm every consumer was notified",
+          "actor": "Data Engineer",
+          "sop": [
+            "Confirm the notified list matches the lineage list",
+            "Escalate any gap",
+            "Close the notification activity",
+            "Done when all consumers are confirmed notified"
+          ],
+          "verify": [
+            "Compare notified vs lineage list",
+            "Pass when every downstream consumer was notified"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "d2da72ec-d8c8-4219-9556-3b04df8733e1",
+      "verifier": "Data Engineer",
+      "generic": {
+        "Defined scope/population": "Query-plan and resource optimization before promotion",
+        "In-scope period": "The pre-promotion optimization cycle",
+        "Required fields populated and valid": "Plan reviewed with pruning and pushdown active and compute right-sized",
+        "Control totals or record counts reconcile": "Optimized output is identical to the pre-optimization baseline",
+        "Evidence retained with timestamp/version": "Before and after runtime metrics retained per run",
+        "Exceptions logged with disposition": "Remaining slow paths logged with a follow-up",
+        "Test population": "The optimized transformation run",
+        "Pass/fail thresholds": "PASS = optimized run meets the target runtime with identical output",
+        "Exception handling path": "A missed runtime target blocks promotion for further tuning",
+        "Documented acceptance criteria": "Performance meets targets with output unchanged",
+        "Evidence location": "The lakehouse query history and run metrics"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Review the query plan",
+          "actor": "Data Engineer",
+          "sop": [
+            "Open the query plan for the transformation",
+            "Identify full-table scans on large tables",
+            "Rewrite to remove them",
+            "Done when full-table scans are removed"
+          ],
+          "verify": ["Read the updated query plan", "Pass when large-table full scans are gone"]
+        },
+        {
+          "n": 2,
+          "title": "Confirm pruning and pushdown",
+          "actor": "ETL Developer",
+          "sop": [
+            "Confirm partition pruning is active",
+            "Confirm predicate pushdown applies",
+            "Adjust the query if not",
+            "Done when pruning and pushdown are active"
+          ],
+          "verify": ["Inspect the plan operators", "Pass when pruning and pushdown are active"]
+        },
+        {
+          "n": 3,
+          "title": "Right-size the compute",
+          "actor": "Data Engineer",
+          "sop": [
+            "Right-size the compute/cluster against the cost target",
+            "Re-run and measure cost",
+            "Record the sizing",
+            "Done when compute is right-sized"
+          ],
+          "verify": [
+            "Review the compute config and cost",
+            "Pass when compute is sized to the cost target"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Measure runtime against the target",
+          "actor": "ETL Developer",
+          "sop": [
+            "Re-run the optimized transformation",
+            "Measure the runtime",
+            "Compare to the target",
+            "Done when runtime is measured"
+          ],
+          "verify": ["Compare runtime to target", "Pass when runtime meets the target"]
+        },
+        {
+          "n": 5,
+          "title": "Confirm output matches the baseline",
+          "actor": "Data Engineer",
+          "sop": [
+            "Compare optimized output to the pre-optimization baseline",
+            "Confirm they are identical",
+            "Log the comparison",
+            "Done when output matches the baseline"
+          ],
+          "verify": ["Diff optimized vs baseline output", "Pass when the outputs are identical"]
+        },
+        {
+          "n": 6,
+          "title": "Record the optimized runtime",
+          "actor": "Data Engineer",
+          "sop": [
+            "Record before and after runtime metrics",
+            "Note the applied changes",
+            "Attach to the promotion ticket",
+            "Done when the optimized runtime is recorded"
+          ],
+          "verify": [
+            "Open the recorded metrics",
+            "Pass when the optimized runtime meets the target"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhwpi07tokfgzydotz1he",
+      "verifier": "Tech Lead",
+      "generic": {
+        "Defined scope/population": "Peer review of the transformation logic",
+        "In-scope period": "The current PR under review",
+        "Required fields populated and valid": "Logic checked against mapping, standards, and static analysis",
+        "Control totals or record counts reconcile": "SonarQube findings resolved or waived with rationale",
+        "Evidence retained with timestamp/version": "Review threads and approvals recorded on the PR",
+        "Exceptions logged with disposition": "Waived findings recorded with justification",
+        "Test population": "The transformation PR",
+        "Pass/fail thresholds": "PASS = review complete, all threads resolved, no open blockers",
+        "Exception handling path": "Unresolved comments block approval until addressed",
+        "Documented acceptance criteria": "Review comments resolved and standards met",
+        "Evidence location": "GitHub Enterprise PR and SonarQube report"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Review logic against the mapping",
+          "actor": "Tech Lead",
+          "sop": [
+            "Open the PR in GitHub Enterprise",
+            "Compare the logic to the source-to-target mapping",
+            "Comment on any divergence",
+            "Done when the logic is reviewed against the mapping"
+          ],
+          "verify": ["Read the review comments", "Pass when logic is checked against the mapping"]
+        },
+        {
+          "n": 2,
+          "title": "Check naming and coding standards",
+          "actor": "Tech Lead",
+          "sop": [
+            "Check naming, modularity, and ELT/coding standards",
+            "Flag deviations",
+            "Request changes where needed",
+            "Done when standards are checked"
+          ],
+          "verify": ["Review the standards comments", "Pass when naming and modularity are checked"]
+        },
+        {
+          "n": 3,
+          "title": "Resolve SonarQube findings",
+          "actor": "Data Engineer",
+          "sop": [
+            "Open the SonarQube report for the PR",
+            "Resolve or waive each finding with rationale",
+            "Re-run the scan",
+            "Done when findings are resolved or waived"
+          ],
+          "verify": [
+            "Read the SonarQube report",
+            "Pass when no open static-analysis blockers remain"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Address all review comments",
+          "actor": "ETL Developer",
+          "sop": [
+            "Address each review comment",
+            "Push the changes",
+            "Reply to each thread",
+            "Done when review comments are addressed"
+          ],
+          "verify": ["Check the PR threads", "Pass when all comments are addressed"]
+        },
+        {
+          "n": 5,
+          "title": "Confirm all threads resolved",
+          "actor": "Tech Lead",
+          "sop": [
+            "Confirm every review thread is resolved",
+            "Confirm changes meet standards",
+            "Approve if satisfied",
+            "Done when all threads are resolved"
+          ],
+          "verify": ["Review the thread statuses", "Pass when all threads are resolved"]
+        },
+        {
+          "n": 6,
+          "title": "Verify no open static-analysis blockers",
+          "actor": "Data Engineer",
+          "sop": [
+            "Verify SonarQube shows no open blockers",
+            "Confirm the quality gate passed",
+            "Record it on the PR",
+            "Done when no blockers remain"
+          ],
+          "verify": ["Open the SonarQube gate result", "Pass when no open blockers exist"]
+        }
+      ]
+    },
+    {
+      "taskId": "fe9fc129-1d8a-4ed7-a3bf-aa2b3834c50a",
+      "verifier": "Data Product Owner",
+      "generic": {
+        "Defined scope/population": "The transformation requirements from the requesting team",
+        "In-scope period": "The current intake of the request",
+        "Required fields populated and valid": "Ticket has team, priority, consumers, grain, criteria, and SLA",
+        "Control totals or record counts reconcile": "Referenced source datasets resolve by catalog name",
+        "Evidence retained with timestamp/version": "Requirement logged in Jira with a created date",
+        "Exceptions logged with disposition": "Ambiguous requirements flagged back to the requester",
+        "Test population": "The logged transformation request",
+        "Pass/fail thresholds": "PASS = ticket has acceptance criteria and named source datasets",
+        "Exception handling path": "Missing criteria sends the request back for clarification",
+        "Documented acceptance criteria": "Requirements logged with criteria and named sources",
+        "Evidence location": "The Jira requirement ticket and Confluence detail"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Log the requirement in Jira",
+          "actor": "Data Engineer",
+          "sop": [
+            "Create the requirement ticket in Jira",
+            "Record the requesting team and priority",
+            "Set the intake status",
+            "Done when the requirement is logged"
+          ],
+          "verify": ["Open the Jira ticket", "Pass when team and priority are recorded"]
+        },
+        {
+          "n": 2,
+          "title": "Capture consumers and output grain",
+          "actor": "Analytics Lead",
+          "sop": [
+            "Capture the target consumers",
+            "Capture the expected output grain",
+            "Record them on the ticket",
+            "Done when consumers and grain are captured"
+          ],
+          "verify": [
+            "Review the ticket detail",
+            "Pass when consumers and output grain are recorded"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record acceptance criteria and SLA",
+          "actor": "Data Product Owner",
+          "sop": [
+            "Record the acceptance criteria",
+            "Record the refresh SLA",
+            "Confirm they are testable",
+            "Done when criteria and SLA are recorded"
+          ],
+          "verify": [
+            "Read the criteria and SLA",
+            "Pass when acceptance criteria and SLA are present"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reference source datasets by catalog name",
+          "actor": "Data Engineer",
+          "sop": [
+            "Reference each source dataset by catalog name",
+            "Confirm the names resolve",
+            "Link them on the ticket",
+            "Done when sources are referenced by catalog name"
+          ],
+          "verify": ["Follow the catalog references", "Pass when source datasets resolve by name"]
+        },
+        {
+          "n": 5,
+          "title": "Link supporting detail in Confluence",
+          "actor": "Data Engineer",
+          "sop": [
+            "Link supporting requirement detail in Confluence",
+            "Confirm the link resolves",
+            "Attach it to the ticket",
+            "Done when supporting detail is linked"
+          ],
+          "verify": ["Open the Confluence link", "Pass when supporting detail is linked"]
+        },
+        {
+          "n": 6,
+          "title": "Confirm criteria and named sources",
+          "actor": "Data Engineer",
+          "sop": [
+            "Confirm the ticket has criteria and named sources",
+            "Flag anything ambiguous",
+            "Close the intake",
+            "Done when the ticket is complete"
+          ],
+          "verify": [
+            "Review the ticket",
+            "Pass when it has acceptance criteria and named source datasets"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fkgyj1e7ckfgz7xw6cth1",
+      "verifier": "Data Engineer",
+      "generic": {
+        "Defined scope/population": "The failed transformation job being remediated",
+        "In-scope period": "The affected partitions of the failed run",
+        "Required fields populated and valid": "Root cause noted and the fix applied to the affected partitions",
+        "Control totals or record counts reconcile": "Post-run counts reconcile to expected volumes",
+        "Evidence retained with timestamp/version": "Root-cause note and re-run result on the incident ticket",
+        "Exceptions logged with disposition": "Recurring failures flagged for escalation",
+        "Test population": "The re-run of the affected partitions",
+        "Pass/fail thresholds": "PASS = job completes successfully on re-run with reconciled counts",
+        "Exception handling path": "A re-run producing duplicates rolls back and re-scopes the partitions",
+        "Documented acceptance criteria": "The job completes successfully after remediation",
+        "Evidence location": "The orchestrator run log and the Jira incident ticket"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Identify the root cause",
+          "actor": "Data Engineer",
+          "sop": [
+            "Review the failed run logs in the orchestrator",
+            "Identify the root cause",
+            "Note it on the incident ticket",
+            "Done when the root cause is identified"
+          ],
+          "verify": ["Read the incident ticket", "Pass when the root cause is noted"]
+        },
+        {
+          "n": 2,
+          "title": "Apply the fix",
+          "actor": "ETL Developer",
+          "sop": [
+            "Apply the fix to the transformation",
+            "Commit and deploy the change",
+            "Confirm the fix targets the failure",
+            "Done when the fix is applied"
+          ],
+          "verify": ["Review the applied change", "Pass when the fix addresses the root cause"]
+        },
+        {
+          "n": 3,
+          "title": "Restrict the re-run to affected partitions",
+          "actor": "Data Engineer",
+          "sop": [
+            "Scope the re-run to the affected partitions",
+            "Avoid reprocessing unaffected data",
+            "Confirm the scope",
+            "Done when the re-run scope is set"
+          ],
+          "verify": ["Check the re-run scope", "Pass when only affected partitions are re-run"]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the re-run is idempotent",
+          "actor": "ETL Developer",
+          "sop": [
+            "Run the re-run over the affected partitions",
+            "Confirm no duplicate or partial rows",
+            "Log the result",
+            "Done when the re-run is idempotent"
+          ],
+          "verify": [
+            "Query the target for duplicates",
+            "Pass when no duplicate or partial rows exist"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile post-run counts",
+          "actor": "Data Engineer",
+          "sop": [
+            "Count rows after the re-run",
+            "Reconcile to expected volumes",
+            "Log the reconciliation",
+            "Done when counts reconcile"
+          ],
+          "verify": ["Compare counts to expected", "Pass when post-run counts reconcile"]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the job completes successfully",
+          "actor": "Data Engineer",
+          "sop": [
+            "Confirm the re-run completed successfully",
+            "Close the incident ticket with the root-cause note",
+            "Record the resolution",
+            "Done when the job completes"
+          ],
+          "verify": ["Open the re-run result", "Pass when the job completes with reconciled counts"]
+        }
+      ]
+    },
+    {
+      "taskId": "bf72d973-079d-49f0-a5cc-0f5f4beaaaab",
+      "verifier": "QA Analyst",
+      "generic": {
+        "Defined scope/population": "Integration tests of the pipeline in staging",
+        "In-scope period": "The current staging test cycle",
+        "Required fields populated and valid": "Tests run on a staging copy of production data",
+        "Control totals or record counts reconcile": "Downstream consumer outputs match expected results",
+        "Evidence retained with timestamp/version": "CI test run results retained with a timestamp",
+        "Exceptions logged with disposition": "Failed tests logged and block promotion",
+        "Test population": "The staging integration test suite and consumer outputs",
+        "Pass/fail thresholds": "PASS = integration suite passes and consumer validation returns expected results",
+        "Exception handling path": "A schema-contract mismatch blocks promotion until reconciled",
+        "Documented acceptance criteria": "Tests pass with downstream consumer validation",
+        "Evidence location": "GitHub Actions test run and the staging validation output"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Deploy the pipeline to staging",
+          "actor": "Data Engineer",
+          "sop": [
+            "Deploy the pipeline to staging",
+            "Load a staging copy of production data",
+            "Confirm the environment is ready",
+            "Done when staging is ready"
+          ],
+          "verify": [
+            "Check the staging deployment",
+            "Pass when the pipeline is deployed with prod-like data"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Run integration tests in GitHub Actions",
+          "actor": "QA Analyst",
+          "sop": [
+            "Run the integration test suite in GitHub Actions",
+            "Watch it to completion",
+            "Capture the results",
+            "Done when the suite runs"
+          ],
+          "verify": ["Open the CI run", "Pass when the integration suite runs to completion"]
+        },
+        {
+          "n": 3,
+          "title": "Validate downstream consumer outputs",
+          "actor": "QA Analyst",
+          "sop": [
+            "Validate consumer outputs against expected results",
+            "Compare against the baseline",
+            "Log discrepancies",
+            "Done when consumer outputs are validated"
+          ],
+          "verify": ["Compare outputs to expected", "Pass when consumer outputs match expected"]
+        },
+        {
+          "n": 4,
+          "title": "Run the schema-contract compatibility check",
+          "actor": "ETL Developer",
+          "sop": [
+            "Run the schema/data-contract compatibility check",
+            "Confirm no breaking changes",
+            "Log the result",
+            "Done when compatibility is checked"
+          ],
+          "verify": ["Read the compatibility result", "Pass when the contract check passes"]
+        },
+        {
+          "n": 5,
+          "title": "Record the test run green in CI",
+          "actor": "QA Analyst",
+          "sop": [
+            "Record the passing test run in CI",
+            "Timestamp the result",
+            "Attach it to the promotion",
+            "Done when the run is recorded green"
+          ],
+          "verify": ["Open the CI result", "Pass when the test run is green"]
+        },
+        {
+          "n": 6,
+          "title": "Confirm consumer validation returns expected",
+          "actor": "QA Analyst",
+          "sop": [
+            "Confirm consumer validation returned expected results",
+            "Confirm no open discrepancies",
+            "Sign off the test cycle",
+            "Done when consumer validation is confirmed"
+          ],
+          "verify": [
+            "Review the validation summary",
+            "Pass when consumer validation returns expected results"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "13632867-aec5-4b8f-9010-723181b68a6b",
+      "verifier": "Data Architect",
+      "generic": {
+        "Defined scope/population": "Business rules translated to transformation specifications",
+        "In-scope period": "The current specification effort",
+        "Required fields populated and valid": "Each rule mapped to a column-level transform with glossary links",
+        "Control totals or record counts reconcile": "Every business rule maps to at least one target column",
+        "Evidence retained with timestamp/version": "Spec versioned in Confluence with sign-off recorded",
+        "Exceptions logged with disposition": "Edge cases and defaults specified per rule",
+        "Test population": "The transformation specification",
+        "Pass/fail thresholds": "PASS = spec has a build-ready rule-to-column mapping with glossary links",
+        "Exception handling path": "An ambiguous rule is returned to the stakeholder for clarification",
+        "Documented acceptance criteria": "Specs documented and ready for build",
+        "Evidence location": "Confluence spec page and the glossary links"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Map each rule to a column-level transform",
+          "actor": "Data Engineer",
+          "sop": [
+            "Map every business rule to a column-level transformation",
+            "Record the mapping in the spec",
+            "Confirm full rule coverage",
+            "Done when each rule maps to a column transform"
+          ],
+          "verify": [
+            "Review the rule-to-column map",
+            "Pass when every rule maps to a target column"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Link glossary terms for derived fields",
+          "actor": "Data Engineer",
+          "sop": [
+            "Link a glossary term for every derived field",
+            "Confirm the terms resolve",
+            "Add the links to the spec",
+            "Done when derived fields are glossary-linked"
+          ],
+          "verify": [
+            "Follow the glossary links",
+            "Pass when every derived field has a glossary term"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Specify edge cases and defaults",
+          "actor": "Data Architect",
+          "sop": [
+            "Specify edge cases and default handling per rule",
+            "Confirm they cover boundary conditions",
+            "Record them in the spec",
+            "Done when edge cases are specified"
+          ],
+          "verify": [
+            "Read the edge-case section",
+            "Pass when edge cases and defaults are specified per rule"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Review the spec with the stakeholder",
+          "actor": "Data Product Owner",
+          "sop": [
+            "Review the spec with the requesting stakeholder",
+            "Resolve ambiguities",
+            "Note agreements",
+            "Done when the spec is reviewed"
+          ],
+          "verify": ["Check the review notes", "Pass when the stakeholder has reviewed the spec"]
+        },
+        {
+          "n": 5,
+          "title": "Capture stakeholder sign-off",
+          "actor": "Data Product Owner",
+          "sop": [
+            "Capture stakeholder sign-off on the spec",
+            "Record who signed and when",
+            "Attach it to the page",
+            "Done when sign-off is captured"
+          ],
+          "verify": ["Open the sign-off record", "Pass when stakeholder sign-off is recorded"]
+        },
+        {
+          "n": 6,
+          "title": "Publish the build-ready spec",
+          "actor": "Data Engineer",
+          "sop": [
+            "Publish the spec in Confluence",
+            "Version the page",
+            "Link it to the ticket",
+            "Done when the spec is published"
+          ],
+          "verify": [
+            "Open the Confluence spec",
+            "Pass when a build-ready rule-to-column mapping is published"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "88c031c0-16e3-44d9-9382-bbca8ecf85f4",
+      "verifier": "Data Engineer",
+      "generic": {
+        "Defined scope/population": "Unit tests for the transformation logic",
+        "In-scope period": "The current feature branch",
+        "Required fields populated and valid": "Tests assert output against curated fixtures with edge cases",
+        "Control totals or record counts reconcile": "Fixture expected rows match the asserted transform output",
+        "Evidence retained with timestamp/version": "Test results retained in the CI build history",
+        "Exceptions logged with disposition": "Failing tests block the build until fixed",
+        "Test population": "The transformation unit test suite",
+        "Pass/fail thresholds": "PASS = all unit tests pass in CI against expected fixtures",
+        "Exception handling path": "A failing assertion fails the build and returns to the author",
+        "Documented acceptance criteria": "Unit tests pass against expected output",
+        "Evidence location": "GitHub Actions build log and the test fixtures in the repo"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Author curated test fixtures",
+          "actor": "Data Engineer",
+          "sop": [
+            "Create curated input and expected-output fixtures",
+            "Cover representative cases",
+            "Commit them to the repo",
+            "Done when fixtures exist"
+          ],
+          "verify": [
+            "Review the fixtures",
+            "Pass when curated input and expected output are present"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Write unit tests asserting output",
+          "actor": "ETL Developer",
+          "sop": [
+            "Write unit tests asserting transform output against fixtures",
+            "Confirm assertions are precise",
+            "Commit the tests",
+            "Done when the tests assert output"
+          ],
+          "verify": ["Read the test assertions", "Pass when tests assert output against fixtures"]
+        },
+        {
+          "n": 3,
+          "title": "Cover edge-case and null handling",
+          "actor": "Data Engineer",
+          "sop": [
+            "Add edge-case and null-handling test cases",
+            "Confirm coverage of boundaries",
+            "Commit the cases",
+            "Done when edge cases are covered"
+          ],
+          "verify": [
+            "Review the edge-case tests",
+            "Pass when edge-case and null handling are covered"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Wire tests into the CI build",
+          "actor": "ETL Developer",
+          "sop": [
+            "Wire the unit tests into the CI build",
+            "Confirm they run on the branch",
+            "Commit the workflow change",
+            "Done when tests run in CI"
+          ],
+          "verify": ["Open the CI config", "Pass when unit tests run in the build"]
+        },
+        {
+          "n": 5,
+          "title": "Run tests on the feature branch",
+          "actor": "Data Engineer",
+          "sop": [
+            "Run the unit tests on the feature branch",
+            "Fix any failing test",
+            "Confirm all pass",
+            "Done when the tests pass on the branch"
+          ],
+          "verify": ["Read the branch test result", "Pass when all unit tests pass"]
+        },
+        {
+          "n": 6,
+          "title": "Confirm all unit tests pass in CI",
+          "actor": "Data Engineer",
+          "sop": [
+            "Confirm the CI build runs the unit tests",
+            "Confirm all pass against fixtures",
+            "Record the result",
+            "Done when CI shows all tests passing"
+          ],
+          "verify": ["Open the CI build log", "Pass when all unit tests pass in CI"]
+        }
+      ]
+    },
+    {
+      "taskId": "8f6e20b7-29fb-4458-9453-ac0d47250c3d",
+      "verifier": "Data Steward",
+      "generic": {
+        "Defined scope/population": "Lineage catalog entries for the changed transformations",
+        "In-scope period": "The current transformation change",
+        "Required fields populated and valid": "Column-level lineage resolves source to curated target",
+        "Control totals or record counts reconcile": "Lineage edges match the current transformation DAG",
+        "Evidence retained with timestamp/version": "Catalog lineage updated with a change timestamp",
+        "Exceptions logged with disposition": "Orphaned edges for removed steps removed and logged",
+        "Test population": "The lineage entries for the affected model",
+        "Pass/fail thresholds": "PASS = catalog lineage matches the current transformation DAG end to end",
+        "Exception handling path": "Stale edges detected are pruned before sign-off",
+        "Documented acceptance criteria": "Lineage matches the current transforms",
+        "Evidence location": "The data catalog lineage graph"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Update lineage for changed steps",
+          "actor": "Data Engineer",
+          "sop": [
+            "Update lineage entries for the new/modified transform steps",
+            "Confirm they reflect the current logic",
+            "Save the changes",
+            "Done when lineage reflects the changes"
+          ],
+          "verify": ["Open the lineage entries", "Pass when they reflect the new/modified steps"]
+        },
+        {
+          "n": 2,
+          "title": "Resolve column-level lineage",
+          "actor": "Data Engineer",
+          "sop": [
+            "Resolve column-level lineage source to curated target",
+            "Confirm each column traces end to end",
+            "Fix any break",
+            "Done when column-level lineage resolves"
+          ],
+          "verify": ["Trace a target column", "Pass when column-level lineage resolves to source"]
+        },
+        {
+          "n": 3,
+          "title": "Refresh metadata on affected assets",
+          "actor": "Data Steward",
+          "sop": [
+            "Refresh technical and business metadata on affected assets",
+            "Confirm the descriptions are current",
+            "Save the metadata",
+            "Done when metadata is refreshed"
+          ],
+          "verify": [
+            "Review the asset metadata",
+            "Pass when technical and business metadata are current"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Remove orphaned lineage edges",
+          "actor": "Data Engineer",
+          "sop": [
+            "Find lineage edges for removed steps",
+            "Remove the orphaned edges",
+            "Log the removals",
+            "Done when orphaned edges are removed"
+          ],
+          "verify": ["Scan for orphaned edges", "Pass when no stale edges remain for removed steps"]
+        },
+        {
+          "n": 5,
+          "title": "Confirm lineage matches the DAG",
+          "actor": "Data Steward",
+          "sop": [
+            "Compare catalog lineage to the current transformation DAG",
+            "Confirm end-to-end match",
+            "Record the confirmation",
+            "Done when lineage matches the DAG"
+          ],
+          "verify": ["Compare lineage and DAG", "Pass when they match end to end"]
+        },
+        {
+          "n": 6,
+          "title": "Verify no stale edges remain",
+          "actor": "Data Engineer",
+          "sop": [
+            "Verify no orphaned or stale edges remain",
+            "Confirm the affected model is clean",
+            "Sign off the update",
+            "Done when no stale edges remain"
+          ],
+          "verify": ["Re-scan the affected model", "Pass when no stale lineage edges remain"]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhwsb07vhkfgzfj1agc21",
+      "verifier": "Data Quality Analyst",
+      "generic": {
+        "Defined scope/population": "Row-count validation of the curated model",
+        "In-scope period": "The current curated load",
+        "Required fields populated and valid": "Curated and source counts captured for reconciliation",
+        "Control totals or record counts reconcile": "Source-to-target counts reconcile within defined tolerance",
+        "Evidence retained with timestamp/version": "Reconciliation result recorded on the run/ticket",
+        "Exceptions logged with disposition": "Variance beyond tolerance flagged and investigated",
+        "Test population": "The curated model rows for the load",
+        "Pass/fail thresholds": "PASS = source-to-curated reconciliation passes within tolerance",
+        "Exception handling path": "Out-of-tolerance variance blocks sign-off pending investigation",
+        "Documented acceptance criteria": "Counts reconcile within tolerance",
+        "Evidence location": "Snowflake reconciliation query and the run record"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Query the curated row count",
+          "actor": "Data Engineer",
+          "sop": [
+            "Query the curated model row count for the load in Snowflake",
+            "Capture the count",
+            "Record the query",
+            "Done when the curated count is captured"
+          ],
+          "verify": ["Read the curated count", "Pass when the count is captured for the load"]
+        },
+        {
+          "n": 2,
+          "title": "Compare against expected volume",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Compare the curated count to the expected volume",
+            "Note the delta",
+            "Record the comparison",
+            "Done when compared to expected volume"
+          ],
+          "verify": ["Review the comparison", "Pass when the curated count is compared to expected"]
+        },
+        {
+          "n": 3,
+          "title": "Reconcile source-to-target",
+          "actor": "Data Engineer",
+          "sop": [
+            "Reconcile source and curated counts within tolerance",
+            "Compute the variance",
+            "Log the reconciliation",
+            "Done when source-to-target is reconciled"
+          ],
+          "verify": [
+            "Read the reconciliation",
+            "Pass when source-to-target reconciles within tolerance"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Investigate out-of-tolerance variance",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Investigate any variance beyond tolerance",
+            "Identify the cause",
+            "Record the finding",
+            "Done when variance is investigated"
+          ],
+          "verify": [
+            "Check the variance investigation",
+            "Pass when out-of-tolerance variance is investigated before sign-off"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the reconciliation result",
+          "actor": "Data Engineer",
+          "sop": [
+            "Record the reconciliation result on the run/ticket",
+            "Note pass or fail",
+            "Attach the query output",
+            "Done when the result is recorded"
+          ],
+          "verify": ["Open the recorded result", "Pass when the reconciliation result is logged"]
+        },
+        {
+          "n": 6,
+          "title": "Confirm reconciliation passes",
+          "actor": "Data Engineer",
+          "sop": [
+            "Confirm the reconciliation passes within tolerance",
+            "Sign off the curated load",
+            "Close the check",
+            "Done when reconciliation passes"
+          ],
+          "verify": ["Review the final reconciliation", "Pass when it passes within tolerance"]
+        }
+      ]
+    },
+    {
+      "taskId": "048c9c5f-5cb8-460f-b419-8430c07dbf1d",
+      "verifier": "QA Automation Engineer",
+      "generic": {
+        "Defined scope/population": "Automated unit and integration tests for the pipeline",
+        "In-scope period": "The current pipeline release",
+        "Required fields populated and valid": "Test suite committed with unit, integration, and expectation tests",
+        "Control totals or record counts reconcile": "Integration test row counts match the seeded expected dataset",
+        "Evidence retained with timestamp/version": "Test suite versioned in the repo with CI run history",
+        "Exceptions logged with disposition": "A failing test returns non-zero and fails the build",
+        "Test population": "The pipeline unit and integration test suites",
+        "Pass/fail thresholds": "PASS = CI test job runs both suites on every pull request",
+        "Exception handling path": "A broken test blocks merge until fixed",
+        "Documented acceptance criteria": "Tests run in the build on every change",
+        "Evidence location": "GitHub Actions CI job and the test suite in the repo"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Write unit tests against curated fixtures",
+          "actor": "QA Automation Engineer",
+          "sop": [
+            "Write unit tests asserting transformation output against curated fixtures",
+            "Cover core transformations",
+            "Commit the tests",
+            "Done when unit tests assert output"
+          ],
+          "verify": [
+            "Review the unit tests",
+            "Pass when they assert output against curated fixtures"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Build the end-to-end integration test",
+          "actor": "Data Engineer",
+          "sop": [
+            "Build an integration test running the pipeline on a seeded dataset",
+            "Assert end-to-end output",
+            "Commit the test",
+            "Done when the integration test runs end to end"
+          ],
+          "verify": [
+            "Run the integration test",
+            "Pass when it runs the pipeline on the seeded dataset"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Commit the expectation test suite",
+          "actor": "ETL Developer",
+          "sop": [
+            "Commit the Great Expectations or dbt test suite with the code",
+            "Confirm it covers key checks",
+            "Wire it into the run",
+            "Done when the expectation suite is committed"
+          ],
+          "verify": ["Check the repo", "Pass when the expectation suite is committed with the code"]
+        },
+        {
+          "n": 4,
+          "title": "Wire tests to run on every PR",
+          "actor": "QA Automation Engineer",
+          "sop": [
+            "Add the tests to the CI job",
+            "Trigger on every pull request",
+            "Confirm they execute",
+            "Done when tests run on each PR"
+          ],
+          "verify": ["Open a PR and check CI", "Pass when the tests execute on the pull request"]
+        },
+        {
+          "n": 5,
+          "title": "Make a failing test fail the build",
+          "actor": "QA Automation Engineer",
+          "sop": [
+            "Ensure a failing test returns a non-zero exit code",
+            "Confirm it fails the build",
+            "Test with a forced failure",
+            "Done when a failing test fails the build"
+          ],
+          "verify": ["Force a test failure", "Pass when the build fails with a non-zero exit"]
+        },
+        {
+          "n": 6,
+          "title": "Confirm CI runs both suites on a PR",
+          "actor": "Data Engineer",
+          "sop": [
+            "Confirm the CI job runs unit and integration suites",
+            "Confirm it triggers on pull requests",
+            "Record the confirmation",
+            "Done when both suites run on a PR"
+          ],
+          "verify": ["Open the CI test job", "Pass when it runs both suites on every pull request"]
+        }
+      ]
+    },
+    {
+      "taskId": "a7f41a8b-a2af-4c6d-b0cb-0c53836ef244",
+      "verifier": "Data Quality Manager",
+      "generic": {
+        "Defined scope/population": "Quality gate thresholds and alert routing for the pipeline",
+        "In-scope period": "The current quality-gate configuration",
+        "Required fields populated and valid": "Each check has a threshold, severity tier, and routing target",
+        "Control totals or record counts reconcile": "Threshold values match the documented data quality SLA",
+        "Evidence retained with timestamp/version": "Threshold config versioned with change history",
+        "Exceptions logged with disposition": "Breaching checks route an alert with severity recorded",
+        "Test population": "Every configured quality check for the pipeline",
+        "Pass/fail thresholds": "PASS = each check has a threshold and an alert channel that fires on breach",
+        "Exception handling path": "A missing routing target blocks the gate from going live",
+        "Documented acceptance criteria": "Thresholds and routing are set",
+        "Evidence location": "The quality-tool config and Grafana alert rules"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Set pass/fail thresholds per check",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Set a pass/fail threshold for each quality check",
+            "Source values from the DQ SLA",
+            "Record the values in the quality tool",
+            "Done when thresholds are set per check"
+          ],
+          "verify": ["Review the threshold config", "Pass when each check has a threshold"]
+        },
+        {
+          "n": 2,
+          "title": "Define warn vs fail severity tiers",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Define warn and fail severity tiers per gate",
+            "Confirm they map to actions",
+            "Save the tiers",
+            "Done when severity tiers are defined"
+          ],
+          "verify": ["Check the severity config", "Pass when warn and fail tiers are defined"]
+        },
+        {
+          "n": 3,
+          "title": "Configure alert routing to on-call",
+          "actor": "Data Engineer",
+          "sop": [
+            "Configure alert routing to the on-call data engineering channel",
+            "Match severity to the channel",
+            "Save the routing",
+            "Done when routing is configured"
+          ],
+          "verify": ["Inspect the routing", "Pass when alerts route to on-call"]
+        },
+        {
+          "n": 4,
+          "title": "Wire thresholds into the orchestrator",
+          "actor": "Data Engineer",
+          "sop": [
+            "Wire the thresholds into the orchestrator and quality tool",
+            "Confirm they evaluate at runtime",
+            "Commit the config",
+            "Done when thresholds are wired"
+          ],
+          "verify": ["Run a check", "Pass when the threshold evaluates at runtime"]
+        },
+        {
+          "n": 5,
+          "title": "Confirm thresholds match the SLA",
+          "actor": "Data Quality Manager",
+          "sop": [
+            "Compare each threshold to the documented DQ SLA",
+            "Confirm they match",
+            "Record the confirmation",
+            "Done when thresholds match the SLA"
+          ],
+          "verify": [
+            "Compare thresholds to the SLA",
+            "Pass when thresholds match the documented SLA"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Force a breach and confirm the alert",
+          "actor": "Data Engineer",
+          "sop": [
+            "Force a check breach",
+            "Confirm the alert fires to on-call",
+            "Note the severity",
+            "Done when a breach alert fires"
+          ],
+          "verify": ["Trigger a breach", "Pass when the alert channel fires on breach"]
+        }
+      ]
+    },
+    {
+      "taskId": "77ff7844-3cb7-4219-91c1-a402f7780473",
+      "verifier": "Data Steward",
+      "generic": {
+        "Defined scope/population": "Quality gate specifications for each pipeline stage",
+        "In-scope period": "The current quality-gate design",
+        "Required fields populated and valid": "Checks specified for ingestion, transform, and serving stages",
+        "Control totals or record counts reconcile": "Each check maps to a domain owner and a pass/fail threshold",
+        "Evidence retained with timestamp/version": "Specification versioned in Confluence",
+        "Exceptions logged with disposition": "Gaps in stage coverage flagged for follow-up",
+        "Test population": "The quality gate specification document",
+        "Pass/fail thresholds": "PASS = spec lists checks and thresholds for all three stages",
+        "Exception handling path": "A stage lacking checks returns the spec for completion",
+        "Documented acceptance criteria": "Specs documented per stage",
+        "Evidence location": "Confluence specification and the catalog check definitions"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Specify ingestion-stage checks",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Specify schema-conformance and row-count-vs-source checks",
+            "Set the thresholds",
+            "Record them in the spec",
+            "Done when ingestion checks are specified"
+          ],
+          "verify": [
+            "Review the ingestion section",
+            "Pass when schema and row-count checks are specified"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Specify transform-stage checks",
+          "actor": "Data Engineer",
+          "sop": [
+            "Specify business-rule and referential-integrity checks",
+            "Set the thresholds",
+            "Record them in the spec",
+            "Done when transform checks are specified"
+          ],
+          "verify": [
+            "Review the transform section",
+            "Pass when business-rule and integrity checks are specified"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Specify serving-stage checks",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Specify freshness and completeness checks",
+            "Set the thresholds",
+            "Record them in the spec",
+            "Done when serving checks are specified"
+          ],
+          "verify": [
+            "Review the serving section",
+            "Pass when freshness and completeness checks are specified"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Map each check to owner and threshold",
+          "actor": "Data Steward",
+          "sop": [
+            "Map each check to a data domain owner",
+            "Assign a pass/fail threshold",
+            "Record the mapping",
+            "Done when checks map to owner and threshold"
+          ],
+          "verify": ["Review the mapping", "Pass when each check has an owner and threshold"]
+        },
+        {
+          "n": 5,
+          "title": "Document the specification in Confluence",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Write the specification in Confluence",
+            "Version the page",
+            "Link the catalog check definitions",
+            "Done when the spec is documented"
+          ],
+          "verify": [
+            "Open the Confluence spec",
+            "Pass when the specification is documented and versioned"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm all three stages are covered",
+          "actor": "Data Steward",
+          "sop": [
+            "Confirm checks and thresholds cover all three stages",
+            "Flag any gap",
+            "Sign off the spec",
+            "Done when all stages are covered"
+          ],
+          "verify": [
+            "Review the full spec",
+            "Pass when checks and thresholds cover ingestion, transform, and serving"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "a99ffd61-9e89-4e35-ba87-3ec21f2e3b54",
+      "verifier": "Data Quality Manager",
+      "generic": {
+        "Defined scope/population": "Systemic quality failures escalated for root-cause fix",
+        "In-scope period": "The recurring failure window",
+        "Required fields populated and valid": "Ticket references the dataset, gate, owner, and steward",
+        "Control totals or record counts reconcile": "Escalation severity matches the documented severity thresholds",
+        "Evidence retained with timestamp/version": "Escalation ticket retained with a created date and history",
+        "Exceptions logged with disposition": "Root-cause owner assigned with a remediation due date",
+        "Test population": "The systemic quality failure being escalated",
+        "Pass/fail thresholds": "PASS = escalation ticket is assigned to the source owner and steward",
+        "Exception handling path": "An unowned root cause is escalated to the data quality manager",
+        "Documented acceptance criteria": "Escalation is logged with named owners",
+        "Evidence location": "The ITSM escalation ticket and the quality-tool history"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the failure is recurring",
+          "actor": "Data Engineer",
+          "sop": [
+            "Review the quality-tool history for the check",
+            "Confirm the failure recurs across runs",
+            "Capture the pattern",
+            "Done when recurrence is confirmed"
+          ],
+          "verify": ["Read the failure history", "Pass when the failure is confirmed recurring"]
+        },
+        {
+          "n": 2,
+          "title": "Raise the escalation ticket",
+          "actor": "Data Quality Manager",
+          "sop": [
+            "Raise a ticket in the ITSM platform",
+            "Reference the affected dataset and gate",
+            "Set the initial status",
+            "Done when the escalation ticket exists"
+          ],
+          "verify": ["Open the ITSM ticket", "Pass when it references the dataset and gate"]
+        },
+        {
+          "n": 3,
+          "title": "Name the source owner and steward",
+          "actor": "Data Steward",
+          "sop": [
+            "Name the source-system owner on the escalation",
+            "Name the data steward",
+            "Confirm both are notified",
+            "Done when owner and steward are named"
+          ],
+          "verify": [
+            "Review the ticket assignees",
+            "Pass when the source owner and steward are named"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Assign a root-cause owner and due date",
+          "actor": "Data Quality Manager",
+          "sop": [
+            "Assign a root-cause owner",
+            "Set a remediation due date",
+            "Record the assignment",
+            "Done when a root-cause owner and due date are set"
+          ],
+          "verify": [
+            "Check the assignment fields",
+            "Pass when a root-cause owner and due date are set"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Set severity to the documented thresholds",
+          "actor": "Data Quality Manager",
+          "sop": [
+            "Set the escalation severity",
+            "Match it to the documented severity thresholds",
+            "Record the rationale",
+            "Done when severity is set"
+          ],
+          "verify": [
+            "Compare severity to thresholds",
+            "Pass when severity matches the documented thresholds"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the escalation is assigned",
+          "actor": "Data Quality Manager",
+          "sop": [
+            "Confirm the escalation is assigned to owner and steward",
+            "Confirm the due date is set",
+            "Close the escalation setup",
+            "Done when the escalation is fully assigned"
+          ],
+          "verify": [
+            "Review the ticket",
+            "Pass when it is assigned to the source owner and steward"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "338a5352-f49f-4287-8e90-bed9d7e56c0a",
+      "verifier": "Data Quality Analyst",
+      "generic": {
+        "Defined scope/population": "Automated row-count, null-rate, and referential-integrity checks",
+        "In-scope period": "The current pipeline release",
+        "Required fields populated and valid": "Row-count, null-rate, referential, and uniqueness checks implemented",
+        "Control totals or record counts reconcile": "Source-vs-target row count within the agreed tolerance",
+        "Evidence retained with timestamp/version": "Check results emitted as metrics with run timestamps",
+        "Exceptions logged with disposition": "Failed checks recorded as fail with a metric to monitoring",
+        "Test population": "The integrity checks over the target table",
+        "Pass/fail thresholds": "PASS = pipeline records pass/fail for row-count, null-rate, and referential checks",
+        "Exception handling path": "A failed integrity check flags the run for review",
+        "Documented acceptance criteria": "Checks run in the pipeline",
+        "Evidence location": "The orchestrator run results and monitoring metrics"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Add the source-vs-target row-count check",
+          "actor": "Data Engineer",
+          "sop": [
+            "Add a row-count check comparing source and target",
+            "Set the agreed tolerance",
+            "Emit the result",
+            "Done when the row-count check runs"
+          ],
+          "verify": ["Run the check", "Pass when source-vs-target counts compare within tolerance"]
+        },
+        {
+          "n": 2,
+          "title": "Add null-rate checks per critical column",
+          "actor": "ETL Developer",
+          "sop": [
+            "Add a null-rate check per critical column",
+            "Set the threshold per column",
+            "Emit the result",
+            "Done when null-rate checks run"
+          ],
+          "verify": [
+            "Run the null-rate checks",
+            "Pass when each critical column is checked against its threshold"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Add referential-integrity checks",
+          "actor": "Data Engineer",
+          "sop": [
+            "Add referential-integrity checks on foreign keys",
+            "Point them at reference/master data",
+            "Emit the result",
+            "Done when referential checks run"
+          ],
+          "verify": [
+            "Run the referential checks",
+            "Pass when foreign keys are validated against reference data"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Add the primary-key uniqueness check",
+          "actor": "ETL Developer",
+          "sop": [
+            "Add a primary-key uniqueness/duplicate check on the target",
+            "Set it to fail on duplicates",
+            "Emit the result",
+            "Done when the uniqueness check runs"
+          ],
+          "verify": ["Run the uniqueness check", "Pass when duplicate primary keys are detected"]
+        },
+        {
+          "n": 5,
+          "title": "Emit check results to monitoring",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Emit each check as a pass/fail metric",
+            "Send it to monitoring",
+            "Confirm it is observable",
+            "Done when results are emitted to monitoring"
+          ],
+          "verify": ["Check monitoring", "Pass when each check emits a pass/fail metric"]
+        },
+        {
+          "n": 6,
+          "title": "Run the pipeline and confirm results",
+          "actor": "Data Engineer",
+          "sop": [
+            "Run the pipeline",
+            "Confirm each check records a pass/fail",
+            "Attach results to the run",
+            "Done when all checks record results"
+          ],
+          "verify": [
+            "Open the run results",
+            "Pass when row-count, null-rate, and referential checks record results"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "3bd9e1d5-a5cd-489b-8645-0d571578982e",
+      "verifier": "Data Quality Analyst",
+      "generic": {
+        "Defined scope/population": "The downstream-blocking quality gate for the pipeline",
+        "In-scope period": "The current pipeline release",
+        "Required fields populated and valid": "Gate halts the run and marks downstream tasks upstream-failed on fail",
+        "Control totals or record counts reconcile": "Last known-good partition remains published on a block",
+        "Evidence retained with timestamp/version": "Block events retained in the run history with timestamps",
+        "Exceptions logged with disposition": "Blocking events raise an alert to on-call",
+        "Test population": "The gate over a run with a forced critical failure",
+        "Pass/fail thresholds": "PASS = on critical fail, downstream skips and the target partition is not published",
+        "Exception handling path": "A blocked run raises an alert for triage before any override",
+        "Documented acceptance criteria": "The gate halts flow on failure",
+        "Evidence location": "The orchestrator run graph and alert log"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Add the halting gate to the DAG",
+          "actor": "Data Engineer",
+          "sop": [
+            "Add a gate task that halts the run on a critical fail",
+            "Wire it before downstream tasks",
+            "Commit the DAG change",
+            "Done when the gate halts on critical fail"
+          ],
+          "verify": ["Inspect the DAG", "Pass when the gate halts the run on a critical fail"]
+        },
+        {
+          "n": 2,
+          "title": "Mark downstream tasks upstream-failed",
+          "actor": "ETL Developer",
+          "sop": [
+            "Set downstream tasks to skip on upstream failure",
+            "Confirm they mark upstream-failed",
+            "Commit the change",
+            "Done when downstream skips on a block"
+          ],
+          "verify": ["Trigger a block", "Pass when downstream tasks are marked upstream-failed"]
+        },
+        {
+          "n": 3,
+          "title": "Preserve the last known-good partition",
+          "actor": "Data Engineer",
+          "sop": [
+            "Ensure a block does not overwrite the target partition",
+            "Keep the last known-good published",
+            "Confirm no partial write",
+            "Done when the good partition is preserved"
+          ],
+          "verify": [
+            "Check the target partition",
+            "Pass when the last known-good partition remains published"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Raise an alert on the block",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Wire a blocking event to raise an alert",
+            "Route it to on-call",
+            "Confirm it fires",
+            "Done when a block raises an alert"
+          ],
+          "verify": ["Trigger a block", "Pass when the blocking event raises an alert"]
+        },
+        {
+          "n": 5,
+          "title": "Force a critical fail and confirm skip",
+          "actor": "Data Engineer",
+          "sop": [
+            "Force a critical quality check to fail",
+            "Confirm the gate halts the run",
+            "Confirm downstream skips",
+            "Done when downstream skips on the forced fail"
+          ],
+          "verify": [
+            "Read the run graph",
+            "Pass when downstream tasks do not run on a critical fail"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the target is not published",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Confirm the target partition is not published on the block",
+            "Confirm the prior version stands",
+            "Record the result",
+            "Done when the target is not overwritten"
+          ],
+          "verify": [
+            "Query the target partition",
+            "Pass when the target partition is not published on failure"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "41c0f9c3-8c02-47f6-a057-2e0448b50f7a",
+      "verifier": "Test Lead",
+      "generic": {
+        "Defined scope/population": "Quality gate integration into the CI/CD pipeline",
+        "In-scope period": "The current CI/CD configuration",
+        "Required fields populated and valid": "Gate job is a required status check returning non-zero on fail",
+        "Control totals or record counts reconcile": "Gate runs against a representative sample dataset in CI",
+        "Evidence retained with timestamp/version": "Gate results published to the run summary/artifact",
+        "Exceptions logged with disposition": "A failing gate blocks the merge/deploy and is logged",
+        "Test population": "The CI/CD run with the quality gate check",
+        "Pass/fail thresholds": "PASS = CI blocks the merge when a quality gate returns fail",
+        "Exception handling path": "A bypass requires an approved override on the protected branch",
+        "Documented acceptance criteria": "Gates block on failure",
+        "Evidence location": "GitHub Actions run summary and branch protection settings"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Add the gate as a required status check",
+          "actor": "QA Automation Engineer",
+          "sop": [
+            "Add the quality gate job to the pipeline repo",
+            "Mark it a required status check via branch protection",
+            "Confirm it runs on PRs",
+            "Done when the gate is a required check"
+          ],
+          "verify": ["Open branch protection", "Pass when the gate is a required status check"]
+        },
+        {
+          "n": 2,
+          "title": "Make a failing gate return non-zero",
+          "actor": "QA Automation Engineer",
+          "sop": [
+            "Ensure a failing gate returns a non-zero exit",
+            "Confirm it blocks merge/deploy",
+            "Test with a forced failure",
+            "Done when a failing gate blocks the merge"
+          ],
+          "verify": ["Force a gate failure", "Pass when the merge/deploy is blocked"]
+        },
+        {
+          "n": 3,
+          "title": "Run the gate on a sample dataset",
+          "actor": "Data Engineer",
+          "sop": [
+            "Run the gate against a representative sample dataset in CI",
+            "Confirm it evaluates the checks",
+            "Capture the run",
+            "Done when the gate runs on the sample"
+          ],
+          "verify": [
+            "Read the CI gate run",
+            "Pass when it runs against a representative sample dataset"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Publish gate results to the run summary",
+          "actor": "QA Automation Engineer",
+          "sop": [
+            "Publish gate results to the run summary or artifact",
+            "Confirm they are readable",
+            "Link them from the run",
+            "Done when results are published"
+          ],
+          "verify": ["Open the run summary", "Pass when gate results are published"]
+        },
+        {
+          "n": 5,
+          "title": "Confirm branch protection enforces the check",
+          "actor": "Test Lead",
+          "sop": [
+            "Confirm branch protection enforces the required gate",
+            "Confirm no merge without it",
+            "Record the confirmation",
+            "Done when protection enforces the gate"
+          ],
+          "verify": ["Review branch protection", "Pass when the required gate is enforced"]
+        },
+        {
+          "n": 6,
+          "title": "Force a gate fail and confirm the block",
+          "actor": "Data Engineer",
+          "sop": [
+            "Force a quality gate to return fail on a PR",
+            "Confirm the merge is blocked",
+            "Record the result",
+            "Done when a gate fail blocks the merge"
+          ],
+          "verify": ["Open the blocked PR", "Pass when CI blocks the merge on a gate fail"]
+        }
+      ]
+    },
+    {
+      "taskId": "5d7b65c2-c99f-4c9e-88e2-bd432dfea662",
+      "verifier": "Data Quality Manager",
+      "generic": {
+        "Defined scope/population": "Pipeline quality scorecards and trend reports",
+        "In-scope period": "The last N runs covered by the report",
+        "Required fields populated and valid": "Scorecard has per-dimension pass rates and a gate failure trend",
+        "Control totals or record counts reconcile": "Scorecard pass rates reconcile to the underlying check results",
+        "Evidence retained with timestamp/version": "Scorecard versioned in Confluence with a report date",
+        "Exceptions logged with disposition": "Top failing checks and datasets ranked for review",
+        "Test population": "The quality scorecard for the review period",
+        "Pass/fail thresholds": "PASS = scorecard shows per-dimension pass rates and a gate failure trend",
+        "Exception handling path": "A declining trend is flagged to the data quality manager",
+        "Documented acceptance criteria": "Reports delivered to engineering review",
+        "Evidence location": "The Confluence scorecard and Grafana trend panels"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Compute pass rate per dimension",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Pull check results from the quality tool",
+            "Compute pass rate per dimension (completeness, accuracy, timeliness)",
+            "Record the figures",
+            "Done when per-dimension pass rates are computed"
+          ],
+          "verify": ["Review the pass rates", "Pass when each dimension has a computed pass rate"]
+        },
+        {
+          "n": 2,
+          "title": "Build the gate pass/fail trend",
+          "actor": "Data Engineer",
+          "sop": [
+            "Build the gate pass/fail trend over the last N runs in Grafana",
+            "Confirm the series is correct",
+            "Publish the panel",
+            "Done when the trend is built"
+          ],
+          "verify": ["Open the trend panel", "Pass when the gate pass/fail trend shows over time"]
+        },
+        {
+          "n": 3,
+          "title": "Rank top failing checks and datasets",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Rank the top failing checks and datasets",
+            "Order them for the review",
+            "Record the ranking",
+            "Done when top failures are ranked"
+          ],
+          "verify": ["Review the ranking", "Pass when top failing checks and datasets are ranked"]
+        },
+        {
+          "n": 4,
+          "title": "Assemble the scorecard in Confluence",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Assemble the pass rates, trend, and ranking into a scorecard",
+            "Version the page",
+            "Set the report date",
+            "Done when the scorecard is assembled"
+          ],
+          "verify": ["Open the scorecard", "Pass when it shows pass rates, trend, and ranking"]
+        },
+        {
+          "n": 5,
+          "title": "Review the scorecard for the review",
+          "actor": "Data Quality Manager",
+          "sop": [
+            "Review the scorecard for the engineering review",
+            "Flag any declining trend",
+            "Note actions",
+            "Done when the scorecard is reviewed"
+          ],
+          "verify": [
+            "Read the review notes",
+            "Pass when the scorecard is reviewed with any decline flagged"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Publish the scorecard on schedule",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Publish the scorecard to the shared engineering space",
+            "Confirm on schedule",
+            "Notify the review group",
+            "Done when the scorecard is published"
+          ],
+          "verify": ["Open the shared space", "Pass when the scorecard is published on schedule"]
+        }
+      ]
+    },
+    {
+      "taskId": "72f6b1dd-2499-4a4f-89b6-ada091463339",
+      "verifier": "Data Quality Analyst",
+      "generic": {
+        "Defined scope/population": "Records failing quality gates quarantined for review",
+        "In-scope period": "The current pipeline run",
+        "Required fields populated and valid": "Failing rows tagged with the failed rule and run id",
+        "Control totals or record counts reconcile": "Quarantined plus loaded counts equal total processed rows",
+        "Evidence retained with timestamp/version": "Quarantined records retained with run id and timestamp",
+        "Exceptions logged with disposition": "Failing rows routed to quarantine and steward queue notified",
+        "Test population": "Records evaluated against the quality gate this run",
+        "Pass/fail thresholds": "PASS = failing records land in quarantine and are excluded from the curated target",
+        "Exception handling path": "Steward review dispositions quarantined records before re-load",
+        "Documented acceptance criteria": "Failing records are isolated",
+        "Evidence location": "The quarantine table and the steward review queue"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Route failing rows to quarantine",
+          "actor": "Data Engineer",
+          "sop": [
+            "Route rows failing a quality gate to a quarantine table/zone",
+            "Keep them out of the target",
+            "Confirm the routing",
+            "Done when failing rows go to quarantine"
+          ],
+          "verify": [
+            "Query the quarantine table",
+            "Pass when failing rows land in quarantine, not the target"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Tag quarantined records",
+          "actor": "Data Engineer",
+          "sop": [
+            "Tag each quarantined record with the failed rule",
+            "Tag it with the run id",
+            "Confirm the tags persist",
+            "Done when records are tagged"
+          ],
+          "verify": ["Inspect quarantined rows", "Pass when each has the failed rule and run id"]
+        },
+        {
+          "n": 3,
+          "title": "Keep valid records loading",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Confirm valid records continue to the curated target",
+            "Confirm quarantine does not block clean rows",
+            "Record the counts",
+            "Done when valid records still load"
+          ],
+          "verify": [
+            "Check the curated target",
+            "Pass when valid records load and only failing rows are quarantined"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Notify the steward review queue",
+          "actor": "Data Steward",
+          "sop": [
+            "Notify the steward review queue of new quarantined records",
+            "Include rule and run id",
+            "Confirm the queue updates",
+            "Done when the review queue is notified"
+          ],
+          "verify": ["Open the review queue", "Pass when new quarantined records appear for review"]
+        },
+        {
+          "n": 5,
+          "title": "Confirm exclusion from the curated target",
+          "actor": "Data Engineer",
+          "sop": [
+            "Confirm quarantined rows are excluded from the curated target",
+            "Reconcile quarantined plus loaded to total",
+            "Record the reconciliation",
+            "Done when exclusion is confirmed"
+          ],
+          "verify": [
+            "Reconcile the counts",
+            "Pass when quarantined plus loaded equals total processed"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Verify failing records are isolated",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Verify failing records sit only in quarantine",
+            "Confirm none reached the target",
+            "Sign off the isolation",
+            "Done when failing records are isolated"
+          ],
+          "verify": [
+            "Query target and quarantine",
+            "Pass when failing records are in quarantine only"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "5176fd25-9216-41da-87fb-73f0bee57683",
+      "verifier": "Data Quality Manager",
+      "generic": {
+        "Defined scope/population": "Review and disposition of open quality gate failures",
+        "In-scope period": "The current review cycle of open failures",
+        "Required fields populated and valid": "Each failure has a disposition, rationale, and assigned owner",
+        "Control totals or record counts reconcile": "All open failures are triaged with no unassigned items",
+        "Evidence retained with timestamp/version": "Disposition and rationale recorded on the issue ticket",
+        "Exceptions logged with disposition": "Overrides captured with data steward sign-off",
+        "Test population": "The open quality gate failures under review",
+        "Pass/fail thresholds": "PASS = each failure has a recorded disposition (halt/quarantine/alert) with an owner",
+        "Exception handling path": "Repeat failures flagged for root-cause escalation",
+        "Documented acceptance criteria": "Disposition is recorded for each failure",
+        "Evidence location": "The quality-tool issue records and the ITSM tickets"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Triage each open failure",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "List the open quality gate failures in the quality tool",
+            "Triage each for severity and impact",
+            "Prepare them for disposition",
+            "Done when open failures are triaged"
+          ],
+          "verify": ["Review the triage list", "Pass when every open failure is triaged"]
+        },
+        {
+          "n": 2,
+          "title": "Decide the disposition",
+          "actor": "Data Quality Manager",
+          "sop": [
+            "Decide halt, quarantine, or alert-only per failure",
+            "Confirm the decision fits the impact",
+            "Note the choice",
+            "Done when each failure has a disposition"
+          ],
+          "verify": [
+            "Review the dispositions",
+            "Pass when each failure has halt/quarantine/alert set"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record disposition and rationale",
+          "actor": "Data Quality Manager",
+          "sop": [
+            "Record the disposition and rationale on the issue ticket",
+            "Assign an owner",
+            "Set the status",
+            "Done when disposition and rationale are recorded"
+          ],
+          "verify": [
+            "Open the issue ticket",
+            "Pass when disposition, rationale, and owner are recorded"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Capture steward sign-off for overrides",
+          "actor": "Data Steward",
+          "sop": [
+            "Capture steward sign-off for any release or override",
+            "Record who signed and when",
+            "Attach it to the ticket",
+            "Done when override sign-off is captured"
+          ],
+          "verify": ["Check the sign-off", "Pass when any override has data steward sign-off"]
+        },
+        {
+          "n": 5,
+          "title": "Flag repeat failures for escalation",
+          "actor": "Data Quality Analyst",
+          "sop": [
+            "Identify repeat failures",
+            "Flag them for root-cause escalation",
+            "Link the escalation",
+            "Done when repeat failures are flagged"
+          ],
+          "verify": ["Review the flags", "Pass when repeat failures are flagged for escalation"]
+        },
+        {
+          "n": 6,
+          "title": "Confirm each failure has a disposition",
+          "actor": "Data Quality Manager",
+          "sop": [
+            "Confirm each failure has a disposition and owner",
+            "Confirm no unassigned items remain",
+            "Close the review cycle",
+            "Done when all failures are dispositioned"
+          ],
+          "verify": [
+            "Review the closed cycle",
+            "Pass when each failure has a disposition and owner"
+          ]
+        }
+      ]
+    }
+  ]
+}

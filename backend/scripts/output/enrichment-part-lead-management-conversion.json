@@ -1,0 +1,3035 @@
+[
+  {
+    "taskId": "1d446138-1fbb-4e20-b699-484d0e6e8226",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscogxl1m1ombk8jm93ynz7",
+      "cmqscp4j81n78mbk83ph972aq",
+      "cmqscovdd1mqambk8nf5s8p4j",
+      "cmqscp4rp1n7mmbk89u5arrgj"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Action performed by a user with the documented CRM permission set",
+      "Change captured in the record audit trail with timestamp and user",
+      "Retention schedule applied to the archived record"
+    ],
+    "checklistSpecific": [
+      "Lead Status set to Disqualified/Archived rather than deleted",
+      "Disposition Reason picklist value selected from the approved list (no free text)",
+      "Disqualification date and disqualifying user stamped on the lead record",
+      "Archived lead excluded from active routing and nurture queues after save",
+      "Archived leads flow to the warehouse lead-disposition table on the next load"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead record > Disposition Reason field",
+        "checkType": "presence",
+        "expected": "Every lead in Disqualified/Archived status carries a non-blank Disposition Reason from the approved picklist"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Active lead routing queue",
+        "checkType": "absence",
+        "expected": "No lead in Disqualified/Archived status appears in the active routing or nurture queue"
+      }
+    ]
+  },
+  {
+    "taskId": "a1bbb8e4-6e18-4615-b0a7-2d3c23a370a0",
+    "roles": [
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "cmrqex4yp000dv8w0kd5enkye", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscoh271m1umbk87ebv27kx",
+      "cmqscp4o01n7gmbk8nzsb85bd",
+      "cmqscoh081m1qmbk8av2zausw",
+      "cmqscovgr1mqgmbk8d5ib3lk1"
+    ],
+    "regs": [
+      { "regId": "cmrc5oy8o0bu9v880x8l0nto7", "rel": "GOVERNS" },
+      { "regId": "cmrc4ts9q04izv8f81v1p0cv8", "rel": "GOVERNS" }
+    ],
+    "checklistGeneric": [
+      "Every inbound channel maps to a live capture integration with an owner",
+      "Capture failures raise an alert rather than silently dropping the lead",
+      "Prospect PII handled under the data classification in force"
+    ],
+    "checklistSpecific": [
+      "Lead Source and Lead Source Detail populated from the approved taxonomy on create",
+      "UTM campaign, medium, and content parameters written to the campaign attribution fields",
+      "Campaign Member record created linking the lead to the originating campaign",
+      "Referring producer or agency code stamped when the lead arrives via the broker/agent portal",
+      "Created Date/Time and originating channel recorded so first-touch attribution is reconstructable"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead object > Lead Source and Campaign attribution fields",
+        "checkType": "presence",
+        "expected": "Leads created in the last 24 hours all carry a populated Lead Source and a linked Campaign Member record"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Form submission error/sync-failure log",
+        "checkType": "absence",
+        "expected": "No unresolved sync failures between form submissions and CRM lead creation"
+      }
+    ]
+  },
+  {
+    "taskId": "124e8f98-0be4-4772-a0e0-25b3aca93251",
+    "roles": [
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" },
+      { "roleId": "c5f70484-a30c-4143-bf27-8b085c9d1e75", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "cmrqex4yp000dv8w0kd5enkye", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscoh271m1umbk87ebv27kx",
+      "cmqscogwc1m1mmbk86h4ecf7i",
+      "cmqscp3an1n4ymbk8z80rd202"
+    ],
+    "regs": [
+      { "regId": "cmrc4ts9q04izv8f81v1p0cv8", "rel": "GOVERNS" },
+      { "regId": "cmrc5p4bc0c45v8805cyq5d5y", "rel": "GOVERNS" }
+    ],
+    "checklistGeneric": [
+      "Field list agreed with the downstream consumer before the form is built",
+      "Change deployed through the standard release path, not edited in production",
+      "Form reviewed for accessibility and mobile rendering before go-live"
+    ],
+    "checklistSpecific": [
+      "Required fields marked required at the form layer (name, contact, ZIP/state, product interest)",
+      "Each form field mapped to the matching CRM lead field with no orphan mappings",
+      "Consent checkbox rendered unchecked by default with the disclosure text adjacent to it",
+      "Hidden UTM/source fields present on every form variant so attribution is not lost",
+      "Test submission on the live form creates one CRM lead with all mapped values populated"
+    ],
+    "testing": [
+      {
+        "system": "marketing automation platform",
+        "location": "Form builder > field mapping",
+        "checkType": "presence",
+        "expected": "Each published lead form has every field mapped to a CRM lead field and includes hidden source/UTM fields"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Consent checkbox default state",
+        "checkType": "absence",
+        "expected": "No lead capture form ships with the marketing consent box pre-checked"
+      }
+    ]
+  },
+  {
+    "taskId": "955fdb5b-db4c-4e2b-82e9-fe4c64c09916",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp48a1n6mmbk8jt03x7wn",
+      "cmqscp47b1n6kmbk8914adc9y",
+      "cmqscp4a91n6qmbk8ad6i4zbl",
+      "cmqscogud1m1imbk8gtnrzk8m"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Match rules documented and version-controlled before being run",
+      "Merge is reversible or fully logged so the pre-merge state is recoverable",
+      "Exceptions the rules cannot decide are queued for manual review, not auto-merged"
+    ],
+    "checklistSpecific": [
+      "Duplicate rule run on email, phone, and name+ZIP match keys before assignment",
+      "Existing customer/account match checked so a known policyholder is not created as a net-new lead",
+      "Surviving record retains the earliest Created Date and the original Lead Source",
+      "Consent and do-not-call flags merged to the most restrictive value across the duplicate set",
+      "Duplicate lead marked Merged with a pointer to the surviving record ID"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Open lead queue > duplicate detection report",
+        "checkType": "absence",
+        "expected": "No two open leads share the same email address or the same phone number"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Merged lead records",
+        "checkType": "presence",
+        "expected": "Each merged lead references the surviving record ID and retains the earliest Created Date"
+      }
+    ]
+  },
+  {
+    "taskId": "45875192-5d0e-4ab7-943d-c3bf40f9c7f5",
+    "roles": [
+      { "roleId": "cmqsck0rp03vgmbk81b8spm25", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" },
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscogvb1m1kmbk8gnxd7kag",
+      "cmqscp4641n6imbk8d1zzj1vy",
+      "cmqscp3co1n52mbk8zfr9bm39",
+      "cmqscovgr1mqgmbk8d5ib3lk1"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Taxonomy signed off by marketing, distribution, and analytics before publication",
+      "Values held in a governed picklist, not free text",
+      "Change to the list follows the documented change-control route"
+    ],
+    "checklistSpecific": [
+      "Source values defined for each channel family: digital, producer/agency, referral, aggregator, event, inbound call",
+      "Two-level structure agreed (Lead Source plus Lead Source Detail) with allowed pairings documented",
+      "Naming convention for UTM campaign/medium/content published alongside the source list",
+      "Legacy and retired source values mapped to their replacement so historical reporting still ties out",
+      "Published taxonomy stored in the marketing operations repository with an effective date and version number"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead Source picklist configuration",
+        "checkType": "presence",
+        "expected": "CRM picklist values match the published taxonomy exactly, including the retired-value mappings"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead Source field",
+        "checkType": "absence",
+        "expected": "No lead created after the effective date carries a source value outside the published taxonomy"
+      }
+    ]
+  },
+  {
+    "taskId": "f0bf4929-505b-4d3b-a225-227eb4b9f8ab",
+    "roles": [
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" },
+      { "roleId": "c5f70484-a30c-4143-bf27-8b085c9d1e75", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" },
+      { "appId": "cmrqex5uh001vv8w0jryhvj9c", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscoh081m1qmbk8av2zausw",
+      "cmqscogwc1m1mmbk86h4ecf7i",
+      "cmqscp3do1n54mbk8m6ubfgf4",
+      "cmqscp2sd1n3ymbk8ke7fihs7"
+    ],
+    "regs": [
+      { "regId": "cmrc5p1u10bzzv880st6l9mzg", "rel": "GOVERNS" },
+      { "regId": "cmrc5ozai0bvzv880phdym5mz", "rel": "GOVERNS" }
+    ],
+    "checklistGeneric": [
+      "Data provider covered by a current contract and due-diligence review",
+      "Appended attributes classified and access-restricted to their sensitivity level",
+      "Source and as-of date recorded for every appended attribute"
+    ],
+    "checklistSpecific": [
+      "Permissible purpose confirmed and recorded before any consumer-report-derived attribute is appended",
+      "Appended fields written to dedicated enrichment fields, never overwriting the prospect-supplied values",
+      "Match confidence score stored and low-confidence matches left unenriched rather than force-matched",
+      "Enrichment provider and append timestamp stamped on the lead record",
+      "Enrichment call suppressed for leads flagged as opted out of data sharing"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead record > enrichment attribute block",
+        "checkType": "presence",
+        "expected": "Every appended attribute carries a provider name, append timestamp, and match confidence score"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Enrichment job input set",
+        "checkType": "absence",
+        "expected": "No lead flagged as opted out of data sharing appears in the enrichment job input set"
+      }
+    ]
+  },
+  {
+    "taskId": "8c124f2b-312d-4b95-a6b2-6cb00672e375",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" },
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" },
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp4o01n7gmbk8nzsb85bd",
+      "cmqscoh171m1smbk85uvthg16",
+      "cmqscp4rp1n7mmbk89u5arrgj",
+      "cmqscp4v51n7smbk8csomhpjp"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Reconciliation run on a fixed cadence with a named owner",
+      "Variances above the agreed tolerance are logged and investigated",
+      "Prior-period reconciliations retained as evidence"
+    ],
+    "checklistSpecific": [
+      "Channel-reported lead counts pulled for the same date window and time zone as the CRM counts",
+      "Counts compared per channel and per campaign, not only at the total level",
+      "Variance percentage calculated and compared against the agreed tolerance threshold",
+      "Each variance traced to a cause (duplicate suppression, sync failure, bot filtering, timing lag)",
+      "Unexplained gaps raised as a data issue ticket against the owning integration"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Lead capture reconciliation report",
+        "checkType": "presence",
+        "expected": "Report shows channel-source count, CRM count, and variance percentage for every active channel in the period"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "Reconciliation variance list",
+        "checkType": "absence",
+        "expected": "No variance above tolerance is left without a logged cause or open data issue ticket"
+      }
+    ]
+  },
+  {
+    "taskId": "c7b90362-190f-4fed-9ab9-162a61928bb8",
+    "roles": [
+      { "roleId": "c5f70484-a30c-4143-bf27-8b085c9d1e75", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Participant" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscoh081m1qmbk8av2zausw",
+      "cmqscp1o41n20mbk8x267q2fx",
+      "cmqscogxl1m1ombk8jm93ynz7",
+      "cmqscp4cf1n6umbk85bpt2uag"
+    ],
+    "regs": [
+      { "regId": "cmrc4tsgc04jbv8f8etpbtrh8", "rel": "GOVERNS" },
+      { "regId": "cmrc4trm704hzv8f899gweeuq", "rel": "GOVERNS" }
+    ],
+    "checklistGeneric": [
+      "Consent state stored on the record itself, not inferred at send time",
+      "Consent evidence retained for the full statutory retention period",
+      "Any consent change is written as an immutable, timestamped event"
+    ],
+    "checklistSpecific": [
+      "Separate consent flags stored per channel: email, SMS/text, and autodialed/prerecorded call",
+      "Exact disclosure text version shown to the prospect captured alongside the consent flag",
+      "Consent timestamp, source URL or form ID, and IP address recorded as proof of consent",
+      "Phone numbers screened against the internal do-not-call list and the flag written to the lead",
+      "Revocation events recorded with date received and reflected in the channel flags within the required window"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead record > consent block",
+        "checkType": "presence",
+        "expected": "Each lead carries per-channel consent flags plus consent timestamp, source form ID, and disclosure text version"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Outbound SMS/dialer send list",
+        "checkType": "absence",
+        "expected": "No lead without a recorded prior express written consent flag appears on an outbound text or autodialed call list"
+      }
+    ]
+  },
+  {
+    "taskId": "a5fec7e1-c361-4d79-a8c6-120b1d1f2016",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscoh171m1smbk85uvthg16",
+      "cmqscp4u91n7qmbk8b0wtedc2",
+      "cmqscp4rp1n7mmbk89u5arrgj",
+      "cmqscp4ss1n7ombk8fr6aw1s9"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Failing records held rather than passed downstream in a broken state",
+      "Each remediation logged against the originating data issue",
+      "Repeat failure patterns fed back to the capture form or integration owner"
+    ],
+    "checklistSpecific": [
+      "Leads failing validation set to a Data Hold status that blocks scoring and routing",
+      "Failure reason code written per record (missing phone, invalid state, unresolvable address, blank product interest)",
+      "Remediation attempted from enrichment or source payload before contacting the prospect",
+      "Records remediated within the agreed SLA are released back into the scoring queue automatically",
+      "Records still failing after the SLA are disqualified with a data-quality disposition rather than left in limbo"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead scoring input queue",
+        "checkType": "absence",
+        "expected": "No lead in Data Hold status enters the scoring queue"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Data Hold lead list",
+        "checkType": "presence",
+        "expected": "Every held lead carries a failure reason code and a remediation due date"
+      }
+    ]
+  },
+  {
+    "taskId": "48b348b4-6a83-481f-ae1e-44fd8df28330",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscoh271m1umbk87ebv27kx",
+      "cmqscp4l91n7cmbk83gl6rt5r",
+      "cmqscogud1m1imbk8gtnrzk8m",
+      "cmqscp4o01n7gmbk8nzsb85bd"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Standardization rules applied at the point of capture as well as in batch",
+      "Original submitted value preserved alongside the standardized value",
+      "Rule set reviewed when a new capture channel is added"
+    ],
+    "checklistSpecific": [
+      "Phone numbers normalized to E.164 with country and area code validated",
+      "Email addresses syntax-validated and domain-checked, with role and disposable domains flagged",
+      "Mailing address standardized to postal format and ZIP-to-state consistency confirmed",
+      "Person name split into first/last with title and suffix parsed into their own fields",
+      "Business leads carry a standardized legal entity name and, where available, an industry code"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead phone and email fields",
+        "checkType": "presence",
+        "expected": "All active leads store phone in E.164 format and a syntax-valid email address"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead address fields",
+        "checkType": "absence",
+        "expected": "No active lead has a ZIP code that conflicts with its recorded state"
+      }
+    ]
+  },
+  {
+    "taskId": "9c1f880c-f897-4626-a6cc-28d0169074f6",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp2ye1n4ambk8m0v8mkq5",
+      "cmqscoghb1m0smbk8c41jpghh",
+      "cmqscoh271m1umbk87ebv27kx",
+      "cmqscovgr1mqgmbk8d5ib3lk1"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Only the approved, versioned rule set is active in production",
+      "Score run completes within the agreed freshness window",
+      "Scoring failures alert rather than leaving records unscored"
+    ],
+    "checklistSpecific": [
+      "Score recalculated on lead create and on every qualifying engagement event",
+      "Numeric score and score band (A/B/C or Hot/Warm/Cold) both written to the lead record",
+      "Rule-set version stamped on the lead so a score can be explained after the fact",
+      "Leads in Data Hold or missing mandatory scoring attributes excluded rather than scored on defaults",
+      "Score last-calculated timestamp visible on the lead layout for the producer"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead record > Score and Score Band fields",
+        "checkType": "presence",
+        "expected": "Every routable lead carries a numeric score, a score band, and a score-calculated timestamp within the freshness window"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Scored lead population",
+        "checkType": "absence",
+        "expected": "No lead carries a score produced by a retired rule-set version"
+      }
+    ]
+  },
+  {
+    "taskId": "e3a9112f-3c06-4281-be8b-6d181cc967f7",
+    "roles": [
+      { "roleId": "cmqsck0ro03thmbk8xznzk1nc", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" },
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscogfn1m0qmbk8bixjxca5",
+      "cmqscogia1m0umbk8ny2vq7d7",
+      "cmqscp2wa1n46mbk8x2pbyjic",
+      "cmqscp2tc1n40mbk81o3e7wtg"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Model built on governed, catalogued source datasets",
+      "Rules peer-reviewed before promotion to production",
+      "Version and effective date recorded for every rule change"
+    ],
+    "checklistSpecific": [
+      "Demographic, firmographic, behavioral, and intent signals each assigned an explicit point weight",
+      "Negative scoring rules defined for disqualifiers (out-of-appetite state, competitor domain, student/job-seeker traffic)",
+      "Score decay rule set so engagement points age out after a defined inactivity period",
+      "MQL and SQL threshold values set and agreed with distribution before activation",
+      "Model tested on a holdout of historic leads and the lift over the current model recorded",
+      "Prohibited attributes excluded from the feature list and the exclusion documented"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead scoring rule configuration",
+        "checkType": "presence",
+        "expected": "Active rule set matches the approved specification, including weights, decay rule, and MQL/SQL thresholds"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Scoring model feature list",
+        "checkType": "absence",
+        "expected": "No prohibited or proxy-sensitive attribute is used as a scoring input"
+      }
+    ]
+  },
+  {
+    "taskId": "ca3d253b-4bf9-4b62-81b9-7ba4eaa626bc",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscpl181o14mbk8bom24dzb",
+      "cmqscoh271m1umbk87ebv27kx",
+      "cmqscp2ye1n4ambk8m0v8mkq5"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Classification derived from the published criteria, not individual judgement",
+      "Status change writes an audit entry with user and timestamp",
+      "Definitions of each status agreed jointly by marketing and distribution"
+    ],
+    "checklistSpecific": [
+      "Lead Status set to exactly one of Marketing Qualified, Sales Qualified, or Nurture Eligible",
+      "Status assignment tested against the score threshold and the line-of-business qualification criteria",
+      "Nurture-eligible leads written into the matching nurture track on classification",
+      "Manual status overrides require an override reason recorded on the lead",
+      "Status transition date stamped so time-in-stage can be measured downstream"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead Status field",
+        "checkType": "presence",
+        "expected": "Every scored lead carries one qualification status with a status-change timestamp"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Manually overridden lead statuses",
+        "checkType": "presence",
+        "expected": "Each manual status override records an override reason and the overriding user"
+      }
+    ]
+  },
+  {
+    "taskId": "38cc8375-7c23-4dd8-b08e-aab875c0eea3",
+    "roles": [
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" },
+      { "roleId": "cmqsck0rp03vgmbk81b8spm25", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscpl2b1o16mbk8fi8bjetx",
+      "cmqscpkuv1o0smbk8fgixitde",
+      "cmqscpl3d1o18mbk8rk6n5z9p"
+    ],
+    "regs": [{ "regId": "cmrc4qj4d0053v8f85vp6qeo0", "rel": "GOVERNS" }],
+    "checklistGeneric": [
+      "Criteria agreed with underwriting before publication",
+      "Published version carries an effective date and owner",
+      "Criteria reviewed at least annually or on appetite change"
+    ],
+    "checklistSpecific": [
+      "Minimum qualification attributes listed per line of business (e.g. fleet size, payroll, TIV, revenue band)",
+      "In-appetite and out-of-appetite states and classes named explicitly per line",
+      "Minimum premium or account size floor stated for each line",
+      "Target-market definition for each product referenced so distribution stays inside it",
+      "Criteria translated into CRM-evaluable field conditions, not narrative prose only"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Qualification criteria configuration by line of business",
+        "checkType": "presence",
+        "expected": "Each active line of business has published qualification criteria with an effective date and matching CRM field conditions"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lines of business offered",
+        "checkType": "absence",
+        "expected": "No line of business is quoted from leads without published qualification criteria in force"
+      }
+    ]
+  },
+  {
+    "taskId": "1b673388-463c-40c9-99c7-8023d8020fdd",
+    "roles": [
+      { "roleId": "cmqsck0ro03thmbk8xznzk1nc", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" },
+      { "roleId": "c5f70484-a30c-4143-bf27-8b085c9d1e75", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" },
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscogfn1m0qmbk8bixjxca5",
+      "cmqscp2vb1n44mbk8kht26wp6",
+      "cmqscp2xe1n48mbk8dj6qe145",
+      "cmqscp3vm1n5ymbk8qgjozhcq"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Documentation stored in the governed repository, not personal drives",
+      "Each version retained so prior model behaviour is reconstructable",
+      "Named model owner and approver recorded"
+    ],
+    "checklistSpecific": [
+      "Input attribute list with source system and refresh frequency documented per attribute",
+      "Point weights and the rationale for each weight written down, not just the configured values",
+      "Threshold-setting logic for MQL and SQL cut-offs explained with the supporting conversion data",
+      "Excluded attributes and the reason for exclusion recorded",
+      "Recalibration cadence, trigger conditions, and approval route stated in the document"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Marketing operations model documentation repository",
+        "checkType": "presence",
+        "expected": "Current scoring model document exists with version, owner, approver, attribute list, weights, and thresholds"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Active scoring rule set",
+        "checkType": "absence",
+        "expected": "No production scoring rule exists that is not described in the current model documentation"
+      }
+    ]
+  },
+  {
+    "taskId": "97e4c280-d708-473b-a415-c87fef434971",
+    "roles": [
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "cmrqex4v60007v8w005phxlv9", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovcf1mq8mbk86bcg9d13",
+      "cmqscpkni1o0gmbk8dtpkamis",
+      "cmqscpkkv1o0cmbk8r8mqmd4c",
+      "cmqscp1up1n2ambk8hkydgrbl"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Escalation criteria published and applied consistently",
+      "Escalation recorded on the record, not only in chat or email",
+      "Receiving owner acknowledges before the original owner steps back"
+    ],
+    "checklistSpecific": [
+      "Escalation triggered when estimated premium, TIV, or headcount exceeds the published large-account threshold",
+      "Complexity triggers applied for multi-state, multi-line, or captive/programme structures",
+      "Lead reassigned to a named senior account executive rather than a generic queue",
+      "Escalation reason and the triggering threshold recorded on the lead",
+      "Senior AE acknowledgement logged within the escalation SLA, with the field manager notified if not"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Escalated lead records",
+        "checkType": "presence",
+        "expected": "Each escalated lead names a senior account executive owner and records the escalation trigger"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Standard producer routing queues",
+        "checkType": "absence",
+        "expected": "No lead above the large-account threshold remains in a standard producer routing queue"
+      }
+    ]
+  },
+  {
+    "taskId": "fdb870b6-a4f1-4714-b96d-2d39eb138395",
+    "roles": [
+      { "roleId": "cmqsck0ro03thmbk8xznzk1nc", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" },
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" },
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscoghb1m0smbk8c41jpghh",
+      "cmqscp2zj1n4cmbk8z3eev8he",
+      "cmqscp2uf1n42mbk8jnc7s9hq",
+      "cmqscogia1m0umbk8ny2vq7d7"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Recalibration run to the published quarterly calendar",
+      "Change approved by the model owner before promotion",
+      "Prior version retained and rollback path confirmed"
+    ],
+    "checklistSpecific": [
+      "Closed-won and closed-lost outcomes for the prior quarter joined back to the score at time of routing",
+      "Conversion rate by score band charted to confirm the bands still separate good from poor leads",
+      "Attribute weights re-fitted where an input's predictive contribution has materially moved",
+      "MQL/SQL thresholds re-tested against sales capacity so accepted volume stays realistic",
+      "Before/after lift documented and the new rule-set version dated and activated"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Quarterly scoring recalibration pack",
+        "checkType": "presence",
+        "expected": "Latest completed quarter has a recalibration pack showing conversion by score band and the approved weight changes"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Active scoring rule-set version",
+        "checkType": "absence",
+        "expected": "No rule-set version older than the last completed quarterly recalibration is active in production"
+      }
+    ]
+  },
+  {
+    "taskId": "a7f5a8a0-4273-40f0-a1dc-1fd6a1a1634e",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscpla71o1kmbk8jlisayp7",
+      "cmqscpld51o1qmbk8crfzo5sd",
+      "cmqscoghb1m0smbk8c41jpghh",
+      "cmqscovjm1mqmmbk8zena4laq"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Review completed before the lead is released to routing",
+      "Reviewer is not the person who created the lead",
+      "Review outcome recorded on the record with a reason"
+    ],
+    "checklistSpecific": [
+      "Daily exception queue built from leads above the high-value threshold or flagged as score anomalies",
+      "Score drivers inspected on each queued lead to confirm no single spurious signal produced the score",
+      "Suspected bot, test, or competitor submissions confirmed and disqualified rather than routed",
+      "Score adjusted manually only with a recorded justification and reviewer name",
+      "Recurring anomaly patterns raised to the model owner as a recalibration input"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "High-value / anomaly review queue",
+        "checkType": "absence",
+        "expected": "No lead sits unreviewed in the high-value or anomaly queue beyond the review SLA"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Manually adjusted score records",
+        "checkType": "presence",
+        "expected": "Every manual score adjustment records the reviewer and a written justification"
+      }
+    ]
+  },
+  {
+    "taskId": "305c2830-5613-46f2-afd1-389b2bbe3461",
+    "roles": [
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovni1mqumbk810ngf3nz",
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscpl891o1gmbk8564fr6p6",
+      "cmqscpl5q1o1cmbk8lijej5j4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Disposition set within the agreed acceptance window",
+      "Rejection reasons chosen from a controlled list",
+      "Recycled leads land in a defined destination, never nowhere"
+    ],
+    "checklistSpecific": [
+      "Accept action converts the lead to an opportunity with estimated premium and target effective date populated",
+      "Reject action requires a rejection reason code (out of appetite, bad data, no interest, already covered, timing)",
+      "Rejected-for-timing leads returned to the matching nurture track with a re-entry date",
+      "Rejected-for-data leads sent back to the data-quality queue rather than archived",
+      "Accept/reject decision timestamp written so acceptance SLA can be reported"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Sales-qualified lead disposition field",
+        "checkType": "presence",
+        "expected": "Every SQL has an accept or reject disposition with a timestamp, and rejects carry a reason code"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Rejected lead population",
+        "checkType": "absence",
+        "expected": "No rejected lead is left without a nurture track, requeue, or archive destination"
+      }
+    ]
+  },
+  {
+    "taskId": "405adba8-789b-46fe-aaf8-c06eb424bc73",
+    "roles": [
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Owner" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp1tk1n28mbk8acxt1ens",
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscoh271m1umbk87ebv27kx",
+      "cmqscp1o41n20mbk8x267q2fx"
+    ],
+    "regs": [{ "regId": "cmrc4qj4d0053v8f85vp6qeo0", "rel": "GOVERNS" }],
+    "checklistGeneric": [
+      "Check run against the current published appetite, not a cached copy",
+      "Result recorded on the lead with the appetite version used",
+      "Borderline cases referred rather than decided informally"
+    ],
+    "checklistSpecific": [
+      "Requested line of business confirmed as open for new business in the risk state",
+      "Class of business or industry code checked against the current prohibited/restricted class list",
+      "Estimated exposure size checked against the line's minimum and maximum written limits",
+      "Coverage effective date checked against any moratorium in force for the territory",
+      "Appetite result written to the lead as In Appetite, Referral Required, or Out of Appetite with the driving rule named"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead record > Appetite Check result field",
+        "checkType": "presence",
+        "expected": "Every sales-qualified lead carries an appetite result with the appetite rule version applied"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Routed lead population",
+        "checkType": "absence",
+        "expected": "No lead marked Out of Appetite is routed to a producer for quoting"
+      }
+    ]
+  },
+  {
+    "taskId": "f2927468-4d96-4714-97d7-d74564394950",
+    "roles": [
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Owner" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" },
+      { "roleId": "c5f70484-a30c-4143-bf27-8b085c9d1e75", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f", "use": "performed" },
+      { "appId": "cmrqex5lo001fv8w0w3enlnyh", "use": "performed" },
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp1up1n2ambk8hkydgrbl",
+      "cmqscp1o41n20mbk8x267q2fx",
+      "cmqscogud1m1imbk8gtnrzk8m",
+      "cmqscovgr1mqgmbk8d5ib3lk1"
+    ],
+    "regs": [
+      { "regId": "cmrc5umz30k3vv880gwaoav1j", "rel": "GOVERNS" },
+      { "regId": "cmrc4ulc405qtv8f8s2rtkbnd", "rel": "GOVERNS" }
+    ],
+    "checklistGeneric": [
+      "Licence status read from the system of record, not from a spreadsheet copy",
+      "Verification result stamped with the date checked",
+      "Failed verification blocks assignment rather than warning only"
+    ],
+    "checklistSpecific": [
+      "Producer resident and non-resident licence checked as active for the lead's risk state",
+      "Licence line authority confirmed to cover the requested line of business",
+      "Carrier appointment confirmed active in the state for the writing entity",
+      "Licence expiry date checked to fall beyond the expected quote and bind window",
+      "Producer's own appetite and product authorisations confirmed before the lead is offered"
+    ],
+    "testing": [
+      {
+        "system": "agency/producer management system",
+        "location": "Producer licence and appointment record",
+        "checkType": "presence",
+        "expected": "Assigned producer shows an active licence and active appointment for the lead's state and line"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead assignment records",
+        "checkType": "absence",
+        "expected": "No lead is assigned to a producer whose licence or appointment for that state and line is expired or inactive"
+      }
+    ]
+  },
+  {
+    "taskId": "26316f82-dc41-4e89-b305-93f9a3c048e9",
+    "roles": [
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Participant" },
+      { "roleId": "c5f70484-a30c-4143-bf27-8b085c9d1e75", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" },
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp2tc1n40mbk81o3e7wtg",
+      "cmqscovjm1mqmmbk8zena4laq",
+      "cmqscpkx81o0wmbk8sved8cuw",
+      "cmqscp1o41n20mbk8x267q2fx"
+    ],
+    "regs": [{ "regId": "cmrc4qk14006lv8f8euwrhkoe", "rel": "GOVERNS" }],
+    "checklistGeneric": [
+      "Audit run to a defined periodic schedule with a named owner",
+      "Findings logged with owner and remediation due date",
+      "Prior-period findings re-tested for closure"
+    ],
+    "checklistSpecific": [
+      "Lead distribution compared across producers and agencies to expose concentration in a few hands",
+      "Acceptance and conversion rates compared by producer tier to test whether high-scoring leads are being hoarded",
+      "Territories and ZIP ranges with zero routed leads identified as coverage gaps",
+      "Routing outcomes reviewed for unintended geographic or demographic skew and documented",
+      "Findings summarised with named remediation owners and rule changes proposed"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Routing fairness audit report",
+        "checkType": "presence",
+        "expected": "Current-period audit shows lead distribution by producer and tier plus a named list of coverage gaps"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "Territory routing coverage map",
+        "checkType": "absence",
+        "expected": "No active territory shows zero routed leads for the period without a documented explanation"
+      }
+    ]
+  },
+  {
+    "taskId": "0ac83505-c6cd-48c4-92a3-8faef524722b",
+    "roles": [
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "cmqsck0z103yjmbk8y9kyaaxo", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovni1mqumbk810ngf3nz",
+      "cmqscpm321o34mbk8ffxa91dz",
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscpkos1o0imbk8o7q2zq9h"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Acceptance recorded in the system of record at the moment it happens",
+      "SLA clock start and stop points defined identically for every channel",
+      "Non-acceptance triggers the documented escalation path"
+    ],
+    "checklistSpecific": [
+      "Acceptance captured by the producer clicking Accept on the lead in CRM or the broker/agent portal",
+      "Accepted-by user and acceptance timestamp written to the lead record",
+      "Elapsed time from assignment to acceptance calculated and stored against the lead",
+      "First-contact attempt logged as an activity within the post-acceptance contact SLA",
+      "Leads still unaccepted at the SLA boundary flipped to Pending Escalation automatically"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Assigned lead records > acceptance fields",
+        "checkType": "presence",
+        "expected": "Each accepted lead carries an accepted-by user, acceptance timestamp, and calculated time-to-accept"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Assigned lead queue",
+        "checkType": "absence",
+        "expected": "No assigned lead sits past the acceptance SLA without moving to Pending Escalation"
+      }
+    ]
+  },
+  {
+    "taskId": "e602b91e-7365-4f8c-84e1-f2c135e9d398",
+    "roles": [
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscpl2b1o16mbk8fi8bjetx",
+      "cmqscpl3d1o18mbk8rk6n5z9p",
+      "cmqscpl181o14mbk8bom24dzb"
+    ],
+    "regs": [{ "regId": "cmrc4qk14006lv8f8euwrhkoe", "rel": "GOVERNS" }],
+    "checklistGeneric": [
+      "Rules approved by distribution leadership before activation",
+      "Rule set versioned with an effective date",
+      "Every rule has a defined fallback so no lead can fall through"
+    ],
+    "checklistSpecific": [
+      "Rule precedence order defined and documented (territory, then line of business, then channel, then producer tier)",
+      "Territory boundaries expressed by ZIP, county, or state and matched to the lead's risk location, not billing address",
+      "Producer tier rules stated with the share or priority each tier receives",
+      "House-account and named-account exceptions listed so key accounts are not routed away",
+      "Default catch-all queue defined for leads matching no rule, with an owner named"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead assignment rule configuration",
+        "checkType": "presence",
+        "expected": "Active assignment rules match the approved published rule set, including precedence order and a default catch-all entry"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Unassigned lead pool",
+        "checkType": "absence",
+        "expected": "No qualified lead remains unassigned because it matched no routing rule"
+      }
+    ]
+  },
+  {
+    "taskId": "19293398-6b7d-4fb2-8377-75e63d964820",
+    "roles": [
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Owner" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "cmqsck0z103yjmbk8y9kyaaxo", "use": "performed" },
+      { "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscogeo1m0ombk8igjy1iap",
+      "cmqscoh081m1qmbk8av2zausw",
+      "cmqscpm321o34mbk8ffxa91dz",
+      "cmqscp1up1n2ambk8hkydgrbl"
+    ],
+    "regs": [
+      { "regId": "cmrc4txey04rnv8f8n3jswsis", "rel": "GOVERNS" },
+      { "regId": "cmrc4qk14006lv8f8euwrhkoe", "rel": "GOVERNS" }
+    ],
+    "checklistGeneric": [
+      "Partner covered by a current agreement with data-handling terms",
+      "Only the minimum necessary prospect data is shared",
+      "Transfer of each lead logged for audit"
+    ],
+    "checklistSpecific": [
+      "Receiving agency confirmed as appointed and in good standing before the lead is released",
+      "Lead delivered through the broker/agent portal or the agreed feed, not by unsecured email",
+      "Consent and do-not-call flags transmitted with the lead so the partner inherits the restrictions",
+      "Partner's contractual TCPA and do-not-call obligations confirmed as in force for the receiving agency",
+      "Distribution event written back to the CRM lead with the partner name and delivery timestamp"
+    ],
+    "testing": [
+      {
+        "system": "Broker & Agent Portal",
+        "location": "Distributed lead payload",
+        "checkType": "presence",
+        "expected": "Each distributed lead payload carries the consent and do-not-call flags alongside the contact data"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Partner distribution log",
+        "checkType": "absence",
+        "expected": "No lead is distributed to an agency without a current appointment and executed distribution agreement"
+      }
+    ]
+  },
+  {
+    "taskId": "fc9a8a98-054f-4d99-b29b-b7d5db9f6aad",
+    "roles": [
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "cmrqex4v60007v8w005phxlv9", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovcf1mq8mbk86bcg9d13",
+      "cmqscpkkv1o0cmbk8r8mqmd4c",
+      "cmqscpkm41o0embk8qoooivgs",
+      "cmqscovni1mqumbk810ngf3nz"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Escalation raised automatically at the SLA boundary, not by memory",
+      "Escalation recipient determined by the published matrix",
+      "Escalation and its outcome recorded on the record"
+    ],
+    "checklistSpecific": [
+      "Escalation fires the moment the acceptance timer passes the published threshold for that lead tier",
+      "Field manager for the producer's territory identified from the current hierarchy and notified by name",
+      "Escalation notice states lead ID, assigned producer, elapsed time, and estimated premium",
+      "Manager reassignment or override decision captured on the lead within the escalation response window",
+      "Repeat offenders flagged for the producer performance review rather than escalated silently each time"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "SLA-breached lead records",
+        "checkType": "presence",
+        "expected": "Each SLA-breached lead shows an escalation record naming the field manager and the escalation timestamp"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Escalated lead queue",
+        "checkType": "absence",
+        "expected": "No escalated lead remains without a manager decision beyond the escalation response window"
+      }
+    ]
+  },
+  {
+    "taskId": "aaf1bcbf-d64a-44c7-a85e-25e7e561d540",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp44s1n6gmbk837r8shy4",
+      "cmqscpl3d1o18mbk8rk6n5z9p",
+      "cmqscogvb1m1kmbk8gnxd7kag",
+      "cmqscpkuv1o0smbk8fgixitde"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Change request raised before the rule is edited in production",
+      "Prior rule version retained for rollback",
+      "Affected parties notified of the effective date"
+    ],
+    "checklistSpecific": [
+      "Producer joiners, leavers, and territory transfers applied to routing rules within the agreed lag",
+      "Terminated or unappointed producers removed from every assignment rule and round-robin pool",
+      "Territory boundary changes reflected in the ZIP/county mapping table used by the rules",
+      "Producer capacity and vacation/out-of-office settings refreshed so live rules honour availability",
+      "Rule library reviewed end to end on the published cycle with the review date recorded"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Active assignment rules and round-robin pools",
+        "checkType": "absence",
+        "expected": "No terminated or unappointed producer appears in an active assignment rule or routing pool"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Routing rule library",
+        "checkType": "presence",
+        "expected": "Rule library shows a last-reviewed date inside the published review cycle"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fdygb00ilrw9dvpiqanyq",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovni1mqumbk810ngf3nz",
+      "cmqscplf41o1umbk8h9az1264",
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscpm7t1o3embk8t2llzr5n"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Monitoring runs on a defined intraday cadence, not ad hoc",
+      "Threshold breaches generate an alert to a named owner",
+      "Measurement definition matches the published SLA wording"
+    ],
+    "checklistSpecific": [
+      "Live SLA timer visible per assigned lead showing elapsed time against the tier threshold",
+      "Approaching-breach view built for leads inside the final warning window",
+      "Breached leads listed with producer, territory, elapsed hours, and estimated premium at risk",
+      "Business-hours calendar and time zone applied so overnight and weekend gaps do not read as breaches",
+      "Daily acceptance SLA snapshot circulated to distribution leadership"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Lead acceptance SLA monitoring dashboard",
+        "checkType": "presence",
+        "expected": "Dashboard shows per-lead elapsed time, approaching-breach list, and breached list refreshed at the agreed intraday cadence"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Assigned lead population",
+        "checkType": "absence",
+        "expected": "No assigned lead is missing an SLA timer start timestamp"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fdyqe00j4rw9dd485ozfo",
+    "roles": [
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "cmqsck0z103yjmbk8y9kyaaxo", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovcf1mq8mbk86bcg9d13",
+      "cmqscovni1mqumbk810ngf3nz",
+      "cmqscpkos1o0imbk8o7q2zq9h",
+      "cmqscpl891o1gmbk8564fr6p6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Reassignment follows the published rules rather than personal preference",
+      "Original assignment history preserved on the record",
+      "Prospect experience protected — no duplicate outreach after re-routing"
+    ],
+    "checklistSpecific": [
+      "Stalled lead pulled from the original producer and the prior owner recorded in assignment history",
+      "Next-best producer selected from the same territory and tier before widening the search",
+      "Reassignment reason set to SLA Breach with the elapsed time recorded",
+      "New acceptance SLA timer restarted on reassignment",
+      "Original producer notified of the removal so they do not contact the prospect in parallel"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Reassigned lead records",
+        "checkType": "presence",
+        "expected": "Each reassigned lead shows prior owner, reassignment reason of SLA Breach, and a restarted acceptance timer"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "SLA-breached lead queue",
+        "checkType": "absence",
+        "expected": "No lead remains with its original owner more than one escalation cycle after an acceptance SLA breach"
+      }
+    ]
+  },
+  {
+    "taskId": "7ecbe1ab-74a1-44c5-b1c9-502d41647d21",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovea1mqcmbk8um82vnx8",
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscoh081m1qmbk8av2zausw",
+      "cmqscpl5q1o1cmbk8lijej5j4"
+    ],
+    "regs": [{ "regId": "cmrc4tsob04jnv8f8gl4eksrl", "rel": "GOVERNS" }],
+    "checklistGeneric": [
+      "Recycling rules published and applied automatically where possible",
+      "Consent state re-checked before any lead re-enters outreach",
+      "Recycle count tracked so a lead is not cycled indefinitely"
+    ],
+    "checklistSpecific": [
+      "Age threshold applied so leads untouched beyond the defined days are pulled back to the central pool",
+      "Rejection reason inspected — bad-fit leads archived, timing-driven leads sent to a long-cycle nurture track",
+      "Marketing consent and do-not-call status re-verified before nurture re-entry",
+      "Recycle counter incremented and leads exceeding the maximum recycles archived with a disposition",
+      "Recycled leads suppressed from the original producer's queue to avoid duplicate outreach"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Recycled lead records",
+        "checkType": "presence",
+        "expected": "Each recycled lead shows a recycle count, recycle reason, and destination nurture track or archive disposition"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Nurture re-entry population",
+        "checkType": "absence",
+        "expected": "No lead with revoked marketing consent re-enters a nurture track through recycling"
+      }
+    ]
+  },
+  {
+    "taskId": "c6e16582-ccc1-407c-b52e-5a8a0578e617",
+    "roles": [
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscplg21o1wmbk8lyl7zs1m",
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscogk91m0ymbk8wxxmgpcq"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Report produced to the published reporting calendar",
+      "Figures sourced from certified datasets only",
+      "Prior-period comparatives shown alongside current figures"
+    ],
+    "checklistSpecific": [
+      "Median and 90th-percentile time-to-assignment and time-to-acceptance reported, not the mean alone",
+      "SLA compliance percentage broken out by producer tier, territory, and line of business",
+      "Count and premium value of leads reassigned for SLA breach shown for the period",
+      "Unassigned and catch-all queue volumes reported as a routing-rule coverage indicator",
+      "Repeat SLA-breaching producers named with their breach counts for the distribution review"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Routing efficiency and SLA compliance report",
+        "checkType": "presence",
+        "expected": "Report is published for the period showing time-to-accept percentiles, SLA compliance by tier and territory, and reassignment volumes"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "Report data sources",
+        "checkType": "absence",
+        "expected": "No figure in the report is drawn from an uncertified or ad hoc extract"
+      }
+    ]
+  },
+  {
+    "taskId": "fa93d377-75c9-4f57-a2b9-8c0bbf349db1",
+    "roles": [
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscovse1mr4mbk8ylx8y8bb",
+      "cmqscpmaq1o3imbk8ioawy711",
+      "cmqscp1up1n2ambk8hkydgrbl"
+    ],
+    "regs": [{ "regId": "cmrc5umz30k3vv880gwaoav1j", "rel": "GOVERNS" }],
+    "checklistGeneric": [
+      "Assignment executed by the rule engine, with manual assignment as the exception",
+      "Assignment recorded with timestamp and the rule that fired",
+      "Capacity limits respected so no producer is overloaded"
+    ],
+    "checklistSpecific": [
+      "Lead's risk-state territory matched to the producer territory map before assignment",
+      "Producer's open lead count checked against their capacity cap before the lead is added",
+      "Producer availability (out of office, leave, capacity hold) honoured with the next eligible producer selected",
+      "Assignment notification pushed to the producer in CRM and the broker/agent portal at the moment of assignment",
+      "Assigning rule name and assignment timestamp written to the lead for audit"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Assigned lead records",
+        "checkType": "presence",
+        "expected": "Each routed lead names the producer, the rule that fired, and the assignment timestamp"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Producer open lead counts",
+        "checkType": "absence",
+        "expected": "No producer holds open assigned leads above their configured capacity cap"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjyv1165dkfgzrijoelcn",
+    "roles": [
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03thmbk8xznzk1nc", "rel": "Participant" },
+      { "roleId": "cmqsck0rp03vgmbk81b8spm25", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp2ye1n4ambk8m0v8mkq5",
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscogk91m0ymbk8wxxmgpcq",
+      "cmqscovea1mqcmbk8um82vnx8"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Analysis covers a full, comparable measurement period",
+      "Metric definitions unchanged mid-period or the change is disclosed",
+      "Findings carry an owner and a next action"
+    ],
+    "checklistSpecific": [
+      "Delivery, open, click, and unsubscribe rates pulled per nurture track and per journey step",
+      "Progression-to-MQL rate calculated per track and compared against the track's target",
+      "Cost per MQL by track computed so low-yield tracks can be retired",
+      "Send-time and cadence effects tested against engagement to inform the cadence review",
+      "Underperforming tracks and steps named with a recommended action for each"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Nurture performance analysis",
+        "checkType": "presence",
+        "expected": "Analysis shows engagement and MQL-progression rates per nurture track with named actions for underperformers"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Active nurture tracks",
+        "checkType": "absence",
+        "expected": "No active nurture track is missing from the performance analysis"
+      }
+    ]
+  },
+  {
+    "taskId": "5a901aa1-7e09-4d39-96aa-01fdb0bdcdd7",
+    "roles": [
+      { "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Participant" },
+      { "roleId": "c5f70484-a30c-4143-bf27-8b085c9d1e75", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp1n21n1ymbk80ec1eahz",
+      "cmqscovdd1mqambk8nf5s8p4j",
+      "cmqscpl3d1o18mbk8rk6n5z9p",
+      "cmqscovgr1mqgmbk8d5ib3lk1"
+    ],
+    "regs": [
+      { "regId": "cmrc4qg1w000fv8f8nzoiiuio", "rel": "GOVERNS" },
+      { "regId": "cmrc5p3em0c2jv8803q1ftdak", "rel": "GOVERNS" }
+    ],
+    "checklistGeneric": [
+      "Only compliance-approved assets attached to a live stage",
+      "Each asset has an owner and a review-by date",
+      "Asset links tested before the stage is activated"
+    ],
+    "checklistSpecific": [
+      "Every nurture stage has at least one content offer and one primary call-to-action attached",
+      "Offer escalates with buyer stage — educational at top of funnel, quote or coverage-review CTA at the bottom",
+      "Landing page for each offer verified live, tracked, and rendering the required disclosures",
+      "Product claims in each asset traceable to an approved source so the claim is substantiated",
+      "Asset approval reference and expiry date recorded against the stage in the automation platform"
+    ],
+    "testing": [
+      {
+        "system": "marketing automation platform",
+        "location": "Nurture journey stage configuration",
+        "checkType": "presence",
+        "expected": "Every active nurture stage has an attached content offer and CTA with a recorded approval reference"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Nurture stage assets",
+        "checkType": "absence",
+        "expected": "No live nurture stage references an expired or unapproved content asset"
+      }
+    ]
+  },
+  {
+    "taskId": "890f5e48-a8b1-4205-b7e0-fce0a7f9a19e",
+    "roles": [
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Owner" },
+      { "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620", "rel": "Participant" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscp3an1n4ymbk8z80rd202",
+      "cmqscoh081m1qmbk8av2zausw",
+      "cmqscpl3d1o18mbk8rk6n5z9p"
+    ],
+    "regs": [
+      { "regId": "cmrc5p5ln0c6bv880bj04tvn3", "rel": "GOVERNS" },
+      { "regId": "cmrc5p5ah0c5rv880z9u7d5ev", "rel": "GOVERNS" }
+    ],
+    "checklistGeneric": [
+      "Flow built in a sandbox or test mode before activation",
+      "Entry, exit, and suppression rules defined before the first send",
+      "Activation approved by the campaign owner"
+    ],
+    "checklistSpecific": [
+      "Entry criteria configured on the lead segment and score band, with membership tested on sample records",
+      "Wait steps and branch conditions configured to the approved cadence and journey map",
+      "Global suppression list applied so unsubscribed, opted-out, and existing-customer records cannot enter",
+      "Every email in the flow carries the physical postal address, sender identification, and a working unsubscribe link",
+      "Flow activated with sending limits and throttling set to prevent a burst send on backfill"
+    ],
+    "testing": [
+      {
+        "system": "marketing automation platform",
+        "location": "Nurture flow configuration",
+        "checkType": "presence",
+        "expected": "Each active flow has entry criteria, branch logic, suppression list, and throttling configured as approved"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Nurture flow membership",
+        "checkType": "absence",
+        "expected": "No unsubscribed or opted-out record is a member of an active nurture flow"
+      }
+    ]
+  },
+  {
+    "taskId": "40486224-b1ef-4460-8946-8bc316cfb9ce",
+    "roles": [
+      { "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620", "rel": "Owner" },
+      { "roleId": "c5f70484-a30c-4143-bf27-8b085c9d1e75", "rel": "Participant" },
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "cmrqex4yp000dv8w0kd5enkye", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp1n21n1ymbk80ec1eahz",
+      "cmqscog6l1m08mbk83rau8hcj",
+      "cmqscpl3d1o18mbk8rk6n5z9p",
+      "cmqscovdd1mqambk8nf5s8p4j"
+    ],
+    "regs": [
+      { "regId": "cmrc5p53j0c5hv880qpkve1bi", "rel": "GOVERNS" },
+      { "regId": "cmrbx8xlh019tv8ukib7dn0ib", "rel": "GOVERNS" }
+    ],
+    "checklistGeneric": [
+      "Draft routed through marketing compliance review before build",
+      "Approved version stored with its approval reference",
+      "Content reviewed against the review-by date before reuse"
+    ],
+    "checklistSpecific": [
+      "Every journey step has a written email, and SMS variants exist only where text consent is held",
+      "Subject lines checked as accurate and non-deceptive relative to the body content",
+      "Required state-specific disclosures and the licensed entity name included where the step promotes a product",
+      "Coverage descriptions carry the 'subject to policy terms' qualifier rather than implying guaranteed cover",
+      "Unsubscribe language and preference-centre link present in every email variant, including plain text"
+    ],
+    "testing": [
+      {
+        "system": "marketing automation platform",
+        "location": "Nurture email asset library",
+        "checkType": "presence",
+        "expected": "Every journey step has an approved email asset carrying sender identification, disclosures, and an unsubscribe link"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Approved SMS assets",
+        "checkType": "absence",
+        "expected": "No SMS asset is attached to a journey step whose audience lacks recorded text-message consent"
+      }
+    ]
+  },
+  {
+    "taskId": "07a1efb0-2f85-4fbd-b375-7c576c84737f",
+    "roles": [
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscoh271m1umbk87ebv27kx",
+      "cmqscpl3d1o18mbk8rk6n5z9p",
+      "cmqscpl5q1o1cmbk8lijej5j4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Exit rules evaluated on every flow cycle, not only at entry",
+      "Exit event written to the record for audit",
+      "Rule change tested on sample records before activation"
+    ],
+    "checklistSpecific": [
+      "Exit fires when Lead Status reaches Sales Qualified or an opportunity is created",
+      "Exit also fires on conversion to customer so bound policyholders stop receiving prospect nurture",
+      "Exit fires on unsubscribe, hard bounce, or do-not-contact flag with immediate effect",
+      "Exited leads removed from queued sends already scheduled, not only from future steps",
+      "Exit reason and exit timestamp written back to the CRM lead record"
+    ],
+    "testing": [
+      {
+        "system": "marketing automation platform",
+        "location": "Active nurture flow membership",
+        "checkType": "absence",
+        "expected": "No lead in Sales Qualified status or converted to a customer remains a member of a prospect nurture flow"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead record > nurture exit fields",
+        "checkType": "presence",
+        "expected": "Each exited lead carries an exit reason and exit timestamp"
+      }
+    ]
+  },
+  {
+    "taskId": "d66448cd-fd7a-496b-b7df-3b9cb04cec32",
+    "roles": [
+      { "roleId": "cmqsck0rp03vgmbk81b8spm25", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03thmbk8xznzk1nc", "rel": "Participant" },
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscpl071o12mbk8wb255epo",
+      "cmqscp38o1n4umbk8ne8wtn63"
+    ],
+    "regs": [{ "regId": "cmrc4qj4d0053v8f85vp6qeo0", "rel": "GOVERNS" }],
+    "checklistGeneric": [
+      "Design signed off before any build work begins",
+      "Journey map stored in the marketing operations repository with a version",
+      "Every track has a named owner and a success metric"
+    ],
+    "checklistSpecific": [
+      "Segment definitions written as CRM-evaluable criteria (line of business interest, segment, buying stage)",
+      "Each track mapped step by step with the intent of every touch stated",
+      "Track length and total touch count agreed so contact frequency stays within the fatigue limit",
+      "Track's target market documented and confirmed to match the product's approved target market",
+      "Entry, exit, and re-entry rules specified per track before the flow is built"
+    ],
+    "testing": [
+      {
+        "system": "marketing automation platform",
+        "location": "Nurture journey design document and track configuration",
+        "checkType": "presence",
+        "expected": "Each built track traces to an approved journey map with segment criteria, touch count, and entry/exit rules"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Nurture track inventory",
+        "checkType": "absence",
+        "expected": "No live nurture track exists without an approved journey design and named owner"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fji0o0yidkfgzyiyuu3yy",
+    "roles": [
+      { "roleId": "cmqsck0ro03thmbk8xznzk1nc", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" },
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscp2ye1n4ambk8m0v8mkq5",
+      "cmqscp33v1n4kmbk8itj5vrxx",
+      "cmqscp34t1n4mmbk8go3b2xdt"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Analysis based on a cohort large enough to be meaningful",
+      "Comparable prior period used as the baseline",
+      "Findings recorded with the supporting figures attached"
+    ],
+    "checklistSpecific": [
+      "Step-by-step retention curve built per track showing how many leads reach each touch",
+      "Unsubscribe and hard-bounce spikes isolated by step to separate fatigue from content failure",
+      "Time-in-stage distribution reviewed to find steps where leads stall rather than leave",
+      "Drop-off compared across segments and source channels to see whether the leak is content or audience",
+      "Top drop-off steps ranked by lost lead volume and lost pipeline value, not by rate alone"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Nurture funnel drop-off analysis",
+        "checkType": "presence",
+        "expected": "Analysis identifies the top drop-off steps per track with lost lead volume and supporting figures"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "Drop-off analysis data sources",
+        "checkType": "absence",
+        "expected": "No conclusion is drawn from a cohort below the agreed minimum sample size"
+      }
+    ]
+  },
+  {
+    "taskId": "00144aa9-fb4a-4de9-b1f7-bd03c9cc694a",
+    "roles": [
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03thmbk8xznzk1nc", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp2ye1n4ambk8m0v8mkq5",
+      "cmqscpli71o20mbk85rjmtdm0",
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscp37s1n4smbk8v03mmcl5"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Metrics refreshed on the published schedule",
+      "Metric definitions match the agreed glossary",
+      "Threshold breaches trigger a documented review"
+    ],
+    "checklistSpecific": [
+      "Open, click-through, and click-to-open rates tracked per track and per step against target",
+      "Progression-to-MQL rate and average days-to-MQL tracked per track",
+      "Unsubscribe and spam-complaint rates monitored against the deliverability threshold",
+      "Engagement compared between nurtured and non-nurtured control leads to evidence programme lift",
+      "Weekly nurture scorecard reviewed with the marketing manager and actions logged"
+    ],
+    "testing": [
+      {
+        "system": "marketing automation platform",
+        "location": "Nurture engagement scorecard",
+        "checkType": "presence",
+        "expected": "Scorecard is refreshed on schedule showing engagement, MQL progression, and unsubscribe rate per track"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Active nurture tracks",
+        "checkType": "absence",
+        "expected": "No track continues sending while its spam-complaint rate is above the deliverability threshold"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjz4d168ckfgzj2w84qlb",
+    "roles": [
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Owner" },
+      { "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620", "rel": "Participant" },
+      { "roleId": "cmqsck0rp03vgmbk81b8spm25", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovea1mqcmbk8um82vnx8",
+      "cmqscpkx81o0wmbk8sved8cuw",
+      "cmqscpkvy1o0umbk859edutzs",
+      "cmqscpl3d1o18mbk8rk6n5z9p"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Change grounded in the performance analysis, not opinion",
+      "Only one material variable changed at a time so the effect is attributable",
+      "Change dated and versioned in the flow configuration"
+    ],
+    "checklistSpecific": [
+      "Wait intervals between touches adjusted to the intervals evidenced by the drop-off analysis",
+      "Overall contact frequency kept within the published fatigue cap across all concurrent tracks",
+      "Send-day and send-time windows updated to the best-performing windows for the segment",
+      "Leads mid-journey handled explicitly — either migrated to the new cadence or allowed to finish the old one",
+      "Post-change engagement compared against the pre-change baseline after the agreed observation window"
+    ],
+    "testing": [
+      {
+        "system": "marketing automation platform",
+        "location": "Nurture flow wait-step configuration",
+        "checkType": "presence",
+        "expected": "Wait intervals and send windows match the approved cadence change with an effective date recorded"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Per-lead send frequency across active tracks",
+        "checkType": "absence",
+        "expected": "No lead receives more messages in a rolling week than the published contact fatigue cap allows"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjylr161ykfgz9daa5ut4",
+    "roles": [
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp2ye1n4ambk8m0v8mkq5",
+      "cmqscoghb1m0smbk8c41jpghh",
+      "cmqscoh271m1umbk87ebv27kx",
+      "cmqscovgr1mqgmbk8d5ib3lk1"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Score recalculated on a defined cadence and on qualifying events",
+      "Scoring inputs drawn from tracked, attributable activity only",
+      "Score synced to the CRM so distribution sees the same value"
+    ],
+    "checklistSpecific": [
+      "Engagement points assigned per behaviour type (email open, click, page visit, form fill, quote start)",
+      "High-intent behaviours weighted above passive ones, with quote-start and pricing-page visits scored highest",
+      "Time decay applied so activity older than the defined window contributes less",
+      "Engagement score written to the lead record and combined with the fit score into the total lead score",
+      "Score threshold crossing raises the MQL flag automatically rather than waiting for a manual review"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead record > Engagement Score field",
+        "checkType": "presence",
+        "expected": "Every lead in an active nurture track carries an engagement score with a recent calculation timestamp"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Engagement scoring inputs",
+        "checkType": "absence",
+        "expected": "No engagement score is inflated by system-generated or bot-click activity excluded by the filter rules"
+      }
+    ]
+  },
+  {
+    "taskId": "358c1de4-0007-4213-90d8-e37bfdf6ea67",
+    "roles": [
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Owner" },
+      { "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620", "rel": "Participant" },
+      { "roleId": "c5f70484-a30c-4143-bf27-8b085c9d1e75", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscoh081m1qmbk8av2zausw",
+      "cmqscoh271m1umbk87ebv27kx",
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscp4o01n7gmbk8nzsb85bd"
+    ],
+    "regs": [
+      { "regId": "cmrc4ts9q04izv8f81v1p0cv8", "rel": "GOVERNS" },
+      { "regId": "cmrc5p4bc0c45v8805cyq5d5y", "rel": "GOVERNS" }
+    ],
+    "checklistGeneric": [
+      "Rules configured centrally so behaviour is consistent across tracks",
+      "Additional data collected only where there is a stated business use",
+      "Re-engagement respects the same suppression rules as the main flows"
+    ],
+    "checklistSpecific": [
+      "Inactivity threshold defined that moves a lead from active nurture to a re-engagement track",
+      "Re-engagement sequence capped at a set number of attempts before the lead is archived or suppressed",
+      "Progressive-profiling forms configured to ask only for fields still blank on the lead record",
+      "Profiling questions limited to fields that feed scoring, qualification, or appetite checks",
+      "Newly captured profiling values written to the CRM lead and trigger a score recalculation"
+    ],
+    "testing": [
+      {
+        "system": "marketing automation platform",
+        "location": "Progressive profiling form configuration",
+        "checkType": "presence",
+        "expected": "Profiling forms request only fields that are blank on the lead and map to a scoring or qualification field"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Re-engagement track membership",
+        "checkType": "absence",
+        "expected": "No lead exceeds the configured maximum number of re-engagement attempts"
+      }
+    ]
+  },
+  {
+    "taskId": "ddc06f01-2098-43ec-9115-efc56deb4337",
+    "roles": [
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" },
+      { "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp3an1n4ymbk8z80rd202",
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscpl891o1gmbk8564fr6p6"
+    ],
+    "regs": [{ "regId": "cmrc5p5ln0c6bv880bj04tvn3", "rel": "GOVERNS" }],
+    "checklistGeneric": [
+      "Test executed on seed records, never on live prospects",
+      "Every branch of the flow exercised, not just the happy path",
+      "Test evidence retained with the activation approval"
+    ],
+    "checklistSpecific": [
+      "Seed contact injected at the entry criteria and confirmed to enter the correct track",
+      "Each branch condition forced in turn and the resulting path confirmed against the journey map",
+      "Rendering checked on desktop and mobile clients with all merge fields resolving, no blank tokens",
+      "Unsubscribe link clicked from a seed record and confirmed to suppress the record across all tracks",
+      "Exit condition triggered on a seed record and the exit write-back to CRM confirmed",
+      "Test seed records removed from the production flow before activation"
+    ],
+    "testing": [
+      {
+        "system": "marketing automation platform",
+        "location": "Nurture flow test evidence pack",
+        "checkType": "presence",
+        "expected": "Test pack records each branch exercised, rendering checks, and a successful unsubscribe and exit test before activation"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Activated nurture flow membership",
+        "checkType": "absence",
+        "expected": "No test seed record remains in an activated production nurture flow"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjytg164ykfgz6pkxo84a",
+    "roles": [
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Participant" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscovni1mqumbk810ngf3nz",
+      "cmqscpl181o14mbk8bom24dzb",
+      "cmqscpl5q1o1cmbk8lijej5j4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Handoff triggered by the agreed criteria, applied consistently",
+      "Receiving owner assigned at the moment of handoff, never left blank",
+      "Handoff event timestamped for SLA measurement"
+    ],
+    "checklistSpecific": [
+      "Handoff fires when the combined fit and engagement score crosses the MQL/SQL threshold",
+      "Engagement history, source, and content consumed passed to the producer on the lead record so context is not lost",
+      "Lead removed from nurture at handoff so the prospect is not marketed to and sold to simultaneously",
+      "Producer notified through CRM with the handoff reason and the triggering behaviour named",
+      "Handoff timestamp recorded to start the acceptance SLA clock"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Handed-off lead records",
+        "checkType": "presence",
+        "expected": "Each handed-off lead carries an owner, handoff timestamp, handoff reason, and the engagement history summary"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Active nurture flow membership",
+        "checkType": "absence",
+        "expected": "No lead handed off to sales remains active in a nurture flow"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fji9z0ynrkfgzx788yrwy",
+    "roles": [
+      { "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Participant" },
+      { "roleId": "c5f70484-a30c-4143-bf27-8b085c9d1e75", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "cmrqex4yp000dv8w0kd5enkye", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovea1mqcmbk8um82vnx8",
+      "cmqscp1n21n1ymbk80ec1eahz",
+      "cmqscpl3d1o18mbk8rk6n5z9p",
+      "cmqscpkvy1o0umbk859edutzs"
+    ],
+    "regs": [
+      { "regId": "cmrc5p3em0c2jv8803q1ftdak", "rel": "GOVERNS" },
+      { "regId": "cmrc4qg1w000fv8f8nzoiiuio", "rel": "GOVERNS" }
+    ],
+    "checklistGeneric": [
+      "Replacement asset passes the same compliance review as the original",
+      "Old asset retired rather than left orphaned in the library",
+      "Change linked back to the drop-off finding that prompted it"
+    ],
+    "checklistSpecific": [
+      "Weak stages identified in the drop-off analysis addressed one at a time so the effect is measurable",
+      "New offer matched to the buyer stage of the step being fixed, not simply a stronger sales push",
+      "Replacement asset approved and the approval reference recorded before it goes live",
+      "Landing page and tracking parameters updated so the new offer's performance is attributable",
+      "Post-deployment engagement compared to the pre-change baseline after the agreed observation window"
+    ],
+    "testing": [
+      {
+        "system": "marketing automation platform",
+        "location": "Updated nurture stage assets",
+        "checkType": "presence",
+        "expected": "Each replaced offer carries a new approval reference, deployment date, and linked drop-off finding"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Content asset library",
+        "checkType": "absence",
+        "expected": "No superseded offer remains attached to a live nurture stage"
+      }
+    ]
+  },
+  {
+    "taskId": "6c342067-e739-486a-9c7b-df951a1e0d18",
+    "roles": [
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03thmbk8xznzk1nc", "rel": "Participant" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" },
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscogja1m0wmbk84a33mear",
+      "cmqscp30i1n4embk8n122ivhj",
+      "cmqscp33v1n4kmbk8itj5vrxx",
+      "cmqscp37s1n4smbk8v03mmcl5"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Requirements agreed with the consuming audience before build",
+      "Dashboard built only on certified, governed datasets",
+      "UAT sign-off obtained before the dashboard is published"
+    ],
+    "checklistSpecific": [
+      "Funnel stages rendered in the approved order from lead created through to policy bound",
+      "Filters provided for line of business, source channel, territory, producer, and date range",
+      "Drill-down from each stage to the underlying lead or opportunity list enabled",
+      "Conversion rate and drop-off shown at each stage alongside absolute volumes",
+      "Refresh schedule set and the as-of timestamp displayed on the dashboard face",
+      "Row-level access applied so producers see only their own territory data"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Conversion funnel dashboard",
+        "checkType": "presence",
+        "expected": "Published dashboard shows all funnel stages with volumes, conversion rates, drill-down, filters, and an as-of timestamp"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "Dashboard data sources",
+        "checkType": "absence",
+        "expected": "No dashboard visual is bound to an uncertified dataset or a manual spreadsheet upload"
+      }
+    ]
+  },
+  {
+    "taskId": "0f572151-d760-43b5-8681-6c0fed56dfee",
+    "roles": [
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03thmbk8xznzk1nc", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" },
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscp3co1n52mbk8zfr9bm39",
+      "cmqscp4l91n7cmbk83gl6rt5r",
+      "cmqscp2ye1n4ambk8m0v8mkq5"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Numerator and denominator defined in the glossary before calculation",
+      "Same cohort basis used across every stage of the funnel",
+      "Result reconciled against the source system counts"
+    ],
+    "checklistSpecific": [
+      "Conversion computed on a cohort basis so a lead is followed through the funnel, not counted period by period",
+      "Rates produced for each transition: created to MQL, MQL to SQL, SQL to quoted, quoted to bound",
+      "Rates cut by source channel, customer segment, line of business, and territory",
+      "In-flight leads excluded from the denominator or shown separately so recent cohorts are not understated",
+      "Small-volume cuts suppressed or flagged rather than published as a misleading percentage"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Conversion rate calculation output",
+        "checkType": "presence",
+        "expected": "Each funnel transition has a calculated conversion and drop-off rate with the cohort window stated"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "Published conversion cuts",
+        "checkType": "absence",
+        "expected": "No conversion rate is published for a cut below the minimum volume threshold without a suppression flag"
+      }
+    ]
+  },
+  {
+    "taskId": "55508dea-b1a7-4f6a-91b7-76572e562ac2",
+    "roles": [
+      { "roleId": "cmqsck0ro03thmbk8xznzk1nc", "rel": "Owner" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" },
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" },
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp3co1n52mbk8zfr9bm39",
+      "cmqscognw1m14mbk8gofy346i",
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscovfm1mqembk8jo2ssfsh"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Definition agreed jointly by marketing, distribution, and analytics",
+      "Terms registered in the business glossary",
+      "Approved version dated and published to all consumers"
+    ],
+    "checklistSpecific": [
+      "Each stage given a single unambiguous entry event (lead created, MQL flag set, sales accepted, quote issued, policy bound)",
+      "Source system and field named as the authoritative marker for every stage event",
+      "Backward movement rules defined for leads that regress or are recycled",
+      "Treatment of cross-sell, renewal, and rewrite business stated explicitly so it does not distort new-business conversion",
+      "Funnel definition approved and stored with a version and effective date"
+    ],
+    "testing": [
+      {
+        "system": "Enterprise data warehouse/lakehouse",
+        "location": "Funnel stage definition and glossary entries",
+        "checkType": "presence",
+        "expected": "Every funnel stage has a documented entry event, authoritative source field, and glossary entry"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "Funnel reporting layer",
+        "checkType": "absence",
+        "expected": "No funnel stage is derived from a field outside the approved authoritative source list"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2figue0gzakfgza8h2ch3g",
+    "roles": [
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03thmbk8xznzk1nc", "rel": "Participant" },
+      { "roleId": "c5f70484-a30c-4143-bf27-8b085c9d1e75", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp2wa1n46mbk8x2pbyjic",
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscovea1mqcmbk8um82vnx8",
+      "cmqscp32w1n4imbk8cl9att9q"
+    ],
+    "regs": [{ "regId": "cmrc5p4bc0c45v8805cyq5d5y", "rel": "GOVERNS" }],
+    "checklistGeneric": [
+      "Hypothesis and success metric written before the test is built",
+      "Sample size and run length calculated in advance",
+      "Test design approved by the programme owner"
+    ],
+    "checklistSpecific": [
+      "One primary success metric named per test, with guardrail metrics listed separately",
+      "Variants differ in a single deliberate element so the result is attributable",
+      "Required sample size and minimum detectable effect calculated before launch",
+      "Traffic split, eligibility criteria, and exclusions defined so the same lead cannot land in two variants",
+      "Both variants confirmed compliant — no variant relies on a misleading claim or a pressure pattern to win"
+    ],
+    "testing": [
+      {
+        "system": "marketing automation platform",
+        "location": "Test design documentation",
+        "checkType": "presence",
+        "expected": "Each planned test records a hypothesis, primary metric, guardrails, sample size, and run length before launch"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Approved test variants",
+        "checkType": "absence",
+        "expected": "No test variant uses an unsubstantiated claim or a countdown/pressure device to drive conversion"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fih6j0h58kfgzhmn0jxmb",
+    "roles": [
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03thmbk8xznzk1nc", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" },
+      { "appId": "cmrqex4yp000dv8w0kd5enkye", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp2wa1n46mbk8x2pbyjic",
+      "cmqscp2ye1n4ambk8m0v8mkq5",
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscovea1mqcmbk8um82vnx8"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Test launched only against the approved design",
+      "Tracking validated before traffic is admitted",
+      "Result and decision recorded whether the test wins or loses"
+    ],
+    "checklistSpecific": [
+      "Randomisation and traffic split verified live before the test is opened to full volume",
+      "Conversion tracking fired on a seed journey through each variant to confirm attribution works",
+      "Test left to run to the pre-agreed sample size rather than stopped at the first favourable reading",
+      "Guardrail metrics monitored during the run and the test halted if a variant degrades them materially",
+      "Winning variant, lift, confidence level, and rollout decision recorded in the test log"
+    ],
+    "testing": [
+      {
+        "system": "marketing automation platform",
+        "location": "Test execution log",
+        "checkType": "presence",
+        "expected": "Each completed test records actual sample size, measured lift, confidence level, and the rollout decision"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Running tests",
+        "checkType": "absence",
+        "expected": "No test is concluded before reaching its pre-agreed sample size without a documented stop reason"
+      }
+    ]
+  },
+  {
+    "taskId": "4bf6e421-d2cb-45b8-a73b-af773f7306a1",
+    "roles": [
+      { "roleId": "cmqsck0ro03thmbk8xznzk1nc", "rel": "Owner" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscp4v51n7smbk8csomhpjp",
+      "cmqscp33v1n4kmbk8itj5vrxx",
+      "cmqscovea1mqcmbk8um82vnx8"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Conclusion supported by figures attached to the finding",
+      "Data quality of the underlying stage confirmed before blaming the process",
+      "Each bottleneck given a named owner"
+    ],
+    "checklistSpecific": [
+      "Stages ranked by absolute lost volume and lost premium, not by percentage drop alone",
+      "Time-in-stage distribution reviewed to separate slow stages from leaky stages",
+      "Bottleneck cut by channel, producer, and line of business to test whether it is systemic or local",
+      "Quote-to-bind losses distinguished between price, coverage, and responsiveness causes using the loss reason codes",
+      "Each bottleneck written up with its evidence, suspected cause, and the owning function"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Conversion bottleneck analysis",
+        "checkType": "presence",
+        "expected": "Analysis names the material bottlenecks with lost volume, lost premium, and supporting cuts by channel and line"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "Documented bottlenecks",
+        "checkType": "absence",
+        "expected": "No bottleneck is recorded without supporting figures and a named owning function"
+      }
+    ]
+  },
+  {
+    "taskId": "747d77d8-b4df-4d06-a5a3-6aab3427989a",
+    "roles": [
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Owner" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" },
+      { "appId": "cmrqex4yp000dv8w0kd5enkye", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscogqp1m1ambk8y9e9eoy6",
+      "cmqscp3it1n5cmbk82oh39e6f",
+      "cmqscp3rz1n5smbk85axljifj",
+      "cmqscp3do1n54mbk8m6ubfgf4"
+    ],
+    "regs": [{ "regId": "cmrc5p3xs0c3hv880s50kwfwb", "rel": "GOVERNS" }],
+    "checklistGeneric": [
+      "Event schema agreed and versioned before implementation",
+      "Instrumentation deployed through the standard release path",
+      "Event failures alert rather than silently dropping"
+    ],
+    "checklistSpecific": [
+      "One event defined per funnel stage transition with a stable event name and required payload fields",
+      "Persistent lead identifier carried across web, portal, CRM, and policy admin so a journey can be stitched end to end",
+      "Timestamp captured in a single agreed time zone for every event",
+      "Bind event sourced from the policy system of record rather than inferred from a CRM stage change",
+      "Tracking cookies and identifiers deployed consistently with the published privacy notice and consent state",
+      "End-to-end seed journey run and every stage event confirmed present in the warehouse"
+    ],
+    "testing": [
+      {
+        "system": "Enterprise data warehouse/lakehouse",
+        "location": "Funnel event table",
+        "checkType": "presence",
+        "expected": "A seed journey from lead creation to bind produces one event per stage with a consistent lead identifier"
+      },
+      {
+        "system": "Enterprise data warehouse/lakehouse",
+        "location": "Funnel event stream",
+        "checkType": "absence",
+        "expected": "No stage event arrives with a missing lead identifier or a null timestamp"
+      }
+    ]
+  },
+  {
+    "taskId": "4279c079-a2ff-4257-a672-f5d3db19cb73",
+    "roles": [
+      { "roleId": "cmqsck0rp03vgmbk81b8spm25", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03thmbk8xznzk1nc", "rel": "Participant" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" },
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscpkx81o0wmbk8sved8cuw",
+      "cmqscpkvy1o0umbk859edutzs",
+      "cmqscovea1mqcmbk8um82vnx8",
+      "cmqscpkz61o10mbk89h2emobr"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Every candidate action traced to an evidenced bottleneck",
+      "Ranking method applied consistently across all candidates",
+      "Approved list published with owners and dates"
+    ],
+    "checklistSpecific": [
+      "Each candidate action sized with an expected conversion uplift and the pipeline value that implies",
+      "Delivery effort and dependency on IT or compliance estimated per action",
+      "Actions ranked on expected impact against effort, with the scoring shown rather than asserted",
+      "Named owner and target date assigned to every action taken forward",
+      "Actions not taken forward recorded with the reason so they are not silently dropped"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Prioritised conversion improvement action list",
+        "checkType": "presence",
+        "expected": "Action list shows expected uplift, effort, rank, owner, and target date for every item"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "Documented bottleneck list",
+        "checkType": "absence",
+        "expected": "No material bottleneck lacks either a prioritised action or a recorded reason for taking none"
+      }
+    ]
+  },
+  {
+    "taskId": "fa856542-0ae0-4dd4-8434-7452b455ba21",
+    "roles": [
+      { "roleId": "cmqsck0rp03tzmbk89wn5qa6y", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03vgmbk81b8spm25", "rel": "Participant" },
+      { "roleId": "cmqsck0ro03thmbk8xznzk1nc", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" },
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovea1mqcmbk8um82vnx8",
+      "cmqscpkx81o0wmbk8sved8cuw",
+      "cmqscp2wa1n46mbk8x2pbyjic",
+      "cmqscpkz61o10mbk89h2emobr"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Proposals tied to the conversion gaps evidenced in the analysis",
+      "Testing capacity and calendar considered before committing",
+      "Approved backlog published to the delivery team"
+    ],
+    "checklistSpecific": [
+      "One proposed test written per material conversion gap, naming the lever it targets",
+      "Expected uplift and required traffic volume estimated per test to confirm it is feasible to run",
+      "Tests sequenced so two tests do not compete for the same audience or the same page at once",
+      "Tests requiring compliance review or IT build flagged with their lead time",
+      "Prioritised test backlog approved by the marketing manager with a target start date per test"
+    ],
+    "testing": [
+      {
+        "system": "marketing automation platform",
+        "location": "Optimisation test backlog",
+        "checkType": "presence",
+        "expected": "Approved backlog lists each test with its target gap, expected uplift, required volume, and start date"
+      },
+      {
+        "system": "marketing automation platform",
+        "location": "Scheduled test calendar",
+        "checkType": "absence",
+        "expected": "No two scheduled tests overlap on the same audience and the same page at the same time"
+      }
+    ]
+  },
+  {
+    "taskId": "445d0d70-6b55-4760-a071-687fb3d063e3",
+    "roles": [
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" },
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" },
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp4l91n7cmbk83gl6rt5r",
+      "cmqscoh171m1smbk85uvthg16",
+      "cmqscp4rp1n7mmbk89u5arrgj",
+      "cmqscp32w1n4imbk8cl9att9q"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Reconciliation performed each reporting period before figures are published",
+      "Variances above tolerance investigated and explained",
+      "Reconciliation evidence retained for the period"
+    ],
+    "checklistSpecific": [
+      "CRM lead and opportunity counts tied to the warehouse funnel table for the same period and time zone",
+      "Quote counts tied to the rating/quoting system and bind counts tied to the policy system of record",
+      "Bound premium in the funnel report tied to the written premium figure used by finance",
+      "Timing differences from month-end cut-off identified and shown as a reconciling item, not absorbed",
+      "Residual unexplained variance logged as a data issue with an owner before the report is released"
+    ],
+    "testing": [
+      {
+        "system": "Enterprise data warehouse/lakehouse",
+        "location": "Funnel reconciliation worksheet",
+        "checkType": "presence",
+        "expected": "Each period has a completed reconciliation tying CRM, quoting, and policy system counts with reconciling items listed"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "Published funnel figures",
+        "checkType": "absence",
+        "expected": "No funnel figure is published while an unexplained variance above tolerance remains open"
+      }
+    ]
+  },
+  {
+    "taskId": "efc683dc-a792-4383-8f4b-3f9f695c0728",
+    "roles": [
+      { "roleId": "cmqsck0rp03vgmbk81b8spm25", "rel": "Owner" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" },
+      { "roleId": "cmqsck0ro03thmbk8xznzk1nc", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscplg21o1wmbk8lyl7zs1m",
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscogk91m0ymbk8wxxmgpcq",
+      "cmqscplh81o1ymbk8u8i73x3e"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Report issued to the published reporting calendar",
+      "Figures reconciled before circulation",
+      "Actions from the previous report carried forward and updated"
+    ],
+    "checklistSpecific": [
+      "Headline KPIs reported: lead volume, MQL and SQL conversion, quote rate, bind rate, and cost per bound policy",
+      "Performance shown against target and against the prior period, not in isolation",
+      "Completed optimisation tests summarised with measured lift and the rollout decision",
+      "Material movements explained with the driver named rather than left to the reader",
+      "Decisions requested from leadership listed explicitly at the front of the pack"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Marketing leadership funnel KPI pack",
+        "checkType": "presence",
+        "expected": "Current-period pack is issued with KPIs versus target and prior period, plus completed test results"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "Reported KPI figures",
+        "checkType": "absence",
+        "expected": "No KPI is reported from a period whose funnel reconciliation is still open"
+      }
+    ]
+  },
+  {
+    "taskId": "9aa8d050-8418-49ab-9aa2-612fbd45307e",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp4cf1n6umbk85bpt2uag",
+      "cmqscoh081m1qmbk8av2zausw",
+      "cmqscogsi1m1embk85gzwjlph",
+      "cmqscovgr1mqgmbk8d5ib3lk1"
+    ],
+    "regs": [{ "regId": "cmrc5p3xs0c3hv880s50kwfwb", "rel": "GOVERNS" }],
+    "checklistGeneric": [
+      "Access granted only on an approved request from the user's manager",
+      "Least-privilege profile applied rather than a broad default",
+      "Access change logged with requester, approver, and date"
+    ],
+    "checklistSpecific": [
+      "User assigned the profile or permission set matching their documented role, not a copy of a colleague's access",
+      "Territory and role hierarchy position set so record visibility follows the reporting line",
+      "Field-level security applied so prospect PII and consent fields are visible only to those who need them",
+      "Leavers and internal movers deactivated or re-profiled on their effective date, with record ownership transferred",
+      "Periodic access recertification completed and exceptions removed"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "User access and profile assignments",
+        "checkType": "presence",
+        "expected": "Every active CRM user has an approved access request and a role-matched permission profile"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Active user list",
+        "checkType": "absence",
+        "expected": "No terminated employee or unappointed producer holds an active CRM login"
+      }
+    ]
+  },
+  {
+    "taskId": "e22959f6-ae66-4b23-97ae-345cf1923344",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "cmqsck0z203zumbk8oyltzaw4", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscp3an1n4ymbk8z80rd202",
+      "cmqscp44s1n6gmbk837r8shy4",
+      "cmqscoh271m1umbk87ebv27kx"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Layout change requested and approved before it is built",
+      "Change deployed from sandbox, never edited directly in production",
+      "Affected users notified before the layout changes under them"
+    ],
+    "checklistSpecific": [
+      "Required-at-stage fields enforced on the layout so a lead cannot advance with the key data blank",
+      "Consent, do-not-call, and source attribution fields present and read-only where they must not be hand-edited",
+      "Score, score band, and appetite result surfaced on the layout so the producer sees them without clicking through",
+      "Separate layouts applied per record type where personal and commercial lines need different fields",
+      "Layout tested by a producer-profile user in sandbox before release, not only by the administrator"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead and opportunity page layouts",
+        "checkType": "presence",
+        "expected": "Production layouts contain the required-at-stage fields, consent fields, and score fields per the approved specification"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead layout field permissions",
+        "checkType": "absence",
+        "expected": "No consent or source attribution field is editable by a standard producer profile"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2flcmw1tpokfgz2h9s6tha",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscoh271m1umbk87ebv27kx",
+      "cmqscp4ss1n7ombk8fr6aw1s9",
+      "cmqscp4l91n7cmbk83gl6rt5r",
+      "cmqscp4qa1n7kmbk8cxw4odar"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Rules enforced at the point of entry, not only reported afterwards",
+      "Exceptions routed to an owner rather than silently allowed",
+      "Rule changes communicated to users before enforcement starts"
+    ],
+    "checklistSpecific": [
+      "Validation rules block save where a mandatory qualification field is blank at the relevant stage",
+      "Duplicate prevention enforced on email and phone at record creation, not only in a nightly job",
+      "Picklists locked down so lead source, disposition, and status cannot be entered as free text",
+      "Stale-record rules applied so untouched open leads are flagged to their owner after the defined period",
+      "Data hygiene exception queue worked to zero on the agreed cadence with the trend reported"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Validation and duplicate rules",
+        "checkType": "presence",
+        "expected": "Active validation rules and duplicate rules match the approved data hygiene rule set"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead records created since enforcement",
+        "checkType": "absence",
+        "expected": "No lead created after enforcement is missing a mandatory field or duplicates an existing open lead"
+      }
+    ]
+  },
+  {
+    "taskId": "ea22c1db-fa22-4683-a14d-dbfbf6220f30",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "cmqsck0z203zumbk8oyltzaw4", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp44s1n6gmbk837r8shy4",
+      "cmqscogud1m1imbk8gtnrzk8m",
+      "cmqscp3gv1n5ambk8g72ztaj0",
+      "cmqscpl3d1o18mbk8rk6n5z9p"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Configuration change follows the documented change-control route",
+      "Metadata documented so the object model stays understandable",
+      "Sandbox refreshed and the change tested before release"
+    ],
+    "checklistSpecific": [
+      "Lead, opportunity, and account object relationships kept aligned to the agreed conversion path",
+      "Custom fields reviewed periodically and unused fields retired rather than accumulated",
+      "Lead-to-opportunity conversion field mapping verified so no field is silently dropped at conversion",
+      "Record types and sales processes kept in step with the current lines of business",
+      "Data dictionary for lead and opportunity fields kept current with owner and purpose per field"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Lead-to-opportunity conversion field mapping",
+        "checkType": "presence",
+        "expected": "Every field required downstream is mapped in the conversion configuration and populates on a test conversion"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Custom field inventory",
+        "checkType": "absence",
+        "expected": "No custom lead or opportunity field remains active without an owner and documented purpose"
+      }
+    ]
+  },
+  {
+    "taskId": "a1bf9595-cd21-45f0-acb9-b38d2897abfd",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp44s1n6gmbk837r8shy4",
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscp3an1n4ymbk8z80rd202",
+      "cmqscp3rz1n5smbk85axljifj"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Automation documented with its trigger, action, and owner",
+      "Change tested in sandbox against representative records",
+      "Failure handling defined so an error does not strand a record"
+    ],
+    "checklistSpecific": [
+      "Assignment rules, SLA timers, and escalation alerts confirmed to fire in the intended order without looping",
+      "Automation error logs reviewed on the agreed cadence and failed records reprocessed",
+      "Retired automations deactivated rather than left running alongside their replacement",
+      "Automations that send outbound messages checked against the suppression and consent flags before send",
+      "Automation inventory kept current with trigger, purpose, owner, and last-tested date"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Active automation and assignment rule inventory",
+        "checkType": "presence",
+        "expected": "Every active automation is listed with its trigger, owner, and last-tested date"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Automation error log",
+        "checkType": "absence",
+        "expected": "No automation failure remains unreprocessed beyond the agreed review cadence"
+      }
+    ]
+  },
+  {
+    "taskId": "b5c7f064-3267-4e50-8e3a-a1d8b79a3aa2",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "cmrqex4v60007v8w005phxlv9", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp44s1n6gmbk837r8shy4",
+      "cmqscpkx81o0wmbk8sved8cuw",
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscpl3d1o18mbk8rk6n5z9p"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Every request logged in the tracking system with a requester and date",
+      "Business justification captured before work is scheduled",
+      "Requester informed of the decision and the target release"
+    ],
+    "checklistSpecific": [
+      "Intake form captures the business problem and expected benefit, not just the requested configuration",
+      "Requests triaged into configuration, integration, or development with the correct route assigned",
+      "Duplicate and conflicting requests merged before they reach the build queue",
+      "Requests with compliance or data-privacy impact flagged for review before build",
+      "Approved requests scheduled into a named release with a target date and rollback plan"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "CRM change request backlog",
+        "checkType": "presence",
+        "expected": "Each open request records requester, business justification, triage category, and target release"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Production configuration changes",
+        "checkType": "absence",
+        "expected": "No production configuration change exists without a corresponding approved change request"
+      }
+    ]
+  },
+  {
+    "taskId": "a02f04b3-0f8b-4dfe-b37c-1d0ad6c94ed1",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscogpq1m18mbk8gdqx5qkf",
+      "cmqscp3rz1n5smbk85axljifj",
+      "cmqscp3lx1n5gmbk8a2ok7wtg",
+      "cmqscoh081m1qmbk8av2zausw"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Interface contract agreed and versioned with the owning system",
+      "Failures alert a named owner rather than queueing silently",
+      "Data in transit and at rest protected to the classification level"
+    ],
+    "checklistSpecific": [
+      "Policy admin integration confirmed to post bind events back to the originating opportunity",
+      "Commission system integration confirmed to key on the same producer identifier as the CRM",
+      "Producer licence and appointment status synced from the producer management system on the agreed frequency",
+      "Integration error queues monitored daily and reprocessed within the agreed window",
+      "Field mappings and transformation rules documented per interface with a named owner"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Integration monitoring and error queues",
+        "checkType": "presence",
+        "expected": "Each active interface has monitoring in place with an owner and a daily-reviewed error queue"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Integration error queue",
+        "checkType": "absence",
+        "expected": "No integration record remains failed beyond the agreed reprocessing window"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2flcdm1tkwkfgz9veffili",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp4m81n7embk885jhucdp",
+      "cmqscp4qa1n7kmbk8cxw4odar",
+      "cmqscoh171m1smbk85uvthg16",
+      "cmqscp4o01n7gmbk8nzsb85bd"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Quality measured against defined, published rules",
+      "Findings logged with an owner and remediation date",
+      "Scores trended over time, not just reported as a snapshot"
+    ],
+    "checklistSpecific": [
+      "Completeness measured on the mandatory lead, contact, and opportunity fields and scored per owner",
+      "Duplicate scan run across leads, contacts, and accounts with the duplicate rate reported",
+      "Stale records identified (open leads untouched beyond the threshold, opportunities past their close date)",
+      "Invalid contactability measured — bounced emails, unreachable phone numbers, and undeliverable addresses",
+      "Data quality scorecard published by team and producer with the worst offenders followed up"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "CRM data quality scorecard",
+        "checkType": "presence",
+        "expected": "Scorecard is published for the period showing completeness, duplicate rate, staleness, and contactability by owner"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Open data quality findings",
+        "checkType": "absence",
+        "expected": "No data quality finding remains open past its remediation due date without escalation"
+      }
+    ]
+  },
+  {
+    "taskId": "812ed25d-5ddf-47bf-84a4-2c06111ae17d",
+    "roles": [
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Owner" },
+      { "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd", "use": "performed" },
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscplg21o1wmbk8lyl7zs1m",
+      "cmqscogk91m0ymbk8wxxmgpcq",
+      "cmqscplh81o1ymbk8u8i73x3e"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Report produced to the published calendar",
+      "Metric definitions unchanged or the change is disclosed",
+      "Distribution list reviewed so the right audience receives it"
+    ],
+    "checklistSpecific": [
+      "Active user rate reported as logins and meaningful actions, not licences assigned",
+      "Timeliness of activity logging reported — share of calls and meetings logged within the agreed window",
+      "Pipeline hygiene metrics included: opportunities with a next step, and stale open opportunities",
+      "Adoption cut by team, territory, and producer tier so coaching can be targeted",
+      "Low-adoption users listed for follow-up with the responsible manager named"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "CRM adoption metrics report",
+        "checkType": "presence",
+        "expected": "Report is issued for the period with active-user rate, activity logging timeliness, and pipeline hygiene by team"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "Adoption report distribution",
+        "checkType": "absence",
+        "expected": "No low-adoption user appears in the report without a named follow-up manager"
+      }
+    ]
+  },
+  {
+    "taskId": "e72e0d3d-c75f-4c4f-b75f-e445f8c93b76",
+    "roles": [
+      { "roleId": "cmqsck0rp03u3mbk8azuncfg0", "rel": "Owner" },
+      { "roleId": "5769c052-b722-4978-829f-fbd8239d0f42", "rel": "Participant" },
+      { "roleId": "c5f70484-a30c-4143-bf27-8b085c9d1e75", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851", "use": "performed" },
+      { "appId": "cmqsck0z103yjmbk8y9kyaaxo", "use": "performed" },
+      { "appId": "cmrqex4v60007v8w005phxlv9", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscovog1mqwmbk8isau1zhj",
+      "cmqscplwr1o2smbk8cadxfrk8",
+      "cmqscplso1o2kmbk8cwqo9aso",
+      "cmqscplz01o2wmbk8uwbmt1v8"
+    ],
+    "regs": [{ "regId": "cmrc4tuu004nbv8f855o23c6g", "rel": "GOVERNS" }],
+    "checklistGeneric": [
+      "Training delivered from the current, version-controlled material",
+      "Attendance and completion recorded per user",
+      "Refresher scheduled when the system materially changes"
+    ],
+    "checklistSpecific": [
+      "New producers trained before their CRM access is activated, not after",
+      "Session covers lead acceptance, SLA timers, disposition codes, and activity logging as the core workflow",
+      "Consent, do-not-call, and prospect data handling rules covered for anyone making outbound contact",
+      "Hands-on exercise completed in the training environment with each user creating, accepting, and disposing a test lead",
+      "Completion recorded against the user and a job aid issued for reference after the session"
+    ],
+    "testing": [
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "User training completion records",
+        "checkType": "presence",
+        "expected": "Every active CRM user has a recorded completion for the current version of the workflow training"
+      },
+      {
+        "system": "CRM (Salesforce/Dynamics)",
+        "location": "Newly activated user accounts",
+        "checkType": "absence",
+        "expected": "No producer holds active CRM access without a recorded training completion"
+      }
+    ]
+  }
+]

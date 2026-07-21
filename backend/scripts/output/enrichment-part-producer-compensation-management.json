@@ -1,0 +1,5763 @@
+[
+  {
+    "taskId": "cmr2fjnhf11arkfgzjwcxcnq3",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscolo91m9umbk8moj6jwxb",
+      "cmqscpcjw1nlsmbk8rm9clavs",
+      "cmqscol661m8ymbk8vhpve26r"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Change approved by authorised approver before production release",
+      "Effective date recorded and evidence retained",
+      "Post-implementation check performed"
+    ],
+    "checklistSpecific": [
+      "Promote the schedule from UAT to production using the approved release ticket, not a direct production edit",
+      "Confirm the schedule status flips from Pending to Active on its effective date and not before",
+      "Run one live bound policy through the engine post-activation and confirm the rate matches the approved rate table",
+      "Verify the prior schedule version is end-dated the day before the new effective date with no gap or overlap",
+      "Confirm the deployer is not the same user who built or approved the schedule"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Commission schedule header",
+        "checkType": "presence",
+        "expected": "Schedule status is Active with the approved effective date and a release ticket reference"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Schedule version history",
+        "checkType": "absence",
+        "expected": "No overlapping active date ranges for the same product/tier combination"
+      }
+    ]
+  },
+  {
+    "taskId": "8c951f55-9127-403f-b6a2-fe73bcc8a68f",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpcjw1nlsmbk8rm9clavs",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscovfm1mqembk8jo2ssfsh"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Logic built to the approved design specification",
+      "Calculation parameters peer-reviewed before release",
+      "Build evidence retained"
+    ],
+    "checklistSpecific": [
+      "Enter each tier band with explicit lower and upper written-premium bounds so no gap or overlap exists between bands",
+      "Set whether tiers pay retroactive-to-first-dollar or incremental-on-excess and confirm against the signed schedule design",
+      "Configure the bonus threshold measurement basis (written vs earned, gross vs net of cancellations) explicitly",
+      "Set the tier measurement period (calendar year, policy year, rolling 12) and the true-up point",
+      "Test one producer at each band boundary value (exactly at threshold, one dollar under, one dollar over)"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Tier band configuration",
+        "checkType": "absence",
+        "expected": "No gaps or overlaps between consecutive tier bands"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Bonus threshold rule",
+        "checkType": "presence",
+        "expected": "Threshold basis and measurement period are explicitly set, not defaulted"
+      }
+    ]
+  },
+  {
+    "taskId": "a12db716-794f-4fbd-99bc-a4a5584422fe",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpc9m1nlcmbk86982l9uc",
+      "cmqscpcjw1nlsmbk8rm9clavs",
+      "cmqscovfm1mqembk8jo2ssfsh"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Effective dates set per approved schedule",
+      "No retroactive dating without documented approval",
+      "Configuration evidence retained"
+    ],
+    "checklistSpecific": [
+      "Set the schedule effective date to the policy effective date basis, not the transaction posting date",
+      "Configure grandfathering so in-force policies written under the prior schedule keep the prior rate at renewal where the agreement requires it",
+      "Set an explicit end date on the superseded schedule version rather than leaving it open-ended",
+      "Confirm no effective date is set earlier than the producer agreement addendum date",
+      "Test a policy dated one day before and one day after the effective date and confirm the correct schedule is selected"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Schedule effective dating",
+        "checkType": "absence",
+        "expected": "No effective date precedes the signed agreement addendum date"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Grandfathering rule set",
+        "checkType": "presence",
+        "expected": "Grandfathering treatment is explicitly set for in-force and renewal business"
+      }
+    ]
+  },
+  {
+    "taskId": "a0abe905-93b1-46b3-a2fd-96980238d685",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpcjw1nlsmbk8rm9clavs",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscol7f1m90mbk8uqz22zfo"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5l76k06lnv880o65lvush",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Rates configured to the approved rate table",
+      "Maker-checker applied before activation",
+      "Configuration evidence retained"
+    ],
+    "checklistSpecific": [
+      "Configure a distinct new-business and renewal rate for every product line in scope, not a single blended rate",
+      "Map each producer tier code to its rate row and confirm no producer tier is left on the system default rate",
+      "Set the commission basis per product (written premium, collected premium, or earned premium) explicitly",
+      "Exclude taxes, surcharges, and policy fees from the commissionable base where the schedule says non-commissionable",
+      "Have a second analyst re-key a 10-row sample of rates from the source rate table and confirm zero variances"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Product/tier rate matrix",
+        "checkType": "absence",
+        "expected": "No product-tier combination is left on the system default rate"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Commissionable base setup",
+        "checkType": "presence",
+        "expected": "Taxes, fees and surcharges are flagged non-commissionable per the schedule"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2flb7o1sy4kfgzmy5vrux9",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpcjw1nlsmbk8rm9clavs",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscol7f1m90mbk8uqz22zfo"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5tgw90ic7v8800q5e8wdn",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Split and override rules built to signed agreements",
+      "Rules peer-reviewed before activation",
+      "Evidence of build retained"
+    ],
+    "checklistSpecific": [
+      "Confirm every split rule totals exactly 100% across participating producer codes with no rounding residue",
+      "Set the override rate at each hierarchy level and confirm overrides do not stack beyond the agreed number of levels",
+      "Configure the split basis (percentage of premium vs percentage of commission) explicitly per agreement",
+      "Confirm every producer receiving a split or override is an appointed, licensed code and not a placeholder",
+      "Test a multi-producer policy end to end and confirm total paid commission equals the schedule rate, not more"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Split rule set",
+        "checkType": "presence",
+        "expected": "Each split rule sums to 100% across participating producer codes"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Override hierarchy rules",
+        "checkType": "absence",
+        "expected": "No override cascades beyond the agreed number of hierarchy levels"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2flayf1su6kfgzzahoersg",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpcjw1nlsmbk8rm9clavs",
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscpl4a1o1ambk8c60kuqo6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Hierarchy mapped to the master producer record",
+      "Mapping peer-reviewed",
+      "Change evidence retained"
+    ],
+    "checklistSpecific": [
+      "Map each writing producer code to its agency, general agent and regional parent in the compensation engine",
+      "Confirm every child code has exactly one active parent at any point in time with no circular reporting loops",
+      "Set effective-dated hierarchy rows so a mid-period producer move does not restate prior-period commissions",
+      "Reconcile the hierarchy node count in the compensation engine to the agency/producer management system master",
+      "Confirm terminated or non-appointed codes are marked inactive rather than deleted, to preserve history"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Producer hierarchy tree",
+        "checkType": "absence",
+        "expected": "No producer code has more than one active parent or a circular parent chain"
+      },
+      {
+        "system": "agency/producer management system",
+        "location": "Producer master vs engine hierarchy",
+        "checkType": "presence",
+        "expected": "Node counts reconcile between the producer master and the compensation engine"
+      }
+    ]
+  },
+  {
+    "taskId": "aa64b746-d9b2-475b-878e-61569a917d07",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscpcsq1nm8mbk8ex4c81sw",
+      "cmqscog6l1m08mbk83rau8hcj"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5tc4r0i6xv880jsbr9y6v",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc4qgaj000tv8f89i0i2onb",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Design documented against a written specification",
+      "Cost impact modelled before approval",
+      "Design reviewed by distribution and finance"
+    ],
+    "checklistSpecific": [
+      "Define the base rate by product line and channel and state the commissionable premium basis for each",
+      "Define tier thresholds with the qualifying metric (written premium, policy count, or growth rate) named explicitly",
+      "State the qualifying criteria for each tier including minimum loss ratio or persistency gates where applicable",
+      "Model total commission expense at low, expected and high production scenarios and compare to the expense budget",
+      "Confirm the design does not create an incentive to place business against customer interest and note the mitigation"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": "Commission schedule design document",
+        "checkType": "presence",
+        "expected": "Base rates, tiers, qualifying criteria and commissionable basis are all specified"
+      },
+      {
+        "system": null,
+        "location": "Cost impact model",
+        "checkType": "presence",
+        "expected": "Expense at expected production is compared against the approved commission budget"
+      }
+    ]
+  },
+  {
+    "taskId": "6ff30930-1769-4dbc-b29d-2601698f60e7",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl3d1o18mbk8rk6n5z9p",
+      "cmqscpc431nl2mbk8qwlixbgk",
+      "cmqscpksp1o0ombk8ubuf84ya"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Version logged with unique identifier",
+      "Effective dates recorded",
+      "Record retained per retention schedule"
+    ],
+    "checklistSpecific": [
+      "Assign the schedule a sequential version number and record the superseded version it replaces",
+      "Record the effective from and effective to dates for the version in the master register",
+      "Attach the approval evidence (approver name, date, method) to the register row",
+      "Record the products, channels and producer tiers in scope for this version",
+      "Confirm the register has no version gaps in the date sequence for any product line"
+    ],
+    "testing": [
+      {
+        "system": "document management repository",
+        "location": "Commission schedule master register",
+        "checkType": "presence",
+        "expected": "Every schedule version has an ID, date range, approver and superseded-version reference"
+      },
+      {
+        "system": "document management repository",
+        "location": "Master register date sequence",
+        "checkType": "absence",
+        "expected": "No unexplained gap between the end date of one version and the start of the next"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjn8e1169kfgzlyif55tl",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03unmbk8aextgm34",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp1yg1n2gmbk8f0gkdke6",
+      "cmqscpcbz1nlgmbk8fbb654i9",
+      "cmqscpc431nl2mbk8qwlixbgk"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc4qgaj000tv8f89i0i2onb",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Approval obtained from the authorised approver",
+      "Approval evidence retained",
+      "Approval predates activation"
+    ],
+    "checklistSpecific": [
+      "Route the schedule to the approver named in the delegation of authority matrix for the modelled expense value",
+      "Confirm the approval package includes the rate tables, cost model and legal/compliance review comments",
+      "Capture the approver identity, timestamp and approval decision in the workflow record",
+      "Confirm the approval date is before the schedule effective date and before production activation",
+      "Confirm any conditions attached to the approval are logged as open actions with owners"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Schedule approval record",
+        "checkType": "presence",
+        "expected": "Approver, timestamp and decision are captured against the schedule version"
+      },
+      {
+        "system": "workflow/case management tool",
+        "location": "Approval vs activation dates",
+        "checkType": "absence",
+        "expected": "No schedule activated with an approval dated after activation"
+      }
+    ]
+  },
+  {
+    "taskId": "cc53ae28-f7d8-4d33-aa04-58c65faf413b",
+    "roles": [
+      {
+        "roleId": "cmqsck0rn03rfmbk8mskgxzzy",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103yjmbk8y9kyaaxo",
+        "use": "performed"
+      },
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp1n21n1ymbk80ec1eahz",
+      "cmqscp1o41n20mbk8x267q2fx",
+      "cmqscovdd1mqambk8nf5s8p4j"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5l76k06lnv880o65lvush",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5vyni0m77v880m2r2bedg",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Publication approved before release",
+      "Distribution list matches in-scope producers",
+      "Publication evidence retained"
+    ],
+    "checklistSpecific": [
+      "Publish the effective schedule to the producer portal and confirm it renders for a test producer login",
+      "Issue the agreement addendum to each in-scope producer and track signature or acknowledgement status",
+      "Confirm the published version number matches the activated version in the compensation engine",
+      "Confirm producers not in scope for the change do not see the new schedule on their portal view",
+      "Chase unacknowledged addenda after the stated response window and log outstanding producers"
+    ],
+    "testing": [
+      {
+        "system": "Broker & Agent Portal",
+        "location": "Producer schedule documents",
+        "checkType": "presence",
+        "expected": "Published schedule version matches the version active in the compensation engine"
+      },
+      {
+        "system": "Broker & Agent Portal",
+        "location": "Addendum acknowledgement tracker",
+        "checkType": "absence",
+        "expected": "No in-scope producer left without an issued addendum"
+      }
+    ]
+  },
+  {
+    "taskId": "1c975928-4fc8-411c-8e41-0e0d01d8c5cf",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscolax1m96mbk8shct8beo",
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscpczw1nmmmbk86b0euc5m"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5tc4r0i6xv880jsbr9y6v",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Benchmark sources documented",
+      "Comparison made on a like-for-like basis",
+      "Analysis reviewed before use"
+    ],
+    "checklistSpecific": [
+      "Normalise external benchmark rates to the same commissionable basis used internally before comparing",
+      "Compare rates separately for new business and renewal, and separately by channel (independent agent, broker, direct)",
+      "Show the gap to market in basis points by product line and flag lines outside the target band",
+      "Note where benchmark data is thin or stale and mark those product lines as low confidence",
+      "Attach the benchmark source, vintage and sample size to the analysis before circulating"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": "Commission benchmarking analysis",
+        "checkType": "presence",
+        "expected": "Benchmark source, vintage and normalisation basis are documented alongside the gap analysis"
+      },
+      {
+        "system": null,
+        "location": "Benchmark comparison",
+        "checkType": "absence",
+        "expected": "No comparison made between rates on different commissionable bases"
+      }
+    ]
+  },
+  {
+    "taskId": "95c28a06-c33d-4047-ad63-8965ed729bd0",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscpcjw1nlsmbk8rm9clavs",
+      "cmqscpc431nl2mbk8qwlixbgk"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Test cases cover the approved scenarios",
+      "Results compared to independently calculated expected values",
+      "Test evidence retained"
+    ],
+    "checklistSpecific": [
+      "Build a test pack covering new business, renewal, endorsement, cancellation and a multi-producer split policy",
+      "Calculate the expected commission independently in a spreadsheet before running the engine, not after",
+      "Test at each tier boundary and at the bonus threshold, including one case just below the threshold",
+      "Confirm the engine excludes non-commissionable fees and taxes from the commissionable base in the results",
+      "Record every variance between expected and engine output with a disposition before sign-off"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Schedule test run results",
+        "checkType": "presence",
+        "expected": "Every test case has an independently derived expected value and a recorded outcome"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Test variance log",
+        "checkType": "absence",
+        "expected": "No unexplained variance left open at test sign-off"
+      }
+    ]
+  },
+  {
+    "taskId": "d9b23ef0-872e-491a-b90c-83ba7d18490f",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscpcf51nlkmbk8x7chlx90"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5tggu0ibtv880ggwz9beo",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Rate tables traced to executed contract terms",
+      "Tables peer-reviewed before load",
+      "Source contract references retained"
+    ],
+    "checklistSpecific": [
+      "Extract the commission terms from each executed producer agreement and cite the clause reference on the rate row",
+      "Build one rate row per product, channel, tier and new-business/renewal combination with no blended shortcuts",
+      "Flag any contract term that cannot be expressed in the engine rate structure for exception handling",
+      "Confirm each rate table row has an effective date matching the agreement or addendum date",
+      "Have a second reviewer trace a sample of rate rows back to the executed contract clause"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": "Commission rate table",
+        "checkType": "presence",
+        "expected": "Every rate row cites the source agreement and clause reference"
+      },
+      {
+        "system": null,
+        "location": "Rate table coverage",
+        "checkType": "absence",
+        "expected": "No product/channel combination in force is missing a rate row"
+      }
+    ]
+  },
+  {
+    "taskId": "03b3b783-91eb-4b2a-bda0-be34f587db10",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscpcjw1nlsmbk8rm9clavs",
+      "cmqscovjm1mqmmbk8zena4laq"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Adjustments applied per the approved schedule",
+      "Calculation basis consistent with original transaction",
+      "Adjustment evidence retained"
+    ],
+    "checklistSpecific": [
+      "Apply the commission rate in force at the original policy effective date to mid-term endorsement premium, not the current rate",
+      "Confirm pro-rata premium adjustments carry the same producer code and split as the original transaction",
+      "Confirm negative endorsements produce a negative commission line rather than being suppressed",
+      "Check the endorsement adjustment total ties back to the endorsement premium extract for the period",
+      "Confirm short-rate versus pro-rata treatment on cancellations matches the policy contract terms"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Endorsement adjustment lines",
+        "checkType": "presence",
+        "expected": "Each endorsement commission line references the originating endorsement transaction"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Endorsement rate applied",
+        "checkType": "absence",
+        "expected": "No endorsement priced at a schedule version other than the one in force at policy effective date"
+      }
+    ]
+  },
+  {
+    "taskId": "6044370c-ff87-433e-9bc8-cadbc7a6437e",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscpcjw1nlsmbk8rm9clavs",
+      "cmqscom1e1maembk8v4uv26u0"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Run executed on the approved schedule version",
+      "Run completes with no unhandled errors",
+      "Run output retained"
+    ],
+    "checklistSpecific": [
+      "Confirm the calculation period start and end dates match the published commission calendar before submitting the run",
+      "Confirm the run picks up the active schedule version and not a draft or superseded version",
+      "Check the run log for aborted or skipped records and confirm the count is zero before accepting the run",
+      "Confirm split and override lines are generated alongside base lines for every multi-producer policy",
+      "Compare total calculated commission to the prior period and investigate any movement outside the tolerance band"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Calculation run log",
+        "checkType": "absence",
+        "expected": "No records skipped, aborted or in error status at run completion"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Run header",
+        "checkType": "presence",
+        "expected": "Run references the active schedule version and the correct period dates"
+      }
+    ]
+  },
+  {
+    "taskId": "84fa4953-9723-4cd5-b341-c273daa3c9cc",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103yjmbk8y9kyaaxo",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscov7s1mq0mbk8oxfpgl8h",
+      "cmqscovdd1mqambk8nf5s8p4j",
+      "cmqscov8r1mq2mbk8ph6o39cx"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Only approved statements are distributed",
+      "Distribution completeness confirmed",
+      "Distribution evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm the statement batch carries the final sign-off flag before posting to the portal",
+      "Post statements and confirm the posted statement count equals the approved statement count",
+      "Spot-check one statement in the portal against the source calculation record for the same producer",
+      "Confirm each statement is visible only to the producer it belongs to under the portal entitlement model",
+      "Log the posting timestamp and notify producers per the published statement calendar"
+    ],
+    "testing": [
+      {
+        "system": "Broker & Agent Portal",
+        "location": "Posted statement batch",
+        "checkType": "presence",
+        "expected": "Posted statement count equals the approved statement count for the period"
+      },
+      {
+        "system": "Broker & Agent Portal",
+        "location": "Statement entitlements",
+        "checkType": "absence",
+        "expected": "No statement visible to a producer other than its owner"
+      }
+    ]
+  },
+  {
+    "taskId": "ee181393-037f-43dc-b8bf-4ffa9ae22f65",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscomop1mbcmbk8hcolxq5d",
+      "cmqscovjm1mqmmbk8zena4laq",
+      "cmqscom1e1maembk8v4uv26u0"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Extract run against the correct period",
+      "Control totals captured at extract",
+      "Extract output retained"
+    ],
+    "checklistSpecific": [
+      "Set the extract period to match the commission calendar cut-off, using transaction posting date consistently",
+      "Include bound, endorsed and cancelled transactions and confirm each type appears in the record-type counts",
+      "Capture the extract record count and premium control total before any downstream transformation",
+      "Confirm the extract excludes non-commissionable premium components per the schedule definitions",
+      "Confirm no transaction already commissioned in a prior period is picked up again"
+    ],
+    "testing": [
+      {
+        "system": "Enterprise data warehouse/lakehouse",
+        "location": "Premium extract control totals",
+        "checkType": "presence",
+        "expected": "Record count and premium total captured and stamped on the extract"
+      },
+      {
+        "system": "Enterprise data warehouse/lakehouse",
+        "location": "Extract transaction set",
+        "checkType": "absence",
+        "expected": "No transaction already included in a prior commission period"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fht5z063lkfgz03hq0sts",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpk8t1nzsmbk82bets6eg",
+      "cmqscpl891o1gmbk8564fr6p6",
+      "cmqscpc671nl6mbk845vi479p"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Variance threshold applied consistently",
+      "Material variances escalated to the named owner",
+      "Escalation evidence retained"
+    ],
+    "checklistSpecific": [
+      "Apply the defined variance threshold in both percentage and absolute dollar terms and flag on either breach",
+      "List each flagged variance with producer code, period, expected value, actual value and dollar difference",
+      "Escalate variances above the material threshold to the Distribution Operations Manager before disbursement approval",
+      "Confirm no flagged variance is cleared without a written explanation attached",
+      "Track flagged variances to closure and confirm none remain open at statement release"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Variance exception report",
+        "checkType": "presence",
+        "expected": "Each flagged variance carries producer, amount, threshold breached and owner"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Variance queue at release",
+        "checkType": "absence",
+        "expected": "No material variance left unresolved at statement release"
+      }
+    ]
+  },
+  {
+    "taskId": "7e239075-de59-4f5d-9ded-5b0a7f0ebcf0",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103yjmbk8y9kyaaxo",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkb21nzumbk8gmuxnsgb",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscpcxs1nmimbk8ozeffmr7"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5l76k06lnv880o65lvush",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Statements generated from the approved calculation run",
+      "Statement format matches the approved template",
+      "Generation evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm each statement shows gross commission, chargebacks, adjustments and net payable as separate lines",
+      "Confirm the statement period header matches the calculation run period",
+      "Confirm statements are produced for every active producer with activity, including zero-net producers",
+      "Verify the sum of individual statement net amounts equals the calculation run net total",
+      "Check that policy-level detail on a sample statement traces to the underlying premium transaction"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Statement batch totals",
+        "checkType": "presence",
+        "expected": "Sum of statement net amounts equals the calculation run net total"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Statement population",
+        "checkType": "absence",
+        "expected": "No active producer with period activity missing a statement"
+      }
+    ]
+  },
+  {
+    "taskId": "30f5c732-62a0-4479-8b3c-64a46f9c12ef",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscomop1mbcmbk8hcolxq5d",
+      "cmqscom1e1maembk8v4uv26u0",
+      "cmqscovjm1mqmmbk8zena4laq"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Load reconciles to extract control totals",
+      "Load errors resolved before calculation",
+      "Load log retained"
+    ],
+    "checklistSpecific": [
+      "Compare the loaded record count and premium total to the extract control totals before releasing for calculation",
+      "Review the load reject file and confirm every rejected record is corrected and reloaded or formally written off",
+      "Confirm producer codes on loaded transactions all resolve to an active code in the compensation engine",
+      "Confirm no partial load is left in the staging area from a failed prior attempt",
+      "Stamp the load with the source extract identifier so the lineage is traceable"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Transaction load reconciliation",
+        "checkType": "presence",
+        "expected": "Loaded count and premium total match the source extract control totals"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Load reject queue",
+        "checkType": "absence",
+        "expected": "No unresolved rejected records remain before the calculation run"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fj5fu0sixkfgzcgxqwr6z",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp1yg1n2gmbk8f0gkdke6",
+      "cmqscol7f1m90mbk8uqz22zfo",
+      "cmqscpc591nl4mbk85ap9kj7n"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Adjustment approved by an authorised approver",
+      "Approver independent of the preparer",
+      "Approval evidence retained"
+    ],
+    "checklistSpecific": [
+      "Route each manual adjustment to the approval tier matching its dollar value in the authority matrix",
+      "Confirm the approver is not the analyst who keyed the adjustment",
+      "Confirm each adjustment request carries a written reason and supporting calculation before approval",
+      "Confirm approvals are captured in the workflow tool, not by email or verbal instruction",
+      "Confirm no adjustment is released to payment while its approval status is pending"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Manual adjustment approvals",
+        "checkType": "presence",
+        "expected": "Each adjustment has an approver, timestamp and authority-tier reference"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Adjustment preparer vs approver",
+        "checkType": "absence",
+        "expected": "No adjustment where preparer and approver are the same user"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fj5460sdokfgzmli1zhf2",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl891o1gmbk8564fr6p6",
+      "cmqscpkd01nzymbk811yk4bs3",
+      "cmqscovjm1mqmmbk8zena4laq"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Every exception assigned an owner",
+      "Exceptions cleared within the defined window",
+      "Resolution evidence retained"
+    ],
+    "checklistSpecific": [
+      "Work the exception queue by category (missing producer code, no rate found, split not summing, negative premium)",
+      "For no-rate-found exceptions confirm whether the product/tier is genuinely unmapped or the policy data is wrong",
+      "Re-run the affected records after correction and confirm they drop out of the exception queue",
+      "Confirm no exception is cleared by suppression or force-posting without an approved reason code",
+      "Confirm the exception queue is at zero before statements are generated"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Calculation exception queue",
+        "checkType": "absence",
+        "expected": "Exception queue is empty before statement generation"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Exception resolution log",
+        "checkType": "presence",
+        "expected": "Each cleared exception records the cause, action taken and clearing user"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhlyl02ygkfgz7o1lb91z",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovjm1mqmmbk8zena4laq",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscomop1mbcmbk8hcolxq5d"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Duplicates identified on a defined key",
+      "Missing records traced to source",
+      "Corrections evidenced"
+    ],
+    "checklistSpecific": [
+      "Test for duplicates on the policy number plus transaction number plus effective date key",
+      "Confirm any duplicate found is removed at source rather than netted out with an offsetting manual entry",
+      "Trace each missing record back to the policy administration source to confirm whether it exists there",
+      "Re-run the extract or targeted top-up load after correction and re-check control totals",
+      "Log each missing or duplicate record with its root cause for the data integrity log"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Loaded transaction set",
+        "checkType": "absence",
+        "expected": "No duplicate rows on the policy/transaction/effective-date key"
+      },
+      {
+        "system": "Enterprise data warehouse/lakehouse",
+        "location": "Source-to-engine record reconciliation",
+        "checkType": "presence",
+        "expected": "Source record count equals engine record count after correction"
+      }
+    ]
+  },
+  {
+    "taskId": "649384dd-5c40-4374-920c-0c02681a51c7",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpcbz1nlgmbk8fbb654i9",
+      "cmqscp1yg1n2gmbk8f0gkdke6",
+      "cmqscpc431nl2mbk8qwlixbgk"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Routed to the authorised sign-off role",
+      "Supporting reconciliation attached",
+      "Routing evidence retained"
+    ],
+    "checklistSpecific": [
+      "Attach the run-to-premium-control reconciliation and the variance exception report to the routing package",
+      "Confirm the statement file total matches the reconciliation net payable figure before routing",
+      "Route to the approver named in the authority matrix for the batch value",
+      "Confirm no open material variance or unresolved exception is outstanding at the point of routing",
+      "Record the routing timestamp so the statement calendar SLA can be measured"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Statement sign-off routing record",
+        "checkType": "presence",
+        "expected": "Routing package includes reconciliation and variance report attachments"
+      },
+      {
+        "system": "workflow/case management tool",
+        "location": "Sign-off queue",
+        "checkType": "absence",
+        "expected": "No statement file routed with open material variances"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhswk0605kfgztg8h25bt",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscol561m8wmbk8rrhp9138",
+      "cmqscomop1mbcmbk8hcolxq5d",
+      "cmqscpl4a1o1ambk8c60kuqo6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Reconciliation performed to an independent control",
+      "Differences investigated and explained",
+      "Reconciliation evidence retained"
+    ],
+    "checklistSpecific": [
+      "Compare commissionable premium in the run to the premium control total from the policy or billing system for the same period",
+      "Confirm the commission-to-premium ratio by product line sits within the expected range for the schedule in force",
+      "Explain every reconciling item with a dollar amount and category, not a single balancing plug",
+      "Confirm timing differences are separately identified from genuine errors",
+      "Have the reconciliation reviewed and signed by someone other than the preparer"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Run-to-premium-control reconciliation",
+        "checkType": "presence",
+        "expected": "Reconciliation balances with every item categorised and quantified"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Reconciliation",
+        "checkType": "absence",
+        "expected": "No unexplained balancing plug used to force agreement"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhlo002sxkfgz6e5cdwii",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovjm1mqmmbk8zena4laq",
+      "cmqscomop1mbcmbk8hcolxq5d",
+      "cmqscpl4a1o1ambk8c60kuqo6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Completeness tested against an independent count",
+      "Gaps investigated before calculation",
+      "Test evidence retained"
+    ],
+    "checklistSpecific": [
+      "Compare the engine transaction count and premium total to the policy system count for the same period cut-off",
+      "Check for policy number sequence gaps and confirm each gap is a genuine non-commissionable transaction",
+      "Confirm every active writing producer with known production in the period appears in the transaction set",
+      "Confirm late-posted prior-period transactions are picked up and flagged as prior-period rather than dropped",
+      "Sign off completeness explicitly before releasing the data for calculation"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Period transaction completeness check",
+        "checkType": "presence",
+        "expected": "Engine counts reconcile to the policy system counts for the same cut-off"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Producer coverage check",
+        "checkType": "absence",
+        "expected": "No producer with known period production absent from the transaction set"
+      }
+    ]
+  },
+  {
+    "taskId": "98e52141-1e3a-4794-994f-25e2d97aa38b",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscokx71m8gmbk8fk7wyeay",
+      "cmqscpbiu1njymbk8m9em8gnk",
+      "cmqscp1yg1n2gmbk8f0gkdke6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Batch approved by the authorised approver",
+      "Approver independent of the preparer",
+      "Approval evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm the batch total matches the signed-off statement file net payable before authorising",
+      "Confirm dual approval is applied where the batch value exceeds the payment authority threshold",
+      "Confirm every producer in the batch has valid, current banking details and a validated TIN",
+      "Confirm producers on payment hold (licensing lapse, debit balance, sanctions flag) are excluded from the batch",
+      "Record the authorisation in the system so the batch cannot be amended after approval without re-approval"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Payment batch approval",
+        "checkType": "presence",
+        "expected": "Batch carries dual approval where value exceeds the authority threshold"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Batch payee list",
+        "checkType": "absence",
+        "expected": "No producer on payment hold included in the approved batch"
+      }
+    ]
+  },
+  {
+    "taskId": "4b4f56fc-ea4a-46eb-9016-3dbee78eed17",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpc431nl2mbk8qwlixbgk",
+      "cmqscolym1maambk8ej4zsej2",
+      "cmqscpksp1o0ombk8ubuf84ya"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Workpapers filed in the designated repository",
+      "Retention period applied",
+      "Access restricted to authorised users"
+    ],
+    "checklistSpecific": [
+      "File the period reconciliation, variance report, exception log and sign-off in one indexed period folder",
+      "Name the folder to the period and reconciliation type so auditors can retrieve it without help",
+      "Confirm the signed approval evidence is included, not just the unsigned working file",
+      "Apply the financial records retention period to the folder and confirm the disposal date is set",
+      "Confirm the archived copy is read-only so post-close edits are not possible"
+    ],
+    "testing": [
+      {
+        "system": "document management repository",
+        "location": "Period reconciliation archive folder",
+        "checkType": "presence",
+        "expected": "Reconciliation, variance report, exception log and signed approval all filed"
+      },
+      {
+        "system": "document management repository",
+        "location": "Archived workpapers",
+        "checkType": "absence",
+        "expected": "No archived workpaper remains editable after period sign-off"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fdnb7006frw9dohzwuhb8",
+    "roles": [
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscov8r1mq2mbk8ph6o39cx",
+      "cmqscol561m8wmbk8rrhp9138",
+      "cmqscokx71m8gmbk8fk7wyeay"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Posting verified against the approved batch",
+      "Posting period correct",
+      "Verification evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm the AP voucher total equals the approved commission batch total to the cent",
+      "Confirm the posting hits the correct commission expense account and cost centre, not a suspense account",
+      "Confirm the posting date falls in the intended accounting period and not a prior closed period",
+      "Confirm the AP voucher references the commission batch identifier for traceability",
+      "Confirm the payment run status has moved past pending to posted for every voucher in the batch"
+    ],
+    "testing": [
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "Commission AP voucher",
+        "checkType": "presence",
+        "expected": "Voucher total equals the approved batch total and cites the batch identifier"
+      },
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "Commission postings",
+        "checkType": "absence",
+        "expected": "No commission disbursement posted to a suspense or clearing account"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fdnn1006zrw9d5naqe92p",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscol561m8wmbk8rrhp9138",
+      "cmqscpc8m1nlambk8jq73b416",
+      "cmqscpc341nl0mbk8240ckwi2"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Matching performed at the payee level",
+      "Unmatched items investigated",
+      "Match evidence retained"
+    ],
+    "checklistSpecific": [
+      "Match each AP payment line to the commission statement net payable by producer code and period",
+      "Confirm one-to-many matches (one payment covering several statements) are documented with the component breakdown",
+      "List unmatched payments and unmatched commission records separately rather than netting them",
+      "Age the unmatched items and escalate anything beyond the defined ageing threshold",
+      "Confirm the matched total plus unmatched items equals the batch total"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Payment-to-commission match report",
+        "checkType": "presence",
+        "expected": "Every payment line matched to a producer and period or listed as an exception"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Unmatched items",
+        "checkType": "absence",
+        "expected": "No unmatched item older than the defined ageing threshold left unescalated"
+      }
+    ]
+  },
+  {
+    "taskId": "ae9bdb5f-f41e-40c2-b0a5-d817e3cb9e3f",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscol381m8smbk88oojm3ez",
+      "cmqscpcbz1nlgmbk8fbb654i9",
+      "cmqscpcf51nlkmbk8x7chlx90"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Package assembled to the standard checklist",
+      "All supporting schedules attached",
+      "Package reviewed before approval routing"
+    ],
+    "checklistSpecific": [
+      "Assemble the commission-to-premium reconciliation, the commission-payable-to-AP reconciliation and the chargeback summary",
+      "Include the aged reconciling items schedule with owner and expected clearance date for each item",
+      "Include the manual adjustment listing with approver names for the period",
+      "Confirm every schedule in the package ties to the general ledger commission payable balance",
+      "Confirm the package is complete against the close checklist before routing for sign-off"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": "Period-end reconciliation sign-off package",
+        "checkType": "presence",
+        "expected": "All checklist schedules present and each ties to the GL commission payable balance"
+      },
+      {
+        "system": null,
+        "location": "Reconciling items schedule",
+        "checkType": "absence",
+        "expected": "No reconciling item without a named owner and expected clearance date"
+      }
+    ]
+  },
+  {
+    "taskId": "31c5b2f0-ffe8-49d0-be74-ee1d498739d4",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscokx71m8gmbk8fk7wyeay",
+      "cmqscovjm1mqmmbk8zena4laq"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Chargebacks calculated per the schedule terms",
+      "Chargeback basis traced to the source cancellation",
+      "Postings evidenced"
+    ],
+    "checklistSpecific": [
+      "Pull the cancellation, lapse and rescission transactions for the period and match each to its original commission payment",
+      "Apply the chargeback rule from the schedule in force at original sale (full clawback within the window, pro-rata after)",
+      "Confirm the chargeback rate equals the rate originally paid, not the current schedule rate",
+      "Post chargebacks against the producer who received the original commission, including split and override recipients",
+      "Where the chargeback drives a producer to a net debit balance, flag the account for debit balance handling rather than paying"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Chargeback postings",
+        "checkType": "presence",
+        "expected": "Each chargeback line references the original commission payment record"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Chargeback rates",
+        "checkType": "absence",
+        "expected": "No chargeback computed at a rate different from the rate originally paid"
+      }
+    ]
+  },
+  {
+    "taskId": "0db4fbe9-fb9d-48a6-8eb8-fd998ea13cfb",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscol561m8wmbk8rrhp9138",
+      "cmqscpc8m1nlambk8jq73b416",
+      "cmqscomop1mbcmbk8hcolxq5d"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Reconciliation prepared to the premium ledger",
+      "Differences categorised and explained",
+      "Reconciliation reviewed and signed"
+    ],
+    "checklistSpecific": [
+      "Reconcile calculated commission by product line against the premium ledger for the same period and cut-off",
+      "Split the difference into timing, rate, volume and error components rather than a single variance figure",
+      "Confirm the policy system in-force count agrees to the commissioned policy count for the period",
+      "Confirm prior-period adjustments are shown separately from current-period activity",
+      "Have a reviewer independent of the preparer sign the reconciliation before close"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Commission-to-premium-ledger reconciliation",
+        "checkType": "presence",
+        "expected": "Reconciliation balances with differences split by cause category"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Reconciliation sign-off",
+        "checkType": "absence",
+        "expected": "No reconciliation signed by the preparer alone"
+      }
+    ]
+  },
+  {
+    "taskId": "3146654d-3dfd-4989-9fc4-78e8ce3054f5",
+    "roles": [
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpc8m1nlambk8jq73b416",
+      "cmqscol561m8wmbk8rrhp9138",
+      "cmqscpc341nl0mbk8240ckwi2"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Balance agreed to the general ledger",
+      "Reconciling items aged and owned",
+      "Reconciliation signed off"
+    ],
+    "checklistSpecific": [
+      "Agree the commission payable subledger balance to the GL commission payable account at period end",
+      "List each reconciling item with its origin period, amount and expected clearance date",
+      "Confirm accrued but unpaid commission is included and agrees to the calculated but unreleased balance",
+      "Confirm producer debit balances are shown gross rather than netted against payables",
+      "Escalate any reconciling item older than the ageing threshold to the Controller-level review"
+    ],
+    "testing": [
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "Commission payable reconciliation",
+        "checkType": "presence",
+        "expected": "Subledger balance agrees to the GL account balance at period end"
+      },
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "Reconciling items",
+        "checkType": "absence",
+        "expected": "No aged reconciling item beyond the threshold left unescalated"
+      }
+    ]
+  },
+  {
+    "taskId": "3353e72d-0c24-42c3-a764-3e716f3dd257",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpc341nl0mbk8240ckwi2",
+      "cmqscpkd01nzymbk811yk4bs3",
+      "cmqscpl891o1gmbk8564fr6p6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Every break assigned an owner and due date",
+      "Breaks cleared within SLA",
+      "Resolution evidence retained"
+    ],
+    "checklistSpecific": [
+      "Categorise each break as timing, data, rate application or posting error before starting investigation",
+      "Trace the break to the underlying policy transaction or payment record rather than adjusting the reconciliation",
+      "Clear the break by correcting the source record and re-running, not by posting a balancing journal",
+      "Confirm any journal entry raised to clear a break carries approval per the authority matrix",
+      "Confirm no break remains open beyond the defined SLA at period close"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Reconciliation break log",
+        "checkType": "presence",
+        "expected": "Each break carries a category, owner, due date and resolution"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Break log at close",
+        "checkType": "absence",
+        "expected": "No break open beyond the defined resolution SLA at period close"
+      }
+    ]
+  },
+  {
+    "taskId": "ee97469f-1132-434c-9f35-df3554929a2f",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscpcf51nlkmbk8x7chlx90",
+      "cmqscovjm1mqmmbk8zena4laq"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Chargeback traced to the original calculation record",
+      "Amount independently recomputed",
+      "Verification evidence retained"
+    ],
+    "checklistSpecific": [
+      "Pull the original commission calculation record for each chargeback and confirm the paid amount and rate",
+      "Recompute the chargeback amount independently and compare to the system-generated figure",
+      "Confirm the chargeback window (months since issue) is correctly measured from the policy effective date",
+      "Confirm split and override recipients are charged back in the same proportions they were paid",
+      "Escalate any chargeback where the original commission record cannot be located rather than posting it"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Chargeback verification sample",
+        "checkType": "presence",
+        "expected": "Each verified chargeback ties to an original commission record with matching rate"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Chargeback population",
+        "checkType": "absence",
+        "expected": "No chargeback posted without a traceable original commission record"
+      }
+    ]
+  },
+  {
+    "taskId": "501c06cb-599f-4976-b7d3-6c3face1ca4c",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rn03rfmbk8mskgxzzy",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103yjmbk8y9kyaaxo",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkiw1o08mbk81d45lsfy",
+      "cmqscpkjv1o0ambk8o6gpv969",
+      "cmqscplpi1o2embk8tvck7l1h"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Acknowledgement issued within the published SLA",
+      "Reference number supplied to the producer",
+      "Acknowledgement evidence retained"
+    ],
+    "checklistSpecific": [
+      "Send the acknowledgement within the published dispute SLA measured from the receipt timestamp, not the assignment date",
+      "Include the case reference number, the disputed period and the named case handler in the acknowledgement",
+      "State the target resolution date in the acknowledgement so the producer has a clear expectation",
+      "Send the acknowledgement to the contact of record on the producer file, not just the individual who emailed",
+      "Attach a copy of the acknowledgement to the case record"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Dispute case record",
+        "checkType": "presence",
+        "expected": "Acknowledgement copy attached with reference number and target resolution date"
+      },
+      {
+        "system": "workflow/case management tool",
+        "location": "Acknowledgement timestamps",
+        "checkType": "absence",
+        "expected": "No dispute acknowledged outside the published SLA window"
+      }
+    ]
+  },
+  {
+    "taskId": "643a220a-525c-47b3-9538-cef47e5e4e83",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp1r41n26mbk8ryaf3k4y",
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscovea1mqcmbk8um82vnx8"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Analysis covers a full defined period",
+      "Drivers categorised consistently",
+      "Findings routed to a fix owner"
+    ],
+    "checklistSpecific": [
+      "Group closed disputes by root cause category (rate misapplied, hierarchy wrong, missing transaction, schedule ambiguity)",
+      "Rank categories by dispute count and by disputed dollar value, since the two rankings often differ",
+      "Identify the product lines and producer segments generating disproportionate dispute volume",
+      "Convert the top categories into named remediation actions with an owner in schedule design or data integrity",
+      "Compare this period drivers to the prior period to confirm whether previous fixes reduced volume"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": "Dispute driver analysis",
+        "checkType": "presence",
+        "expected": "Root cause categories ranked by both volume and disputed value with named fix owners"
+      },
+      {
+        "system": "workflow/case management tool",
+        "location": "Closed dispute records",
+        "checkType": "absence",
+        "expected": "No closed dispute left without a root cause category"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjp471200kfgz9xd11pdm",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpk651nzombk8kooykcno",
+      "cmqscpkos1o0imbk8o7q2zq9h",
+      "cmqscpkni1o0gmbk8dtpkamis"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Closure only after resolution is communicated",
+      "Closure within SLA",
+      "Closure evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm the resolution communication has been sent and the producer response window has passed before closing",
+      "Confirm any resulting commission adjustment has been processed and appears on a statement before closure",
+      "Record the closure reason code and the final disputed versus settled amounts on the case",
+      "Confirm the case is closed by an authorised handler within the resolution authority limits",
+      "Confirm the elapsed days from receipt to closure is inside the published SLA and flag exceptions"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Closed dispute case",
+        "checkType": "presence",
+        "expected": "Closure reason, settled amount and resolution communication all recorded"
+      },
+      {
+        "system": "workflow/case management tool",
+        "location": "Closed cases",
+        "checkType": "absence",
+        "expected": "No case closed before its related adjustment was processed"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fl2jh1orukfgz899lx5hs",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rn03rfmbk8mskgxzzy",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103yjmbk8y9kyaaxo",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp1q51n24mbk8pne0wb7s",
+      "cmqscpkos1o0imbk8o7q2zq9h",
+      "cmqscp1n21n1ymbk80ec1eahz"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Communication issued within SLA",
+      "Explanation references the applicable schedule",
+      "Communication evidence retained"
+    ],
+    "checklistSpecific": [
+      "State the outcome, the corrected amount and the schedule clause or rate relied on in plain terms",
+      "Where the dispute is not upheld, explain the calculation basis rather than issuing a bare rejection",
+      "State when and on which statement any adjustment will appear",
+      "Include the escalation route if the producer disagrees with the outcome",
+      "Attach the outbound communication to the case record and timestamp it against the SLA"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Dispute resolution communication",
+        "checkType": "presence",
+        "expected": "Outcome, amount, schedule basis and escalation route all included"
+      },
+      {
+        "system": "workflow/case management tool",
+        "location": "Resolution communications",
+        "checkType": "absence",
+        "expected": "No resolution issued outside the published response SLA"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2f8ql001yybn7iyv1xs68y",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpcf51nlkmbk8x7chlx90",
+      "cmqscp1o41n20mbk8x267q2fx",
+      "cmqscpc431nl2mbk8qwlixbgk"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Rationale written before the adjustment is processed",
+      "Supporting calculation attached",
+      "Record retained with the case"
+    ],
+    "checklistSpecific": [
+      "State the specific cause of the adjustment (rate misapplied, split wrong, transaction missing, chargeback reversed)",
+      "Attach the before and after calculation showing the original and corrected commission amounts",
+      "Cite the schedule version and clause that supports the corrected amount",
+      "Record whether the error affects other producers or policies and raise a follow-up if so",
+      "Confirm the rationale is filed on the case before the adjustment is submitted for approval"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Adjustment rationale record",
+        "checkType": "presence",
+        "expected": "Cause, before/after amounts and schedule reference all documented"
+      },
+      {
+        "system": "workflow/case management tool",
+        "location": "Processed adjustments",
+        "checkType": "absence",
+        "expected": "No adjustment processed without a rationale recorded on the case"
+      }
+    ]
+  },
+  {
+    "taskId": "f84edecd-b4ce-4950-983f-b44a8523e1df",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp1r41n26mbk8ryaf3k4y",
+      "cmqscpl891o1gmbk8564fr6p6",
+      "cmqscovjm1mqmmbk8zena4laq"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Root cause determined from source evidence",
+      "Cause categorised consistently",
+      "Findings recorded on the case"
+    ],
+    "checklistSpecific": [
+      "Compare the disputed policy transaction in the policy system against the record loaded into the commission engine",
+      "Check whether the producer code, hierarchy and split applied at calculation match the agreement of record",
+      "Check whether the schedule version selected by the engine was the one in force at policy effective date",
+      "Classify the cause as data error, rate misapplication or system fault and state which",
+      "Confirm whether the same cause affects other policies in the period and quantify the exposure"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Dispute root cause field",
+        "checkType": "presence",
+        "expected": "Cause classified as data error, rate misapplication or system fault with evidence"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Related population check",
+        "checkType": "absence",
+        "expected": "No systemic cause identified without a quantified impact on other policies"
+      }
+    ]
+  },
+  {
+    "taskId": "dcda1f03-527e-4488-b196-c211a027e529",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp1o41n20mbk8x267q2fx",
+      "cmqscpc431nl2mbk8qwlixbgk",
+      "cmqscovjm1mqmmbk8zena4laq"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Investigation uses system audit trails",
+      "Findings evidenced not asserted",
+      "Findings recorded on the case"
+    ],
+    "checklistSpecific": [
+      "Pull the calculation audit trail for the disputed policy showing rate, base, splits and the schedule version used",
+      "Pull the bound-transaction audit trail showing premium, effective date and producer code at the time of binding",
+      "Identify any post-calculation manual adjustment on the record and who applied it",
+      "Screenshot or export the audit trail entries and attach them to the case rather than paraphrasing",
+      "Confirm the audit trail covers the full disputed period, not just the most recent transaction"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Commission calculation audit trail",
+        "checkType": "presence",
+        "expected": "Audit trail export for the disputed policy attached to the case"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Disputed record history",
+        "checkType": "absence",
+        "expected": "No gap in the audit trail across the disputed period"
+      }
+    ]
+  },
+  {
+    "taskId": "60b5c8b0-49e0-48b6-aacf-47bcd2859816",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rn03rfmbk8mskgxzzy",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103yjmbk8y9kyaaxo",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkjv1o0ambk8o6gpv969",
+      "cmqscp1m31n1wmbk892g6wdok",
+      "cmqscovb11mq6mbk86d88dcae"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Case logged within the defined window",
+      "Mandatory case fields captured",
+      "Source correspondence attached"
+    ],
+    "checklistSpecific": [
+      "Create the case within the logging window measured from the producer contact timestamp",
+      "Capture producer code, disputed period, disputed policies and disputed dollar amount as structured fields",
+      "Attach the producer correspondence and any statement extract they supplied",
+      "Classify the dispute type at intake (rate, split, chargeback, missing transaction, statement presentation)",
+      "Assign the case to a handler and set the SLA due date at creation rather than later"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "New dispute case",
+        "checkType": "presence",
+        "expected": "Producer code, period, disputed amount, type, handler and due date all populated"
+      },
+      {
+        "system": "workflow/case management tool",
+        "location": "Dispute intake queue",
+        "checkType": "absence",
+        "expected": "No producer dispute correspondence left unlogged beyond the defined window"
+      }
+    ]
+  },
+  {
+    "taskId": "762f222e-69c3-4455-b655-2734466a8b24",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscp1yg1n2gmbk8f0gkdke6",
+      "cmqscpcjw1nlsmbk8rm9clavs"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Only approved adjustments are processed",
+      "Adjustment run reconciles to approved amounts",
+      "Run evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm each adjustment in the run carries a completed approval before submitting the batch",
+      "Run the adjustments through the calculation engine so splits and overrides recalculate rather than keying a net figure",
+      "Compare the engine adjustment output total to the approved adjustment total and investigate any difference",
+      "Confirm the adjustments post to the correct commission period and are visible on the next statement",
+      "Confirm no approved adjustment is left unprocessed after the run"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Adjustment run output",
+        "checkType": "presence",
+        "expected": "Engine adjustment total equals the approved adjustment total"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Approved adjustment queue",
+        "checkType": "absence",
+        "expected": "No approved adjustment left unprocessed after the run"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fl24a1olpkfgzoqh9h0uj",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp1yg1n2gmbk8f0gkdke6",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscpkni1o0gmbk8dtpkamis"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Adjustment matches the approved resolution amount",
+      "Applied to the correct producer and period",
+      "Evidence linked to the case"
+    ],
+    "checklistSpecific": [
+      "Confirm the adjustment amount equals the settled amount recorded on the dispute case",
+      "Apply the adjustment to the producer code and period stated in the resolution, not the current period by default",
+      "Confirm downstream split and override recipients are adjusted where the original error affected them too",
+      "Link the adjustment transaction identifier back to the dispute case reference",
+      "Confirm the adjustment appears on the producer statement for the stated period"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Dispute adjustment transaction",
+        "checkType": "presence",
+        "expected": "Adjustment amount equals the settled amount and cites the case reference"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Adjustment application",
+        "checkType": "absence",
+        "expected": "No dispute adjustment applied to a producer or period other than the one resolved"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2f8pyx01ycbn7ipcd43xmt",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscpcf51nlkmbk8x7chlx90",
+      "cmqscovjm1mqmmbk8zena4laq"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Recalculation uses the schedule in force at the transaction date",
+      "Independent recomputation performed",
+      "Working retained on the case"
+    ],
+    "checklistSpecific": [
+      "Identify the schedule version in force at the disputed policy effective date and use that rate, not the current one",
+      "Recompute the commissionable base excluding non-commissionable fees, taxes and surcharges",
+      "Recompute splits and overrides at the hierarchy in force at the transaction date",
+      "Compare the recomputed figure to both the paid amount and the producer claimed amount and show all three",
+      "Attach the recalculation working to the dispute case as supporting evidence"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": "Dispute recalculation working",
+        "checkType": "presence",
+        "expected": "Working shows paid, recomputed and producer-claimed amounts side by side"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Recalculation basis",
+        "checkType": "absence",
+        "expected": "No recalculation performed using a schedule version other than the one in force at transaction date"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjoto11vmkfgz2hozupx4",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rn03rfmbk8mskgxzzy",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkos1o0imbk8o7q2zq9h",
+      "cmqscp1o41n20mbk8x267q2fx",
+      "cmqscpc431nl2mbk8qwlixbgk"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Resolution details recorded on the case",
+      "Amounts recorded in structured fields",
+      "Supporting evidence attached"
+    ],
+    "checklistSpecific": [
+      "Record the resolution outcome (upheld, partially upheld, not upheld) as a structured field",
+      "Record the settled amount and the difference from the amount originally disputed",
+      "Record the root cause category and link any remediation action raised",
+      "Attach the recalculation working and the outbound resolution communication to the case",
+      "Confirm the case handler and resolution date are stamped before the case moves to closure"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Dispute case resolution fields",
+        "checkType": "presence",
+        "expected": "Outcome, settled amount, root cause and evidence attachments all populated"
+      },
+      {
+        "system": "workflow/case management tool",
+        "location": "Resolved cases",
+        "checkType": "absence",
+        "expected": "No resolved case missing a root cause category"
+      }
+    ]
+  },
+  {
+    "taskId": "c19b75a2-26c9-4aee-9e69-b5fcbb9a653d",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscolym1maambk8ej4zsej2",
+      "cmqscp2n71n3ombk805591ug1",
+      "cmqscpc431nl2mbk8qwlixbgk"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5q8n00dvtv880qvl4flyo",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Filing evidence archived in the designated repository",
+      "Retention period applied",
+      "Access restricted appropriately"
+    ],
+    "checklistSpecific": [
+      "Archive the vendor filing confirmation, the transmitted 1099 data file and the reconciliation to commission paid",
+      "Archive the list of producers issued a form and the list suppressed with the suppression reason",
+      "Archive corrected form evidence separately and cross-reference to the original filing",
+      "Apply the statutory retention period to the archive folder and confirm the disposal date is set",
+      "Confirm the archive is indexed by tax year so it can be retrieved for an IRS or state notice"
+    ],
+    "testing": [
+      {
+        "system": "document management repository",
+        "location": "1099 filing archive by tax year",
+        "checkType": "presence",
+        "expected": "Filing confirmation, transmitted data file and reconciliation all archived"
+      },
+      {
+        "system": "document management repository",
+        "location": "1099 archive",
+        "checkType": "absence",
+        "expected": "No tax year archive missing the vendor filing confirmation"
+      }
+    ]
+  },
+  {
+    "taskId": "baa3f030-3bea-430b-aed8-233d8ab2db65",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscomws1mbqmbk8wym1tho4",
+      "cmqscol561m8wmbk8rrhp9138",
+      "cmqscpl4a1o1ambk8c60kuqo6"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5q8n00dvtv880qvl4flyo",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Totals compiled on a cash-paid basis",
+      "Totals reconciled to the ledger",
+      "Compilation evidence retained"
+    ],
+    "checklistSpecific": [
+      "Compile totals on amounts actually paid in the calendar year, not amounts earned or accrued",
+      "Net chargebacks and repayments against gross commission consistently with the reporting policy",
+      "Reconcile the total of producer earnings to the commission expense paid per the general ledger",
+      "Apply the reporting threshold and identify producers below it who are excluded from form issuance",
+      "Confirm corporate-entity producers are separated from individuals and sole proprietors for reporting treatment"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Annual producer earnings file",
+        "checkType": "presence",
+        "expected": "Producer earnings total reconciles to commission cash paid per the general ledger"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Earnings compilation",
+        "checkType": "absence",
+        "expected": "No accrued but unpaid commission included in the calendar-year paid totals"
+      }
+    ]
+  },
+  {
+    "taskId": "a457a4c2-1aeb-43fa-b544-3a33a1cc2e81",
+    "roles": [
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103yjmbk8y9kyaaxo",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscolax1m96mbk8shct8beo",
+      "cmqscpcxs1nmimbk8ozeffmr7"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Report content approved before release",
+      "Distribution list restricted appropriately",
+      "Distribution evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm report figures agree to the signed-off commission run before publishing",
+      "Publish leadership reporting to the BI workspace and producer-facing statements to the portal as separate outputs",
+      "Confirm producer-level detail is not exposed to producers other than the record owner",
+      "Confirm the report period, refresh timestamp and data cut-off are visible on the report face",
+      "Log the distribution and confirm each named recipient group has access"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Commission performance report",
+        "checkType": "presence",
+        "expected": "Report shows period, refresh timestamp and data cut-off on its face"
+      },
+      {
+        "system": "Broker & Agent Portal",
+        "location": "Producer report entitlements",
+        "checkType": "absence",
+        "expected": "No producer able to view another producer commission detail"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi38m0apskfgzovibcztl",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      },
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscomws1mbqmbk8wym1tho4",
+      "cmqscpd351nmsmbk8zcz97itk",
+      "cmqscpl4a1o1ambk8c60kuqo6"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5q8n00dvtv880qvl4flyo",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5q79q0dtjv880lxuup873",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Forms issued by the statutory deadline",
+      "Amounts agree to the compiled earnings file",
+      "Issuance evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm every producer over the reporting threshold with a validated TIN receives a form",
+      "Confirm the box used matches the payment type (non-employee compensation versus other income)",
+      "Confirm backup withholding amounts are reported where a producer was subject to withholding during the year",
+      "Confirm producer name and TIN on the form match the W-9 of record exactly, not the trading name",
+      "Issue recipient copies by the statutory recipient deadline and record the issuance date and method"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "1099 issuance file",
+        "checkType": "presence",
+        "expected": "Every above-threshold producer with a validated TIN has an issued form"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "1099 recipient details",
+        "checkType": "absence",
+        "expected": "No form issued with a name/TIN combination differing from the W-9 of record"
+      }
+    ]
+  },
+  {
+    "taskId": "36a3a2e7-5f73-41f5-8aac-17276f10d4fc",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscolax1m96mbk8shct8beo",
+      "cmqscpczw1nmmmbk86b0euc5m",
+      "cmqscplh81o1ymbk8u8i73x3e"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Analysis built on the signed-off commission data",
+      "Drivers quantified not asserted",
+      "Analysis reviewed before issue"
+    ],
+    "checklistSpecific": [
+      "Show commission expense and commission ratio by product line and channel for the period and year to date",
+      "Split the movement versus prior period into rate, volume and mix effects rather than one total variance",
+      "Show contingent and incentive spend separately from base commission",
+      "Highlight product lines where the commission ratio has moved outside the expected band and explain why",
+      "Confirm totals in the analysis agree to the commission expense recorded in the general ledger"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Commission expense analysis",
+        "checkType": "presence",
+        "expected": "Movement is decomposed into rate, volume and mix effects"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "Analysis totals",
+        "checkType": "absence",
+        "expected": "No analysis issued where totals differ from the general ledger commission expense"
+      }
+    ]
+  },
+  {
+    "taskId": "04fa1dd6-38ad-4762-864b-674d935b5b08",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpc241nkymbk8rmhpkaih",
+      "cmqscolax1m96mbk8shct8beo",
+      "cmqscpczw1nmmmbk86b0euc5m"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Actuals sourced from the ledger",
+      "Variances explained above threshold",
+      "Report issued to the close calendar"
+    ],
+    "checklistSpecific": [
+      "Compare actual commission expense to budget and forecast by product line and channel for period and year to date",
+      "Explain every variance above the reporting threshold with a named driver, not a generic comment",
+      "Separate base commission variance from contingent and incentive accrual variance",
+      "Confirm the actuals tie to the general ledger commission expense accounts for the period",
+      "Issue the report by the close calendar date to finance and distribution leadership"
+    ],
+    "testing": [
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "Commission budget variance report",
+        "checkType": "presence",
+        "expected": "Actuals tie to GL commission expense and each material variance has a named driver"
+      },
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "Variance commentary",
+        "checkType": "absence",
+        "expected": "No material variance left without an explanation"
+      }
+    ]
+  },
+  {
+    "taskId": "b0367bbc-ffcc-4ca1-8a89-1213546a4b52",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rn03rfmbk8mskgxzzy",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103yjmbk8y9kyaaxo",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp1q51n24mbk8pne0wb7s",
+      "cmqscpkos1o0imbk8o7q2zq9h",
+      "cmqscomws1mbqmbk8wym1tho4"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5q8n00dvtv880qvl4flyo",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Inquiry logged on receipt",
+      "Response supported by system records",
+      "Response within published SLA"
+    ],
+    "checklistSpecific": [
+      "Log each year-end tax inquiry as a case with the producer code and tax year",
+      "Reconcile the producer year-to-date paid total in the system against the issued form before responding",
+      "Explain differences caused by chargebacks, timing of payment versus earning, and non-reportable reimbursements",
+      "Where the form is genuinely wrong, raise a corrected form request rather than explaining the difference away",
+      "Do not provide tax advice; direct the producer to their own tax adviser and record that this was stated"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Year-end tax inquiry cases",
+        "checkType": "presence",
+        "expected": "Each inquiry records the producer, tax year, reconciliation performed and response issued"
+      },
+      {
+        "system": "workflow/case management tool",
+        "location": "Tax inquiry responses",
+        "checkType": "absence",
+        "expected": "No response issued without first reconciling the paid total to the issued form"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi3i30atxkfgzubsdxwuf",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscomws1mbqmbk8wym1tho4",
+      "cmqscpd351nmsmbk8zcz97itk",
+      "cmqscomop1mbcmbk8hcolxq5d"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5q8n00dvtv880qvl4flyo",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5q79q0dtjv880lxuup873",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Submission made by the filing calendar date",
+      "Control totals agreed before and after transmission",
+      "Submission confirmation retained"
+    ],
+    "checklistSpecific": [
+      "Confirm the extract record count and dollar total before transmission and record them as control totals",
+      "Confirm the vendor acknowledgement returns the same record count and dollar total as transmitted",
+      "Confirm the file is transmitted over the approved secure channel and not by unencrypted email",
+      "Work the vendor validation error report and resubmit corrected records before the filing deadline",
+      "Record the submission reference and confirmation timestamp against the tax year file"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "1099 vendor submission log",
+        "checkType": "presence",
+        "expected": "Transmitted and acknowledged record counts and totals match"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Vendor validation errors",
+        "checkType": "absence",
+        "expected": "No vendor validation error left unresolved at the filing deadline"
+      }
+    ]
+  },
+  {
+    "taskId": "940bab49-aa92-4ea7-b78f-0437dfdbbcfe",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rn03rfmbk8mskgxzzy",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscomws1mbqmbk8wym1tho4",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscovjm1mqmmbk8zena4laq"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5q79q0dtjv880lxuup873",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5q8cx0dvfv880cn80fbch",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "TIN held for every reportable payee",
+      "TIN validated against the authoritative source",
+      "Validation evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm a signed W-9 (or W-8 series for a foreign payee) is on file for every producer paid in the year",
+      "Run TIN matching and work the mismatch list rather than filing on unmatched names",
+      "Confirm the name/TIN combination and entity type on file match the payee legal entity, not a DBA",
+      "Apply backup withholding to producers with a missing or unmatched TIN and record the flag",
+      "Confirm foreign payees are correctly identified and excluded from domestic form issuance"
+    ],
+    "testing": [
+      {
+        "system": "agency/producer management system",
+        "location": "Producer tax documentation",
+        "checkType": "presence",
+        "expected": "Signed W-9 or W-8 on file for every producer paid during the year"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Reportable payee list",
+        "checkType": "absence",
+        "expected": "No reportable payee with a missing or unmatched TIN paid without backup withholding"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fk0uq16qrkfgzlbpu0nmo",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03unmbk8aextgm34",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp1yg1n2gmbk8f0gkdke6",
+      "cmqscpbiu1njymbk8m9em8gnk",
+      "cmqscpcbz1nlgmbk8fbb654i9"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5h6vg025pv880y4mabtly",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5tker0ihrv880mrrktygs",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Approval by the authorised approver for the value",
+      "Supporting calculation attached",
+      "Approval evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm the payout schedule, qualification evidence and finance approval are attached before approving",
+      "Confirm the approver authority level covers the aggregate payout value under the delegation matrix",
+      "Confirm the total approved equals the accrued contingent liability or explain the difference",
+      "Confirm producers with open conduct, licensing or debit balance issues are excluded or explicitly approved",
+      "Record the approval decision and timestamp in the system so the payout batch is locked from edit"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Contingent payment approval",
+        "checkType": "presence",
+        "expected": "Approval references the payout schedule and finance approval attachments"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Approved payout batch",
+        "checkType": "absence",
+        "expected": "No producer with an open conduct or licensing hold in the approved batch"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fl6eg1qm7kfgz3zih7pxe",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpksp1o0ombk8ubuf84ya",
+      "cmqscpc431nl2mbk8qwlixbgk",
+      "cmqscovdd1mqambk8nf5s8p4j"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Documentation filed in the designated repository",
+      "Version and program year recorded",
+      "Retention period applied"
+    ],
+    "checklistSpecific": [
+      "File the program rules document, the approved parameters and the approval evidence for the program year",
+      "File the qualification results, payout schedule and finance approval alongside the rules",
+      "File the producer communications issued for the program so the terms communicated are evidenced",
+      "Index the folder by program year and program name for retrieval during audit",
+      "Apply the retention period and confirm the archived documents are locked from further edit"
+    ],
+    "testing": [
+      {
+        "system": "document management repository",
+        "location": "Incentive program archive by year",
+        "checkType": "presence",
+        "expected": "Rules, approvals, qualification results and communications all filed"
+      },
+      {
+        "system": "document management repository",
+        "location": "Archived program documents",
+        "checkType": "absence",
+        "expected": "No archived program document left editable"
+      }
+    ]
+  },
+  {
+    "taskId": "9d1dc9dd-1d05-46cf-9257-fd54a060cc6e",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscpcjw1nlsmbk8rm9clavs",
+      "cmqscpcf51nlkmbk8x7chlx90"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5h6vg025pv880y4mabtly",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Calculation follows the approved program rules",
+      "Inputs sourced from signed-off data",
+      "Working retained"
+    ],
+    "checklistSpecific": [
+      "Confirm the measurement period, premium basis and loss ratio basis match the approved program rules exactly",
+      "Confirm the loss ratio input uses the agreed valuation date and development basis, not the latest available",
+      "Apply the payout curve or table exactly, including any cap, collar or minimum-volume gate",
+      "Recompute a sample of producer payouts independently and confirm zero variance to the engine",
+      "Reconcile the total calculated payout to the contingent commission accrual and explain the difference"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Contingent payout calculation",
+        "checkType": "presence",
+        "expected": "Calculation cites the approved program version, measurement period and loss ratio valuation date"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Payout amounts",
+        "checkType": "absence",
+        "expected": "No payout exceeding the program cap for any producer"
+      }
+    ]
+  },
+  {
+    "taskId": "02ab911a-fc0b-4bfe-87f7-f4538443bef1",
+    "roles": [
+      {
+        "roleId": "cmqsck0rn03rfmbk8mskgxzzy",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103yjmbk8y9kyaaxo",
+        "use": "performed"
+      },
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp1n21n1ymbk80ec1eahz",
+      "cmqscp1o41n20mbk8x267q2fx",
+      "cmqscog6l1m08mbk83rau8hcj"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5l76k06lnv880o65lvush",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5h6vg025pv880y4mabtly",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Terms approved before communication",
+      "Communication issued to all eligible producers",
+      "Communication evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm the communication states the qualification metric, thresholds, measurement period and payout timing",
+      "Confirm it states the lines of business in scope and any exclusions",
+      "Confirm it states that the program may be amended or withdrawn and on what notice, per the agreement",
+      "Issue to every eligible producer of record and reconcile the send list to the eligible population",
+      "Retain the issued communication and the distribution list as evidence of the terms communicated"
+    ],
+    "testing": [
+      {
+        "system": "Broker & Agent Portal",
+        "location": "Incentive program communication",
+        "checkType": "presence",
+        "expected": "Metric, thresholds, measurement period, payout timing and scope all stated"
+      },
+      {
+        "system": "Broker & Agent Portal",
+        "location": "Communication distribution list",
+        "checkType": "absence",
+        "expected": "No eligible producer omitted from the program communication"
+      }
+    ]
+  },
+  {
+    "taskId": "e8f52d2e-5b98-48cf-99e9-f74abf7c18a3",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpcjw1nlsmbk8rm9clavs",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscol7f1m90mbk8uqz22zfo"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5l76k06lnv880o65lvush",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Terms configured to the executed agreement",
+      "Configuration peer-reviewed",
+      "Evidence retained"
+    ],
+    "checklistSpecific": [
+      "Configure the qualifying premium threshold, loss ratio bands and payout percentages per the executed agreement",
+      "Set the agreement term dates and confirm the measurement window matches the contract, not the calendar default",
+      "Configure any minimum policy count or persistency gate as a hard condition rather than a manual check",
+      "Confirm the payout cap and any profit-share floor are entered where the agreement specifies them",
+      "Have a second analyst verify configured terms against the executed agreement before activation"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Contingent agreement configuration",
+        "checkType": "presence",
+        "expected": "Thresholds, bands, payout percentages and term dates match the executed agreement"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Contingent terms",
+        "checkType": "absence",
+        "expected": "No agreement configured without a cap where the contract specifies one"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fkp631i9mkfgziyf7z8gy",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103yjmbk8y9kyaaxo",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscov8r1mq2mbk8ph6o39cx",
+      "cmqscol561m8wmbk8rrhp9138",
+      "cmqscokx71m8gmbk8fk7wyeay"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Receipt confirmed against payment records",
+      "Failed payments identified and reissued",
+      "Confirmation evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm each payment in the batch shows a cleared or settled status in the payment run, not just issued",
+      "Work the returned and rejected payment list and confirm the cause (stale bank details, closed account)",
+      "Reissue returned payments only after banking details are re-verified through the callback control",
+      "Confirm the producer portal shows the contingent payment against the correct producer and period",
+      "Confirm the total settled equals the approved batch total less any documented holds"
+    ],
+    "testing": [
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "Contingent payment run status",
+        "checkType": "presence",
+        "expected": "Every payment shows a cleared or settled status"
+      },
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "Returned payments",
+        "checkType": "absence",
+        "expected": "No returned payment reissued without re-verified banking details"
+      }
+    ]
+  },
+  {
+    "taskId": "8904fbae-d81b-414c-8b6d-290782ed9116",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03unmbk8aextgm34",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscog6l1m08mbk83rau8hcj",
+      "cmqscp1yg1n2gmbk8f0gkdke6"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5h6vg025pv880y4mabtly",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc4qgaj000tv8f89i0i2onb",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Parameters documented and approved",
+      "Cost modelled before approval",
+      "Conduct impact considered"
+    ],
+    "checklistSpecific": [
+      "Define the qualifying metric precisely (written premium, growth rate, loss ratio, policy count) with its data source",
+      "Define the measurement period and the valuation date used for loss ratio inputs",
+      "Define the lines of business in scope and the exclusions, including facultative or accommodation business",
+      "Model total programme cost at threshold, target and stretch production and compare to budget",
+      "Assess and document whether the thresholds could incentivise poor-quality business, and state the mitigation"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": "Incentive program parameter document",
+        "checkType": "presence",
+        "expected": "Metric, data source, measurement period, scope and cost model all documented"
+      },
+      {
+        "system": null,
+        "location": "Conduct impact assessment",
+        "checkType": "presence",
+        "expected": "Assessment records whether thresholds could drive customer detriment and the mitigation"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fkoxy1i62kfgz9hpneuxm",
+    "roles": [
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscokx71m8gmbk8fk7wyeay",
+      "cmqscpbiu1njymbk8m9em8gnk",
+      "cmqscov8r1mq2mbk8ph6o39cx"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Disbursement only from an approved batch",
+      "Payment controls applied",
+      "Disbursement evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm the batch carries the recorded approval before creating the payment run",
+      "Confirm banking details for each payee were verified through the callback control before payment",
+      "Confirm dual authorisation is applied where the payment value exceeds the authority threshold",
+      "Confirm the payment posts to the contingent commission expense account, not base commission",
+      "Confirm the payment run total equals the approved batch total with no manual amendment after approval"
+    ],
+    "testing": [
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "Contingent payment run",
+        "checkType": "presence",
+        "expected": "Run total equals the approved batch total and carries required authorisations"
+      },
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "Payment run amendments",
+        "checkType": "absence",
+        "expected": "No amendment made to the batch after approval without re-approval"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjexc0wz5kfgzw5ukbccc",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscpcbz1nlgmbk8fbb654i9",
+      "cmqscpcf51nlkmbk8x7chlx90"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5h6vg025pv880y4mabtly",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Amounts finalised from validated qualification results",
+      "Adjustments documented",
+      "Final schedule reviewed"
+    ],
+    "checklistSpecific": [
+      "Lock the qualification results before finalising amounts so late data changes do not silently move payouts",
+      "Apply any approved manual adjustment separately and show it as a distinct line, not blended into the calculated amount",
+      "Confirm each producer payout is within the program cap and above the minimum payment threshold",
+      "Confirm producers with open chargeback debit balances have the offset applied per the program rules",
+      "Reconcile the final schedule total to the calculated total plus documented adjustments"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Final producer payout schedule",
+        "checkType": "presence",
+        "expected": "Final total equals calculated total plus separately listed approved adjustments"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Final payouts",
+        "checkType": "absence",
+        "expected": "No payout finalised above the program cap or on unlocked qualification data"
+      }
+    ]
+  },
+  {
+    "taskId": "3d03f59e-8f6c-4438-b466-db8cf369714c",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscpkz61o10mbk89h2emobr",
+      "cmqscovjm1mqmmbk8zena4laq"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Measurement uses the approved metric definitions",
+      "Data sourced from the signed-off warehouse",
+      "Results retained"
+    ],
+    "checklistSpecific": [
+      "Extract production, growth and loss ratio for each eligible producer at the defined valuation date",
+      "Confirm the premium basis matches the program definition (written versus earned, gross versus net of cancellations)",
+      "Confirm producers who joined or left mid-period are treated per the pro-rating rule in the program",
+      "Flag producers within a narrow band of a threshold for review before results are treated as final",
+      "Reconcile the measured production total to the period premium reported in the warehouse"
+    ],
+    "testing": [
+      {
+        "system": "Enterprise data warehouse/lakehouse",
+        "location": "Producer qualification measurement",
+        "checkType": "presence",
+        "expected": "Metrics computed at the defined valuation date on the approved premium basis"
+      },
+      {
+        "system": "Enterprise data warehouse/lakehouse",
+        "location": "Measurement population",
+        "checkType": "absence",
+        "expected": "No eligible producer omitted from the measurement run"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjf6k0x4ekfgzde85cxw0",
+    "roles": [
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp1yg1n2gmbk8f0gkdke6",
+      "cmqscpcbz1nlgmbk8fbb654i9",
+      "cmqscpc241nkymbk8rmhpkaih"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Finance approval obtained before release",
+      "Approval references the accrual position",
+      "Approval evidence retained"
+    ],
+    "checklistSpecific": [
+      "Present the finalised payout total against the contingent commission accrual and explain the difference",
+      "Confirm the payout total is within the approved commission expense budget or flag the overrun explicitly",
+      "Confirm the accounting period for recognition is agreed before approval, not after payment",
+      "Obtain the approval from the finance approver named in the authority matrix for the value",
+      "Record the approval in the workflow tool with the supporting schedule attached"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Finance approval of payouts",
+        "checkType": "presence",
+        "expected": "Approval attaches the payout schedule and the accrual comparison"
+      },
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "Contingent accrual vs payout",
+        "checkType": "absence",
+        "expected": "No payout released where the variance to accrual is unexplained"
+      }
+    ]
+  },
+  {
+    "taskId": "5edc601b-8ab1-40bd-9797-f7a0ad7c2ea3",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rn03rfmbk8mskgxzzy",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103yjmbk8y9kyaaxo",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp1n21n1ymbk80ec1eahz",
+      "cmqscp1o41n20mbk8x267q2fx",
+      "cmqscog6l1m08mbk83rau8hcj"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5l76k06lnv880o65lvush",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5tz7e0j2nv880a2ef9mvk",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Disclosure content reviewed against requirements",
+      "Producer and period clearly identified",
+      "Disclosure evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm the statement discloses both base commission and contingent or incentive compensation arrangements",
+      "Confirm the disclosure describes the basis on which contingent compensation is earned, not just the amount",
+      "Confirm the statement covers the correct producer entity and disclosure period",
+      "Confirm any state-specific wording or format requirement is applied for the states in which the producer writes",
+      "Route the draft statements for compliance review before issue and retain the review evidence"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": "Producer compensation disclosure statement",
+        "checkType": "presence",
+        "expected": "Statement discloses base and contingent arrangements and the basis of entitlement"
+      },
+      {
+        "system": null,
+        "location": "Disclosure statements",
+        "checkType": "absence",
+        "expected": "No statement issued without documented compliance review"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fl66f1qh7kfgzd6f9ywdi",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rn03rfmbk8mskgxzzy",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103yjmbk8y9kyaaxo",
+        "use": "performed"
+      },
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp1n21n1ymbk80ec1eahz",
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscovdd1mqambk8nf5s8p4j"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5l76k06lnv880o65lvush",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Schedule approved before publication",
+      "Published to all in-scope producers",
+      "Publication evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm the schedule states the measurement period, calculation date and expected payment date",
+      "Confirm the published schedule matches the approved payout schedule with no late edits",
+      "Publish to the producer portal and confirm it renders for a test producer account",
+      "Confirm producer-level amounts are visible only to the owning producer",
+      "Record the publication timestamp and notify the in-scope producer population"
+    ],
+    "testing": [
+      {
+        "system": "Broker & Agent Portal",
+        "location": "Published payout schedule",
+        "checkType": "presence",
+        "expected": "Published schedule matches the approved schedule and shows period and payment dates"
+      },
+      {
+        "system": "Broker & Agent Portal",
+        "location": "Payout schedule visibility",
+        "checkType": "absence",
+        "expected": "No producer able to see another producer payout amount"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fk12h16vdkfgzq5h5lzi5",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscokx71m8gmbk8fk7wyeay",
+      "cmqscol7f1m90mbk8uqz22zfo",
+      "cmqscp1yg1n2gmbk8f0gkdke6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Release only after documented approval",
+      "Releaser independent of the preparer",
+      "Release evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm the approval record is complete before setting the batch to released status",
+      "Confirm the releasing user is not the analyst who prepared or calculated the payouts",
+      "Confirm the released amount matches the approved amount to the cent with no post-approval edits",
+      "Confirm producers on hold are still excluded at the point of release, not just at approval",
+      "Stamp the release timestamp and user so the handoff to disbursement is traceable"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Payout batch release record",
+        "checkType": "presence",
+        "expected": "Release timestamp and releasing user recorded against the approved batch"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Batch preparer vs releaser",
+        "checkType": "absence",
+        "expected": "No batch released by the same user who prepared it"
+      }
+    ]
+  },
+  {
+    "taskId": "01e22684-8c42-4623-b3cf-c6bbbf62fa9a",
+    "roles": [
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkz61o10mbk89h2emobr",
+      "cmqscplf41o1umbk8h9az1264",
+      "cmqscplh81o1ymbk8u8i73x3e"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Metrics refreshed on the defined cadence",
+      "Definitions applied consistently",
+      "Refresh evidence retained"
+    ],
+    "checklistSpecific": [
+      "Refresh production volume, growth rate and loss ratio by producer on the agreed reporting cadence",
+      "Use the same premium and loss basis as the incentive program definitions so tracking and payout agree",
+      "Show progress against each producer qualification threshold, not just the raw metric",
+      "Flag producers whose loss ratio trend would disqualify them despite strong volume",
+      "Confirm the refresh timestamp and data cut-off are shown on the dashboard"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Producer performance dashboard",
+        "checkType": "presence",
+        "expected": "Volume, growth and loss ratio shown against qualification thresholds with a refresh timestamp"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "Metric definitions",
+        "checkType": "absence",
+        "expected": "No dashboard metric using a basis different from the incentive program definition"
+      }
+    ]
+  },
+  {
+    "taskId": "aada9734-923d-45d1-8207-b16f6dbc3af6",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscp1yg1n2gmbk8f0gkdke6",
+      "cmqscpcf51nlkmbk8x7chlx90"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5h6vg025pv880y4mabtly",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Determinations reviewed against program rules",
+      "Edge cases escalated for decision",
+      "Decisions documented"
+    ],
+    "checklistSpecific": [
+      "Review every producer within a defined tolerance of a threshold and confirm the metric value at the valuation date",
+      "Review mid-period joiners, leavers and agency mergers against the pro-rating and continuity rules",
+      "Confirm producers disqualified on loss ratio or conduct grounds are correctly excluded and the reason is recorded",
+      "Escalate any case the rules do not clearly cover and record the decision and its rationale",
+      "Lock the validated qualification list before payouts are finalised"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": "Qualification validation log",
+        "checkType": "presence",
+        "expected": "Every edge case has a recorded decision and rationale against the program rules"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Qualification list",
+        "checkType": "absence",
+        "expected": "No qualification determination changed after the list was locked without approval"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fkztw1ni7kfgzktq9bcsd",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpc9m1nlcmbk86982l9uc",
+      "cmqscpcjw1nlsmbk8rm9clavs",
+      "cmqscolo91m9umbk8moj6jwxb"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Effective dating applied per the approved amendment",
+      "No unapproved retroactive dating",
+      "Evidence retained"
+    ],
+    "checklistSpecific": [
+      "Set the amendment effective date to the date stated in the approved change, not the system entry date",
+      "Confirm the prior schedule version is end-dated the day before the amendment takes effect",
+      "Confirm no retroactive amendment is applied to a period already paid without documented approval",
+      "Test a transaction either side of the amendment date and confirm the correct rate is selected",
+      "Record the effective date decision and approval reference on the schedule version row"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Amendment effective dating",
+        "checkType": "absence",
+        "expected": "No retroactive amendment applied to an already-paid period without approval"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Schedule version dates",
+        "checkType": "presence",
+        "expected": "Prior version end-dated the day before the amendment effective date"
+      }
+    ]
+  },
+  {
+    "taskId": "9c5e2607-3a54-48af-8b13-ed850ec0c248",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofu51lzkmbk898prv041",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscpcjw1nlsmbk8rm9clavs"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Sample selected on a defined basis",
+      "Testing evidenced with results",
+      "Exceptions raised for remediation"
+    ],
+    "checklistSpecific": [
+      "Confirm every active producer code has exactly one applicable schedule assignment at any point in time",
+      "Sample calculated commissions across product lines and independently recompute each against the assigned schedule",
+      "Test that override and split outputs sum correctly and do not exceed the total schedule rate",
+      "Test that non-commissionable premium components were excluded from the commissionable base",
+      "Log each exception with the producer, policy, expected value, actual value and remediation owner"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Schedule assignment coverage",
+        "checkType": "absence",
+        "expected": "No active producer code without an applicable schedule assignment"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Audit sample results",
+        "checkType": "presence",
+        "expected": "Each sampled calculation has an independently recomputed expected value and result"
+      }
+    ]
+  },
+  {
+    "taskId": "133a639c-e2f0-4bd7-adb7-2b2a82498f02",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscolo91m9umbk8moj6jwxb",
+      "cmqscolte1ma2mbk8pcr1ww1c",
+      "cmqscplz01o2wmbk8uwbmt1v8"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Test scope agreed before execution",
+      "Business sign-off obtained before release",
+      "Test evidence retained"
+    ],
+    "checklistSpecific": [
+      "Agree the regression scope with IT covering calculation, hierarchy, splits, chargebacks and statement output",
+      "Run the standard commission regression pack in UAT and compare results to the current production baseline",
+      "Confirm any intended output difference is explained and accepted, and any unintended difference blocks release",
+      "Confirm the release is approved by business sign-off and not deployed by the developer who built it",
+      "Confirm a rollback plan and post-release verification steps are agreed before go-live"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "UAT regression results",
+        "checkType": "presence",
+        "expected": "Regression results compared to the production baseline with differences dispositioned"
+      },
+      {
+        "system": "workflow/case management tool",
+        "location": "Release approval record",
+        "checkType": "absence",
+        "expected": "No release deployed without business sign-off"
+      }
+    ]
+  },
+  {
+    "taskId": "68b5d794-c7a8-4e95-980c-6cafc2d9f141",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl891o1gmbk8564fr6p6",
+      "cmqscp1r41n26mbk8ryaf3k4y",
+      "cmqscpc431nl2mbk8qwlixbgk"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Every issue logged with a root cause",
+      "Owner and due date assigned",
+      "Log reviewed on a defined cadence"
+    ],
+    "checklistSpecific": [
+      "Log each data integrity issue with the affected records, periods and estimated financial impact",
+      "Record the root cause category (feed failure, mapping gap, source data error, manual keying)",
+      "Record the corrective action taken and whether the fix was at source or downstream",
+      "Record whether the issue is recurring and link it to prior occurrences",
+      "Assign a preventive action owner where the same cause has occurred more than once"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Commission data integrity log",
+        "checkType": "presence",
+        "expected": "Each entry records affected records, root cause, impact and corrective action"
+      },
+      {
+        "system": "workflow/case management tool",
+        "location": "Data integrity log",
+        "checkType": "absence",
+        "expected": "No logged issue without an owner and target resolution date"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fldod1u6rkfgz2pje8j77",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovjm1mqmmbk8zena4laq",
+      "cmqscpkd01nzymbk811yk4bs3",
+      "cmqscomop1mbcmbk8hcolxq5d"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Identification run on a defined cadence",
+      "Results quantified by value",
+      "Findings routed for remediation"
+    ],
+    "checklistSpecific": [
+      "Run the orphan check comparing commission records to active producer codes in the producer master",
+      "Separate genuinely unknown codes from codes that exist but are inactive or terminated",
+      "Quantify the total commission value sitting on orphaned records, not just the record count",
+      "Confirm orphaned records are held in suspense and not paid pending remediation",
+      "Route the orphan list to remediation with a target clearance date"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Orphaned commission record report",
+        "checkType": "presence",
+        "expected": "Report lists orphan records with producer code, value and category"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Payment batch",
+        "checkType": "absence",
+        "expected": "No orphaned commission record included in a payment batch"
+      }
+    ]
+  },
+  {
+    "taskId": "35b2375c-3480-47cc-aecd-3884fb1417d8",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscolo91m9umbk8moj6jwxb",
+      "cmqscpcjw1nlsmbk8rm9clavs",
+      "cmqscol661m8ymbk8vhpve26r"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "All configuration changes raised as change records",
+      "Approval obtained before change",
+      "Change evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm every rate, hierarchy and rule change is raised as a change record before it is made",
+      "Confirm the change record states the before and after values and the business justification",
+      "Confirm approval is captured before the change is applied, not retrofitted afterwards",
+      "Reconcile the system configuration change log to the approved change records and investigate any unmatched change",
+      "Confirm emergency changes follow the retrospective approval route within the defined window"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Configuration change log",
+        "checkType": "presence",
+        "expected": "Every logged configuration change maps to an approved change record"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Configuration change log",
+        "checkType": "absence",
+        "expected": "No configuration change applied without a prior or retrospective approval"
+      }
+    ]
+  },
+  {
+    "taskId": "38abf666-cd49-4102-be4b-627b5e1b8eaa",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rn03rfmbk8mskgxzzy",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscpcjw1nlsmbk8rm9clavs",
+      "cmqscovjm1mqmmbk8zena4laq"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Updates driven by an authorised source record",
+      "Effective dating applied",
+      "Change evidence retained"
+    ],
+    "checklistSpecific": [
+      "Apply hierarchy and rate table updates only from an approved producer agreement, appointment or termination record",
+      "Apply changes with the correct effective date so prior-period commissions are not restated unintentionally",
+      "Confirm terminated producer codes are inactivated and removed from future hierarchy roll-ups",
+      "Confirm new codes are created with a parent, a schedule assignment and a payment method before first payment",
+      "Reconcile the updated hierarchy and rate tables back to the producer master after the update run"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Producer hierarchy and rate tables",
+        "checkType": "presence",
+        "expected": "Every update references an approved agreement, appointment or termination record"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "New producer codes",
+        "checkType": "absence",
+        "expected": "No new producer code active without a schedule assignment and parent node"
+      }
+    ]
+  },
+  {
+    "taskId": "27b4fa6e-9519-452e-8b0a-44011ab05a83",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscolcv1m9ambk8dlzg9oqc",
+      "cmqscom7t1maombk8gqjzsvg8",
+      "cmqscpcl11nlumbk8wk2yfz1c"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Access granted only with documented approval",
+      "Segregation conflicts identified and mitigated",
+      "Review evidence retained"
+    ],
+    "checklistSpecific": [
+      "Review the user list against the SOD matrix and confirm no user can both create and approve an adjustment",
+      "Confirm no user can both configure rate schedules and release a payment batch",
+      "Confirm leavers and internal movers have had commission system access removed within the defined window",
+      "Confirm privileged and administrator accounts are named individuals with documented approval, not shared logins",
+      "Record the recertification decision for every account and revoke access where no decision is returned"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Access recertification results",
+        "checkType": "presence",
+        "expected": "Every account has a recorded retain or revoke decision from the reviewer"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "User entitlements",
+        "checkType": "absence",
+        "expected": "No user holding both adjustment creation and adjustment approval entitlements"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fkzjo1ndkkfgzk3ibtg23",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscolo91m9umbk8moj6jwxb",
+      "cmqscpcjw1nlsmbk8rm9clavs",
+      "cmqscpl3d1o18mbk8rk6n5z9p"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5tggu0ibtv880ggwz9beo",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Amendment approved before application",
+      "Producer agreement updated in step",
+      "Evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm the amendment is supported by an approved change record and an executed agreement addendum",
+      "Apply the amendment as a new schedule version rather than editing the existing active version",
+      "Confirm in-force policies are treated per the grandfathering rule agreed for the amendment",
+      "Recalculate a sample policy either side of the amendment date and confirm the intended outcome",
+      "Publish the amended schedule to affected producers and log the notification"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Amended schedule version",
+        "checkType": "presence",
+        "expected": "Amendment applied as a new version with its own effective date and approval reference"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Active schedule versions",
+        "checkType": "absence",
+        "expected": "No in-place edit made to an already-active schedule version"
+      }
+    ]
+  },
+  {
+    "taskId": "bfc6643d-0e5d-4c02-af04-cfcc8d323b59",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscomop1mbcmbk8hcolxq5d",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscovjm1mqmmbk8zena4laq"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Reconciliation performed to the master record",
+      "Differences investigated and corrected",
+      "Evidence retained"
+    ],
+    "checklistSpecific": [
+      "Reconcile producer codes and hierarchy parents between the compensation engine and the producer management master",
+      "Investigate codes present in one system and absent in the other in both directions, not just one",
+      "Confirm the master record is the correction source and that fixes are made there and re-fed downstream",
+      "Confirm effective-dated hierarchy rows agree between systems, not just the current position",
+      "Record the residual difference count and value and confirm it is zero or explained at sign-off"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Producer code and hierarchy reconciliation",
+        "checkType": "presence",
+        "expected": "Reconciliation covers both directions and reports a residual difference of zero or explained"
+      },
+      {
+        "system": "agency/producer management system",
+        "location": "Producer master",
+        "checkType": "absence",
+        "expected": "No engine producer code without a corresponding active master record"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fldye1ubckfgzek1uyz6c",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rn03rfmbk8mskgxzzy",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkd01nzymbk811yk4bs3",
+      "cmqscovjm1mqmmbk8zena4laq",
+      "cmqscpl891o1gmbk8564fr6p6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Each orphan traced to a valid producer or written off with approval",
+      "Corrections evidenced",
+      "Re-check performed after remediation"
+    ],
+    "checklistSpecific": [
+      "Trace each orphaned record to the correct producer code using the policy and agency of record",
+      "Correct the producer code on the source record rather than reassigning only the commission line",
+      "Where no valid producer can be identified, obtain approval before writing off or holding the amount",
+      "Re-run the calculation for corrected records and confirm the commission now pays to the right producer",
+      "Re-run the orphan report after remediation and confirm the corrected records no longer appear"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Orphan remediation log",
+        "checkType": "presence",
+        "expected": "Each orphan record shows the traced producer or an approved write-off decision"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Orphan report after remediation",
+        "checkType": "absence",
+        "expected": "No previously remediated record still appearing as orphaned"
+      }
+    ]
+  },
+  {
+    "taskId": "02907dc4-9a52-4fa9-b657-fcdd6d2bc8f9",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "5769c052-b722-4978-829f-fbd8239d0f42",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscomop1mbcmbk8hcolxq5d",
+      "cmqscom1e1maembk8v4uv26u0",
+      "cmqscovjm1mqmmbk8zena4laq"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Control totals compared at each interface",
+      "Failures alerted and worked",
+      "Validation evidence retained"
+    ],
+    "checklistSpecific": [
+      "Compare inbound feed record counts and premium totals against the source system control totals",
+      "Confirm every expected feed for the period has arrived, and chase missing files before calculation",
+      "Validate mandatory fields (policy number, effective date, producer code, premium) are populated on every record",
+      "Confirm rejected records are written to the reject file rather than silently dropped",
+      "Confirm feed failures raise an alert to a named owner and are cleared before the calculation window"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Inbound feed control totals",
+        "checkType": "presence",
+        "expected": "Feed counts and totals match the source system control totals"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Expected feed schedule",
+        "checkType": "absence",
+        "expected": "No expected feed missing or unprocessed at the calculation cut-off"
+      }
+    ]
+  },
+  {
+    "taskId": "19b6cd45-822e-4a4c-a45d-0d99a60e902c",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03unmbk8aextgm34",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscog8h1m0cmbk814c04056",
+      "cmqscp1yg1n2gmbk8f0gkdke6",
+      "cmqscp24x1n2qmbk893kbwwtg"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc4qgaj000tv8f89i0i2onb",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5h6vg025pv880y4mabtly",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Approval by the authorised governance body",
+      "Policy version controlled",
+      "Approval evidence retained"
+    ],
+    "checklistSpecific": [
+      "Confirm the policy defines approval authority for schedules, adjustments, incentive programs and payments",
+      "Confirm the policy names the required controls including segregation of duties and dual approval thresholds",
+      "Confirm compliance and finance review comments are addressed before approval",
+      "Record the approver, date and version approved, and set the next review date",
+      "Publish the approved policy to the policy repository and withdraw the superseded version"
+    ],
+    "testing": [
+      {
+        "system": "document management repository",
+        "location": "Commission governance policy",
+        "checkType": "presence",
+        "expected": "Approved version records approver, approval date and next review date"
+      },
+      {
+        "system": "document management repository",
+        "location": "Policy repository",
+        "checkType": "absence",
+        "expected": "No superseded policy version left published as current"
+      }
+    ]
+  },
+  {
+    "taskId": "0037a79f-f30a-440e-bc2a-ad863ffb13e7",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscolym1maambk8ej4zsej2",
+      "cmqscpksp1o0ombk8ubuf84ya",
+      "cmqscpkr61o0mmbk8k0o0kemv"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Workpapers archived to the retention schedule",
+      "Indexed for retrieval",
+      "Access restricted appropriately"
+    ],
+    "checklistSpecific": [
+      "Archive the audit scope, sample selection, testing evidence, findings and management responses together",
+      "Index the archive by audit period and audit type so it can be produced on a regulator request",
+      "Confirm the archived evidence includes the underlying calculation extracts, not just the summary memo",
+      "Apply the retention period and confirm a disposal date is set on the folder",
+      "Confirm access is limited to audit, finance and distribution operations roles"
+    ],
+    "testing": [
+      {
+        "system": "document management repository",
+        "location": "Commission audit workpaper archive",
+        "checkType": "presence",
+        "expected": "Scope, samples, evidence, findings and responses all archived and indexed"
+      },
+      {
+        "system": "document management repository",
+        "location": "Audit archive access",
+        "checkType": "absence",
+        "expected": "No unrestricted access to archived commission audit workpapers"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjdwn0wkckfgzvfg40mrx",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rn03rfmbk8mskgxzzy",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscogck1m0kmbk8ciwtyq8o",
+      "cmqscp27y1n2wmbk8jikb5gah",
+      "cmqscp1n21n1ymbk80ec1eahz"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5l76k06lnv880o65lvush",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5tz7e0j2nv880a2ef9mvk",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Requirements sourced from authoritative texts",
+      "Assessment covers all states written",
+      "Findings documented per state"
+    ],
+    "checklistSpecific": [
+      "List every state in which appointed producers write business and assess disclosure requirements for each",
+      "Record for each state whether compensation disclosure is required, on what trigger, and in what form",
+      "Record whether written client consent or acknowledgement is required in that state",
+      "Identify states where contingent compensation disclosure differs from base commission disclosure",
+      "Flag gaps between current practice and each state requirement for remediation"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": "State compensation disclosure requirement matrix",
+        "checkType": "presence",
+        "expected": "Every state written has a documented requirement, trigger and form of disclosure"
+      },
+      {
+        "system": null,
+        "location": "Requirement matrix",
+        "checkType": "absence",
+        "expected": "No state in which business is written omitted from the assessment"
+      }
+    ]
+  },
+  {
+    "taskId": "b15cc0d9-694b-450d-ba46-32448340c376",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofu51lzkmbk898prv041",
+      "cmqscp0qb1n0ambk8mwln31g0",
+      "cmqscpl4a1o1ambk8c60kuqo6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Sample selected on a risk basis",
+      "Independent recomputation performed",
+      "Findings documented and routed"
+    ],
+    "checklistSpecific": [
+      "Select the sample across product lines, channels and high-value producers rather than at random only",
+      "Recompute commission for each sampled policy from the source premium transaction and the schedule in force",
+      "Confirm the producer code, split and hierarchy on the sample match the agreement of record",
+      "Confirm any manual adjustment on a sampled record carries approval evidence",
+      "Quantify the error rate and extrapolate the potential exposure across the population"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Commission calculation audit sample",
+        "checkType": "presence",
+        "expected": "Each sampled item has a recomputed expected value and a documented result"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Audit findings",
+        "checkType": "absence",
+        "expected": "No identified calculation error left without a quantified population impact"
+      }
+    ]
+  },
+  {
+    "taskId": "608bcb9e-17db-4c7c-a23f-988d134ee408",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rn03rfmbk8mskgxzzy",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      },
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofu51lzkmbk898prv041",
+      "cmqscpcf51nlkmbk8x7chlx90",
+      "cmqscpl4a1o1ambk8c60kuqo6"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5tggu0ibtv880ggwz9beo",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5l76k06lnv880o65lvush",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Sample traced to executed agreements",
+      "Payment terms tested not assumed",
+      "Findings documented"
+    ],
+    "checklistSpecific": [
+      "Pull the executed producer agreement for each sampled payment and compare the rate paid to the contracted rate",
+      "Confirm the payment went to the contracting entity and bank account named in the agreement",
+      "Confirm contingent and override payments are supported by an in-force agreement clause",
+      "Confirm no payment was made to a producer whose agreement had terminated before the transaction date",
+      "Document each exception with the agreement reference, amount paid and amount contracted"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Payment-to-agreement audit sample",
+        "checkType": "presence",
+        "expected": "Each sampled payment traced to an executed agreement clause and rate"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Sampled payments",
+        "checkType": "absence",
+        "expected": "No payment made under a terminated or absent producer agreement"
+      }
+    ]
+  },
+  {
+    "taskId": "f04e05d1-410b-4e16-a0f9-d963f2a1b0bf",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp26y1n2umbk8a0c911up",
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscp24x1n2qmbk893kbwwtg"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Documentation version controlled",
+      "Content matches live programs",
+      "Review performed on the defined cycle"
+    ],
+    "checklistSpecific": [
+      "Confirm the documented schedules, incentive programs and rules match what is configured in the engine",
+      "Confirm each document carries a version number, owner, approval date and next review date",
+      "Withdraw superseded versions from the live repository so only the current version is retrievable",
+      "Update documentation within the defined window after each approved program or schedule change",
+      "Record the review outcome for documents that are reviewed and confirmed unchanged"
+    ],
+    "testing": [
+      {
+        "system": "document management repository",
+        "location": "Commission program documentation",
+        "checkType": "presence",
+        "expected": "Every current document carries version, owner, approval date and review date"
+      },
+      {
+        "system": "document management repository",
+        "location": "Live documentation set",
+        "checkType": "absence",
+        "expected": "No superseded program document still presented as current"
+      }
+    ]
+  },
+  {
+    "taskId": "83c7ab40-97f7-4606-a5c4-8d5749ed5ccc",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03unmbk8aextgm34",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpc241nkymbk8rmhpkaih",
+      "cmqscolax1m96mbk8shct8beo",
+      "cmqscpczw1nmmmbk86b0euc5m"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Actuals agreed to the ledger",
+      "Variances explained above threshold",
+      "Report issued on the reporting calendar"
+    ],
+    "checklistSpecific": [
+      "Report total producer compensation (base, override, contingent, incentive) against budget by channel",
+      "Tie the reported actuals to the general ledger compensation expense accounts for the period",
+      "Explain each variance above threshold with a driver and state whether it is timing or permanent",
+      "Show the contingent compensation accrual movement separately from cash paid",
+      "Issue to finance and distribution leadership by the reporting calendar date"
+    ],
+    "testing": [
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "Compensation budget report",
+        "checkType": "presence",
+        "expected": "Reported actuals tie to GL compensation expense with variances explained"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "Compensation report",
+        "checkType": "absence",
+        "expected": "No material variance reported without a stated driver"
+      }
+    ]
+  },
+  {
+    "taskId": "3c4da8aa-8a29-4964-83d3-61ef3cb5a3ad",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rn03rfmbk8mskgxzzy",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp1q51n24mbk8pne0wb7s",
+      "cmqscp2a71n30mbk87gkzse8f",
+      "cmqscp2j91n3gmbk8kd78amek"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5l76k06lnv880o65lvush",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5h6vg025pv880y4mabtly",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Inquiry logged with a due date",
+      "Response reviewed before issue",
+      "Response and evidence retained"
+    ],
+    "checklistSpecific": [
+      "Log each inquiry with its source (producer or regulator), subject and statutory or contractual due date",
+      "Assemble the supporting evidence (schedules, agreements, payment records) before drafting the response",
+      "Have compliance or legal review any regulator-facing response before it is issued",
+      "Confirm the response answers each question asked and states clearly where information is not held",
+      "File the issued response with the supporting evidence against the inquiry record"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Compensation inquiry log",
+        "checkType": "presence",
+        "expected": "Each inquiry records source, due date, evidence assembled and response issued"
+      },
+      {
+        "system": "workflow/case management tool",
+        "location": "Regulator responses",
+        "checkType": "absence",
+        "expected": "No regulator response issued without documented compliance review"
+      }
+    ]
+  },
+  {
+    "taskId": "4f94cf62-b148-4d16-9bb7-655c6ea626be",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rn03rfmbk8mskgxzzy",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp1n21n1ymbk80ec1eahz",
+      "cmqscp1o41n20mbk8x267q2fx",
+      "cmqscofu51lzkmbk898prv041"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5l76k06lnv880o65lvush",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5tz7e0j2nv880a2ef9mvk",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Review performed against documented requirements",
+      "Sample covers the disclosure population",
+      "Review outcome documented"
+    ],
+    "checklistSpecific": [
+      "Check a sample of issued disclosures against the state requirement matrix for the states in scope",
+      "Confirm the disclosed compensation amounts and arrangements agree to the commission and contingent records",
+      "Confirm the disclosure was issued at the required trigger point and within the required timing",
+      "Confirm contingent and incentive arrangements are disclosed, not only base commission",
+      "Record findings with the affected producers and route corrections for reissue"
+    ],
+    "testing": [
+      {
+        "system": "document management repository",
+        "location": "Disclosure review sample",
+        "checkType": "presence",
+        "expected": "Each reviewed disclosure checked against the state requirement and the compensation records"
+      },
+      {
+        "system": "document management repository",
+        "location": "Reviewed disclosures",
+        "checkType": "absence",
+        "expected": "No disclosure understating contingent or incentive arrangements left uncorrected"
+      }
+    ]
+  },
+  {
+    "taskId": "f1a6d32b-e966-4b64-bcb2-6bff9de32edf",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofu51lzkmbk898prv041",
+      "cmqscpcjw1nlsmbk8rm9clavs",
+      "cmqscpcl11nlumbk8wk2yfz1c"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Controls tested against the documented control design",
+      "Results evidenced",
+      "Failures raised as findings"
+    ],
+    "checklistSpecific": [
+      "Test that a producer code cannot be assigned two active parents by attempting the change in a test environment",
+      "Test that an override cannot be created outside the configured hierarchy levels",
+      "Test that an adjustment above the authority threshold cannot be released without the second approval",
+      "Test that a user without the approver entitlement cannot approve an adjustment",
+      "Record the pass or fail result, evidence reference and remediation owner for each control tested"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Control test results",
+        "checkType": "presence",
+        "expected": "Each control has a pass/fail result with evidence and a remediation owner where failed"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Override authorisation control",
+        "checkType": "absence",
+        "expected": "No override released without the required authorisation in the test"
+      }
+    ]
+  },
+  {
+    "taskId": "31705ff5-35ab-4dd7-ae51-299d07084749",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpbsm1nkgmbk8a0rlx0no",
+      "cmqscpbvk1nkmmbk883fr5ld0",
+      "cmqscpcn91nlymbk8vcjk3krt"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Every finding has an owner and due date",
+      "Progress reviewed on a defined cadence",
+      "Closure evidenced not asserted"
+    ],
+    "checklistSpecific": [
+      "Log every commission audit and compliance finding with its rating, owner and agreed due date",
+      "Track each finding through to closure and record the evidence supporting the closure claim",
+      "Re-test a sample of closed findings to confirm the control now operates, rather than accepting the assertion",
+      "Escalate overdue findings to the accountable leader on the agreed cadence",
+      "Report open, overdue and closed finding counts to governance each period"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Commission findings tracker",
+        "checkType": "presence",
+        "expected": "Every finding has owner, due date, status and closure evidence reference"
+      },
+      {
+        "system": "workflow/case management tool",
+        "location": "Findings tracker",
+        "checkType": "absence",
+        "expected": "No finding marked closed without attached closure evidence"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fje590wo0kfgz3ns5zxfh",
+    "roles": [
+      {
+        "roleId": "7444e568-5e4a-4467-a7ce-4c156e61d862",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rn03rfmbk8mskgxzzy",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03u2mbk848b2o6qd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103yjmbk8y9kyaaxo",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp2ew1n38mbk8fbmtk41d",
+      "cmqscp1n21n1ymbk80ec1eahz",
+      "cmqscpl3d1o18mbk8rk6n5z9p"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5l76k06lnv880o65lvush",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5vyni0m77v880m2r2bedg",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Changes driven by the documented requirement assessment",
+      "Updates approved before release",
+      "Implementation tracked to completion"
+    ],
+    "checklistSpecific": [
+      "Update the disclosure template wording for each state requirement identified as a gap in the assessment",
+      "Update the trigger point and timing rules in the disclosure procedure where a state requires earlier disclosure",
+      "Obtain compliance approval of the revised templates and procedure before release",
+      "Roll the revised templates into the producer portal and the statement generation process",
+      "Track each state gap through to a closed status and confirm none remain open"
+    ],
+    "testing": [
+      {
+        "system": "document management repository",
+        "location": "Revised disclosure templates",
+        "checkType": "presence",
+        "expected": "Each identified state gap maps to a specific template or procedure change"
+      },
+      {
+        "system": "document management repository",
+        "location": "State gap tracker",
+        "checkType": "absence",
+        "expected": "No assessed state gap left open after the update is declared complete"
+      }
+    ]
+  },
+  {
+    "taskId": "1e884a96-55ea-4713-823e-5a2b699d98d7",
+    "roles": [
+      {
+        "roleId": "cmqsck0rn03rfmbk8mskgxzzy",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sxmbk8ko6eo0rx",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5lo001fv8w0w3enlnyh",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofu51lzkmbk898prv041",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscp1up1n2ambk8hkydgrbl"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5std00hdlv880t3kt6bzn",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5tgw90ic7v8800q5e8wdn",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Licence and appointment status verified from the authoritative source",
+      "Verification performed before payment",
+      "Evidence retained"
+    ],
+    "checklistSpecific": [
+      "Verify each paid producer holds an active licence in the state of the risk for the line of business written",
+      "Verify the appointment with the writing carrier is active at the policy effective date, not just today",
+      "Confirm producers with a lapsed licence or appointment are placed on payment hold rather than paid",
+      "Confirm no transaction-based compensation is paid to an unlicensed or unappointed entity or individual",
+      "Record the verification date, source and result against each producer for audit"
+    ],
+    "testing": [
+      {
+        "system": "agency/producer management system",
+        "location": "Producer licence and appointment status",
+        "checkType": "presence",
+        "expected": "Active licence and appointment verified for the state and line at the transaction date"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Commission payment population",
+        "checkType": "absence",
+        "expected": "No commission paid to a producer without an active licence and appointment at the transaction date"
+      }
+    ]
+  }
+]
