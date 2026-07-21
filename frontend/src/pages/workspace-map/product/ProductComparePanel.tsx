@@ -124,7 +124,6 @@ function ElementCard({
 
 export default function ProductComparePanel(props: Props) {
   const {
-    versionLevelName,
     versions,
     comparison,
     matchFilter,
@@ -159,10 +158,6 @@ export default function ProductComparePanel(props: Props) {
     >
       <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>
         Current
-        <span style={{ fontWeight: 400, fontSize: 12, color: '#a3a3a3' }}>
-          {' '}
-          · the {versionLevelName.toLowerCase()}s as filed
-        </span>
       </div>
 
       {/* Match counters double as filters (multi-version comparisons only) —
@@ -194,10 +189,7 @@ export default function ProductComparePanel(props: Props) {
             }}
           >
             <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.rawCount}</b>
-            <span style={{ color: '#525252' }}>
-              elements in{' '}
-              <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.normalizedCount}</b> rows
-            </span>
+            <span style={{ color: '#525252' }}>elements</span>
             {filterable.map((s) => {
               const meta = MATCH_META[s];
               const active = matchFilter === s;
@@ -326,7 +318,6 @@ export default function ProductComparePanel(props: Props) {
                   fontSize: 10.5,
                   color: '#737373',
                   fontVariantNumeric: 'tabular-nums',
-                  whiteSpace: 'nowrap',
                 }}
               >
                 <b style={{ fontWeight: 700, color: '#525252' }}>{rawInRow}</b>{' '}

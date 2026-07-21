@@ -19,16 +19,6 @@ const COL_DIVIDER = '#64748b';
 
 type Decisions = Record<string, ProductDecisionStatus>;
 
-/** A labelled, colour-dotted count so each number says what it counts. */
-function CountKey({ color, n, label }: { color: string; n: number; label: string }) {
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#525252' }}>
-      <span style={{ width: 8, height: 8, borderRadius: 999, background: color, flexShrink: 0 }} />
-      <b style={{ fontWeight: 700, color }}>{n}</b> {label}
-    </span>
-  );
-}
-
 // Middle column of the Products board. Each model component is a collapsible
 // T-chart: one column per compared version, a NORMALIZED column on the right.
 // A group that every version carries folds N→1 automatically; a group only
@@ -588,10 +578,6 @@ export default function ProductNormalizeColumn({
     <div style={{ width: 560, flexShrink: 0, alignSelf: 'flex-start' }}>
       <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>
         Normalize
-        <span style={{ fontWeight: 400, fontSize: 12, color: '#a3a3a3' }}>
-          {' '}
-          · {versions.length === 1 ? 'one version → the model' : 'versions → one product model'}
-        </span>
       </div>
       <div
         style={{
@@ -623,27 +609,6 @@ export default function ProductNormalizeColumn({
           {versions.length} version{versions.length === 1 ? '' : 's'} →{' '}
           <b style={{ fontWeight: 700, color: INDIGO }}>{comparison.normalizedCount}</b> rows
         </span>
-        {versions.length > 1 && (
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 10,
-              border: '1px solid #eaeaea',
-              borderRadius: 999,
-              background: '#fff',
-              boxShadow: '0 1px 3px rgba(0,0,0,.05)',
-              padding: '3px 12px',
-              fontSize: 12,
-              fontVariantNumeric: 'tabular-nums',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <CountKey color={GREEN} n={settled} label="in the model" />
-            {heldCount > 0 && <CountKey color="#94a3b8" n={heldCount} label="kept as variants" />}
-            <CountKey color={MATCH_META.PARTIAL.fg} n={outstandingReview} label="need a decision" />
-          </span>
-        )}
       </div>
 
       <OverviewCard
@@ -662,7 +627,7 @@ export default function ProductNormalizeColumn({
         ]}
       >
         <span style={{ color: INDIGO }}>
-          {settled} of {comparison.normalizedCount} rows in the model ·{' '}
+          {settled} in the model ·{' '}
           {outstandingReview > 0 ? (
             <span style={{ color: MATCH_META.PARTIAL.fg }}>
               {outstandingReview} need a decision

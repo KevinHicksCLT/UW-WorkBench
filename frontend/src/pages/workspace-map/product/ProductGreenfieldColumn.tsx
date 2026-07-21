@@ -286,7 +286,6 @@ export default function ProductGreenfieldColumn({
     <div style={{ width: 340, flexShrink: 0, alignSelf: 'flex-start' }}>
       <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>
         Greenfield
-        <span style={{ fontWeight: 400, fontSize: 12, color: '#a3a3a3' }}> · the target model</span>
       </div>
       <div
         style={{
