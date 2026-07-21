@@ -627,10 +627,10 @@ export default function ProductNormalizeColumn({
         ]}
       >
         <span style={{ color: INDIGO }}>
-          {settled} in the model ·{' '}
+          {settled} elements in the model ·{' '}
           {outstandingReview > 0 ? (
             <span style={{ color: MATCH_META.PARTIAL.fg }}>
-              {outstandingReview} need a decision
+              {outstandingReview} elements need a decision
             </span>
           ) : (
             <span style={{ color: GREEN }}>every decision made</span>

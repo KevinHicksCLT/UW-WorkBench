@@ -311,12 +311,12 @@ export default function ProductGreenfieldColumn({
             fontVariantNumeric: 'tabular-nums',
           }}
         >
-          <b style={{ fontWeight: 700, color: GREEN }}>{inModel}</b> in the model
+          <b style={{ fontWeight: 700, color: GREEN }}>{inModel}</b> elements in the model
           {openDecisions > 0 ? (
             <>
               {' · '}
-              <b style={{ fontWeight: 700, color: MATCH_META.PARTIAL.fg }}>{openDecisions}</b> need
-              a decision
+              <b style={{ fontWeight: 700, color: MATCH_META.PARTIAL.fg }}>{openDecisions}</b>{' '}
+              elements need a decision
             </>
           ) : (
             <span style={{ color: GREEN }}>· all decided</span>
