@@ -111,20 +111,16 @@ export type ItemDetail = ItemRow & {
     createdAt: string;
   }[];
   sourceRowCount: number;
-  /** Every distinct citation across the regulation's source rows, with the
-   *  jurisdictions that carry it (deduplicated server-side). */
+  /** Every distinct citation across the regulation's source rows, with its
+   *  representative requirement text and the jurisdictions that carry it
+   *  (deduplicated server-side). */
   citations: {
     citation: string;
+    requirement: string;
     url: string | null;
     requirementId: string;
     jurisdictions: { code: string; name: string }[];
   }[];
-};
-
-export const FREQ_ALIGN_LABEL: Record<string, string> = {
-  MATCH: 'Match',
-  REVIEW: 'Review — differs from template',
-  NO_SIGNAL: 'No signal in source text',
 };
 
 const CONFIDENCE_TONE: Record<string, PillTone> = { HIGH: 'green', MEDIUM: 'amber', LOW: 'red' };

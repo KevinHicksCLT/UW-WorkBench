@@ -1,14 +1,14 @@
 /**
  * Compliance item drawer — the read-first detail panel for one L2 item.
- * Sections are visually separated cards: the task → grounding evidence →
- * the regulation's full citation coverage (every jurisdiction, each distinct
- * citation listed once with the jurisdictions that carry it).
+ * Two card sections: the task, then the regulation's full requirement +
+ * citation coverage — every jurisdiction's obligation shown once per distinct
+ * citation, never repeated.
  */
 import { Link } from 'react-router-dom';
 import { useApi } from '../../../lib/useApi';
 import { withCompany } from '../../../lib/portfolio';
 import { DrawerShell, ErrorMessage, LoadingState } from '../../../components/ui';
-import { FREQ_ALIGN_LABEL, type ItemDetail } from './shared';
+import { type ItemDetail } from './shared';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -79,67 +79,30 @@ export function ItemDrawer({
               </div>
             </Zone>
 
-            <Zone title="Grounding evidence">
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Supporting source rows">
-                  {item.supportingReqRows.toLocaleString()} (
-                  {item.officialSourceRows.toLocaleString()} official)
-                </Field>
-                <Field label="Grounding basis">
-                  {item.groundingBasis === 'ITEM' ? 'Item-level match' : 'Regulation-level'}
-                </Field>
-                <Field label="Frequency (derived)">
-                  {item.frequencyDerived} ·{' '}
-                  {FREQ_ALIGN_LABEL[item.frequencyAlignment] ?? item.frequencyAlignment}
-                </Field>
-                <Field label="Deadline signals">{item.deadlineSignals || '—'}</Field>
-              </div>
-              <Field label={`Representative requirement (${item.repJurisdiction})`}>
-                <blockquote className="border-l-2 border-[#eaeaea] pl-3 text-[13px] text-[#525252] leading-relaxed">
-                  {item.representativeRequirement}
-                </blockquote>
-              </Field>
-              {item.selectedRequirements.length > 0 && (
-                <Field label="Selected source rows">
-                  <ul className="text-[13px] space-y-0.5">
-                    {item.selectedRequirements.map((r) => (
-                      <li key={r.id}>
-                        <Link
-                          className="text-[#2563eb] hover:underline"
-                          to={`/regulations/requirement/${r.id}`}
-                        >
-                          {r.jurisdiction.name}: {r.citation ?? r.title}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </Field>
-              )}
-            </Zone>
-
             <Zone
-              title={`Citations — all jurisdictions (${item.citations.length.toLocaleString()} distinct across ${item.sourceRowCount.toLocaleString()} source rows)`}
+              title={`Requirements & citations — all jurisdictions (${item.citations.length.toLocaleString()})`}
             >
               <ul className="divide-y divide-[#f5f5f5]">
                 {item.citations.map((c) => (
-                  <li key={c.citation} className="py-2 first:pt-0 last:pb-0">
-                    <Link
-                      className="text-[13px] font-medium text-[#2563eb] hover:underline break-words"
-                      to={`/regulations/requirement/${c.requirementId}`}
-                    >
-                      {c.citation}
-                    </Link>
-                    <div className="flex flex-wrap gap-1 mt-1">
+                  <li key={c.citation} className="py-2.5 first:pt-0 last:pb-0">
+                    <div className="flex flex-wrap gap-1 mb-1">
                       {c.jurisdictions.map((j) => (
                         <span
                           key={j.code}
                           title={j.name}
-                          className="inline-block rounded border border-[#eaeaea] bg-[#fafafa] px-1.5 py-0.5 text-[10.5px] text-[#525252]"
+                          className="inline-block rounded border border-[#eaeaea] bg-[#fafafa] px-1.5 py-0.5 text-[10.5px] font-medium text-[#525252]"
                         >
                           {j.name}
                         </span>
                       ))}
                     </div>
+                    <p className="text-[13px] text-[#171717] leading-relaxed">{c.requirement}</p>
+                    <Link
+                      className="text-[12px] text-[#2563eb] hover:underline break-words"
+                      to={`/regulations/requirement/${c.requirementId}`}
+                    >
+                      {c.citation}
+                    </Link>
                   </li>
                 ))}
               </ul>
