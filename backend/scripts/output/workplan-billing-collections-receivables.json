@@ -1265,7 +1265,7 @@
         {
           "n": 1,
           "title": "Extract the in-force policy file from the policy administration system",
-          "actor": "Policy Administration Analyst",
+          "actor": "Billing Specialist",
           "sop": [
             "Extract in-force policies as at the agreed close date with written premium and status.",
             "Include cancelled and reinstated policies for the period with their status dates.",
@@ -6860,6 +6860,2840 @@
           "verify": [
             "Recount both populations at day close.",
             "Pass when acknowledged notifications equal executed lapse transactions."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "a2cf4e1a-415a-4f48-9f4a-e0b0c5522598",
+      "verifier": "Accountant",
+      "generic": {
+        "Defined scope/population": "Annuity purchase payments received in states that tax annuity consideration at deposit.",
+        "In-scope period": "Purchase payments received in the current accrual accounting period.",
+        "Required fields populated and valid": "Taxing state, rate applied, qualified status, accrual amount and rate source are populated.",
+        "Control totals or record counts reconcile": "Accrual total equals the sum of taxable consideration multiplied by the applicable rates.",
+        "Evidence retained with timestamp/version": "Rate source and calculation are retained with the transaction for the tax return workpapers.",
+        "Exceptions logged with disposition": "Payments in annuitisation-tax states are logged as excluded with the state rule reference.",
+        "Test population": "All purchase payments processed for premium tax accrual in the period.",
+        "Pass/fail thresholds": "Zero accruals raised for a state that taxes only at annuitisation.",
+        "Exception handling path": "An incorrect taxing state is corrected and the accrual reversed and reposted.",
+        "Documented acceptance criteria": "Accrual references the taxing state, the rate applied and the qualified status.",
+        "Evidence location": "The ERP premium tax liability account and the calculation workbook in Microsoft Excel."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Determine the taxing state from owner residence in the policy system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Read the owner residence address at the time of the purchase payment.",
+            "Use residence rather than the contract issue state.",
+            "Record the taxing state and its source on the transaction.",
+            "Done when the taxing state is determined from owner residence."
+          ],
+          "verify": [
+            "Compare the taxing state to the owner residence on the payment date.",
+            "Pass when the taxing state matches the owner residence of record."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Apply the current premium tax rate in Microsoft Excel",
+          "actor": "Accountant",
+          "sop": [
+            "Look up the current rate for the state and the qualified status.",
+            "Apply the rate to the taxable consideration.",
+            "Record the rate source reference on the calculation.",
+            "Done when the rate is applied with its source recorded."
+          ],
+          "verify": [
+            "Recompute the accrual from consideration times the rate.",
+            "Pass when the recomputed accrual matches the posted amount."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Exclude states that tax only at annuitisation",
+          "actor": "Accountant",
+          "sop": [
+            "Identify payments in states taxing at annuitisation rather than deposit.",
+            "Exclude those payments from the accrual.",
+            "Log each exclusion with the state rule reference.",
+            "Done when annuitisation-tax states are excluded and logged."
+          ],
+          "verify": [
+            "Filter the accrual population for annuitisation-tax states.",
+            "Pass when no such state appears in the accrual."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Post the accrual to the premium tax liability account in the ERP",
+          "actor": "Accountant",
+          "sop": [
+            "Post the accrual in the period the payment was received.",
+            "Confirm the posting hits the premium tax liability account.",
+            "Confirm the period is open before posting.",
+            "Done when the accrual is posted to the correct account and period."
+          ],
+          "verify": [
+            "Read the GL posting account and period.",
+            "Pass when the accrual sits in the premium tax liability account in the receipt period."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile the accrual total to taxable consideration for the period",
+          "actor": "Accountant",
+          "sop": [
+            "Total taxable consideration for the period by state.",
+            "Recompute the expected accrual and compare to the posted total.",
+            "Investigate any difference before close.",
+            "Done when posted accrual equals the recomputed expectation."
+          ],
+          "verify": [
+            "Recompute the state-level expectation independently.",
+            "Pass when posted and expected accruals agree."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Retain the rate source and calculation with the transaction",
+          "actor": "Accountant",
+          "sop": [
+            "Attach the calculation and rate source to the transaction record.",
+            "Index it for the premium tax return workpapers.",
+            "Confirm retrievability by state and period.",
+            "Done when the workpaper evidence is attached and retrievable."
+          ],
+          "verify": [
+            "Retrieve the workpaper by state and period.",
+            "Pass when the retrieved workpaper shows the rate source and calculation."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "312327ae-fc0b-489b-82bd-2c70c3531180",
+      "verifier": "Policy Administration Analyst",
+      "generic": {
+        "Defined scope/population": "Purchase payments awaiting allocation to subaccounts and indexed crediting options.",
+        "In-scope period": "Payments applied on the current good-order processing day.",
+        "Required fields populated and valid": "Allocation election, option codes, percentages, unit values and crediting date are populated.",
+        "Control totals or record counts reconcile": "Allocated amounts sum exactly to the net purchase payment across elected options.",
+        "Evidence retained with timestamp/version": "Allocation election of record and the posting detail are retained with the crediting date.",
+        "Exceptions logged with disposition": "Allocations to closed or restricted options are logged and reworked before posting.",
+        "Test population": "All purchase payment allocations posted in the review period.",
+        "Pass/fail thresholds": "Zero allocations made to a subaccount closed to new money.",
+        "Exception handling path": "A rejected option routes the allocation to the contract default until the owner re-elects.",
+        "Documented acceptance criteria": "Allocation postings sum exactly to the net purchase payment across elected options.",
+        "Evidence location": "The contract allocation detail in the policy system and the ERP premium posting."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the current allocation election of record from the policy system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Read the allocation election of record for the contract.",
+            "Confirm no pending allocation change takes effect before this deposit.",
+            "Record the election used on the transaction.",
+            "Done when the applicable election is identified and recorded."
+          ],
+          "verify": [
+            "Compare the recorded election to the contract election history.",
+            "Pass when the election used is the one in force at the crediting date."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the allocation percentages total one hundred percent",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Sum the elected subaccount and indexed option percentages.",
+            "Reject any election that does not total one hundred percent.",
+            "Confirm no rounding residual is left unallocated.",
+            "Done when the percentages total one hundred with no residual."
+          ],
+          "verify": [
+            "Re-sum the percentages on the posted allocation.",
+            "Pass when the total equals one hundred percent exactly."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm each elected option is open to new money",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Check each elected option against the open-to-new-money list.",
+            "Reject allocations to closed or restricted options.",
+            "Route rejected portions to the contract default option.",
+            "Done when every allocation target is open to new money."
+          ],
+          "verify": [
+            "Compare posted option codes to the open option list.",
+            "Pass when no allocation targets a closed option."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Apply the deposit at the crediting date unit values or index parameters",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Use the unit values or index parameters for the good-order receipt date.",
+            "Confirm no stale prior-day values are applied.",
+            "Record the values used on the transaction.",
+            "Done when the deposit is applied at the correct-date values."
+          ],
+          "verify": [
+            "Compare applied unit values to the published values for that date.",
+            "Pass when applied values equal the crediting date values."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm allocated amounts sum to the net purchase payment",
+          "actor": "Accountant",
+          "sop": [
+            "Sum the allocated amounts across all options.",
+            "Compare to gross payment less premium tax or charges deducted.",
+            "Investigate any residual cent.",
+            "Done when the allocation sums to the net purchase payment."
+          ],
+          "verify": [
+            "Recompute the net payment and the allocation sum.",
+            "Pass when the two figures agree to the cent."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the ERP general ledger reflects the allocated premium",
+          "actor": "Accountant",
+          "sop": [
+            "Compare the GL premium posting to the allocated total.",
+            "Confirm separate accounts are used for tax and charge deductions.",
+            "Investigate any one-sided posting.",
+            "Done when the GL posting equals the allocated total."
+          ],
+          "verify": [
+            "Read the GL posting for the allocation batch.",
+            "Pass when the GL total equals the allocated amount."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "7dba53ab-afa8-4760-be3e-0b2dd8038a82",
+      "verifier": "Policy Administration Analyst",
+      "generic": {
+        "Defined scope/population": "Additional annuity purchase payments tested against the best-interest review trigger criteria.",
+        "In-scope period": "Additional payments received in the current suitability review cycle.",
+        "Required fields populated and valid": "Trigger test result, producer documentation status, consumer profile and review outcome are populated.",
+        "Control totals or record counts reconcile": "Reviewed payment count equals the count of payments meeting the trigger criteria.",
+        "Evidence retained with timestamp/version": "Review outcome and reviewer name are filed on the contract for market conduct examination.",
+        "Exceptions logged with disposition": "Payments held pending review are logged with the hold date and expected decision date.",
+        "Test population": "All additional purchase payments tested against the trigger in the review period.",
+        "Pass/fail thresholds": "Zero triggered payments applied without a completed review record.",
+        "Exception handling path": "A payment held pending review remains unapplied until the outcome is recorded.",
+        "Documented acceptance criteria": "Triggered payments carry a recorded review outcome with reviewer name before application.",
+        "Evidence location": "The contract suitability record in the policy system and the review case in the workflow tool."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Test the payment against the trigger criteria in the policy system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Test the amount against the review threshold.",
+            "Test the source of funds and the replacement or exchange indicator.",
+            "Record the trigger test result on the payment.",
+            "Done when the trigger test result is recorded for the payment."
+          ],
+          "verify": [
+            "Re-run the trigger test for a sample of payments.",
+            "Pass when the recorded result reproduces from the criteria."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Hold triggered payments in pending status before application",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Set triggered payments to pending rather than applying them.",
+            "Record the hold date and the expected review decision date.",
+            "Notify the producer that the payment is under review.",
+            "Done when every triggered payment is held pending review."
+          ],
+          "verify": [
+            "List applied payments carrying a trigger result.",
+            "Pass when no triggered payment was applied before review."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm producer best-interest documentation is on file and current",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Retrieve the producer best-interest documentation from the repository.",
+            "Confirm it is current for the contract and the payment date.",
+            "Request updated documentation where it is stale or missing.",
+            "Done when current documentation is on file or requested."
+          ],
+          "verify": [
+            "Retrieve the documentation by contract and payment date.",
+            "Pass when current documentation exists for every triggered payment."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the consumer profile information is current",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Read the consumer profile held for the owner.",
+            "Confirm financial situation and objectives are current.",
+            "Request a refreshed profile where it is stale.",
+            "Done when the consumer profile is current or refreshed."
+          ],
+          "verify": [
+            "Compare the profile date to the payment date.",
+            "Pass when the profile is current at the payment date."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Document the recommendation basis for producer-recommended payments",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Identify whether the payment was producer-recommended or owner-initiated.",
+            "Record the recommendation basis where producer-recommended.",
+            "Return incomplete submissions to the producer.",
+            "Done when the recommendation basis is documented where required."
+          ],
+          "verify": [
+            "Check the basis field on producer-recommended payments.",
+            "Pass when every producer-recommended payment records a basis."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "File the review outcome and reviewer name on the contract record",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Record the review outcome and the reviewer name on the contract.",
+            "Release the payment for application where the review approves it.",
+            "File the review case in the document repository.",
+            "Done when the outcome is filed and the payment released or declined."
+          ],
+          "verify": [
+            "Retrieve the review record by contract and payment.",
+            "Pass when the record shows a dated outcome and a named reviewer."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "4fde7212-1361-4a0e-aca8-22874a423d99",
+      "verifier": "Policy Administration Analyst",
+      "generic": {
+        "Defined scope/population": "Purchase payments directed to the fixed account or a flexible-premium deposit bucket.",
+        "In-scope period": "Payments applied on the current good-order processing day.",
+        "Required fields populated and valid": "Contract status, deposit limit test, crediting date, crediting rate and cash receipt link are populated.",
+        "Control totals or record counts reconcile": "Posted contract deposits equal the cash receipts recorded for the same payments.",
+        "Evidence retained with timestamp/version": "Crediting rate in effect and the posting detail are retained with the crediting date.",
+        "Exceptions logged with disposition": "Payments breaching a maximum or age cut-off are logged and held for owner instruction.",
+        "Test population": "All fixed account and flexible-premium deposits posted in the review period.",
+        "Pass/fail thresholds": "Zero purchase payments applied to an annuitised or surrendered contract.",
+        "Exception handling path": "A payment on an ineligible contract is returned to suspense pending owner instruction.",
+        "Documented acceptance criteria": "Deposit posts with a crediting date equal to the good-order receipt date and matching cash.",
+        "Evidence location": "The contract deposit transaction in the policy system and the ERP cash and premium postings."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the contract permits subsequent purchase payments",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Open the contract and read its status and deposit provisions.",
+            "Confirm it is not annuitised, surrendered or otherwise restricted.",
+            "Return ineligible payments to suspense.",
+            "Done when contract eligibility is confirmed."
+          ],
+          "verify": [
+            "Re-read the contract status immediately before posting.",
+            "Pass when the contract remains eligible at posting."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Test the deposit against the maximum purchase payment and age cut-off",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Test the deposit against the contractual maximum purchase payment.",
+            "Test it against any age-based deposit cut-off.",
+            "Hold breaching deposits for owner instruction.",
+            "Done when the limit tests are run and breaches held."
+          ],
+          "verify": [
+            "Read the limit test result on the deposit.",
+            "Pass when every posted deposit passed both limit tests."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Post the payment with the good-order receipt date as crediting date",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Post to the fixed account or flexible-premium bucket as directed.",
+            "Set the crediting date to the good-order receipt date.",
+            "Record the posting reference on the payment.",
+            "Done when the deposit posts with the correct crediting date."
+          ],
+          "verify": [
+            "Compare the crediting date to the good-order receipt date.",
+            "Pass when the two dates are identical."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the fixed account crediting rate in effect for new money",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Read the new-money crediting rate for the crediting date.",
+            "Confirm the rate applied to the deposit matches it.",
+            "Correct any stale rate before confirmation is issued.",
+            "Done when the applied rate is the new-money rate for the date."
+          ],
+          "verify": [
+            "Compare the applied rate to the published new-money rate.",
+            "Pass when the applied rate equals the published rate for the date."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile the posted deposit to the cash receipt in the ERP",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Match each posted deposit to its cash receipt.",
+            "List deposits with no corresponding cash.",
+            "Reverse any deposit lacking cash support.",
+            "Done when every deposit ties to a cash receipt."
+          ],
+          "verify": [
+            "Recompute the deposit to cash match for the day.",
+            "Pass when no deposit exists without matching cash."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the billing account reflects the deposit in BillingCenter",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Confirm the billing account shows the deposit applied.",
+            "Confirm no duplicate application exists.",
+            "Record the confirmation on the deposit case.",
+            "Done when the billing account reflects the deposit once."
+          ],
+          "verify": [
+            "Search the account for duplicate deposit transactions.",
+            "Pass when the deposit appears exactly once on the account."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "82261fa7-ee73-4065-ad77-db932f564fc1",
+      "verifier": "Policy Administration Analyst",
+      "generic": {
+        "Defined scope/population": "Purchase payments requiring maximum premium and anti-money-laundering threshold checks.",
+        "In-scope period": "Payments received in the current screening cycle including the aggregation look-back window.",
+        "Required fields populated and valid": "Limit test result, aggregated amount, screening result, structuring flag and clearance are populated.",
+        "Control totals or record counts reconcile": "Screened payment count equals the count of purchase payments received for the period.",
+        "Evidence retained with timestamp/version": "Screening result and clearance decision are retained with the payment and list version.",
+        "Exceptions logged with disposition": "Triggered payments are logged with the AML referral and its clearance decision.",
+        "Test population": "All purchase payments screened in the review period.",
+        "Pass/fail thresholds": "Zero payments above the AML review threshold applied without a recorded clearance.",
+        "Exception handling path": "A triggered payment is held unapplied until the AML function records a decision.",
+        "Documented acceptance criteria": "Each payment records a limit check and a sanctions screening result before application.",
+        "Evidence location": "The sanctions screening system result, the policy system limit test and the workflow AML case."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Test the payment against contractual and cumulative deposit caps",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Test the payment against the contractual maximum premium.",
+            "Test the cumulative deposit cap including prior payments.",
+            "Record both results on the payment.",
+            "Done when both cap tests are recorded."
+          ],
+          "verify": [
+            "Recompute cumulative deposits for a sample contract.",
+            "Pass when the recomputed cumulative figure matches the test input."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Test the payment against the AML large-payment threshold with aggregation",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Aggregate related payments across the look-back window.",
+            "Compare the aggregate to the AML review threshold.",
+            "Flag payments meeting or exceeding the threshold.",
+            "Done when the aggregation test is run and flags applied."
+          ],
+          "verify": [
+            "Recompute the aggregate for a flagged payment.",
+            "Pass when the recomputed aggregate supports the flag."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Screen the remitter and owner in the sanctions screening system",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Submit remitter and owner names for screening.",
+            "Confirm the current list version and approved match thresholds are used.",
+            "Record the screening reference and result on the payment.",
+            "Done when a screening result is recorded for the payment."
+          ],
+          "verify": [
+            "Read the screening result and list version on the payment.",
+            "Pass when a dated screening result predates application."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Flag structuring indicators across related payments",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Look for multiple payments just under the threshold from one remitter.",
+            "Flag the pattern for AML review even where no single payment triggers.",
+            "Record the pattern evidence on the referral.",
+            "Done when structuring patterns are flagged and evidenced."
+          ],
+          "verify": [
+            "Re-run the structuring pattern query for the period.",
+            "Pass when every detected pattern carries a referral."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Escalate triggered payments to the AML function in the workflow tool",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Raise an AML case for each triggered or flagged payment.",
+            "Attach the aggregation evidence and screening result.",
+            "Hold the deposit pending the clearance decision.",
+            "Done when every triggered payment has an open AML case."
+          ],
+          "verify": [
+            "Compare triggered payment count to AML cases raised.",
+            "Pass when every triggered payment has a case."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the AML clearance decision before the deposit is applied",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Capture the AML clearance or rejection decision.",
+            "Release the deposit for application only on clearance.",
+            "Record the decision and decision date on the payment.",
+            "Done when the decision is recorded and the deposit released or held."
+          ],
+          "verify": [
+            "List applied payments above the threshold without a clearance decision.",
+            "Pass when the list is empty."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "60a72109-9f15-48cc-b5a6-9b0679ba6258",
+      "verifier": "Policy Administration Analyst",
+      "generic": {
+        "Defined scope/population": "Applied purchase payments requiring a confirmation to the owner and producer of record.",
+        "In-scope period": "Payments applied in the current confirmation generation cycle.",
+        "Required fields populated and valid": "Payment amount, receipt date, allocation by option, deductions and updated values are populated.",
+        "Control totals or record counts reconcile": "Confirmation count equals the count of purchase payments applied in the cycle.",
+        "Evidence retained with timestamp/version": "Confirmation image is retained on the contract file with the generation date.",
+        "Exceptions logged with disposition": "Confirmations suppressed for entitlement reasons are logged with the suppression reason.",
+        "Test population": "All purchase payment confirmations generated in the review period.",
+        "Pass/fail thresholds": "Zero confirmations sent to a producer who is not the producer of record.",
+        "Exception handling path": "A failed delivery is re-issued through the alternate channel of record.",
+        "Documented acceptance criteria": "Confirmation shows allocation and updated accumulation value and is retained on the contract file.",
+        "Evidence location": "The confirmation image in the document repository and the CRM delivery record."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Generate the confirmation from the policy administration system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Generate the confirmation showing amount, receipt date and allocation by option.",
+            "Include the updated accumulation value after the deposit.",
+            "Review a sample for completeness before release.",
+            "Done when confirmations are generated for every applied payment."
+          ],
+          "verify": [
+            "Compare confirmation count to applied payment count.",
+            "Pass when the counts agree for the cycle."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Show gross to net transparency for tax and charges deducted",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Show any premium tax or charge deducted as a separate line.",
+            "Show gross payment, deductions and net applied amount.",
+            "Correct templates that hide the deduction.",
+            "Done when the confirmation shows gross to net clearly."
+          ],
+          "verify": [
+            "Recompute net from gross less deductions on a sample.",
+            "Pass when the shown net equals gross less deductions."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Send to the owner using the delivery preference of record",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Read the owner delivery preference on the contract.",
+            "Send the confirmation through that channel.",
+            "Capture the delivery acknowledgement.",
+            "Done when the owner copy is sent and acknowledged."
+          ],
+          "verify": [
+            "Read the delivery acknowledgement in the CRM.",
+            "Pass when every owner confirmation has a delivery record."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Send the producer copy only to the producer of record",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Read the servicing producer of record on the contract.",
+            "Send the producer copy only to that producer.",
+            "Suppress the copy where the producer is not entitled.",
+            "Done when producer copies go only to entitled producers."
+          ],
+          "verify": [
+            "Compare producer recipients to the producer of record.",
+            "Pass when no confirmation went to a producer who is not of record."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Suppress owner-identifying detail on ineligible producer copies",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Identify contracts where the producer changed or is not entitled to detail.",
+            "Suppress owner-identifying fields on those producer copies.",
+            "Record the suppression reason on the contract.",
+            "Done when suppression is applied where required."
+          ],
+          "verify": [
+            "Review a suppressed producer copy against the owner copy.",
+            "Pass when owner-identifying detail appears only on the owner copy."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Retain the confirmation image in the document management repository",
+          "actor": "Operations Specialist",
+          "sop": [
+            "File the confirmation image against the contract.",
+            "Index it by contract number and payment date.",
+            "Confirm retrievability by contract number.",
+            "Done when the image is filed and retrievable."
+          ],
+          "verify": [
+            "Retrieve a confirmation by contract number.",
+            "Pass when the retrieved image matches the issued confirmation."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "350a43e5-63e9-4877-a649-2655f924c4ec",
+      "verifier": "Accountant",
+      "generic": {
+        "Defined scope/population": "All purchase payment transactions requiring an entry in contract history.",
+        "In-scope period": "Payments applied during the current contract history posting cycle.",
+        "Required fields populated and valid": "Amount, receipt date, crediting date, source of funds, method, tax year and type code are populated.",
+        "Control totals or record counts reconcile": "Contract history deposit total agrees to the ledger premium received for the contract.",
+        "Evidence retained with timestamp/version": "History entries and their corrections are retained with timestamps and original references.",
+        "Exceptions logged with disposition": "Entries with a blank contribution type are logged and corrected before period close.",
+        "Test population": "All purchase payment history entries created in the review period.",
+        "Pass/fail thresholds": "Zero purchase payment entries with a blank contribution type code.",
+        "Exception handling path": "A coding error is corrected by reversal plus re-entry preserving the original reference.",
+        "Documented acceptance criteria": "Entries carry tax year, contribution type and cost-basis impact for each payment.",
+        "Evidence location": "The contract history in the policy administration system and the ERP premium received ledger."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm core attributes on each contract history entry",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Check amount, good-order receipt date and crediting date on each entry.",
+            "Check source of funds and payment method are populated.",
+            "Correct entries with missing attributes.",
+            "Done when every entry carries the core attributes."
+          ],
+          "verify": [
+            "Filter history entries for blank core attributes.",
+            "Pass when the filter returns no entries."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm tax year and contribution type codes are populated",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Check the tax year and contribution type on each entry.",
+            "Use regular, rollover, transfer, exchange or catch-up as applicable.",
+            "Correct blanks before the entry is finalised.",
+            "Done when every entry carries a tax year and type code."
+          ],
+          "verify": [
+            "Filter entries for blank contribution type codes.",
+            "Pass when the filter returns no entries."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record the cost-basis increment for non-qualified deposits",
+          "actor": "Accountant",
+          "sop": [
+            "Identify non-qualified after-tax deposits.",
+            "Record the cost-basis increment on the entry.",
+            "Confirm qualified deposits carry no basis increment.",
+            "Done when basis treatment is correct for every entry."
+          ],
+          "verify": [
+            "Filter qualified deposits carrying a basis increment.",
+            "Pass when no qualified deposit shows a cost-basis increase."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm corrections appear as reversal plus re-entry",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "List corrections made to contract history in the period.",
+            "Confirm each shows a reversal and a replacement entry.",
+            "Confirm the original reference is preserved on the replacement.",
+            "Done when every correction follows the reversal pattern."
+          ],
+          "verify": [
+            "Trace one correction from original through reversal to replacement.",
+            "Pass when the original entry was not edited in place."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile contract history deposits to the ERP ledger premium received",
+          "actor": "Accountant",
+          "sop": [
+            "Total contract history deposits for the contract and period.",
+            "Compare to ledger premium received for the same contract.",
+            "Investigate any difference before close.",
+            "Done when history totals agree with the ledger."
+          ],
+          "verify": [
+            "Recompute both totals independently.",
+            "Pass when contract history deposits equal ledger premium received."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm history entries are retrievable for tax reporting",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Query history entries by contract, tax year and contribution type.",
+            "Confirm the query returns the expected population.",
+            "Correct indexing where entries are not retrievable.",
+            "Done when history is queryable by tax reporting dimensions."
+          ],
+          "verify": [
+            "Run the tax reporting extract over the period.",
+            "Pass when the extract returns every posted purchase payment."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "6da54fa7-9833-40aa-86f3-0886e6404a36",
+      "verifier": "Receivables Manager",
+      "generic": {
+        "Defined scope/population": "Annuity premium suspense items and unallocated deposits awaiting application.",
+        "In-scope period": "The business date being reconciled for annuity premium suspense.",
+        "Required fields populated and valid": "Item amount, unallocated reason, age, pending review flag and escalation reference are populated.",
+        "Control totals or record counts reconcile": "Annuity suspense subledger total equals the suspense general ledger balance for the date.",
+        "Evidence retained with timestamp/version": "Reconciliation, item listing and reviewer sign-off are retained with the reconciliation date.",
+        "Exceptions logged with disposition": "Items pending best-interest or AML review are separately identified from research items.",
+        "Test population": "All open annuity suspense items at the reconciliation date.",
+        "Pass/fail thresholds": "Zero unallocated annuity deposits over the hold limit without an escalation reference.",
+        "Exception handling path": "An over-limit unallocated deposit is escalated for supervisory disposition.",
+        "Documented acceptance criteria": "Reconciliation shows subledger to GL agreement with a reason for every unallocated deposit.",
+        "Evidence location": "The reconciliation workbook in Microsoft Excel with the ERP GL and policy system deposit listings."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract annuity suspense items from the policy administration system",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Extract open annuity suspense and unallocated deposits for the date.",
+            "Include amount, receipt date and current status.",
+            "Save the listing for reconciliation.",
+            "Done when the annuity suspense listing is produced."
+          ],
+          "verify": [
+            "Recount and re-total the listing.",
+            "Pass when the listing totals reproduce on recount."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Compare the subledger total to the ERP suspense GL balance",
+          "actor": "Accountant",
+          "sop": [
+            "Read the annuity suspense GL balance for the same date.",
+            "Compare it to the subledger listing total.",
+            "Itemise every reconciling difference.",
+            "Done when the comparison is complete and differences itemised."
+          ],
+          "verify": [
+            "Sum the reconciling items against the difference.",
+            "Pass when the itemised differences account for the full variance."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record the unallocated reason for each deposit in Microsoft Excel",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Record missing allocation election, pending review or incomplete application.",
+            "Assign an owner to each research reason.",
+            "Reject blank reasons on the listing.",
+            "Done when every unallocated deposit carries a reason and owner."
+          ],
+          "verify": [
+            "Filter the listing for blank reasons.",
+            "Pass when no unallocated deposit lacks a reason."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Separate items pending best-interest or AML review",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Flag deposits held for best-interest or AML review.",
+            "Exclude them from the research chase list.",
+            "Record the review case reference for each.",
+            "Done when review-held items are separately identified."
+          ],
+          "verify": [
+            "Cross-check flagged items against open review cases.",
+            "Pass when every flagged item has an open review case."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Age the remaining unallocated deposits and escalate over-limit items",
+          "actor": "Receivables Manager",
+          "sop": [
+            "Age the remaining deposits from their receipt dates.",
+            "Escalate any deposit beyond the hold limit.",
+            "Record the escalation reference on the item.",
+            "Done when every over-limit deposit carries an escalation reference."
+          ],
+          "verify": [
+            "Filter over-limit deposits for missing escalation references.",
+            "Pass when the filter returns no items."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Obtain reviewer sign-off and file the reconciliation",
+          "actor": "Receivables Manager",
+          "sop": [
+            "Review the reconciliation and the supporting item listing.",
+            "Confirm the preparer is not the reviewer.",
+            "Sign, date and file the reconciliation with its listing.",
+            "Done when the reconciliation is signed and filed."
+          ],
+          "verify": [
+            "Retrieve the filed reconciliation for the date.",
+            "Pass when the filed copy shows sign-off and the supporting listing."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "d440fcfb-e349-4ee9-ae9c-a8b5fdba3672",
+      "verifier": "Receivables Manager",
+      "generic": {
+        "Defined scope/population": "Purchase payment volumes and qualified contribution totals for the reporting period.",
+        "In-scope period": "The reporting period from prior period end to current period end.",
+        "Required fields populated and valid": "Qualified split, contribution type, prior-year amounts and invalid TIN counts are populated.",
+        "Control totals or record counts reconcile": "Reported totals reconcile to the general ledger annuity considerations account.",
+        "Evidence retained with timestamp/version": "Report version and its reconciliation are retained with the period end date.",
+        "Exceptions logged with disposition": "Contracts with missing or invalid TINs are listed with the correction action.",
+        "Test population": "All purchase payments received during the reporting period.",
+        "Pass/fail thresholds": "Zero unreconciled variance to the GL annuity considerations account.",
+        "Exception handling path": "A reconciliation variance holds distribution until the Accountant explains it.",
+        "Documented acceptance criteria": "Report reconciles to the GL and separates qualified from non-qualified volumes.",
+        "Evidence location": "The BI reporting platform report and the warehouse purchase payment extract."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract purchase payments to the enterprise data warehouse for the period",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Extract payments with amount, tax year, contribution type and qualified status.",
+            "Load the extract into the reporting tables.",
+            "Confirm the extract covers the full reporting period.",
+            "Done when the payment extract is loaded for the period."
+          ],
+          "verify": [
+            "Compare loaded totals to the policy system payment totals.",
+            "Pass when loaded totals equal the source totals."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Split volumes by qualified status and contribution type in the BI platform",
+          "actor": "Accountant",
+          "sop": [
+            "Split counts and dollars by qualified and non-qualified.",
+            "Split further by contribution type code.",
+            "Confirm the splits sum to the period total.",
+            "Done when both splits are built and sum correctly."
+          ],
+          "verify": [
+            "Sum the split rows and compare to the period total.",
+            "Pass when the splits sum exactly to the period total."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Show prior-year contributions received in the current period separately",
+          "actor": "Accountant",
+          "sop": [
+            "Identify contributions coded to the prior tax year.",
+            "Present them as a separate line on the report.",
+            "Confirm the tax-year coding matches the receipt dates.",
+            "Done when prior-year contributions are separately presented."
+          ],
+          "verify": [
+            "Sample prior-year items and check their receipt dates.",
+            "Pass when every prior-year item was received before the filing deadline."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reconcile reported totals to the ERP annuity considerations account",
+          "actor": "Accountant",
+          "sop": [
+            "Read the GL annuity considerations movement for the period.",
+            "Compare it to the reported payment total.",
+            "Document any reconciling item before distribution.",
+            "Done when the report reconciles to the GL account."
+          ],
+          "verify": [
+            "Recompute the reconciliation from both sources.",
+            "Pass when the difference is zero or fully documented."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Identify contracts with missing or invalid TINs",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Filter contributing contracts for missing or structurally invalid TINs.",
+            "List them with the owner and the correction action.",
+            "Notify tax reporting of the backup withholding exposure.",
+            "Done when the invalid TIN list is produced and notified."
+          ],
+          "verify": [
+            "Re-run the TIN validity filter after corrections.",
+            "Pass when every remaining invalid TIN appears on the list."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Deliver the report to tax reporting and finance by the close deadline",
+          "actor": "Receivables Manager",
+          "sop": [
+            "Attach the reconciliation to the published report.",
+            "Publish to tax reporting and finance distribution lists.",
+            "Record the publication date and version.",
+            "Done when the report is delivered by the close deadline."
+          ],
+          "verify": [
+            "Read the publication log entry.",
+            "Pass when delivery occurred on or before the agreed close deadline."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "f68d42f9-1012-4e38-96f8-a8ac4b2e40e7",
+      "verifier": "Policy Administration Analyst",
+      "generic": {
+        "Defined scope/population": "Applied purchase payment allocations requiring transmission to investment operations and the ledger.",
+        "In-scope period": "Allocations applied on the current processing day.",
+        "Required fields populated and valid": "Contract number, option code, amount and crediting date are populated on every extract row.",
+        "Control totals or record counts reconcile": "Extract dollar total equals the day total of applied purchase payments.",
+        "Evidence retained with timestamp/version": "Extract, control totals and both acknowledgements are retained with the processing date.",
+        "Exceptions logged with disposition": "Interface rejects are logged and reworked the same day with the reason.",
+        "Test population": "All allocation records transmitted for the processing day.",
+        "Pass/fail thresholds": "Zero allocation records left in the interface reject queue at day close.",
+        "Exception handling path": "A rejected allocation is corrected and retransmitted before the trading cut-off.",
+        "Documented acceptance criteria": "Transmission has a balanced control total and acknowledgements from both recipients.",
+        "Evidence location": "The warehouse allocation extract, the ERP posting and the investment operations acknowledgement."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Build the allocation extract in the policy administration system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Extract contract number, option code, amount and crediting date for the day.",
+            "Exclude allocations still pending review or clearance.",
+            "Save the extract with the processing date.",
+            "Done when the allocation extract is built for the day."
+          ],
+          "verify": [
+            "Check the extract for blank option codes or amounts.",
+            "Pass when no extract row has a blank required field."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Balance the extract to applied purchase payments for the day",
+          "actor": "Accountant",
+          "sop": [
+            "Total the extract dollars and compare to applied purchase payments.",
+            "Investigate any difference before transmission.",
+            "Record the control totals with the extract.",
+            "Done when the extract balances to applied payments."
+          ],
+          "verify": [
+            "Recompute both day totals.",
+            "Pass when the extract total equals applied purchase payments."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Transmit to investment operations for subaccount trade placement",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Transmit the extract to investment operations before the trading cut-off.",
+            "Capture the transmission reference.",
+            "Confirm the file was received intact.",
+            "Done when investment operations confirms receipt."
+          ],
+          "verify": [
+            "Read the investment operations acknowledgement.",
+            "Pass when the acknowledgement matches the transmitted control totals."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Transmit to the ERP general ledger for premium posting",
+          "actor": "Accountant",
+          "sop": [
+            "Transmit the same extract to the ledger interface.",
+            "Confirm the GL posting total equals the transmitted total.",
+            "Record the posting batch reference.",
+            "Done when the GL posting equals the transmitted total."
+          ],
+          "verify": [
+            "Compare the GL posting total to the extract total.",
+            "Pass when the two totals agree."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Work the interface reject queue the same day",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Open the reject queue for the allocation interface.",
+            "Correct each rejected record and retransmit it.",
+            "Record the reject reason and the correction applied.",
+            "Done when the reject queue is cleared for the day."
+          ],
+          "verify": [
+            "Re-query the reject queue at day close.",
+            "Pass when no allocation record remains rejected."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "File the transmission evidence in the enterprise data warehouse",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Retain the extract, control totals and both acknowledgements.",
+            "Index the pack by processing date.",
+            "Confirm retrievability for audit.",
+            "Done when the transmission evidence pack is filed."
+          ],
+          "verify": [
+            "Retrieve the pack by processing date.",
+            "Pass when the pack contains the extract, totals and both acknowledgements."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "b1106b15-4bdc-43c1-bab2-bf3fc4478e2b",
+      "verifier": "Policy Administration Analyst",
+      "generic": {
+        "Defined scope/population": "Contracts requiring an accumulation value and cost-basis update after a purchase payment.",
+        "In-scope period": "Payments applied in the current contract value update cycle.",
+        "Required fields populated and valid": "Prior value, net payment, interest or unit change, updated value and basis are populated.",
+        "Control totals or record counts reconcile": "Updated accumulation value equals the sum of option-level balances after allocation.",
+        "Evidence retained with timestamp/version": "Value calculation and the resulting contract record are retained with the crediting date.",
+        "Exceptions logged with disposition": "Basis exceptions such as exchanges are logged with the carried-over basis evidence.",
+        "Test population": "All contract value updates posted in the review period.",
+        "Pass/fail thresholds": "Zero cost-basis increases recorded for a qualified pre-tax contribution.",
+        "Exception handling path": "An incorrect basis update is reversed and reposted with the correct treatment.",
+        "Documented acceptance criteria": "Accumulation value equals the sum of option-level balances after the deposit.",
+        "Evidence location": "The contract value record in the policy system and the ERP reserve and premium postings."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Recalculate the accumulation value in the policy administration system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Take the prior accumulation value as at the crediting date.",
+            "Add the net purchase payment and any interest or unit value change.",
+            "Write the resulting value to the contract.",
+            "Done when the recalculated value is written to the contract."
+          ],
+          "verify": [
+            "Recompute prior value plus net payment plus crediting.",
+            "Pass when the recomputed value equals the written value."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Increase cost basis only for after-tax non-qualified contributions",
+          "actor": "Accountant",
+          "sop": [
+            "Identify the money type of the contribution.",
+            "Increase cost basis only for after-tax non-qualified amounts.",
+            "Leave basis unchanged for qualified pre-tax contributions.",
+            "Done when the basis treatment matches the money type."
+          ],
+          "verify": [
+            "Filter qualified contributions with a basis increase.",
+            "Pass when no qualified contribution shows a basis increase."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Carry over transferred cost basis for exchange transactions",
+          "actor": "Accountant",
+          "sop": [
+            "Identify exchange transactions in the population.",
+            "Carry over the transferred cost basis rather than resetting it.",
+            "Retain the transferor basis statement with the transaction.",
+            "Done when exchange basis is carried over and evidenced."
+          ],
+          "verify": [
+            "Compare the recorded basis to the transferor statement.",
+            "Pass when the recorded basis equals the transferred basis."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the accumulation value equals the sum of option balances",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Sum the option-level balances after allocation.",
+            "Compare the sum to the contract accumulation value.",
+            "Investigate any residual difference.",
+            "Done when the two figures agree."
+          ],
+          "verify": [
+            "Re-sum option balances after the update.",
+            "Pass when the sum equals the contract accumulation value."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm the confirmation and next statement match the contract record",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Compare the values on the owner confirmation to the contract record.",
+            "Compare the next statement preview to the same values.",
+            "Correct any mismatch before the statement releases.",
+            "Done when confirmation and statement values match the contract."
+          ],
+          "verify": [
+            "Read the statement preview against the contract values.",
+            "Pass when all three sources show identical values."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the ERP general ledger reflects the value change",
+          "actor": "Accountant",
+          "sop": [
+            "Compare reserve and premium postings to the contract value change.",
+            "Investigate any posting inconsistent with the update.",
+            "Record the confirmation on the update case.",
+            "Done when the ledger agrees with the contract value change."
+          ],
+          "verify": [
+            "Recompute the ledger movement against the value change.",
+            "Pass when the ledger movement agrees with the contract update."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "eb35c79a-9562-4fc1-b40e-64d54220701c",
+      "verifier": "Policy Administration Analyst",
+      "generic": {
+        "Defined scope/population": "Inbound purchase payment instructions awaiting validation against contract terms and elections.",
+        "In-scope period": "Instructions received in the current good-order review cycle.",
+        "Required fields populated and valid": "Contract number, amount, money type, allocation and authority verification are populated.",
+        "Control totals or record counts reconcile": "Validated instruction count plus not-in-good-order count equals instructions received.",
+        "Evidence retained with timestamp/version": "Instruction image and the validation outcome are retained with the receipt timestamp.",
+        "Exceptions logged with disposition": "Not-in-good-order items are logged with the specific deficiency and the notification sent.",
+        "Test population": "All purchase payment instructions received in the review period.",
+        "Pass/fail thresholds": "Zero payments applied while the instruction was flagged not in good order.",
+        "Exception handling path": "A deficient instruction is returned to the producer or owner the same day for correction.",
+        "Documented acceptance criteria": "Validated instruction records contract, money type, verified authority and a full allocation.",
+        "Evidence location": "The instruction image in the document repository and the validation case in the workflow tool."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the instruction identifies contract, amount, money type and allocation",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Read the instruction and check all four elements are stated.",
+            "Flag missing elements as not in good order.",
+            "Record the findings on the validation case.",
+            "Done when the four core elements are confirmed or flagged."
+          ],
+          "verify": [
+            "Filter validated instructions for missing core elements.",
+            "Pass when no validated instruction is missing a core element."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Verify the owner signature or authenticated channel",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Compare the signature to the specimen or confirm the authenticated channel.",
+            "Confirm the instructing party has authority on the contract.",
+            "Flag unverified instructions as not in good order.",
+            "Done when instructing authority is verified or flagged."
+          ],
+          "verify": [
+            "Read the authority verification on the case.",
+            "Pass when every validated instruction records a verified authority."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm contract terms permit the payment in the policy system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Confirm the contract is in force and within the deposit window.",
+            "Confirm the contract is not annuitised or otherwise restricted.",
+            "Flag ineligible contracts as not in good order.",
+            "Done when contract eligibility is confirmed or flagged."
+          ],
+          "verify": [
+            "Re-read the contract status before release for application.",
+            "Pass when every released instruction sits on an eligible contract."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the allocation references available options and totals one hundred percent",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Check every option referenced is currently available on the contract.",
+            "Sum the allocation percentages.",
+            "Flag allocations that reference closed options or do not total one hundred.",
+            "Done when the allocation is confirmed valid or flagged."
+          ],
+          "verify": [
+            "Re-sum the allocation on validated instructions.",
+            "Pass when every validated allocation totals one hundred percent."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Mark not-in-good-order items with the specific deficiency",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Record the exact deficiency rather than a generic rejection.",
+            "Set the item to not in good order in the workflow tool.",
+            "Prevent application while the flag is set.",
+            "Done when every deficient item carries a specific deficiency."
+          ],
+          "verify": [
+            "List applied payments carrying a not-in-good-order flag.",
+            "Pass when the list is empty."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Notify the producer or owner the same day and file the instruction",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Notify the producer or owner of the deficiency the same day.",
+            "File the instruction image and the notification in the repository.",
+            "Set the follow-up date for the corrected instruction.",
+            "Done when the notification is sent and the instruction filed."
+          ],
+          "verify": [
+            "Compare deficient item count to notifications sent.",
+            "Pass when every deficient item has a same-day notification."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "6681ed1f-c42a-4a59-8a9a-f23208245f04",
+      "verifier": "Policy Administration Analyst",
+      "generic": {
+        "Defined scope/population": "IRA and qualified annuity purchase payments requiring limit and tax-year verification.",
+        "In-scope period": "Contributions received in the current tax year plus prior-year items before the filing deadline.",
+        "Required fields populated and valid": "Plan type, tax-year code, catch-up eligibility and limit test result are populated.",
+        "Control totals or record counts reconcile": "Tested contribution count equals qualified purchase payments received for the period.",
+        "Evidence retained with timestamp/version": "Limit test result is retained against the contribution with the tax year applied.",
+        "Exceptions logged with disposition": "Excess contributions are logged and referred for corrective distribution before the filing cycle.",
+        "Test population": "All qualified purchase payments verified in the review period.",
+        "Pass/fail thresholds": "Zero rollover or transfer amounts counted against the annual contribution limit.",
+        "Exception handling path": "An excess contribution is flagged to tax reporting for corrective distribution.",
+        "Documented acceptance criteria": "Contribution carries a plan type, tax-year code and a retained limit-test result.",
+        "Evidence location": "The contract contribution record in the policy system and the limit workbook in Microsoft Excel."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the plan type on the contract in the policy administration system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Read the plan type recorded on the contract.",
+            "Confirm it is a valid qualified plan type for the product.",
+            "Record the plan type on the contribution.",
+            "Done when the plan type is confirmed and recorded."
+          ],
+          "verify": [
+            "Compare the recorded plan type to the contract record.",
+            "Pass when the recorded plan type matches the contract."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Apply the correct annual limit for the plan type in Microsoft Excel",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Select the annual limit table row for the plan type and tax year.",
+            "Apply the limit to the owner year-to-date contributions.",
+            "Record the limit applied on the test output.",
+            "Done when the correct annual limit is applied and recorded."
+          ],
+          "verify": [
+            "Compare the applied limit to the published table for the plan type.",
+            "Pass when the applied limit matches the published limit."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm catch-up eligibility from the owner date of birth",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Read the owner date of birth from the contract.",
+            "Determine catch-up eligibility for the tax year.",
+            "Apply the higher limit only where eligible.",
+            "Done when catch-up eligibility is determined and applied."
+          ],
+          "verify": [
+            "Recompute age at year end for a sample owner.",
+            "Pass when the catch-up limit was applied only to eligible owners."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Code prior-year contributions to the correct tax year",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Identify contributions designated for the prior tax year.",
+            "Confirm receipt before the filing deadline.",
+            "Code them to the prior tax year rather than the current one.",
+            "Done when prior-year contributions carry the prior tax year."
+          ],
+          "verify": [
+            "Sample prior-year coded items and check receipt dates.",
+            "Pass when every prior-year item was received before the deadline."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Exclude rollover and transfer amounts from the limit test",
+          "actor": "Accountant",
+          "sop": [
+            "Filter contributions coded as rollover, transfer or exchange.",
+            "Exclude them from the annual limit calculation.",
+            "Correct any test that counted them.",
+            "Done when rollovers and transfers are excluded from the test."
+          ],
+          "verify": [
+            "Re-run the limit test after exclusions.",
+            "Pass when no rollover or transfer counts against the annual limit."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Flag excess contributions to tax reporting before the filing cycle",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Flag every contribution above the applicable limit.",
+            "Refer each to tax reporting for corrective distribution.",
+            "Record the referral and the expected correction date.",
+            "Done when every excess contribution is flagged and referred."
+          ],
+          "verify": [
+            "Compare excess contributions to referrals raised.",
+            "Pass when every excess contribution has a referral before the filing cycle."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fj75f0tadkfgz931roso5",
+      "verifier": "Billing Specialist",
+      "generic": {
+        "Defined scope/population": "Billing accounts requiring a refund adjustment following a cancellation or overpayment.",
+        "In-scope period": "Refund adjustments posted in the current billing adjustment cycle.",
+        "Required fields populated and valid": "Calculation reference, disbursement reference, adjustment amount and effective date are populated.",
+        "Control totals or record counts reconcile": "Adjusted account balance equals the pre-adjustment balance less the refund amount.",
+        "Evidence retained with timestamp/version": "Adjustment transaction and its calculation reference are retained with the effective date.",
+        "Exceptions logged with disposition": "Residual credit balances after adjustment are logged with the reason for retention.",
+        "Test population": "All refund adjustments posted in the review period.",
+        "Pass/fail thresholds": "Zero adjustments posted with an effective date later than the cancellation effective date.",
+        "Exception handling path": "An incorrect effective date is reversed and reposted with the correct date.",
+        "Documented acceptance criteria": "Account shows a refund adjustment referencing the disbursement with no residual credit.",
+        "Evidence location": "The BillingCenter adjustment transaction and the ERP refund posting."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Post the refund adjustment to the billing account in Guidewire BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Post the adjustment for the approved refund amount.",
+            "Reference the refund calculation and the disbursement reference.",
+            "Confirm the adjustment appears on the account history.",
+            "Done when the adjustment is posted with both references."
+          ],
+          "verify": [
+            "Read the adjustment transaction on the account.",
+            "Pass when the adjustment carries the calculation and disbursement references."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Set the adjustment effective date to the cancellation or overpayment date",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Read the cancellation or overpayment effective date.",
+            "Set the adjustment effective date to match, not the processing date.",
+            "Correct any adjustment posted with the wrong date.",
+            "Done when the effective date matches the underlying event."
+          ],
+          "verify": [
+            "Compare adjustment effective dates to the source event dates.",
+            "Pass when no adjustment postdates its cancellation effective date."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm the account balance leaves no residual credit",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Read the account balance after the adjustment.",
+            "Confirm it is zero or the correct residual.",
+            "Investigate any lingering credit balance.",
+            "Done when the balance is correct with no unexplained credit."
+          ],
+          "verify": [
+            "Re-read the balance after the disbursement posts.",
+            "Pass when no unexplained credit balance remains."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm premium-paid-to date and earned premium reflect the adjustment",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Read the premium-paid-to date and earned premium on the policy.",
+            "Confirm both reflect the refunded period.",
+            "Raise a correction where the policy did not update.",
+            "Done when the policy reflects the adjustment."
+          ],
+          "verify": [
+            "Compare the paid-to date to the cancellation effective date.",
+            "Pass when the paid-to date reflects the refunded period."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm the policy system received the premium adjustment",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Check the interface log for the adjustment message.",
+            "Confirm the policy system applied the corresponding adjustment.",
+            "Reprocess any rejected message.",
+            "Done when the policy system reflects the adjustment."
+          ],
+          "verify": [
+            "Read the policy adjustment transaction.",
+            "Pass when the policy adjustment matches the billing adjustment amount."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the ERP general ledger reflects the refund adjustment",
+          "actor": "Accountant",
+          "sop": [
+            "Compare the GL refund postings to the billing adjustment.",
+            "Confirm the mapped accounts were used.",
+            "Investigate any one-sided posting.",
+            "Done when the GL matches the billing adjustment."
+          ],
+          "verify": [
+            "Recompute the GL movement against the adjustment amount.",
+            "Pass when the GL movement equals the adjustment posted."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "1197c9d1-f836-4440-8032-4a6252174776",
+      "verifier": "Billing Specialist",
+      "generic": {
+        "Defined scope/population": "Refund cases requiring an amount calculated by pro-rata, short-rate or exact return method.",
+        "In-scope period": "Refund triggers raised in the current calculation cycle.",
+        "Required fields populated and valid": "Method, effective dates, day counts, deductions and net payable are populated on the worksheet.",
+        "Control totals or record counts reconcile": "Gross unearned less itemised deductions equals the net refund payable.",
+        "Evidence retained with timestamp/version": "Calculation worksheet is retained with the case and the trigger effective date.",
+        "Exceptions logged with disposition": "Non-refundable taxes and fees are logged with the state rule that excludes them.",
+        "Test population": "All refund calculations produced in the review period.",
+        "Pass/fail thresholds": "Zero short-rate penalties applied to a free-look or company-initiated cancellation.",
+        "Exception handling path": "An incorrect method is recalculated before the case moves to approval.",
+        "Documented acceptance criteria": "Worksheet shows the method, day count and net payable amount retained with the case.",
+        "Evidence location": "The calculation worksheet in Microsoft Excel attached to the BillingCenter refund case."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Select the calculation method from the refund trigger",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Read the trigger reason on the refund case.",
+            "Apply pro-rata for company-initiated or free-look, short-rate only where permitted.",
+            "Use exact return for duplicate payments and overpayments.",
+            "Done when the method is selected and justified by the trigger."
+          ],
+          "verify": [
+            "Check method against trigger for the whole population.",
+            "Pass when no free-look or company-initiated case carries a short-rate method."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Compute unearned premium on the exact days basis in Microsoft Excel",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Count days in force from effective date to cancellation date.",
+            "Compute the earned proportion and the gross unearned premium.",
+            "Show the day counts on the worksheet.",
+            "Done when gross unearned is computed on exact days."
+          ],
+          "verify": [
+            "Recompute the day count and gross unearned independently.",
+            "Pass when the recomputed figures match the worksheet."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Net off unpaid earned premium, earned fees and prior refunds",
+          "actor": "Accountant",
+          "sop": [
+            "List unpaid earned premium, earned installment fees and prior partial refunds.",
+            "Deduct each from gross unearned.",
+            "Show each deduction separately on the worksheet.",
+            "Done when all deductions are applied and itemised."
+          ],
+          "verify": [
+            "Recompute net payable as gross unearned less deductions.",
+            "Pass when the recomputed net equals the worksheet net payable."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Apply state rules on premium tax, surcharges and policy fees",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Read the state rules governing refundability of tax, surcharges and fees.",
+            "Exclude non-refundable items and cite the rule.",
+            "Record the citations on the worksheet.",
+            "Done when refundability is applied with citations."
+          ],
+          "verify": [
+            "Compare exclusions to the cited state rules.",
+            "Pass when every exclusion is supported by a citation."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Cross-check the calculation against the policy record",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Compare written premium and endorsement history to the worksheet inputs.",
+            "Confirm the cancellation effective date matches the policy transaction.",
+            "Return the worksheet for correction where inputs differ.",
+            "Done when the worksheet inputs match the policy record."
+          ],
+          "verify": [
+            "Re-compare the worksheet inputs to the policy record.",
+            "Pass when every input matches the policy transaction."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Retain the calculation worksheet with the refund case in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Attach the worksheet showing method, dates, day counts and net refund.",
+            "Confirm it is retrievable from the refund case.",
+            "Move the case to approval.",
+            "Done when the worksheet is attached and the case is ready for approval."
+          ],
+          "verify": [
+            "Retrieve the worksheet from the refund case.",
+            "Pass when the retrieved worksheet shows method, day count and net payable."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "d894760c-17f4-449e-aae8-419e5f380de9",
+      "verifier": "Accountant",
+      "generic": {
+        "Defined scope/population": "Issued refund disbursements awaiting confirmation that they cleared the bank.",
+        "In-scope period": "Disbursements issued and pending clearance at the current review date.",
+        "Required fields populated and valid": "Issued amount, cleared amount, clearing date, payee and return status are populated.",
+        "Control totals or record counts reconcile": "Cleared amount equals the issued amount for each matched disbursement.",
+        "Evidence retained with timestamp/version": "Bank clearing record and the case closure entry are retained with the clearing date.",
+        "Exceptions logged with disposition": "Uncleared and returned items are logged with the chase action and target date.",
+        "Test population": "All refund disbursements issued in the review period.",
+        "Pass/fail thresholds": "Zero refund cases closed while the disbursement remains uncleared or returned.",
+        "Exception handling path": "A returned refund reopens the case and triggers payee detail re-verification.",
+        "Documented acceptance criteria": "Case records a bank clearing date and a cleared amount equal to the issued amount.",
+        "Evidence location": "The ERP bank clearing record and the refund case in BillingCenter."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Match disbursements to the bank clearing record in the ERP general ledger",
+          "actor": "Accountant",
+          "sop": [
+            "Extract issued refunds and the bank clearing file for the period.",
+            "Match on payment reference and amount.",
+            "List unmatched disbursements for chasing.",
+            "Done when every disbursement is matched or listed as uncleared."
+          ],
+          "verify": [
+            "Recount matched and unmatched disbursements.",
+            "Pass when matched plus unmatched equals the issued population."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the cleared amount equals the issued amount",
+          "actor": "Accountant",
+          "sop": [
+            "Compare cleared amounts to issued amounts for matched items.",
+            "Investigate any difference immediately.",
+            "Record the confirmation on the refund case.",
+            "Done when cleared equals issued for every matched item."
+          ],
+          "verify": [
+            "Recompute the cleared to issued difference.",
+            "Pass when the difference is zero for every matched item."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm the payee on the cleared item is the intended payee",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Read the payee on the cleared item image or record.",
+            "Compare it to the intended payee on the case.",
+            "Escalate any alteration or endorsement anomaly.",
+            "Done when the cleared payee matches the intended payee."
+          ],
+          "verify": [
+            "Compare the cleared payee to the case payee for a sample.",
+            "Pass when every sampled payee matches the intended payee."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm no ACH return was received for EFT refunds",
+          "actor": "Accountant",
+          "sop": [
+            "Check the ACH return file for the refund payment references.",
+            "Hold the case open until the return window has passed.",
+            "Reopen and rework any returned refund.",
+            "Done when the return window has passed with no return received."
+          ],
+          "verify": [
+            "Re-check returns after the window closes.",
+            "Pass when no return exists for the refund at case closure."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Age uncleared cheques and chase the payee before stale-dating",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Age uncleared cheques from the issue date.",
+            "Chase the payee at the aging threshold.",
+            "Reissue where the cheque is lost before it becomes stale-dated.",
+            "Done when every aged item is chased or reissued."
+          ],
+          "verify": [
+            "Filter uncleared items past the aging threshold.",
+            "Pass when every such item shows a chase or reissue action."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Close the refund case with the clearing date in BillingCenter",
+          "actor": "Accountant",
+          "sop": [
+            "Record the clearing date and cleared amount on the case.",
+            "Close the case only once clearance is confirmed.",
+            "Leave uncleared cases open with the chase action.",
+            "Done when cleared cases are closed with the clearing date recorded."
+          ],
+          "verify": [
+            "List closed cases with uncleared or returned disbursements.",
+            "Pass when the list is empty."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "d2a7baf6-3fef-4ba3-8189-2f4268e9684b",
+      "verifier": "Billing Specialist",
+      "generic": {
+        "Defined scope/population": "Billing accounts carrying a credit balance or an event that generates a premium refund.",
+        "In-scope period": "Credit balances and reducing events arising in the current trigger scan cycle.",
+        "Required fields populated and valid": "Trigger reason code, credit amount, source event and refund case reference are populated.",
+        "Control totals or record counts reconcile": "Refund case value equals the total open credit balances identified in the scan.",
+        "Evidence retained with timestamp/version": "Trigger scan output and the case list are retained with the scan date.",
+        "Exceptions logged with disposition": "Credit balances retained without a refund case are logged with the documented reason.",
+        "Test population": "All billing accounts with a credit balance at the scan date.",
+        "Pass/fail thresholds": "Zero aged credit balances without a refund case or a documented retention reason.",
+        "Exception handling path": "A credit balance held for future premium is documented and re-reviewed next cycle.",
+        "Documented acceptance criteria": "Every open credit balance has a refund case with a coded trigger reason.",
+        "Evidence location": "The BI trigger scan output and the BillingCenter refund cases and credit balances."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Scan billing accounts for credit balances in Guidewire BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Scan for accounts carrying a credit balance at the scan date.",
+            "Record the credit amount and its age for each account.",
+            "Save the scan output with the scan date.",
+            "Done when the credit balance population is identified."
+          ],
+          "verify": [
+            "Recount and re-total the credit balance population.",
+            "Pass when the scan totals reproduce on recount."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Classify each credit as cancellation, overpayment, duplicate or endorsement",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Trace each credit to its source transaction.",
+            "Classify it as cancellation return, overpayment, duplicate or endorsement reduction.",
+            "Record the classification on the account.",
+            "Done when every credit carries a classification."
+          ],
+          "verify": [
+            "Filter credits for missing classifications.",
+            "Pass when no credit balance lacks a classification."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Detect duplicate payments by policy, amount and near-identical dates",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Match receipts on same policy, same amount and close receipt dates.",
+            "Confirm the second receipt is genuinely a duplicate.",
+            "Raise a refund case for confirmed duplicates.",
+            "Done when duplicate payments are identified and cased."
+          ],
+          "verify": [
+            "Re-run the duplicate detection query.",
+            "Pass when every detected duplicate has a refund case."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm cancellations and reducing endorsements raise a refund case",
+          "actor": "Collections Analyst",
+          "sop": [
+            "Extract cancellations and premium-reducing endorsements for the period.",
+            "Confirm a refund case exists for each where a credit arises.",
+            "Raise missing cases before the cycle closes.",
+            "Done when every reducing event with a credit has a case."
+          ],
+          "verify": [
+            "Compare reducing events to refund cases raised.",
+            "Pass when every reducing event with a credit has a case."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Route free-look cancellations to full-premium return",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Identify free-look and cooling-off cancellations in the population.",
+            "Code them for full-premium return rather than pro-rata.",
+            "Record the routing on the case.",
+            "Done when free-look cases are routed to full return."
+          ],
+          "verify": [
+            "Check the method coded on free-look cases.",
+            "Pass when no free-look case carries a pro-rata or short-rate method."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Code the trigger reason on each refund case in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Set the trigger reason code on every refund case.",
+            "Confirm the code drives the correct calculation and approval path.",
+            "Document retention reasons for credits with no case.",
+            "Done when every case carries a trigger reason code."
+          ],
+          "verify": [
+            "Filter refund cases for missing trigger reason codes.",
+            "Pass when no case lacks a trigger reason code."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "1c384279-f75e-48a4-a0f0-287b329acdc7",
+      "verifier": "Accountant",
+      "generic": {
+        "Defined scope/population": "Refunds carrying a taxable gain or otherwise requiring tax documentation.",
+        "In-scope period": "Refunds disbursed in the current tax reporting cycle.",
+        "Required fields populated and valid": "Reportability determination, payee TIN, taxable amount, withholding and form reference are populated.",
+        "Control totals or record counts reconcile": "Reported taxable amounts equal the taxable portions computed on the refund cases.",
+        "Evidence retained with timestamp/version": "Determination, form copy and withholding evidence are retained on the policy or contract file.",
+        "Exceptions logged with disposition": "Missing or invalid TINs are logged and backup withholding is applied.",
+        "Test population": "All refunds assessed for reportability in the review period.",
+        "Pass/fail thresholds": "Zero taxable refunds disbursed without a reportability determination on file.",
+        "Exception handling path": "An invalid TIN triggers backup withholding until a corrected TIN is supplied.",
+        "Documented acceptance criteria": "Reportable refunds carry a tax form record with a validated payee TIN and any withholding.",
+        "Evidence location": "The ERP tax reporting record and the form copy in the document management repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Determine reportability for each refund in the ERP general ledger",
+          "actor": "Accountant",
+          "sop": [
+            "Assess whether the refund is a return of premium or carries taxable gain.",
+            "Record the determination and its basis on the refund case.",
+            "Route taxable refunds to form production.",
+            "Done when every refund carries a reportability determination."
+          ],
+          "verify": [
+            "Filter disbursed refunds for missing determinations.",
+            "Pass when no taxable refund was disbursed without a determination."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Validate the payee TIN and name combination",
+          "actor": "Accountant",
+          "sop": [
+            "Validate the payee TIN and name against the record of the payee.",
+            "Apply backup withholding where the TIN is missing or invalid.",
+            "Record the validation outcome on the case.",
+            "Done when the TIN is validated or withholding is applied."
+          ],
+          "verify": [
+            "Filter reportable refunds for unvalidated TINs.",
+            "Pass when every reportable refund has a validated TIN or applied withholding."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Apply and remit elected or required withholding before disbursement",
+          "actor": "Accountant",
+          "sop": [
+            "Apply federal and state withholding elected or required on the taxable portion.",
+            "Reduce the disbursement by the withheld amount.",
+            "Post the withholding to the remittance liability account.",
+            "Done when withholding is applied and posted."
+          ],
+          "verify": [
+            "Recompute withholding from the taxable portion and the elected rate.",
+            "Pass when the withheld amount matches the recomputed figure."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the taxable amount agrees to the contract cost-basis record",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Read the contract cost basis and prior basis recovery.",
+            "Confirm the taxable amount and basis recovery on the form agree.",
+            "Correct the form inputs where they disagree.",
+            "Done when the taxable amount agrees to the cost-basis record."
+          ],
+          "verify": [
+            "Recompute taxable gain from the contract basis record.",
+            "Pass when the recomputed gain equals the reported taxable amount."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Issue the tax form or adjustment documentation to the payee",
+          "actor": "Accountant",
+          "sop": [
+            "Produce the form or adjustment documentation for the payee.",
+            "Send it through the delivery channel of record.",
+            "Record the issue date and form reference on the case.",
+            "Done when the documentation is issued and referenced."
+          ],
+          "verify": [
+            "Compare reportable refund count to forms issued.",
+            "Pass when every reportable refund has an issued form."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Retain a copy on the policy or contract file in the document repository",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "File the form copy against the policy or contract.",
+            "Index it by payee, tax year and refund reference.",
+            "Confirm retrievability for tax reporting.",
+            "Done when the copy is filed and retrievable."
+          ],
+          "verify": [
+            "Retrieve a form copy by payee and tax year.",
+            "Pass when the retrieved copy matches the issued form."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "5a5650b4-57cc-4d4e-861b-a5aa600d9367",
+      "verifier": "Accountant",
+      "generic": {
+        "Defined scope/population": "All refund transactions requiring a logged record of calculation, approval and disbursement.",
+        "In-scope period": "Refunds processed during the current logging and posting cycle.",
+        "Required fields populated and valid": "Policy number, trigger reason, method, gross unearned, deductions, net amount and approver are set.",
+        "Control totals or record counts reconcile": "Logged refund total equals the disbursed refund total for the period.",
+        "Evidence retained with timestamp/version": "Calculation, approval and disbursement references are linked under one transaction ID.",
+        "Exceptions logged with disposition": "Corrections are logged as reversals referencing the original refund transaction ID.",
+        "Test population": "All refund transactions logged in the review period.",
+        "Pass/fail thresholds": "Zero refund transaction records edited in place after disbursement.",
+        "Exception handling path": "A post-disbursement correction posts as a reversal plus a new transaction.",
+        "Documented acceptance criteria": "Log entry links calculation, approval and disbursement under one transaction ID.",
+        "Evidence location": "The ERP refund transaction record with links to BillingCenter and the document repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Record the refund transaction in the ERP general ledger",
+          "actor": "Accountant",
+          "sop": [
+            "Record policy number, trigger reason, method, gross unearned and deductions.",
+            "Record the net refund amount under a unique transaction ID.",
+            "Confirm the entry saves without blank required fields.",
+            "Done when the transaction record exists with all required fields."
+          ],
+          "verify": [
+            "Filter refund transactions for blank required fields.",
+            "Pass when no transaction has a blank required field."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Link the approval record showing approver, authority and date",
+          "actor": "Accountant",
+          "sop": [
+            "Attach or link the approval record to the transaction.",
+            "Confirm approver name, authority level and approval date are visible.",
+            "Reject transactions with no linked approval.",
+            "Done when every transaction links to an approval record."
+          ],
+          "verify": [
+            "Open the approval from the transaction record.",
+            "Pass when the approval shows approver, authority and date."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record disbursement method, reference and issue date on the transaction",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Add the disbursement method, payment reference and issue date.",
+            "Confirm the values match the payment file record.",
+            "Correct any mismatch before period close.",
+            "Done when disbursement details are recorded on the transaction."
+          ],
+          "verify": [
+            "Compare disbursement details to the payment file.",
+            "Pass when the transaction details match the payment file."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the GL entry follows the posting map",
+          "actor": "Accountant",
+          "sop": [
+            "Confirm the entry debits unearned premium or premium payable and credits cash.",
+            "Confirm tax and fee reversals post to their own accounts.",
+            "Correct any posting outside the map.",
+            "Done when every posting follows the posting map."
+          ],
+          "verify": [
+            "Re-run the posting map check over the period.",
+            "Pass when zero refund postings fall outside the map."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm corrections post as reversals referencing the original ID",
+          "actor": "Accountant",
+          "sop": [
+            "List corrections posted against refund transactions.",
+            "Confirm each is a reversal referencing the original transaction ID.",
+            "Reject in-place edits of disbursed transactions.",
+            "Done when every correction follows the reversal pattern."
+          ],
+          "verify": [
+            "Read the audit history on a corrected transaction.",
+            "Pass when the original record was reversed rather than edited."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Reconcile logged refunds to disbursed refunds for the period",
+          "actor": "Accountant",
+          "sop": [
+            "Total logged refund transactions for the period.",
+            "Compare to disbursed refunds from the payment files.",
+            "Investigate and clear any difference.",
+            "Done when logged and disbursed totals agree."
+          ],
+          "verify": [
+            "Recompute both totals independently.",
+            "Pass when logged refunds equal disbursed refunds."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "a36e5e31-26b9-47a3-9ea2-2c562967d940",
+      "verifier": "Billing Operations Manager",
+      "generic": {
+        "Defined scope/population": "Refund cases requiring approval at or above the designated authority thresholds.",
+        "In-scope period": "Refund cases awaiting approval in the current approval cycle.",
+        "Required fields populated and valid": "Net refund amount, approval tier, approver identity, approval date and dual-approval flag are set.",
+        "Control totals or record counts reconcile": "Approved refund value equals the value released into the disbursement file.",
+        "Evidence retained with timestamp/version": "Approval records with approver names and dates are retained against each case.",
+        "Exceptions logged with disposition": "Cases rejected at approval are logged with the reason and the rework required.",
+        "Test population": "All refund cases routed for approval in the review period.",
+        "Pass/fail thresholds": "Zero refunds approved by the same user who prepared the calculation.",
+        "Exception handling path": "A segregation breach voids the approval and the case is re-routed to an independent approver.",
+        "Documented acceptance criteria": "Case carries an approval at the tier matching the amount, dated before disbursement.",
+        "Evidence location": "The workflow case management approval record and the BillingCenter refund case."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Route the refund to the approval tier matching the amount",
+          "actor": "Receivables Manager",
+          "sop": [
+            "Read the net refund amount on the case.",
+            "Look up the approval tier from the authority matrix.",
+            "Route the case to that tier in the workflow tool.",
+            "Done when the case sits with the correct approval tier."
+          ],
+          "verify": [
+            "Compare case routing to the authority matrix band.",
+            "Pass when every case is routed to its matching tier."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the approver is independent of preparation and payee maintenance",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Compare the approver identity to the calculation preparer.",
+            "Confirm the approver does not maintain the payee bank details.",
+            "Re-route where a conflict exists.",
+            "Done when the approver is independent of both roles."
+          ],
+          "verify": [
+            "Compare approver and preparer identities across the population.",
+            "Pass when no refund was approved by its preparer."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Give the approver the calculation, trigger and entitlement before approval",
+          "actor": "Receivables Manager",
+          "sop": [
+            "Attach the calculation worksheet, trigger reason and entitlement determination.",
+            "Confirm the approver can open each attachment.",
+            "Reject approvals made without the supporting pack.",
+            "Done when the supporting pack is visible to the approver."
+          ],
+          "verify": [
+            "Open the pack from the approval task.",
+            "Pass when all three supporting items are available to the approver."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Obtain two distinct approvals above the dual-approval threshold",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Identify cases above the dual-approval threshold.",
+            "Obtain two approvals from distinct named individuals.",
+            "Record both approvals on the case.",
+            "Done when every above-threshold case has two distinct approvals."
+          ],
+          "verify": [
+            "Filter above-threshold cases for a single approval.",
+            "Pass when every above-threshold case carries two distinct approvals."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm disbursement is blocked until approval is recorded",
+          "actor": "Accountant",
+          "sop": [
+            "Confirm the disbursement selection requires a recorded approval.",
+            "Attempt a test selection of an unapproved case.",
+            "Record the control test result.",
+            "Done when unapproved cases cannot be selected for disbursement."
+          ],
+          "verify": [
+            "Read the outcome of the test selection.",
+            "Pass when the unapproved case is excluded from the disbursement file."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the approval status on the refund case in BillingCenter",
+          "actor": "Receivables Manager",
+          "sop": [
+            "Write the approval outcome, approver and date onto the refund case.",
+            "Log rejected cases with the reason and rework required.",
+            "Release approved cases to disbursement.",
+            "Done when every case carries a recorded approval outcome."
+          ],
+          "verify": [
+            "Compare approval dates to disbursement dates.",
+            "Pass when every approval predates its disbursement."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "87683e15-fea3-4d7d-9c3f-53f3bbbb957e",
+      "verifier": "Billing Operations Manager",
+      "generic": {
+        "Defined scope/population": "Refunds issued in the reporting period split by trigger reason for finance accounting.",
+        "In-scope period": "The reporting period from prior period end to current period end.",
+        "Required fields populated and valid": "Counts, dollars, trigger reason, days from trigger to disbursement and commentary are populated.",
+        "Control totals or record counts reconcile": "Reported refund total reconciles to the GL refund and unearned premium movement.",
+        "Evidence retained with timestamp/version": "Report version and its warehouse extract are retained with the period end date.",
+        "Exceptions logged with disposition": "Duplicate-payment refunds are called out as a control indicator with commentary.",
+        "Test population": "All refunds disbursed during the reporting period.",
+        "Pass/fail thresholds": "Zero unreconciled variance between the report and the GL refund movement.",
+        "Exception handling path": "A reconciliation variance holds distribution until the Accountant explains it.",
+        "Documented acceptance criteria": "Report reconciles to the GL refund movement and splits volumes by trigger reason.",
+        "Evidence location": "The BI reporting platform refund report and the warehouse refund extract."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract refunds for the period to the enterprise data warehouse",
+          "actor": "Receivables Manager",
+          "sop": [
+            "Extract disbursed refunds with trigger reason, amount and key dates.",
+            "Load the extract into the reporting tables.",
+            "Confirm coverage of the full reporting period.",
+            "Done when the refund extract is loaded for the period."
+          ],
+          "verify": [
+            "Compare loaded totals to the ERP refund disbursements.",
+            "Pass when loaded totals equal the disbursed totals."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Split counts and dollars by trigger reason in the BI reporting platform",
+          "actor": "Receivables Manager",
+          "sop": [
+            "Split refunds by cancellation, overpayment, duplicate, endorsement and free-look.",
+            "Show counts and dollars for each reason.",
+            "Confirm the splits sum to the period total.",
+            "Done when the trigger reason split is built and sums correctly."
+          ],
+          "verify": [
+            "Sum the split rows and compare to the period total.",
+            "Pass when the splits sum exactly to the period total."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Reconcile reported refunds to the GL refund and unearned premium movement",
+          "actor": "Accountant",
+          "sop": [
+            "Read GL refund and unearned premium movement for the period.",
+            "Compare to the reported refund total.",
+            "Document any reconciling item before distribution.",
+            "Done when the report reconciles to the GL movement."
+          ],
+          "verify": [
+            "Recompute the reconciliation from both sources.",
+            "Pass when the difference is zero or fully documented."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Show average days from trigger to disbursement",
+          "actor": "Receivables Manager",
+          "sop": [
+            "Compute days from refund trigger to disbursement for each case.",
+            "Report the average and the tail beyond the service target.",
+            "Split the metric by trigger reason.",
+            "Done when the service metric is on the report."
+          ],
+          "verify": [
+            "Recompute the average from the case-level data.",
+            "Pass when the recomputed average matches the reported figure."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Highlight duplicate-payment refunds as a control indicator",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Present duplicate-payment refund counts and dollars separately.",
+            "Compare to the prior period and note the trend.",
+            "Write commentary explaining any adverse movement.",
+            "Done when duplicate refunds are highlighted with commentary."
+          ],
+          "verify": [
+            "Read the duplicate refund commentary on the report.",
+            "Pass when any adverse duplicate trend carries a written explanation."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Deliver the report to finance by the close deadline",
+          "actor": "Receivables Manager",
+          "sop": [
+            "Publish the report to the finance distribution list.",
+            "Attach the GL reconciliation.",
+            "Record the publication date and version.",
+            "Done when the report is delivered by the close deadline."
+          ],
+          "verify": [
+            "Read the publication log entry.",
+            "Pass when delivery occurred on or before the agreed close deadline."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "2b05c96c-4af2-436a-80bf-c697ffa24b66",
+      "verifier": "Billing Specialist",
+      "generic": {
+        "Defined scope/population": "Inbound payee inquiries about refund status, amount or delivery.",
+        "In-scope period": "Inquiries received during the current service handling period.",
+        "Required fields populated and valid": "Caller verification, refund status, blocking step, commitment date and resolution are populated.",
+        "Control totals or record counts reconcile": "Logged inquiries equal the inquiries received across the handled channels.",
+        "Evidence retained with timestamp/version": "Inquiry log entries with verification and answers given are retained with the contact date.",
+        "Exceptions logged with disposition": "Stalled refunds are logged with the blocking step and the commitment date given.",
+        "Test population": "All refund status inquiries handled in the review period.",
+        "Pass/fail thresholds": "Zero refund details disclosed without a recorded identity verification.",
+        "Exception handling path": "An unverified caller is refused detail and directed to a written verification route.",
+        "Documented acceptance criteria": "Inquiry is logged with caller verification, the status given and a resolution or commitment date.",
+        "Evidence location": "The CRM inquiry case with links to the BillingCenter refund case and the ERP payment record."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Verify the caller identity in the CRM before disclosing detail",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Verify the caller is the payee, insured or an authorised representative.",
+            "Record the verification method and outcome on the case.",
+            "Refuse detail and offer a written route where verification fails.",
+            "Done when the verification outcome is recorded."
+          ],
+          "verify": [
+            "Read the verification entry before any disclosure on the case.",
+            "Pass when every disclosure follows a recorded verification."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Check the refund case status in Guidewire BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Open the refund case and read the current status.",
+            "Identify whether it is calculated, approved, disbursed, cleared or returned.",
+            "Record the status read on the inquiry case.",
+            "Done when the current status is identified and recorded."
+          ],
+          "verify": [
+            "Compare the recorded status to the refund case.",
+            "Pass when the recorded status matches the system status."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Give the issue date and reference for disbursed but uncleared refunds",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Read the issue date and payment reference from the ERP payment record.",
+            "Give both to the verified caller with the expected clearing window.",
+            "Record the information given on the inquiry case.",
+            "Done when the caller has the issue date, reference and clearing window."
+          ],
+          "verify": [
+            "Compare the details given to the ERP payment record.",
+            "Pass when the details given match the payment record."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Identify the blocking step for stalled refunds",
+          "actor": "Collections Analyst",
+          "sop": [
+            "Identify whether approval, sanctions hold or missing payee details is blocking.",
+            "Contact the owning team for an expected clearance date.",
+            "Record the blocking step and the expected date on the case.",
+            "Done when the blocking step and expected date are recorded."
+          ],
+          "verify": [
+            "Compare the recorded blocker to the refund case state.",
+            "Pass when the recorded blocker matches the actual blocking step."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Give the caller a commitment date and log it in the CRM",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Give a realistic commitment date based on the blocking step.",
+            "Log the commitment date on the inquiry case.",
+            "Set a follow-up task for the commitment date.",
+            "Done when a commitment date is given and logged."
+          ],
+          "verify": [
+            "Filter stalled inquiries for missing commitment dates.",
+            "Pass when no stalled inquiry lacks a commitment date."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Close the inquiry only once the resolution is recorded",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Confirm the refund resolved or the caller confirmation received.",
+            "Record the answer given and the resolution on the case.",
+            "Close the inquiry case with the resolution reference.",
+            "Done when the case is closed with a recorded resolution."
+          ],
+          "verify": [
+            "List closed inquiries with no recorded resolution.",
+            "Pass when no inquiry was closed without a resolution or commitment."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "f2f1916d-b3aa-431b-a356-3fe76af9a1da",
+      "verifier": "Accountant",
+      "generic": {
+        "Defined scope/population": "Refund payees, alternate payees and destination bank details awaiting sanctions screening.",
+        "In-scope period": "Refunds pending release in the current disbursement screening cycle.",
+        "Required fields populated and valid": "Payee name, bank details, list version, match threshold and adjudication outcome are populated.",
+        "Control totals or record counts reconcile": "Screened payee count equals the count of refunds selected for release.",
+        "Evidence retained with timestamp/version": "Screening result with list version and adjudication is attached to the refund case.",
+        "Exceptions logged with disposition": "Potential matches are logged with the compliance referral and its adjudication outcome.",
+        "Test population": "All refund payees screened in the review period.",
+        "Pass/fail thresholds": "Zero refund disbursements released while a sanctions match remains unadjudicated.",
+        "Exception handling path": "A confirmed match blocks the payment and follows the blocked-property reporting path.",
+        "Documented acceptance criteria": "Case carries a dated sanctions screening result referencing the list version used.",
+        "Evidence location": "The sanctions screening system result attached to the BillingCenter refund case."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Submit payee and bank details to the sanctions screening system",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Submit the payee name, any alternate payee and the destination bank details.",
+            "Run the screening before the refund enters the payment file.",
+            "Record the screening reference on the refund case.",
+            "Done when every pending refund has a screening submission."
+          ],
+          "verify": [
+            "Compare screened payee count to refunds selected for release.",
+            "Pass when every selected refund has a screening submission."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the current list version and approved match thresholds are used",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Read the list version loaded in the screening system.",
+            "Confirm fuzzy-match thresholds match the approved settings.",
+            "Escalate any stale list or altered threshold.",
+            "Done when the current list version and approved thresholds are confirmed."
+          ],
+          "verify": [
+            "Compare the recorded list version to the published current version.",
+            "Pass when screening used the current list version."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Hold the disbursement and refer potential matches to compliance",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Hold any refund with a potential match out of the payment file.",
+            "Refer the match to compliance for adjudication.",
+            "Never clear a match inside the payment queue.",
+            "Done when every potential match is held and referred."
+          ],
+          "verify": [
+            "List released refunds with an unadjudicated match.",
+            "Pass when the list is empty for the release cycle."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Follow the blocked-property path for confirmed true matches",
+          "actor": "Accountant",
+          "sop": [
+            "Block the payment where compliance confirms a true match.",
+            "Move the funds to the blocked-property handling process.",
+            "Do not return the funds to the payee.",
+            "Done when confirmed matches follow the blocked-property path."
+          ],
+          "verify": [
+            "Check the disposition of confirmed matches.",
+            "Pass when no confirmed match was returned to the payee."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Attach the screening result and adjudication to the refund case",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Attach the screening result reference and its date to the case.",
+            "Attach the adjudication outcome where a match was reviewed.",
+            "Confirm both are retrievable from the case.",
+            "Done when the screening evidence is attached to the case."
+          ],
+          "verify": [
+            "Retrieve the screening evidence from a sample of cases.",
+            "Pass when every sampled case shows a dated screening result."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Release cleared refunds to the disbursement queue in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Release only refunds with a clear or adjudicated screening result.",
+            "Record the release date and the screening reference.",
+            "Leave held refunds out of the payment file.",
+            "Done when only screened-clear refunds are released."
+          ],
+          "verify": [
+            "Compare released refunds to screening outcomes.",
+            "Pass when every released refund carries a clear screening result."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "8a3cab99-002b-4544-b5cd-3350e889e255",
+      "verifier": "Accountant",
+      "generic": {
+        "Defined scope/population": "Approved and screened refunds selected into the disbursement payment file.",
+        "In-scope period": "Refunds released for disbursement in the current payment run.",
+        "Required fields populated and valid": "Approval flag, screening clearance, disbursement method, payee details and amount are populated.",
+        "Control totals or record counts reconcile": "Payment file record count and dollar total balance to the approved refund register.",
+        "Evidence retained with timestamp/version": "Payment file, control totals and bank acknowledgement are retained with the run date.",
+        "Exceptions logged with disposition": "Rejected payment records are logged and corrected before the next run.",
+        "Test population": "All refunds transmitted for disbursement in the review period.",
+        "Pass/fail thresholds": "Zero refunds without approval and sanctions clearance in the transmitted file.",
+        "Exception handling path": "A changed payee bank detail requires callback verification before the payment is released.",
+        "Documented acceptance criteria": "Disbursement file is balanced to the approved refund register with a retained acknowledgement.",
+        "Evidence location": "The ERP payment file record, the Payment Gateway acknowledgement and the BillingCenter cases."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Select only approved and screened refunds into the disbursement file",
+          "actor": "Accountant",
+          "sop": [
+            "Filter refunds for a recorded approval and a cleared screening result.",
+            "Exclude any refund missing either control.",
+            "Record the selection count and value.",
+            "Done when the selection contains only approved and cleared refunds."
+          ],
+          "verify": [
+            "Re-run the control filter over the selected file.",
+            "Pass when every selected refund carries approval and screening clearance."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Choose the disbursement method per policy for each refund",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Credit back to the original card for card-funded premium.",
+            "Use EFT to a verified account where one exists.",
+            "Use a cheque only where no verified account exists.",
+            "Done when every refund carries a policy-compliant method."
+          ],
+          "verify": [
+            "Compare chosen methods to the funding source on each case.",
+            "Pass when every method follows the disbursement policy."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Verify payee bank details against the authorisation on file",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Compare the payee bank details to the authorisation on file.",
+            "Apply callback verification where the details changed recently.",
+            "Hold refunds where the details cannot be verified.",
+            "Done when every EFT refund has verified bank details."
+          ],
+          "verify": [
+            "Filter EFT refunds for unverified or recently changed bank details.",
+            "Pass when every released EFT refund has verified details."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Balance the payment file to the approved refund register",
+          "actor": "Accountant",
+          "sop": [
+            "Total the payment file record count and dollars.",
+            "Compare to the approved refund register totals.",
+            "Investigate any difference before transmission.",
+            "Done when the file balances to the approved register."
+          ],
+          "verify": [
+            "Recompute both control totals.",
+            "Pass when file and register totals agree exactly."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Transmit the payment file through the Payment Gateway or bank channel",
+          "actor": "Accountant",
+          "sop": [
+            "Transmit the balanced file to the bank or gateway.",
+            "Capture the transmission reference and acknowledgement.",
+            "Work any file-level reject immediately.",
+            "Done when the file is transmitted and acknowledged."
+          ],
+          "verify": [
+            "Compare the acknowledgement totals to the transmitted totals.",
+            "Pass when the acknowledgement matches the transmitted control totals."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Write the payment reference back to each refund case in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Write the payment reference and issue date onto each refund case.",
+            "Set the case status to disbursed.",
+            "Chase any case with no returned reference.",
+            "Done when every transmitted refund carries a payment reference."
+          ],
+          "verify": [
+            "Filter transmitted refunds for missing payment references.",
+            "Pass when no transmitted refund lacks a payment reference."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fj7cu0tezkfgz0vow5xtu",
+      "verifier": "Accountant",
+      "generic": {
+        "Defined scope/population": "Refund transactions requiring premium accounting ledger entries for the period.",
+        "In-scope period": "Refunds posted to the ledger during the current open accounting period.",
+        "Required fields populated and valid": "Account mapping, effective date, approval reference and reversal components are populated.",
+        "Control totals or record counts reconcile": "Day total of refund postings equals the day total of refund disbursements transmitted.",
+        "Evidence retained with timestamp/version": "Posting map version and journal approvals are retained with the posting date.",
+        "Exceptions logged with disposition": "Entries attempted into a closed period are logged and reposted with a documented reason.",
+        "Test population": "All refund ledger entries posted in the review period.",
+        "Pass/fail thresholds": "Zero entries netting premium tax or fee reversals into the base premium account.",
+        "Exception handling path": "A misposted entry is reversed and reposted to the mapped accounts.",
+        "Documented acceptance criteria": "Entries post to the mapped accounts with approval per the journal authority matrix.",
+        "Evidence location": "The ERP premium accounting ledger and the BillingCenter refund transactions."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Post the refund to reverse earned premium in the ERP general ledger",
+          "actor": "Accountant",
+          "sop": [
+            "Post the unearned portion against earned premium.",
+            "Relieve the premium receivable or credit balance.",
+            "Confirm the entry balances before submission.",
+            "Done when the refund entry is prepared and balanced."
+          ],
+          "verify": [
+            "Read the prepared entry debits and credits.",
+            "Pass when the entry balances and uses the mapped accounts."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Post tax, surcharge and fee reversals to their own accounts",
+          "actor": "Accountant",
+          "sop": [
+            "Split the refund into premium, tax, surcharge and fee components.",
+            "Post each component to its own mapped account.",
+            "Reject entries that net components into base premium.",
+            "Done when each component posts to its own account."
+          ],
+          "verify": [
+            "Inspect the entry lines for netted components.",
+            "Pass when no tax or fee reversal is netted into base premium."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Set the effective date to the cancellation or overpayment date",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Read the cancellation or overpayment date from the refund case.",
+            "Set the ledger entry effective date to that date.",
+            "Confirm the date falls in an open accounting period.",
+            "Done when the effective date is correct and the period is open."
+          ],
+          "verify": [
+            "Compare the entry effective date to the source event date.",
+            "Pass when the entry effective date equals the source event date."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Obtain journal approval per the authority matrix before posting",
+          "actor": "Accountant",
+          "sop": [
+            "Route the journal for approval at the level required by the matrix.",
+            "Post only after the approval is recorded.",
+            "Record the approver and approval date on the journal.",
+            "Done when the journal carries the required approval."
+          ],
+          "verify": [
+            "Filter posted refund journals for missing approvals.",
+            "Pass when no refund journal posted without the required approval."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile day refund postings to refund disbursements transmitted",
+          "actor": "Accountant",
+          "sop": [
+            "Total refund postings for the day.",
+            "Compare to refund disbursements transmitted the same day.",
+            "Investigate and clear any difference.",
+            "Done when the two day totals agree."
+          ],
+          "verify": [
+            "Recompute both day totals independently.",
+            "Pass when posting and disbursement totals agree."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the BillingCenter refund transactions match the ledger",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Compare BillingCenter refund transactions to the ledger entries.",
+            "List any transaction with no ledger counterpart.",
+            "Raise the missing entry before period close.",
+            "Done when every refund transaction has a ledger counterpart."
+          ],
+          "verify": [
+            "Re-run the transaction to ledger comparison.",
+            "Pass when every refund transaction has a matching ledger entry."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "36fd40c2-6e47-46af-ab54-da311cb609fb",
+      "verifier": "Billing Specialist",
+      "generic": {
+        "Defined scope/population": "Refund cases requiring a payee entitlement determination before disbursement.",
+        "In-scope period": "Refund cases in the current entitlement review cycle before payment release.",
+        "Required fields populated and valid": "Premium payer trace, assignment status, entitled party and supporting document reference are set.",
+        "Control totals or record counts reconcile": "Entitlement determinations equal the count of refund cases awaiting disbursement.",
+        "Evidence retained with timestamp/version": "Assignment, lienholder clause or written authorisation is retained with the determination date.",
+        "Exceptions logged with disposition": "Requests naming a payee other than the entitled party are logged with the authorisation obtained.",
+        "Test population": "All refund cases with an entitlement determination in the review period.",
+        "Pass/fail thresholds": "Zero refunds directed to a third party without a filed assignment or written authorisation.",
+        "Exception handling path": "An unsupported payee request holds the refund until independent verification is obtained.",
+        "Documented acceptance criteria": "Case records the entitlement determination and the document supporting the chosen payee.",
+        "Evidence location": "The BillingCenter refund case and the supporting document in the document management repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Trace who actually paid the premium in Guidewire BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Trace the receipts that funded the refunded premium.",
+            "Identify insured direct, premium finance, lienholder or employer remitter.",
+            "Record the funding source on the refund case.",
+            "Done when the actual premium payer is identified and recorded."
+          ],
+          "verify": [
+            "Compare the recorded payer to the receipt history.",
+            "Pass when the recorded payer matches the funding receipts."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Check for a premium finance agreement and its assignment",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Check the policy for a premium finance agreement.",
+            "Read the assignment of unearned premium where one exists.",
+            "Direct the unearned premium to the finance company per the assignment.",
+            "Done when any finance assignment is identified and applied."
+          ],
+          "verify": [
+            "Retrieve the assignment document where a finance company is payee.",
+            "Pass when every finance payee has a filed assignment."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm lienholder or additional interest entitlement under policy terms",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Read the lienholder and additional interest schedule on the policy.",
+            "Confirm whether the interest is entitled to the return premium.",
+            "Record the entitlement conclusion on the case.",
+            "Done when any lienholder entitlement is confirmed or excluded."
+          ],
+          "verify": [
+            "Compare the conclusion to the policy interest schedule.",
+            "Pass when the conclusion follows the policy terms."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Obtain written authorisation where the requested payee differs",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Where the requested payee is not the entitled party, request written authorisation.",
+            "Verify the authorisation independently of the request channel.",
+            "File the authorisation in the document repository.",
+            "Done when a verified authorisation exists for any alternative payee."
+          ],
+          "verify": [
+            "Retrieve the authorisation and its verification record.",
+            "Pass when every alternative payee has an independently verified authorisation."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm the payee decision with accounting before disbursement",
+          "actor": "Accountant",
+          "sop": [
+            "Review the entitlement determination and its supporting document.",
+            "Confirm the payee named on the disbursement matches the determination.",
+            "Return the case where the payee and determination differ.",
+            "Done when the disbursement payee matches the determination."
+          ],
+          "verify": [
+            "Compare the disbursement payee to the determination.",
+            "Pass when the payee equals the entitled party on the determination."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the entitlement determination on the refund case",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Record the entitled party, the basis and the document reference.",
+            "Attach the supporting document to the case.",
+            "Release the case for disbursement.",
+            "Done when the determination and its support are recorded on the case."
+          ],
+          "verify": [
+            "Retrieve the determination and support from the case.",
+            "Pass when the case shows the determination and a retrievable support document."
           ]
         }
       ]
