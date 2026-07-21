@@ -4,6 +4,7 @@
  * citation coverage — every jurisdiction's obligation shown once per distinct
  * citation, never repeated.
  */
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApi } from '../../../lib/useApi';
 import { withCompany } from '../../../lib/portfolio';
@@ -47,6 +48,10 @@ export function ItemDrawer({
   } = useApi<ItemDetail>(
     withCompany(`/regulations/compliance-register/items/${itemId}`, companyId),
   );
+  // Collapsed by default — the first three citations preview the coverage;
+  // the toggle reveals the full jurisdiction list.
+  const [showAllCitations, setShowAllCitations] = useState(false);
+  const CITATION_PREVIEW = 3;
 
   return (
     // Fixed wrapper gives the DrawerShell's absolute positioning a
@@ -83,7 +88,10 @@ export function ItemDrawer({
               title={`Requirements & citations — all jurisdictions (${item.citations.length.toLocaleString()})`}
             >
               <ul className="divide-y divide-[#f5f5f5]">
-                {item.citations.map((c) => (
+                {(showAllCitations
+                  ? item.citations
+                  : item.citations.slice(0, CITATION_PREVIEW)
+                ).map((c) => (
                   <li key={c.citation} className="py-2.5 first:pt-0 last:pb-0">
                     <div className="flex flex-wrap gap-1 mb-1">
                       {c.jurisdictions.map((j) => (
@@ -106,6 +114,17 @@ export function ItemDrawer({
                   </li>
                 ))}
               </ul>
+              {item.citations.length > CITATION_PREVIEW && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllCitations((v) => !v)}
+                  className="text-[12px] font-medium text-[#2563eb] hover:underline"
+                >
+                  {showAllCitations
+                    ? 'Show less'
+                    : `Show all ${item.citations.length.toLocaleString()} jurisdictions`}
+                </button>
+              )}
             </Zone>
           </>
         )}
