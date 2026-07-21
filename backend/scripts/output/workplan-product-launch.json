@@ -1,0 +1,1757 @@
+{
+  "area": "Product Launch",
+  "tasks": [
+    {
+      "taskId": "561e06cc-60d4-4217-b8ad-08d240c37d69",
+      "verifier": "Insurance Product Dev Lead",
+      "generic": {
+        "Defined scope/population": "The full UAT rate test deck for the new product covering every launch state, coverage, and rating tier.",
+        "In-scope period": "The rate revision effective from the planned launch date through the first renewal cycle.",
+        "Required fields populated and valid": "Every quote carries state, effective date, coverage limits, territory, tier, and calculated premium.",
+        "Control totals or record counts reconcile": "Quote count and total premium from the engine run equal the expected premium file totals.",
+        "Evidence retained with timestamp/version": "Rating validation results saved with engine build number, rate table version, and run timestamp.",
+        "Exceptions logged with disposition": "Every premium variance raised as a Jira rating defect with root cause and fix or accepted rationale.",
+        "Test population": "All UAT deck quotes plus the minimum, maximum, and expiring-premium edge cases.",
+        "Pass/fail thresholds": "Zero premium variance against the expected file and no open Blocker or Critical rating defect.",
+        "Exception handling path": "Variances go to the Insurance Product Dev Lead for triage and re-run after the rate table correction.",
+        "Documented acceptance criteria": "Premiums match the filed rate manual for every deck quote and the re-run shows zero drift.",
+        "Evidence location": "Signed rating validation results attached to the launch ticket in Jira."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Load the approved rate tables into the policy administration system UAT environment",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Confirm the rate table package matches the version approved in the filing before loading.",
+            "Load product, rate, rule, and form configuration into the policy admin UAT environment.",
+            "Record the loaded build number and rate table version on the launch ticket.",
+            "Done when the UAT environment reports the approved rate table version active."
+          ],
+          "verify": [
+            "Compare the active rate table version in policy admin against the approved package identifier.",
+            "Pass when the active version matches the approved package with no pending load errors."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Assemble the UAT rate test deck and expected premium file",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "Build test quotes covering every launch state, coverage combination, territory, and rating tier.",
+            "Calculate the expected premium for each quote directly from the filed rate manual.",
+            "Add explicit cases for minimum premium, maximum premium, and expiring-premium treatment.",
+            "Done when every deck row has a state, a rating scenario, and an expected premium value."
+          ],
+          "verify": [
+            "Count deck rows per state and confirm each launch state and tier appears at least once.",
+            "Check that no expected premium cell is blank or carries a placeholder value.",
+            "Pass when the deck covers all launch states and every expected premium is populated."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Execute the full rate test deck in the policy administration system",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "Run every deck quote through the policy admin rating engine in a single controlled batch.",
+            "Export the engine output with quote identifier, rating inputs, and calculated premium.",
+            "Note any quote that errors or fails to rate rather than returning a premium.",
+            "Done when every deck quote has either a calculated premium or a recorded rating error."
+          ],
+          "verify": [
+            "Reconcile the output record count against the deck row count.",
+            "Pass when the counts match and no quote is left without a result."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reconcile engine output to the expected premium file",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "Join engine output to the expected premium file on quote identifier and compute the variance.",
+            "Isolate every non-zero variance and identify the rating factor or table that caused it.",
+            "Confirm minimum, maximum, and expiring-premium cases returned filed values rather than system defaults.",
+            "Done when every quote is marked matched or has a named causal factor recorded."
+          ],
+          "verify": [
+            "Sum the absolute variance across the reconciled population.",
+            "Pass when the total absolute variance is zero and all edge cases return filed values."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Audit rating factor, territory, and tier tables against the filed rate manual",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "Extract each rating factor, territory, and tier table from the policy admin configuration.",
+            "Compare every value cell to the corresponding entry in the filed rate manual.",
+            "Record any table cell that differs from the filed value with its table name and key.",
+            "Done when every configured table cell has been compared to a filed manual value."
+          ],
+          "verify": [
+            "Count table cells compared against total cells in the filed manual.",
+            "Pass when coverage is complete and no cell differs from the filed value."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Raise and track rating defects in Jira",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "Raise a Jira defect for each variance or table mismatch with the quote, factor, and expected value.",
+            "Set severity using the launch impact and link each defect to the launch ticket.",
+            "Track each defect to a code or configuration fix and confirm the fix is deployed to UAT.",
+            "Done when every variance has a Jira defect in a resolved or formally accepted state."
+          ],
+          "verify": [
+            "Query Jira for open Blocker and Critical rating defects on the launch ticket.",
+            "Pass when the query returns zero open Blocker or Critical rating defects."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Re-run the deck after the final rate table load and confirm zero drift",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "Re-execute the full deck after the final rate table load rather than a targeted subset.",
+            "Compare the new premiums to both the expected file and the prior run output.",
+            "Investigate any quote whose premium moved between runs before accepting the result.",
+            "Done when the re-run output shows zero variance against the expected file and the prior run."
+          ],
+          "verify": [
+            "Compute run-over-run variance across all deck quotes.",
+            "Pass when both the expected-file variance and the run-over-run variance are zero."
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Sign off and attach the rating validation results to the launch ticket",
+          "actor": "Insurance Product Dev Lead",
+          "sop": [
+            "Review the reconciliation output, table audit, and defect closure evidence.",
+            "Sign the rating validation results recording the engine build and rate table version.",
+            "Attach the signed pack to the launch ticket in Jira with the run timestamp.",
+            "Done when the signed validation pack is attached to the launch ticket."
+          ],
+          "verify": [
+            "Open the launch ticket and confirm the attached pack carries a signature, build number, and date.",
+            "Pass when the signed pack is present and identifies the exact validated build."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "84364085-8982-44c8-abab-39ccc7c9c005",
+      "verifier": "Insurance Product Dev Lead",
+      "generic": {
+        "Defined scope/population": "The production release build, product configuration, interfaces, and batch jobs for the new product.",
+        "In-scope period": "The deployment window from freeze entry through post-deployment confirmation on launch day.",
+        "Required fields populated and valid": "Change ticket carries build number, window, back-out plan, approver, and CMDB references.",
+        "Control totals or record counts reconcile": "Production configuration item count matches the UAT-signed artifact manifest.",
+        "Evidence retained with timestamp/version": "Validation output stored against the change record with build number and validation timestamp.",
+        "Exceptions logged with disposition": "Every configuration gap raised as an ITSM task with owner and pre-deployment resolution.",
+        "Test population": "All deployment artifacts, production product configuration items, interfaces, and batch jobs.",
+        "Pass/fail thresholds": "Build matches the UAT-signed artifact and every interface and batch job has a named CMDB owner.",
+        "Exception handling path": "Mismatches block deployment and route to the Insurance Product Dev Lead for a rebuild or waiver.",
+        "Documented acceptance criteria": "Approved change record with an attached rollback plan and confirmed production configuration.",
+        "Evidence location": "Change record in the ITSM platform with validation evidence linked from Jira."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract the UAT-signed artifact manifest from Jira",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Locate the UAT sign-off record on the launch ticket in Jira.",
+            "Extract the signed build number, artifact list, and configuration package version.",
+            "Record the manifest as the baseline for production validation.",
+            "Done when the signed manifest is recorded with its build number and sign-off date."
+          ],
+          "verify": [
+            "Confirm the manifest carries a UAT sign-off signature and date.",
+            "Pass when a signed manifest with an unambiguous build number is recorded."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Compare the production release build to the UAT-signed artifact",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Query the production deployment package for its build number and artifact checksums.",
+            "Compare each value against the UAT-signed manifest entry by entry.",
+            "Halt the validation and escalate if any artifact differs from the signed version.",
+            "Done when every production artifact has been compared to its signed counterpart."
+          ],
+          "verify": [
+            "Count matched artifacts against total artifacts in the manifest.",
+            "Pass when every artifact matches and no unmatched artifact remains."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Verify product, rate, and form configuration is active in production policy admin",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Query the production policy admin environment for the new product code and its effective dates.",
+            "Confirm rate tables and form editions are present and in an active status.",
+            "List any configuration item that is missing, inactive, or dated incorrectly.",
+            "Done when every expected product, rate, and form item is confirmed present and active."
+          ],
+          "verify": [
+            "Reconcile the active production configuration item count to the manifest count.",
+            "Pass when counts reconcile and no expected item is missing or inactive."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm CMDB entries exist for the new product interfaces and batch jobs",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "List every interface and batch job the new product introduces or changes.",
+            "Look each one up in the CMDB and confirm a configuration item exists.",
+            "Confirm each configuration item carries a named support owner and support group.",
+            "Done when every interface and batch job has a CMDB entry with a named owner."
+          ],
+          "verify": [
+            "Count interfaces and batch jobs with a CMDB entry and an owner against the full list.",
+            "Pass when every item is registered and no owner field is empty."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the deployment window, freeze exception, and back-out plan on the change ticket",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Raise or update the change record in the ITSM platform for the production deployment.",
+            "Enter the agreed deployment window and attach the freeze exception approval if required.",
+            "Attach the back-out plan naming the trigger, the steps, and the decision owner.",
+            "Done when the change ticket carries the window, freeze exception, and back-out plan."
+          ],
+          "verify": [
+            "Open the change record and check the window, exception, and back-out attachments.",
+            "Pass when all three are present and the back-out plan names a decision owner."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Log configuration gaps as ITSM tasks with pre-deployment due dates",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Raise an ITSM task for every missing configuration item, CMDB gap, or artifact mismatch.",
+            "Assign each task an owner and a due date ahead of the deployment window.",
+            "Track the tasks to closure and re-verify the affected item after each fix.",
+            "Done when every logged gap is closed or carries a recorded acceptance."
+          ],
+          "verify": [
+            "Query open gap tasks linked to the change record.",
+            "Pass when no gap task remains open with a due date inside the deployment window."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Obtain change approval for the production deployment",
+          "actor": "Insurance Product Dev Lead",
+          "sop": [
+            "Review the artifact comparison, configuration validation, and CMDB evidence.",
+            "Confirm the back-out plan is executable within the deployment window.",
+            "Approve the change record in the ITSM platform and record the approval rationale.",
+            "Done when the change record is in an approved state with the rollback plan attached."
+          ],
+          "verify": [
+            "Check the change record status and the presence of the attached rollback plan.",
+            "Pass when the record is approved and the rollback plan is attached."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "1a6b71a8-a6db-459d-bcd1-7647ed0e8220",
+      "verifier": "Insurance Product Manager",
+      "generic": {
+        "Defined scope/population": "Every rate, rule, and form filing supporting the new product in each planned launch state.",
+        "In-scope period": "Filings with approved effective dates on or before the planned product launch date.",
+        "Required fields populated and valid": "Each filing carries a SERFF tracking number, disposition, approval date, and effective date.",
+        "Control totals or record counts reconcile": "Approved form numbers and editions in SERFF equal those configured in policy admin.",
+        "Evidence retained with timestamp/version": "SERFF disposition letters saved per state with the filing version and disposition date.",
+        "Exceptions logged with disposition": "States filed but not approved removed from launch scope with the removal reason recorded.",
+        "Test population": "All launch states and every rate, rule, and form filing supporting them.",
+        "Pass/fail thresholds": "No launch state in a disposition other than closed-approved at the verification date.",
+        "Exception handling path": "Unapproved states drop from launch scope and route to the Insurance Product Manager for rescoping.",
+        "Documented acceptance criteria": "Closed-approved disposition per launch state with effective dates on or before launch.",
+        "Evidence location": "SERFF disposition letters filed against the launch record with the state scope list."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the SERFF filing status report for the product",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "Run the SERFF filing status report across all filings tied to the new product.",
+            "Capture tracking number, state, filing type, disposition, and disposition date per row.",
+            "Export the report with the pull timestamp for the evidence pack.",
+            "Done when a dated status report covering every product filing is exported."
+          ],
+          "verify": [
+            "Confirm the report includes a row for every planned launch state.",
+            "Pass when no launch state is absent from the report."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm a closed-approved disposition for every launch state",
+          "actor": "Insurance Product Manager",
+          "sop": [
+            "Review the disposition value for each launch state in the SERFF report.",
+            "Mark any state that is filed, pending, or objected as not approved.",
+            "Record the tracking number and disposition date for each approved state.",
+            "Done when every launch state carries an approved or not-approved determination."
+          ],
+          "verify": [
+            "Count states with a closed-approved disposition against the launch state list.",
+            "Pass when every remaining launch state is closed-approved."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Match approved form numbers and editions to policy admin configuration",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "List the approved form numbers and edition dates from each SERFF disposition.",
+            "Query the policy administration system for the forms configured against the product.",
+            "Flag any form configured with an edition date that was not approved for that state.",
+            "Done when every configured form is matched to an approved form and edition."
+          ],
+          "verify": [
+            "Reconcile configured form count to approved form count per state.",
+            "Pass when the counts reconcile and no unmatched edition remains."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm approved effective dates fall on or before the launch date",
+          "actor": "Insurance Product Manager",
+          "sop": [
+            "Read the approved effective date from each state disposition.",
+            "Compare each date against the planned product launch date.",
+            "Flag any state whose approved effective date falls after the launch date.",
+            "Done when every launch state has its effective date compared to the launch date."
+          ],
+          "verify": [
+            "List states with an effective date later than the launch date.",
+            "Pass when that list is empty for the final launch scope."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Remove unapproved states from launch scope and record the removal",
+          "actor": "Insurance Product Manager",
+          "sop": [
+            "Remove any state that is filed but not approved from the launch state list.",
+            "Record the removal reason, the expected approval date, and the re-entry trigger.",
+            "Notify distribution and operations that the state is out of the initial launch scope.",
+            "Done when the launch state list contains only approved states and removals are recorded."
+          ],
+          "verify": [
+            "Compare the revised launch state list against the approved state list.",
+            "Pass when the two lists are identical and each removal has a recorded reason."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record state objections and their resolutions",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "Extract every objection letter and condition attached to the state filings in SERFF.",
+            "Record what each objection required and the response filed to resolve it.",
+            "Flag any condition that imposes an ongoing obligation after approval.",
+            "Done when every objection has a recorded resolution and any ongoing condition is flagged."
+          ],
+          "verify": [
+            "Count objections recorded against objections present in the SERFF filings.",
+            "Pass when every objection is recorded with a resolution."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "File the approval evidence pack against the launch record",
+          "actor": "Insurance Product Manager",
+          "sop": [
+            "Assemble disposition letters, the status report, and the objection log into one pack.",
+            "Record the final approved launch state list and its version date on the pack cover.",
+            "File the pack against the launch record for the product governance evidence set.",
+            "Done when the filed pack contains disposition evidence for every launch state."
+          ],
+          "verify": [
+            "Open the pack and confirm one disposition letter per launch state plus the state list.",
+            "Pass when the pack is complete and the state list matches the dispositions."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "11d6ef73-767c-4a2e-bd91-2bc9bd2c66fd",
+      "verifier": "Implementation Specialist",
+      "generic": {
+        "Defined scope/population": "All go-live readiness evidence for the launch including checklist, minutes, and sign-off sheet.",
+        "In-scope period": "From readiness assessment start through the recorded go/no-go decision date.",
+        "Required fields populated and valid": "Each archived item carries a document title, author, version, and approval date.",
+        "Control totals or record counts reconcile": "Archived document count matches the readiness evidence index for the launch.",
+        "Evidence retained with timestamp/version": "Record set carries the product-governance retention label and upload timestamps per file.",
+        "Exceptions logged with disposition": "Every missing evidence item logged with its owner and either supplied or formally waived.",
+        "Test population": "All items on the readiness evidence index for this product launch.",
+        "Pass/fail thresholds": "Complete evidence pack present with the retention label applied and the record set locked.",
+        "Exception handling path": "Missing items escalate to the Implementation Specialist and block locking of the record set.",
+        "Documented acceptance criteria": "Pack contains UAT rating results, filing approvals, and support readiness confirmations.",
+        "Evidence location": "SharePoint launch record set linked to the launch entry in the GRC platform."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Build the readiness evidence index for the launch",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "List every evidence item the readiness assessment required with its expected owner.",
+            "Mark each item as received, outstanding, or not applicable with a reason.",
+            "Record the index in the SharePoint launch record set as the archive control list.",
+            "Done when every expected evidence item appears on the index with a status."
+          ],
+          "verify": [
+            "Compare the index against the readiness criteria list for coverage.",
+            "Pass when every readiness criterion has at least one indexed evidence item."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Upload the readiness checklist, minutes, and sign-off sheet to SharePoint",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Upload the completed readiness checklist into the launch record set.",
+            "Upload the go/no-go minutes and the signed sign-off sheet alongside it.",
+            "Set the document title, version, and approval date properties on each file.",
+            "Done when all three documents are uploaded with their properties populated."
+          ],
+          "verify": [
+            "Open each uploaded file and confirm its version and approval date properties.",
+            "Pass when all three files are present with complete properties."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm the pack contains rating, filing, and support readiness evidence",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "Check that the signed UAT rating validation results are in the record set.",
+            "Check that the state filing approval evidence pack is in the record set.",
+            "Check that the support readiness and training confirmations are in the record set.",
+            "Done when all three evidence categories are confirmed present in the pack."
+          ],
+          "verify": [
+            "Reconcile the uploaded document list to the evidence index entry by entry.",
+            "Pass when no indexed item is missing from the record set."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Apply the product-governance retention label to the archived folder",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Open the launch record set library settings in SharePoint.",
+            "Apply the product-governance retention label to the archived launch folder.",
+            "Confirm the label inherits to every document already in the folder.",
+            "Done when the retention label shows on the folder and its contents."
+          ],
+          "verify": [
+            "Spot-check documents in the folder for the applied retention label.",
+            "Pass when every checked document carries the product-governance label."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Link the archived evidence pack to the launch entry in the GRC platform",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Open the product launch entry in the GRC platform.",
+            "Add the SharePoint record set link as the evidence reference for the launch.",
+            "Record the archive date and the responsible owner on the GRC entry.",
+            "Done when the GRC launch entry resolves to the archived record set."
+          ],
+          "verify": [
+            "Follow the GRC evidence link and confirm it opens the correct record set.",
+            "Pass when the link resolves to the launch record set with the retention label."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Log and chase outstanding evidence items",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "List every index item still outstanding with its owner and due date.",
+            "Chase each owner and record the supplied document or the waiver decision.",
+            "Escalate items still outstanding after the agreed chase period.",
+            "Done when no index item remains outstanding without a supplied file or a waiver."
+          ],
+          "verify": [
+            "Filter the index for outstanding items without a disposition.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Lock the record set to read-only once the pack is complete",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Confirm the evidence index shows no outstanding item before locking.",
+            "Set the launch record set permissions to read-only for all groups.",
+            "Record the lock date and the person who applied it on the GRC launch entry.",
+            "Done when the record set is read-only and the lock is recorded in GRC."
+          ],
+          "verify": [
+            "Attempt an edit on a locked document to confirm write access is blocked.",
+            "Pass when the record set rejects edits and the lock date is recorded."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "d957684e-e28f-4e47-b5de-108581cc58bb",
+      "verifier": "Distribution Operations Manager",
+      "generic": {
+        "Defined scope/population": "All supervisors and team leaders across servicing, claims, contact centre, and distribution.",
+        "In-scope period": "The briefing window from schedule publication to the day before go-live.",
+        "Required fields populated and valid": "LMS attendance rows carry attendee name, team, session date, and completion status.",
+        "Control totals or record counts reconcile": "LMS attendance count equals the required supervisor roster count.",
+        "Evidence retained with timestamp/version": "Briefing deck and escalation matrix stored with version and delivery date.",
+        "Exceptions logged with disposition": "Every absent supervisor logged with a booked catch-up session date.",
+        "Test population": "The full required supervisor roster for the launch.",
+        "Pass/fail thresholds": "No required supervisor with incomplete LMS attendance at the go-live date.",
+        "Exception handling path": "Absentees route to the Distribution Operations Manager for a catch-up session or cover.",
+        "Documented acceptance criteria": "Every supervisor briefed on the launch timeline, escalation matrix, and runbook location.",
+        "Evidence location": "LMS attendance record plus the briefing pack in the SharePoint launch site."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Build the required supervisor roster from the launch site list",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "List every supervisor and team leader in scope across servicing, claims, contact centre, and distribution.",
+            "Record each person's team, site, and shift pattern for scheduling.",
+            "Confirm the roster with each functional lead before scheduling sessions.",
+            "Done when the confirmed roster names every supervisor required to attend."
+          ],
+          "verify": [
+            "Cross-check the roster against the launch-week rota for uncovered teams.",
+            "Pass when every in-scope team has at least one named supervisor on the roster."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Prepare the supervisor briefing pack in SharePoint",
+          "actor": "Trainer",
+          "sop": [
+            "Build the briefing covering the launch-day timeline, cut-over steps, and known workarounds.",
+            "Include the escalation matrix with named contacts and response commitments.",
+            "Include the runbook location and the launch-period incident hotline number.",
+            "Done when the versioned briefing pack is published to the SharePoint launch site."
+          ],
+          "verify": [
+            "Review the pack against the runbook for timeline and escalation consistency.",
+            "Pass when the pack matches the approved runbook with no conflicting steps."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Schedule briefing sessions in the learning management system",
+          "actor": "Trainer",
+          "sop": [
+            "Create the supervisor briefing course in the learning management system.",
+            "Schedule sessions covering every shift pattern on the roster.",
+            "Enrol each rostered supervisor and issue the calendar invitations.",
+            "Done when every rostered supervisor is enrolled in a scheduled session."
+          ],
+          "verify": [
+            "Compare LMS enrolment count to the roster count.",
+            "Pass when the counts match and no rostered supervisor is unenrolled."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Deliver the briefing on launch-day timeline and cut-over steps",
+          "actor": "Trainer",
+          "sop": [
+            "Walk supervisors through the hour-by-hour launch-day timeline and cut-over steps.",
+            "Cover the known-issue workarounds and when each applies.",
+            "Take and record questions that cannot be answered in session for follow-up.",
+            "Done when the timeline and workaround content has been delivered to each session."
+          ],
+          "verify": [
+            "Review session notes for unanswered questions still open.",
+            "Pass when every logged question has an answer issued to attendees."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Walk supervisors through the escalation matrix and response commitments",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Present the escalation matrix naming each contact, route, and out-of-hours cover.",
+            "State the response and resolution commitments that apply during the launch period.",
+            "Confirm supervisors know which issues escalate immediately versus at the daily checkpoint.",
+            "Done when every session has covered the matrix and the response commitments."
+          ],
+          "verify": [
+            "Sample supervisors on the correct escalation route for a Priority 1 launch issue.",
+            "Pass when sampled supervisors name the correct route and contact."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm supervisors can locate the runbook and incident hotline",
+          "actor": "Trainer",
+          "sop": [
+            "Have each supervisor open the runbook from the SharePoint launch site in session.",
+            "Have each supervisor record the launch-period incident hotline in their own contacts.",
+            "Note any supervisor lacking access to the launch site and raise the access request.",
+            "Done when every attendee has opened the runbook and holds the hotline number."
+          ],
+          "verify": [
+            "Check outstanding launch site access requests for supervisors.",
+            "Pass when no supervisor is left without launch site access."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Record attendance in the LMS and book catch-up sessions for absentees",
+          "actor": "Trainer",
+          "sop": [
+            "Mark attendance for every session in the learning management system.",
+            "Identify rostered supervisors who did not attend and contact each one.",
+            "Book a catch-up session for each absentee before the go-live date.",
+            "Done when every absentee has a booked catch-up session recorded in the LMS."
+          ],
+          "verify": [
+            "Run the LMS completion report against the required supervisor roster.",
+            "Pass when no required supervisor shows incomplete attendance."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "e659e8d1-81a5-4cdc-b2f6-1bcb2e24c153",
+      "verifier": "Insurance Product Manager",
+      "generic": {
+        "Defined scope/population": "All impacted internal teams, appointed agents and brokers, and named third parties.",
+        "In-scope period": "From go-live confirmation through the first week of the launch period.",
+        "Required fields populated and valid": "Every notice states the effective date, the states in scope, and the issue-raising route.",
+        "Control totals or record counts reconcile": "Distribution list recipient count matches the impacted stakeholder register.",
+        "Evidence retained with timestamp/version": "Sent notices and portal posts retained with send timestamp and content version.",
+        "Exceptions logged with disposition": "Bounced or undelivered recipients logged and re-issued through an alternate route.",
+        "Test population": "All internal distribution lists, portal audiences, and named third-party contacts.",
+        "Pass/fail thresholds": "Published launch notice showing the effective date and state list with no unreached audience.",
+        "Exception handling path": "Undelivered notices route to the Distribution Operations Manager for alternate delivery.",
+        "Documented acceptance criteria": "Every impacted audience has received a dated notice naming states and support contacts.",
+        "Evidence location": "Sent-items evidence in SharePoint plus the published notice on the Broker and Agent Portal."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the final effective date and launch state list",
+          "actor": "Insurance Product Manager",
+          "sop": [
+            "Take the approved effective date and launch state list from the recorded launch decision.",
+            "Confirm no state has been removed from scope since the decision was minuted.",
+            "Record the confirmed date and state list as the basis for all communications.",
+            "Done when the confirmed effective date and state list are recorded for use in the notice."
+          ],
+          "verify": [
+            "Compare the confirmed state list against the filing approval evidence pack.",
+            "Pass when the state list matches the approved filings exactly."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Build the impacted stakeholder register in SharePoint",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "List the internal distribution lists for servicing, claims, contact centre, and distribution.",
+            "List the broker and agent portal audiences that must see the launch notice.",
+            "List the named third parties including print vendor, bureau, and MGA contacts.",
+            "Done when the register names every audience with its delivery route and contact."
+          ],
+          "verify": [
+            "Cross-check the register against the readiness assessment stakeholder list.",
+            "Pass when no readiness stakeholder is absent from the register."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Draft the go-live confirmation notice and product summary",
+          "actor": "Insurance Product Manager",
+          "sop": [
+            "Draft the notice stating the effective date, the states in scope, and what changes for each audience.",
+            "State the route for raising launch issues and the support contacts by function.",
+            "Attach the product summary describing coverages, eligibility, and key rating drivers.",
+            "Done when the drafted notice carries the date, state list, and issue-raising route."
+          ],
+          "verify": [
+            "Review the draft for the required date, state list, and support contact elements.",
+            "Pass when all three elements are present and consistent with the launch decision."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Issue the confirmation to internal distribution lists",
+          "actor": "Insurance Product Manager",
+          "sop": [
+            "Send the go-live confirmation to the servicing, claims, contact centre, and distribution lists.",
+            "Save the sent notice and its timestamp to the SharePoint launch record set.",
+            "Monitor for delivery failures and record any list that did not receive the notice.",
+            "Done when every internal distribution list has been sent the confirmation."
+          ],
+          "verify": [
+            "Reconcile sent notices to the internal audiences on the stakeholder register.",
+            "Pass when every internal audience has a recorded send with a timestamp."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Publish the launch notice to the Broker and Agent Portal",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Publish the launch notice and product summary to the broker and agent portal.",
+            "Confirm the published page shows the effective date and the states in scope.",
+            "Set the notice to appear on the portal landing page for the launch period.",
+            "Done when the notice is live and visible to the intended portal audiences."
+          ],
+          "verify": [
+            "Open the portal as a broker user and locate the published notice.",
+            "Pass when the notice is visible showing the effective date and state list."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Notify named third parties with the effective date and support contacts",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Send the tailored notice to the print vendor, bureau, and MGA contacts on the register.",
+            "State the effective date, the states in scope, and the operational support contacts.",
+            "Request an acknowledgement from each third party and record the reply.",
+            "Done when every named third party has been notified and asked to acknowledge."
+          ],
+          "verify": [
+            "Compare received acknowledgements to the third-party list on the register.",
+            "Pass when every named third party has acknowledged or has an escalation logged."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Log undelivered notices and re-issue through an alternate route",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Collect delivery failures, bounces, and unacknowledged third parties.",
+            "Record each with its audience, cause, and the alternate delivery route chosen.",
+            "Re-issue the notice through the alternate route and confirm receipt.",
+            "Done when no audience on the register remains without a confirmed receipt."
+          ],
+          "verify": [
+            "Filter the register for audiences without a confirmed receipt.",
+            "Pass when the filtered list is empty."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "8527c97d-0106-42b6-ae1f-2e915f894aa5",
+      "verifier": "Insurance Product Manager",
+      "generic": {
+        "Defined scope/population": "Every readiness criterion covering rating, filings, systems, training, support, and communications.",
+        "In-scope period": "From assessment kick-off to the assessment sign-off date ahead of go/no-go.",
+        "Required fields populated and valid": "Each criterion carries a status, an evidence link, a named owner, and a resolution date.",
+        "Control totals or record counts reconcile": "Assessed criterion count equals the approved product-approval gate checklist count.",
+        "Evidence retained with timestamp/version": "Scored assessment saved in SharePoint with its version and assessment date.",
+        "Exceptions logged with disposition": "Every amber or red criterion logged with an owner, action, and pre-launch resolution date.",
+        "Test population": "All readiness criteria on the approved product-approval gate checklist.",
+        "Pass/fail thresholds": "No unresolved red criterion at the assessment date and every amber item has a dated owner.",
+        "Exception handling path": "Red criteria escalate to the Insurance Product Manager for resolution or a launch date change.",
+        "Documented acceptance criteria": "Every criterion scored against linked evidence with residual risks recorded.",
+        "Evidence location": "Assessment record in the PPM tool with the scored sheet in the SharePoint launch record set."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract the readiness criteria from the approved product-approval gate checklist",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Pull the approved product-approval gate checklist from the PPM tool.",
+            "List each criterion under rating, filings, systems, training, support, and communications.",
+            "Record the criterion list in the assessment sheet on the SharePoint launch site.",
+            "Done when every gate checklist criterion appears once on the assessment sheet."
+          ],
+          "verify": [
+            "Reconcile the assessment sheet criterion count to the gate checklist count.",
+            "Pass when the counts reconcile with no criterion omitted."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Collect the evidence link for each readiness criterion",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Request the supporting evidence from the owning team for each criterion.",
+            "Record a resolvable link to the evidence against each criterion row.",
+            "Mark criteria where the evidence supplied does not address the criterion.",
+            "Done when every criterion has an evidence link or a recorded evidence gap."
+          ],
+          "verify": [
+            "Open a sample of evidence links and confirm each addresses its criterion.",
+            "Pass when sampled links resolve and match the criterion they support."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Score each criterion red, amber, or green with the owning team",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Score each criterion red, amber, or green against the evidence supplied.",
+            "Confirm each score with the owning team rather than assigning it unilaterally.",
+            "Record the reason for every amber or red score on the criterion row.",
+            "Done when every criterion carries a confirmed score with a reason where not green."
+          ],
+          "verify": [
+            "Filter for criteria scored amber or red without a recorded reason.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Assign an owner and resolution date to every amber and red item",
+          "actor": "Insurance Product Dev Lead",
+          "sop": [
+            "Assign a named owner to every amber and red criterion.",
+            "Agree a resolution date that falls before the planned launch date.",
+            "Raise a tracked action in Jira for each item and link it to the criterion row.",
+            "Done when every amber and red item has an owner, a date, and a Jira action."
+          ],
+          "verify": [
+            "Query Jira actions linked to the assessment for missing owners or dates.",
+            "Pass when every action carries an owner and a pre-launch due date."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile the scored criteria back to the gate checklist",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Compare the scored assessment sheet against the approved gate checklist line by line.",
+            "Confirm no gate criterion is unscored and no extra criterion has been introduced.",
+            "Record any deviation from the gate checklist with the reason it was made.",
+            "Done when the scored sheet and the gate checklist reconcile line by line."
+          ],
+          "verify": [
+            "List gate criteria absent from the assessment and assessment rows absent from the gate.",
+            "Pass when both lists are empty or every difference has a recorded reason."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Capture the assessment outcome and residual risks in the launch record",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Write the overall readiness position with the count of red, amber, and green criteria.",
+            "Record the residual risks that will remain open at launch and their mitigations.",
+            "Save the assessment to the SharePoint launch record set with its version and date.",
+            "Done when the launch record carries the dated outcome and the residual risk list."
+          ],
+          "verify": [
+            "Open the launch record and confirm the outcome, counts, and residual risks are present.",
+            "Pass when all three are recorded with the assessment date."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Confirm no unresolved red criterion remains at the assessment date",
+          "actor": "Insurance Product Manager",
+          "sop": [
+            "Re-check every criterion scored red for evidence that it has been resolved.",
+            "Escalate any criterion still red and decide whether it blocks the launch date.",
+            "Record the decision and, where the red stands, the impact on launch scope.",
+            "Done when no criterion is red without a recorded escalation decision."
+          ],
+          "verify": [
+            "Filter the assessment for red criteria without a resolution or escalation decision.",
+            "Pass when the filtered list is empty."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "19bcd88e-2d16-4bbc-9119-feedaecbd26b",
+      "verifier": "Distribution Operations Manager",
+      "generic": {
+        "Defined scope/population": "The hypercare rota, launch incident queue, routing rules, and help-desk knowledge content.",
+        "In-scope period": "The launch hypercare period from go-live day to the agreed step-down date.",
+        "Required fields populated and valid": "Rota rows carry site, shift, named floor-walker, and contact number for each launch day.",
+        "Control totals or record counts reconcile": "Rota coverage count equals the sites multiplied by the shifts across the hypercare period.",
+        "Evidence retained with timestamp/version": "Rota, routing configuration, and target agreement saved with version and approval date.",
+        "Exceptions logged with disposition": "Every uncovered shift or routing gap logged with an owner and a cover decision before go-live.",
+        "Test population": "All hypercare shifts, ITSM routing rules, and published help-desk articles for the product.",
+        "Pass/fail thresholds": "Dedicated launch queue live with an assignment group populated and no uncovered shift.",
+        "Exception handling path": "Uncovered shifts escalate to the Distribution Operations Manager for cover reassignment.",
+        "Documented acceptance criteria": "Named cover per site and shift with live routing and published knowledge content.",
+        "Evidence location": "ITSM queue configuration plus the approved rota in the SharePoint launch record set."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Build the hypercare rota with named floor-walkers per site and shift",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "List every site and shift that requires floor-walker cover during the hypercare period.",
+            "Assign a named floor-walker and a contact number to each site and shift.",
+            "Publish the rota to the SharePoint launch record set with its version and date.",
+            "Done when every site and shift in the hypercare period has a named floor-walker."
+          ],
+          "verify": [
+            "Count covered shifts against sites multiplied by shifts across the period.",
+            "Pass when the counts reconcile with no uncovered shift."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm floor-walker availability with the operations leads",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Send each operations lead the rota entries covering their team.",
+            "Ask each lead to confirm the named individuals are released for those shifts.",
+            "Replace any name the lead cannot release and reissue the affected rota entry.",
+            "Done when every rota entry is confirmed by the responsible operations lead."
+          ],
+          "verify": [
+            "Compare received confirmations against the rota entries per team.",
+            "Pass when every rota entry carries a lead confirmation."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Create the dedicated launch incident queue in the ITSM platform",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Create the launch incident queue in the ITSM platform for the hypercare period.",
+            "Populate the assignment group with the hypercare support members.",
+            "Set the queue visible to the contact centre, servicing, and claims intake teams.",
+            "Done when the queue is live with a populated assignment group."
+          ],
+          "verify": [
+            "Open the queue configuration and check the assignment group membership.",
+            "Pass when the queue is active and the assignment group is not empty."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Configure routing rules and priority definitions for launch incidents",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Configure routing so incidents tagged with the new product code reach the launch queue.",
+            "Set the priority definitions that apply to launch incidents during hypercare.",
+            "Raise a test incident against the product code and confirm it routes correctly.",
+            "Done when a test incident routes to the launch queue at the expected priority."
+          ],
+          "verify": [
+            "Check the test incident record for its assigned queue and priority.",
+            "Pass when the test incident landed in the launch queue at the correct priority."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Publish and check the help-desk knowledge article for the new product",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Publish the product knowledge article covering common questions and known workarounds.",
+            "Confirm the article is searchable by the product name and product code.",
+            "Link the article to the launch incident queue as the first-response reference.",
+            "Done when the published article returns on a search for the product name."
+          ],
+          "verify": [
+            "Search the knowledge base as a help-desk user for the product name and code.",
+            "Pass when the article returns on both searches in a published state."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Agree and record launch-period response and resolution targets",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Agree the response and resolution targets that apply to launch incidents by priority.",
+            "Record the targets against the launch queue configuration in the ITSM platform.",
+            "Publish the targets to the support teams alongside the rota on the launch site.",
+            "Done when the agreed targets are recorded against the queue and published."
+          ],
+          "verify": [
+            "Open the queue configuration and the published rota for the stated targets.",
+            "Pass when the targets match in both locations for every priority."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Escalate and close out uncovered shifts before go-live",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "List every shift still without confirmed floor-walker cover.",
+            "Escalate each gap to the site lead and agree cover or a documented reduced-cover decision.",
+            "Update the rota and reissue it to the support teams after each change.",
+            "Done when no shift remains uncovered without a recorded decision."
+          ],
+          "verify": [
+            "Filter the final rota for shifts without a named floor-walker.",
+            "Pass when the filtered list is empty or each gap carries a recorded decision."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fkyw81n2pkfgzm3ylo57u",
+      "verifier": "Distribution Operations Manager",
+      "generic": {
+        "Defined scope/population": "Operations, claims, contact centre, and IT support leads plus all floor-walk stations.",
+        "In-scope period": "From runbook approval to the read-acknowledgement deadline before launch day.",
+        "Required fields populated and valid": "Each acknowledgement carries the lead name, team, runbook version, and acknowledgement date.",
+        "Control totals or record counts reconcile": "Acknowledgement count equals the recipient list count for the distributed version.",
+        "Evidence retained with timestamp/version": "Published runbook carries its version and approval date with earlier versions marked superseded.",
+        "Exceptions logged with disposition": "Leads who have not acknowledged logged and chased with the escalation recorded.",
+        "Test population": "All named team leads on the distribution list plus every floor-walk station.",
+        "Pass/fail thresholds": "Current runbook version marked approved with a complete acknowledgement list attached.",
+        "Exception handling path": "Missing acknowledgements escalate to the Distribution Operations Manager before launch day.",
+        "Documented acceptance criteria": "Every lead has acknowledged the current approved runbook version before go-live.",
+        "Evidence location": "Approved runbook in Confluence with the acknowledgement list in the SharePoint launch record set."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Publish the approved runbook version to the Confluence launch space",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Publish the approved runbook to the Confluence launch space with its version number.",
+            "Record the approval date and the approvers on the runbook page header.",
+            "Restrict edit rights so the published version cannot change without a new approval.",
+            "Done when the approved runbook is published with its version and approval date visible."
+          ],
+          "verify": [
+            "Open the published page and check the version, approval date, and edit restrictions.",
+            "Pass when the page shows an approved version and is protected from edits."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Mark earlier runbook versions superseded",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Locate every earlier runbook version in Confluence and the SharePoint launch site.",
+            "Mark each one superseded and add a link to the current approved version.",
+            "Remove earlier versions from any location that support teams browse for the current copy.",
+            "Done when no earlier version is reachable without a superseded marking."
+          ],
+          "verify": [
+            "Search Confluence and SharePoint for runbook copies without a superseded marking.",
+            "Pass when only the current approved version returns as current."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Build the runbook distribution list of team leads",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "List the operations, claims, contact centre, and IT support leads who must receive the runbook.",
+            "Record each lead's name, team, and site against the distribution list.",
+            "Confirm the list with each function so no in-scope team is missing a named lead.",
+            "Done when the distribution list names a lead for every in-scope team."
+          ],
+          "verify": [
+            "Cross-check the distribution list against the hypercare rota teams.",
+            "Pass when every team on the rota has a named lead on the distribution list."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Send the runbook link to the distribution list",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Send the Confluence runbook link to every lead on the distribution list.",
+            "State the runbook version, the acknowledgement deadline, and how to acknowledge.",
+            "Save the sent message and its timestamp to the SharePoint launch record set.",
+            "Done when every lead on the distribution list has been sent the runbook link."
+          ],
+          "verify": [
+            "Reconcile sent recipients to the distribution list entries.",
+            "Pass when every listed lead has a recorded send with a timestamp."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Collect read-acknowledgements from each team lead",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Collect an acknowledgement from each lead naming the runbook version they read.",
+            "Record the lead name, team, version, and acknowledgement date on the tracking list.",
+            "Reject acknowledgements that reference a superseded runbook version.",
+            "Done when every lead has acknowledged the current approved runbook version."
+          ],
+          "verify": [
+            "Count acknowledgements for the current version against the distribution list count.",
+            "Pass when the counts match with no acknowledgement citing an older version."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Place printed runbook copies at each floor-walk station",
+          "actor": "Trainer",
+          "sop": [
+            "Print the current approved runbook version for each contact-centre floor-walk station.",
+            "Place a copy at each station and mark it with the version and print date.",
+            "Remove any earlier printed copy found at a station.",
+            "Done when every floor-walk station holds a current printed copy and no older copy."
+          ],
+          "verify": [
+            "Walk each station and check the version marked on the printed copy.",
+            "Pass when every station holds the current version and no superseded print remains."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Chase and escalate outstanding acknowledgements before launch day",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "List leads who have not acknowledged by the deadline with their team and site.",
+            "Chase each lead directly and escalate to their function head where no reply follows.",
+            "Record the chase, the escalation, and the outcome against each outstanding lead.",
+            "Done when no lead remains unacknowledged without a recorded escalation."
+          ],
+          "verify": [
+            "Filter the tracking list for leads without an acknowledgement or an escalation record.",
+            "Pass when the filtered list is empty."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "5266fe93-ecd6-42fa-b66d-c628c8d94614",
+      "verifier": "Insurance Product Manager",
+      "generic": {
+        "Defined scope/population": "The launch metric set covering quote volume, bind rate, referral rate, error rate, and handle time.",
+        "In-scope period": "From go-live day through the date reporting steps down to business as usual.",
+        "Required fields populated and valid": "Each metric carries a definition, a source table, a target threshold, and a refresh schedule.",
+        "Control totals or record counts reconcile": "Dashboard volumes for the new product code reconcile to the warehouse source counts.",
+        "Evidence retained with timestamp/version": "Dashboard definition and threshold set saved with version and effective date.",
+        "Exceptions logged with disposition": "Metrics returning no data or failing refresh logged with owner and remediation.",
+        "Test population": "All launch metrics for the new product code across the first reporting cycle.",
+        "Pass/fail thresholds": "Dashboard published for the new product code with a scheduled refresh enabled.",
+        "Exception handling path": "Refresh failures and zero-volume metrics escalate to the Insurance Product Manager.",
+        "Documented acceptance criteria": "Daily dashboard and review cadence live with a defined step-down date to business as usual.",
+        "Evidence location": "Published dashboard in the BI reporting platform with the metric definitions attached."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Define the launch metric set with target thresholds",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "Define quote volume, bind rate, referral rate, error rate, and handle time for the new product.",
+            "Set a target threshold and an alert level for each metric.",
+            "Record each metric definition with its calculation and source table.",
+            "Done when every launch metric has a definition, a source, and a target threshold."
+          ],
+          "verify": [
+            "Review each metric definition for a stated calculation and threshold.",
+            "Pass when no metric lacks a calculation or a threshold."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the warehouse carries the new product code",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "Query the enterprise data warehouse for the new product code in the policy and quote tables.",
+            "Confirm the code flows through from the policy admin feed without transformation loss.",
+            "Raise a data feed issue where the code is absent or mapped to a legacy value.",
+            "Done when the product code is confirmed present in every source table the metrics use."
+          ],
+          "verify": [
+            "Run a count by product code across the source tables the metrics reference.",
+            "Pass when the new product code returns in every referenced source table."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Build the launch dashboard in the BI reporting platform",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "Build the dashboard with one panel per launch metric filtered to the new product code.",
+            "Show the target threshold alongside the actual value on each panel.",
+            "Publish the dashboard to the launch audience with view permissions set.",
+            "Done when the dashboard is published showing every launch metric for the product code."
+          ],
+          "verify": [
+            "Open the published dashboard and check each metric panel renders a value.",
+            "Pass when every panel renders and the product code filter is applied."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Schedule the daily dashboard refresh",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "Set the dashboard to refresh daily ahead of the standing review time.",
+            "Configure a refresh failure alert to the metric owner.",
+            "Run the refresh once manually and confirm it completes within the review window.",
+            "Done when the daily refresh is scheduled and a manual run has completed successfully."
+          ],
+          "verify": [
+            "Check the refresh history for a successful run and the schedule status.",
+            "Pass when the schedule is enabled and the last run completed successfully."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Schedule the standing daily review for the first two weeks",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Book the standing daily launch review for the first two weeks after go-live.",
+            "Invite product, operations, distribution, and support representatives.",
+            "State the dashboard as the single input and the escalation route for breached thresholds.",
+            "Done when the daily review series is booked with the required attendees invited."
+          ],
+          "verify": [
+            "Open the calendar series and check the dates, attendees, and dashboard link.",
+            "Pass when the series covers the first two weeks with all functions invited."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Set the weekly scorecard distribution and the step-down date",
+          "actor": "Insurance Product Manager",
+          "sop": [
+            "Define the weekly scorecard content and its distribution list.",
+            "Schedule the scorecard to issue weekly from the BI reporting platform.",
+            "Record the date the daily cadence steps down to business-as-usual reporting.",
+            "Done when the weekly scorecard is scheduled and the step-down date is recorded."
+          ],
+          "verify": [
+            "Check the scorecard schedule and the recorded step-down date.",
+            "Pass when both are set and the step-down date follows the daily review period."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Confirm day-one non-zero volumes and log data exceptions",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "On day one check every metric panel returns a non-zero or explainable value.",
+            "Log any metric returning no data with its likely cause and an owner.",
+            "Fix or re-point the metric source and re-check on the next refresh.",
+            "Done when every launch metric returns a value or has a logged remediation owner."
+          ],
+          "verify": [
+            "List launch metrics returning no data after the day-one refresh.",
+            "Pass when the list is empty or each entry carries a remediation owner and date."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fkymz1myfkfgzv7c6ehyk",
+      "verifier": "Insurance Product Dev Lead",
+      "generic": {
+        "Defined scope/population": "The launch-day timeline from cut-over start to end-of-day confirmation across all involved teams.",
+        "In-scope period": "Go-live day from the cut-over window opening to the end-of-day confirmation.",
+        "Required fields populated and valid": "Each runbook step names an accountable team, a system, and an expected completion time.",
+        "Control totals or record counts reconcile": "Runbook step count matches the cut-over plan step count from the change record.",
+        "Evidence retained with timestamp/version": "Runbook stored in Confluence with a version, author, and review sign-off date.",
+        "Exceptions logged with disposition": "Every review comment logged and either incorporated or answered before issue.",
+        "Test population": "All launch-day steps, known-issue workarounds, and escalation contacts.",
+        "Pass/fail thresholds": "Runbook contains the timeline, RACI, escalation matrix, and back-out trigger.",
+        "Exception handling path": "Unresolved review comments block issue and escalate to the Insurance Product Dev Lead.",
+        "Documented acceptance criteria": "Operations, IT, and product have each signed off the runbook before issue.",
+        "Evidence location": "Runbook page in Confluence with the review sign-off record in SharePoint."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Draft the hour-by-hour launch-day timeline in Confluence",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Draft the timeline from cut-over start through to the end-of-day confirmation.",
+            "Place each step at a specific clock time rather than a relative offset.",
+            "Include the checkpoints where a go or hold decision is taken during the day.",
+            "Done when every launch-day activity appears on the timeline at a stated time."
+          ],
+          "verify": [
+            "Walk the timeline for gaps between consecutive steps and unassigned time blocks.",
+            "Pass when the timeline runs unbroken from cut-over start to end-of-day."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Assign an accountable team, system, and completion time to each step",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Name the accountable team for each timeline step.",
+            "Record the system the step is performed in and the expected completion time.",
+            "Confirm each assignment with the team named before publishing the draft.",
+            "Done when every step names a team, a system, and an expected completion time."
+          ],
+          "verify": [
+            "Filter the step list for rows missing a team, system, or completion time.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Document known-issue workarounds from the UAT defect log",
+          "actor": "Insurance Product Dev Lead",
+          "sop": [
+            "List every open known issue carried into launch from the UAT defect log.",
+            "Write the workaround, who applies it, and how the affected case is later corrected.",
+            "Note the fix date planned for each known issue after launch.",
+            "Done when every carried-forward known issue has a documented workaround."
+          ],
+          "verify": [
+            "Compare the documented workarounds to the open defects carried into launch.",
+            "Pass when every carried-forward defect has a workaround in the runbook."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Define the back-out trigger and its decision owner",
+          "actor": "Insurance Product Dev Lead",
+          "sop": [
+            "State the observable conditions that trigger a back-out decision.",
+            "Name the individual who owns the back-out decision and their deputy.",
+            "Reference the back-out steps recorded on the change record and the time they need.",
+            "Done when the runbook states the trigger, the decision owner, and the back-out steps."
+          ],
+          "verify": [
+            "Check the runbook back-out section against the change record rollback plan.",
+            "Pass when the trigger, owner, and steps are stated and consistent with the change record."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Include the escalation matrix with out-of-hours cover",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Add the escalation matrix listing names, roles, numbers, and escalation order.",
+            "Record out-of-hours cover for every function involved on launch day.",
+            "Confirm each named contact has agreed to be on the matrix for the launch period.",
+            "Done when every function on the timeline has a named contact and out-of-hours cover."
+          ],
+          "verify": [
+            "Cross-check the matrix functions against the teams named on the timeline.",
+            "Pass when every timeline team has an escalation contact and out-of-hours cover."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Reconcile the runbook steps to the change record cut-over plan",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Compare the runbook step list against the cut-over plan on the change record.",
+            "Add any cut-over step missing from the runbook and remove steps not in the plan.",
+            "Record any deliberate difference with the reason it exists.",
+            "Done when the runbook and cut-over plan reconcile step for step."
+          ],
+          "verify": [
+            "Count runbook steps against cut-over plan steps and list the differences.",
+            "Pass when the counts reconcile or each difference has a recorded reason."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Obtain review sign-off from operations, IT, and product",
+          "actor": "Insurance Product Dev Lead",
+          "sop": [
+            "Circulate the draft runbook to operations, IT, and product reviewers.",
+            "Log every review comment and record whether it was incorporated or answered.",
+            "Collect a dated sign-off from each of the three functions before issue.",
+            "Done when all three functions have signed off and no comment is unresolved."
+          ],
+          "verify": [
+            "Check the sign-off record for three dated approvals and an empty open-comment list.",
+            "Pass when all three sign-offs are present and no comment remains open."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl40k1ph2kfgzx7p8wl8l",
+      "verifier": "Chief Product Officer",
+      "generic": {
+        "Defined scope/population": "Every readiness criterion and pre-launch condition from the product approval gate.",
+        "In-scope period": "The go/no-go review window ahead of the planned launch effective date.",
+        "Required fields populated and valid": "Each criterion carries a status, evidence link, owning function, and confirmed position.",
+        "Control totals or record counts reconcile": "Positions recorded equal the number of accountable functions invited to the review.",
+        "Evidence retained with timestamp/version": "Minutes stored with attendance, decision, date, and the readiness assessment version reviewed.",
+        "Exceptions logged with disposition": "Every dissent and condition recorded with an owner and a due date before closing.",
+        "Test population": "All accountable functions and all product approval gate pre-launch conditions.",
+        "Pass/fail thresholds": "Minuted decision showing the named approver and a recorded position from each function.",
+        "Exception handling path": "Unmet conditions route to the Chief Product Officer for waiver or launch deferral.",
+        "Documented acceptance criteria": "Each criterion confirmed against evidence with an explicit position from every function.",
+        "Evidence location": "Go/no-go minutes in SharePoint linked to the launch record in the PPM tool."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Circulate the readiness assessment and gate conditions before the review",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Send the scored readiness assessment and evidence links to every accountable function.",
+            "Attach the product approval gate pre-launch condition list with current status.",
+            "Ask each function to arrive with a position rather than forming one in the room.",
+            "Done when every accountable function has received the pack ahead of the review."
+          ],
+          "verify": [
+            "Reconcile the circulation list to the accountable function list.",
+            "Pass when every accountable function received the pack before the review."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Review each readiness criterion against its evidence with the owning team",
+          "actor": "Insurance Product Manager",
+          "sop": [
+            "Take each readiness criterion in turn and open its linked evidence in the meeting.",
+            "Confirm the recorded status with the team that owns the criterion.",
+            "Change any status the evidence does not support and record the change.",
+            "Done when every criterion has been reviewed against evidence and confirmed."
+          ],
+          "verify": [
+            "Count criteria confirmed in the meeting against the assessment criterion count.",
+            "Pass when every criterion was reviewed and confirmed or amended."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm every product approval gate pre-launch condition is met or waived",
+          "actor": "Insurance Product Manager",
+          "sop": [
+            "Take each pre-launch condition from the product approval gate in turn.",
+            "Confirm it is met with evidence or record a formal waiver with its rationale.",
+            "Identify who holds authority to waive each condition before accepting a waiver.",
+            "Done when every gate condition is marked met or formally waived."
+          ],
+          "verify": [
+            "Filter the gate condition list for items neither met nor waived.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Take an explicit position from each accountable function",
+          "actor": "Chief Product Officer",
+          "sop": [
+            "Ask each accountable function for an explicit go, no-go, or go-with-conditions position.",
+            "Record the position against the named individual giving it.",
+            "Do not accept silence or abstention as a go position.",
+            "Done when every accountable function has given a recorded position."
+          ],
+          "verify": [
+            "Count recorded positions against the accountable function list.",
+            "Pass when every function has a recorded position with a named individual."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record dissent and conditions with owners and dates",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Record every dissenting position with the reason given and the function holding it.",
+            "Record every condition attached to a go-with-conditions position.",
+            "Assign an owner and a due date to each condition before the meeting closes.",
+            "Done when every dissent and condition has an owner and a due date recorded."
+          ],
+          "verify": [
+            "Filter the condition list for entries without an owner or a due date.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Close the review with a named approver taking the decision",
+          "actor": "Chief Product Officer",
+          "sop": [
+            "State the overall decision taking the recorded positions and conditions into account.",
+            "Name the approver who owns the decision and record their role.",
+            "State the effective date and the states in scope that the decision covers.",
+            "Done when the decision, approver, effective date, and state scope are stated in the meeting."
+          ],
+          "verify": [
+            "Check the meeting record for the decision, named approver, date, and state scope.",
+            "Pass when all four are recorded and consistent with the positions taken."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Publish the minutes and link them to the launch record in the PPM tool",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Write the minutes covering attendance, criterion review, positions, conditions, and decision.",
+            "Publish the minutes to the SharePoint launch record set with the date and version.",
+            "Link the minutes to the launch record in the PPM tool.",
+            "Done when the minutes are published and linked from the PPM launch record."
+          ],
+          "verify": [
+            "Follow the PPM link and check the minutes show attendance and each function's position.",
+            "Pass when the link resolves and the minutes carry the approver and all positions."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "ed9413e2-45fb-40c8-b931-c43acb87f870",
+      "verifier": "Distribution Operations Manager",
+      "generic": {
+        "Defined scope/population": "The servicing, claims, and contact centre teams in scope for the product launch.",
+        "In-scope period": "The readiness window from training completion to the launch-week roster publication.",
+        "Required fields populated and valid": "Each confirmation carries the lead name, team, training completion rate, and roster reference.",
+        "Control totals or record counts reconcile": "LMS completion counts reconcile to the in-scope headcount for each team.",
+        "Evidence retained with timestamp/version": "Written readiness confirmations retained with team, date, and the training report version.",
+        "Exceptions logged with disposition": "Teams below the training threshold logged with a remediation plan and completion date.",
+        "Test population": "All in-scope servicing, claims, and contact centre staff plus launch-week rosters.",
+        "Pass/fail thresholds": "No in-scope team below the agreed training completion threshold.",
+        "Exception handling path": "Shortfalls escalate to the Distribution Operations Manager for catch-up training or cover.",
+        "Documented acceptance criteria": "Written readiness confirmation from each function with rosters covering the volume uplift.",
+        "Evidence location": "Readiness confirmations in the SharePoint launch record set with LMS completion reports attached."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Establish the in-scope headcount per team",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Agree with each functional lead which roles are in scope for product training.",
+            "Record the in-scope headcount for servicing, claims, and contact centre.",
+            "Confirm the agreed training completion threshold for each team.",
+            "Done when each team has a recorded in-scope headcount and threshold."
+          ],
+          "verify": [
+            "Compare the recorded headcount to the team establishment for each function.",
+            "Pass when each in-scope headcount is agreed by the functional lead."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Run the training completion report from the learning management system",
+          "actor": "Trainer",
+          "sop": [
+            "Run the product training completion report by team from the learning management system.",
+            "Calculate the completion rate against the agreed in-scope headcount per team.",
+            "Export the report with its run date for the readiness evidence pack.",
+            "Done when each in-scope team has a dated completion rate from the LMS."
+          ],
+          "verify": [
+            "Reconcile LMS enrolment counts against the agreed in-scope headcount per team.",
+            "Pass when enrolments reconcile to headcount with no unenrolled in-scope staff."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Remediate teams below the training completion threshold",
+          "actor": "Trainer",
+          "sop": [
+            "List teams whose completion rate falls below the agreed threshold.",
+            "Book catch-up training for the named individuals still outstanding.",
+            "Re-run the completion report after the catch-up sessions.",
+            "Done when every team is at or above threshold or has a dated remediation plan."
+          ],
+          "verify": [
+            "Compare the re-run completion rates against the agreed thresholds.",
+            "Pass when no in-scope team remains below its threshold."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Verify launch-week rosters cover the forecast volume uplift",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Take the forecast volume uplift for the launch week from the launch plan.",
+            "Compare the published launch-week rosters against the forecast demand per team.",
+            "Confirm the hypercare rota sits on top of the base roster rather than replacing cover.",
+            "Done when every team roster covers the forecast uplift plus the hypercare rota."
+          ],
+          "verify": [
+            "Compute rostered capacity against forecast volume for each launch-week day.",
+            "Pass when rostered capacity meets or exceeds forecast demand each day."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Check claims screens, call scripts, and templates reference the new product",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Open the claims intake screens and confirm the new product appears with correct options.",
+            "Review the contact centre call scripts for accurate product terms and eligibility.",
+            "Check correspondence templates name the product and cite the correct form editions.",
+            "Done when screens, scripts, and templates have all been checked against the product spec."
+          ],
+          "verify": [
+            "Raise a test claim and a test enquiry against the new product code.",
+            "Pass when both route correctly and present the new product content."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Log readiness defects in the ITSM platform",
+          "actor": "Implementation Specialist",
+          "sop": [
+            "Raise an ITSM record for each screen, script, or template defect found.",
+            "Assign an owner and a due date ahead of the launch date to each record.",
+            "Re-check the affected item after each fix and close the record on evidence.",
+            "Done when every logged readiness defect is closed or formally accepted."
+          ],
+          "verify": [
+            "Query open readiness defects linked to the launch in the ITSM platform.",
+            "Pass when no defect remains open without an acceptance decision."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Obtain written readiness confirmation from each functional lead",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Send each servicing, claims, and contact-centre lead the training and roster evidence.",
+            "Request a written readiness confirmation naming the lead, team, and date.",
+            "File the confirmations in the SharePoint launch record set with the LMS reports.",
+            "Done when a written confirmation is held for each in-scope function."
+          ],
+          "verify": [
+            "Count filed confirmations against the in-scope function list.",
+            "Pass when every in-scope function has a dated written confirmation."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl4991pk4kfgzopy9dwo1",
+      "verifier": "Insurance Product Manager",
+      "generic": {
+        "Defined scope/population": "The launch decision statement plus every condition attached to it at the go/no-go review.",
+        "In-scope period": "From the go/no-go review date to the launch effective date the decision covers.",
+        "Required fields populated and valid": "Decision record carries the decision, effective date, states in scope, and approver name.",
+        "Control totals or record counts reconcile": "Tracked actions raised equal the number of conditions recorded at the review.",
+        "Evidence retained with timestamp/version": "Signed decision record filed with version, decision date, and attendance list.",
+        "Exceptions logged with disposition": "Conditions falling due after the launch date flagged and re-dated or escalated.",
+        "Test population": "All conditions and all functional positions recorded at the go/no-go review.",
+        "Pass/fail thresholds": "No launch condition without a named owner and a due date before launch.",
+        "Exception handling path": "Conditions without owners escalate to the Insurance Product Manager before filing the record.",
+        "Documented acceptance criteria": "Signed decision record filed with conditions tracked and positions attached.",
+        "Evidence location": "Signed record in the SharePoint governance repository linked from the PPM tool and GRC platform."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Write the decision statement with effective date and state scope",
+          "actor": "Insurance Product Manager",
+          "sop": [
+            "Write the decision as go, no-go, or go-with-conditions using the review outcome.",
+            "State the launch effective date and the states in scope for the decision.",
+            "Name the approver who took the decision and their role.",
+            "Done when the statement carries the decision, date, state scope, and approver."
+          ],
+          "verify": [
+            "Compare the statement against the go/no-go minutes for consistency.",
+            "Pass when the decision, date, state scope, and approver match the minutes."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "List each condition with owner, due date, and closing evidence",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "Extract every condition recorded at the go/no-go review.",
+            "Record the owner, the due date, and the evidence required to close each one.",
+            "Return any condition lacking an owner to the review chair for assignment.",
+            "Done when every condition carries an owner, a due date, and a closing evidence definition."
+          ],
+          "verify": [
+            "Filter the condition list for entries missing an owner, date, or evidence definition.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Attach the attendance list and each function's recorded position",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "Take the attendance list and the recorded position of each function from the minutes.",
+            "Attach both to the decision record without summarising or merging positions.",
+            "Include any dissent verbatim as recorded at the review.",
+            "Done when the record carries the attendance list and every function's position."
+          ],
+          "verify": [
+            "Count attached positions against the accountable function list.",
+            "Pass when every function's position is attached including any dissent."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Raise a tracked action for each open condition in the PPM tool",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "Raise a tracked action in the PPM tool for every open condition.",
+            "Set the owner and the due date to match the condition record.",
+            "Link each action back to the decision record so closure is traceable.",
+            "Done when every open condition has a linked tracked action in the PPM tool."
+          ],
+          "verify": [
+            "Reconcile the count of tracked actions to the count of open conditions.",
+            "Pass when the counts reconcile and every action links to the decision record."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm no condition falls due after the launch date",
+          "actor": "Insurance Product Manager",
+          "sop": [
+            "Compare each condition due date against the launch effective date.",
+            "Re-date any condition due after launch or escalate it as a launch blocker.",
+            "Record the reason for any date change against the condition.",
+            "Done when every condition is due on or before the launch date or is escalated."
+          ],
+          "verify": [
+            "List conditions with a due date later than the launch effective date.",
+            "Pass when the list is empty or each entry carries a recorded escalation."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "File the signed decision record in the governance repository",
+          "actor": "Insurance Product Manager",
+          "sop": [
+            "Obtain the approver signature on the completed decision record.",
+            "File the signed record in the SharePoint product governance repository.",
+            "Set the version and decision date properties on the filed document.",
+            "Done when the signed record is filed with its version and decision date."
+          ],
+          "verify": [
+            "Open the filed record and check the signature, version, and decision date.",
+            "Pass when all three are present on the filed document."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Link the decision record to the launch entry in the GRC platform",
+          "actor": "Product Development Analyst",
+          "sop": [
+            "Open the product launch entry in the GRC platform.",
+            "Add the signed decision record as the governance evidence reference.",
+            "Record the decision, approver, and effective date on the GRC entry fields.",
+            "Done when the GRC launch entry links to the signed decision record."
+          ],
+          "verify": [
+            "Follow the GRC link and confirm it resolves to the signed decision record.",
+            "Pass when the link resolves and the GRC fields match the decision record."
+          ]
+        }
+      ]
+    }
+  ]
+}

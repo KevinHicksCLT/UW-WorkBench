@@ -4580,7 +4580,7 @@
         {
           "n": 3,
           "title": "Confirm whether a work-incentive provision applies",
-          "actor": "Claims Examiner",
+          "actor": "Claims Analyst",
           "sop": [
             "Check the certificate for a work-incentive period protecting the benefit",
             "Record the provision status and its expiry date on the claim",
@@ -5725,6 +5725,1340 @@
           "verify": [
             "Check the next review diary exists on the active case",
             "Pass when every active rehabilitation case carries a next review diary"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fi33p0an1kfgzge8q8g5n",
+      "verifier": "Claims Examiner",
+      "generic": {
+        "Defined scope/population": "One received disability appeal requiring an ERISA acknowledgement to the claimant or authorised representative",
+        "In-scope period": "From the adverse determination date through the appeal received date and the 45-day appeal decision window",
+        "Required fields populated and valid": "Appeal received date, adverse determination date, decision due date and acknowledgement issue date",
+        "Control totals or record counts reconcile": "Days between the adverse determination and the appeal receipt reconcile to the 180-day window test",
+        "Evidence retained with timestamp/version": "Acknowledgement letter filed to the claim correspondence folder with template version and issue date",
+        "Exceptions logged with disposition": "Late appeals and undeliverable acknowledgements logged with the decision taken and its author",
+        "Test population": "All appeals acknowledged in the review period across STD and LTD adverse determinations",
+        "Pass/fail thresholds": "Fail if the acknowledgement omits the decision due date or the 45-day clock was not started on receipt",
+        "Exception handling path": "Missing or late acknowledgements are reissued by the Claims Examiner and the breach logged for compliance reporting",
+        "Documented acceptance criteria": "Acknowledgement issued with appeal received date and decision due date and the 45-day clock started on receipt",
+        "Evidence location": "Claim correspondence folder and appeal record in the claims management platform"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Read the appeal received date and adverse determination date from the appeal record",
+          "actor": "Claims Processor",
+          "sop": [
+            "Open the appeal record in the claims management platform and read the stamped appeal received date",
+            "Read the date of the adverse determination being appealed from the linked claim decision",
+            "Confirm both dates are entered as stamped rather than as data entry dates",
+            "Done when both dates are confirmed on the appeal record"
+          ],
+          "verify": [
+            "Compare each date to the stamped inbound appeal document and the issued determination letter",
+            "Pass when both dates match their source documents"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Test the appeal against the 180-day window in the claims management platform",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Count the elapsed days from the adverse determination to the appeal received date",
+            "Confirm the appeal falls within the 180-day appeal window stated in the determination letter",
+            "Where the appeal is late, record the timeliness exception and the documented decision to accept or decline",
+            "Done when the timeliness test result is recorded on the appeal record"
+          ],
+          "verify": [
+            "Recount the elapsed days independently from the two recorded dates",
+            "Pass when the timeliness result matches the recount and any late appeal carries a documented decision"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Generate the acknowledgement letter stating the received date and the decision due date",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Select the appeal acknowledgement template current in the letter library",
+            "State the appeal received date and the date by which the appeal decision is due",
+            "Name the appeal handler and the contact route for questions",
+            "Done when the acknowledgement draft states both dates and the handler contact"
+          ],
+          "verify": [
+            "Read the draft and locate the received date and the decision due date",
+            "Pass when both dates appear and match the appeal record"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the right to submit additional evidence and comments in the acknowledgement",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Insert the paragraph confirming the claimant may submit further evidence, records and written comments",
+            "State the date by which further evidence is best received so it can be considered in the review",
+            "Explain that evidence received after the decision cannot be added to the administrative record",
+            "Done when the additional evidence rights paragraph is present in the draft"
+          ],
+          "verify": [
+            "Read the draft for the evidence submission rights wording",
+            "Pass when the right to submit evidence and comments is stated with a practical date"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Offer the free copy of documents relevant to the claim and record any request",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Insert the offer of a free copy of all documents, records and information relevant to the claim",
+            "Explain how the claimant requests the file and the expected turnaround",
+            "Where a request is already on file, log it as an open task with an owner and a due date",
+            "Done when the free copy offer is present and any existing request is logged as a task"
+          ],
+          "verify": [
+            "Check the draft for the free copy offer and the claim for any open file request task",
+            "Pass when the offer appears and every received request has an open task with an owner"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Start the 45-day appeal decision clock and set the extension checkpoint diary",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Start the appeal decision clock from the appeal received date in the claims management platform",
+            "Confirm the system decision due date equals the received date plus 45 days",
+            "Set the extension checkpoint diary ahead of the due date so any extension can issue in time",
+            "Done when the clock is started and the extension checkpoint diary is set"
+          ],
+          "verify": [
+            "Recalculate 45 days from the appeal received date and compare to the system due date",
+            "Pass when the clock runs from the appeal received date and the due date reconciles"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Issue the acknowledgement and file it to the claim correspondence folder",
+          "actor": "Claims Processor",
+          "sop": [
+            "Release the acknowledgement to the claimant or the authorised representative of record",
+            "Record the issue date, recipient and channel on the appeal correspondence log",
+            "File the issued copy to the claim file and document repository",
+            "Done when the acknowledgement is issued, logged and filed"
+          ],
+          "verify": [
+            "Open the correspondence log and read the acknowledgement entry",
+            "Pass when the acknowledgement is logged as issued with its date and recipient"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fils30jc0kfgzyon87wka",
+      "verifier": "Claims Examiner",
+      "generic": {
+        "Defined scope/population": "The complete administrative record for one appealed disability claim assembled for the appeal review",
+        "In-scope period": "From the original claim receipt through the appeal submission date being reviewed",
+        "Required fields populated and valid": "Record index entries with document type, author, date and source for every item in the file",
+        "Control totals or record counts reconcile": "Indexed document count reconciles to the claim document folder count with no unindexed items",
+        "Evidence retained with timestamp/version": "Assembled record stored in OpenText with the assembly date, assembler and certificate version included",
+        "Exceptions logged with disposition": "Documents cited in a determination but missing from the file logged with the retrieval action taken",
+        "Test population": "All appeal files assembled in the review period across appeal types",
+        "Pass/fail thresholds": "Fail if any document cited in a determination is absent from the assembled record",
+        "Exception handling path": "Gaps in the record are escalated to the Claims Examiner and closed before the review is released",
+        "Documented acceptance criteria": "Complete indexed record covering claim form through final decision with no cited document missing",
+        "Evidence location": "Appeal record folder in OpenText Document Mgmt linked to the appeal in the claims management platform"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract the full claim document set from the claims management platform",
+          "actor": "Claims Processor",
+          "sop": [
+            "Open the claim and export every indexed document from the claim document folder",
+            "Include the claim form, certificate, employer statements and all correspondence issued and received",
+            "Load the export into the appeal record folder in the document repository",
+            "Done when the full claim document set sits in the appeal record folder"
+          ],
+          "verify": [
+            "Count the exported documents against the claim document folder count",
+            "Pass when the exported count reconciles to the claim folder count"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Add all medical evidence and clinical reviews to the appeal record",
+          "actor": "Claims Processor",
+          "sop": [
+            "Add every attending physician statement, record set, clinical review, peer review, IME and FCE report",
+            "Confirm each item carries the provider or reviewer name and the date of the report",
+            "Order the medical evidence chronologically within the record folder",
+            "Done when all medical evidence and reviews are in the appeal record in date order"
+          ],
+          "verify": [
+            "Compare the medical items in the record to the medical folder on the claim",
+            "Pass when every medical item on the claim appears in the assembled record"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Include every internal guideline or clinical criterion relied on in the original decision",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Read the original determination rationale and list each internal guideline, protocol or criterion cited",
+            "Retrieve the version of each guideline in force at the original decision date",
+            "Add the guideline copies to the appeal record and note the version and effective date",
+            "Done when every guideline relied on is in the record at its decision-date version"
+          ],
+          "verify": [
+            "Match each guideline in the record to a citation in the original determination rationale",
+            "Pass when every cited guideline is present at the correct version"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Add the claimant appeal submission and any new evidence supplied with it",
+          "actor": "Claims Processor",
+          "sop": [
+            "Add the appeal letter, the representative authorisation and any new evidence submitted",
+            "Index each new item with its receipt date so post-decision additions can be identified later",
+            "Flag new clinical evidence for the independent reviewer to consider",
+            "Done when the appeal submission and all new evidence are indexed with receipt dates"
+          ],
+          "verify": [
+            "Compare the indexed new evidence to the inbound appeal correspondence log",
+            "Pass when every item received with the appeal appears in the record with its receipt date"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm the certificate version in the record is the one in force at the date of disability",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Read the date of disability from the claim header and the certificate version in the record",
+            "Pull the certificate in force on that date from the policy records where the versions differ",
+            "Replace any incorrect certificate copy and note the correction on the record index",
+            "Done when the record holds the certificate in force at the date of disability"
+          ],
+          "verify": [
+            "Compare the certificate effective dates against the date of disability",
+            "Pass when the filed certificate version brackets the date of disability"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Produce the record index in the document repository",
+          "actor": "Claims Processor",
+          "sop": [
+            "Generate an index listing every document with type, author, date and source",
+            "Number the record so items can be cited precisely in the appeal determination",
+            "Save the index as the first item in the appeal record folder",
+            "Done when the numbered record index is saved with the assembled file"
+          ],
+          "verify": [
+            "Count index entries against the documents held in the appeal record folder",
+            "Pass when the index entry count reconciles to the document count"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Test the record for documents cited in a determination but missing from the file",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Read each determination and clinical review and list every document each one cites",
+            "Match each cited document to an entry on the record index",
+            "Retrieve any missing item and log the gap with the retrieval action and date",
+            "Done when every cited document is present or logged with a retrieval action"
+          ],
+          "verify": [
+            "Re-run the citation match after the retrievals are complete",
+            "Pass when no document cited in a determination is missing from the assembled record"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2filzd0jftkfgzg4s9bi2r",
+      "verifier": "Claims Quality Assurance / Training Manager",
+      "generic": {
+        "Defined scope/population": "The reviewer assignment for one appealed disability claim requiring independence from the original decision",
+        "In-scope period": "From the appeal registration date to the date the independent review commences",
+        "Required fields populated and valid": "Assigned reviewer, specialty where required, independence attestation and assignment date on the appeal record",
+        "Control totals or record counts reconcile": "Reviewers named in the original determination record reconcile to the exclusion list used for assignment",
+        "Evidence retained with timestamp/version": "Independence attestation filed with the reviewer name, assignment date and attesting manager",
+        "Exceptions logged with disposition": "Conflicts found, reassignments and unavailable specialties logged with the resolution and date",
+        "Test population": "All appeal reviewer assignments made in the review period including clinical and non-clinical appeals",
+        "Pass/fail thresholds": "Fail if the assigned reviewer appears anywhere in the original determination record",
+        "Exception handling path": "A conflicted assignment is withdrawn and reassigned by the Claims Quality Assurance / Training Manager before review",
+        "Documented acceptance criteria": "Independence attestation recorded before the review commenced with no reviewer overlap with the original decision",
+        "Evidence location": "Appeal record in the claims management platform with the attestation in the claim file repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "List everyone involved in the original determination from the claim record",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Read the original determination, its rationale and the clinical reviews for named participants",
+            "List each decision maker, consulted clinician and approving manager with their role",
+            "Save the exclusion list to the appeal record so assignment can be tested against it",
+            "Done when the exclusion list of original participants is saved on the appeal record"
+          ],
+          "verify": [
+            "Re-read the original determination record and compare the names found to the exclusion list",
+            "Pass when every name in the original determination appears on the exclusion list"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Select a reviewer with no prior involvement from the workflow assignment pool",
+          "actor": "Claims Quality Assurance / Training Manager",
+          "sop": [
+            "Filter the appeal reviewer pool in the workflow tool to reviewers outside the exclusion list",
+            "Confirm the candidate is not a subordinate of anyone who made the original determination",
+            "Record the selected reviewer and the assignment date on the appeal record",
+            "Done when a reviewer outside the exclusion list is assigned and recorded"
+          ],
+          "verify": [
+            "Match the assigned reviewer against the exclusion list and the reporting line of the original decision maker",
+            "Pass when the reviewer is on neither the exclusion list nor that reporting line"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Assign a clinician in the appropriate specialty where the appeal turns on medical judgement",
+          "actor": "Claims Quality Assurance / Training Manager",
+          "sop": [
+            "Read the appeal issue to determine whether medical judgement is in dispute",
+            "Where it is, select a clinician board certified in the specialty relevant to the disabling condition",
+            "Record the specialty and credentials on the appeal record before the review starts",
+            "Done when a specialty-matched clinician is assigned or the appeal is recorded as non-clinical"
+          ],
+          "verify": [
+            "Compare the reviewing clinician specialty to the disabling condition on the claim",
+            "Pass when the specialty matches the condition or the appeal is documented as non-clinical"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the reviewing clinician was not consulted on the original decision",
+          "actor": "Claims Quality Assurance / Training Manager",
+          "sop": [
+            "Search the claim clinical reviews and consultation notes for the assigned clinician name",
+            "Check any vendor peer review reports for the same reviewer identity",
+            "Reassign where any prior consultation is found and log the reassignment reason",
+            "Done when the clinician is confirmed absent from all prior consultations"
+          ],
+          "verify": [
+            "Re-run the name search across the claim clinical record after assignment",
+            "Pass when the assigned clinician appears nowhere in the original determination record"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the independence attestation on the appeal record before review starts",
+          "actor": "Claims Quality Assurance / Training Manager",
+          "sop": [
+            "Complete the attestation confirming no prior involvement, no subordination and no outcome-linked pay",
+            "Record the attesting manager name and the attestation date on the appeal record",
+            "File the signed attestation to the claim file repository",
+            "Done when the signed attestation is recorded and filed"
+          ],
+          "verify": [
+            "Compare the attestation date to the recorded review start date",
+            "Pass when the attestation predates the start of the appeal review"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm reviewer compensation is not tied to the determination outcome",
+          "actor": "Claims Quality Assurance / Training Manager",
+          "sop": [
+            "Read the reviewer engagement or vendor agreement terms for outcome-linked compensation",
+            "Confirm fees are fixed or time based and not contingent on upholding a denial",
+            "Record the compensation confirmation on the appeal record with the agreement reference",
+            "Done when the compensation basis is confirmed and recorded"
+          ],
+          "verify": [
+            "Read the cited agreement clause covering reviewer compensation",
+            "Pass when the agreement shows compensation independent of the determination outcome"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Release the appeal to the assigned reviewer through the workflow tool",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Route the appeal and the assembled administrative record to the assigned reviewer queue",
+            "Set the review due date so the 45-day appeal decision window is protected",
+            "Confirm the reviewer has access to the complete record before work starts",
+            "Done when the appeal is released to the reviewer with a due date set"
+          ],
+          "verify": [
+            "Open the reviewer queue and confirm the appeal and record are present",
+            "Pass when the appeal sits with the attested independent reviewer and a due date"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjs7513iakfgz3atml501",
+      "verifier": "Claims Quality Assurance / Training Manager",
+      "generic": {
+        "Defined scope/population": "Appeal outcomes for the reporting period analysed for systemic denial patterns across handlers and offices",
+        "In-scope period": "The reporting period covering appeals closed between the period start and end dates",
+        "Required fields populated and valid": "Original denial reason, outcome code, handler, office, diagnosis category and overturn cause on each appeal",
+        "Control totals or record counts reconcile": "Appeals analysed reconcile to closed appeal records in the claims management platform for the period",
+        "Evidence retained with timestamp/version": "Pattern analysis workbook retained with extract date, period and analyst name",
+        "Exceptions logged with disposition": "Appeals with missing reason or cause codes logged and referred for data correction before conclusions are drawn",
+        "Test population": "All appeals closed in the reporting period with an overturned or partially overturned outcome",
+        "Pass/fail thresholds": "Fail if any identified pattern is reported without a named owner and a corrective action",
+        "Exception handling path": "Data gaps route to the Claims Analyst for correction and the analysis is rerun before circulation",
+        "Documented acceptance criteria": "Overturn rates reported by denial reason and handler with a named owner and action for each pattern",
+        "Evidence location": "Analysis workbook filed to the claim file repository with the source extract from the claims platform"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract closed appeal outcomes for the period from the claims management platform",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Run the closed appeals extract for the reporting period with outcome, reason and handler fields",
+            "Record the extract date and the row count on the analysis workbook",
+            "Reconcile the extract row count to the closed appeal count shown in the platform",
+            "Done when the extract is loaded and reconciled to the platform count"
+          ],
+          "verify": [
+            "Compare the workbook row count to the platform closed appeal count for the period",
+            "Pass when the two counts reconcile for the reporting period"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Group overturned appeals by the original denial reason in the workbook",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Group the overturned and partially overturned appeals by the original denial reason code",
+            "Calculate the overturn rate for each denial reason against all appeals with that reason",
+            "Rank the reasons by overturn volume and by overturn rate",
+            "Done when the overturn rate by denial reason table is complete"
+          ],
+          "verify": [
+            "Recompute two denial reason rates from the underlying rows",
+            "Pass when the recomputed rates match the table"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Break the overturn rate down by handler, office and diagnosis category",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Produce overturn rates split by handler, by office and by diagnosis category",
+            "Suppress cells with volumes too small to support a conclusion and note the threshold used",
+            "Highlight handlers and offices sitting materially above the portfolio overturn rate",
+            "Done when the three breakdowns are produced with small volumes suppressed"
+          ],
+          "verify": [
+            "Check the suppression threshold is stated and applied consistently across the breakdowns",
+            "Pass when overturn rates are reported by denial reason and handler for the period"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Identify denials overturned on evidence already in the original file",
+          "actor": "Claims Quality Assurance / Training Manager",
+          "sop": [
+            "Read the appeal determinations for the highest volume overturn reasons",
+            "Mark each where the deciding evidence was already indexed at the original decision date",
+            "Record the count and examples of avoidable overturns in the workbook",
+            "Done when avoidable overturns are identified and counted"
+          ],
+          "verify": [
+            "Spot check two marked appeals against the original record index dates",
+            "Pass when the marked evidence predates the original determination in each check"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Separate overturns caused by new evidence from those caused by handling error",
+          "actor": "Claims Quality Assurance / Training Manager",
+          "sop": [
+            "Assign each overturn a cause of new evidence, handling error or changed interpretation",
+            "Use the appeal determination text as the source for the cause assignment",
+            "Total the overturns by cause and compare the split against the prior period",
+            "Done when every overturn carries a cause and the split is totalled"
+          ],
+          "verify": [
+            "Confirm no overturn row is left without a cause assignment",
+            "Pass when every overturn has a cause and the totals reconcile to the overturn count"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Draft the pattern findings with a recommended training or guideline change",
+          "actor": "Claims Quality Assurance / Training Manager",
+          "sop": [
+            "State each pattern with its volume, cost impact and the population it affects",
+            "Recommend a training action, guideline change or checklist change for each pattern",
+            "Assign a named owner and a target date to each recommendation",
+            "Done when every pattern has a recommendation, an owner and a target date"
+          ],
+          "verify": [
+            "Read the findings and confirm each has an owner and an action",
+            "Pass when no pattern is reported without a named owner and a corrective action"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Circulate the pattern report to claims leadership and file it",
+          "actor": "Claims Quality Assurance / Training Manager",
+          "sop": [
+            "Send the report to claims leadership with the exceptions and recommendations flagged",
+            "File the report and the workbook to the claim file repository with the period label",
+            "Open tracking items for each recommendation so closure can be evidenced",
+            "Done when the report is circulated, filed and tracked"
+          ],
+          "verify": [
+            "Check the filed report and the open tracking items against the recommendation list",
+            "Pass when every recommendation has an open tracking item and the report is filed"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "acf46f9b-7166-4e74-b086-7ae5c998d607",
+      "verifier": "Claims Quality Assurance / Training Manager",
+      "generic": {
+        "Defined scope/population": "The final adverse benefit determination letter for one appealed disability claim",
+        "In-scope period": "From the appeal received date through the 45-day appeal decision window and any documented extension",
+        "Required fields populated and valid": "Specific reason, certificate provisions, guidelines relied on, exhaustion statement and ERISA 502(a) wording",
+        "Control totals or record counts reconcile": "Reasons in the letter reconcile one to one with the reasons recorded in the appeal determination rationale",
+        "Evidence retained with timestamp/version": "Issued letter filed with template version, issue date and the appeal determination it reflects",
+        "Exceptions logged with disposition": "Missing disclosures, late issue and returned mail logged with the reissue action and date",
+        "Test population": "All final adverse determination letters issued in the review period",
+        "Pass/fail thresholds": "Fail if the letter omits the ERISA 502(a) right-to-sue statement or the exhaustion language",
+        "Exception handling path": "Deficient letters are withdrawn and reissued by the Claims Examiner with the breach logged for reporting",
+        "Documented acceptance criteria": "Letter contains right-to-sue and exhaustion language and issued within the appeal window or a documented extension",
+        "Evidence location": "Claim correspondence folder and appeal record in the claims management platform"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Draft the specific reason and cite the certificate provisions relied on",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Read the recorded appeal determination rationale and restate the specific reason in plain language",
+            "Cite each certificate provision relied on by number and heading",
+            "Confirm no reason appears in the letter that is absent from the file rationale",
+            "Done when the draft states the specific reason and cites each provision relied on"
+          ],
+          "verify": [
+            "Compare the letter reasons line by line to the appeal determination rationale",
+            "Pass when every letter reason maps to a reason recorded in the file rationale"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Reference every internal rule or clinical protocol relied on and offer a free copy",
+          "actor": "Claims Examiner",
+          "sop": [
+            "List each internal guideline, protocol or clinical criterion applied in the appeal decision",
+            "Reference each by name and version in the letter",
+            "State that a copy of each will be provided free of charge on request",
+            "Done when every applied rule is referenced with the free copy offer stated"
+          ],
+          "verify": [
+            "Match the rules referenced in the letter to those cited in the appeal rationale",
+            "Pass when every rule relied on is referenced and the free copy offer appears"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Address the specific arguments and evidence raised in the appeal",
+          "actor": "Claims Examiner",
+          "sop": [
+            "List each argument and each item of new evidence the claimant submitted",
+            "State how each was considered and why it did or did not change the outcome",
+            "Reference the independent reviewer opinions by reviewer and date where relied on",
+            "Done when every claimant argument and evidence item is addressed in the draft"
+          ],
+          "verify": [
+            "Compare the arguments addressed to the appeal submission and new evidence index",
+            "Pass when no submitted argument or evidence item is left unaddressed"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Insert the exhaustion statement and the ERISA 502(a) right-to-sue disclosure",
+          "actor": "Claims Examiner",
+          "sop": [
+            "State that the claimant has exhausted the plan appeal process",
+            "State the right to bring a civil action under ERISA 502(a)",
+            "Include any applicable contractual limitation period and where to find it in the certificate",
+            "Done when the exhaustion and right-to-sue paragraphs are present in the draft"
+          ],
+          "verify": [
+            "Read the final draft and locate the exhaustion and 502(a) statements",
+            "Pass when the letter contains the ERISA 502(a) right-to-sue statement and exhaustion language"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Obtain legal review of the final adverse determination wording",
+          "actor": "Legal Counsel",
+          "sop": [
+            "Review the draft for disclosure completeness, limitation period accuracy and litigation exposure",
+            "Mark up any wording that overstates or understates the basis for the decision",
+            "Record the legal review outcome and the reviewer on the appeal record",
+            "Done when the legal review is complete and recorded on the appeal record"
+          ],
+          "verify": [
+            "Confirm the issued draft carries the changes marked in legal review",
+            "Pass when the letter released matches the legally reviewed version"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the letter issues inside the appeal decision window or a documented extension",
+          "actor": "Claims Quality Assurance / Training Manager",
+          "sop": [
+            "Compare the planned issue date to the 45-day appeal decision due date on the appeal record",
+            "Confirm any extension notice issued before the original due date and is on file",
+            "Log a breach with cause where neither condition is met",
+            "Done when timeliness is confirmed or a breach is logged with its cause"
+          ],
+          "verify": [
+            "Recalculate the decision window from the appeal received date and any documented extension",
+            "Pass when the letter issued within the window or a timely extension notice is on file"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Issue the letter and file it to the claim correspondence folder",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Release the letter to the claimant and to the authorised representative where one is on file",
+            "Record the issue date, recipients and channel on the appeal correspondence log",
+            "File the issued copy to the claim file repository as part of the administrative record",
+            "Done when the final adverse determination letter is issued, logged and filed"
+          ],
+          "verify": [
+            "Open the correspondence log and read the final determination letter entry",
+            "Pass when the letter is recorded as issued with its date and recipients"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "2c2476d7-6b75-4ec0-bb61-45a3444e9458",
+      "verifier": "Medical Claims Reviewer",
+      "generic": {
+        "Defined scope/population": "Independent clinical and, where capacity is disputed, vocational opinions supporting one appeal review",
+        "In-scope period": "The medical and vocational evidence period covered by the administrative record up to the appeal decision",
+        "Required fields populated and valid": "Reviewer name, credentials, specialty, question set, opinion date and receipt date on each opinion",
+        "Control totals or record counts reconcile": "Opinions received reconcile to the opinions commissioned on the appeal record",
+        "Evidence retained with timestamp/version": "Signed opinions filed in the document repository with reviewer credentials and receipt dates",
+        "Exceptions logged with disposition": "Late, incomplete or conflicted opinions logged with the recommission action and its date",
+        "Test population": "All appeals in the review period where an independent clinical or vocational opinion was obtained",
+        "Pass/fail thresholds": "Fail if a decision relies on an opinion where the claimant had no opportunity to respond",
+        "Exception handling path": "Conflicted or unsigned opinions are rejected by the Medical Claims Reviewer and the review recommissioned",
+        "Documented acceptance criteria": "Signed opinions on file with credentials and the claimant given an opportunity to respond before the decision",
+        "Evidence location": "Appeal clinical folder in OpenText Document Mgmt linked to the appeal in the claims management platform"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the clinical reviewer independence before commissioning the opinion",
+          "actor": "Medical Claims Reviewer",
+          "sop": [
+            "Check the candidate reviewer against the original determination participants recorded on the claim",
+            "Confirm the reviewer is not a subordinate of the original decision maker",
+            "Record the independence check and the reviewer credentials on the appeal record",
+            "Done when the reviewer independence check is recorded before commissioning"
+          ],
+          "verify": [
+            "Search the original determination record for the reviewer name",
+            "Pass when the reviewer appears nowhere in the original determination record"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Engage an independent vocational expert where vocational capacity is disputed",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Read the appeal issues to determine whether vocational capacity or earnings capacity is in dispute",
+            "Where it is, commission a vocational expert with the restrictions, work history and earnings threshold",
+            "Record the vocational engagement and its scope on the appeal record",
+            "Done when a vocational expert is engaged or the appeal is recorded as clinical only"
+          ],
+          "verify": [
+            "Compare the engagement decision to the disputed issues listed on the appeal",
+            "Pass when a vocational opinion is commissioned wherever vocational capacity is disputed"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Send the complete administrative record and question set to each reviewer",
+          "actor": "Medical Claims Reviewer",
+          "sop": [
+            "Send the assembled record including the claimant new appeal evidence to each reviewer",
+            "Include a defined question set covering restrictions, limitations, prognosis and duration",
+            "Record the despatch date and the report due date on the appeal record",
+            "Done when each reviewer holds the complete record and the question set with a due date"
+          ],
+          "verify": [
+            "Compare the record sent to the record index for the appeal",
+            "Pass when the reviewer received the complete indexed record including new appeal evidence"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Review each returned opinion for completeness and signature",
+          "actor": "Medical Claims Reviewer",
+          "sop": [
+            "Check each opinion answers every question in the question set",
+            "Confirm the opinion is signed and states the reviewer credentials and specialty",
+            "Return incomplete opinions to the reviewer with the gaps identified and log the return",
+            "Done when each accepted opinion is complete, signed and credentialed"
+          ],
+          "verify": [
+            "Read each accepted opinion against the question set issued",
+            "Pass when every question is answered and every opinion is signed and credentialed"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Give the claimant the opportunity to respond to any new reviewer report",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Send the claimant a copy of any new reviewer report generated during the appeal",
+            "State a reasonable date by which a response will be considered before the decision",
+            "Log the send date and any response received on the appeal record",
+            "Done when each new reviewer report has been sent and the response window logged"
+          ],
+          "verify": [
+            "Compare the report send dates and response window to the appeal decision date",
+            "Pass when the claimant had an opportunity to respond before the final determination"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "File the signed opinions with credentials and receipt dates",
+          "actor": "Medical Claims Reviewer",
+          "sop": [
+            "Index each signed opinion to the appeal clinical folder in the document repository",
+            "Record the reviewer name, credentials, specialty and the date each opinion was received",
+            "Link the opinions to the appeal record so they appear on the record index",
+            "Done when every opinion is indexed with credentials and receipt date"
+          ],
+          "verify": [
+            "Count indexed opinions against the opinions commissioned on the appeal record",
+            "Pass when the counts reconcile and each has credentials and a receipt date"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Summarise the opinions for the appeal decision maker",
+          "actor": "Medical Claims Reviewer",
+          "sop": [
+            "Summarise the accepted restrictions, the unsupported restrictions and the vocational conclusions",
+            "Note any conflict between reviewers and how it should be weighed",
+            "Save the summary to the appeal record for the decision maker to rely on",
+            "Done when the opinion summary is saved on the appeal record"
+          ],
+          "verify": [
+            "Trace each statement in the summary to a filed opinion by reviewer and date",
+            "Pass when every summary conclusion traces to a signed filed opinion"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "3bb4d46d-ea47-44fc-86a9-f7b63b5b056d",
+      "verifier": "Legal Counsel",
+      "generic": {
+        "Defined scope/population": "One exhausted disability appeal referred to litigation counsel with its complete administrative record",
+        "In-scope period": "From the final determination date through the referral date and the applicable limitation period",
+        "Required fields populated and valid": "Referral date, panel counsel, matter number, limitation date and litigation hold flag on the claim",
+        "Control totals or record counts reconcile": "Documents transmitted to counsel reconcile to the record index as it stood at the final determination",
+        "Evidence retained with timestamp/version": "Transmitted record retained with the transmission date and the record index version referenced",
+        "Exceptions logged with disposition": "Post-determination documents, missing holds and late referrals logged with the action taken",
+        "Test population": "All appeals referred to litigation counsel in the review period",
+        "Pass/fail thresholds": "Fail if any document was added to the administrative record after the final determination date",
+        "Exception handling path": "Record integrity issues are escalated to Legal Counsel and resolved before the matter is instructed",
+        "Documented acceptance criteria": "Referral date, panel counsel and litigation hold recorded with an unaltered post-determination record",
+        "Evidence location": "Legal matter management system with the transmitted record retained in OpenText Document Mgmt"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm all mandatory appeal levels are exhausted on the claim record",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Read the plan appeal structure and confirm each mandatory level has a completed determination",
+            "Where a level was missed, record whether the deemed exhaustion rule applies and why",
+            "Record the exhaustion confirmation and its basis on the claim before referral",
+            "Done when exhaustion or deemed exhaustion is confirmed and recorded"
+          ],
+          "verify": [
+            "Compare the completed determinations to the mandatory appeal levels in the plan",
+            "Pass when every mandatory level is complete or deemed exhaustion is documented"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Apply the litigation hold to the claim file in the claims management platform",
+          "actor": "Legal Counsel",
+          "sop": [
+            "Set the litigation hold flag on the claim so archiving and purging are blocked",
+            "Extend the hold to the linked claims and the appeal record where relevant",
+            "Record the hold date and the instructing counsel on the claim",
+            "Done when the litigation hold is applied and recorded on the claim"
+          ],
+          "verify": [
+            "Attempt the archive action and confirm the hold blocks it",
+            "Pass when the claim cannot be archived or purged while the hold is set"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Freeze the administrative record as it stood at the final determination",
+          "actor": "Claims Quality Assurance / Training Manager",
+          "sop": [
+            "Compare the current record index to the index as at the final determination date",
+            "Identify any document indexed after that date and quarantine it outside the record",
+            "Record the frozen index version that will be transmitted to counsel",
+            "Done when the frozen record index is agreed and post-determination items are quarantined"
+          ],
+          "verify": [
+            "Read the index entry dates against the final determination date",
+            "Pass when no document dated after the final determination sits in the transmitted record"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Transmit the complete administrative record to panel counsel",
+          "actor": "Legal Counsel",
+          "sop": [
+            "Transmit the frozen record and its index to the instructed panel counsel by the secure route",
+            "Record the transmission date and the index version on the matter file",
+            "Confirm counsel acknowledges receipt of the full record",
+            "Done when the record is transmitted and receipt is acknowledged"
+          ],
+          "verify": [
+            "Count the transmitted documents against the frozen record index",
+            "Pass when the transmitted count reconciles to the frozen index"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Open the matter in the legal matter management system with the limitation date",
+          "actor": "Legal Counsel",
+          "sop": [
+            "Open the matter with the claim reference, referral date and responsible counsel",
+            "Record the applicable contractual or statutory limitation date on the matter",
+            "Set the diary reminders ahead of the limitation date",
+            "Done when the matter is open with the referral date and limitation date recorded"
+          ],
+          "verify": [
+            "Read the matter record for referral date, limitation date and diary entries",
+            "Pass when all three are present on the matter record"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Instruct panel counsel and record the budget and rate agreement",
+          "actor": "Legal Counsel",
+          "sop": [
+            "Confirm the firm instructed is on the approved panel for ERISA disability litigation",
+            "Agree the budget, rates and reporting cadence and record them on the matter for e-billing",
+            "Issue the instruction letter setting out scope and reporting expectations",
+            "Done when panel counsel is instructed with budget and rates recorded"
+          ],
+          "verify": [
+            "Read the matter record for the panel firm, budget and agreed rates",
+            "Pass when the instructed firm is on the panel and budget and rates are recorded"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Record the referral on the claim and notify the claims handler",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Record the referral date, matter number and instructed counsel on the claim record",
+            "Set the claim status to reflect litigation so routine handling actions stop",
+            "Notify the handling team that all further contact routes through counsel",
+            "Done when the referral is recorded on the claim and the handling team is notified"
+          ],
+          "verify": [
+            "Read the claim record for referral date, matter number and litigation status",
+            "Pass when referral date, panel counsel and litigation hold are all recorded on the claim"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fi2tn0ahykfgzmtkn0i1w",
+      "verifier": "Claims Examiner",
+      "generic": {
+        "Defined scope/population": "One inbound appeal request registered against its parent claim and adverse determination",
+        "In-scope period": "From the adverse determination date through the appeal received date and the 180-day appeal window",
+        "Required fields populated and valid": "Appeal received date, parent claim link, determination link, submitter type and representative authorisation",
+        "Control totals or record counts reconcile": "Registered appeals reconcile to inbound appeal correspondence logged for the same period",
+        "Evidence retained with timestamp/version": "Inbound appeal document and any authorisation filed with the receipt stamp and registration timestamp",
+        "Exceptions logged with disposition": "Late appeals, missing authorisations and unlinked determinations logged with the decision taken",
+        "Test population": "All appeals registered in the review period across claimant, attorney and representative submissions",
+        "Pass/fail thresholds": "Fail if the appeal is assigned to the handler who made the original determination",
+        "Exception handling path": "Misrouted or late appeals route to the Claims Examiner for a documented acceptance and routing decision",
+        "Documented acceptance criteria": "Appeal logged with received date and linked to the parent claim and determination on an independent queue",
+        "Evidence location": "Appeal record in the claims management platform with the inbound document in the claim file repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Record the appeal received date exactly as stamped in the claim system",
+          "actor": "Claims Processor",
+          "sop": [
+            "Read the receipt stamp on the inbound appeal document or the secure message receipt time",
+            "Enter that date as the appeal received date rather than the date of registration",
+            "Attach the stamped inbound document to the appeal record",
+            "Done when the stamped received date is recorded with its source document attached"
+          ],
+          "verify": [
+            "Compare the recorded received date to the stamp on the attached inbound document",
+            "Pass when the recorded date matches the receipt stamp"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Link the appeal to the parent claim and the determination being appealed",
+          "actor": "Claims Processor",
+          "sop": [
+            "Search for the parent claim by claim number or claimant identifier and link the appeal to it",
+            "Select the specific adverse determination being appealed and link it to the appeal record",
+            "Confirm the linked determination matches the decision the claimant describes",
+            "Done when the appeal is linked to both the parent claim and the determination"
+          ],
+          "verify": [
+            "Open the appeal record and follow both links back to the claim and the determination",
+            "Pass when both links resolve to the correct claim and adverse determination"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Test the appeal against the 180-day appeal window",
+          "actor": "Claims Processor",
+          "sop": [
+            "Count the days from the adverse determination to the appeal received date",
+            "Flag any appeal received after day 180 for a documented acceptance decision",
+            "Record the timeliness result on the appeal record with the day count",
+            "Done when the timeliness result and day count are recorded"
+          ],
+          "verify": [
+            "Recount the days from the two recorded dates",
+            "Pass when the recount matches the recorded result and any late appeal is flagged"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Capture the submitter type and file any representative authorisation",
+          "actor": "Claims Processor",
+          "sop": [
+            "Record whether the appeal came from the claimant, an attorney or an authorised representative",
+            "Where a representative is acting, obtain and file the signed authorisation before releasing claim detail",
+            "Set the correspondence routing to the representative where the authorisation permits it",
+            "Done when the submitter type is recorded and any authorisation is filed"
+          ],
+          "verify": [
+            "Check the appeal record for the submitter type and the linked authorisation document",
+            "Pass when every representative submission has a filed authorisation"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Route the appeal to the appeals queue in the workflow tool",
+          "actor": "Claims Processor",
+          "sop": [
+            "Route the appeal to the dedicated appeals queue rather than the original handling desk",
+            "Exclude the original decision maker from the assignment options for this appeal",
+            "Confirm the appeal appears on the appeals queue after routing",
+            "Done when the appeal sits on the appeals queue away from the original handler"
+          ],
+          "verify": [
+            "Read the assigned handler on the appeal and compare it to the original decision maker",
+            "Pass when the appeal is not assigned to the handler who made the original determination"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the registration is complete and start the appeal clock",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Review the appeal record for received date, links, submitter type and routing",
+            "Confirm the appeal decision clock is running from the received date",
+            "Log any registration defect with the correction owner and due date",
+            "Done when the registration review is recorded and the clock is confirmed running"
+          ],
+          "verify": [
+            "Read the appeal record and the decision due date shown by the system",
+            "Pass when the appeal is fully registered and the due date derives from the received date"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "69a1b0de-8d59-4b88-830e-868bd300f7a6",
+      "verifier": "Claims Quality Assurance / Training Manager",
+      "generic": {
+        "Defined scope/population": "The appeal determination on one adverse disability decision reviewed de novo on the full record",
+        "In-scope period": "The 45 days from appeal receipt plus one documented 45-day extension where notice issued in time",
+        "Required fields populated and valid": "Determination outcome, reviewer, decision date, de novo attestation and argument-by-argument reasoning",
+        "Control totals or record counts reconcile": "Arguments addressed in the rationale reconcile to the arguments listed in the appeal submission",
+        "Evidence retained with timestamp/version": "Determination rationale saved with reviewer, decision date and the record index version relied on",
+        "Exceptions logged with disposition": "Timeline breaches and unaddressed arguments logged with the cause and the remediation owner",
+        "Test population": "All appeal determinations rendered in the review period across clinical and non-clinical appeals",
+        "Pass/fail thresholds": "Fail if the decision issued outside the appeal window without a timely extension notice on file",
+        "Exception handling path": "Breaches escalate to the Claims Quality Assurance / Training Manager for root cause and compliance reporting",
+        "Documented acceptance criteria": "Determination recorded within the ERISA window with reviewer and date and each claimant argument addressed",
+        "Evidence location": "Appeal record and compliance clock task in the claims management platform and workflow tool"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the review considered all evidence including new appeal evidence",
+          "actor": "Claims Examiner",
+          "sop": [
+            "List the evidence reviewed and compare it to the record index including items submitted with the appeal",
+            "Confirm evidence not before the original decision maker was considered in the review",
+            "Record the evidence list on the appeal determination rationale",
+            "Done when the evidence list is recorded and matches the record index"
+          ],
+          "verify": [
+            "Compare the recorded evidence list to the appeal record index",
+            "Pass when every indexed item including new appeal evidence appears in the evidence list"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Record the de novo attestation confirming no deference to the original decision",
+          "actor": "Claims Examiner",
+          "sop": [
+            "State in the rationale that the appeal was decided afresh on the full record",
+            "Confirm no weight was given to the original determination as a starting position",
+            "Record the attestation with the reviewer name and date on the appeal record",
+            "Done when the de novo attestation is recorded on the appeal record"
+          ],
+          "verify": [
+            "Read the rationale for the de novo statement and its author",
+            "Pass when the rationale confirms de novo review with no deference to the original decision"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Weigh the independent clinical and vocational opinions in the rationale",
+          "actor": "Medical Claims Reviewer",
+          "sop": [
+            "Summarise the independent opinions and the restrictions each supports or rejects",
+            "Explain how conflicts between reviewers and treating providers were resolved",
+            "Cite each opinion by reviewer name, specialty and date in the rationale",
+            "Done when the rationale weighs each independent opinion with a citation"
+          ],
+          "verify": [
+            "Trace each clinical conclusion in the rationale to a filed signed opinion",
+            "Pass when every clinical conclusion cites a filed opinion by reviewer and date"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Document how each argument raised by the claimant was considered and resolved",
+          "actor": "Claims Examiner",
+          "sop": [
+            "List every argument in the appeal submission as a numbered item",
+            "State the finding on each argument and the evidence that drove it",
+            "Confirm no argument is left without an explicit resolution",
+            "Done when every listed argument has a documented resolution"
+          ],
+          "verify": [
+            "Compare the numbered argument list to the appeal submission text",
+            "Pass when the rationale addresses each claimant argument with a resolution"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Issue any extension notice before the original appeal due date",
+          "actor": "Claims Examiner",
+          "sop": [
+            "At the extension checkpoint diary, decide whether a further 45 days is required",
+            "Where it is, issue the written extension notice stating the reason and the expected decision date",
+            "Log the notice send date against the compliance clock task before the original due date",
+            "Done when any extension notice is issued and logged before the original due date"
+          ],
+          "verify": [
+            "Compare the extension notice send date to the original appeal decision due date",
+            "Pass when any extension notice was issued before the original due date"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the determination, reviewer and decision date on the appeal record",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Enter the outcome as upheld, overturned or partially overturned on the structured field",
+            "Record the deciding reviewer and the decision date",
+            "Close the compliance clock task so elapsed days are captured on the appeal record",
+            "Done when outcome, reviewer and decision date are saved and the clock task is closed"
+          ],
+          "verify": [
+            "Recalculate elapsed days from the appeal received date to the decision date",
+            "Pass when the determination is recorded inside the ERISA window with reviewer and date"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Review the appeal determination against the ERISA appeal checklist",
+          "actor": "Claims Quality Assurance / Training Manager",
+          "sop": [
+            "Check the determination file for de novo attestation, evidence list, argument resolutions and timeliness",
+            "Log any deficiency with the cause and the corrective action owner",
+            "Release the determination for letter generation once the checklist is clear",
+            "Done when the checklist review is recorded and the determination is released"
+          ],
+          "verify": [
+            "Read the checklist review note and the exception log for the appeal",
+            "Pass when the checklist is complete and every deficiency carries a disposition"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "ac333b58-f037-413a-b98a-913a8d571168",
+      "verifier": "Claims Quality Assurance / Training Manager",
+      "generic": {
+        "Defined scope/population": "ERISA appeal compliance metrics for the reporting period delivered to regulatory affairs and legal",
+        "In-scope period": "Appeals received or decided between the reporting period start and end dates",
+        "Required fields populated and valid": "On-time rate, extension counts, overturn rate, deemed exhaustion count and breach detail per claim",
+        "Control totals or record counts reconcile": "Appeal counts in the report reconcile to appeal records in the claims management platform for the period",
+        "Evidence retained with timestamp/version": "Report and source extract retained with extract date, period label and preparer name",
+        "Exceptions logged with disposition": "Breaches listed individually with claim reference, cause and the remediation owner",
+        "Test population": "All appeals with a decision due or issued within the reporting period",
+        "Pass/fail thresholds": "Fail if any timeliness breach is aggregated rather than listed with a claim reference and cause",
+        "Exception handling path": "Data discrepancies route to the Claims Analyst for correction and the report is reissued with a version note",
+        "Documented acceptance criteria": "Report issued for the period showing on-time rate, extensions and overturn rate with every breach listed",
+        "Evidence location": "Report and workbook filed to the claim file repository with the platform extract retained"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract appeal timeline data for the period from the claims management platform",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Run the appeal extract with received date, due date, extension date, decision date and outcome",
+            "Record the extract date and row count on the reporting workbook",
+            "Reconcile the row count to the platform appeal count for the period",
+            "Done when the extract is loaded and reconciled to the platform count"
+          ],
+          "verify": [
+            "Compare the workbook row count to the platform appeal count for the period",
+            "Pass when the counts reconcile for the reporting period"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Calculate the percentage of appeal decisions issued within the 45-day window",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Calculate elapsed days from appeal receipt to decision for each appeal",
+            "Mark each as on time against the 45-day window or the documented extension window",
+            "Compute the on-time percentage for the period and compare it to the prior period",
+            "Done when the on-time rate is calculated for the period"
+          ],
+          "verify": [
+            "Recompute two appeals by hand from their received and decision dates",
+            "Pass when the recomputed results match the workbook classification"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "List every timeliness breach individually with claim reference and cause",
+          "actor": "Claims Quality Assurance / Training Manager",
+          "sop": [
+            "List each appeal decided outside its window with claim reference, days late and handler",
+            "Record the cause of each breach from the claim record rather than assuming a category",
+            "Assign each breach a remediation owner and target date",
+            "Done when every breach is listed with a claim reference, cause and owner"
+          ],
+          "verify": [
+            "Count the listed breaches against the appeals marked late in the workbook",
+            "Pass when every breach is listed individually with a claim reference and cause"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Report extensions taken and whether each notice issued before the original deadline",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Count the appeals where an extension was taken in the period",
+            "Compare each extension notice send date to the original decision due date",
+            "Report the count of extensions and the count of late extension notices",
+            "Done when extension counts and late notice counts are reported"
+          ],
+          "verify": [
+            "Spot check two extension notices against their original due dates",
+            "Pass when each checked notice classification matches the report"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Report the overturn rate and the top denial reasons overturned on appeal",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Calculate the overturn and partial overturn rate for closed appeals in the period",
+            "Rank the original denial reasons by overturn volume",
+            "Note any reason where the overturn rate moved materially against the prior period",
+            "Done when the overturn rate and ranked denial reasons are reported"
+          ],
+          "verify": [
+            "Recompute the overturn rate from the closed appeal rows",
+            "Pass when the recomputed rate matches the reported rate"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Report the count of appeals where deemed exhaustion was triggered",
+          "actor": "Claims Quality Assurance / Training Manager",
+          "sop": [
+            "Identify appeals where the plan failed to decide within the window and deemed exhaustion applies",
+            "List each with the claim reference and whether litigation followed",
+            "Report the count and the trend against the prior period",
+            "Done when the deemed exhaustion count and detail are reported"
+          ],
+          "verify": [
+            "Match each deemed exhaustion entry to a breach entry on the breach list",
+            "Pass when every deemed exhaustion case also appears on the breach list"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Circulate the report to regulatory affairs and legal with exceptions flagged",
+          "actor": "Legal Counsel",
+          "sop": [
+            "Review the report for litigation-sensitive content and confirm the exception detail is accurate",
+            "Circulate the report to regulatory affairs and legal with the exceptions flagged for action",
+            "File the report and workbook to the claim file repository with the period label",
+            "Done when the report is circulated and filed for the period"
+          ],
+          "verify": [
+            "Confirm the filed report carries the period label and the exception list",
+            "Pass when the report is issued for the period with on-time rate, extensions and overturn rate"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjrxp13dikfgz198c0ahv",
+      "verifier": "Claims Quality Assurance / Training Manager",
+      "generic": {
+        "Defined scope/population": "Appeal outcome data captured on every closed appeal record in the tracking period",
+        "In-scope period": "Appeals closed between the tracking period start and end dates",
+        "Required fields populated and valid": "Outcome code, primary reason, elapsed days, reinstatement flag and retroactive payment flag",
+        "Control totals or record counts reconcile": "Closed appeal outcome counts reconcile to open and closed appeal records for the period",
+        "Evidence retained with timestamp/version": "Outcome tracking extract retained with extract date, period and preparer name",
+        "Exceptions logged with disposition": "Appeals missing an outcome code or reason logged and referred for correction with an owner",
+        "Test population": "All appeals closed in the tracking period including upheld, overturned and partially overturned",
+        "Pass/fail thresholds": "Fail if an overturned appeal has no retroactive benefit reinstatement recorded",
+        "Exception handling path": "Missing reinstatement records route to the Claims Examiner for action before the period is closed",
+        "Documented acceptance criteria": "Outcome code, reason and elapsed days recorded on every closed appeal with reinstatement captured",
+        "Evidence location": "Appeal records in the claims management platform with the tracking workbook in the claim file repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Record each appeal outcome using the standard code list in the claim system",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Set the outcome on each closed appeal as upheld, overturned or partially overturned",
+            "Use the standard code list rather than free text so the data supports analysis",
+            "Correct any appeal closed without an outcome code and log the correction",
+            "Done when every closed appeal carries a standard outcome code"
+          ],
+          "verify": [
+            "List closed appeals for the period and check the outcome field on each",
+            "Pass when no closed appeal is missing a standard outcome code"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Record the primary reason for each outcome to support pattern analysis",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Select the primary reason for the outcome from the reason code list",
+            "Take the reason from the appeal determination rationale rather than assuming it",
+            "Log any appeal where the rationale does not support a single primary reason",
+            "Done when every closed appeal carries a primary reason code"
+          ],
+          "verify": [
+            "Spot check two reason codes against their appeal determination rationales",
+            "Pass when each checked reason code matches the recorded rationale"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record elapsed days from appeal receipt to decision on each appeal record",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Calculate elapsed days from the appeal received date to the decision date",
+            "Record the elapsed days on the appeal record so timeliness reporting can read it",
+            "Flag any appeal where the received or decision date is missing for correction",
+            "Done when elapsed days are recorded on every closed appeal"
+          ],
+          "verify": [
+            "Recalculate elapsed days for two appeals from their recorded dates",
+            "Pass when the recalculated values match the recorded elapsed days"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record reinstatement and retroactive payment on every overturned appeal",
+          "actor": "Claims Examiner",
+          "sop": [
+            "For each overturned or partially overturned appeal, confirm benefits were reinstated",
+            "Confirm the retroactive payment covering the withheld period was issued and record its date",
+            "Raise an action where reinstatement or retroactive payment is outstanding",
+            "Done when reinstatement and retroactive payment are recorded or an action is open"
+          ],
+          "verify": [
+            "List overturned appeals and read the reinstatement and payment fields on each",
+            "Pass when no overturned appeal lacks a recorded retroactive benefit reinstatement"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile appeal outcome counts to open and closed appeal records",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Extract open and closed appeal counts for the period into the tracking workbook",
+            "Compare the sum of outcome counts to the closed appeal count",
+            "Investigate and explain any difference before the data is used for reporting",
+            "Done when outcome counts reconcile to closed appeal records with differences explained"
+          ],
+          "verify": [
+            "Read the reconciliation lines in the workbook against the platform counts",
+            "Pass when the outcome totals reconcile to the closed appeal count for the period"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review the outcome data quality before it feeds compliance reporting",
+          "actor": "Claims Quality Assurance / Training Manager",
+          "sop": [
+            "Review completeness of outcome codes, reasons, elapsed days and reinstatement flags",
+            "Log every gap with an owner and a correction due date",
+            "Release the dataset for compliance and pattern reporting once gaps are closed",
+            "Done when the data quality review is recorded and gaps are assigned"
+          ],
+          "verify": [
+            "Read the review note and the open correction items for the period",
+            "Pass when every closed appeal has outcome code, reason and elapsed days recorded"
           ]
         }
       ]
