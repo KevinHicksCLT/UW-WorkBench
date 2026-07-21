@@ -122,13 +122,30 @@ export function useEdges(
       setEdges(next);
     };
     compute();
+    // Row alignment settles over several ResizeObserver passes (a deep concept
+    // row can shift hundreds of px as its band levels up). A synchronous measure
+    // can therefore read stale, pre-alignment geometry — the connector then
+    // floats at the old position and never travels to where the card actually
+    // lands (the Rental-Reimbursement floating-arrow symptom). Re-measure after
+    // the browser has laid out the settled pads so the endpoints track the cards.
+    let raf1 = 0;
+    let raf2 = 0;
+    raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(compute);
+    });
     const ro = new ResizeObserver(compute);
     ro.observe(container);
     // Anchors can move without the container resizing (a section collapses while
-    // another grows) — observe the column roots too.
-    for (const child of Array.from(container.children)) ro.observe(child);
+    // another grows). Observe the column roots AND their inner rows so a band
+    // levelling deep inside one column still triggers a connector re-measure.
+    for (const child of Array.from(container.children)) {
+      ro.observe(child);
+      for (const grandchild of Array.from(child.children)) ro.observe(grandchild);
+    }
     window.addEventListener('resize', compute);
     return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
       ro.disconnect();
       window.removeEventListener('resize', compute);
     };
