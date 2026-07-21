@@ -100,7 +100,7 @@ export default function Compliance() {
           Summary exactly until the register is mutated in-app
           (538 / 4,089 / 23,928 = 23,664 + 264). */}
       {summary && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
           <Tile
             compact
             label="Regulations"
@@ -118,13 +118,6 @@ export default function Compliance() {
             label="Requirement rows"
             value={summary.requirementRows.total.toLocaleString()}
             hint={`${summary.requirementRows.binding.toLocaleString()} binding · ${summary.requirementRows.informational} informational`}
-          />
-          <Tile
-            compact
-            tone={summary.signOff.confirmed > 0 ? 'positive' : 'neutral'}
-            label="Sign-off progress"
-            value={`${summary.signOff.confirmed.toLocaleString()}/${summary.items.toLocaleString()}`}
-            hint={`${summary.signOff.pending.toLocaleString()} pending · ${summary.signOff.needsResearch.toLocaleString()} needs research · ${summary.signOff.rejected.toLocaleString()} rejected`}
           />
         </div>
       )}

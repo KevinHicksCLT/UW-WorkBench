@@ -1,7 +1,7 @@
 /**
  * Compliance register — "By regulation" view. The L1 table (538 regulations
- * with child counts and sign-off progress); a row expands to its L2 compliance
- * items (confidence-badged, click → detail drawer) and the regulation's
+ * with child counts); a row expands to its L2 compliance items
+ * (confidence-badged, click → detail drawer) and the regulation's
  * jurisdiction deadline variants with the promote action.
  */
 import { Fragment, useMemo, useState } from 'react';
@@ -19,13 +19,7 @@ import {
   StatusPill,
 } from '../../../components/ui';
 import { catLabel, flagLabel } from '../Regulations';
-import {
-  ConfidenceBadge,
-  SignOffBadge,
-  type ItemRow,
-  type RegulationRow,
-  type VariantRow,
-} from './shared';
+import { ConfidenceBadge, type ItemRow, type RegulationRow, type VariantRow } from './shared';
 
 /** "PRODUCT_FILING, LICENSING" → "Product filing, Licensing". */
 const categoryLabels = (raw: string) =>
@@ -66,7 +60,7 @@ function RegulationDetailPanel({
   const promote = async (variant: VariantRow) => {
     const ok = await dialogs.confirm({
       title: `Promote ${variant.jurisdiction} variant to a compliance item?`,
-      message: `Creates a bespoke, pre-filled item for "${variant.deadlineVariant}" that enters the review queue as pending.`,
+      message: `Creates a bespoke, pre-filled compliance item for "${variant.deadlineVariant}".`,
       confirmLabel: 'Promote',
     });
     if (!ok) return;
@@ -94,7 +88,6 @@ function RegulationDetailPanel({
             <th className="py-1 pr-3 font-medium">Owner</th>
             <th className="py-1 pr-3 font-medium">Frequency</th>
             <th className="py-1 pr-3 font-medium">Confidence</th>
-            <th className="py-1 pr-3 font-medium">Sign-off</th>
           </tr>
         </thead>
         <tbody>
@@ -110,9 +103,6 @@ function RegulationDetailPanel({
               <td className="py-1.5 pr-3 whitespace-nowrap">{it.frequency}</td>
               <td className="py-1.5 pr-3">
                 <ConfidenceBadge confidence={it.confidence} />
-              </td>
-              <td className="py-1.5 pr-3">
-                <SignOffBadge signOff={it.signOff} />
               </td>
             </tr>
           ))}
@@ -237,7 +227,6 @@ export function RegulationBrowser({
               <th className="px-3 py-2 font-medium text-right">Items</th>
               <th className="px-3 py-2 font-medium text-right">Source rows</th>
               <th className="px-3 py-2 font-medium">Frequency</th>
-              <th className="px-3 py-2 font-medium text-right">Confirmed</th>
             </tr>
           </thead>
           <tbody>
@@ -284,13 +273,10 @@ export function RegulationBrowser({
                     {r.requirementRowCount.toLocaleString()}
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap">{r.frequency}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">
-                    {r.confirmedCount}/{r.itemCount}
-                  </td>
                 </tr>
                 {expanded === r.id && (
                   <tr>
-                    <td colSpan={8} className="bg-[#fafafa]">
+                    <td colSpan={7} className="bg-[#fafafa]">
                       <RegulationDetailPanel
                         regulationId={r.id}
                         companyId={companyId}

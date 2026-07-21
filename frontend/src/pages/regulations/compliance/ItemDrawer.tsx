@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { useApi } from '../../../lib/useApi';
 import { withCompany } from '../../../lib/portfolio';
 import { DrawerShell, ErrorMessage, LoadingState } from '../../../components/ui';
-import { ConfidenceBadge, SignOffBadge, FREQ_ALIGN_LABEL, type ItemDetail } from './shared';
+import { FREQ_ALIGN_LABEL, type ItemDetail } from './shared';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -58,8 +58,6 @@ export function ItemDrawer({
             </div>
             <div className="text-sm font-semibold text-[#171717] flex items-center gap-2 flex-wrap">
               {item?.itemCode}
-              {item && <ConfidenceBadge confidence={item.confidence} />}
-              {item && <SignOffBadge signOff={item.signOff} />}
             </div>
           </div>
         }

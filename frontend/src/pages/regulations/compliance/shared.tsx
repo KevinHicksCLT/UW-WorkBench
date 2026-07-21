@@ -120,35 +120,13 @@ export const FREQ_ALIGN_LABEL: Record<string, string> = {
   NO_SIGNAL: 'No signal in source text',
 };
 
-export const SIGN_OFF_LABEL: Record<string, string> = {
-  PENDING: 'Pending',
-  CONFIRMED: 'Confirmed',
-  REJECTED: 'Rejected',
-  NEEDS_RESEARCH: 'Needs research',
-};
-
 const CONFIDENCE_TONE: Record<string, PillTone> = { HIGH: 'green', MEDIUM: 'amber', LOW: 'red' };
-const SIGN_OFF_TONE: Record<string, PillTone> = {
-  PENDING: 'slate',
-  CONFIRMED: 'green',
-  REJECTED: 'red',
-  NEEDS_RESEARCH: 'amber',
-};
 
 /** Confidence badge — High/Medium/Low mapped onto pill tones. */
 export function ConfidenceBadge({ confidence }: { confidence: string }) {
   return (
     <StatusPill tone={CONFIDENCE_TONE[confidence] ?? 'slate'}>
       {confidence.charAt(0) + confidence.slice(1).toLowerCase()}
-    </StatusPill>
-  );
-}
-
-/** Sign-off status badge. */
-export function SignOffBadge({ signOff }: { signOff: string }) {
-  return (
-    <StatusPill tone={SIGN_OFF_TONE[signOff] ?? 'slate'}>
-      {SIGN_OFF_LABEL[signOff] ?? signOff}
     </StatusPill>
   );
 }
