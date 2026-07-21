@@ -114,13 +114,6 @@ export type ItemDetail = ItemRow & {
   sourceRows: SourceRow[];
 };
 
-export const DETERMINATION_LABEL: Record<string, string> = {
-  GROUNDED: 'Grounded — pending counsel confirmation',
-  GROUNDED_NON_OFFICIAL: 'Grounded (non-official sources) — verify source then confirm',
-  PARTIAL: 'Partially grounded — regulation-level only; counsel to map',
-  NOT_GROUNDED: 'Not grounded',
-};
-
 export const FREQ_ALIGN_LABEL: Record<string, string> = {
   MATCH: 'Match',
   REVIEW: 'Review — differs from template',
@@ -159,6 +152,3 @@ export function SignOffBadge({ signOff }: { signOff: string }) {
     </StatusPill>
   );
 }
-
-/** The guardrail label every unconfirmed item carries in the UI. */
-export const GUARDRAIL = 'Determination-ready — pending Legal review';

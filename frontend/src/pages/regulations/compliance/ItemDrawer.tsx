@@ -1,32 +1,12 @@
 /**
  * Compliance item drawer — the read-first detail panel for one L2 item, laid
- * out in the workbook's three zones (task → grounding evidence → determination)
- * plus the sign-off workflow (Confirm / Reject / Needs research) and the
- * append-only sign-off history. Confirming a regulation-level item requires
- * selecting the specific supporting L3 rows (upgrades grounding to item-level).
+ * out in the workbook's two zones (task → grounding evidence).
  */
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../../../lib/api';
 import { useApi } from '../../../lib/useApi';
 import { withCompany } from '../../../lib/portfolio';
-import { useDialogs } from '../../../lib/dialogs';
-import {
-  Button,
-  DrawerShell,
-  ErrorMessage,
-  LoadingState,
-  Textarea,
-  Label,
-} from '../../../components/ui';
-import {
-  ConfidenceBadge,
-  SignOffBadge,
-  DETERMINATION_LABEL,
-  FREQ_ALIGN_LABEL,
-  GUARDRAIL,
-  type ItemDetail,
-} from './shared';
+import { DrawerShell, ErrorMessage, LoadingState } from '../../../components/ui';
+import { ConfidenceBadge, SignOffBadge, FREQ_ALIGN_LABEL, type ItemDetail } from './shared';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -50,71 +30,18 @@ export function ItemDrawer({
   itemId,
   companyId,
   onClose,
-  onChanged,
 }: {
   itemId: string;
   companyId: string | null;
   onClose: () => void;
-  onChanged: () => void;
 }) {
-  const dialogs = useDialogs();
   const {
     data: item,
     error,
     loading,
-    refetch,
   } = useApi<ItemDetail>(
     withCompany(`/regulations/compliance-register/items/${itemId}`, companyId),
   );
-  const [note, setNote] = useState('');
-  const [selecting, setSelecting] = useState(false);
-  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
-  const [busy, setBusy] = useState(false);
-  const [actionError, setActionError] = useState('');
-
-  const needsRowSelection = item?.groundingBasis === 'REGULATION';
-
-  const signOff = async (action: 'CONFIRM' | 'REJECT' | 'NEEDS_RESEARCH') => {
-    if (!item) return;
-    if (action === 'REJECT' && !note.trim()) {
-      setActionError('Rejection requires a note.');
-      return;
-    }
-    if (action === 'CONFIRM' && needsRowSelection && selectedRows.size === 0) {
-      setSelecting(true);
-      setActionError('Select the supporting source rows that ground this item, then confirm.');
-      return;
-    }
-    if (action === 'CONFIRM') {
-      const ok = await dialogs.confirm({
-        title: `Confirm ${item.itemCode} as a legal determination?`,
-        message: 'This records your sign-off in the append-only audit trail.',
-        confirmLabel: 'Confirm sign-off',
-      });
-      if (!ok) return;
-    }
-    setBusy(true);
-    setActionError('');
-    try {
-      await api.post(
-        withCompany(`/regulations/compliance-register/items/${item.id}/sign-off`, companyId),
-        {
-          action,
-          note: note.trim() || undefined,
-          supportingRequirementIds: selectedRows.size ? [...selectedRows] : undefined,
-        },
-      );
-      setNote('');
-      setSelecting(false);
-      setSelectedRows(new Set());
-      refetch();
-      onChanged();
-    } catch (e) {
-      setActionError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  };
 
   return (
     // Fixed wrapper gives the DrawerShell's absolute positioning a
@@ -134,9 +61,6 @@ export function ItemDrawer({
               {item && <ConfidenceBadge confidence={item.confidence} />}
               {item && <SignOffBadge signOff={item.signOff} />}
             </div>
-            {item && item.signOff !== 'CONFIRMED' && (
-              <div className="text-[11px] text-[#b45309] mt-0.5">{GUARDRAIL}</div>
-            )}
           </div>
         }
       >
@@ -161,9 +85,7 @@ export function ItemDrawer({
                   {item.officialSourceRows.toLocaleString()} official)
                 </Field>
                 <Field label="Grounding basis">
-                  {item.groundingBasis === 'ITEM'
-                    ? 'Item-level match'
-                    : 'Regulation-level — counsel to map'}
+                  {item.groundingBasis === 'ITEM' ? 'Item-level match' : 'Regulation-level'}
                 </Field>
                 <Field label="Frequency (derived)">
                   {item.frequencyDerived} ·{' '}
@@ -180,7 +102,7 @@ export function ItemDrawer({
                 <span className="text-[13px]">{item.supportingCitations || '—'}</span>
               </Field>
               {item.selectedRequirements.length > 0 && (
-                <Field label="Counsel-selected source rows">
+                <Field label="Selected source rows">
                   <ul className="text-[13px] space-y-0.5">
                     {item.selectedRequirements.map((r) => (
                       <li key={r.id}>
@@ -201,19 +123,6 @@ export function ItemDrawer({
                 <ul className="text-[13px] space-y-1 max-h-56 overflow-y-auto border border-[#eaeaea] rounded-md p-2">
                   {item.sourceRows.map((r) => (
                     <li key={r.id} className="flex items-start gap-2">
-                      {selecting && (
-                        <input
-                          type="checkbox"
-                          className="mt-0.5"
-                          checked={selectedRows.has(r.id)}
-                          onChange={(e) => {
-                            const next = new Set(selectedRows);
-                            if (e.target.checked) next.add(r.id);
-                            else next.delete(r.id);
-                            setSelectedRows(next);
-                          }}
-                        />
-                      )}
                       <span className="min-w-0">
                         <Link
                           className="text-[#2563eb] hover:underline"
@@ -227,75 +136,6 @@ export function ItemDrawer({
                   ))}
                 </ul>
               </Field>
-            </Zone>
-
-            <Zone title="Determination">
-              <Field label="Status">
-                {DETERMINATION_LABEL[item.determinationStatus] ?? item.determinationStatus}
-              </Field>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Reviewer">{item.reviewer ?? 'Not yet assigned'}</Field>
-                <Field label="Audit status">{item.auditStatus}</Field>
-              </div>
-              {item.reviewNotes && <Field label="Review notes">{item.reviewNotes}</Field>}
-
-              <div className="pt-1 border-t border-[#eaeaea]">
-                <Label htmlFor="signoff-note">Note (required to reject)</Label>
-                <Textarea
-                  id="signoff-note"
-                  rows={2}
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="Basis for the determination…"
-                />
-                {needsRowSelection && (
-                  <p className="text-[11px] text-[#b45309] mt-1">
-                    Low-confidence item: confirming requires selecting its specific supporting
-                    source rows above{selecting ? '' : ' (click Confirm to start selecting)'}.
-                  </p>
-                )}
-                {actionError && (
-                  <ErrorMessage className="mt-1 text-sm text-[#be123c]">{actionError}</ErrorMessage>
-                )}
-                <div className="flex items-center gap-2 mt-2">
-                  <Button
-                    className="text-xs px-3 py-1.5"
-                    disabled={busy}
-                    onClick={() => void signOff('CONFIRM')}
-                  >
-                    Confirm{selectedRows.size ? ` (${selectedRows.size} rows)` : ''}
-                  </Button>
-                  <Button
-                    className="text-xs px-3 py-1.5 bg-[#be123c] hover:bg-[#9f1239]"
-                    disabled={busy}
-                    onClick={() => void signOff('REJECT')}
-                  >
-                    Reject
-                  </Button>
-                  <Button
-                    className="text-xs px-3 py-1.5"
-                    variant="secondary"
-                    disabled={busy}
-                    onClick={() => void signOff('NEEDS_RESEARCH')}
-                  >
-                    Needs research
-                  </Button>
-                </div>
-              </div>
-
-              {item.signOffEvents.length > 0 && (
-                <Field label="Sign-off history">
-                  <ul className="text-[13px] space-y-1">
-                    {item.signOffEvents.map((ev) => (
-                      <li key={ev.id}>
-                        <span className="font-medium">{ev.action}</span> — {ev.reviewer},{' '}
-                        {new Date(ev.createdAt).toLocaleString()}
-                        {ev.note ? ` · ${ev.note}` : ''}
-                      </li>
-                    ))}
-                  </ul>
-                </Field>
-              )}
             </Zone>
           </>
         )}
