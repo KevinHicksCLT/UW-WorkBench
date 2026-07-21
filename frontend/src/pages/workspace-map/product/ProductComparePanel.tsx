@@ -326,7 +326,7 @@ export default function ProductComparePanel(props: Props) {
                   <>
                     {' · '}
                     <span style={{ color: MATCH_META.COMMON.fg, fontWeight: 600 }}>
-                      {common} shared by all
+                      {common} shared
                     </span>
                   </>
                 )}
