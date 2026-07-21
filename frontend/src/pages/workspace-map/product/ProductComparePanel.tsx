@@ -413,36 +413,50 @@ export default function ProductComparePanel(props: Props) {
                   {counts}
                 </button>
                 <div>
-                  {groups.map((g, gi) => (
-                    <div
-                      key={g.key}
-                      data-anchor={`bf:${row.component}:${g.key}`}
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: `repeat(${versions.length}, ${COL_W}px)`,
-                        alignItems: 'start',
-                        borderTop: gi > 0 ? '1px dashed #f1f1f1' : undefined,
-                        // SCRUM-259: level this concept row with its normalize card.
-                        marginTop: rowPads?.[`${row.component}:${g.key}`] || undefined,
-                      }}
-                    >
-                      {versions.map((v) => (
-                        <div
-                          key={v.id}
-                          style={{ padding: 6, borderLeft: '1px solid #f1f1f1', minWidth: 0 }}
-                        >
-                          {g.perVersion[v.id] ? (
-                            <ElementCard
-                              group={g}
-                              versionId={v.id}
-                              selected={g.key === selectedKey}
-                              onSelect={onSelect}
-                            />
-                          ) : null}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
+                  {groups.map((g, gi) => {
+                    // Connector anchor lives on the RIGHTMOST populated cell,
+                    // not the full-width row: a concept missing from the
+                    // trailing versions would otherwise start its arrow at the
+                    // row's right edge, leaving dead white space between the
+                    // card and the arrow tail.
+                    const lastFilled = versions.reduce(
+                      (acc, v, i) => (g.perVersion[v.id] ? i : acc),
+                      -1,
+                    );
+                    return (
+                      <div
+                        key={g.key}
+                        data-anchor={lastFilled < 0 ? `bf:${row.component}:${g.key}` : undefined}
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: `repeat(${versions.length}, ${COL_W}px)`,
+                          alignItems: 'start',
+                          borderTop: gi > 0 ? '1px dashed #f1f1f1' : undefined,
+                          // SCRUM-259: level this concept row with its normalize card.
+                          marginTop: rowPads?.[`${row.component}:${g.key}`] || undefined,
+                        }}
+                      >
+                        {versions.map((v, i) => (
+                          <div
+                            key={v.id}
+                            data-anchor={
+                              i === lastFilled ? `bf:${row.component}:${g.key}` : undefined
+                            }
+                            style={{ padding: 6, borderLeft: '1px solid #f1f1f1', minWidth: 0 }}
+                          >
+                            {g.perVersion[v.id] ? (
+                              <ElementCard
+                                group={g}
+                                versionId={v.id}
+                                selected={g.key === selectedKey}
+                                onSelect={onSelect}
+                              />
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
                   {groups.length === 0 && (
                     <div
                       style={{
