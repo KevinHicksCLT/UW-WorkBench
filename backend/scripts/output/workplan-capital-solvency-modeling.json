@@ -5141,7 +5141,7 @@
         {
           "n": 1,
           "title": "Load recoverable exposure by counterparty from the data warehouse",
-          "actor": "Actuarial Analyst",
+          "actor": "Capital Model Actuary",
           "sop": [
             "Extract aggregate recoverable balances by counterparty at quarter end",
             "Reconcile the extract total to the ledger recoverable balance",
@@ -6531,6 +6531,2937 @@
           "verify": [
             "Check the archived prior version remains retrievable",
             "Pass when both current and prior versions are accessible"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "d4fa5cea-e30d-4211-aa89-09858406ab6f",
+      "verifier": "Capital Model Actuary",
+      "generic": {
+        "Defined scope/population": "Every division in the allocation hierarchy receiving a share of group capital",
+        "In-scope period": "The valuation period of the capital run used for the divisional allocation",
+        "Required fields populated and valid": "Each division row carries standalone capital, diversification share, allocated capital and risk type split",
+        "Control totals or record counts reconcile": "Sum of divisional allocated capital agrees to the group diversified requirement within tolerance",
+        "Evidence retained with timestamp/version": "Divisional allocation output saved with run id, methodology version and production date",
+        "Exceptions logged with disposition": "Shared exposures treated inconsistently logged and resolved before results are issued",
+        "Test population": "All divisions in the current allocation hierarchy",
+        "Pass/fail thresholds": "Pass when standalone and diversified capital both reconcile to the group total",
+        "Exception handling path": "Out-of-tolerance reconciliations return to the Capital Model Actuary before issue",
+        "Documented acceptance criteria": "Allocation methodology defines the basis, granularity and reconciliation tolerance",
+        "Evidence location": "Divisional allocation workbook linked to the modelling platform allocation output"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Compute standalone capital per division in the modeling platform",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Run the capital model at divisional granularity before diversification",
+            "Export standalone capital for each division",
+            "Record the source run id",
+            "Done when standalone capital exists for every division"
+          ],
+          "verify": [
+            "Check every division in the hierarchy appears in the output",
+            "Pass when no division is missing"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Allocate the diversification benefit on the documented basis",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Apply the documented allocation basis to spread the diversification benefit",
+            "Show the benefit allocated to each division separately",
+            "State the basis on the output header",
+            "Done when diversification is allocated and disclosed per division"
+          ],
+          "verify": [
+            "Sum the allocated benefit and compare to the group benefit",
+            "Pass when the allocated benefit foots to the group benefit"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Split allocated capital by risk type within each division",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Break each division allocation down by risk type in Excel",
+            "Confirm the risk type splits foot to the divisional total",
+            "Present the split alongside the total",
+            "Done when every division shows a risk type split"
+          ],
+          "verify": [
+            "Foot the risk type splits per division",
+            "Pass when each split sums to the divisional total"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Apply consistent treatment to shared exposures",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Identify exposures shared across divisions such as group reinsurance",
+            "Apply the documented treatment consistently across affected divisions",
+            "State the treatment on the output",
+            "Done when shared exposures are treated consistently and disclosed"
+          ],
+          "verify": [
+            "Check the treatment applied in two affected divisions",
+            "Pass when both use the same stated treatment"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile divisional totals to the group requirement",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Sum allocated capital across divisions",
+            "Compare against the group diversified requirement",
+            "Record the residual and test it against tolerance",
+            "Done when the reconciliation is complete and within tolerance"
+          ],
+          "verify": [
+            "Recompute the sum independently",
+            "Pass when the reconciliation sits inside tolerance"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Issue the divisional figures with run and methodology tags",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Tag the output with run id, methodology version and production date",
+            "Issue the figures to the allocation reporting distribution",
+            "Save the output to the agreed location",
+            "Done when tagged figures are issued"
+          ],
+          "verify": [
+            "Open the issued file and check for both tags",
+            "Pass when run id and methodology version are present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "1447ae2b-15d2-41cd-bed7-a0e58cd35b60",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "Every reporting segment with a computed RAROC compared against the cost-of-capital hurdle",
+        "In-scope period": "The reporting period of the RAROC calculation with prior-period comparatives",
+        "Required fields populated and valid": "Each segment row carries RAROC, hurdle, excess or shortfall in basis points and currency",
+        "Control totals or record counts reconcile": "Segments in the comparison match the segments in the RAROC calculation with none omitted",
+        "Evidence retained with timestamp/version": "Comparison saved with the hurdle version, RAROC source and analysis date",
+        "Exceptions logged with disposition": "Segments below the hurdle listed with the shortfall quantified and an owner assigned",
+        "Test population": "All reporting segments with allocated capital in the period",
+        "Pass/fail thresholds": "Pass when the board-approved hurdle is applied consistently to every segment",
+        "Exception handling path": "Segments below hurdle are escalated with sensitivity results before recommendations are made",
+        "Documented acceptance criteria": "Capital policy states the cost-of-capital hurdle and its approval authority",
+        "Evidence location": "Hurdle comparison workbook with the approved hurdle reference attached"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Load the board-approved hurdle rate",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Take the current board-approved cost-of-capital hurdle",
+            "Confirm its approval date and that it remains in force",
+            "Apply the same hurdle to every segment",
+            "Done when the approved hurdle is loaded and applied uniformly"
+          ],
+          "verify": [
+            "Check the hurdle against the board approval record",
+            "Pass when the applied hurdle matches the approved rate"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Rank segments by RAROC against the hurdle",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Load segment RAROC from the signed RAROC calculation",
+            "Compute the excess or shortfall against the hurdle in basis points",
+            "Rank segments from highest to lowest excess",
+            "Done when every segment is ranked against the hurdle"
+          ],
+          "verify": [
+            "Recompute one excess figure by hand",
+            "Pass when the manual result matches the ranking table"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Quantify the shortfall for below-hurdle segments",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Identify segments falling short of the hurdle",
+            "Express the shortfall in currency as well as basis points",
+            "List the allocated capital consumed by each such segment",
+            "Done when every below-hurdle segment shows a currency shortfall"
+          ],
+          "verify": [
+            "Recompute one currency shortfall from the allocated capital",
+            "Pass when the recomputation matches the table"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Test sensitivity to a plausible loss ratio movement",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Apply a plausible adverse loss ratio movement to each segment result",
+            "Recompute RAROC and the hurdle comparison under that movement",
+            "Identify segments whose classification flips",
+            "Done when sensitivity results exist for every segment"
+          ],
+          "verify": [
+            "Check the movement applied is consistent across segments",
+            "Pass when the same movement is applied throughout"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Add prior-period comparatives to show trend",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Load prior-period RAROC and hurdle comparison results",
+            "Present current and prior results side by side",
+            "Highlight segments whose position has deteriorated",
+            "Done when the comparison shows trend as well as level"
+          ],
+          "verify": [
+            "Check the comparatives against the prior-period workbook",
+            "Pass when the comparatives match the prior workbook"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review the classification with the Chief Actuary",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Review value-creating and value-destroying classifications with the evidence",
+            "Challenge classifications that flip under the sensitivity test",
+            "Approve the comparison for use in decision making",
+            "Done when the classification is reviewed and approved"
+          ],
+          "verify": [
+            "Check each contested classification has a recorded resolution",
+            "Pass when no classification is left disputed"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "a16cd51c-2037-4112-b38e-441f13b31da1",
+      "verifier": "Capital Model Actuary",
+      "generic": {
+        "Defined scope/population": "Every business unit or segment with allocated capital and reported financial results",
+        "In-scope period": "The reporting period whose segment results and allocated capital are used",
+        "Required fields populated and valid": "Each row carries underwriting result, investment income, expected loss, capital and RAROC",
+        "Control totals or record counts reconcile": "Business unit revenue and expense inputs reconcile to segment reporting in the ledger",
+        "Evidence retained with timestamp/version": "RAROC workbook saved with the allocation run reference, period and preparer name",
+        "Exceptions logged with disposition": "Segments with inconsistent tax or reinsurance treatment logged and corrected before issue",
+        "Test population": "All business units with allocated capital in the period",
+        "Pass/fail thresholds": "Pass when allocated capital ties to a signed allocation run for the same period",
+        "Exception handling path": "Unreconciled ledger inputs return to Finance before RAROC is published",
+        "Documented acceptance criteria": "RAROC method note defines the return build-up, tax treatment and reinsurance basis",
+        "Evidence location": "RAROC workbook with the ledger segment extract and allocation output attached"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract segment results from the ERP general ledger",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Extract underwriting result, revenue and expense by business unit for the period",
+            "Reconcile the extract to segment reporting totals",
+            "Save the query and run date",
+            "Done when segment results are extracted and reconciled"
+          ],
+          "verify": [
+            "Compare extract totals to the segment reporting figures",
+            "Pass when the totals agree"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Build the risk-adjusted return per business unit",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Add investment income on allocated capital to the underwriting result",
+            "Deduct expected losses to arrive at the risk-adjusted return",
+            "Show each component separately in Excel",
+            "Done when the risk-adjusted return is built per business unit"
+          ],
+          "verify": [
+            "Foot the components against the stated return",
+            "Pass when the components sum to the reported return"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Load allocated capital from the signed allocation run",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Take allocated capital per business unit from the signed allocation run",
+            "Confirm the run covers the same period as the results",
+            "Reference the run id in the workbook",
+            "Done when allocated capital is loaded from the signed run"
+          ],
+          "verify": [
+            "Compare the loaded capital to the signed allocation output",
+            "Pass when the figures match the signed run"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Apply the tax treatment consistently",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Apply the tax treatment stated in the method note to every business unit",
+            "Show the effective rate used per unit",
+            "Explain any unit-specific deviation",
+            "Done when tax treatment is applied consistently and stated"
+          ],
+          "verify": [
+            "Compare the effective rates across units",
+            "Pass when deviations are explained and permitted"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Compute RAROC gross and net of reinsurance where material",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Identify units that cede materially",
+            "Compute RAROC on both gross and net bases for those units",
+            "Label each result with its basis",
+            "Done when both bases are shown for materially ceding units"
+          ],
+          "verify": [
+            "Check the ceding materiality test against the cession data",
+            "Pass when every materially ceding unit shows both bases"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Issue RAROC results with source references",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Compile RAROC per business unit with the input sources referenced",
+            "Reconcile the total return to the ledger segment reporting",
+            "Issue the workbook to the capital reporting distribution",
+            "Done when RAROC results are issued with references"
+          ],
+          "verify": [
+            "Trace two RAROC results to their component inputs",
+            "Pass when both trace cleanly to ledger and allocation sources"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fj4i80s35kfgzsrit6j4j",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "The capital allocation methodology covering basis, diversification, granularity and unallocated capital",
+        "In-scope period": "The cycle from which the methodology takes effect",
+        "Required fields populated and valid": "Methodology states allocation basis, diversification treatment, granularity and unallocated handling",
+        "Control totals or record counts reconcile": "Allocation granularity maps to the decision levels used in the business planning hierarchy",
+        "Evidence retained with timestamp/version": "Approved methodology versioned in the model governance repository with the effective date",
+        "Exceptions logged with disposition": "Rejected alternative bases recorded with the reason they were not selected",
+        "Test population": "Every element of the methodology required by the governance standard",
+        "Pass/fail thresholds": "Pass when the methodology is approved and minuted before its first use",
+        "Exception handling path": "Unapproved methodology cannot be used for allocation and the run is deferred",
+        "Documented acceptance criteria": "Model governance policy defines what an allocation methodology must state and who approves it",
+        "Evidence location": "Approved methodology document in the model governance repository with forum minutes"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Select and justify the allocation basis",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Compare Euler, Shapley, proportional and co-measure allocation bases",
+            "Select the basis that best supports how capital decisions are taken",
+            "Record why the alternatives were rejected",
+            "Done when the basis is selected with a written justification"
+          ],
+          "verify": [
+            "Check the justification addresses each rejected alternative",
+            "Pass when every alternative considered is addressed"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Specify the diversification benefit treatment",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "State explicitly how the diversification benefit is spread across segments",
+            "Give the formula rather than a narrative description",
+            "Include a worked illustration in Excel",
+            "Done when the diversification treatment is specified with a formula"
+          ],
+          "verify": [
+            "Recompute the worked illustration from the formula",
+            "Pass when the illustration follows the stated formula"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Define the allocation granularity",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Identify the level at which capital decisions are actually taken",
+            "Set allocation granularity to that level",
+            "Confirm the level maps to the planning hierarchy",
+            "Done when granularity is defined and mapped to the hierarchy"
+          ],
+          "verify": [
+            "Compare the granularity to the planning hierarchy levels",
+            "Pass when the two align"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Specify the treatment of unallocated capital",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "State how corporate and operational risk capital is handled",
+            "Decide whether it is allocated, held centrally or charged separately",
+            "Record the treatment and its rationale",
+            "Done when unallocated capital treatment is specified"
+          ],
+          "verify": [
+            "Check the treatment leaves no capital unaccounted",
+            "Pass when all capital is either allocated or explicitly held"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Draft the methodology in the model governance repository",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Assemble basis, diversification, granularity and unallocated treatment into one document",
+            "Add the worked example and stated limitations",
+            "Version the draft in the repository",
+            "Done when a complete versioned draft exists"
+          ],
+          "verify": [
+            "Check the draft against the governance content requirements",
+            "Pass when no required element is missing"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Obtain capital governance forum approval",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Table the methodology at the capital governance forum",
+            "Capture challenge and any directed change",
+            "Record approval and the minute reference before first use",
+            "Done when approval and minute reference are recorded"
+          ],
+          "verify": [
+            "Check the first allocation run date against the approval date",
+            "Pass when approval preceded first use"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "0ac867f6-3d37-40b6-8079-c27a87d6b4e4",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "The cost-of-capital charge applied to capital consumed by internal transactions",
+        "In-scope period": "The period for which the rate and charge are set and applied",
+        "Required fields populated and valid": "Charge record states the rate, its build-up components, frictional treatment and per-unit charge",
+        "Control totals or record counts reconcile": "Charge applied across transactions reconciles to the total capital consumed in the period",
+        "Evidence retained with timestamp/version": "Rate build-up saved with the group target return source, review date and approver",
+        "Exceptions logged with disposition": "Frictional costs excluded from the rate logged with the reason for exclusion",
+        "Test population": "Every internal transaction type to which the charge is applied",
+        "Pass/fail thresholds": "Pass when the charge is applied to capital consumed rather than to notional volume",
+        "Exception handling path": "Rate changes not agreed with Finance are held until the review is complete",
+        "Documented acceptance criteria": "Transfer pricing policy defines the rate basis and the frictional cost treatment",
+        "Evidence location": "Cost-of-capital rate build-up workbook agreed with Finance"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Derive the rate from the group target return",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Take the group target return as the starting point for the rate",
+            "Show each build-up component separately in Excel",
+            "State the source for every component",
+            "Done when the rate is derived with a documented build-up"
+          ],
+          "verify": [
+            "Foot the build-up components against the stated rate",
+            "Pass when the components sum to the rate"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Decide the frictional cost treatment explicitly",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Consider tax, agency and illiquidity frictional costs",
+            "Decide to include or exclude each with a stated reason",
+            "Record the decision on the rate build-up",
+            "Done when each frictional cost carries an include or exclude decision"
+          ],
+          "verify": [
+            "Check every frictional cost category has a decision",
+            "Pass when none is left unaddressed"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Express the charge per unit of allocated capital",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Convert the rate into a charge per unit of allocated capital",
+            "Confirm the unit basis matches the allocation output",
+            "Document the conversion in the workbook",
+            "Done when the charge is expressed on a per-unit basis"
+          ],
+          "verify": [
+            "Recompute the per-unit charge from the rate",
+            "Pass when the recomputation matches the workbook"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Apply the charge to capital consumed by each transaction",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Take capital consumed per internal transaction from the allocation output",
+            "Apply the per-unit charge to that consumption",
+            "Confirm no charge is applied to notional volume",
+            "Done when the charge is applied to consumed capital"
+          ],
+          "verify": [
+            "Check two transactions for the basis the charge was applied to",
+            "Pass when both use capital consumed not notional volume"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile the charge to ledger internal transaction data",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Compare the transactions charged against the ERP general ledger internal transaction records",
+            "Investigate transactions in the ledger with no charge applied",
+            "Record the reconciliation outcome",
+            "Done when charged transactions reconcile to the ledger"
+          ],
+          "verify": [
+            "Check for ledger internal transactions with no charge",
+            "Pass when every relevant transaction carries a charge"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review the rate with Finance for policy consistency",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Review the rate and charge with Finance against external pricing and transfer pricing policy",
+            "Record Finance agreement or any adjustment required",
+            "Publish the agreed rate for the period",
+            "Done when Finance agreement is recorded and the rate is published"
+          ],
+          "verify": [
+            "Check the published rate matches the version Finance agreed",
+            "Pass when both are identical"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fj4rx0s7mkfgzrck4c0vp",
+      "verifier": "Capital Model Actuary",
+      "generic": {
+        "Defined scope/population": "The full documentation of the chosen capital allocation methodology basis",
+        "In-scope period": "The methodology version the documentation describes and its effective period",
+        "Required fields populated and valid": "Document states formulae, named data sources, a worked example and stated limitations",
+        "Control totals or record counts reconcile": "The worked example reproduces the published allocation for the chosen business unit",
+        "Evidence retained with timestamp/version": "Documentation versioned in the repository and linked from the capital model release record",
+        "Exceptions logged with disposition": "Known approximations logged with their effect and the reason for accepting them",
+        "Test population": "Every element of the documentation required by the governance standard",
+        "Pass/fail thresholds": "Pass when the worked example ties to the published allocation output",
+        "Exception handling path": "Documentation gaps are closed before the methodology version is used in reporting",
+        "Documented acceptance criteria": "Model documentation standard sets the required content for a methodology document",
+        "Evidence location": "Versioned methodology documentation in the model governance repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Write out the allocation formulae explicitly",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Write the allocation calculation as formulae rather than narrative",
+            "Define every symbol used in the formulae",
+            "Confirm the formulae match the implemented calculation",
+            "Done when the formulae are written and defined"
+          ],
+          "verify": [
+            "Compare the written formulae to the implemented calculation",
+            "Pass when the two agree"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Name the data source for every input",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "List each input to the allocation calculation",
+            "Name the system, table or report it is extracted from",
+            "Record the extraction point and owner",
+            "Done when every input carries a named source"
+          ],
+          "verify": ["Check for inputs with no named source", "Pass when no input is unsourced"]
+        },
+        {
+          "n": 3,
+          "title": "Build an end-to-end worked example in Microsoft Excel",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Take one business unit and work the allocation end to end",
+            "Show every intermediate figure in the example",
+            "Compare the result to the published allocation for that unit",
+            "Done when the worked example runs end to end"
+          ],
+          "verify": [
+            "Compare the example result to the published allocation",
+            "Pass when the example reproduces the published figure"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "State the known limitations and approximations",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "List approximations used in the allocation and their reason",
+            "State the likely direction and size of each effect",
+            "Record who accepted each approximation",
+            "Done when limitations and approximations are stated"
+          ],
+          "verify": [
+            "Check each approximation carries an accepted-by record",
+            "Pass when none is undocumented"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Link the documentation to the capital model release record",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Create the link from the release record to the methodology documentation",
+            "Confirm the linked documentation version matches the release",
+            "Record the link on both records",
+            "Done when the documentation and release record are linked"
+          ],
+          "verify": [
+            "Open the link from the release record",
+            "Pass when it resolves to the matching documentation version"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Version the documentation in the model governance repository",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Version the completed documentation with its effective date",
+            "Archive the superseded version rather than overwriting it",
+            "Notify users of the new version",
+            "Done when the versioned documentation is published"
+          ],
+          "verify": [
+            "Check the prior version is still retrievable",
+            "Pass when both versions are accessible"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "a74e7911-0815-4464-b924-a8fc480fa071",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "Every material judgement made in setting or applying the capital allocation methodology",
+        "In-scope period": "The methodology version under which the judgements were made",
+        "Required fields populated and valid": "Each register entry carries the judgement, rationale, alternatives, approver, role and date",
+        "Control totals or record counts reconcile": "Register entries cover every judgement identified in the methodology documentation",
+        "Evidence retained with timestamp/version": "Entries cross-referenced to the methodology version they were made under",
+        "Exceptions logged with disposition": "Superseded judgements marked at the annual review rather than deleted",
+        "Test population": "All material allocation judgements in the current cycle",
+        "Pass/fail thresholds": "Pass when every entry names an approver with role and approval date",
+        "Exception handling path": "Judgements without an approver are escalated to the Chief Actuary before the cycle closes",
+        "Documented acceptance criteria": "Governance standard defines what counts as a material judgement and its register content",
+        "Evidence location": "GRC platform governance register entries linked to the methodology in the repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Identify material allocation judgements",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Review the methodology and its application for judgements affecting the outcome",
+            "Apply the materiality definition from the governance standard",
+            "List each judgement identified",
+            "Done when all material judgements are identified"
+          ],
+          "verify": [
+            "Compare the list to the judgements noted in the methodology documentation",
+            "Pass when the two lists agree"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Create a register entry per judgement in the GRC platform",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Create a discrete register entry for each judgement",
+            "Record the judgement made and the rationale",
+            "Avoid grouping unrelated judgements into one entry",
+            "Done when every judgement has its own register entry"
+          ],
+          "verify": [
+            "Check the entry count against the judgement list",
+            "Pass when the counts agree"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Capture alternatives considered and why rejected",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Record the alternatives considered for each judgement",
+            "State why each alternative was rejected",
+            "Attach any supporting analysis",
+            "Done when alternatives and rejection reasons are captured"
+          ],
+          "verify": [
+            "Check each entry names at least one alternative",
+            "Pass when no entry omits alternatives"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record the approver name, role and date",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Approve each judgement entry in the GRC platform",
+            "Record approver name, role and approval date",
+            "Reject entries that lack adequate rationale",
+            "Done when every entry carries an approval record"
+          ],
+          "verify": [
+            "Check each entry for approver name, role and date",
+            "Pass when all three are present"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Cross-reference each entry to the methodology version",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Add the methodology version reference to every entry",
+            "Link the entry to the document in the model governance repository",
+            "Confirm the link resolves",
+            "Done when every entry is cross-referenced to its methodology version"
+          ],
+          "verify": [
+            "Open the link from two entries",
+            "Pass when both resolve to the correct version"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review entries at the annual methodology review",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Review each entry at the annual methodology review",
+            "Mark entries as still valid or superseded",
+            "Record the review date on each entry",
+            "Done when every entry is reviewed and marked"
+          ],
+          "verify": [
+            "Check for entries with no review in the last twelve months",
+            "Pass when every entry has a current review date"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "1d9755bd-7747-4897-b5f3-cdd3dcdeb79a",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "Allocated capital issued to every business unit for inclusion in its financial plan",
+        "In-scope period": "The planning year covered by the business unit plans",
+        "Required fields populated and valid": "Each issue carries business unit, allocated capital, hurdle, version number and issue date",
+        "Control totals or record counts reconcile": "Plan volume and mix assumptions match those used in the capital allocation run",
+        "Evidence retained with timestamp/version": "Each issued allocation carries a version number so plans are not built on stale figures",
+        "Exceptions logged with disposition": "Post-issue changes reissued under a new version with the change reason recorded",
+        "Test population": "Every business unit required to include a capital charge in its plan",
+        "Pass/fail thresholds": "Pass when each business unit plan carries a capital charge line tied to the issued version",
+        "Exception handling path": "Unacknowledged allocations are escalated to the Chief Actuary before plan lock",
+        "Documented acceptance criteria": "Planning standard requires a capital charge line and formal acknowledgement before plan lock",
+        "Evidence location": "Issued allocation records with acknowledgements and the plan templates in the ledger"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Issue allocated capital in the plan template format",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Convert the allocation output into the planning template format and units",
+            "Issue it to Planning and each business unit",
+            "Record the issue date and version number",
+            "Done when allocations are issued in the plan template format"
+          ],
+          "verify": [
+            "Check the issued units match the plan template units",
+            "Pass when the formats align"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Include the capital charge line in each plan profit and loss",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Add the capital charge line to each business unit plan in the ERP general ledger planning module",
+            "Apply the cost-of-capital charge to the allocated capital",
+            "Confirm returns are shown after cost of capital",
+            "Done when every plan carries a capital charge line"
+          ],
+          "verify": [
+            "Check each plan for the presence of the charge line",
+            "Pass when no plan is missing the line"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm plan volume and mix match the allocation run",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Compare plan volume and mix assumptions to those used in the allocation run",
+            "List any difference by business unit",
+            "Rerun the allocation where differences are material",
+            "Done when plan assumptions match the allocation basis"
+          ],
+          "verify": [
+            "Check two business units for assumption alignment",
+            "Pass when the plan and allocation assumptions agree"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Obtain business unit acknowledgement before plan lock",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Request formal acknowledgement of allocated capital and hurdle from each unit head",
+            "Record the acknowledgement date and signatory",
+            "Escalate units that have not acknowledged",
+            "Done when every unit has acknowledged before plan lock"
+          ],
+          "verify": [
+            "Compare acknowledgement dates to the plan lock date",
+            "Pass when all acknowledgements precede plan lock"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reissue any changed allocation under a new version",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Assign a new version number to any post-issue allocation change",
+            "State the reason for the change on the reissue",
+            "Notify Planning and the affected business units",
+            "Done when changes are reissued under a new version"
+          ],
+          "verify": [
+            "Check plans reference the latest issued version",
+            "Pass when no plan is built on a superseded version"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Verify the charge line ties to the issued allocation version",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Reconcile the capital charge in each plan to the issued allocation",
+            "Confirm the version referenced is the current one",
+            "Record the reconciliation before plan sign-off",
+            "Done when every plan charge ties to the issued version"
+          ],
+          "verify": [
+            "Sample three plans and trace the charge to the issued allocation",
+            "Pass when all sampled plans tie"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "e080967b-4d5e-4828-9724-a7c678383d1e",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "The capital allocation review session covering allocation results, RAROC and hurdle comparison",
+        "In-scope period": "The allocation cycle under review with the prior cycle as comparison",
+        "Required fields populated and valid": "Minutes record challenge raised, adjustments agreed, owners and closure dates",
+        "Control totals or record counts reconcile": "Allocation figures in the pre-read agree to the issued allocation output",
+        "Evidence retained with timestamp/version": "Pre-read pack and minutes versioned in the model governance repository",
+        "Exceptions logged with disposition": "Agreed adjustments documented with the reason and the responsible owner",
+        "Test population": "Every business unit represented in the review",
+        "Pass/fail thresholds": "Pass when the pre-read is circulated before the session and minutes record the outcomes",
+        "Exception handling path": "Unresolved challenges are carried as actions with owners into the next cycle",
+        "Documented acceptance criteria": "Capital governance terms of reference define the review participants and content",
+        "Evidence location": "Review minutes and pre-read pack in the model governance repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Circulate the pre-read pack before the session",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Assemble allocation results, RAROC and hurdle comparison into the pre-read",
+            "Circulate to the CFO, business unit leaders and Chief Actuary",
+            "Record the circulation date",
+            "Done when the pre-read is circulated ahead of the session"
+          ],
+          "verify": [
+            "Compare the circulation date to the session date",
+            "Pass when circulation preceded the session"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Capture business unit challenge question by question",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Record each challenge raised by a business unit during the session",
+            "Note the response given at the time",
+            "Flag challenges requiring further analysis",
+            "Done when every challenge is recorded with a response or a flag"
+          ],
+          "verify": [
+            "Check each recorded challenge carries a response or an action",
+            "Pass when none is left blank"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Distinguish method-driven from experience-driven movements",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Split allocation movements between methodology change and experience",
+            "Present the split during the discussion in Excel",
+            "Confirm the split foots to the total movement",
+            "Done when movements are split and presented"
+          ],
+          "verify": [
+            "Foot the split against the total movement",
+            "Pass when the components sum to the movement"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Document agreed adjustments with reason and owner",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Record each adjustment agreed during the review",
+            "State the reason and the responsible owner for each",
+            "Quantify the effect on the affected allocations",
+            "Done when every agreed adjustment is documented with an owner"
+          ],
+          "verify": [
+            "Check each adjustment carries a quantified effect",
+            "Pass when no adjustment is unquantified"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Minute the decisions and actions",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Write minutes covering decisions, adjustments and actions",
+            "Assign a due date to each action",
+            "Circulate the minutes to attendees for confirmation",
+            "Done when minutes are issued with owners and due dates"
+          ],
+          "verify": [
+            "Check every action carries an owner and a due date",
+            "Pass when none is unassigned"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Track actions to closure before the next cycle",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Track each action in the model governance repository",
+            "Update the status as actions close",
+            "Escalate actions still open at the next cycle start",
+            "Done when actions are tracked and status is current"
+          ],
+          "verify": [
+            "Check the open action list at the start of the next cycle",
+            "Pass when no action is overdue without escalation"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "f9f41b4b-eb2c-4c7c-a8c4-82b814721bd2",
+      "verifier": "Capital Model Actuary",
+      "generic": {
+        "Defined scope/population": "Actual capital consumption compared against the allocation plan for every business unit",
+        "In-scope period": "The reporting quarter with year-to-date and full-year projected consumption",
+        "Required fields populated and valid": "Each row carries plan, actual, variance in currency and percentage and the variance drivers",
+        "Control totals or record counts reconcile": "Actual allocated capital across units ties to the group requirement for the quarter",
+        "Evidence retained with timestamp/version": "Variance analysis saved with the allocation run reference and quarter",
+        "Exceptions logged with disposition": "Units consuming materially more than plan flagged with the driver identified and an owner",
+        "Test population": "All business units carrying a capital allocation for the period",
+        "Pass/fail thresholds": "Pass when each variance is decomposed and the commentary is agreed with the business unit",
+        "Exception handling path": "Unagreed commentary delays dashboard publication until the difference is resolved",
+        "Documented acceptance criteria": "Capital monitoring standard defines the variance decomposition and materiality trigger",
+        "Evidence location": "Quarterly variance workbook and the published capital consumption dashboard"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Compute actual allocated capital for the quarter",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Run the allocation on actual quarter exposures in the modeling platform",
+            "Export allocated capital per business unit",
+            "Record the run id and quarter",
+            "Done when actual allocated capital exists per business unit"
+          ],
+          "verify": [
+            "Check the sum of actual allocations against the group requirement",
+            "Pass when the two reconcile"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Compare actual against plan in currency and percentage",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Load the plan allocation for each business unit",
+            "Compute the variance in currency and as a percentage",
+            "Present the comparison in Excel",
+            "Done when every unit shows a plan versus actual variance"
+          ],
+          "verify": [
+            "Recompute one variance percentage by hand",
+            "Pass when the manual result matches the workbook"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Decompose variance into volume, mix, experience and assumption",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Split each variance into volume, mix, experience and assumption components",
+            "Confirm the components foot to the total variance",
+            "Record the decomposition per unit",
+            "Done when every variance is decomposed"
+          ],
+          "verify": [
+            "Sum the components against the total variance",
+            "Pass when the components foot to the variance"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Flag units consuming materially more than plan",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Apply the materiality trigger to each variance",
+            "Flag units breaching the trigger",
+            "Identify the dominant driver for each flagged unit",
+            "Done when material over-consumption is flagged with its driver"
+          ],
+          "verify": [
+            "Re-test one borderline unit against the trigger",
+            "Pass when flagging follows the stated trigger"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Show year-to-date and full-year projected consumption",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Compute year-to-date consumption against year-to-date plan",
+            "Project full-year consumption from the current run rate",
+            "Show both against plan in the workbook",
+            "Done when both views are presented against plan"
+          ],
+          "verify": [
+            "Check the projection basis is stated",
+            "Pass when the projection method is documented"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Agree commentary with the business unit before publication",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Send draft variance commentary to each affected business unit",
+            "Incorporate factual corrections and record disagreements",
+            "Publish the dashboard once commentary is agreed",
+            "Done when commentary is agreed and the dashboard is published"
+          ],
+          "verify": [
+            "Check the published commentary against the agreed version",
+            "Pass when the published text matches what was agreed"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "6ac91a16-a011-4a2f-b199-7c13cf50c479",
+      "verifier": "Capital Model Actuary",
+      "generic": {
+        "Defined scope/population": "Diversified capital allocated to every reporting segment by line of business, product and geography",
+        "In-scope period": "The reporting period of the source capital run with prior-period comparatives",
+        "Required fields populated and valid": "Each row carries segment, risk type, allocated capital, run id and methodology version",
+        "Control totals or record counts reconcile": "Allocated capital across segments equals the diversified total with no unallocated residual",
+        "Evidence retained with timestamp/version": "Output file tagged with source run id, methodology version and production date",
+        "Exceptions logged with disposition": "Segments added or removed since the prior period logged with the treatment applied",
+        "Test population": "Every reporting segment in the current external segment structure",
+        "Pass/fail thresholds": "Pass when no unallocated residual remains after the allocation is complete",
+        "Exception handling path": "A residual balance stops publication and returns to the Capital Model Actuary",
+        "Documented acceptance criteria": "Allocation methodology defines the segment hierarchy and the residual tolerance",
+        "Evidence location": "Tagged allocation output file with the modelling platform allocation run"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the segment hierarchy against external reporting",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Take the current external segment reporting structure",
+            "Compare it to the allocation hierarchy in the modeling platform",
+            "Update the hierarchy where the structures differ",
+            "Done when the allocation hierarchy matches external reporting"
+          ],
+          "verify": [
+            "Compare the two structures segment by segment",
+            "Pass when they align with no orphan segments"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Run the allocation of diversified capital",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Run the allocation routine on the signed capital run output",
+            "Produce allocated capital for every reporting segment",
+            "Record the run id and methodology version",
+            "Done when allocated capital exists for every segment"
+          ],
+          "verify": [
+            "Check for segments with no allocated capital",
+            "Pass when every segment carries an allocation"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Split results by risk type within each segment",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Break each segment allocation down by risk type in Excel",
+            "Foot each split to the segment total",
+            "Present the split in the output",
+            "Done when every segment shows a risk type split"
+          ],
+          "verify": [
+            "Foot the splits per segment",
+            "Pass when every split sums to the segment total"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm no unallocated residual remains",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Sum allocated capital across all segments",
+            "Compare against the diversified group requirement",
+            "Investigate and clear any residual",
+            "Done when the residual is zero or inside tolerance"
+          ],
+          "verify": [
+            "Recompute the residual independently",
+            "Pass when no material residual remains"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Add prior-period comparatives on the same basis",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Load prior-period allocations restated to the current segment basis",
+            "Present current and prior figures side by side",
+            "Note segments added or removed with their treatment",
+            "Done when comparatives are shown on the current basis"
+          ],
+          "verify": [
+            "Check the restated comparatives against the prior output",
+            "Pass when the restatement is documented and traceable"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Tag and publish the allocation output",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Tag the output with run id, methodology version and production date",
+            "Publish to the capital reporting location",
+            "Notify the allocation distribution list",
+            "Done when the tagged output is published"
+          ],
+          "verify": [
+            "Open the published file and check both tags are present",
+            "Pass when run id and methodology version are recorded"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "27335af1-1ed4-4ab3-81d9-4c1d972c29aa",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "Business units whose actual capital consumption diverges materially from their allocation",
+        "In-scope period": "The monitoring period in which the divergence was identified",
+        "Required fields populated and valid": "Each recommendation carries unit, divergence, root cause, options, effects and proposed decision",
+        "Control totals or record counts reconcile": "Divergences cited agree to the quarterly variance analysis for the same period",
+        "Evidence retained with timestamp/version": "Recommendation memo versioned in the model governance repository with the analysis date",
+        "Exceptions logged with disposition": "Divergences below the materiality threshold logged as monitored rather than escalated",
+        "Test population": "All business units showing a divergence in the monitoring period",
+        "Pass/fail thresholds": "Pass when each material divergence has a root cause and quantified reallocation options",
+        "Exception handling path": "Recommendations without quantified options are returned before the governance forum",
+        "Documented acceptance criteria": "Capital monitoring standard sets the materiality threshold and the escalation route",
+        "Evidence location": "Reallocation recommendation memo in the model governance repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Test divergence against the materiality threshold",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Take the variance analysis for the period",
+            "Test each divergence against the defined materiality threshold",
+            "List units breaching the threshold",
+            "Done when every divergence is tested against the threshold"
+          ],
+          "verify": [
+            "Re-test one borderline unit",
+            "Pass when the outcome follows the stated threshold"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Identify the root cause of each material divergence",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Classify each divergence as growth, mix, experience or method driven",
+            "Support the classification with the variance decomposition",
+            "Record the root cause per unit",
+            "Done when every material divergence carries a root cause"
+          ],
+          "verify": [
+            "Check each root cause against the decomposition components",
+            "Pass when the classification matches the decomposition"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Quantify reallocation options in Microsoft Excel",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Develop reallocation options for each material divergence",
+            "Quantify the capital and RAROC effect of each option",
+            "Present the options side by side",
+            "Done when every divergence has quantified options"
+          ],
+          "verify": [
+            "Recompute the RAROC effect for one option",
+            "Pass when the recomputation matches the memo"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "State the knock-on effect on hurdles and plans",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Assess how each option changes the affected units hurdles and plans",
+            "State the effect explicitly in the recommendation",
+            "Flag options requiring a plan reissue",
+            "Done when knock-on effects are stated for every option"
+          ],
+          "verify": [
+            "Check each option shows its plan and hurdle effect",
+            "Pass when none omits the knock-on effect"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Draft the recommendation with a proposed decision",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Select the preferred option and state why",
+            "Write the proposed decision in unambiguous terms",
+            "Attach the supporting quantification",
+            "Done when the memo states a clear proposed decision"
+          ],
+          "verify": [
+            "Check the proposed decision follows from the quantification",
+            "Pass when the recommendation is supported by the analysis"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Submit the recommendation to the capital governance forum",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Review the memo before submission and challenge the preferred option",
+            "Submit it to the capital governance forum",
+            "Record the forum decision against the memo",
+            "Done when the memo is submitted and the decision recorded"
+          ],
+          "verify": [
+            "Check the recorded decision against the forum minutes",
+            "Pass when both agree"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2flfz91vcvkfgzotneq4y1",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "The capital allocation methodology and its continued appropriateness for decision making",
+        "In-scope period": "The annual review year with the realised performance used for back-testing",
+        "Required fields populated and valid": "Review record states back-test results, challenge inputs, proposed changes and their impact",
+        "Control totals or record counts reconcile": "Back-tested segments match the segments in the allocation output for the tested period",
+        "Evidence retained with timestamp/version": "Approved methodology version updated with effective date and communicated to the business",
+        "Exceptions logged with disposition": "Segments where allocation and realised performance diverge logged with the explanation",
+        "Test population": "Every segment included in the allocation for the tested period",
+        "Pass/fail thresholds": "Pass when proposed changes carry a before and after impact quantified per segment",
+        "Exception handling path": "Unquantified proposals are returned before the methodology version is approved",
+        "Documented acceptance criteria": "Model governance policy requires an annual methodology review with back-testing",
+        "Evidence location": "Dated annual review record in the model governance repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Reassess the allocation basis against decision practice",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Review how capital decisions were actually taken during the year",
+            "Assess whether the allocation basis supported those decisions",
+            "Record the conclusion with examples",
+            "Done when the basis is reassessed against real decision practice"
+          ],
+          "verify": [
+            "Check the conclusion cites specific decisions",
+            "Pass when the assessment is evidence based"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Back-test allocation against realised performance",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Compare allocated capital against realised risk-adjusted performance by segment",
+            "Identify segments where the allocation proved a poor predictor",
+            "Record the back-test results in Excel",
+            "Done when back-test results exist for every segment"
+          ],
+          "verify": [
+            "Check the back-test covers the same segments as the allocation",
+            "Pass when no segment is omitted"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Review peer and market practice as a challenge input",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Collect peer and market practice on allocation bases",
+            "Compare against the in-force methodology",
+            "Record where practice has moved away from the current basis",
+            "Done when external challenge inputs are documented"
+          ],
+          "verify": [
+            "Check each challenge input carries a source",
+            "Pass when every input is sourced"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Quantify the impact of proposed changes per segment",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Restate the allocation under each proposed change",
+            "Show the before and after allocation per segment",
+            "State which segments gain and which lose capital",
+            "Done when every proposed change is quantified per segment"
+          ],
+          "verify": [
+            "Check the restated totals still foot to the group requirement",
+            "Pass when the restatement reconciles"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Approve the methodology version and set its effective date",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Review the review pack and approve the changes to adopt",
+            "Set the effective date for the updated methodology",
+            "Record the approval in the model governance repository",
+            "Done when the updated version is approved with an effective date"
+          ],
+          "verify": [
+            "Check the approval record names the version and effective date",
+            "Pass when both are recorded"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Communicate the updated methodology to the business",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Summarise the change and its allocation effect for business unit heads",
+            "Circulate ahead of the next allocation cycle",
+            "Record the communication date and recipients",
+            "Done when the change is communicated before the next cycle"
+          ],
+          "verify": [
+            "Compare the communication date to the next cycle start",
+            "Pass when communication preceded the cycle"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "c6d7f660-6cd2-4ef6-b714-524db7d3e18e",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "Every intercompany reinsurance arrangement requiring actuarial transfer pricing input",
+        "In-scope period": "The transfer pricing year covered by the arrangements and their pricing",
+        "Required fields populated and valid": "Each treaty row carries premium, risk transfer result, capital relief, capital consumed and benchmark",
+        "Control totals or record counts reconcile": "Intercompany premiums agree to the ceded and assumed balances in the general ledger",
+        "Evidence retained with timestamp/version": "Support memo issued to Finance and Tax with assumptions, limitations and issue date",
+        "Exceptions logged with disposition": "Treaties failing the risk transfer test logged with the consequence for pricing",
+        "Test population": "All in-force intercompany reinsurance treaties",
+        "Pass/fail thresholds": "Pass when each treaty has an actuarially derived premium and a risk transfer test result",
+        "Exception handling path": "Treaties without an arm's-length benchmark are referred back before the file is issued",
+        "Documented acceptance criteria": "Transfer pricing policy requires arm's-length pricing and documented risk transfer",
+        "Evidence location": "Actuarial support memo and pricing workbook issued to Finance and Tax"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Calculate the actuarially fair premium per cession",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Price each intercompany cession on the basis used for third-party cessions",
+            "Use the actuarial modeling platform for expected loss and volatility loading",
+            "Document the pricing assumptions per treaty",
+            "Done when every cession has an actuarially derived premium"
+          ],
+          "verify": [
+            "Compare the pricing basis to that used for a third-party treaty",
+            "Pass when the same basis is applied"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Test and document risk transfer per treaty",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Run the risk transfer test for each intercompany treaty",
+            "Record the test result and the method used",
+            "Flag treaties that fail the test",
+            "Done when every treaty has a documented risk transfer result"
+          ],
+          "verify": [
+            "Check each result against the test threshold",
+            "Pass when the conclusion follows the test output"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Quantify capital relief and capital consumed",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Compute the capital relief obtained by the ceding entity",
+            "Compute the capital consumed by the assuming entity",
+            "Present both figures per treaty in Excel",
+            "Done when both capital effects are quantified per treaty"
+          ],
+          "verify": [
+            "Check the two effects against the paired gross and net runs",
+            "Pass when both tie to the model runs"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Benchmark terms against third-party treaties",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Identify comparable third-party treaty terms",
+            "Compare pricing, commission and structure against the intercompany terms",
+            "Document the comparison for the transfer pricing file",
+            "Done when an arm's-length benchmark exists per treaty"
+          ],
+          "verify": [
+            "Check each benchmark names a comparable treaty",
+            "Pass when every benchmark cites a comparator"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile premiums to the ledger balances",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Compare derived premiums to ceded and assumed balances in the ERP general ledger",
+            "Investigate treaties with a material pricing difference",
+            "Record the reconciliation outcome",
+            "Done when premiums reconcile to the ledger balances"
+          ],
+          "verify": [
+            "Check for treaties in the ledger with no derived premium",
+            "Pass when every ledger treaty is priced"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Issue the actuarial support memo to Finance and Tax",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Review the pricing, risk transfer and benchmark conclusions",
+            "Issue the support memo stating assumptions and limitations",
+            "Record the issue date and recipients",
+            "Done when the memo is issued to Finance and Tax"
+          ],
+          "verify": [
+            "Check the memo covers every in-force intercompany treaty",
+            "Pass when no treaty is omitted"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2flg7e1vgekfgzrw86z7e3",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "Allocation methodology changes arising from new, discontinued or restructured portfolios",
+        "In-scope period": "The period between the last methodology version and the next allocation run",
+        "Required fields populated and valid": "Each change record carries the portfolio movement, allocation treatment, restated impact and approver",
+        "Control totals or record counts reconcile": "Restated prior-period allocation foots to the same group total as the original",
+        "Evidence retained with timestamp/version": "Updated methodology version tagged and the superseded version archived not overwritten",
+        "Exceptions logged with disposition": "Discontinued or run-off portfolios logged with their documented allocation treatment",
+        "Test population": "Every portfolio change affecting the allocation hierarchy in the period",
+        "Pass/fail thresholds": "Pass when the prior period is restated so the methodology effect is separable from experience",
+        "Exception handling path": "Changes without a restatement are held until the restatement is produced",
+        "Documented acceptance criteria": "Methodology change procedure requires restatement and version archiving",
+        "Evidence location": "Approved change entry and versioned methodology in the model governance repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Add new segments to the allocation hierarchy",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "List new segments or business units created in the period",
+            "Define the capital basis for each new segment",
+            "Add them to the hierarchy in the modeling platform",
+            "Done when every new segment is added with a defined basis"
+          ],
+          "verify": [
+            "Check each new segment carries a capital basis",
+            "Pass when none is added without one"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Define the treatment for discontinued and run-off portfolios",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Identify discontinued and run-off portfolios",
+            "Define how their capital is allocated rather than dropping them",
+            "Document the treatment and its rationale",
+            "Done when every discontinued portfolio has a documented treatment"
+          ],
+          "verify": [
+            "Check no discontinued portfolio has simply disappeared from the hierarchy",
+            "Pass when each is either allocated or explicitly retired with a note"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Reflect reinsurance structure change in the segment basis",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Assess how the reinsurance structure change affects segment-level capital",
+            "Update the segment capital basis accordingly",
+            "Record the change in the methodology document",
+            "Done when the segment basis reflects the reinsurance change"
+          ],
+          "verify": [
+            "Compare the updated basis against the in-force programme",
+            "Pass when the basis matches the current structure"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Restate the prior period under the updated methodology",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Rerun the prior-period allocation under the updated methodology in Excel",
+            "Show original and restated allocations side by side",
+            "Confirm both foot to the same group total",
+            "Done when the prior period is restated and compared"
+          ],
+          "verify": [
+            "Foot both the original and restated allocations",
+            "Pass when both reconcile to the group total"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Isolate the methodology effect from experience",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Compare restated prior period to the current period allocation",
+            "Attribute the difference between methodology and experience",
+            "Document the split per segment",
+            "Done when the methodology effect is isolated per segment"
+          ],
+          "verify": [
+            "Sum the methodology and experience effects against the total change",
+            "Pass when the components foot to the total"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Approve, tag and archive the methodology versions",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Approve the change entry with the restatement attached",
+            "Tag the updated methodology version in the model governance repository",
+            "Archive the superseded version rather than overwriting it",
+            "Done when the new version is tagged and the old one archived"
+          ],
+          "verify": [
+            "Check the superseded version remains retrievable",
+            "Pass when both versions are accessible"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjeee0wsdkfgzo4r85y6i",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "The proposed distribution and all distributions made in the trailing twelve months for the entity",
+        "In-scope period": "The twelve months preceding the proposed payment date",
+        "Required fields populated and valid": "Assessment states entity, domicile, proposed amount, trailing distributions and threshold applied",
+        "Control totals or record counts reconcile": "Trailing distributions aggregated agree to the dividends recorded in the ledger",
+        "Evidence retained with timestamp/version": "Determination saved with the threshold calculation, domicile rule reference and date",
+        "Exceptions logged with disposition": "Extraordinary determinations logged with the prior-approval lead time and filing form identified",
+        "Test population": "Every proposed distribution assessed in the period",
+        "Pass/fail thresholds": "Pass when the determination is supported by the threshold calculation for the domicile",
+        "Exception handling path": "Extraordinary dividends are routed to prior approval before any payment is scheduled",
+        "Documented acceptance criteria": "Insurance holding company law for the domicile defines the ordinary dividend threshold",
+        "Evidence location": "Determination record in the GRC platform with the threshold calculation attached"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the domicile threshold rule",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Identify the entity domicile and its ordinary dividend threshold rule",
+            "Record whether the rule is greater-of or lesser-of based",
+            "Reference the statutory source in the assessment",
+            "Done when the applicable threshold rule is confirmed and referenced"
+          ],
+          "verify": [
+            "Check the rule reference against the domicile statute",
+            "Pass when the cited rule matches the domicile"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Aggregate the trailing twelve months of distributions",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "List all distributions made in the trailing twelve months",
+            "Aggregate them for the threshold test in Excel",
+            "Reconcile the total to the dividends recorded in the ledger",
+            "Done when trailing distributions are aggregated and reconciled"
+          ],
+          "verify": [
+            "Compare the aggregate to the ledger dividend account",
+            "Pass when the two agree"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Apply the threshold test to the proposed dividend",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Compute the threshold amount using the domicile formula",
+            "Compare the proposed dividend plus trailing distributions against it",
+            "Record the calculation supporting the outcome",
+            "Done when the threshold test is applied and documented"
+          ],
+          "verify": [
+            "Recompute the threshold amount independently",
+            "Pass when the recomputation matches the assessment"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record the ordinary or extraordinary determination",
+          "actor": "Chief Actuary",
+          "sop": [
+            "State whether the dividend is ordinary or extraordinary",
+            "Attach the supporting calculation to the determination",
+            "Record the determination date and decision maker",
+            "Done when the determination is recorded with its support"
+          ],
+          "verify": [
+            "Check the determination follows from the threshold calculation",
+            "Pass when the conclusion matches the calculation"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Identify the approval lead time and filing form",
+          "actor": "Chief Actuary",
+          "sop": [
+            "For extraordinary dividends identify the required prior-approval lead time",
+            "Identify the filing form the domicile requires",
+            "Record both in the GRC platform against the determination",
+            "Done when lead time and form are identified for extraordinary dividends"
+          ],
+          "verify": [
+            "Compare the lead time to the proposed payment date",
+            "Pass when the timetable allows the required notice"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm earned surplus availability",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Take earned surplus on the statutory definition for the domicile",
+            "Confirm the proposed dividend is payable from earned surplus",
+            "Record the confirmation with the ledger reference",
+            "Done when earned surplus availability is confirmed"
+          ],
+          "verify": [
+            "Compare earned surplus to the proposed dividend amount",
+            "Pass when earned surplus covers the proposed distribution"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "6acbfce5-aaea-4ba1-bdc6-7b846edda6ae",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "Planned growth, acquisitions and reinsurance changes affecting the capital requirement",
+        "In-scope period": "The planning horizon over which the growth and structure changes take effect",
+        "Required fields populated and valid": "Each driver row carries the assumption, the isolated requirement effect and the ratio effect",
+        "Control totals or record counts reconcile": "Planned premium by line agrees to the approved business plan volumes",
+        "Evidence retained with timestamp/version": "Projection saved with plan version, model version and analysis date",
+        "Exceptions logged with disposition": "Drivers whose effect cannot be isolated logged with the approximation used",
+        "Test population": "Every planned growth and reinsurance change in the plan",
+        "Pass/fail thresholds": "Pass when growth and reinsurance effects are quantified separately rather than combined",
+        "Exception handling path": "Unisolated effects are re-run before the analysis supports a capital decision",
+        "Documented acceptance criteria": "Capital planning standard requires driver isolation and a stated ratio movement",
+        "Evidence location": "Projection workbook with the plan extract and model run references"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Reproject the requirement using planned premium growth",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Load planned premium growth by line from the approved plan",
+            "Reproject the capital requirement in the actuarial modeling platform",
+            "Record the projected requirement per plan year",
+            "Done when the requirement is reprojected on plan growth"
+          ],
+          "verify": [
+            "Compare the plan volumes used to the approved plan file",
+            "Pass when the volumes match the approved plan"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Isolate the reinsurance structure change effect",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Run the projection with the current structure and again with the planned structure",
+            "Record the difference as the reinsurance effect",
+            "Hold all other assumptions constant between runs",
+            "Done when the reinsurance effect is isolated"
+          ],
+          "verify": [
+            "Check the two runs differ only in reinsurance structure",
+            "Pass when no other assumption changed"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Quantify first-year new business strain",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Separate the first-year capital strain from steady-state requirement",
+            "Quantify the strain by line of business in Excel",
+            "Show strain separately in the projection",
+            "Done when new business strain is quantified separately"
+          ],
+          "verify": [
+            "Check the strain plus steady state equals the total requirement",
+            "Pass when the components foot to the total"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Identify mix shift toward capital-intensive lines",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Compare planned business mix against the current mix",
+            "Identify shifts toward more capital-intensive lines",
+            "Quantify the incremental requirement from the mix shift",
+            "Done when the mix shift effect is identified and quantified"
+          ],
+          "verify": [
+            "Check the mix comparison against the plan and current portfolio",
+            "Pass when the shift is supported by the mix data"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Express the combined effect as a ratio movement",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Combine the growth, reinsurance, strain and mix effects",
+            "Express the combined effect as a solvency ratio movement over the horizon",
+            "Chart the ratio path against the internal target",
+            "Done when the combined ratio movement is stated"
+          ],
+          "verify": [
+            "Sum the individual effects and compare to the combined movement",
+            "Pass when the components explain the combined movement"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review the analysis with the Chief Actuary",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Review the driver isolation and the resulting ratio path",
+            "Challenge assumptions that differ from the approved plan",
+            "Approve the analysis for use in the capital decision",
+            "Done when the analysis is reviewed and approved"
+          ],
+          "verify": [
+            "Check every challenged assumption has a documented response",
+            "Pass when no challenge is unanswered"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "4c22d76d-cb76-4be7-b812-2072d6cba4f5",
+      "verifier": "Capital Model Actuary",
+      "generic": {
+        "Defined scope/population": "Excess capital above every applicable threshold for each legal entity",
+        "In-scope period": "The valuation date of the capital position used for the excess calculation",
+        "Required fields populated and valid": "Each entity row carries capital, each threshold, excess in currency and in ratio points",
+        "Control totals or record counts reconcile": "Entity capital used agrees to the signed capital calculation for the same valuation date",
+        "Evidence retained with timestamp/version": "Excess calculation saved with thresholds applied, source run and calculation date",
+        "Exceptions logged with disposition": "Entities where a rating agency requirement binds logged with the constraint identified",
+        "Test population": "Every legal entity with distributable capital to assess",
+        "Pass/fail thresholds": "Pass when the binding constraint is identified for each entity with multiple thresholds",
+        "Exception handling path": "Entities with negative excess against any threshold are escalated before distribution planning",
+        "Documented acceptance criteria": "Capital policy defines the regulatory, action level and internal target thresholds",
+        "Evidence location": "Excess capital workbook linked to the signed capital calculation"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Load capital position per legal entity",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Take available capital per entity from the signed capital calculation",
+            "Confirm the valuation date is consistent across entities",
+            "Record the source run reference",
+            "Done when capital is loaded for every entity from a signed source"
+          ],
+          "verify": [
+            "Compare loaded capital to the signed calculation",
+            "Pass when the figures match"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Compute excess above each regulatory threshold",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Compute excess above the regulatory minimum and the company action level",
+            "Show each threshold on its own line in Excel",
+            "Express excess in currency and ratio points",
+            "Done when excess above regulatory thresholds is computed"
+          ],
+          "verify": [
+            "Recompute one excess figure by hand",
+            "Pass when the manual result matches the workbook"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Compute excess above the internal target buffer",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Load the internal target buffer from the capital policy",
+            "Compute excess above the target separately from regulatory excess",
+            "Show the target excess per entity",
+            "Done when excess above the internal target is computed"
+          ],
+          "verify": [
+            "Check the target used against the current capital policy",
+            "Pass when the applied target matches the policy"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Include the rating agency capital requirement",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Take the rating agency capital requirement where a rating is maintained",
+            "Compute excess above that requirement in the actuarial modeling platform output",
+            "Show it alongside the other thresholds",
+            "Done when the rating agency constraint is included where relevant"
+          ],
+          "verify": [
+            "Check every rated entity includes the agency requirement",
+            "Pass when no rated entity omits it"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Identify the binding constraint per entity",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Compare excess against all thresholds for each entity",
+            "Identify which threshold binds",
+            "Label the binding constraint on the entity row",
+            "Done when every entity shows its binding constraint"
+          ],
+          "verify": [
+            "Check the labelled constraint is the smallest excess",
+            "Pass when the label matches the smallest excess"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Publish excess capital by legal entity",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Present excess per legal entity rather than at group level",
+            "Reconcile entity capital to the ERP general ledger equity",
+            "Publish the workbook to the capital reporting location",
+            "Done when entity-level excess is published and reconciled"
+          ],
+          "verify": [
+            "Check the entity capital against the ledger equity",
+            "Pass when the two reconcile per entity"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "f7b7ad45-ccbb-498d-a3f6-68a661be70d8",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "The timing, amount and form of the proposed distribution agreed with Treasury and Finance",
+        "In-scope period": "The window between the valuation date and the proposed payment date",
+        "Required fields populated and valid": "Agreement records payment date, amount, form, liquidity confirmation and asset selection",
+        "Control totals or record counts reconcile": "Liquidity available on the payment date agrees to the Treasury cash forecast",
+        "Evidence retained with timestamp/version": "Agreed terms recorded and circulated to Treasury, Finance and Tax with the date",
+        "Exceptions logged with disposition": "In-kind asset selections that breach portfolio policy logged and revised before agreement",
+        "Test population": "Each proposed distribution requiring a timing and form decision",
+        "Pass/fail thresholds": "Pass when Treasury confirms liquidity for the amount on the proposed payment date",
+        "Exception handling path": "Insufficient liquidity moves the payment date or reduces the amount before board submission",
+        "Documented acceptance criteria": "Capital and investment policy define liquidity buffers and portfolio quality requirements",
+        "Evidence location": "Agreed distribution terms circulated to Treasury, Finance and Tax"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Check the payment date against the reporting calendar",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Compare the proposed payment date against quarterly reporting and filing dates",
+            "Identify any conflict with a reporting cut-off",
+            "Propose an alternative date where a conflict exists",
+            "Done when the payment date is checked against the calendar"
+          ],
+          "verify": [
+            "Check the proposed date against the filing calendar entries",
+            "Pass when no filing conflict remains"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm liquidity with Treasury against the cash forecast",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Request the cash forecast covering the payment date from Treasury",
+            "Confirm sufficient liquidity for the proposed amount",
+            "Record the Treasury confirmation",
+            "Done when liquidity is confirmed for the amount and date"
+          ],
+          "verify": [
+            "Compare the proposed amount to the forecast available cash",
+            "Pass when the forecast covers the amount with the policy buffer"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Assess cash versus in-kind distribution effects",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Compare the capital and liquidity effect of cash versus asset transfer",
+            "Quantify each effect in Excel",
+            "Recommend the preferred form with the reason",
+            "Done when both forms are assessed and a form is recommended"
+          ],
+          "verify": [
+            "Check both effects are quantified rather than described",
+            "Pass when each form shows a quantified effect"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Review asset selection for any in-kind element",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "List the assets proposed for transfer",
+            "Test the residual portfolio against duration and quality policy",
+            "Revise the selection where the residual breaches policy",
+            "Done when the residual portfolio meets policy after transfer"
+          ],
+          "verify": [
+            "Check residual duration and quality against policy limits",
+            "Pass when the residual portfolio stays inside policy"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile the amount to the ERP general ledger position",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Confirm the distributable amount against the ledger surplus position",
+            "Confirm the accounting entries planned for the distribution",
+            "Record the reconciliation",
+            "Done when the amount is reconciled to the ledger position"
+          ],
+          "verify": [
+            "Compare the amount to available surplus in the ledger",
+            "Pass when the amount sits inside available surplus"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Circulate the agreed date, amount and form",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Record the agreed payment date, amount and form",
+            "Circulate to Treasury, Finance and Tax before board submission",
+            "Record the circulation date and recipients",
+            "Done when the agreed terms are circulated before board submission"
+          ],
+          "verify": [
+            "Compare the circulation date to the board submission date",
+            "Pass when circulation preceded submission"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fje5b0wo5kfgzcxg9paal",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "The rationale supporting the dividend decision including alternatives and stressed outcomes",
+        "In-scope period": "The decision period covering the proposed distribution and its approval",
+        "Required fields populated and valid": "Memo states amount, pre and post positions, alternatives, stress reference and board approval",
+        "Control totals or record counts reconcile": "Pre and post-distribution positions agree to the excess capital and stress calculations",
+        "Evidence retained with timestamp/version": "Signed memo filed in the model governance repository with the approval date",
+        "Exceptions logged with disposition": "Conditions attached to the approval recorded on the memo with owners",
+        "Test population": "Every dividend decision taken in the period",
+        "Pass/fail thresholds": "Pass when the memo shows the post-distribution position against every applicable threshold",
+        "Exception handling path": "Memos without stress-tested results are returned before board submission",
+        "Documented acceptance criteria": "Capital policy requires documented rationale and stress evidence for distributions",
+        "Evidence location": "Signed dividend decision memo in the model governance repository and the GRC approval record"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "State the recommended amount and pre and post positions",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "State the recommended distribution amount in the memo",
+            "Show the capital position before and after the distribution",
+            "Reference the source excess capital calculation",
+            "Done when amount and both positions are stated"
+          ],
+          "verify": [
+            "Check both positions against the excess capital workbook",
+            "Pass when both tie to the workbook"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Document the alternatives considered",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Record the alternatives such as retaining capital or a smaller distribution",
+            "State why each alternative was not preferred",
+            "Include any non-dividend capital return option considered",
+            "Done when alternatives and reasons are documented"
+          ],
+          "verify": [
+            "Check at least two alternatives are addressed",
+            "Pass when the alternatives are documented with reasons"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "State the post-distribution position against every threshold",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Compare the post-distribution position to regulatory, action level and internal thresholds",
+            "Include the rating agency requirement where relevant",
+            "State each comparison explicitly in the memo",
+            "Done when the post position is compared to every threshold"
+          ],
+          "verify": [
+            "Check no applicable threshold is omitted",
+            "Pass when every threshold appears in the comparison"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reference the stress-tested post-dividend position",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Reference the approved adverse scenario results for the post-dividend position",
+            "State whether any scenario breaches a minimum",
+            "Confirm the decision is not based on the base case alone",
+            "Done when stress results are referenced in the memo"
+          ],
+          "verify": [
+            "Check the referenced stress results exist and are current",
+            "Pass when the referenced results match the current stress run"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record board approval and any conditions",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Record the board approval decision and date on the memo",
+            "Write any condition attached into the memo text",
+            "Assign an owner to each condition",
+            "Done when approval and conditions are recorded"
+          ],
+          "verify": ["Check each condition carries an owner", "Pass when no condition is unowned"]
+        },
+        {
+          "n": 6,
+          "title": "File the signed memo and the GRC approval record",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Sign and date the final memo",
+            "File it in the model governance repository",
+            "Record the approval in the GRC platform against the distribution",
+            "Done when the signed memo and GRC record are filed"
+          ],
+          "verify": [
+            "Check the GRC record links to the filed memo",
+            "Pass when both records reference the same decision"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "d3a33fe9-93db-443f-b5fb-8260f5c89282",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "The maximum distributable amount per legal entity under all applicable constraints",
+        "In-scope period": "The period from the valuation date to the proposed payment date",
+        "Required fields populated and valid": "Each entity row carries every constraint tested, the binding one and the maximum amount",
+        "Control totals or record counts reconcile": "Earned surplus used in the limitation agrees to the statutory ledger balance",
+        "Evidence retained with timestamp/version": "Estimate saved with constraints applied, capital generation assumption and analysis date",
+        "Exceptions logged with disposition": "Constraints excluded from the test logged with the reason for exclusion",
+        "Test population": "Every legal entity from which a distribution could be taken",
+        "Pass/fail thresholds": "Pass when the maximum equals the lowest of all tested constraints for the entity",
+        "Exception handling path": "Entities with no headroom are excluded from the distribution plan and the reason recorded",
+        "Documented acceptance criteria": "Capital policy and domicile law define the constraints and the retained buffer",
+        "Evidence location": "Maximum distributable workbook with the constraint calculations attached"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Test the regulatory and internal target constraints",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Compute the amount distributable before breaching the regulatory minimum",
+            "Repeat against the internal capital target",
+            "Record both amounts per entity in Excel",
+            "Done when both constraints are tested per entity"
+          ],
+          "verify": [
+            "Recompute one constraint amount by hand",
+            "Pass when the manual result matches the workbook"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Test rating agency and liquidity constraints",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Compute the amount distributable within the rating agency requirement",
+            "Compute the amount supportable by available liquidity",
+            "Record both constraint amounts per entity",
+            "Done when agency and liquidity constraints are tested"
+          ],
+          "verify": [
+            "Check the liquidity figure against the Treasury cash forecast",
+            "Pass when the liquidity constraint matches the forecast"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Apply the statutory earned surplus limitation",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Take earned surplus on the statutory definition from the ERP general ledger",
+            "Apply the domicile earned surplus limitation where it exists",
+            "Record the limited amount",
+            "Done when the earned surplus limitation is applied"
+          ],
+          "verify": [
+            "Compare the earned surplus figure to the ledger balance",
+            "Pass when the two agree"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reflect capital generation to the payment date",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Project capital generation between the valuation date and payment date",
+            "Use the actuarial modeling platform projection for the period",
+            "Adjust the maximum for the projected generation",
+            "Done when projected generation is reflected in the maximum"
+          ],
+          "verify": [
+            "Check the projection assumptions against the approved plan",
+            "Pass when the assumptions match the plan"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "State the retained buffer above the internal target",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "State the buffer retained above the internal target explicitly",
+            "Avoid computing a maximum that distributes to the exact threshold",
+            "Show the buffer in currency and ratio points",
+            "Done when the retained buffer is stated"
+          ],
+          "verify": [
+            "Check the maximum leaves the stated buffer intact",
+            "Pass when the buffer is preserved in the maximum"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Present the maximum alongside the recommended amount",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Take the lowest of all tested constraints as the maximum per entity",
+            "Show the maximum beside the recommended distribution",
+            "Make the retained headroom visible to the board",
+            "Done when maximum and recommendation are presented together"
+          ],
+          "verify": [
+            "Check the maximum equals the smallest constraint amount",
+            "Pass when the maximum matches the binding constraint"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "5a8779c3-8676-45b4-9b67-fdbb393a11b4",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "Projected available capital and capital requirement across the three to five year planning horizon",
+        "In-scope period": "Each year of the approved planning horizon",
+        "Required fields populated and valid": "Each projected year carries available capital, requirement, ratio, distributions and assumptions",
+        "Control totals or record counts reconcile": "Opening position agrees to the signed capital calculation at the valuation date",
+        "Evidence retained with timestamp/version": "Projection saved with plan version, model version and production date",
+        "Exceptions logged with disposition": "Years where the projected ratio dips below the internal target flagged with the response",
+        "Test population": "Every year in the planning horizon and every entity in the projection",
+        "Pass/fail thresholds": "Pass when both available capital and requirement are projected for every year",
+        "Exception handling path": "Projections using assumptions outside the approved plan are re-run before use",
+        "Documented acceptance criteria": "Capital planning standard requires plan-consistent assumptions and a charted ratio path",
+        "Evidence location": "Projection workbook with the approved plan extract and model run references"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Project available capital for each plan year",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Project earnings, distributions and capital movements per plan year",
+            "Roll forward available capital in the actuarial modeling platform",
+            "Record the projected available capital per year",
+            "Done when available capital is projected for every plan year"
+          ],
+          "verify": [
+            "Check the opening position against the signed capital calculation",
+            "Pass when the opening position matches the signed figure"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Project the capital requirement for each plan year",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Project the requirement using plan volumes and mix per year",
+            "Reflect the planned reinsurance structure in each year",
+            "Record the projected requirement per year",
+            "Done when the requirement is projected for every plan year"
+          ],
+          "verify": [
+            "Compare the plan volumes used to the approved plan file",
+            "Pass when they match without adjustment"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Include planned distributions, injections and debt movements",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Add planned dividends, capital injections and debt movements to the projection",
+            "Time each item to its planned date",
+            "Show each item as a separate line in Excel",
+            "Done when all planned capital movements are included"
+          ],
+          "verify": [
+            "Check the movements against the approved capital plan",
+            "Pass when every planned movement is reflected"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "State investment return and yield curve assumptions",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "State the investment return and yield curve assumptions used",
+            "Confirm they are consistent with the approved plan",
+            "Document the assumptions with the projection",
+            "Done when the assumptions are stated and confirmed consistent"
+          ],
+          "verify": [
+            "Compare the assumptions to the plan assumption set",
+            "Pass when the two are consistent"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Chart the projected solvency ratio path",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Compute the projected ratio for each plan year",
+            "Chart the path against the internal capital target",
+            "Flag any year where the path dips below target",
+            "Done when the ratio path is charted with dips flagged"
+          ],
+          "verify": [
+            "Recompute one projected ratio from the components",
+            "Pass when the recomputation matches the chart"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review the projection with the Chief Actuary",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Review the projection assumptions and the ratio path",
+            "Challenge any assumption that departs from the approved plan",
+            "Approve the projection for use in distribution decisions",
+            "Done when the projection is reviewed and approved"
+          ],
+          "verify": [
+            "Check every challenge has a documented response",
+            "Pass when no challenge is left open"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "1bf39c54-fede-461e-ba16-81afc0b920d4",
+      "verifier": "Capital Model Actuary",
+      "generic": {
+        "Defined scope/population": "Actual post-distribution capital trajectory compared against the path projected at the decision",
+        "In-scope period": "Each reporting quarter following the distribution",
+        "Required fields populated and valid": "Each quarter row carries actual ratio, projected ratio, deviation and attributed drivers",
+        "Control totals or record counts reconcile": "Actual ratio agrees to the published solvency ratio for the same quarter",
+        "Evidence retained with timestamp/version": "Comparison saved with the decision projection reference and the quarter reported",
+        "Exceptions logged with disposition": "Early-warning triggers raised where the actual path falls materially below the projection",
+        "Test population": "Every quarter in the period following the distribution",
+        "Pass/fail thresholds": "Pass when each deviation is attributed between capital generation and requirement movement",
+        "Exception handling path": "Triggered quarters are escalated to the Chief Actuary with a recovery assessment",
+        "Documented acceptance criteria": "Capital monitoring standard defines the trigger level and the attribution categories",
+        "Evidence location": "Post-distribution trajectory workbook linked to the dividend decision projection"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Compare the actual ratio to the projected path",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Take the actual post-dividend solvency ratio for the quarter",
+            "Compare against the path projected at the decision",
+            "Record the deviation in ratio points in Excel",
+            "Done when actual and projected ratios are compared"
+          ],
+          "verify": [
+            "Check the actual ratio against the published solvency ratio",
+            "Pass when the two agree"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Attribute the deviation between generation and requirement",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Split the deviation between capital generation shortfall and requirement increase",
+            "Use the actuarial modeling platform movement analysis for the split",
+            "Record the attribution per quarter",
+            "Done when the deviation is attributed to both components"
+          ],
+          "verify": [
+            "Sum the attributed components against the total deviation",
+            "Pass when the components foot to the deviation"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Track recovery to the internal target",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Compare the actual recovery path against the timeline assumed at the decision",
+            "Record whether recovery is ahead or behind that timeline",
+            "Update the expected recovery date",
+            "Done when recovery progress is tracked against the assumed timeline"
+          ],
+          "verify": [
+            "Check the assumed timeline against the decision memo",
+            "Pass when the comparison uses the decision assumptions"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reconcile the actual position to the ERP general ledger",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Reconcile actual capital to the ledger equity position for the quarter",
+            "Investigate any unexplained difference",
+            "Record the reconciliation with the comparison",
+            "Done when the actual position reconciles to the ledger"
+          ],
+          "verify": [
+            "Compare the reconciled figure to the ledger balance",
+            "Pass when the two agree"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Raise an early-warning trigger where required",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Test the deviation against the defined trigger level",
+            "Raise the early-warning trigger where the level is breached",
+            "Escalate the trigger to the Chief Actuary with the recovery assessment",
+            "Done when triggers are tested and raised where required"
+          ],
+          "verify": [
+            "Re-test one borderline quarter against the trigger level",
+            "Pass when the trigger decision follows the stated level"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Feed findings into the next distribution assessment",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Summarise where the projection proved optimistic or pessimistic",
+            "Record the assumption changes to apply next time",
+            "Attach the findings to the distribution assessment file",
+            "Done when findings are recorded for the next assessment"
+          ],
+          "verify": [
+            "Check the next assessment references these findings",
+            "Pass when the findings are carried forward"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "d9a77000-ace8-4e02-b2fa-2ff55c9dd0e5",
+      "verifier": "Appointed Actuary",
+      "generic": {
+        "Defined scope/population": "The capital adequacy opinion covering the named entity and the specific proposed distribution",
+        "In-scope period": "The valuation date on which the opinion is given",
+        "Required fields populated and valid": "Opinion names entity, valuation date, reliances, limitations, conclusion and signature",
+        "Control totals or record counts reconcile": "Figures relied on agree to the signed reserve, capital and Finance sources named",
+        "Evidence retained with timestamp/version": "Signed and dated opinion filed in the model governance repository with supporting analysis",
+        "Exceptions logged with disposition": "Qualifications and data deficiencies disclosed in the opinion rather than omitted",
+        "Test population": "Each distribution requiring an actuarial capital adequacy opinion",
+        "Pass/fail thresholds": "Pass when the conclusion covers both base and stressed conditions",
+        "Exception handling path": "Unresolved data deficiencies are disclosed as a qualification on the opinion",
+        "Documented acceptance criteria": "Actuarial standards of practice define the opinion content and reliance disclosure",
+        "Evidence location": "Signed opinion in the model governance repository with the supporting capital analysis"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "State the entity, valuation date and distribution opined on",
+          "actor": "Appointed Actuary",
+          "sop": [
+            "Name the legal entity and the valuation date in the opinion",
+            "Describe the specific distribution being opined on including amount and form",
+            "Confirm the scope with the Chief Actuary",
+            "Done when the opinion scope is stated precisely"
+          ],
+          "verify": [
+            "Check the described distribution matches the board proposal",
+            "Pass when the scope matches the proposal"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Identify reliances by name and role",
+          "actor": "Appointed Actuary",
+          "sop": [
+            "List reliance on reserve figures, model output and Finance data",
+            "Name the individual and role relied on for each",
+            "Obtain the reliance statements where required",
+            "Done when every reliance is identified by name and role"
+          ],
+          "verify": [
+            "Check each reliance names a person and role",
+            "Pass when no reliance is anonymous"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Assemble the supporting capital analysis",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Assemble the excess capital, projection and stress analyses supporting the opinion",
+            "Reconcile each figure to its signed source",
+            "Attach the analysis to the opinion file in Excel",
+            "Done when the supporting analysis is assembled and reconciled"
+          ],
+          "verify": [
+            "Trace three figures from the analysis to their signed sources",
+            "Pass when all three tie"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Conclude on adequacy under base and stressed conditions",
+          "actor": "Appointed Actuary",
+          "sop": [
+            "State whether capital remains adequate after the distribution in the base case",
+            "State the same conclusion under the approved stressed conditions",
+            "Reference the stress results relied on",
+            "Done when the conclusion covers both conditions"
+          ],
+          "verify": [
+            "Check the conclusion against the base and stress results",
+            "Pass when both are addressed"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Disclose qualifications, limitations and data deficiencies",
+          "actor": "Appointed Actuary",
+          "sop": [
+            "Disclose any qualification or limitation on the opinion",
+            "Disclose data deficiencies that affect the conclusion",
+            "Avoid omitting known limitations",
+            "Done when all qualifications and deficiencies are disclosed"
+          ],
+          "verify": [
+            "Compare disclosures to the known open findings",
+            "Pass when no known deficiency is omitted"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Sign, date and file the opinion",
+          "actor": "Appointed Actuary",
+          "sop": [
+            "Sign and date the opinion with the qualification statement attached",
+            "File the opinion in the model governance repository",
+            "Notify the Chief Actuary and the board secretary",
+            "Done when the signed opinion is filed"
+          ],
+          "verify": [
+            "Check the filed opinion carries signature, date and qualification statement",
+            "Pass when all three are present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "0f56c371-a7a7-480b-b0e7-1652439235ff",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "Actual capital position reported against the projection presented at the dividend decision",
+        "In-scope period": "The reporting quarter with the decision projection as the comparison basis",
+        "Required fields populated and valid": "Report states actual ratio, projected ratio, attributed variance and remaining capacity",
+        "Control totals or record counts reconcile": "Actual figures agree to the published quarterly capital results",
+        "Evidence retained with timestamp/version": "Board report versioned in the model governance repository with the circulation date",
+        "Exceptions logged with disposition": "Breaches of or approaches to the internal target trigger disclosed with the proposed response",
+        "Test population": "Each quarterly board report following the distribution decision",
+        "Pass/fail thresholds": "Pass when the variance is attributed to drivers rather than reported as a single number",
+        "Exception handling path": "Unattributed variance delays the report until the drivers are identified",
+        "Documented acceptance criteria": "Board reporting standard defines the capital reporting content and comparison basis",
+        "Evidence location": "Versioned board report in the model governance repository with the meeting minutes"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Show the actual ratio against the decision projection",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Take the actual solvency ratio for the quarter",
+            "Present it against the projection made at the dividend decision",
+            "Label the projection version used",
+            "Done when actual and projected ratios are shown together"
+          ],
+          "verify": [
+            "Check the actual ratio against the published quarterly result",
+            "Pass when the two agree"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Attribute the variance to identified drivers",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Decompose the variance into its drivers in Excel",
+            "Show each driver with its contribution",
+            "Avoid presenting the variance as a single unexplained number",
+            "Done when the variance is fully attributed"
+          ],
+          "verify": [
+            "Sum the drivers against the total variance",
+            "Pass when the drivers foot to the variance"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "State the remaining distribution capacity for the year",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Compute the distribution capacity remaining for the year",
+            "Show it against the capacity assumed at the decision",
+            "State the constraint that now binds",
+            "Done when remaining capacity is stated with its binding constraint"
+          ],
+          "verify": [
+            "Recompute remaining capacity from the current position",
+            "Pass when the recomputation matches the report"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Disclose any approach to the internal target trigger",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Test the current position against the internal target trigger",
+            "Disclose any breach or near breach in the report",
+            "State the proposed response for each",
+            "Done when trigger status is disclosed with a response"
+          ],
+          "verify": [
+            "Check the trigger test against the capital policy level",
+            "Pass when the current policy level is applied"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Version and circulate the board report",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Version the report in the model governance repository",
+            "Circulate to the board distribution list ahead of the meeting",
+            "Record the circulation date and recipients",
+            "Done when the report is versioned and circulated"
+          ],
+          "verify": [
+            "Compare the circulation date to the papers deadline",
+            "Pass when circulation preceded the deadline"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record board direction on capital management",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Capture board direction or decisions on capital management",
+            "Record them in the minutes with owners",
+            "Track resulting actions to closure",
+            "Done when board direction is minuted with owners"
+          ],
+          "verify": ["Check each minuted action carries an owner", "Pass when none is unassigned"]
+        }
+      ]
+    },
+    {
+      "taskId": "27f36c48-fdff-4da5-b622-599e97cae282",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "The post-dividend capital position under every scenario in the approved adverse scenario set",
+        "In-scope period": "The stress horizon applied from the proposed payment date",
+        "Required fields populated and valid": "Each scenario row carries post-dividend capital, requirement, ratio and threshold compliance",
+        "Control totals or record counts reconcile": "Pre-stress post-dividend position agrees to the excess capital calculation",
+        "Evidence retained with timestamp/version": "Stress results saved with scenario ids, run ids and the proposed dividend amount",
+        "Exceptions logged with disposition": "Scenarios requiring a reduced dividend logged with the reduced amount identified",
+        "Test population": "Every scenario in the approved adverse scenario set",
+        "Pass/fail thresholds": "Pass when no dividend recommendation is submitted without post-distribution stress results",
+        "Exception handling path": "Scenarios breaching the target trigger a recommended reduction before board submission",
+        "Documented acceptance criteria": "Capital policy requires stress-tested distributions against the approved scenario set",
+        "Evidence location": "Post-dividend stress workbook attached to the dividend recommendation"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Apply the proposed dividend to the base capital position",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Reduce available capital by the proposed dividend amount",
+            "Confirm the pre-stress post-dividend position against the excess capital calculation",
+            "Record the position as the stress starting point",
+            "Done when the post-dividend base position is set"
+          ],
+          "verify": [
+            "Compare the base position to the excess capital workbook",
+            "Pass when the two agree"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Run the approved adverse scenario set on that position",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Apply each approved adverse scenario to the post-dividend position",
+            "Run the scenarios in the actuarial modeling platform",
+            "Record the run id per scenario",
+            "Done when every approved scenario is run on the post-dividend position"
+          ],
+          "verify": [
+            "Compare the scenarios run to the approved scenario set",
+            "Pass when none is omitted"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Apply catastrophe, reserve and market shocks individually",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Apply the catastrophe, reserve deterioration and market shock scenarios separately",
+            "Record the post-dividend ratio under each",
+            "Show the results side by side in Excel",
+            "Done when each shock type has its own post-dividend result"
+          ],
+          "verify": [
+            "Check each shock type appears as a discrete result",
+            "Pass when all three are shown separately"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "State compliance with minimum and target per scenario",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Compare each post-dividend stressed ratio to the regulatory minimum",
+            "Compare it to the internal capital target",
+            "State compliance explicitly for each scenario",
+            "Done when compliance is stated for every scenario"
+          ],
+          "verify": [
+            "Check the thresholds used against the capital policy",
+            "Pass when the current thresholds are applied"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Identify the reduced dividend that restores compliance",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "For scenarios failing the target solve for the dividend that would restore it",
+            "Record the reduced amount per failing scenario",
+            "Identify the binding scenario for the recommendation",
+            "Done when a reduced amount is identified for every failing scenario"
+          ],
+          "verify": [
+            "Rerun one reduced amount to confirm it restores the target",
+            "Pass when the reduced amount clears the target"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Include the stress conclusion in the dividend recommendation",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Insert the stress conclusion into the dividend recommendation itself",
+            "Avoid reporting stress results only in a separate document",
+            "Confirm no recommendation is submitted without them",
+            "Done when the stress conclusion sits inside the recommendation"
+          ],
+          "verify": [
+            "Check the submitted recommendation contains the stress results",
+            "Pass when the results are present in the recommendation"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "a4e03dd7-b1e6-4953-bca6-ddbea659a970",
+      "verifier": "Chief Actuary",
+      "generic": {
+        "Defined scope/population": "The dividend notification or approval filing for the entity and its domicile regulator",
+        "In-scope period": "The notice period required before the proposed payment date",
+        "Required fields populated and valid": "Filing states entity, amount, form, payment date and the ordinary or extraordinary determination",
+        "Control totals or record counts reconcile": "Amounts in the filing agree to the board-approved distribution memo",
+        "Evidence retained with timestamp/version": "Filing record stores the submission, acknowledgement and dates in the GRC platform",
+        "Exceptions logged with disposition": "Filings awaiting non-objection logged with payment withheld until it is received",
+        "Test population": "Every distribution requiring notification or approval in the period",
+        "Pass/fail thresholds": "Pass when no extraordinary dividend is paid before non-objection is recorded",
+        "Exception handling path": "A regulator objection stops the payment and returns the decision to the board",
+        "Documented acceptance criteria": "Domicile insurance holding company law defines the notice period and filing content",
+        "Evidence location": "Filing record with acknowledgement in the GRC platform"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the notice period for the domicile",
+          "actor": "Capital Model Actuary",
+          "sop": [
+            "Identify the notice period required by the domicile",
+            "Compare it against the proposed payment date",
+            "Set the filing deadline in the GRC platform",
+            "Done when the notice period and filing deadline are set"
+          ],
+          "verify": [
+            "Check the notice period against the domicile statute",
+            "Pass when the deadline gives the full required notice"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Prepare the filing content",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "State the dividend amount, form and payment date in the filing",
+            "Include the ordinary or extraordinary determination",
+            "Reconcile the amounts to the board-approved memo",
+            "Done when the filing content is prepared and reconciled"
+          ],
+          "verify": ["Compare the filing amounts to the approved memo", "Pass when they agree"]
+        },
+        {
+          "n": 3,
+          "title": "Attach the required actuarial and financial exhibits",
+          "actor": "Actuarial Analyst",
+          "sop": [
+            "Prepare the supporting exhibits in the format the domicile requires",
+            "Include the capital adequacy support and stress conclusion",
+            "Attach the exhibits to the filing in Excel format where accepted",
+            "Done when all required exhibits are attached"
+          ],
+          "verify": [
+            "Compare the attached exhibits to the domicile requirement list",
+            "Pass when none is missing"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Obtain officer certification",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Route the filing for officer certification",
+            "Confirm the signatory is authorised for the entity",
+            "Record the certification signature and date",
+            "Done when the filing carries a signed officer certification"
+          ],
+          "verify": [
+            "Check the signatory against the authorised officer list",
+            "Pass when the signatory is authorised"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Lodge the filing before the deadline",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Lodge the filing with the domicile regulator",
+            "Capture the submission receipt and timestamp",
+            "Store both in the GRC platform filing record",
+            "Done when the filing is lodged and the receipt captured"
+          ],
+          "verify": [
+            "Compare the lodgement date to the filing deadline",
+            "Pass when lodgement preceded the deadline"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record acknowledgement and hold payment where required",
+          "actor": "Chief Actuary",
+          "sop": [
+            "Record the regulator acknowledgement or non-objection when received",
+            "Instruct Treasury to withhold payment until non-objection where prior approval applies",
+            "Close the filing record once payment is cleared to proceed",
+            "Done when acknowledgement is recorded and payment status is set"
+          ],
+          "verify": [
+            "Compare the payment date to the non-objection date",
+            "Pass when no extraordinary dividend was paid before non-objection"
           ]
         }
       ]

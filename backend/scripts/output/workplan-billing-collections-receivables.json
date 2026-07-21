@@ -1,0 +1,3180 @@
+{
+  "area": "Billing, Collections & Receivables",
+  "tasks": [
+    {
+      "taskId": "8301eb5f-40c2-49e4-9a5f-5175e875e2b6",
+      "verifier": "Billing Operations Manager",
+      "generic": {
+        "Defined scope/population": "Billing accounts with an approved mid-term payment plan or schedule change request open in BillingCenter.",
+        "In-scope period": "Change requests received in the current billing cycle taking effect on or after the next unbilled instalment.",
+        "Required fields populated and valid": "New payment plan code, change effective date, mode-change fee and next due date are populated on the account.",
+        "Control totals or record counts reconcile": "Sum of remaining instalments equals unbilled written premium to the cent after the schedule rebuild.",
+        "Evidence retained with timestamp/version": "Before and after instalment schedule previews are filed in the document repository with a timestamp.",
+        "Exceptions logged with disposition": "Accounts left with orphaned instalment rows are logged with a correction owner and disposition.",
+        "Test population": "All mid-term billing mode changes applied in BillingCenter during the review period.",
+        "Pass/fail thresholds": "Every changed account shows a rebuilt schedule equal to unbilled premium and zero orphan instalment rows.",
+        "Exception handling path": "Failed rebuilds are backed out and referred to the Billing Operations Manager before the notice run releases.",
+        "Documented acceptance criteria": "New plan, effective date, filed fee and a regenerated premium notice are all present before release.",
+        "Evidence location": "BillingCenter account transaction history plus the change evidence pack in the document management repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Open the billing account and record the current payment plan in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Search BillingCenter by policy number and open the billing account named on the change request.",
+            "Record the current payment plan, next unbilled instalment due date and outstanding balance.",
+            "Confirm the signed or logged change request is attached to the account before editing.",
+            "Done when the current plan and next unbilled due date are recorded on the change case."
+          ],
+          "verify": [
+            "Compare the recorded plan and due date against the BillingCenter account fields.",
+            "Pass when the recorded current plan and next unbilled due date match BillingCenter exactly."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Validate the requested effective date against the instalment schedule in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Compare the requested effective date to the next unbilled instalment due date on the schedule.",
+            "Move the effective date forward to the next unbilled due date if it would fall mid-instalment.",
+            "Confirm the revised effective date still sits inside the policy term.",
+            "Done when a compliant change effective date is agreed and recorded."
+          ],
+          "verify": [
+            "Check the agreed effective date is on or after the next unbilled instalment due date.",
+            "Pass when no change is scheduled to take effect mid-instalment."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm the policy premium basis in the policy administration system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Open the policy in the policy administration system and read the current written premium including endorsements.",
+            "Confirm the policy is in force and carries no pending transaction that would alter premium.",
+            "Pass the confirmed unbilled premium figure back to the billing change case.",
+            "Done when the unbilled premium basis is confirmed in writing on the case."
+          ],
+          "verify": [
+            "Compare the confirmed premium basis to the BillingCenter account balance.",
+            "Pass when the policy premium basis and billing unbilled balance agree to the cent."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Set the new payment plan on the billing account in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Select the requested payment plan code on the billing account and enter the agreed effective date.",
+            "Leave already billed instalments untouched so prior notices remain valid.",
+            "Save the change and capture the transaction reference on the case.",
+            "Done when the account shows the new payment plan with the agreed effective date."
+          ],
+          "verify": [
+            "Re-open the account and read the payment plan and effective date fields.",
+            "Pass when the account carries the requested plan code and the agreed effective date."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Re-run the instalment schedule preview in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Run the instalment schedule preview for the rebuilt plan.",
+            "Total the remaining instalments and compare to unbilled written premium.",
+            "List any instalment rows carried over from the superseded plan.",
+            "Done when the preview total equals unbilled written premium to the cent."
+          ],
+          "verify": [
+            "Recompute the instalment total independently from the preview lines.",
+            "Pass when the totals agree to the cent and no superseded instalment row remains."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Apply the state-filed mode-change or instalment fee in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Look up the mode-change and instalment fee filed for the policy state and plan.",
+            "Add the fee as a separate charge type on the billing account.",
+            "Suppress the fee where the state or product does not permit it.",
+            "Done when the correct filed fee or a documented no-fee decision is on the account."
+          ],
+          "verify": [
+            "Compare the applied fee to the filed fee schedule row for the policy state.",
+            "Pass when the fee charged equals the filed amount or a no-fee reason is recorded."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Regenerate and inspect the next premium notice in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Regenerate the next premium notice for the account after the schedule rebuild.",
+            "Confirm the notice shows the new instalment amount, due date and any fee.",
+            "Confirm the notice mailing date still meets the state advance-notice lead time.",
+            "Done when a correct regenerated notice is queued for the account."
+          ],
+          "verify": [
+            "Read the regenerated notice against the rebuilt schedule line.",
+            "Pass when notice amount and due date match the first rebuilt instalment."
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Release the change and file the evidence pack in the document management repository",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Review the change case, the schedule preview pair and the fee decision.",
+            "Release the change so the notice run can pick up the account.",
+            "File the before and after previews and the request document in the repository.",
+            "Done when the change is released and the evidence pack is indexed by policy number."
+          ],
+          "verify": [
+            "Retrieve the evidence pack from the repository using the policy number.",
+            "Pass when the pack is retrievable and shows a dated approval by the Billing Operations Manager."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "b55ab7fb-b143-4d87-af42-ffad177b319e",
+      "verifier": "Billing Operations Manager",
+      "generic": {
+        "Defined scope/population": "Every active state and line of business combination that produces premium notices from BillingCenter.",
+        "In-scope period": "The current statutory review cycle covering all bulletins and statute changes issued to date.",
+        "Required fields populated and valid": "Each matrix row carries state, line, lead-time days and a current statute or bulletin citation.",
+        "Control totals or record counts reconcile": "Matrix row count equals the count of active state and line combinations in the policy book.",
+        "Evidence retained with timestamp/version": "The advance-notice matrix version and the sample bill proofs are filed with review date and reviewer.",
+        "Exceptions logged with disposition": "States configured at the bare statutory minimum are logged and referred to compliance for a buffer decision.",
+        "Test population": "All configured advance-notice lead-time parameters across active state and line combinations.",
+        "Pass/fail thresholds": "No configured lead time is shorter than the statutory minimum for its state and line.",
+        "Exception handling path": "Short or missing lead times are corrected before the next notice run and escalated to compliance.",
+        "Documented acceptance criteria": "Every active state and line has a cited, configured lead time proven by a sample bill print date.",
+        "Evidence location": "BillingCenter notice configuration screens and the notice-timing evidence pack in the document repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract the active state and line population from the policy administration system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Extract in-force policy counts grouped by policy state and line of business.",
+            "Remove states and lines with no active policies and no new business appetite.",
+            "Publish the resulting active combination list to the notice-timing review.",
+            "Done when a dated list of active state and line combinations exists."
+          ],
+          "verify": [
+            "Compare the combination count to the in-force extract control total.",
+            "Pass when every in-force policy maps to a combination on the list."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Refresh the statutory advance-notice matrix with current citations",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Pull the current advance-notice requirement for each state and line from the statute or bulletin.",
+            "Record the required days before due date a bill must be mailed and the citation reference.",
+            "Update rows where a bulletin has changed the requirement since the last review.",
+            "Done when every row carries a lead time and a current citation."
+          ],
+          "verify": [
+            "Spot-check citations for the highest volume states against the source text.",
+            "Pass when no matrix row lacks a statute or bulletin citation."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Configure the lead-time parameter per state and line in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Enter the required lead time against each state and line in the notice configuration.",
+            "Remove any single company-wide default that would override state values.",
+            "Save the configuration and record the change reference.",
+            "Done when each active combination has its own configured lead-time value."
+          ],
+          "verify": [
+            "List configured parameters and compare to the matrix row by row.",
+            "Pass when every active combination has a parameter equal to or above its statutory minimum."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Run a sample bill for the shortest lead-time state in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Select the state and line with the shortest statutory lead time.",
+            "Generate a sample premium notice and read the print and mail date.",
+            "Compare the mail date to the due date less the statutory lead time.",
+            "Done when the sample proves the mail date meets the statutory minimum."
+          ],
+          "verify": [
+            "Recompute the day count between mail date and due date on the sample.",
+            "Pass when the sample mail date is at or before the statutory latest mail date."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm mailing-date stamping is captured on the notice record in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Open a released notice record and confirm the mail date field is populated from the print vendor file.",
+            "Confirm the stamped date is stored against the notice and not only in the batch log.",
+            "Test retrieval of proof of mailing for one policy end to end.",
+            "Done when proof of mailing can be produced for any released notice."
+          ],
+          "verify": [
+            "Retrieve proof of mailing for a randomly chosen released notice.",
+            "Pass when the notice record returns a stamped mail date within the retrieval attempt."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "File the notice-timing evidence pack in the document management repository",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Assemble the matrix, the configuration listing and the sample bill proofs into one pack.",
+            "Index the pack by review date and version number.",
+            "Apply the retention class used for compliance evidence.",
+            "Done when the pack is filed and retrievable by review date."
+          ],
+          "verify": [
+            "Retrieve the pack by review date from the repository.",
+            "Pass when the pack returns the matrix, configuration listing and sample proofs together."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Escalate zero-buffer and short lead times to compliance",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "List states where the configured lead time equals the statutory minimum with no buffer.",
+            "List any state where the configured value is below the minimum and correct it immediately.",
+            "Raise the zero-buffer list to compliance with a recommended buffer.",
+            "Done when every flagged state has a logged compliance referral or correction."
+          ],
+          "verify": [
+            "Re-run the configuration comparison after corrections.",
+            "Pass when no configured lead time is below its statutory minimum and every zero-buffer state is referred."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl4aj1pkokfgzcikshmrx",
+      "verifier": "Billing Specialist",
+      "generic": {
+        "Defined scope/population": "New and re-rated billing accounts in BillingCenter awaiting assignment of a billing cycle code.",
+        "In-scope period": "Policies bound in the current business day whose billing accounts are not yet cycle-assigned.",
+        "Required fields populated and valid": "Billing cycle code, cycle anchor day, first due date and instalment count are populated on the account.",
+        "Control totals or record counts reconcile": "Generated instalment count equals the count implied by the elected payment plan and policy term.",
+        "Evidence retained with timestamp/version": "The generated instalment schedule is retained on the account with a creation timestamp.",
+        "Exceptions logged with disposition": "Accounts where the cycle pushes an instalment past expiration are logged and re-anchored.",
+        "Test population": "All billing accounts assigned a cycle during the review period.",
+        "Pass/fail thresholds": "No instalment is scheduled beyond policy expiration and every account carries a cycle code and anchor day.",
+        "Exception handling path": "Cycle conflicts are returned to the Policy Administration Analyst for confirmation of the elected plan.",
+        "Documented acceptance criteria": "Cycle code, anchor day and instalment count match the elected payment plan and the policy term.",
+        "Evidence location": "BillingCenter billing account schedule tab and the policy record in the policy administration system."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Read the elected payment plan from the policy administration system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Open the bound policy and read the elected payment plan and effective date.",
+            "Confirm the election is the current one and not superseded by a later endorsement.",
+            "Record the elected plan and effective date on the billing setup case.",
+            "Done when the elected plan and policy effective date are recorded."
+          ],
+          "verify": [
+            "Compare the recorded plan to the policy declarations page.",
+            "Pass when the recorded plan matches the policy election exactly."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Select the matching billing cycle code on the billing account in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Open the billing account and select the cycle code matching the elected payment plan.",
+            "Reject any cycle code that does not exist in the approved cycle list.",
+            "Save the selection and note the transaction reference.",
+            "Done when the account carries the cycle code matching the elected plan."
+          ],
+          "verify": [
+            "Read the cycle code back from the saved account.",
+            "Pass when the account cycle code corresponds to the elected payment plan."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Set the cycle anchor day on the billing account in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Set the anchor day so the first due date falls on or after the policy effective date.",
+            "Avoid anchor days above the twenty-eighth where short months would shift due dates.",
+            "Save the anchor day and regenerate the draft schedule.",
+            "Done when the first due date is on or after the policy effective date."
+          ],
+          "verify": [
+            "Read the first due date from the regenerated schedule.",
+            "Pass when the first due date is not earlier than the policy effective date."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Generate the instalment schedule and count the instalments in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Generate the full instalment schedule for the policy term.",
+            "Count the instalments produced and compare to the count implied by the plan.",
+            "Investigate any difference before accepting the schedule.",
+            "Done when the generated instalment count matches the expected count."
+          ],
+          "verify": [
+            "Recount instalments on the generated schedule.",
+            "Pass when the count equals the expected count for the plan and term."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Check the final instalment against policy expiration in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Read the due date of the last instalment on the generated schedule.",
+            "Compare it to the policy expiration date in the policy administration system.",
+            "Re-anchor the cycle if the final instalment falls after expiration.",
+            "Done when no instalment is dated after policy expiration."
+          ],
+          "verify": [
+            "Compare the last instalment due date to the policy expiration date.",
+            "Pass when the last instalment due date is on or before expiration."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the assigned cycle on the policy record in the policy administration system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Confirm the policy record reflects the billing cycle assigned on the account.",
+            "Raise a correction where policy and billing disagree on the plan.",
+            "Record the confirmation on the billing setup case.",
+            "Done when policy and billing records show the same billing cycle."
+          ],
+          "verify": [
+            "Compare the cycle shown on both systems.",
+            "Pass when the policy and billing records agree on cycle and plan."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Release the cycle assignment for notice generation in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Set the account to active so it is picked up by the notice generation job.",
+            "Confirm no validation error blocks the account from the next run.",
+            "Record the release timestamp on the setup case.",
+            "Done when the account is active and eligible for the next notice run."
+          ],
+          "verify": [
+            "Run the notice eligibility check for the account.",
+            "Pass when the account appears eligible with no outstanding validation error."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhvf5075vkfgzxn5dn5b8",
+      "verifier": "Billing Specialist",
+      "generic": {
+        "Defined scope/population": "Policyholders electing EFT or card payment whose bank or card details must be captured for drafting.",
+        "In-scope period": "Enrolment requests received in the current business day ahead of the next draft run.",
+        "Required fields populated and valid": "Payment token, last four digits, account type, account holder name and authorisation date are populated.",
+        "Control totals or record counts reconcile": "Count of captured mandates equals the count of enrolment requests received and accepted for the day.",
+        "Evidence retained with timestamp/version": "The dated debit authorisation is filed in the document repository against the billing account.",
+        "Exceptions logged with disposition": "Failed routing checks, name mismatches and declined verifications are logged with the outcome.",
+        "Test population": "All bank and card capture events processed through the payment gateway in the period.",
+        "Pass/fail thresholds": "No full account number or PAN is stored anywhere outside the gateway token.",
+        "Exception handling path": "Third-party payor name mismatches are held until a signed authorisation is filed.",
+        "Documented acceptance criteria": "A token with last-four masking and a dated authorisation exists before any draft is scheduled.",
+        "Evidence location": "BillingCenter payment instrument record plus the authorisation image in the document repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Launch the hosted capture page from the payment gateway",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Open the payment gateway hosted field from the billing account rather than a local form.",
+            "Confirm the session is bound to the correct billing account and policy number.",
+            "Do not transcribe account or card numbers into any note or case field.",
+            "Done when the hosted capture session is open against the correct account."
+          ],
+          "verify": [
+            "Check the session reference against the billing account number.",
+            "Pass when the capture session is bound to the intended billing account."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Capture routing and account details through the gateway hosted field",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Have the payor enter the routing number, account number and account type in the hosted field.",
+            "Let the gateway return only a token and the last four digits to BillingCenter.",
+            "Reject the capture if any full number is echoed back to the application.",
+            "Done when a token and last four digits are stored on the billing account."
+          ],
+          "verify": [
+            "Read the stored payment instrument record on the account.",
+            "Pass when only a token and masked last four digits are present."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Validate the ABA routing number and account type in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Run the routing number check digit validation returned by the gateway.",
+            "Confirm the account type recorded is checking or savings as stated by the payor.",
+            "Reject and re-capture where the routing validation fails.",
+            "Done when routing validation passes and account type is recorded."
+          ],
+          "verify": [
+            "Read the validation result stored against the instrument.",
+            "Pass when the routing check digit validated and account type is populated."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Run a zero-dollar or one-dollar card verification in the payment gateway",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "For card instruments submit a zero-dollar or one dollar verification to the gateway.",
+            "Record the authorisation code returned against the instrument.",
+            "Do not activate the mandate where the verification declines.",
+            "Done when a successful verification authorisation is recorded for the card."
+          ],
+          "verify": [
+            "Read the verification result on the instrument record.",
+            "Pass when an approved verification exists before mandate activation."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Match the account holder name to the payor of record in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Compare the account holder name returned by the gateway to the payor of record.",
+            "Where the names differ obtain the third-party payor authorisation before proceeding.",
+            "File the authorisation in the document repository against the account.",
+            "Done when names match or a filed third-party authorisation exists."
+          ],
+          "verify": [
+            "Check the payor name and any filed authorisation reference.",
+            "Pass when the holder matches the payor or an authorisation reference is present."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Scan the billing case for prohibited full account images",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Review every attachment on the billing case for images showing full account or card numbers.",
+            "Remove or redact any attachment containing an unmasked number.",
+            "Record the review on the case with date and reviewer.",
+            "Done when no attachment on the case contains a full account or card number."
+          ],
+          "verify": [
+            "Re-list case attachments after the review.",
+            "Pass when no attachment displays an unmasked account or card number."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "File the dated debit authorisation in the document management repository",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Store the signed or electronically assented authorisation with an authorisation identifier.",
+            "Index it by billing account number, policy number and authorisation date.",
+            "Link the identifier to the payment instrument record in BillingCenter.",
+            "Done when the authorisation is filed and linked to the instrument."
+          ],
+          "verify": [
+            "Retrieve the authorisation from the repository using the billing account number.",
+            "Pass when the authorisation returns with a date and matches the stored instrument."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "880212bf-dddd-4503-8bdd-7f5010990525",
+      "verifier": "Billing Operations Manager",
+      "generic": {
+        "Defined scope/population": "Employer-sponsored and group cases requiring a list bill or payroll deduction billing arrangement.",
+        "In-scope period": "Group cases with an activation date falling in the current billing month.",
+        "Required fields populated and valid": "Group account, remittance cycle, census file, billed lives and tolerance settings are populated.",
+        "Control totals or record counts reconcile": "Billed lives and total premium tie to the group master policy schedule for the same period.",
+        "Evidence retained with timestamp/version": "The loaded census file version and the test list bill are retained against the group account.",
+        "Exceptions logged with disposition": "Certificates that fail to link to the group account are logged with a resolution owner.",
+        "Test population": "All group billing arrangements activated in BillingCenter during the period.",
+        "Pass/fail thresholds": "No covered certificate remains on individual direct bill after group activation.",
+        "Exception handling path": "Short remittances suspend to the tolerance queue rather than auto-writing off.",
+        "Documented acceptance criteria": "Group account is live with all certificates linked and a remittance cycle matching payroll frequency.",
+        "Evidence location": "BillingCenter group account and the census and test bill files stored with the case in Microsoft Excel."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Create the list bill or payroll deduction account in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Create the group billing account keyed to the group master policy number.",
+            "Set the bill-to party to the employer or group administrator of record.",
+            "Record the account number on the group implementation case.",
+            "Done when a group billing account exists for the group master policy."
+          ],
+          "verify": [
+            "Open the created account and read the bill-to party and master policy link.",
+            "Pass when the account is linked to the group master policy with the employer as bill-to."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Link every covered certificate to the group account in the policy administration system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "List all covered certificates or policies under the group master policy.",
+            "Link each one to the single group billing account.",
+            "Remove individual direct bill accounts left behind by the transfer.",
+            "Done when every covered certificate points at the group billing account."
+          ],
+          "verify": [
+            "Compare linked certificate count to the covered certificate count on the master schedule.",
+            "Pass when the counts agree and no certificate remains on individual direct bill."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Set the group remittance cycle to the employer payroll frequency in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Confirm the employer payroll frequency from the group agreement.",
+            "Set the remittance cycle to weekly, bi-weekly, semi-monthly or monthly to match.",
+            "Set the remittance due date offset agreed with the group administrator.",
+            "Done when the remittance cycle matches the stated payroll frequency."
+          ],
+          "verify": [
+            "Compare the configured cycle to the payroll frequency in the group agreement.",
+            "Pass when the configured remittance cycle equals the payroll frequency."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Load and reconcile the initial census in Microsoft Excel",
+          "actor": "Accountant",
+          "sop": [
+            "Load the initial census file and count billed lives and total premium.",
+            "Compare both figures to the group master policy schedule for the same period.",
+            "Investigate and clear every difference before the first bill.",
+            "Done when lives and premium on the census tie to the master schedule."
+          ],
+          "verify": [
+            "Recompute census lives and premium totals independently.",
+            "Pass when census totals equal the master policy schedule totals."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Configure under and overpayment tolerance on the group account in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Set the tolerance band for short and over remittances against the group account.",
+            "Configure short remittances to suspend for research rather than auto-write-off.",
+            "Confirm overpayments route to the group suspense balance.",
+            "Done when tolerance settings suspend rather than write off variances."
+          ],
+          "verify": [
+            "Simulate a short remittance against the configured tolerance.",
+            "Pass when the simulated short pay suspends and no write-off is generated."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Issue a test list bill to the group administrator from BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Produce a test list bill in the agreed file layout for the group administrator.",
+            "Confirm member identifiers on the file match the employer payroll identifiers.",
+            "Obtain written confirmation that the layout is usable for their payroll system.",
+            "Done when the administrator confirms the test list bill is usable."
+          ],
+          "verify": [
+            "Read the administrator confirmation filed on the group case.",
+            "Pass when a dated confirmation of layout and identifiers exists."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Activate the group arrangement and record the go-live in BillingCenter",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Review the certificate linkage, census reconciliation and administrator confirmation.",
+            "Activate the group billing arrangement from the agreed effective date.",
+            "Record the activation date and approver on the group case.",
+            "Done when the arrangement is active with a recorded approval."
+          ],
+          "verify": [
+            "Check the account status and the recorded approver on the case.",
+            "Pass when the account is active and carries a dated Billing Operations Manager approval."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2f9s3502dgbn7ihboz48uu",
+      "verifier": "Billing Specialist",
+      "generic": {
+        "Defined scope/population": "New business billing accounts awaiting activation confirmation from the policy administration team.",
+        "In-scope period": "Policies bound in the current business day and awaiting billing activation confirmation.",
+        "Required fields populated and valid": "Policy status, policy number, written premium, effective date and contact name are recorded on the case.",
+        "Control totals or record counts reconcile": "Billing account premium equals the policy written premium to the cent at confirmation.",
+        "Evidence retained with timestamp/version": "The activation confirmation is stored on the case with contact name and timestamp.",
+        "Exceptions logged with disposition": "Premium or date mismatches are logged and held until the policy team corrects the source record.",
+        "Test population": "All new business billing cases confirmed for activation during the period.",
+        "Pass/fail thresholds": "Every activated account carries a dated confirmation referencing an in-force policy number.",
+        "Exception handling path": "Accounts without a bound policy status are returned to the Policy Administration Analyst before activation.",
+        "Documented acceptance criteria": "Policy is bound, premium agrees and dates match before the billing account is activated.",
+        "Evidence location": "The new business billing case in the workflow tool plus the BillingCenter account audit trail."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Open the new business billing case in the workflow tool",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Open the case for the new business policy awaiting billing activation.",
+            "Confirm the policy number and insured name on the case match the billing account.",
+            "Record the review start time on the case.",
+            "Done when the case is open and matched to the correct billing account."
+          ],
+          "verify": [
+            "Compare the case policy number to the billing account policy link.",
+            "Pass when case and account reference the same policy number."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the policy status is bound or in force in the policy administration system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Open the policy and read the current status and effective date.",
+            "Confirm the status is bound or in force rather than quoted or pending.",
+            "Record the status and status date on the billing case.",
+            "Done when a bound or in-force status is recorded on the case."
+          ],
+          "verify": [
+            "Re-read the policy status field after recording.",
+            "Pass when the policy status is bound or in force at the time of confirmation."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Compare billing account premium to policy written premium in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Read the total charges on the billing account and the written premium on the policy.",
+            "Compare the two figures to the cent and note any difference.",
+            "Hold activation where a difference exists and raise it to the policy team.",
+            "Done when the two premium figures agree or a hold is recorded."
+          ],
+          "verify": [
+            "Recompute the difference between billing charges and written premium.",
+            "Pass when the difference is zero at the point of activation."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Match the policy effective date to the billing account start date in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Read the policy effective date and the billing account start date.",
+            "Correct the billing account start date where it does not match the policy.",
+            "Record the matched dates on the case.",
+            "Done when the account start date equals the policy effective date."
+          ],
+          "verify": [
+            "Compare the two dates after correction.",
+            "Pass when the billing start date equals the policy effective date."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the policy team confirmation on the billing case",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Provide written confirmation that the policy is in force and premium is final.",
+            "Include the confirming contact name and the confirmation timestamp.",
+            "Attach any supporting policy screenshot reference to the case.",
+            "Done when a named, timestamped confirmation is on the case."
+          ],
+          "verify": [
+            "Read the confirmation entry on the case.",
+            "Pass when the entry shows a contact name and a timestamp."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Activate the billing account in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Set the billing account to active once status, premium and dates agree.",
+            "Confirm the account becomes eligible for the next notice generation run.",
+            "Record the activation transaction reference on the case.",
+            "Done when the account is active with a recorded transaction reference."
+          ],
+          "verify": [
+            "Read the account status and activation transaction.",
+            "Pass when the account is active and the activation is logged in the audit trail."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Close the activation case in the workflow tool",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Attach the confirmation, premium comparison and activation reference to the case.",
+            "Set the case outcome to activated and close it.",
+            "Route any unresolved mismatch to a follow-up case instead of closing.",
+            "Done when the case is closed with all three evidence items attached."
+          ],
+          "verify": [
+            "Reopen the closed case and list attachments.",
+            "Pass when confirmation, premium comparison and activation reference are all present."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fkf9q1dfpkfgzma07m42z",
+      "verifier": "Billing Operations Manager",
+      "generic": {
+        "Defined scope/population": "Released premium notices for the billing window split across paper, email and portal delivery channels.",
+        "In-scope period": "The current notice release window covering all due dates in that billing cycle.",
+        "Required fields populated and valid": "Each notice record carries a delivery channel, address or email, and a delivery acknowledgement field.",
+        "Control totals or record counts reconcile": "Print vendor return file count and dollar total match the released notice batch control totals.",
+        "Evidence retained with timestamp/version": "Channel split file, vendor return file and portal posting log are retained with the release timestamp.",
+        "Exceptions logged with disposition": "Bounced e-deliveries are logged and re-queued to paper with the re-queue date recorded.",
+        "Test population": "All notices released for distribution in the billing window.",
+        "Pass/fail thresholds": "No policy appears in more than one delivery channel for the same billing cycle.",
+        "Exception handling path": "Bounce-backs and vendor rejects are re-queued within the statutory notice lead time.",
+        "Documented acceptance criteria": "Every released notice has one channel and a vendor or portal delivery acknowledgement.",
+        "Evidence location": "BillingCenter notice records, the vendor return file and the self-service portal statement log."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Split the notice extract by delivery preference in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Extract the released notice population for the billing window.",
+            "Split it into paper, email and portal-only sets using the delivery preference of record.",
+            "Check no policy appears in two sets and no policy is missing from all three.",
+            "Done when the three channel sets together equal the released population exactly."
+          ],
+          "verify": [
+            "Sum the three channel counts and compare to the released notice count.",
+            "Pass when the sum equals the released count with no policy in two channels."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Exclude suppressed accounts from the distribution in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "List accounts that are lapsed, flat cancelled or paid in full for the window.",
+            "Remove those accounts from all three channel sets.",
+            "Record the suppression count and reason on the release case.",
+            "Done when no suppressed account remains in any channel set."
+          ],
+          "verify": [
+            "Re-scan the channel sets for suppressed account statuses.",
+            "Pass when no lapsed, cancelled or paid-in-full account is present."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Transmit the paper set to the print vendor from BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Transmit the paper channel file with its record count and dollar control total.",
+            "Record the transmission reference and time on the release case.",
+            "Confirm the vendor acknowledges receipt of the file.",
+            "Done when the vendor acknowledges the transmitted paper file."
+          ],
+          "verify": [
+            "Compare the acknowledged record count to the transmitted count.",
+            "Pass when the vendor acknowledgement matches the transmitted control totals."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reconcile the print vendor return file to the released batch",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Load the vendor return file and read the processed count and dollar total.",
+            "Compare both against the released paper batch control totals.",
+            "List and chase any record the vendor did not process.",
+            "Done when vendor counts and dollars equal the released paper batch."
+          ],
+          "verify": [
+            "Recompute the vendor to batch difference.",
+            "Pass when the difference is zero or every gap item is logged and chased."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm portal statements are posted in the Customer Self-Service Portal",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Check that portal-only policies show a posted statement on the release date.",
+            "Sample several accounts and open the posted statement.",
+            "Re-post any statement missing from the portal on the release date.",
+            "Done when every portal-only policy has a posted statement dated the release date."
+          ],
+          "verify": [
+            "Query the portal statement log for the release date.",
+            "Pass when portal statement count equals the portal-only policy count."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Work e-delivery bounce-backs and re-queue to paper in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Load the email bounce report for the release.",
+            "Re-queue each bounced policy to paper delivery for the same cycle.",
+            "Confirm the re-queue still meets the statutory notice lead time.",
+            "Done when every bounce is re-queued to paper inside the lead time."
+          ],
+          "verify": [
+            "Compare the bounce count to the paper re-queue count.",
+            "Pass when every bounced policy has a paper re-queue inside the lead time."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Sign off the distribution and file the evidence in the document management repository",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Review channel split totals, the vendor reconciliation and the bounce re-queue log.",
+            "Sign off the distribution as complete for the billing window.",
+            "File the channel split, vendor return and portal log as one evidence pack.",
+            "Done when the distribution is signed off and the pack is filed."
+          ],
+          "verify": [
+            "Retrieve the evidence pack by billing window from the repository.",
+            "Pass when the pack is retrievable and shows a dated manager sign-off."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "de491411-fdc2-40a4-bed4-e4f7651632f2",
+      "verifier": "Billing Specialist",
+      "generic": {
+        "Defined scope/population": "Bound policies with no billing account, requiring account, plan and payment schedule setup in BillingCenter.",
+        "In-scope period": "Policies bound in the current business day and awaiting billing account creation.",
+        "Required fields populated and valid": "Account holder name, mailing address, payment plan, first due date, instalment count and legal entity are populated.",
+        "Control totals or record counts reconcile": "Opening account balance equals the policy written premium with zero prior transactions.",
+        "Evidence retained with timestamp/version": "The created account record and the generated schedule are retained with a creation timestamp.",
+        "Exceptions logged with disposition": "Duplicate account hits and address mismatches are logged with the resolution taken.",
+        "Test population": "All billing accounts created for newly bound policies during the period.",
+        "Pass/fail thresholds": "No duplicate active billing account exists for the same policy number.",
+        "Exception handling path": "Duplicate hits are routed to the Policy Administration Analyst before either account is used.",
+        "Documented acceptance criteria": "Account is linked to the bound policy with a plan, first due date and opening balance equal to written premium.",
+        "Evidence location": "BillingCenter account creation audit trail and the policy record in the policy administration system."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Run a duplicate account search in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Search BillingCenter on policy number, insured name and mailing address.",
+            "List any existing active account that could duplicate the new one.",
+            "Resolve or merge duplicates before creating a new account.",
+            "Done when the search returns no existing active account for the policy."
+          ],
+          "verify": [
+            "Repeat the duplicate search after creation.",
+            "Pass when exactly one active billing account exists for the policy number."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Create the billing account keyed to the policy number in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Create the account and link it to the bound policy number.",
+            "Enter the account holder name and mailing address from the policy declarations.",
+            "Save and record the new account number on the setup case.",
+            "Done when a billing account exists linked to the bound policy."
+          ],
+          "verify": [
+            "Compare account holder name and address to the declarations page.",
+            "Pass when name and address match the policy declarations exactly."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm currency, billing entity and legal entity code in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Read the writing company from the policy record.",
+            "Set the billing entity and legal entity code on the account to match.",
+            "Confirm the account currency matches the policy currency.",
+            "Done when entity codes and currency match the writing company."
+          ],
+          "verify": [
+            "Compare the account entity codes to the policy writing company.",
+            "Pass when the entity code and currency agree with the policy."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Set the payment plan, first due date and instalment count in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Enter the elected payment plan from the policy record.",
+            "Set the first due date on or after the policy effective date.",
+            "Confirm the instalment count matches the plan and policy term.",
+            "Done when plan, first due date and instalment count are set on the account."
+          ],
+          "verify": [
+            "Read the schedule header after generation.",
+            "Pass when plan, first due date and instalment count match the election."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm the elected plan against the policy record in the policy administration system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Open the policy and confirm the payment plan recorded on the billing account.",
+            "Flag any discrepancy between the policy election and the billing plan.",
+            "Record the confirmation on the billing setup case.",
+            "Done when the policy team confirms the billing plan matches the election."
+          ],
+          "verify": [
+            "Compare the confirmed plan to the account payment plan field.",
+            "Pass when both records show the same elected payment plan."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the opening balance equals written premium in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Read the opening account balance after schedule generation.",
+            "Compare it to the policy written premium including taxes and fees.",
+            "Confirm no prior transaction exists on the new account.",
+            "Done when the opening balance equals written premium with no prior transactions."
+          ],
+          "verify": [
+            "Recompute the opening balance from the generated instalment lines.",
+            "Pass when the balance equals written premium and the transaction list is empty."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Release the account for notice generation in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Set the account status to active for billing.",
+            "Confirm it passes the notice generation eligibility validation.",
+            "Record the release timestamp and reference on the setup case.",
+            "Done when the account is active and eligible for the next notice run."
+          ],
+          "verify": [
+            "Run the eligibility check for the account.",
+            "Pass when the account is eligible with no blocking validation error."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl4ld1ppqkfgz85vgr7zg",
+      "verifier": "Billing Specialist",
+      "generic": {
+        "Defined scope/population": "First-bill data records generated in BillingCenter for newly activated billing accounts awaiting notice production.",
+        "In-scope period": "Accounts activated in the current billing window with a first instalment not yet billed.",
+        "Required fields populated and valid": "Policy number, insured name, due date, instalment amount, total premium and remittance reference are populated.",
+        "Control totals or record counts reconcile": "Record total equals the first instalment amount on the billing account schedule.",
+        "Evidence retained with timestamp/version": "The generated first-bill record and its itemised lines are retained with a generation timestamp.",
+        "Exceptions logged with disposition": "Records with null due dates, zero amounts or missing addresses are logged and reworked before release.",
+        "Test population": "All first-bill data records generated in the billing window.",
+        "Pass/fail thresholds": "No first-bill record is released with a null due date or a zero premium amount.",
+        "Exception handling path": "Rejected records are corrected in BillingCenter and regenerated rather than manually patched.",
+        "Documented acceptance criteria": "Record shows policy number, due date, itemised premium lines and a remittance reference before release.",
+        "Evidence location": "BillingCenter first-bill record and the archived record image in the document management repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Select activated accounts awaiting a first bill in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Query accounts activated in the window with no first-bill record generated.",
+            "Exclude accounts already billed or suppressed for the window.",
+            "Record the selected population count on the run case.",
+            "Done when the first-bill selection population is fixed and counted."
+          ],
+          "verify": [
+            "Compare the selection count to the activated account count for the window.",
+            "Pass when every activated unbilled account appears in the selection."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Generate the first-bill data record in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Run the first-bill generation job for the selected population.",
+            "Confirm each record carries policy number, insured name, due date, instalment amount and total premium.",
+            "Capture the run identifier and generation timestamp.",
+            "Done when a first-bill record exists for every selected account."
+          ],
+          "verify": [
+            "Compare generated record count to the selected population count.",
+            "Pass when the counts agree with no unexplained shortfall."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Check itemisation of taxes and surcharges on the record in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Open sample records and read the premium line breakdown.",
+            "Confirm taxes, surcharges and separately disclosed items appear as distinct lines.",
+            "Reject any record folding these amounts into base premium.",
+            "Done when disclosed items appear as separate lines on the record."
+          ],
+          "verify": [
+            "Sum the itemised lines and compare to the record total.",
+            "Pass when itemised lines sum to the total with disclosed items shown separately."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reconcile the record total to the first instalment in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Read the first instalment amount from the billing account schedule.",
+            "Compare it to the total on the generated first-bill record.",
+            "Investigate and correct any difference before release.",
+            "Done when the record total equals the first instalment amount."
+          ],
+          "verify": [
+            "Recompute the difference between record total and instalment amount.",
+            "Pass when the difference is zero for every record."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm the remittance address and payment reference on the record",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Confirm the remittance address matches the current lockbox address of record.",
+            "Confirm the payment reference is the value cash application keys on.",
+            "Correct any stale remittance detail before release.",
+            "Done when remittance address and payment reference are current on every record."
+          ],
+          "verify": [
+            "Compare the remittance block to the current lockbox configuration.",
+            "Pass when address and reference match the current lockbox configuration."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Reject and rework defective records in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "List records with a null due date, zero amount or missing mailing address.",
+            "Correct the underlying account data and regenerate those records.",
+            "Log each rejected record with its defect and the correction applied.",
+            "Done when no defective record remains in the release set."
+          ],
+          "verify": [
+            "Re-scan the release set for null dates, zero amounts and missing addresses.",
+            "Pass when the scan returns no defective record."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Release the first-bill records and archive them in the document management repository",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Release the validated first-bill records for notice production.",
+            "Archive the record images indexed by policy number and due date.",
+            "Record the release timestamp and run identifier on the case.",
+            "Done when records are released and archived with an index."
+          ],
+          "verify": [
+            "Retrieve an archived record by policy number.",
+            "Pass when the archived record returns and matches the released version."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fkf0g1dazkfgzgykcej2w",
+      "verifier": "Billing Operations Manager",
+      "generic": {
+        "Defined scope/population": "In-force policies with an instalment due in the notice window selected by the BillingCenter notice job.",
+        "In-scope period": "The due-date window covered by the current premium notice generation run.",
+        "Required fields populated and valid": "Each notice shows prior balance, current charges, payments applied, amount due and due date.",
+        "Control totals or record counts reconcile": "Batch premium total ties to the billing ledger instalments due for the same window.",
+        "Evidence retained with timestamp/version": "The batch control report and exception report are retained with the run timestamp.",
+        "Exceptions logged with disposition": "Every failed notice is logged with a reprocess outcome before the mailing deadline.",
+        "Test population": "All premium notices generated in the notice run for the due-date window.",
+        "Pass/fail thresholds": "No notice is produced for a policy already cancelled flat or paid in full.",
+        "Exception handling path": "Failed notices are reprocessed and re-reconciled before the statutory mailing deadline.",
+        "Documented acceptance criteria": "Batch is reconciled, suppressions applied and exceptions cleared before release to print.",
+        "Evidence location": "BillingCenter notice batch control report and the archived notice images in the document repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Run the notice generation job for the due-date window in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Set the due-date window parameters and run the notice generation job.",
+            "Capture the selected policy count and the batch identifier.",
+            "Compare the selected count to the expected in-force cohort for the window.",
+            "Done when the batch is generated and the selected count is recorded."
+          ],
+          "verify": [
+            "Compare the selected policy count to the expected in-force cohort.",
+            "Pass when the counts agree within the documented tolerance."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Reconcile the batch premium total to the billing ledger in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Extract instalments due for the window from the billing ledger.",
+            "Compare the ledger total to the notice batch premium total.",
+            "Investigate every difference before releasing to print.",
+            "Done when the batch total equals the ledger instalments due."
+          ],
+          "verify": [
+            "Recompute the batch to ledger difference.",
+            "Pass when the difference is zero or fully explained in writing."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Check notice content shows balance, charges and payments in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Open a sample of notices across products and billing modes.",
+            "Confirm each shows prior balance, current charges, payments applied and amount now due.",
+            "Reject templates missing any of these elements.",
+            "Done when sampled notices show all four content elements."
+          ],
+          "verify": [
+            "Recompute amount due from the displayed components on each sample.",
+            "Pass when displayed amount due equals prior balance plus charges less payments."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Apply suppression rules for paid, cancelled and lapsing accounts in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Identify policies paid in full, cancelled flat or in active lapse processing.",
+            "Remove those policies from the notice batch.",
+            "Record the suppressed count and reason on the run case.",
+            "Done when no suppressed policy remains in the batch."
+          ],
+          "verify": [
+            "Re-scan the batch for suppressed statuses.",
+            "Pass when no cancelled flat or paid-in-full policy remains in the batch."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Work the batch exception report in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Open the batch exception report and list every failed notice.",
+            "Correct the underlying data and reprocess each failure.",
+            "Confirm all reprocessing completes before the statutory mailing deadline.",
+            "Done when the exception report shows zero unresolved failures."
+          ],
+          "verify": [
+            "Re-run the exception report after reprocessing.",
+            "Pass when no failed notice remains open at the mailing deadline."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Archive the produced notice images in the document management repository",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Archive the produced notice images indexed by policy number and notice date.",
+            "Apply the retention class used for premium notices.",
+            "Confirm retrieval of a sample notice by policy number.",
+            "Done when notices are archived and retrievable by policy number."
+          ],
+          "verify": [
+            "Retrieve a sampled notice image from the repository.",
+            "Pass when the archived image matches the released notice."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Approve the batch for release in BillingCenter",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Review the reconciliation, suppression list and cleared exception report.",
+            "Approve the batch for release to print and e-delivery.",
+            "Record the approval name and timestamp against the batch.",
+            "Done when the batch carries a dated release approval."
+          ],
+          "verify": [
+            "Read the approval record on the batch.",
+            "Pass when the batch shows a named approval dated before release."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2f9rr702cxbn7ire0tdo06",
+      "verifier": "Billing Operations Manager",
+      "generic": {
+        "Defined scope/population": "All billing setup and maintenance transactions posted to billing accounts in BillingCenter.",
+        "In-scope period": "Setup transactions posted during the current audit review period.",
+        "Required fields populated and valid": "Each audit entry holds user ID, timestamp, field changed, old value and new value.",
+        "Control totals or record counts reconcile": "Audit entry count equals the count of setup transactions posted in the period.",
+        "Evidence retained with timestamp/version": "Audit extracts are retained with the extraction timestamp and the source request document link.",
+        "Exceptions logged with disposition": "Changes attributed to shared or generic accounts are logged and referred for access remediation.",
+        "Test population": "All billing setup changes recorded in the BillingCenter audit trail for the period.",
+        "Pass/fail thresholds": "No billing setup change is attributed to a shared or generic account.",
+        "Exception handling path": "Missing audit entries are escalated to the Billing Operations Manager as a control failure.",
+        "Documented acceptance criteria": "Every setup change shows before and after values against a named user ID.",
+        "Evidence location": "BillingCenter audit trail extract and the linked request documents in the document repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract billing setup transactions for the period from BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Extract all setup and maintenance transactions posted in the review period.",
+            "Include payment plan, bank detail, payor and address changes.",
+            "Record the extract control count on the review case.",
+            "Done when the transaction extract exists with a control count."
+          ],
+          "verify": [
+            "Compare the extract count to the BillingCenter transaction report total.",
+            "Pass when both counts agree for the period."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Extract the matching audit entries from BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Extract audit trail entries for the same period and transaction types.",
+            "Match each transaction to its audit entry by transaction reference.",
+            "List transactions with no matching audit entry.",
+            "Done when every transaction is matched or listed as unmatched."
+          ],
+          "verify": [
+            "Compare audit entry count to transaction count.",
+            "Pass when the counts agree and the unmatched list is empty."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Check before and after values on each audit entry in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Open sampled audit entries across change types.",
+            "Confirm each shows field changed, old value, new value, user ID and timestamp.",
+            "Flag entries missing any of the five attributes.",
+            "Done when sampled entries carry all five attributes."
+          ],
+          "verify": [
+            "Recheck the flagged entries after remediation.",
+            "Pass when every sampled entry shows all five attributes."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm plan and bank changes are logged as separate events in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Select accounts where plan and bank details changed on the same day.",
+            "Confirm each change produced its own auditable event.",
+            "Flag any single bulk update covering several field changes.",
+            "Done when plan and bank changes appear as separate audit events."
+          ],
+          "verify": [
+            "Count audit events for the selected accounts.",
+            "Pass when the event count equals the number of distinct field changes."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Link audit entries to source request documents in the document management repository",
+          "actor": "Billing Specialist",
+          "sop": [
+            "For each sampled change locate the source request document in the repository.",
+            "Record the document reference against the audit entry.",
+            "Raise a case where no source document exists for a change.",
+            "Done when every sampled change links to a source document or an exception case."
+          ],
+          "verify": [
+            "Retrieve the linked document for each sampled entry.",
+            "Pass when each sampled change resolves to a retrievable source document."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Test that audit records are immutable to the setup user in BillingCenter",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Attempt to edit and delete a test audit entry using a standard setup user profile.",
+            "Record the system response for both attempts.",
+            "Escalate to access management if either attempt succeeds.",
+            "Done when both attempts are recorded as blocked or escalated."
+          ],
+          "verify": [
+            "Read the recorded system responses for the two attempts.",
+            "Pass when the setup user can neither edit nor delete an audit entry."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Report generic account attribution to access management",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Filter audit entries for shared, generic or service account user IDs.",
+            "List each affected change with account and date.",
+            "Refer the list to access management with a remediation request.",
+            "Done when every generic attribution is listed and referred."
+          ],
+          "verify": [
+            "Re-run the generic account filter after referral.",
+            "Pass when no new setup change is attributed to a generic account."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "4b242c69-2891-486d-810c-9e0f6bde17de",
+      "verifier": "Billing Operations Manager",
+      "generic": {
+        "Defined scope/population": "The policy in-force file and the billing account master extracted as at the same close date.",
+        "In-scope period": "The reconciliation close date covering all policies in force at that date.",
+        "Required fields populated and valid": "Policy number, status, written premium, billing account number and scheduled instalment total are populated.",
+        "Control totals or record counts reconcile": "Matched policy count plus unmatched items equals the total in-force and billing record counts.",
+        "Evidence retained with timestamp/version": "The reconciliation workbook is saved with the close date and both extract timestamps.",
+        "Exceptions logged with disposition": "Each break is logged with root cause, owner and target clearance date.",
+        "Test population": "All policies on the in-force file and all accounts on the billing master for the close date.",
+        "Pass/fail thresholds": "No in-force policy is missing a corresponding active billing account after clearance.",
+        "Exception handling path": "Unbilled exposure items are escalated to the Billing Operations Manager for same-week clearance.",
+        "Documented acceptance criteria": "A matched population plus an itemised break list with named owners exists for the close date.",
+        "Evidence location": "The reconciliation workbook in Microsoft Excel filed with the period close evidence."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract the policy in-force file from the policy administration system",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Extract in-force policies as at the reconciliation close date.",
+            "Include policy number, status, written premium and effective dates.",
+            "Record the extract row count and timestamp.",
+            "Done when the in-force extract exists with a recorded control count."
+          ],
+          "verify": [
+            "Compare the extract count to the in-force policy count report.",
+            "Pass when both counts agree for the close date."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Extract the billing account master from BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Extract billing accounts as at the same close date.",
+            "Include account number, policy link, status and scheduled instalment total.",
+            "Record the extract row count and timestamp.",
+            "Done when the billing extract exists for the same close date."
+          ],
+          "verify": [
+            "Compare the billing extract date to the in-force extract date.",
+            "Pass when both extracts share the same close date and timestamps are recorded."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Match the two extracts on policy number in Microsoft Excel",
+          "actor": "Accountant",
+          "sop": [
+            "Join the in-force and billing extracts on policy number.",
+            "Produce the matched population and both unmatched lists.",
+            "Confirm the three groups sum back to the source counts.",
+            "Done when matched and unmatched populations reconcile to both extracts."
+          ],
+          "verify": [
+            "Sum matched and unmatched counts against the source extract counts.",
+            "Pass when the sums equal both source extract counts."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "List unbilled exposure and billing orphans in Microsoft Excel",
+          "actor": "Accountant",
+          "sop": [
+            "List in-force policies with no billing account as unbilled exposure.",
+            "List billing accounts with no in-force policy as billing orphans.",
+            "Quantify premium at risk on each list.",
+            "Done when both lists exist with premium quantified."
+          ],
+          "verify": [
+            "Recount the two lists against the unmatched populations.",
+            "Pass when the lists together equal the unmatched populations."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Compare written premium to scheduled instalments in Microsoft Excel",
+          "actor": "Accountant",
+          "sop": [
+            "For matched policies compare written premium to total scheduled instalments.",
+            "List variances above the materiality threshold.",
+            "Note endorsement timing as a candidate cause on each variance.",
+            "Done when a variance list above the threshold exists."
+          ],
+          "verify": [
+            "Recompute a sample of variances from the source values.",
+            "Pass when recomputed variances agree with the listed values."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Check cancelled and reinstated policies carry matching billing status in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "List policies cancelled or reinstated during the period.",
+            "Compare each policy status to the billing account status.",
+            "Add any mismatch to the break list.",
+            "Done when every cancelled or reinstated policy has a status comparison."
+          ],
+          "verify": [
+            "Re-check the status pairs after correction.",
+            "Pass when policy and billing statuses agree for the whole list."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Log breaks with owners and clearance dates in the reconciliation workbook",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Record every break with root cause, owner and target clearance date.",
+            "Assign unbilled exposure items the shortest clearance target.",
+            "Circulate the break list to the assigned owners.",
+            "Done when every break has a root cause, owner and clearance date."
+          ],
+          "verify": [
+            "Scan the break list for missing owners or dates.",
+            "Pass when no break row lacks a root cause, owner or clearance date."
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Review and sign off the reconciliation",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Review the matched population, break list and premium variances.",
+            "Challenge any break without a credible root cause.",
+            "Sign off the reconciliation and file it with the close evidence.",
+            "Done when the reconciliation carries a dated sign-off."
+          ],
+          "verify": [
+            "Read the sign-off block on the filed workbook.",
+            "Pass when the workbook shows a dated Billing Operations Manager sign-off."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fba3d032cbn7i45583qnt",
+      "verifier": "Billing Specialist",
+      "generic": {
+        "Defined scope/population": "Billing accounts where a lienholder or third-party payor is to receive the premium notice.",
+        "In-scope period": "Redirect requests effective from the next unbilled instalment in the current cycle.",
+        "Required fields populated and valid": "Bill-to party, payor address, authorisation reference and redirect effective date are populated.",
+        "Control totals or record counts reconcile": "Count of redirected accounts equals the count of filed authorisations for the period.",
+        "Evidence retained with timestamp/version": "The signed request or lienholder clause is filed with a date and document reference.",
+        "Exceptions logged with disposition": "Redirect requests without authority evidence are logged and held pending documentation.",
+        "Test population": "All third-party billing redirects applied in BillingCenter during the period.",
+        "Pass/fail thresholds": "No third-party redirect exists without an authorisation document on file.",
+        "Exception handling path": "Unsupported redirects are reversed and the request returned to the requester.",
+        "Documented acceptance criteria": "Bill-to party is the third party, authorisation is filed and the insured copy rule is applied.",
+        "Evidence location": "BillingCenter bill-to configuration and the authorisation document in the document repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Obtain and file the authority evidence in the document management repository",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Obtain the signed request or the lienholder clause evidencing authority to bill the third party.",
+            "File it in the repository indexed by policy number and payor name.",
+            "Record the document reference on the billing account.",
+            "Done when authority evidence is filed and referenced on the account."
+          ],
+          "verify": [
+            "Retrieve the authority document using the policy number.",
+            "Pass when the document returns and names the intended third-party payor."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the lienholder interest on the policy in the policy administration system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Open the policy and read the lienholder or additional interest record.",
+            "Confirm the named payor matches the interest recorded on the policy.",
+            "Record the confirmation on the redirect case.",
+            "Done when the payor is confirmed against the policy interest record."
+          ],
+          "verify": [
+            "Compare the payor name to the policy additional interest record.",
+            "Pass when the payor matches an interest recorded on the policy."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Set the bill-to party on the billing account in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Change the bill-to party to the lienholder or third-party payor.",
+            "Enter the payor address exactly as shown on the authorisation document.",
+            "Save and capture the transaction reference.",
+            "Done when the account bill-to party is the third-party payor."
+          ],
+          "verify": [
+            "Compare the saved payor address to the authorisation document.",
+            "Pass when the account address matches the authorisation exactly."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Keep the insured on notice distribution where required in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Check the state rule on courtesy copies to the named insured.",
+            "Add the insured as a courtesy copy recipient where required.",
+            "Record the rule applied on the redirect case.",
+            "Done when the insured copy setting matches the state rule."
+          ],
+          "verify": [
+            "Read the notice recipient list on the account.",
+            "Pass when the recipient list matches the state courtesy copy rule."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Set the redirect to take effect from the next unbilled instalment in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Set the redirect effective date to the next unbilled instalment due date.",
+            "Confirm no already-mailed notice will be duplicated to the new payor.",
+            "Record the effective date on the case.",
+            "Done when the redirect starts at the next unbilled instalment."
+          ],
+          "verify": [
+            "Compare the redirect effective date to the last mailed notice date.",
+            "Pass when no already-mailed instalment is re-issued to the new payor."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Suppress privacy-sensitive fields on the third-party copy in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Review the third-party notice template for privacy-sensitive fields.",
+            "Apply the suppression rule so restricted data is not shown to the payor.",
+            "Produce a proof copy and read it against the suppression rule.",
+            "Done when the third-party proof shows no suppressed field."
+          ],
+          "verify": [
+            "Inspect the proof copy for suppressed fields.",
+            "Pass when no privacy-sensitive field appears on the third-party copy."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Confirm the redirect on the next generated notice in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Generate the next premium notice for the account.",
+            "Confirm it addresses the third-party payor and reflects the courtesy copy rule.",
+            "Attach the proof to the redirect case and close it.",
+            "Done when the next notice is addressed to the third-party payor."
+          ],
+          "verify": [
+            "Read the addressee block on the generated notice.",
+            "Pass when the notice is addressed to the authorised third-party payor."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "1761a485-9633-47b7-9460-d690f06100b3",
+      "verifier": "Billing Operations Manager",
+      "generic": {
+        "Defined scope/population": "New business policies bound in the period and the billing accounts activated against them.",
+        "In-scope period": "The reporting period agreed with finance and operations, typically the prior calendar month.",
+        "Required fields populated and valid": "Bound count, activated count, activation gap by day, product line and billing mode are populated.",
+        "Control totals or record counts reconcile": "Activated premium in the report equals billing ledger new business premium for the same period.",
+        "Evidence retained with timestamp/version": "The report and its source extracts are retained with the run date and data-as-at timestamp.",
+        "Exceptions logged with disposition": "Accounts past the activation SLA are listed with an owner and expected activation date.",
+        "Test population": "All new business policies bound in the reporting period.",
+        "Pass/fail thresholds": "Reported activated premium reconciles to the billing ledger with no unexplained difference.",
+        "Exception handling path": "Unreconciled differences are investigated before distribution rather than footnoted.",
+        "Documented acceptance criteria": "Report shows bound versus activated counts, SLA breaches and a ledger reconciliation.",
+        "Evidence location": "The BI reporting platform report definition and the extract retained in the enterprise data warehouse."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract bound policies and activated accounts from the enterprise data warehouse",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Extract new business policies bound in the period from the warehouse.",
+            "Extract billing accounts activated in the same period.",
+            "Record both control counts and the data-as-at timestamp.",
+            "Done when both extracts exist for the same period with control counts."
+          ],
+          "verify": [
+            "Compare warehouse counts to the BillingCenter source counts.",
+            "Pass when warehouse and source counts agree within the documented tolerance."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Build the bound versus activated gap by day in the BI reporting platform",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Join bound policies to activated accounts on policy number.",
+            "Report the daily gap between bound and activated counts.",
+            "List policies bound but not yet activated with days elapsed.",
+            "Done when the daily gap and the outstanding list are produced."
+          ],
+          "verify": [
+            "Sum the daily gaps and compare to the outstanding list count.",
+            "Pass when the totals agree for the period."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Report first-notice issuance rate and SLA breaches in the BI reporting platform",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Calculate the share of activated accounts with a first notice issued.",
+            "List accounts still awaiting activation past the SLA with days overdue.",
+            "Assign an owner to each overdue account.",
+            "Done when issuance rate and the SLA breach list are produced."
+          ],
+          "verify": [
+            "Recompute the issuance rate from the underlying counts.",
+            "Pass when the recomputed rate matches the reported rate."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Break the cohort down by product line and billing mode in the BI reporting platform",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Split bound and activated counts by product line and billing mode.",
+            "Show EFT take-up as a share of activated accounts.",
+            "Confirm the splits sum back to the period totals.",
+            "Done when the breakdown sums to the period totals."
+          ],
+          "verify": [
+            "Sum the breakdown rows against the period totals.",
+            "Pass when the breakdown reconciles exactly to the totals."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile activated premium to the billing ledger",
+          "actor": "Accountant",
+          "sop": [
+            "Extract new business premium from the billing ledger for the period.",
+            "Compare it to activated premium in the report.",
+            "Explain every difference before the report is distributed.",
+            "Done when the report premium ties to the ledger or differences are explained."
+          ],
+          "verify": [
+            "Recompute the report to ledger difference.",
+            "Pass when the difference is zero or documented with a cause."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review the report and call out exceptions",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Review the gap analysis, SLA breach list and ledger reconciliation.",
+            "Add commentary on adverse trends and named remediation owners.",
+            "Approve the report for distribution.",
+            "Done when the report carries commentary and an approval."
+          ],
+          "verify": [
+            "Read the approval and commentary block on the report.",
+            "Pass when the report shows a dated manager approval and exception commentary."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Distribute the report to finance and operations leadership",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Distribute the approved report by the agreed working-day deadline.",
+            "Send to the finance and operations distribution list of record.",
+            "Log the distribution date and recipient list.",
+            "Done when the report is distributed on or before the deadline."
+          ],
+          "verify": [
+            "Compare the distribution date to the agreed deadline.",
+            "Pass when distribution occurred on or before the agreed working day."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhv6w0723kfgz0qkqfdcm",
+      "verifier": "Billing Specialist",
+      "generic": {
+        "Defined scope/population": "Policyholders electing EFT drafting who require an active NACHA-compliant debit authorisation.",
+        "In-scope period": "Authorisations established ahead of the next scheduled draft run.",
+        "Required fields populated and valid": "Authorisation ID, debit amount basis, frequency, start date and revocation path are populated.",
+        "Control totals or record counts reconcile": "Count of active mandates equals the count of retrievable stored authorisations.",
+        "Evidence retained with timestamp/version": "The signed or assented authorisation is stored with a date and authorisation identifier.",
+        "Exceptions logged with disposition": "Failed validations and returned pre-notifications are logged with the corrective action.",
+        "Test population": "All EFT mandates activated in BillingCenter during the period.",
+        "Pass/fail thresholds": "No live draft schedule exists without a retrievable signed or assented authorisation.",
+        "Exception handling path": "Validation failures suspend the mandate until the payor supplies corrected details.",
+        "Documented acceptance criteria": "Mandate shows an authorisation ID, disclosed amount and frequency, and a clean account validation.",
+        "Evidence location": "BillingCenter mandate record and the authorisation image in the document management repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Capture the ACH debit authorisation and store it with an ID",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Capture the signed or electronically assented ACH debit authorisation.",
+            "Store it in the document repository with a unique authorisation identifier.",
+            "Record the authorisation ID on the billing account mandate.",
+            "Done when the authorisation is stored and its ID is on the mandate."
+          ],
+          "verify": [
+            "Retrieve the authorisation using the ID on the mandate.",
+            "Pass when the stored authorisation returns and matches the payor of record."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Check the authorisation discloses amount, frequency and start date",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Read the authorisation text for the debit amount or its calculation basis.",
+            "Confirm the frequency and effective start date are stated.",
+            "Reject and re-obtain any authorisation missing a required disclosure.",
+            "Done when all three disclosures are present on the authorisation."
+          ],
+          "verify": [
+            "Re-read the stored authorisation for the three disclosures.",
+            "Pass when amount basis, frequency and start date are all stated."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Run a pre-notification or account validation through the Payment Gateway",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Submit a pre-notification or account validation for the payor account.",
+            "Wait the required window and read the response for any return code.",
+            "Suspend the mandate where any R-code is returned.",
+            "Done when the validation returns clean or the mandate is suspended."
+          ],
+          "verify": [
+            "Read the validation response stored against the mandate.",
+            "Pass when the validation shows no return code before the first live draft."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Set the draft date against the premium due date in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Set the draft date so settlement lands on or before the premium due date.",
+            "Allow for the required ACH settlement days in the offset.",
+            "Confirm the calculated settlement date on a sample instalment.",
+            "Done when the draft date produces settlement on or before the due date."
+          ],
+          "verify": [
+            "Recompute settlement date from draft date plus settlement days.",
+            "Pass when settlement date is on or before the premium due date."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Configure the revocation path on the mandate in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Confirm the revocation instructions given to the payor match the system path.",
+            "Configure the mandate so a revocation stops future drafts immediately.",
+            "Test a revocation on a non-production mandate and record the result.",
+            "Done when a revocation demonstrably stops future drafts."
+          ],
+          "verify": [
+            "Read the revocation test result recorded on the case.",
+            "Pass when the tested revocation prevented the next scheduled draft."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Activate the mandate on the billing account in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Activate the mandate only after authorisation, validation and draft date are in place.",
+            "Confirm the account shows an active mandate with the correct start date.",
+            "Record the activation reference on the case.",
+            "Done when the mandate is active with a recorded reference."
+          ],
+          "verify": [
+            "Read the mandate status and start date on the account.",
+            "Pass when the mandate is active with the authorised start date."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Confirm the mandate appears in the next draft selection in BillingCenter",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Run the draft selection preview for the next scheduled run.",
+            "Confirm the new mandate is selected for the correct instalment and amount.",
+            "Correct any mismatch before the live run.",
+            "Done when the mandate appears correctly in the draft preview."
+          ],
+          "verify": [
+            "Compare the previewed draft amount to the instalment due.",
+            "Pass when the previewed amount equals the instalment due for the account."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fb9ck031ubn7ikvlvxtl2",
+      "verifier": "Billing Specialist",
+      "generic": {
+        "Defined scope/population": "Billing accounts with a requested change of payor for lienholder-pay or third-party-pay arrangements.",
+        "In-scope period": "Payor change requests received before the current cycle notice release.",
+        "Required fields populated and valid": "Payor name, mailing address, remittance identifier, loan or account number and effective date are populated.",
+        "Control totals or record counts reconcile": "Count of payor updates equals the count of verified change requests processed in the period.",
+        "Evidence retained with timestamp/version": "The lienholder clause or signed authorisation is filed with a date and reference.",
+        "Exceptions logged with disposition": "Requests without supporting authority are logged and rejected back to the requester.",
+        "Test population": "All payor record updates applied in BillingCenter during the period.",
+        "Pass/fail thresholds": "No payor record was overwritten without retaining the superseded values.",
+        "Exception handling path": "Unverified change requests are held and returned to the Policy Administration Analyst.",
+        "Documented acceptance criteria": "New payor is effective-dated, the prior payor is end-dated and the next notice reflects the change.",
+        "Evidence location": "BillingCenter payor history and the authorisation document in the document management repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Verify the change request against the authority document",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Compare the change request to the lienholder clause or signed insured authorisation.",
+            "Reject any request where the authority does not name the new payor.",
+            "Record the verification outcome on the change case.",
+            "Done when the request is verified against a filed authority document."
+          ],
+          "verify": [
+            "Read the verification outcome and the linked document reference.",
+            "Pass when the authority document names the requested new payor."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the loan or account number in the policy administration system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Read the lienholder loan or account number recorded on the policy.",
+            "Compare it to the number on the change request.",
+            "Raise a query where the numbers differ.",
+            "Done when the loan or account number is confirmed or queried."
+          ],
+          "verify": [
+            "Compare the confirmed number to the change request value.",
+            "Pass when the numbers agree or a query is logged."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Update the payor name, address and remittance identifier in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Enter the new payor name, mailing address and remittance identifier.",
+            "Enter the loan or account number from the lienholder document.",
+            "Save the update and capture the transaction reference.",
+            "Done when the account shows the new payor details."
+          ],
+          "verify": [
+            "Compare the saved payor details to the authority document.",
+            "Pass when name, address and identifier match the document."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "End-date the prior payor record in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "End-date the prior payor rather than deleting the record.",
+            "Confirm historical notices remain linked to the prior payor.",
+            "Record the end date on the change case.",
+            "Done when the prior payor is end-dated and still traceable."
+          ],
+          "verify": [
+            "Open the payor history on the account.",
+            "Pass when the prior payor appears with an end date and retained values."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Decide re-issue of the current open notice in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Check whether the current open notice has already been paid.",
+            "Re-issue to the new payor only where the notice remains unpaid.",
+            "Record the re-issue decision and reason on the case.",
+            "Done when a documented re-issue or no-re-issue decision exists."
+          ],
+          "verify": [
+            "Compare the decision to the payment status of the open notice.",
+            "Pass when no paid notice was re-issued to the new payor."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the change on the next generated premium notice in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Generate the next premium notice for the account before the cycle releases.",
+            "Confirm the notice is addressed to the new payor with the correct identifier.",
+            "Attach the proof to the change case.",
+            "Done when the next notice shows the new payor details."
+          ],
+          "verify": [
+            "Read the addressee and remittance block on the generated notice.",
+            "Pass when both match the updated payor record."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "File the authorisation and close the change case in the document management repository",
+          "actor": "Billing Specialist",
+          "sop": [
+            "File the authority document and the notice proof as one evidence set.",
+            "Index the set by policy number and effective date.",
+            "Close the change case with the transaction reference recorded.",
+            "Done when the evidence set is filed and the case is closed."
+          ],
+          "verify": [
+            "Retrieve the evidence set by policy number.",
+            "Pass when the set returns with the authority document and notice proof."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "c7c1eb28-d0e0-40cb-9bd5-baab2f2995a5",
+      "verifier": "Billing Specialist",
+      "generic": {
+        "Defined scope/population": "Billing accounts to be validated against policy administration system premium for the same policies.",
+        "In-scope period": "Accounts with premium activity since the last validation, checked before the next notice run.",
+        "Required fields populated and valid": "Written premium, total billing charges, tax and fee charge types and endorsement dates are populated.",
+        "Control totals or record counts reconcile": "Policy written premium equals billing account total charges to the cent.",
+        "Evidence retained with timestamp/version": "The validation comparison is recorded on the billing account with a date and preparer.",
+        "Exceptions logged with disposition": "Endorsements without a matching billing adjustment are logged with a correction owner.",
+        "Test population": "All billing accounts with premium-affecting activity in the validation period.",
+        "Pass/fail thresholds": "No endorsement exists in the policy system without a corresponding billing adjustment.",
+        "Exception handling path": "Out-of-sync accounts are held from the notice run until the adjustment is posted.",
+        "Documented acceptance criteria": "Premiums agree, charge types mirror, and the remaining schedule sums to the unbilled balance.",
+        "Evidence location": "The validation record on the BillingCenter account and the comparison sheet in Microsoft Excel."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract policy written premium including endorsements from the policy administration system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Extract written premium for the policy including all endorsements to date.",
+            "Include taxes, fees and surcharges as separate amounts.",
+            "Record the extract date and the endorsement sequence covered.",
+            "Done when the policy premium extract exists with its component amounts."
+          ],
+          "verify": [
+            "Compare the extract total to the policy premium summary screen.",
+            "Pass when the extract equals the policy premium summary."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Extract billing account total charges from BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Extract total charges on the billing account by charge type.",
+            "Include premium, tax, fee and surcharge charge types separately.",
+            "Record the extract date to match the policy extract.",
+            "Done when the billing charge extract exists for the same date."
+          ],
+          "verify": [
+            "Compare the billing extract date to the policy extract date.",
+            "Pass when both extracts are taken as at the same date."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Compare policy premium to billing charges in Microsoft Excel",
+          "actor": "Accountant",
+          "sop": [
+            "Compare policy written premium to billing total charges to the cent.",
+            "List any account with a difference and quantify it.",
+            "Investigate differences before any notice is generated.",
+            "Done when the comparison shows agreement or an itemised difference list."
+          ],
+          "verify": [
+            "Recompute the difference for each listed account.",
+            "Pass when every in-scope account shows zero difference after correction."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Check tax, fee and surcharge mirroring by charge type in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Compare each policy tax, fee and surcharge to the matching billing charge type.",
+            "Flag any amount folded into base premium on the billing side.",
+            "Correct the charge type mapping where mirroring fails.",
+            "Done when each policy component maps to its own billing charge type."
+          ],
+          "verify": [
+            "List billing charge types and compare to policy components.",
+            "Pass when every policy component has its own matching billing charge type."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Match the latest endorsement to a billing adjustment in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Identify the most recent endorsement on the policy and its effective date.",
+            "Locate the matching billing adjustment transaction and compare effective dates.",
+            "Raise a correction where the adjustment is missing or misdated.",
+            "Done when the latest endorsement has a matching, correctly dated adjustment."
+          ],
+          "verify": [
+            "Compare endorsement and adjustment effective dates.",
+            "Pass when the dates and amounts agree for the latest endorsement."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Check the remaining instalment schedule against the unbilled balance in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Sum the remaining instalments on the account schedule.",
+            "Compare the sum to the unbilled balance and check the final instalment for rounding drift.",
+            "Rebuild the schedule where drift exists.",
+            "Done when remaining instalments sum exactly to the unbilled balance."
+          ],
+          "verify": [
+            "Recompute the instalment sum after any rebuild.",
+            "Pass when the sum equals the unbilled balance with no rounding residual."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Record the validation result on the billing account in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Record the validation outcome, date and preparer on the billing account.",
+            "Attach the comparison sheet reference to the record.",
+            "Release the account for the next notice generation run.",
+            "Done when the validation result is recorded before the notice run."
+          ],
+          "verify": [
+            "Read the validation record and its date on the account.",
+            "Pass when the record predates the next notice generation run."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "3e9543f3-ce26-4010-af41-53ced74bf1aa",
+      "verifier": "Cash Application Specialist",
+      "generic": {
+        "Defined scope/population": "Receipts that are less than the amount due on the billing account and must be applied as partial payments.",
+        "In-scope period": "Partial receipts captured in the current cash application day.",
+        "Required fields populated and valid": "Instalment applied, applied amount, short-pay reason code and recalculated balance are populated.",
+        "Control totals or record counts reconcile": "Applied amounts plus remaining balance equal the pre-payment account balance.",
+        "Evidence retained with timestamp/version": "The remittance advice and the posting screen are retained against the receipt with a timestamp.",
+        "Exceptions logged with disposition": "Shortfalls above tolerance are logged with the reason and the collections action taken.",
+        "Test population": "All partial premium receipts posted in BillingCenter for the day.",
+        "Pass/fail thresholds": "No partial payment remains unapplied on the account after posting.",
+        "Exception handling path": "Disputed short-pays are routed to the Billing Specialist before any lapse step advances.",
+        "Documented acceptance criteria": "Receipt is applied to named instalments with a reason code and a recalculated balance.",
+        "Evidence location": "BillingCenter receipt application history and the premium posting in the ERP general ledger."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Read the remittance advice and identify the intended instalments",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Open the receipt and read any remittance advice or notice stub reference.",
+            "Note whether the payor directed the payment to a specific instalment.",
+            "Record the direction or its absence on the receipt.",
+            "Done when the payor direction is recorded or confirmed absent."
+          ],
+          "verify": [
+            "Compare the recorded direction to the remittance document.",
+            "Pass when the recorded direction matches the remittance advice."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Apply the receipt to the oldest open instalment in BillingCenter",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Apply the receipt against the oldest open instalment unless the advice directs otherwise.",
+            "Split the receipt across instalments where the amount spans more than one.",
+            "Save the application and capture the transaction reference.",
+            "Done when the full receipt is applied to named instalments."
+          ],
+          "verify": [
+            "Sum the applied amounts and compare to the receipt amount.",
+            "Pass when the applied total equals the receipt with nothing unapplied."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm the fee and tax payment hierarchy in BillingCenter",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Check the documented payment hierarchy for fees, taxes and base premium.",
+            "Confirm the posting applied amounts in that documented order.",
+            "Reverse and repost where the hierarchy was not followed.",
+            "Done when the applied order matches the documented hierarchy."
+          ],
+          "verify": [
+            "Read the applied component order on the posting.",
+            "Pass when fees and taxes were satisfied before base premium as documented."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Recalculate the remaining balance and next amount due in BillingCenter",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Refresh the account and read the remaining balance and next amount due.",
+            "Compare them to the pre-payment balance less the applied amount.",
+            "Correct any account showing an inconsistent balance.",
+            "Done when the recalculated balance reconciles to the posting."
+          ],
+          "verify": [
+            "Recompute balance as prior balance less applied amount.",
+            "Pass when the recomputed and displayed balances agree."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Code the short-pay reason on the receipt in BillingCenter",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Select the short-pay reason code from partial remittance, disputed fee or omitted instalment fee.",
+            "Add a note where the reason is not covered by an existing code.",
+            "Save the code so aging reporting reflects the cause.",
+            "Done when every partial receipt carries a short-pay reason code."
+          ],
+          "verify": [
+            "List partial receipts for the day and check the reason code field.",
+            "Pass when no partial receipt lacks a short-pay reason code."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Test the shortfall against the de-minimis tolerance in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Compare the residual shortfall to the de-minimis tolerance for the product.",
+            "Suppress the non-pay workflow where the shortfall is within tolerance.",
+            "Refer shortfalls above tolerance to the collections worklist.",
+            "Done when each shortfall is classified against the tolerance."
+          ],
+          "verify": [
+            "Check the lapse queue for accounts inside tolerance.",
+            "Pass when no within-tolerance account entered the non-pay workflow."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Confirm the premium posting reached the ERP general ledger",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Confirm the partial application produced a ledger entry in the ERP general ledger.",
+            "Check the entry hits cash and premium receivable per the posting map.",
+            "Investigate any receipt with no corresponding ledger entry.",
+            "Done when every partial application has a matching ledger entry."
+          ],
+          "verify": [
+            "Compare the day total of partial applications to the ledger postings.",
+            "Pass when the two totals agree for the day."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "26b2623c-02e8-4664-9447-80fb9d7b718c",
+      "verifier": "Cash Application Specialist",
+      "generic": {
+        "Defined scope/population": "Captured premium receipts requiring matching and application to the correct policy or billing account.",
+        "In-scope period": "Receipts captured for the current cash application business day.",
+        "Required fields populated and valid": "Match identifier, posted amount, receipt date, payment method and policy number are populated.",
+        "Control totals or record counts reconcile": "Posted receipt totals equal the bank or lockbox record totals for the day.",
+        "Evidence retained with timestamp/version": "The remittance stub image and the match evidence are retained against the receipt.",
+        "Exceptions logged with disposition": "Unmatched receipts are logged and routed to premium suspense with a research owner.",
+        "Test population": "All receipts matched and applied in BillingCenter during the day.",
+        "Pass/fail thresholds": "No receipt is posted on name similarity alone without an amount and reference match.",
+        "Exception handling path": "Uncertain matches route to premium suspense rather than being force-posted.",
+        "Documented acceptance criteria": "Every posted receipt carries a system match identifier and a receipt date equal to the bank date.",
+        "Evidence location": "BillingCenter receipt records and the premium paid-to-date update in the policy administration system."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Match receipts on the notice stub reference in BillingCenter",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Read the policy number or remittance reference printed on the notice stub.",
+            "Match the receipt to the billing account using that reference.",
+            "Record the match identifier on the receipt.",
+            "Done when referenced receipts are matched to their billing accounts."
+          ],
+          "verify": [
+            "Compare the matched account to the reference on the stub.",
+            "Pass when the matched account equals the account named by the reference."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Match reference-less receipts on payor, amount and due date in BillingCenter",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "For receipts with no reference, search on payor name plus exact amount plus due date.",
+            "Accept the match only when all three corroborate.",
+            "Record the corroborating fields on the receipt.",
+            "Done when each reference-less receipt is matched on three fields or left unmatched."
+          ],
+          "verify": [
+            "Read the corroborating fields recorded on each such receipt.",
+            "Pass when every match records payor, amount and due date agreement."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Route uncertain receipts to premium suspense in BillingCenter",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Move any receipt not matched with certainty to premium suspense.",
+            "Do not post to a close-name policy on similarity alone.",
+            "Assign a research owner and a follow-up date on the suspense item.",
+            "Done when every uncertain receipt sits in suspense with an owner."
+          ],
+          "verify": [
+            "List posted receipts and check for name-similarity-only matches.",
+            "Pass when no receipt was posted on name similarity alone."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm posted amount, date and method against the bank record",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Compare the posted amount, receipt date and payment method to the bank or lockbox record.",
+            "Correct any posting that differs from the bank record.",
+            "Record the comparison on the daily application log.",
+            "Done when posted attributes equal the bank record for every receipt."
+          ],
+          "verify": [
+            "Recompare a sample of postings to the bank record.",
+            "Pass when amount, date and method agree for every sampled receipt."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Apply the matched receipts to the billing accounts in BillingCenter",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Apply each matched receipt to the open instalments on its account.",
+            "Confirm the account balance reduces by the applied amount.",
+            "Capture the application transaction reference on the receipt.",
+            "Done when every matched receipt is applied with a transaction reference."
+          ],
+          "verify": [
+            "Compare applied totals to matched receipt totals.",
+            "Pass when the two totals agree with no unapplied matched receipt."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm premium paid-to-date in the policy administration system",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Run or await the posting interface to the policy administration system.",
+            "Confirm premium paid-to-date advanced for the affected policies.",
+            "Reprocess any policy the interface did not update.",
+            "Done when paid-to-date reflects the applied receipts."
+          ],
+          "verify": [
+            "Compare paid-to-date on a sample of policies to the applied instalments.",
+            "Pass when paid-to-date matches the last instalment satisfied."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Post the premium receipts to the ERP general ledger",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Confirm the applied receipts generated ledger entries in the ERP general ledger.",
+            "Check entries hit cash and premium receivable per the posting map.",
+            "Investigate and clear any interface reject the same day.",
+            "Done when every applied receipt has a ledger entry and no rejects remain."
+          ],
+          "verify": [
+            "Compare the day application total to the ledger posting total.",
+            "Pass when the two totals agree and the reject queue is empty."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "b16a1105-7bbb-47ef-8bcc-3558ecbccae1",
+      "verifier": "Cash Application Specialist",
+      "generic": {
+        "Defined scope/population": "All inbound premium receipt channels for the day: lockbox, ACH, card settlement, wire and portal.",
+        "In-scope period": "The current capture day covering all prior-day and same-day receipt files.",
+        "Required fields populated and valid": "Receipt date, amount, payment method, payor name and source reference are populated on every receipt.",
+        "Control totals or record counts reconcile": "Loaded receipt count and dollar total per channel tie to the bank deposit advice.",
+        "Evidence retained with timestamp/version": "Each loaded file and its control totals are retained with the load timestamp.",
+        "Exceptions logged with disposition": "Unreadable lockbox images and screening holds are logged with the same-day disposition.",
+        "Test population": "All receipt files loaded into BillingCenter for the capture day.",
+        "Pass/fail thresholds": "No prior-day receipt file remains unloaded at end of day.",
+        "Exception handling path": "Sanctioned-country or unexpected foreign remittances are held for screening before posting.",
+        "Documented acceptance criteria": "Every channel is loaded, reconciled to the bank advice and free of unresolved rejects.",
+        "Evidence location": "BillingCenter receipt register, the Payment Gateway settlement file and the ERP bank clearing account."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the lockbox and portal receipt files for the day",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Download the lockbox file and the portal payment extract for the capture day.",
+            "Record the file names, record counts and dollar totals.",
+            "Confirm no prior-day file remains undownloaded.",
+            "Done when all lockbox and portal files for the day are downloaded and counted."
+          ],
+          "verify": [
+            "Compare downloaded file counts to the expected daily file schedule.",
+            "Pass when every expected file for the day is present."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Pull ACH credits and card settlement from the Payment Gateway",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Download the ACH credit file and the card settlement file from the gateway.",
+            "Record record counts and dollar totals for each.",
+            "Note any settlement batch reported by the gateway but not received.",
+            "Done when gateway files are downloaded with control totals recorded."
+          ],
+          "verify": [
+            "Compare gateway reported batch totals to the downloaded file totals.",
+            "Pass when the downloaded totals equal the gateway reported totals."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Load each channel file into BillingCenter",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Load each channel file into the billing system as a receipt batch.",
+            "Confirm the loaded count and total match the file control totals.",
+            "Reject and reload any batch that fails validation.",
+            "Done when every channel file is loaded with matching control totals."
+          ],
+          "verify": [
+            "Compare loaded batch totals to the source file totals.",
+            "Pass when loaded and source totals agree for every channel."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reconcile loaded receipts to the bank deposit advice",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Obtain the bank deposit advice for the day per channel.",
+            "Compare deposit counts and dollars to the loaded receipt totals.",
+            "List and chase any difference before day close.",
+            "Done when each channel ties to its deposit advice or the difference is listed."
+          ],
+          "verify": [
+            "Recompute the per-channel difference against the deposit advice.",
+            "Pass when each channel difference is zero or fully explained."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Check required receipt attributes are populated in BillingCenter",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Scan loaded receipts for missing date, amount, method, payor or source reference.",
+            "Complete missing attributes from the source file or image.",
+            "Reject receipts that cannot be completed to suspense research.",
+            "Done when every loaded receipt carries the five required attributes."
+          ],
+          "verify": [
+            "Re-scan the loaded population for missing attributes.",
+            "Pass when no loaded receipt has a blank required attribute."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Hold sanctioned-country and unexpected foreign remittances for screening",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Identify receipts routed from sanctioned countries or unexpected foreign remitters.",
+            "Place each on hold before posting and refer for screening.",
+            "Record the hold and referral reference on the receipt.",
+            "Done when every flagged receipt is held and referred."
+          ],
+          "verify": [
+            "List posted receipts and check for flagged foreign routings.",
+            "Pass when no flagged receipt was posted before screening cleared."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Re-key rejected lockbox images the same day in BillingCenter",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "List lockbox items rejected as unreadable by the capture process.",
+            "Re-key each item from the stored image the same day.",
+            "Log any item that cannot be re-keyed with its disposition.",
+            "Done when no unreadable item is carried to the next cycle."
+          ],
+          "verify": [
+            "Check the unreadable queue at day close.",
+            "Pass when the unreadable queue is empty or every item has a logged disposition."
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Confirm the day capture posted to the ERP general ledger",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Confirm receipt capture generated the expected ledger postings in the ERP.",
+            "Compare the ledger cash total to the day capture total.",
+            "Clear any interface reject before day close.",
+            "Done when the ledger reflects the full day capture."
+          ],
+          "verify": [
+            "Compare ledger cash movement to the captured receipt total.",
+            "Pass when the two totals agree for the capture day."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "077a9160-6926-4107-9017-7cb2e656b403",
+      "verifier": "Billing Operations Manager",
+      "generic": {
+        "Defined scope/population": "The self-service payment and auto-pay enrolment journey exposed to policyholders in the portal.",
+        "In-scope period": "The current release cycle in which the self-service capability is enabled or changed.",
+        "Required fields populated and valid": "Mandate record, disclosed debit amount basis, draft date, cancel path and e-delivery flag are populated.",
+        "Control totals or record counts reconcile": "Portal enrolment count equals the count of active mandates created in BillingCenter.",
+        "Evidence retained with timestamp/version": "Test evidence for each scenario is retained with the release version and test date.",
+        "Exceptions logged with disposition": "Declined-card and failed-enrolment scenarios are logged with the observed system behaviour.",
+        "Test population": "All self-service payment and enrolment scenarios executed against the release.",
+        "Pass/fail thresholds": "No card or bank account number is returned to the browser or written to application logs.",
+        "Exception handling path": "Any scenario returning unmasked data blocks the release until remediated.",
+        "Documented acceptance criteria": "Enrolment creates an active mandate with disclosed amount and a working cancel path.",
+        "Evidence location": "The Customer Self-Service Portal test pack and the mandate records in BillingCenter."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the portal payment page posts to the tokenising Payment Gateway",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Trace the portal payment submission to the gateway hosted endpoint.",
+            "Confirm the response returns only a token and masked last four digits.",
+            "Check application logs for any unmasked value.",
+            "Done when only tokens and masked values are observed end to end."
+          ],
+          "verify": [
+            "Inspect the response payload and the application log entries.",
+            "Pass when no full card or account number appears in either."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Check auto-pay disclosures on the enrolment screen in the portal",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Open the auto-pay enrolment screen as a policyholder.",
+            "Confirm it discloses the debit amount basis, the draft date and how to cancel.",
+            "Reject the release where any disclosure is missing.",
+            "Done when all three disclosures appear before the submit action."
+          ],
+          "verify": [
+            "Re-read the enrolment screen against the disclosure checklist.",
+            "Pass when amount basis, draft date and cancel path are all shown."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Test that enrolment writes an active mandate in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Complete a test enrolment through the portal.",
+            "Confirm an active mandate appears on the billing account with the correct start date.",
+            "Confirm the paper premium notice is suppressed where e-delivery was elected.",
+            "Done when the test enrolment creates an active mandate and applies the notice preference."
+          ],
+          "verify": [
+            "Read the mandate and notice preference on the test account.",
+            "Pass when the mandate is active and the notice preference matches the election."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Test a declined card through the Payment Gateway",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Submit a test payment using a card the gateway will decline.",
+            "Confirm the policyholder sees a clear failure message.",
+            "Confirm the billing account is not marked paid.",
+            "Done when the decline is handled with a clear message and no payment posted."
+          ],
+          "verify": [
+            "Read the account balance and payment history after the decline.",
+            "Pass when no payment was posted and the balance is unchanged."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Test a same-day portal payment against dunning in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Make a test portal payment on an account with a pending dunning step.",
+            "Confirm the balance updates the same day.",
+            "Confirm the pending dunning step is stopped.",
+            "Done when the payment updates the balance and halts dunning."
+          ],
+          "verify": [
+            "Check the dunning queue for the test account after payment.",
+            "Pass when the account has left the pending dunning step."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Assemble the self-service test pack for release",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Assemble evidence for tokenisation, disclosures, enrolment, decline and dunning tests.",
+            "Record the release version and the test date on the pack.",
+            "List any defect found with its severity.",
+            "Done when the pack covers all five scenarios with results."
+          ],
+          "verify": [
+            "Review the pack against the scenario list.",
+            "Pass when every scenario has a recorded result and evidence."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Approve the self-service capability for go-live",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Review the test pack and any open defect.",
+            "Block go-live where an unmasked data finding remains open.",
+            "Record the go-live approval with date and approver.",
+            "Done when the capability is approved or blocked with a recorded reason."
+          ],
+          "verify": [
+            "Read the approval record and open defect list.",
+            "Pass when approval exists and no unmasked data defect is open."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "244589a5-7ae6-4a09-bd16-a999ecc157a9",
+      "verifier": "Receivables Manager",
+      "generic": {
+        "Defined scope/population": "Receivable balances past the escalation threshold and candidate non-pay cancellations on the aging report.",
+        "In-scope period": "The current escalation cycle using the aging report as at the latest business date.",
+        "Required fields populated and valid": "Balance, days past due, dunning history, last contact date and recommended action are populated.",
+        "Control totals or record counts reconcile": "Escalated account count plus excluded disputes equals the population past the threshold.",
+        "Evidence retained with timestamp/version": "The aging extract and the escalation log are retained with the report date.",
+        "Exceptions logged with disposition": "Disputed and unapplied-cash accounts are logged as excluded with the reason.",
+        "Test population": "All accounts past the escalation threshold on the aging report.",
+        "Pass/fail thresholds": "No account with an open billing dispute is escalated as a non-pay cancellation candidate.",
+        "Exception handling path": "Disputes route to the Billing Operations Manager for resolution instead of collections escalation.",
+        "Documented acceptance criteria": "Every threshold account has a logged escalation with owner and recommended action.",
+        "Evidence location": "The BI reporting platform aging report and the escalation cases in the workflow tool."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Run the aging report in the BI reporting platform",
+          "actor": "Collections Analyst",
+          "sop": [
+            "Run the receivables aging report as at the latest business date.",
+            "Select balances past the escalation threshold or at the final dunning step.",
+            "Record the selected population count and value.",
+            "Done when the threshold population is selected and counted."
+          ],
+          "verify": [
+            "Compare the selected value to the aged bucket totals on the report.",
+            "Pass when the selection reconciles to the aged bucket totals."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Separate disputes and unapplied cash from non-pay candidates in BillingCenter",
+          "actor": "Collections Analyst",
+          "sop": [
+            "Check each selected account for an open billing dispute or unapplied cash.",
+            "Remove those accounts from the non-pay candidate list.",
+            "Record the exclusion reason for each removed account.",
+            "Done when the candidate list contains only genuine non-pay accounts."
+          ],
+          "verify": [
+            "Re-scan the candidate list for open disputes and unapplied cash.",
+            "Pass when no candidate carries an open dispute or unapplied cash."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Attach dunning history and last contact date to each candidate in BillingCenter",
+          "actor": "Collections Analyst",
+          "sop": [
+            "Pull the dunning step history and last contact attempt for each candidate.",
+            "Attach both to the escalation record.",
+            "Flag candidates with no recorded contact attempt.",
+            "Done when every candidate shows dunning history and last contact date."
+          ],
+          "verify": [
+            "Scan candidates for missing contact history.",
+            "Pass when every candidate shows a dunning history and a contact date or a flag."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Flag approaching statutory cancellation-notice dates in BillingCenter",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Calculate the statutory notice date for each candidate from the due date and state rule.",
+            "Flag candidates whose notice deadline falls inside the escalation cycle.",
+            "Prioritise flagged accounts at the top of the escalation pack.",
+            "Done when every candidate carries a notice deadline and priority flag."
+          ],
+          "verify": [
+            "Compare flagged deadlines to the escalation cycle dates.",
+            "Pass when no notice deadline would pass unactioned inside the cycle."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Log the escalation cases in the workflow tool",
+          "actor": "Collections Analyst",
+          "sop": [
+            "Create an escalation case per candidate with balance, days past due and recommended action.",
+            "Assign an owner to each case.",
+            "Link the case to the aging report extract used.",
+            "Done when every candidate has a logged escalation case with an owner."
+          ],
+          "verify": [
+            "Compare escalation case count to the candidate count.",
+            "Pass when every candidate has exactly one open escalation case."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review the escalation pack with collections management",
+          "actor": "Receivables Manager",
+          "sop": [
+            "Review the escalation pack with the candidate list, exclusions and deadline flags.",
+            "Challenge any candidate lacking dunning or contact evidence.",
+            "Record the decisions on each escalation case.",
+            "Done when every case carries a management decision."
+          ],
+          "verify": [
+            "Read the decision field on each escalation case.",
+            "Pass when no case remains without a recorded decision."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Return disputes to billing for resolution in the workflow tool",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Route excluded dispute accounts to the billing dispute queue.",
+            "Set a resolution target date on each.",
+            "Confirm none re-enters the non-pay escalation while the dispute is open.",
+            "Done when every excluded dispute has an owner and a target date."
+          ],
+          "verify": [
+            "Re-run the escalation selection after routing.",
+            "Pass when no open dispute account appears in the escalation population."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "07b92960-2206-43f0-bcf6-05dcbdc6e47b",
+      "verifier": "Billing Operations Manager",
+      "generic": {
+        "Defined scope/population": "Due instalments on accounts holding an active EFT or auto-pay mandate for the scheduled draft run.",
+        "In-scope period": "The draft run covering instalments due in the current settlement window.",
+        "Required fields populated and valid": "Mandate token, instalment reference, draft amount, effective settlement date and run identifier are populated.",
+        "Control totals or record counts reconcile": "Draft file record count and dollar total equal the instalments-due extract.",
+        "Evidence retained with timestamp/version": "The draft file, control totals and bank acknowledgement are retained with the run timestamp.",
+        "Exceptions logged with disposition": "Excluded mandates and file rejects are logged with the reason and next action.",
+        "Test population": "All instalments selected into the scheduled EFT draft run.",
+        "Pass/fail thresholds": "No instalment appears in two consecutive draft files.",
+        "Exception handling path": "Rejected records are corrected and drafted in the next run rather than manually re-keyed.",
+        "Documented acceptance criteria": "Balanced draft file transmitted with a retained bank acknowledgement and in-flight postings applied.",
+        "Evidence location": "BillingCenter draft run record, the Payment Gateway transmission log and the ERP general ledger."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Select due instalments with active mandates in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Select instalments due in the settlement window on accounts with an active mandate.",
+            "Exclude cancelled, lapsed and paid accounts from the selection.",
+            "Record the selected record count and dollar total.",
+            "Done when the selection excludes ineligible accounts and is counted."
+          ],
+          "verify": [
+            "Re-scan the selection for cancelled, lapsed or paid accounts.",
+            "Pass when no ineligible account remains in the selection."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Check the selection against the prior draft file in BillingCenter",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Compare the selected instalment references to the prior draft file.",
+            "Remove any instalment already drafted and still in flight.",
+            "Record the removed items with the reason.",
+            "Done when no instalment repeats from the prior draft file."
+          ],
+          "verify": [
+            "Join current and prior selections on instalment reference.",
+            "Pass when the join returns no repeated instalment."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Balance the draft file to the instalments-due extract in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Produce the draft file and read its record count and dollar total.",
+            "Compare both to the instalments-due extract control totals.",
+            "Investigate any difference before transmitting.",
+            "Done when file and extract control totals agree."
+          ],
+          "verify": [
+            "Recompute the file to extract difference.",
+            "Pass when the difference is zero for count and value."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the settlement date honours pre-notification and lead time",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Read the effective settlement date on the draft file header.",
+            "Confirm it honours pre-notification periods for newly added mandates.",
+            "Confirm it honours the required lead time before the due date.",
+            "Done when the settlement date satisfies both rules."
+          ],
+          "verify": [
+            "Recompute the settlement date against the rules for a sample of records.",
+            "Pass when every sampled record satisfies pre-notification and lead time."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Transmit the draft file through the Payment Gateway",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Transmit the balanced draft file to the bank through the gateway.",
+            "Capture the transmission reference and time.",
+            "Retry once on transmission failure and escalate if it fails again.",
+            "Done when the file is transmitted with a captured reference."
+          ],
+          "verify": [
+            "Read the transmission log entry for the run.",
+            "Pass when the log shows a successful transmission with a reference."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "File the bank acknowledgement against the run in BillingCenter",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Retrieve the bank acknowledgement or receipt for the transmitted file.",
+            "Compare the acknowledged count and total to the transmitted file.",
+            "File the acknowledgement against the draft run record.",
+            "Done when the acknowledgement is filed and matches the file totals."
+          ],
+          "verify": [
+            "Compare acknowledged totals to transmitted totals.",
+            "Pass when the acknowledged count and value equal the transmitted file."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Post pending drafts as in-flight in BillingCenter",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Post the transmitted drafts to the accounts as in-flight payments.",
+            "Confirm the affected instalments are no longer selectable by the next run.",
+            "Record the in-flight posting reference on the run.",
+            "Done when all transmitted drafts are posted as in-flight."
+          ],
+          "verify": [
+            "Run the next draft selection preview.",
+            "Pass when no in-flight instalment appears in the next selection."
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Approve the completed draft run",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Review the control totals, acknowledgement and in-flight postings.",
+            "Approve the run as complete or raise an exception.",
+            "Record the approval name and timestamp on the run.",
+            "Done when the run carries a dated approval or a raised exception."
+          ],
+          "verify": [
+            "Read the approval record on the draft run.",
+            "Pass when the run shows a dated manager approval."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "25359cf5-a307-45ff-af50-dab807011a74",
+      "verifier": "Cash Application Specialist",
+      "generic": {
+        "Defined scope/population": "All premium payment transactions posted to the payment ledger for the business day.",
+        "In-scope period": "The current accounting day, with late items posted to the current open period.",
+        "Required fields populated and valid": "Date, amount, payment source, policy reference, transaction ID and posting operator are populated.",
+        "Control totals or record counts reconcile": "Day total of ledger postings equals the day total of captured receipts.",
+        "Evidence retained with timestamp/version": "The ledger posting report is retained with the accounting date and run timestamp.",
+        "Exceptions logged with disposition": "Late items and corrections are logged with the reason and the offsetting reference.",
+        "Test population": "All payment ledger entries posted for the accounting day.",
+        "Pass/fail thresholds": "No ledger entry is dated into a closed accounting period.",
+        "Exception handling path": "Rejected postings are corrected and reposted with a documented reason rather than adjusted in place.",
+        "Documented acceptance criteria": "Entries carry all required attributes, a unique transaction ID and reconcile to captured receipts.",
+        "Evidence location": "The ERP general ledger posting report and the BillingCenter receipt register for the day."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract the day receipt register from BillingCenter",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Extract all captured receipts for the accounting day.",
+            "Record the count and dollar total by payment source.",
+            "Note the extraction timestamp on the daily log.",
+            "Done when the receipt register extract exists with control totals."
+          ],
+          "verify": [
+            "Compare the extract total to the daily capture report.",
+            "Pass when both totals agree for the day."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm required attributes on each ledger entry in the ERP general ledger",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Open the day ledger postings for premium receipts.",
+            "Confirm each carries date, amount, source, policy reference and posting operator or batch.",
+            "List entries missing any attribute for correction.",
+            "Done when every entry carries the five attributes or is listed."
+          ],
+          "verify": [
+            "Re-scan the postings for missing attributes.",
+            "Pass when no posted entry has a blank required attribute."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Check GL account mapping against the posting map",
+          "actor": "Accountant",
+          "sop": [
+            "Compare the accounts hit by premium receipts to the documented posting map.",
+            "Confirm cash, premium receivable and suspense are used as mapped.",
+            "Raise a correction for any mis-mapped entry.",
+            "Done when every entry maps to the documented accounts."
+          ],
+          "verify": [
+            "Sample entries across sources and check account codes.",
+            "Pass when every sampled entry hits the mapped accounts."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reconcile ledger postings to captured receipts",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Compare the day total of ledger postings to the day total of captured receipts.",
+            "Identify receipts with no posting and postings with no receipt.",
+            "Clear every difference before day close.",
+            "Done when postings and receipts agree for the day."
+          ],
+          "verify": [
+            "Recompute the posting to receipt difference.",
+            "Pass when the difference is zero at day close."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Check for entries dated into a closed period in the ERP general ledger",
+          "actor": "Accountant",
+          "sop": [
+            "Scan the day postings for effective dates in a closed accounting period.",
+            "Repost any such item into the current open period with a reason.",
+            "Record the late-item reason on the posting.",
+            "Done when no posting carries a closed-period date."
+          ],
+          "verify": [
+            "Re-scan postings for closed-period dates.",
+            "Pass when no entry is dated into a closed accounting period."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm corrections post as reversal plus new entry in the ERP general ledger",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "List corrections made during the day.",
+            "Confirm each appears as an offsetting reversal plus a new entry.",
+            "Confirm the original reference is retained on both legs.",
+            "Done when every correction is a reversal plus re-entry with the original reference."
+          ],
+          "verify": [
+            "Trace each correction to its reversal and re-entry.",
+            "Pass when no correction was made by editing an original entry."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Confirm unique transaction IDs across the day ledger",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Extract transaction IDs for all day postings.",
+            "Test for duplicates across sources and batches.",
+            "Investigate and correct any duplicate before close.",
+            "Done when every posting carries a unique transaction ID."
+          ],
+          "verify": [
+            "Run a duplicate test on the transaction ID list.",
+            "Pass when the duplicate test returns no rows."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fkljd1gmekfgziur2kmjy",
+      "verifier": "Billing Specialist",
+      "generic": {
+        "Defined scope/population": "Unscheduled flexible premium payments received on universal life and annuity contracts.",
+        "In-scope period": "Payments received in good order during the current processing day.",
+        "Required fields populated and valid": "Contract number, deposit amount, good-order receipt date, allocation split and limit test result are populated.",
+        "Control totals or record counts reconcile": "Allocated amounts total 100 percent of the applied deposit across elected options.",
+        "Evidence retained with timestamp/version": "The limit test output and allocation instruction are retained against the deposit transaction.",
+        "Exceptions logged with disposition": "Payments breaching a maximum premium or tax limit are quarantined with the decision recorded.",
+        "Test population": "All flexible premium payments processed for the day.",
+        "Pass/fail thresholds": "No flexible premium was applied that breaches a contractual maximum or tax-qualification limit.",
+        "Exception handling path": "Quarantined deposits are referred to the Policy Administration Analyst before application or return.",
+        "Documented acceptance criteria": "Deposit posts on the good-order date with a compliant allocation and a retained limit test.",
+        "Evidence location": "The contract transaction history in the policy administration system and the ERP premium posting."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the contract permits an unscheduled premium in the policy administration system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Open the contract and confirm it allows flexible or unscheduled premium.",
+            "Confirm the contract is in force and not in a restricted status.",
+            "Record the eligibility confirmation on the deposit case.",
+            "Done when contract eligibility for the deposit is confirmed."
+          ],
+          "verify": [
+            "Read the contract status and flexible premium indicator.",
+            "Pass when the contract is in force and permits unscheduled premium."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Establish the good-order receipt date on the deposit",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Determine the date the payment and complete instructions were received in good order.",
+            "Record that date as the crediting date on the deposit.",
+            "Do not use the processing date where it differs from good order receipt.",
+            "Done when the good-order receipt date is recorded on the deposit."
+          ],
+          "verify": [
+            "Compare the recorded date to the receipt and instruction timestamps.",
+            "Pass when the recorded date equals the good-order receipt date."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Run the maximum premium and tax limit tests in the policy administration system",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Test the deposit against the contractual maximum premium.",
+            "Run the guideline premium and seven-pay tests where applicable.",
+            "Quarantine the deposit where any test fails.",
+            "Done when every test result is recorded against the deposit."
+          ],
+          "verify": [
+            "Read the retained limit test outputs on the deposit.",
+            "Pass when all tests pass or the deposit is quarantined."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the allocation instructions total 100 percent",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Read the owner allocation instructions of record for the contract.",
+            "Confirm the split percentages total exactly 100 percent.",
+            "Query the owner where the instructions are incomplete or stale.",
+            "Done when a valid allocation totalling 100 percent is confirmed."
+          ],
+          "verify": [
+            "Sum the allocation percentages on the deposit.",
+            "Pass when the percentages total exactly 100 percent."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Apply the deposit at the crediting date values in the policy administration system",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Apply the deposit using the unit values or crediting parameters for the good-order date.",
+            "Confirm each option receives its allocated share.",
+            "Capture the transaction reference on the deposit case.",
+            "Done when the deposit is applied at the correct date values."
+          ],
+          "verify": [
+            "Compare the unit values used to the good-order date values.",
+            "Pass when the applied values match the good-order date."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm updated accumulation value and cost basis on the contract",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Read the accumulation value and cost basis after the deposit.",
+            "Confirm the movement equals the applied deposit plus crediting.",
+            "Correct any contract where the values do not reconcile.",
+            "Done when accumulation value and cost basis reflect the deposit."
+          ],
+          "verify": [
+            "Recompute the accumulation value movement from the deposit.",
+            "Pass when the recomputed and displayed movements agree."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Reconcile the deposit to the cash receipt in the ERP general ledger",
+          "actor": "Cash Application Specialist",
+          "sop": [
+            "Match the applied contract deposit to the corresponding cash receipt.",
+            "Confirm the ledger premium posting equals the applied deposit.",
+            "Investigate any deposit without matching cash.",
+            "Done when every deposit ties to a cash receipt and a ledger posting."
+          ],
+          "verify": [
+            "Compare deposit totals to ledger premium postings for the day.",
+            "Pass when the two totals agree for the day."
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Release the owner confirmation for the deposit",
+          "actor": "Billing Specialist",
+          "sop": [
+            "Confirm the deposit, allocation and updated values are correct on the contract.",
+            "Release the confirmation to the owner through the standard channel.",
+            "Record the confirmation reference on the deposit case.",
+            "Done when the confirmation is released with a recorded reference."
+          ],
+          "verify": [
+            "Read the confirmation content against the applied deposit.",
+            "Pass when the confirmation shows the correct amount, date and allocation."
+          ]
+        }
+      ]
+    }
+  ]
+}

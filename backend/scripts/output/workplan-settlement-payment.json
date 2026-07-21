@@ -5501,7 +5501,7 @@
         {
           "n": 3,
           "title": "Confirm release is within the committed days of the settlement",
-          "actor": "Claims Examiner",
+          "actor": "Claims Processor",
           "sop": [
             "Read the executed settlement agreement date",
             "Compute the days from that date to the planned release",
@@ -5887,6 +5887,1313 @@
         }
       ]
     },
-    "__MORE__"
+    {
+      "taskId": "cmr2fij5x0i30kfgzvuu1gty7",
+      "verifier": "Claims Examiner",
+      "generic": {
+        "Defined scope/population": "The claim indemnity reserve closed once the annuity funding payment discharges the obligation.",
+        "In-scope period": "From clearance of the annuity funding payment until the indemnity reserve is zero.",
+        "Required fields populated and valid": "Reserve change amount, annuity contract number, rationale and residual expense view are populated.",
+        "Control totals or record counts reconcile": "Total incurred on the exposure equals total paid once the indemnity reserve is zero.",
+        "Evidence retained with timestamp/version": "The reserve change carries the posting user, timestamp and contract reference.",
+        "Exceptions logged with disposition": "Residual expense needs are logged and retained rather than closed with the indemnity.",
+        "Test population": "All structured settlement claims funded in the review period.",
+        "Pass/fail thresholds": "Fail if the indemnity reserve is closed before the funding payment has cleared.",
+        "Exception handling path": "An uncleared funding payment holds the reserve closure until clearance confirms.",
+        "Documented acceptance criteria": "Accepted when the reserve is zero, the rationale cites the contract and incurred equals paid.",
+        "Evidence location": "Reserve records on the claim in Guidewire ClaimCenter with postings in the ERP ledger."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the annuity funding payment has cleared in the ERP ledger",
+          "actor": "Accountant",
+          "sop": [
+            "Locate the annuity funding payment in the ERP ledger",
+            "Confirm the payment shows cleared or settled status",
+            "Record the clearance date for the reserve closure",
+            "Done when the funding payment clearance is confirmed"
+          ],
+          "verify": [
+            "Read the funding payment status in the ledger",
+            "Pass when the funding payment is cleared before any reserve closure"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Enter the reserve change bringing indemnity to zero in ClaimCenter",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Open the exposure carrying the indemnity reserve",
+            "Enter the reserve change reducing outstanding indemnity to zero",
+            "Confirm the change posts without leaving a residual balance",
+            "Done when the outstanding indemnity reserve is zero"
+          ],
+          "verify": [
+            "Read the outstanding indemnity reserve after posting",
+            "Pass when the outstanding indemnity reserve is zero"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record the annuity contract number as the rationale",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Read the annuity contract number from the claim record",
+            "Record it as the rationale on the reserve change",
+            "Note the issuer and assignment company alongside it",
+            "Done when the reserve change cites the annuity contract"
+          ],
+          "verify": [
+            "Read the reserve change rationale text",
+            "Pass when the rationale names the annuity contract number"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm no residual expense reserve is needed",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Review remaining administration and legal cost expectations",
+            "Retain an expense reserve where ongoing costs are expected",
+            "Record the decision on the exposure",
+            "Done when the expense reserve position is decided and recorded"
+          ],
+          "verify": [
+            "Read the expense reserve and the recorded decision",
+            "Pass when any retained expense reserve carries a documented need"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm total incurred equals total paid on the exposure",
+          "actor": "Accountant",
+          "sop": [
+            "Read paid and total incurred on the exposure after closure",
+            "Confirm the two figures are equal for indemnity",
+            "Investigate any variance before period close",
+            "Done when incurred equals paid on the indemnity exposure"
+          ],
+          "verify": [
+            "Compare the paid and incurred figures",
+            "Pass when total incurred equals total paid for indemnity"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the closure posts to the ERP ledger",
+          "actor": "Accountant",
+          "sop": [
+            "Trace the reserve closure entry into the ERP ledger",
+            "Confirm the release of reserve posts to the correct account",
+            "Record the ledger reference on the claim",
+            "Done when the closure is traced and referenced"
+          ],
+          "verify": [
+            "Compare the closure amount with the ledger entry",
+            "Pass when the ledger entry equals the reserve released"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fijfm0i8tkfgzj6k00aat",
+      "verifier": "Complex / Large Loss Claims Specialist",
+      "generic": {
+        "Defined scope/population": "Written issuer confirmation that ongoing periodic payment responsibility has been assumed.",
+        "In-scope period": "From annuity funding until the issuer confirmation letter is filed against the claim.",
+        "Required fields populated and valid": "Annuitant name, payment amounts, frequency, start date and obligor are recorded on the claim.",
+        "Control totals or record counts reconcile": "Payment amounts in the letter equal the schedule recorded on the settlement terms.",
+        "Evidence retained with timestamp/version": "The issuer letter and annuity contract are filed with their issue dates.",
+        "Exceptions logged with disposition": "Letters naming the insurer rather than the assignment company are queried and re-issued.",
+        "Test population": "All structured settlements funded in the review period.",
+        "Pass/fail thresholds": "Fail if no issuer confirmation letter names annuitant, amounts and start date.",
+        "Exception handling path": "A missing or inconsistent letter is chased before the claim is closed.",
+        "Documented acceptance criteria": "Accepted when the letter names obligor, annuitant, schedule and guaranteed terms.",
+        "Evidence location": "Issuer confirmation in the claim repository referenced on the claim in ClaimCenter."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Obtain the issuer acceptance letter into the claim repository",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Request the acceptance letter from the annuity issuer after funding",
+            "Store the received letter in the claim repository",
+            "Record the letter date on the claim",
+            "Done when the acceptance letter is received and stored"
+          ],
+          "verify": [
+            "Retrieve the letter from the claim repository",
+            "Pass when an issuer acceptance letter is on file with a date"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the letter names annuitant, amounts, frequency and start date",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Read the annuitant name and the payment schedule from the letter",
+            "Compare each element to the settlement terms",
+            "Query the issuer where any element is absent or differs",
+            "Done when all four elements are confirmed present and correct"
+          ],
+          "verify": [
+            "Compare letter values with the settlement schedule",
+            "Pass when the letter names annuitant, amounts and start date"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm the qualified assignment company is named as obligor",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Read the obligor named in the acceptance letter",
+            "Confirm it is the assignment company rather than the insurer",
+            "Query and obtain a corrected letter where the insurer is named",
+            "Done when the obligor is confirmed as the assignment company"
+          ],
+          "verify": [
+            "Read the obligor named on the letter",
+            "Pass when the assignment company is named as the obligor"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm guaranteed period and beneficiary terms match the settlement",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Read the guaranteed period, life contingency and beneficiary terms",
+            "Compare them with the settlement agreement terms",
+            "Raise a correction where the annuity terms differ",
+            "Done when the terms are confirmed to match the settlement"
+          ],
+          "verify": [
+            "Compare the annuity terms with the settlement agreement",
+            "Pass when guaranteed period and beneficiary terms agree"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "File the confirmation and annuity contract against the claim",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Store both the confirmation letter and the annuity contract",
+            "Index both to the claim and the contract number",
+            "Link them to the structured settlement record",
+            "Done when both documents are stored, indexed and linked"
+          ],
+          "verify": [
+            "Search by contract number and by claim number",
+            "Pass when both searches return the confirmation and contract"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the ongoing obligation reference on the ClaimCenter claim",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Record the issuer, obligor and contract number on the claim",
+            "Set the annual review activity to confirm payments continue",
+            "Assign the review to the structured settlement owner",
+            "Done when the obligation reference and review activity are set"
+          ],
+          "verify": [
+            "Read the claim for the obligation reference and review activity",
+            "Pass when the claim names the obligor and carries a review diary"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "06d97c2b-9441-45dd-8501-c696a66da20f",
+      "verifier": "Claims Examiner",
+      "generic": {
+        "Defined scope/population": "Structured settlement terms, assignment and annuity contract documented on this claim.",
+        "In-scope period": "From annuity placement until every structured settlement document is filed and indexed.",
+        "Required fields populated and valid": "Contract number, issuer, assignment company, schedule and annuity cost are recorded.",
+        "Control totals or record counts reconcile": "Annuity cost plus the cash portion equals the total settlement value recorded.",
+        "Evidence retained with timestamp/version": "Agreement, assignment and contract are stored with their execution and issue dates.",
+        "Exceptions logged with disposition": "Missing documents are logged and chased before the claim moves to closure.",
+        "Test population": "All structured settlements placed in the review period.",
+        "Pass/fail thresholds": "Fail if the agreement, assignment or annuity contract is absent from the file.",
+        "Exception handling path": "A missing contract holds claim closure until the issuer provides it.",
+        "Documented acceptance criteria": "Accepted when all three documents are present and the financial split is recorded.",
+        "Evidence location": "Structured settlement documents in OpenText linked to the claim in ClaimCenter."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "File the agreement, assignment and annuity contract in OpenText",
+          "actor": "Claims Processor",
+          "sop": [
+            "Store the settlement agreement, qualified assignment and annuity contract",
+            "Index each with the claim number and document type",
+            "Confirm each is the fully executed or issued version",
+            "Done when all three documents are stored and indexed"
+          ],
+          "verify": [
+            "Search the claim folder for the three document types",
+            "Pass when agreement, assignment and annuity contract are all present"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Record the contract number, issuer and assignment company in ClaimCenter",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Read the contract number and issuer from the annuity contract",
+            "Read the assignment company from the qualified assignment",
+            "Record all three on the structured settlement record",
+            "Done when contract number, issuer and assignee are recorded"
+          ],
+          "verify": [
+            "Compare the recorded values with the contract documents",
+            "Pass when all three values match the filed documents"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record the payment schedule on the ClaimCenter claim",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Enter the periodic amounts, frequency, start and end dates",
+            "Enter the guaranteed period and any deferred lump sums",
+            "Confirm the entered schedule matches the annuity contract",
+            "Done when the full payment schedule is recorded"
+          ],
+          "verify": [
+            "Compare the recorded schedule with the annuity contract",
+            "Pass when the recorded schedule matches the contract exactly"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record the annuity cost separately from the cash portion",
+          "actor": "Claims Processor",
+          "sop": [
+            "Record the annuity purchase cost on the settlement record",
+            "Record the cash portion paid directly to the claimant",
+            "Confirm the two sum to the total settlement value",
+            "Done when the annuity cost and cash portion are recorded separately"
+          ],
+          "verify": [
+            "Add the annuity cost and the cash portion",
+            "Pass when the sum equals the recorded total settlement value"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Index documents for retrieval by claim and contract number",
+          "actor": "Claims Processor",
+          "sop": [
+            "Add the contract number as an index value on each document",
+            "Confirm retrieval by claim number and by contract number",
+            "Correct any document retrievable by only one key",
+            "Done when both retrieval paths return the document set"
+          ],
+          "verify": [
+            "Run both searches in OpenText",
+            "Pass when both keys return the structured settlement document set"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Link the document set to the ClaimCenter settlement record",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Create links from the settlement record to each stored document",
+            "Confirm the documents open from the settlement view",
+            "Record the documentation completion date on the claim",
+            "Done when the document set is linked to the settlement record"
+          ],
+          "verify": [
+            "Open the settlement record and follow each link",
+            "Pass when all three documents open from the settlement view"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjan10uxwkfgzjzpjwy47",
+      "verifier": "Complex / Large Loss Claims Specialist",
+      "generic": {
+        "Defined scope/population": "Engagement of an approved structured settlement consultant to support this placement.",
+        "In-scope period": "From the structured settlement referral until the consultant is engaged and diarised.",
+        "Required fields populated and valid": "Consultant name, firm, panel status, engagement date and fee arrangement are recorded.",
+        "Control totals or record counts reconcile": "The engaged consultant appears once as a vendor on the claim with a single engagement date.",
+        "Evidence retained with timestamp/version": "The engagement record and briefing pack are stored with the engagement date.",
+        "Exceptions logged with disposition": "Use of a non-panel consultant is logged with the approval obtained.",
+        "Test population": "All structured settlement referrals raised in the review period.",
+        "Pass/fail thresholds": "Fail if a consultant is engaged without a recorded engagement date or panel status.",
+        "Exception handling path": "No proposal by the diary date triggers a chase or a change of consultant.",
+        "Documented acceptance criteria": "Accepted when consultant, briefing, fee basis and proposal diary are all recorded.",
+        "Evidence location": "Vendor engagement record on the claim in Guidewire ClaimCenter with the brief in the repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Select the consultant from the approved broker panel in ClaimCenter",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Open the approved structured settlement broker panel",
+            "Select a consultant appropriate to the claim size and jurisdiction",
+            "Record the panel status on the engagement record",
+            "Done when an approved consultant is selected and recorded"
+          ],
+          "verify": [
+            "Compare the selection with the approved panel list",
+            "Pass when the consultant is on the panel or an approval is recorded"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Provide the briefing pack from the claim repository",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Assemble the injury summary, life expectancy data and future care needs",
+            "Send the pack to the consultant and store the sent copy",
+            "Record the despatch date on the engagement record",
+            "Done when the briefing pack is sent and stored"
+          ],
+          "verify": [
+            "Retrieve the stored briefing pack",
+            "Pass when the pack covers injury, life expectancy and care needs"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record consultant name, firm and engagement date in ClaimCenter",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Create the vendor engagement record for the consultant",
+            "Record the consultant name, firm and engagement date",
+            "Confirm the vendor is not duplicated on the claim",
+            "Done when the engagement record is created with all three values"
+          ],
+          "verify": [
+            "Read the vendor engagement record",
+            "Pass when the consultant is recorded as engaged with a date"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Document the consultant fee arrangement",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Establish whether the consultant is paid by broker commission or fee",
+            "Record the arrangement and any fee amount on the engagement",
+            "Confirm the arrangement is disclosed in the placement documentation",
+            "Done when the fee arrangement is recorded and disclosed"
+          ],
+          "verify": [
+            "Read the engagement record for the fee arrangement",
+            "Pass when the fee basis is explicitly recorded"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Set the diary for the consultant proposal in ClaimCenter",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Agree the date for the proposal and quote package",
+            "Set the diary activity for that date on the claim",
+            "State the chase action if the package is late",
+            "Done when the proposal diary is set with a chase action"
+          ],
+          "verify": [
+            "Confirm an open diary exists for the proposal",
+            "Pass when the diary date matches the agreed proposal date"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the engagement is visible on the claim in ClaimCenter",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Open the claim vendor view and locate the consultant",
+            "Confirm engagement date, fee basis and diary all display",
+            "Correct any missing element before the proposal arrives",
+            "Done when the engagement displays complete on the claim"
+          ],
+          "verify": [
+            "Read the vendor record on the claim",
+            "Pass when the consultant shows as engaged with an engagement date"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "42becbb0-18ba-4384-9ea3-f9bde21c3b85",
+      "verifier": "Complex / Large Loss Claims Specialist",
+      "generic": {
+        "Defined scope/population": "The qualified assignment and structured settlement release executed by all required parties.",
+        "In-scope period": "From agreement of the annuity terms until the executed set is filed before funding.",
+        "Required fields populated and valid": "Assignee, periodic payment obligation, issuer, signatories and execution dates are recorded.",
+        "Control totals or record counts reconcile": "The signature count on the assignment equals the number of required parties.",
+        "Evidence retained with timestamp/version": "Executed release and assignment are stored in OpenText with execution dates.",
+        "Exceptions logged with disposition": "Documents executed out of sequence are logged and re-executed where required.",
+        "Test population": "All structured settlements executed in the review period.",
+        "Pass/fail thresholds": "Fail if the funding payment date precedes the assignment execution date.",
+        "Exception handling path": "A missing signature blocks funding until the document is fully executed.",
+        "Documented acceptance criteria": "Accepted when release and assignment are executed, consistent and filed before funding.",
+        "Evidence location": "Executed documents in OpenText linked to the claim in Guidewire ClaimCenter."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm release execution timing against the assignment",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Read the execution dates on the release and the qualified assignment",
+            "Confirm the release is executed before or with the assignment",
+            "Re-execute where the sequence is wrong",
+            "Done when the execution sequence is confirmed correct"
+          ],
+          "verify": [
+            "Compare the two execution dates",
+            "Pass when the release date is on or before the assignment date"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the assignment names assignee, obligation and issuer",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Read the assignee, periodic payment obligation and annuity issuer",
+            "Compare each with the settlement terms and the annuity quote accepted",
+            "Query the assignment where any element is missing",
+            "Done when all three elements are confirmed present and correct"
+          ],
+          "verify": [
+            "Compare the assignment terms with the settlement terms",
+            "Pass when assignee, obligation and issuer are all correctly named"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm claimant, insurer and assignment company have signed",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "List the parties required to sign the assignment",
+            "Confirm a signature is present for each party",
+            "Return the document for completion where a signature is missing",
+            "Done when every required party has signed"
+          ],
+          "verify": [
+            "Count the signatures against the required parties",
+            "Pass when the signature count equals the required party count"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the release does not conflict with the payment schedule",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Read the release wording covering payment of the settlement",
+            "Compare it with the periodic payment schedule in the assignment",
+            "Amend and re-execute where the wording conflicts",
+            "Done when release wording and schedule are consistent"
+          ],
+          "verify": [
+            "Compare release wording with the periodic payment schedule",
+            "Pass when no release term conflicts with the payment schedule"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "File the executed release and assignment set in OpenText",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Store the executed release and assignment in OpenText",
+            "Index both with the claim number and execution dates",
+            "Link both to the structured settlement record",
+            "Done when both executed documents are stored and linked"
+          ],
+          "verify": [
+            "Retrieve both from the settlement record links",
+            "Pass when both executed documents open from the claim"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Hold the annuity funding payment until the set is filed",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Apply a payment hold on the funding payment until documents are filed",
+            "Release the hold only when both executed documents are on file",
+            "Record the release of hold with the date and checker",
+            "Done when the hold is released against a filed executed set"
+          ],
+          "verify": [
+            "Compare the funding payment date with the assignment execution date",
+            "Pass when the executed assignment is on file before the funding payment"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fi3ly0avfkfgzum2xag5u",
+      "verifier": "Claims Processor",
+      "generic": {
+        "Defined scope/population": "The funding payment transferring settlement funds to the annuity issuer for this placement.",
+        "In-scope period": "From filing of the executed documents until the issuer receipt is filed on the claim.",
+        "Required fields populated and valid": "Payee, funding amount, quote reference, dual approvals and issuer receipt are populated.",
+        "Control totals or record counts reconcile": "The funding amount equals the accepted annuity quote cost for the placement.",
+        "Evidence retained with timestamp/version": "The issuer receipt or policy issuance confirmation is filed with its date.",
+        "Exceptions logged with disposition": "Payments attempted to the claimant rather than the issuer are logged and blocked.",
+        "Test population": "All annuity funding payments made in the review period.",
+        "Pass/fail thresholds": "Fail if the funding amount differs from the accepted quote or the payee is not the issuer.",
+        "Exception handling path": "Missing executed documents block the funding payment until they are filed.",
+        "Documented acceptance criteria": "Accepted when documents, payee, amount, dual approval and receipt all check out.",
+        "Evidence location": "Funding payment in the payment system with the posting in the ERP ledger."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the executed release and assignment are on file before funding",
+          "actor": "Claims Processor",
+          "sop": [
+            "Check the claim for the executed release and qualified assignment",
+            "Confirm both are the fully executed versions",
+            "Hold the funding payment where either is absent",
+            "Done when both executed documents are confirmed on file"
+          ],
+          "verify": [
+            "Open both documents from the claim",
+            "Pass when both executed documents are present before funding"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the payee on the funding payment is the annuity issuer",
+          "actor": "Claims Processor",
+          "sop": [
+            "Read the payee on the funding payment instruction",
+            "Confirm it is the annuity issuer rather than the claimant",
+            "Correct the payee where it names any other party",
+            "Done when the payee is confirmed as the issuer"
+          ],
+          "verify": [
+            "Compare the payee with the issuer named in the assignment",
+            "Pass when the funding payee is the annuity issuer"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm the funding amount equals the accepted quote",
+          "actor": "Accountant",
+          "sop": [
+            "Read the accepted annuity quote cost from the quote comparison",
+            "Compare it to the funding payment amount",
+            "Return the payment for correction where they differ",
+            "Done when the funding amount equals the accepted quote"
+          ],
+          "verify": [
+            "Compare the two amounts directly",
+            "Pass when the funding amount equals the accepted annuity quote"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Apply dual approval to the funding payment",
+          "actor": "Claims Processor",
+          "sop": [
+            "Route the funding payment for two distinct approvals",
+            "Confirm neither approver prepared the payment",
+            "Capture both approver IDs and timestamps",
+            "Done when two distinct approvals are captured"
+          ],
+          "verify": [
+            "Read the approval block on the funding payment",
+            "Pass when two distinct approver IDs are recorded"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Obtain and file the issuer receipt after funding",
+          "actor": "Claims Processor",
+          "sop": [
+            "Request the issuer receipt or policy issuance confirmation",
+            "Store it against the claim with its issue date",
+            "Link it to the structured settlement record",
+            "Done when the issuer receipt is filed and linked"
+          ],
+          "verify": [
+            "Retrieve the receipt from the settlement record",
+            "Pass when an issuer receipt is on file with a date"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the funding payment posts to the ERP ledger",
+          "actor": "Accountant",
+          "sop": [
+            "Trace the funding payment into the ERP ledger posting",
+            "Confirm the amount and account coding are correct",
+            "Record the ledger reference on the claim transaction",
+            "Done when the funding payment is traced into the ledger"
+          ],
+          "verify": [
+            "Compare the ledger posting with the funding payment",
+            "Pass when the ledger posting equals the accepted annuity quote amount"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "b301b37c-06d3-4414-8700-071742447eea",
+      "verifier": "Claims Examiner",
+      "generic": {
+        "Defined scope/population": "Claims assessed as structured settlement candidates with a proposed periodic payment schedule.",
+        "In-scope period": "From damages evaluation until the candidate decision and schedule are recorded on the claim.",
+        "Required fields populated and valid": "Severity threshold result, claimant category, proposed schedule and decision rationale are recorded.",
+        "Control totals or record counts reconcile": "The projected annuity cost plus the cash portion sits within the recorded reserve.",
+        "Evidence retained with timestamp/version": "The candidate decision is recorded with the assessor name and decision date.",
+        "Exceptions logged with disposition": "Candidates rejected despite meeting criteria carry a recorded reason.",
+        "Test population": "All severe injury claims assessed in the review period.",
+        "Pass/fail thresholds": "Fail if a candidate decision is recorded without a proposed payment schedule.",
+        "Exception handling path": "A reserve short of the projected cost triggers a reserve change before placement.",
+        "Documented acceptance criteria": "Accepted when threshold, category, schedule and reserve support are all documented.",
+        "Evidence location": "Structured settlement record on the claim in Guidewire ClaimCenter with data in the repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the claim meets the severity and value threshold",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Read the injury severity and projected settlement value from the claim",
+            "Compare both to the structured settlement thresholds",
+            "Record the threshold result on the structured settlement record",
+            "Done when the threshold assessment is recorded"
+          ],
+          "verify": [
+            "Recheck the values against the thresholds",
+            "Pass when the recorded result matches the claim values"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the claimant category supporting periodic payments",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Determine whether the claimant is a minor, incapacitated or catastrophically injured",
+            "Record the category on the structured settlement record",
+            "Note any court approval implication of the category",
+            "Done when the claimant category is recorded"
+          ],
+          "verify": [
+            "Compare the recorded category with the claimant details",
+            "Pass when the category matches the claimant profile on the claim"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Draft the proposed payment schedule in the claim repository",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Draft periodic amounts covering future medical and wage replacement",
+            "Include any deferred lump sums and the guaranteed period",
+            "Store the draft schedule in the claim repository",
+            "Done when the proposed schedule is drafted and stored"
+          ],
+          "verify": [
+            "Retrieve the draft schedule from the repository",
+            "Pass when the schedule covers future medical and income needs"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the reserve supports the projected annuity and cash cost",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Estimate the annuity cost for the proposed schedule",
+            "Add the expected cash portion and compare to the reserve",
+            "Raise a reserve change where the reserve is short",
+            "Done when the reserve covers the projected total cost"
+          ],
+          "verify": [
+            "Compare the reserve with the projected total cost",
+            "Pass when the reserve is at or above the projected total"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the candidate decision and rationale in ClaimCenter",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Record the candidate decision of proceed or decline",
+            "State the rationale covering severity, category and needs",
+            "Record the assessor name and decision date",
+            "Done when decision, rationale and date are recorded"
+          ],
+          "verify": [
+            "Read the structured settlement record",
+            "Pass when the candidate decision and payment schedule are both recorded"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Raise the placement activity for candidate claims in ClaimCenter",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Create the placement activity for claims decided as candidates",
+            "Attach the proposed schedule and reserve confirmation",
+            "Assign it to the structured settlement owner with a due date",
+            "Done when the placement activity is raised and assigned"
+          ],
+          "verify": [
+            "Confirm candidate claims carry an assigned placement activity",
+            "Pass when every candidate claim shows an open placement activity"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjawn0v3vkfgzjsn0u466",
+      "verifier": "Complex / Large Loss Claims Specialist",
+      "generic": {
+        "Defined scope/population": "Annuity quotes obtained from approved life markets for the proposed payment schedule.",
+        "In-scope period": "From consultant engagement until the quote comparison sheet is filed on the claim.",
+        "Required fields populated and valid": "Carrier name, cost, rated age, guaranteed period and financial strength rating are recorded.",
+        "Control totals or record counts reconcile": "The number of quotes obtained meets or exceeds the minimum required by policy.",
+        "Evidence retained with timestamp/version": "Quote letters and the comparison sheet are filed with their quote dates.",
+        "Exceptions logged with disposition": "Quotes priced on a different schedule are logged and re-requested for comparability.",
+        "Test population": "All structured settlement placements quoted in the review period.",
+        "Pass/fail thresholds": "Fail if fewer than the required number of comparable quotes is on file.",
+        "Exception handling path": "A carrier below the rating threshold is excluded and a further quote is sought.",
+        "Documented acceptance criteria": "Accepted when quotes are comparable, rated and filed with the comparison sheet.",
+        "Evidence location": "Quote letters and comparison sheet in the claim repository referenced in ClaimCenter."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Request quotes from the minimum number of approved life markets",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Identify the minimum number of markets required by policy",
+            "Request quotes from that number of approved carriers",
+            "Record each request date on the claim",
+            "Done when the required number of quote requests is issued"
+          ],
+          "verify": [
+            "Count the quote requests issued",
+            "Pass when the request count meets the policy minimum"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm every quote is priced on the identical schedule",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Compare the payment schedule quoted by each carrier",
+            "Confirm amounts, frequency, dates and guarantees are identical",
+            "Re-request any quote priced on a different schedule",
+            "Done when every quote is priced on the same schedule"
+          ],
+          "verify": [
+            "Compare the schedules across the quotes",
+            "Pass when every quote uses the identical payment schedule"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Compare cost, rated age and guaranteed period across quotes",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Build the comparison sheet with cost, rated age and guarantee per carrier",
+            "Note where a rated age materially reduces cost",
+            "Record the lowest cost and the preferred quote",
+            "Done when the comparison sheet is complete for every quote"
+          ],
+          "verify": [
+            "Read the comparison sheet for the three data points",
+            "Pass when every quote row carries cost, rated age and guarantee"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm each quoting carrier meets the rating requirement",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Read the financial strength rating for each quoting carrier",
+            "Compare each to the minimum rating requirement",
+            "Exclude carriers below the threshold and note the exclusion",
+            "Done when every quote carries a rating check result"
+          ],
+          "verify": [
+            "Read the rating column on the comparison sheet",
+            "Pass when every retained quote meets the minimum rating"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "File the quote letters and comparison sheet in the claim repository",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Store every quote letter and the comparison sheet against the claim",
+            "Index them with the claim number and quote dates",
+            "Link them to the structured settlement record",
+            "Done when all quote evidence is stored and linked"
+          ],
+          "verify": [
+            "Retrieve the quote set from the settlement record",
+            "Pass when the comparison and all quote letters retrieve together"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the quote outcome on the ClaimCenter claim",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Record the number of quotes received and the cost range",
+            "Record the preferred quote reference for carrier selection",
+            "Diary the selection decision date",
+            "Done when the quote outcome is recorded with a selection diary"
+          ],
+          "verify": [
+            "Read the recorded quote outcome",
+            "Pass when a comparison on one schedule is on file from the required carriers"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "d545a962-c5e7-49de-9081-8a9bb9111b20",
+      "verifier": "Complex / Large Loss Claims Specialist",
+      "generic": {
+        "Defined scope/population": "Court approval obtained for structured settlements involving minors or incapacitated claimants.",
+        "In-scope period": "From identification of a protected claimant until the certified order is filed on the claim.",
+        "Required fields populated and valid": "Approval requirement, petition figures, order terms, guardian details and order date are recorded.",
+        "Control totals or record counts reconcile": "Gross settlement less fees, costs and liens equals the net to claimant stated in the petition.",
+        "Evidence retained with timestamp/version": "The certified order is stored in OpenText with the entry date.",
+        "Exceptions logged with disposition": "Orders differing from the settlement terms are logged and corrected before payment.",
+        "Test population": "All protected claimant settlements in the review period.",
+        "Pass/fail thresholds": "Fail if any payment was released before the court order was filed on the claim.",
+        "Exception handling path": "An order inconsistent with the schedule returns to counsel for an amended order.",
+        "Documented acceptance criteria": "Accepted when the order matches the settlement amount and the payment schedule.",
+        "Evidence location": "Certified order in OpenText linked to the claim in Guidewire ClaimCenter."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm whether court or guardian approval is required in ClaimCenter",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Read the claimant age and capacity status on the claim",
+            "Determine whether court approval or guardian appointment is required",
+            "Record the requirement on the settlement record",
+            "Done when the approval requirement is determined and recorded"
+          ],
+          "verify": [
+            "Read the claim for the protected claimant flag and requirement",
+            "Pass when every protected claimant carries an approval requirement"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the petition states gross, fees, costs and net",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Read the petition presented to the court",
+            "Confirm gross settlement, attorney fees, costs and net to claimant are stated",
+            "Query the petition where any figure is absent",
+            "Done when all four figures are confirmed present"
+          ],
+          "verify": [
+            "Recompute net from gross less fees, costs and liens",
+            "Pass when the petition figures reconcile to the settlement record"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm the entered order matches the settlement and schedule",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Read the entered court order terms",
+            "Compare the amount and structured payment schedule with the settlement",
+            "Return to counsel for an amended order where they differ",
+            "Done when the order is confirmed consistent with the settlement"
+          ],
+          "verify": [
+            "Compare the order terms with the settlement record",
+            "Pass when the order amount and schedule match the settlement"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm guardian ad litem appointment and fee award",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Check whether a guardian ad litem was appointed",
+            "Confirm any fee award is addressed in the order",
+            "Record the guardian details and fee on the claim",
+            "Done when guardian appointment and fee treatment are recorded"
+          ],
+          "verify": [
+            "Read the order and the claim guardian record",
+            "Pass when any guardian fee award is recorded on the claim"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "File the certified order in OpenText",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Store the certified copy of the order in OpenText",
+            "Index it with the claim number and the order entry date",
+            "Link it to the settlement record on the claim",
+            "Done when the certified order is stored, indexed and linked"
+          ],
+          "verify": [
+            "Retrieve the order from the settlement record",
+            "Pass when the certified order opens from the claim"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Hold payment until the order is on the claim",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Apply a payment hold for the protected claimant settlement",
+            "Release the hold only once the certified order is filed",
+            "Record the hold release date and checker",
+            "Done when the hold is released against a filed order"
+          ],
+          "verify": [
+            "Compare the payment release date with the order filing date",
+            "Pass when no payment is released to a protected claimant before the order is filed"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "c9d56315-14c4-4ebd-b289-9bb4570357ce",
+      "verifier": "Claims Examiner",
+      "generic": {
+        "Defined scope/population": "Structured and cash settlement options presented to the claimant with tax-advantage disclosures.",
+        "In-scope period": "From receipt of the annuity illustration until the claimant election is recorded on the claim.",
+        "Required fields populated and valid": "Options presented, illustration reference, disclosure text, presentation date and election are recorded.",
+        "Control totals or record counts reconcile": "The illustration total guaranteed payout matches the proposed payment schedule.",
+        "Evidence retained with timestamp/version": "The illustration and the election record are stored with their dates.",
+        "Exceptions logged with disposition": "Direct presentation to a represented claimant is logged as an exception.",
+        "Test population": "All structured settlement candidates presented to claimants in the review period.",
+        "Pass/fail thresholds": "Fail if no written illustration or no recorded election is on file.",
+        "Exception handling path": "A claimant electing cash returns the claim to standard settlement processing.",
+        "Documented acceptance criteria": "Accepted when both options, the disclosure and the election are documented.",
+        "Evidence location": "Illustration in the claim repository with the election recorded in ClaimCenter."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Present the cash lump sum alongside the structured option",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Prepare the cash lump sum figure and the structured schedule side by side",
+            "Present both options to the claimant or counsel",
+            "Record which options were presented on the claim",
+            "Done when both options are presented and recorded"
+          ],
+          "verify": [
+            "Read the claim record for the options presented",
+            "Pass when both cash and structured options are recorded as presented"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Provide the written illustration from the claim repository",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Obtain the illustration showing periodic amounts, dates and total payout",
+            "Send it to the claimant or counsel and store the sent copy",
+            "Record the despatch date on the claim",
+            "Done when the illustration is provided and stored"
+          ],
+          "verify": [
+            "Retrieve the stored illustration",
+            "Pass when the illustration shows amounts, dates and total guaranteed payout"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Include the independent advice disclosure",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Include the standard disclosure recommending independent tax and legal advice",
+            "Confirm the disclosure wording is the approved current version",
+            "Store the disclosure with the presentation pack",
+            "Done when the approved disclosure is included and stored"
+          ],
+          "verify": [
+            "Read the presentation pack for the disclosure",
+            "Pass when the approved disclosure wording is present"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Present through the attorney of record where represented",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Check the representation status on the claim",
+            "Route the presentation through counsel where the claimant is represented",
+            "Record the recipient and channel on the claim",
+            "Done when the presentation is routed to the correct recipient"
+          ],
+          "verify": [
+            "Compare the recipient with the representation status",
+            "Pass when represented claimants received the pack through counsel"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the claimant election and date in ClaimCenter",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Record the option elected by the claimant",
+            "Record the date the election was received and the evidencing document",
+            "Store the written election in the claim repository",
+            "Done when the election, date and evidence are recorded"
+          ],
+          "verify": [
+            "Read the claim for the election and its date",
+            "Pass when the illustration and the recorded election are both on file"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Route the claim by the recorded election in ClaimCenter",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Continue to placement where the structured option is elected",
+            "Return the claim to standard settlement where cash is elected",
+            "Record the routing decision on the structured settlement record",
+            "Done when the claim is routed by the recorded election"
+          ],
+          "verify": [
+            "Compare the routing with the recorded election",
+            "Pass when the claim path matches the claimant election"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fi3ty0azdkfgzzgng8ou3",
+      "verifier": "Claims Processor",
+      "generic": {
+        "Defined scope/population": "The recurring annuity payment obligation booked into the administration system for this claim.",
+        "In-scope period": "From annuity issuance until the schedule is booked and the annual review is diarised.",
+        "Required fields populated and valid": "Amounts, frequency, start and end dates, obligor, issuer and review activity are populated.",
+        "Control totals or record counts reconcile": "The booked schedule total reconciles to the contract total guaranteed payout.",
+        "Evidence retained with timestamp/version": "The annuity contract used to book the schedule is referenced with its issue date.",
+        "Exceptions logged with disposition": "Booking differences against the contract are logged and corrected before sign off.",
+        "Test population": "All structured settlements booked in the review period.",
+        "Pass/fail thresholds": "Fail if the booked schedule total differs from the contract guaranteed payout.",
+        "Exception handling path": "A discrepancy against the contract is corrected before the obligation is activated.",
+        "Documented acceptance criteria": "Accepted when amounts, dates, obligor and review activity are all recorded and reconciled.",
+        "Evidence location": "Obligation schedule in the payment system with the liability view in the ERP ledger."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Enter each periodic payment from the contract into the payment system",
+          "actor": "Claims Processor",
+          "sop": [
+            "Read the periodic amounts, frequency, start and end dates from the contract",
+            "Enter each into the obligation schedule",
+            "Confirm no payment line is omitted",
+            "Done when every periodic payment line is entered"
+          ],
+          "verify": [
+            "Compare the entered lines with the contract schedule",
+            "Pass when every contract payment line appears in the schedule"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Record step-ups, deferred lump sums and guaranteed period",
+          "actor": "Claims Processor",
+          "sop": [
+            "Enter any step-up increases and their effective dates",
+            "Enter deferred lump sums with their payment dates",
+            "Record the guaranteed period on the obligation",
+            "Done when step-ups, lump sums and guarantee are recorded"
+          ],
+          "verify": [
+            "Compare these features with the contract terms",
+            "Pass when every contract feature appears on the obligation"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record the obligor and the annuity issuer on the obligation",
+          "actor": "Claims Processor",
+          "sop": [
+            "Record the assignment company as the obligor",
+            "Record the annuity issuer as the paying carrier",
+            "Confirm both match the qualified assignment and contract",
+            "Done when obligor and issuer are recorded"
+          ],
+          "verify": [
+            "Compare the recorded parties with the assignment and contract",
+            "Pass when obligor and issuer match the executed documents"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reconcile the booked schedule total to the contract payout",
+          "actor": "Accountant",
+          "sop": [
+            "Total the booked schedule across the full term",
+            "Compare it to the contract total guaranteed payout",
+            "Correct the schedule where the totals differ",
+            "Done when the booked total equals the contract payout"
+          ],
+          "verify": [
+            "Recompute the booked schedule total",
+            "Pass when the booked total reconciles to the contract guaranteed payout"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reflect the obligation in the ERP ledger",
+          "actor": "Accountant",
+          "sop": [
+            "Confirm the obligation is reflected in the ERP liability or memorandum view",
+            "Confirm the annuity cost has already been expensed at funding",
+            "Record the ledger reference against the obligation",
+            "Done when the ledger treatment is confirmed and referenced"
+          ],
+          "verify": [
+            "Compare the ledger view with the booked obligation",
+            "Pass when the ledger treatment matches the booked obligation"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Set the annual review activity on the obligation",
+          "actor": "Claims Processor",
+          "sop": [
+            "Create the annual review activity to confirm issuer payments continue",
+            "Assign it to the structured settlement administration owner",
+            "State the checks to perform at each review",
+            "Done when the annual review activity is created and assigned"
+          ],
+          "verify": [
+            "Confirm an annual review activity exists on the obligation",
+            "Pass when the review is assigned with a recurring due date"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjb5n0v8ikfgzdqgau5an",
+      "verifier": "Complex / Large Loss Claims Specialist",
+      "generic": {
+        "Defined scope/population": "Selection of the funding carrier for the structured settlement annuity on this claim.",
+        "In-scope period": "From receipt of the quote comparison until the selected carrier and rationale are recorded.",
+        "Required fields populated and valid": "Carrier name, panel status, rating, concentration check, quote reference and date are recorded.",
+        "Control totals or record counts reconcile": "The selected quote reference matches one of the quotes on the comparison sheet.",
+        "Evidence retained with timestamp/version": "The rating evidence and selection rationale are filed with the selection date.",
+        "Exceptions logged with disposition": "Selection of a non-lowest quote is logged with the documented justification.",
+        "Test population": "All structured settlement carrier selections in the review period.",
+        "Pass/fail thresholds": "Fail if the selection lacks a rationale, quote reference or rating evidence.",
+        "Exception handling path": "A carrier breaching the concentration limit is excluded and an alternative selected.",
+        "Documented acceptance criteria": "Accepted when panel status, rating, concentration and rationale are all evidenced.",
+        "Evidence location": "Carrier selection record on the claim in Guidewire ClaimCenter with evidence in the repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the carrier is on the approved life market list",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Open the approved life market list for structured settlements",
+            "Confirm the intended carrier appears on the list",
+            "Record the panel status on the selection record",
+            "Done when the panel status is confirmed and recorded"
+          ],
+          "verify": [
+            "Compare the selected carrier with the approved list",
+            "Pass when the selected carrier is on the approved list"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the carrier rating meets the minimum threshold",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Read the current financial strength rating for the carrier",
+            "Compare it to the minimum threshold at the selection date",
+            "File the rating evidence in the claim repository",
+            "Done when the rating check is completed and evidenced"
+          ],
+          "verify": [
+            "Read the filed rating evidence and the threshold",
+            "Pass when the carrier rating meets the minimum at selection date"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm carrier exposure is within the concentration limit",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Read the current aggregate exposure to the carrier",
+            "Add the proposed annuity cost and compare to the concentration limit",
+            "Select an alternative carrier where the limit would be breached",
+            "Done when the concentration check is completed and recorded"
+          ],
+          "verify": [
+            "Recompute aggregate exposure including this placement",
+            "Pass when the total remains within the counterparty concentration limit"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Document why a non-lowest quote was selected",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Compare the selected quote cost to the lowest quote received",
+            "Where higher, document the rating, rated age or service justification",
+            "Store the justification with the comparison sheet",
+            "Done when any non-lowest selection carries a justification"
+          ],
+          "verify": [
+            "Compare the selected and lowest quote costs",
+            "Pass when a non-lowest selection carries a written justification"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the selected carrier, quote reference and date in ClaimCenter",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Record the carrier name, quote reference and selection date",
+            "Confirm the quote reference matches the comparison sheet",
+            "Save the selection record against the claim",
+            "Done when carrier, reference and date are recorded"
+          ],
+          "verify": [
+            "Compare the recorded reference with the comparison sheet",
+            "Pass when the selected quote reference appears on the comparison"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "File the selection rationale in the claim repository",
+          "actor": "Complex / Large Loss Claims Specialist",
+          "sop": [
+            "Store the selection rationale, rating evidence and comparison sheet",
+            "Index them with the claim number and selection date",
+            "Link them to the structured settlement record",
+            "Done when the selection evidence set is stored and linked"
+          ],
+          "verify": [
+            "Retrieve the selection evidence from the settlement record",
+            "Pass when the rationale is filed with the quote reference and rating evidence"
+          ]
+        }
+      ]
+    }
   ]
 }

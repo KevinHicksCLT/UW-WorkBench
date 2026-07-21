@@ -1,0 +1,1035 @@
+{
+  "area": "Binding & Policy Issuance",
+  "tasks": [
+    {
+      "taskId": "2d4c3b18-71f0-49d0-b42d-5bba876f0411",
+      "verifier": "Underwriter",
+      "generic": {
+        "Defined scope/population": "The quote version the broker is binding against and every condition attached to that quote letter",
+        "In-scope period": "From quote issue date through the requested bind effective date",
+        "Required fields populated and valid": "Quote expiry date, quote status and quote version number present on the quote record",
+        "Control totals or record counts reconcile": "Count of conditions on the quote letter equals the count marked Met or Outstanding",
+        "Evidence retained with timestamp/version": "Validity file note saved against the quote with version number and check date and time",
+        "Exceptions logged with disposition": "Lapsed or superseded quotes logged with the re-date or re-quote decision and reason",
+        "Test population": "All bind transactions executed in the period from quotes held in the underwriting workstation",
+        "Pass/fail thresholds": "Zero binds executed against expired, withdrawn or superseded quote versions",
+        "Exception handling path": "Expired quote referred to the Underwriter for re-date or re-quote before the bind proceeds",
+        "Documented acceptance criteria": "Status Quoted, expiry on or after bind date and version matching the broker bind order",
+        "Evidence location": "Quote record and file note in the underwriting workstation and policy administration system"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Open the quote record in the underwriting workstation",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Search the submission number in the underwriting workstation and open the current quote record.",
+            "Read the quote expiry date, quote status and version number from the quote header.",
+            "Done when the quote header fields are on screen for the version being bound."
+          ],
+          "verify": [
+            "Confirm the opened quote belongs to the submission named on the broker bind order.",
+            "Pass when the quote record matches the submission and version on the bind request."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Compare the quote expiry date against today in the underwriting workstation",
+          "actor": "Underwriter",
+          "sop": [
+            "Read the Quote Expiry date field and compare it to the current date and requested effective date.",
+            "Flag the quote as lapsed where the expiry date falls before the requested bind date.",
+            "Done when the expiry comparison result is recorded on the quote."
+          ],
+          "verify": [
+            "Re-read the expiry date and confirm the recorded comparison result matches it.",
+            "Pass when the quote expiry date is on or after the requested bind date."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm quote status is Quoted or Open in the underwriting workstation",
+          "actor": "Underwriter",
+          "sop": [
+            "Read the status field on the quote record in the underwriting workstation.",
+            "Stop the bind where the status reads Expired, Withdrawn or Superseded.",
+            "Done when a status of Quoted or Open is confirmed on the record."
+          ],
+          "verify": [
+            "Check no later quote revision exists that would supersede the open status.",
+            "Pass when the quote status is Quoted or Open with no later superseding revision."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Match the quote version number to the broker bind order",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Read the version number on the broker bind order or portal instruction.",
+            "Compare it to the version number of the quote open in the underwriting workstation.",
+            "Done when both version numbers are confirmed identical."
+          ],
+          "verify": [
+            "List all quote versions on the submission and confirm none is later than the one being bound.",
+            "Pass when the bound version is the latest issued version referenced by the broker."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Mark each quote condition Met or Outstanding on the quote condition list",
+          "actor": "Underwriter",
+          "sop": [
+            "List every condition printed on the quote letter in the underwriting workstation condition list.",
+            "Set each condition to Met or Outstanding based on the evidence held on the submission.",
+            "Done when every listed condition carries a Met or Outstanding disposition."
+          ],
+          "verify": [
+            "Count conditions on the quote letter and compare to the count dispositioned in the system.",
+            "Pass when the counts agree and no condition is left undispositioned."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Re-date or re-quote a lapsed quote and file the reason note in the workstation",
+          "actor": "Underwriter",
+          "sop": [
+            "Where the quote has lapsed, extend the validity date or raise a fresh quote version.",
+            "Write the file note recording the extension reason and the approving underwriter.",
+            "Done when the re-dated or new quote version is active and the note is filed."
+          ],
+          "verify": [
+            "Open the file note and confirm it names the extension reason and the approver.",
+            "Pass when every lapsed quote carries a documented extension or re-quote reason."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "f3ec8f5d-12c0-4e6b-821f-fccde0a37787",
+      "verifier": "Underwriter",
+      "generic": {
+        "Defined scope/population": "The signed application and the broker bind order for this submission number",
+        "In-scope period": "From application signature date through the requested policy effective date",
+        "Required fields populated and valid": "Applicant signature, signature date and submission index number on the stored application",
+        "Control totals or record counts reconcile": "Two documents expected on file equals two documents indexed to the submission",
+        "Evidence retained with timestamp/version": "Application PDF and e-signature certificate stored in OpenText with upload timestamp",
+        "Exceptions logged with disposition": "Missing or unsigned applications logged with the chase action and the response date",
+        "Test population": "All bound submissions in the period held in the document repository",
+        "Pass/fail thresholds": "Zero binds recorded where the signed application is missing or unsigned",
+        "Exception handling path": "Unsigned or undated application returned to the broker and the bind checklist item held open",
+        "Documented acceptance criteria": "Both documents indexed to the submission with a signature date on or before effective date",
+        "Evidence location": "OpenText Document Mgmt submission folder and the bind checklist in the underwriting workstation"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Locate the signed application PDF in OpenText Document Mgmt",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Search OpenText Document Mgmt by submission number and open the application document.",
+            "Confirm the document type code is Signed Application rather than draft or proposal.",
+            "Done when the signed application PDF opens under the correct submission index."
+          ],
+          "verify": [
+            "Check the index metadata carries the submission number used by the underwriting workstation.",
+            "Pass when the signed application is retrievable by submission number in the repository."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Check the applicant signature and signature date on the application",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Read the signature block and confirm a signature is present for the named applicant.",
+            "Compare the signature date to the requested effective date on the bind order.",
+            "Done when the signature is present and dated on or before the effective date."
+          ],
+          "verify": [
+            "Re-read the signature date and confirm it precedes or equals the requested effective date.",
+            "Pass when no application is accepted with a signature dated after the effective date."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Verify the DocuSign certificate of completion is attached",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "For e-signed applications, open the DocuSign envelope and download the certificate audit page.",
+            "Confirm the signer name, email and completion timestamp on the certificate.",
+            "Done when the certificate is attached to the application in the repository."
+          ],
+          "verify": [
+            "Match the certificate envelope id to the envelope referenced on the application.",
+            "Pass when every e-signed application carries its matching DocuSign certificate."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the broker bind order names the required binding terms",
+          "actor": "Underwriter",
+          "sop": [
+            "Open the broker bind order email or portal instruction stored on the submission.",
+            "Confirm it names the insured, effective date, limits and premium being bound.",
+            "Done when all four terms are present on the bind order."
+          ],
+          "verify": [
+            "Compare the named terms against the quote being bound in the underwriting workstation.",
+            "Pass when the bind order terms match the quote with no unexplained variance."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Index both documents to the submission in OpenText Document Mgmt",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Upload or re-index the signed application and bind order under the submission number.",
+            "Apply the correct document type code to each so retention rules apply.",
+            "Done when both documents appear under the submission in the repository."
+          ],
+          "verify": [
+            "Run a submission document listing and count the indexed bind documents.",
+            "Pass when both the application and the bind order are listed under the submission."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Tick the Signed Application and Bind Order items on the workstation bind checklist",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Open the bind checklist on the submission in the underwriting workstation.",
+            "Mark the Signed Application and Bind Order items complete with the check date.",
+            "Done when both checklist items show complete with the checker name recorded."
+          ],
+          "verify": [
+            "Confirm no bind checklist item remains open for the documentation section.",
+            "Pass when both items are complete and the checklist releases the bind step."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "9e312d4c-3616-44ec-a0a9-bbc52da3aa39",
+      "verifier": "Senior Underwriter",
+      "generic": {
+        "Defined scope/population": "Every co-insurer or syndicate participant on the shared or syndicated placement slip",
+        "In-scope period": "From placement slip issue through the bind date of the shared-line risk",
+        "Required fields populated and valid": "Written line percentage, participant name and sign-off reference for each participation",
+        "Control totals or record counts reconcile": "Signed lines across all participants total 100 percent of the placed order",
+        "Evidence retained with timestamp/version": "Signed slip or sign-off correspondence attached to the submission with received date",
+        "Exceptions logged with disposition": "Short or over-placed lines logged with the correction action and the outcome",
+        "Test population": "All shared-line or syndicated risks bound in the period",
+        "Pass/fail thresholds": "Zero shared-line risks bound without lead or co-underwriter sign-off on file",
+        "Exception handling path": "Unsigned participation escalated to the Senior Underwriter and the bind held until signed",
+        "Documented acceptance criteria": "Signed slip totalling 100 percent with our net line inside the binding underwriter authority",
+        "Evidence location": "Submission folder in OpenText Document Mgmt and the shared-line flag in the underwriting workstation"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "List participants and written lines from the placement slip in the workstation",
+          "actor": "Underwriter",
+          "sop": [
+            "Open the placement slip attached to the submission in the underwriting workstation.",
+            "Record each co-insurer or syndicate participant with its written line percentage.",
+            "Done when every participant and its written line is captured on the submission."
+          ],
+          "verify": [
+            "Compare the captured list to the slip and confirm no participant is missing.",
+            "Pass when the captured participant list matches the placement slip exactly."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Total the signed lines and confirm the order is fully placed",
+          "actor": "Senior Underwriter",
+          "sop": [
+            "Add the signed line percentages recorded for all participants.",
+            "Investigate and resolve any short placement or over-placement before binding.",
+            "Done when the signed lines total 100 percent of the placed order."
+          ],
+          "verify": [
+            "Recalculate the total from the slip figures independently of the captured list.",
+            "Pass when both calculations reach 100 percent with no rounding gap."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Collect the co-underwriter or lead sign-off for each participation",
+          "actor": "Underwriter",
+          "sop": [
+            "Request the sign-off email or stamped slip from each co-underwriter or the lead.",
+            "Chase any participant that has not returned sign-off before the bind date.",
+            "Done when a sign-off exists for every shared participation."
+          ],
+          "verify": [
+            "Count sign-offs held against the number of participants on the slip.",
+            "Pass when the sign-off count equals the participant count."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Check the net signed line against the binding underwriter authority",
+          "actor": "UW Operations Manager",
+          "sop": [
+            "Calculate our net signed line from the placement slip percentages.",
+            "Compare that net line to the scheduled authority of the underwriter binding the risk.",
+            "Done when the net line is confirmed inside the binding underwriter authority band."
+          ],
+          "verify": [
+            "Re-check the authority band recorded for the binding underwriter in the workstation.",
+            "Pass when the net signed line sits within that authority band."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Attach the signed slip and sign-off correspondence in OpenText Document Mgmt",
+          "actor": "Underwriter",
+          "sop": [
+            "Upload the signed placement slip and each sign-off message under the submission number.",
+            "Apply the shared-line document type code so the pack is retrievable at audit.",
+            "Done when the slip and all sign-offs are indexed to the submission."
+          ],
+          "verify": [
+            "Open each uploaded document and confirm it is legible and complete.",
+            "Pass when every sign-off document opens and is indexed to the submission."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Set the Shared Line Sign-off flag in the underwriting workstation",
+          "actor": "Senior Underwriter",
+          "sop": [
+            "Open the submission control screen and set the Shared Line Sign-off flag.",
+            "Record the sign-off date and the approving senior underwriter against the flag.",
+            "Done when the flag is set and the bind step is released."
+          ],
+          "verify": [
+            "Confirm the flag cannot be set where a participation sign-off is still outstanding.",
+            "Pass when the flag is set only with a complete sign-off set on file."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "1c27413d-5e26-449e-8cbf-6445708de9df",
+      "verifier": "Underwriter",
+      "generic": {
+        "Defined scope/population": "All broker, MGA or insured bind requests received for this submission",
+        "In-scope period": "From receipt of the bind instruction through the requested effective date and time",
+        "Required fields populated and valid": "Received date and time, requesting party, producer code and quote number on the log entry",
+        "Control totals or record counts reconcile": "Count of bind requests received equals the count logged in the underwriting workstation",
+        "Evidence retained with timestamp/version": "Portal message or email retained with the received timestamp against the submission",
+        "Exceptions logged with disposition": "Backdated or same-day requests logged with the referral outcome recorded",
+        "Test population": "All bind requests received through the Broker and Agent Portal or email in the period",
+        "Pass/fail thresholds": "Zero verbal binders left undocumented beyond 24 hours of instruction",
+        "Exception handling path": "Backdated request referred to the Underwriter before the request is accepted for bind",
+        "Documented acceptance criteria": "Request logged with received date and time, originating broker and correct quote option",
+        "Evidence location": "Submission record in the underwriting workstation and the case record in the workflow tool"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Capture the bind request from the Broker and Agent Portal or email",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Open the incoming instruction in the Broker and Agent Portal or the shared mailbox.",
+            "Save the message against the submission so the original wording is retained.",
+            "Done when the original bind instruction is stored on the submission."
+          ],
+          "verify": [
+            "Reopen the stored message and confirm the full instruction text is readable.",
+            "Pass when the original instruction is retrievable from the submission record."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Log the request with received date and time in the underwriting workstation",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Create the bind request log entry on the submission in the underwriting workstation.",
+            "Enter the date and time the instruction was received, not the date it is being keyed.",
+            "Done when the log entry carries an accurate received date and time."
+          ],
+          "verify": [
+            "Compare the logged received time to the portal or email header timestamp.",
+            "Pass when the logged time matches the source timestamp."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record the requesting party and producer code on the log entry",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Identify whether the request came from the broker, the MGA or the insured directly.",
+            "Enter the requesting party and the producer code shown on the instruction.",
+            "Done when both fields are populated on the bind request log."
+          ],
+          "verify": [
+            "Match the producer code against the producer record held on the submission.",
+            "Pass when the logged producer code matches the submission producer."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Check the requested effective date and time and flag backdated requests",
+          "actor": "Underwriter",
+          "sop": [
+            "Read the requested effective date and time of day from the instruction.",
+            "Raise a referral flag in the workflow tool for any backdated or same-day request.",
+            "Done when the effective date is recorded and any backdating is flagged."
+          ],
+          "verify": [
+            "Confirm every backdated request carries an open referral in the workflow tool.",
+            "Pass when no backdated request proceeds without a recorded referral."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm the request references the correct quote number and option",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Read the quote number and option named on the bind instruction.",
+            "Confirm the option matches primary or alternative terms as intended by the broker.",
+            "Done when the quote number and option are confirmed on the log entry."
+          ],
+          "verify": [
+            "Open the referenced quote option and confirm it is still available for bind.",
+            "Pass when the referenced quote option exists and is not withdrawn."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Document verbal instructions and confirm back in writing within 24 hours",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Write the file note capturing the verbal instruction, caller name and time of the call.",
+            "Send the written confirmation to the broker through the portal within 24 hours.",
+            "Done when the note is filed and the written confirmation is sent."
+          ],
+          "verify": [
+            "Compare the confirmation send time to the logged call time.",
+            "Pass when every verbal binder is confirmed in writing within 24 hours."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "18380ceb-3053-4bc8-9e17-0cb7ffc9a60b",
+      "verifier": "Underwriter",
+      "generic": {
+        "Defined scope/population": "Every subjectivity listed on the quote for the risk being bound",
+        "In-scope period": "From quote issue through bind, plus diary dates for subjectivities carried forward",
+        "Required fields populated and valid": "Status, evidence reference, owner and due date populated for each subjectivity",
+        "Control totals or record counts reconcile": "Subjectivities on the quote equal those dispositioned on the subjectivity register",
+        "Evidence retained with timestamp/version": "Clearing evidence stored in OpenText with the date it was received against each item",
+        "Exceptions logged with disposition": "Subjectivities carried past bind logged as condition precedent or warranty with a due date",
+        "Test population": "All risks bound in the period carrying one or more quote subjectivities",
+        "Pass/fail thresholds": "Zero subjectivities left Open with no owner after bind",
+        "Exception handling path": "Uncleared subjectivity converted to a condition precedent and diarised to the named underwriter",
+        "Documented acceptance criteria": "Register shows every item Cleared or Carried with an owner and a due date at bind",
+        "Evidence location": "Subjectivity register in the underwriting workstation and evidence in OpenText Document Mgmt"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Open the subjectivity list on the quote in the underwriting workstation",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Open the quote and display the subjectivity list attached to it.",
+            "Record each subjectivity with its current status on the reconciliation working list.",
+            "Done when every subjectivity on the quote appears on the working list."
+          ],
+          "verify": [
+            "Count subjectivities on the quote letter against the working list.",
+            "Pass when the counts agree with no item omitted."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Match each cleared subjectivity to its evidence in OpenText Document Mgmt",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "For each item marked cleared, locate the supporting document in the repository.",
+            "Record the document reference against the subjectivity on the register.",
+            "Done when every cleared item carries an evidence reference."
+          ],
+          "verify": [
+            "Open a sample of referenced documents and confirm they support the clearance.",
+            "Pass when no item is marked cleared without retrievable supporting evidence."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Convert uncleared subjectivities to condition precedent or warranty wording",
+          "actor": "Underwriter",
+          "sop": [
+            "Review each item still outstanding and decide whether it can be carried past bind.",
+            "Select the condition precedent or warranty wording to carry the item into the policy.",
+            "Done when each carried item has policy wording selected in the workstation."
+          ],
+          "verify": [
+            "Confirm the selected wording appears on the terms screen for the bound risk.",
+            "Pass when every carried subjectivity is represented by policy wording."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Set diary dates and named owners for carried subjectivities",
+          "actor": "Underwriter",
+          "sop": [
+            "Create a diary item in the underwriting workstation for each carried subjectivity.",
+            "Assign the responsible underwriter and set the compliance due date.",
+            "Done when every carried item has an owner and a diary date."
+          ],
+          "verify": [
+            "List carried items and check each shows an owner and a future due date.",
+            "Pass when no carried subjectivity lacks an owner or a due date."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Mark the subjectivity register Complete in the underwriting workstation",
+          "actor": "Underwriter",
+          "sop": [
+            "Confirm every item reads Cleared or Carried with no item left Open.",
+            "Set the subjectivity register status to Complete on the submission.",
+            "Done when the register status reads Complete."
+          ],
+          "verify": [
+            "Attempt to bind and confirm the system blocks where an item is still Open.",
+            "Pass when the register cannot read Complete with an Open item outstanding."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the reconciliation in the submission file note before authorising bind",
+          "actor": "Underwriter",
+          "sop": [
+            "Write the file note summarising cleared items, carried items and their due dates.",
+            "Name the underwriter who performed the reconciliation and the date completed.",
+            "Done when the note is saved against the submission ahead of bind."
+          ],
+          "verify": [
+            "Read the note and confirm it accounts for every subjectivity on the register.",
+            "Pass when the note reconciles item for item to the register."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "8e5449b6-cfb3-4a45-b395-ed868ec17b57",
+      "verifier": "Underwriter",
+      "generic": {
+        "Defined scope/population": "Named insured, additional insureds, parent entities and risk location countries on this risk",
+        "In-scope period": "The 24 hours immediately preceding the bind authorisation",
+        "Required fields populated and valid": "Screened entity names, screening reference number and adjudication reason on each result",
+        "Control totals or record counts reconcile": "Entities on the submission equal the entities screened on the final clearance run",
+        "Evidence retained with timestamp/version": "Screening result attached with its run timestamp and reference number",
+        "Exceptions logged with disposition": "Potential matches logged as true hit or false positive with the reason recorded",
+        "Test population": "All risks bound in the period requiring a pre-bind sanctions clearance",
+        "Pass/fail thresholds": "Zero policies bound with an unadjudicated potential sanctions match outstanding",
+        "Exception handling path": "True hit escalated to Compliance and the bind held until written clearance is received",
+        "Documented acceptance criteria": "Clear screening result dated within 24 hours of bind attached to the submission",
+        "Evidence location": "Sanctions screening system case record and the submission in the underwriting workstation"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Assemble the screening entity list from the underwriting workstation",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "List the named insured, additional insureds and any parent entity from the submission.",
+            "Add the risk location country and any declared overseas operations to the list.",
+            "Done when the full entity and territory list is ready for screening."
+          ],
+          "verify": [
+            "Compare the list to the parties recorded on the quote and application.",
+            "Pass when no party on the submission is missing from the screening list."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Run the final screen in the sanctions screening system within 24 hours of bind",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Submit the entity list to the sanctions screening system as a pre-bind clearance run.",
+            "Record the run date, time and screening reference number returned.",
+            "Done when the screening run completes and returns a reference number."
+          ],
+          "verify": [
+            "Compare the run timestamp to the planned bind time.",
+            "Pass when the run timestamp is within 24 hours of the bind."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Screen territories against comprehensive-sanctions jurisdictions",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Screen the risk location country and overseas operations against the jurisdiction lists.",
+            "Flag any exposure to a comprehensively sanctioned jurisdiction for referral.",
+            "Done when every territory on the risk carries a screening outcome."
+          ],
+          "verify": [
+            "Check each declared territory appears in the screening output.",
+            "Pass when no declared territory is left unscreened."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Adjudicate each potential match and record the reason",
+          "actor": "Underwriter",
+          "sop": [
+            "Review each potential match returned against the underlying entity data.",
+            "Mark it a true hit or a false positive and type the reason for the disposition.",
+            "Done when no potential match is left unadjudicated."
+          ],
+          "verify": [
+            "Read a sample of dispositions and confirm each carries a written reason.",
+            "Pass when every potential match has a disposition and a reason."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Escalate any true hit to Compliance and hold the bind",
+          "actor": "Underwriter",
+          "sop": [
+            "Refer any true hit to Compliance with the screening reference and entity detail.",
+            "Place a hold on the bind in the underwriting workstation until clearance is received.",
+            "Done when the referral is raised and the bind hold is applied."
+          ],
+          "verify": [
+            "Confirm the bind hold blocks the bind action while the referral is open.",
+            "Pass when no bind proceeds while a true hit referral is unresolved."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Attach the clear screening result to the submission before bind authorisation",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Export the cleared screening result with its reference number and run timestamp.",
+            "Attach it to the submission in the underwriting workstation.",
+            "Done when the clear result is attached and the bind step is released."
+          ],
+          "verify": [
+            "Open the attached result and confirm the reference number and timestamp are legible.",
+            "Pass when the attached clear result is dated within 24 hours of the bind."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "acec48c2-c078-455a-a0f7-32ebabd9e85b",
+      "verifier": "Underwriter",
+      "generic": {
+        "Defined scope/population": "Every ordered survey, loss-control recommendation and protection warranty on the risk",
+        "In-scope period": "From survey order date through the bind date, plus warranty compliance dates set",
+        "Required fields populated and valid": "Survey report reference, recommendation status and selected warranty wording per location",
+        "Control totals or record counts reconcile": "Scheduled locations equal the locations with a survey report or a documented waiver",
+        "Evidence retained with timestamp/version": "Survey reports filed in OpenText with report date and surveyor reference",
+        "Exceptions logged with disposition": "Open recommendations logged as completed, waived or written as a warranty with a date",
+        "Test population": "All bound risks in the period where a survey or loss-control inspection was ordered",
+        "Pass/fail thresholds": "Zero unresolved critical recommendations left without a warranty or a waiver at bind",
+        "Exception handling path": "Outstanding recommendation converted to a condition precedent with a compliance date before bind",
+        "Documented acceptance criteria": "Survey report and warranty confirmation on file for every scheduled location",
+        "Evidence location": "OpenText Document Mgmt survey folder and the warranty screen in the underwriting workstation"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "List ordered surveys against scheduled locations in the underwriting workstation",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Open the location schedule and list every location requiring a survey.",
+            "Record the survey order reference and status for each of those locations.",
+            "Done when every scheduled location shows a survey order status."
+          ],
+          "verify": [
+            "Count scheduled locations against locations with a survey order recorded.",
+            "Pass when every location requiring a survey has an order recorded."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm each survey report is filed in OpenText Document Mgmt",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Locate the completed survey report for each ordered location in the repository.",
+            "Record the report reference and report date against the location.",
+            "Done when a report is on file for every ordered survey."
+          ],
+          "verify": [
+            "Open a sample of reports and confirm the location addresses match the schedule.",
+            "Pass when every ordered survey has a retrievable matching report."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Disposition each recommendation as completed, waived or written as a warranty",
+          "actor": "Underwriter",
+          "sop": [
+            "List the recommendations raised in each survey report.",
+            "Mark each one completed, waived by the underwriter, or carried as a policy warranty.",
+            "Done when every recommendation carries one of the three dispositions."
+          ],
+          "verify": [
+            "Check that each waiver names the waiving underwriter and the reason.",
+            "Pass when no recommendation is left without a disposition or a named waiver."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reconcile protection warranties to what the survey recorded",
+          "actor": "Underwriter",
+          "sop": [
+            "Compare sprinkler, alarm and hot-work warranties against the survey findings.",
+            "Amend or remove a warranty the survey does not support before bind.",
+            "Done when every protection warranty is supported by the survey record."
+          ],
+          "verify": [
+            "Re-read the survey protection section against the warranty list.",
+            "Pass when no warranty contradicts the surveyed protection at the location."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Match warranty wording in the workstation to the wording on the quote",
+          "actor": "Underwriter",
+          "sop": [
+            "Open the warranty selection screen and read the wording codes applied.",
+            "Compare each code to the warranty referenced on the quote letter.",
+            "Done when the system wording matches the quoted wording."
+          ],
+          "verify": [
+            "Print the terms screen and compare warranty codes line by line to the quote.",
+            "Pass when there is no variance between system and quoted warranty wording."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record outstanding recommendations as condition precedent with compliance dates",
+          "actor": "Underwriter",
+          "sop": [
+            "Enter each outstanding recommendation as a condition precedent on the risk.",
+            "Set the compliance date and the underwriter responsible for follow-up.",
+            "Done when every outstanding item is a dated condition precedent."
+          ],
+          "verify": [
+            "List conditions precedent and confirm each has a compliance date in the future.",
+            "Pass when no outstanding recommendation is carried without a compliance date."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "90d57d57-1875-4782-af8b-69df2ba976c6",
+      "verifier": "UW Operations Manager",
+      "generic": {
+        "Defined scope/population": "The producing agency and the individual producer on the business being bound",
+        "In-scope period": "Licence and appointment status as at the bind date of the risk",
+        "Required fields populated and valid": "National producer number, licence status, licensed lines and appointment status recorded",
+        "Control totals or record counts reconcile": "Producers on the bind order equal the producers verified in NIPR for the risk state",
+        "Evidence retained with timestamp/version": "NIPR lookup result stored with lookup date against the producer record",
+        "Exceptions logged with disposition": "Lapsed or terminated licences and appointments logged with the bind hold outcome",
+        "Test population": "All policies bound in the period through appointed producers",
+        "Pass/fail thresholds": "Zero policies bound through a producer whose appointment is terminated or lapsed",
+        "Exception handling path": "Unlicensed or unappointed producer referred to UW Operations and the bind held",
+        "Documented acceptance criteria": "Active licence covering the risk state and line, plus an in-force carrier appointment",
+        "Evidence location": "Producer record in the underwriting workstation and the Broker and Agent Portal profile"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Look up the producer in NIPR by national producer number",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Read the national producer number from the Broker and Agent Portal profile.",
+            "Search NIPR by that number and open the producer licensing record.",
+            "Done when the NIPR record for the producer is on screen."
+          ],
+          "verify": [
+            "Confirm the NIPR record name matches the producer named on the bind order.",
+            "Pass when the NIPR record and the bind order name the same producer."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the NIPR licence status reads Active",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Read the licence status and expiry date on the NIPR record.",
+            "Stop the verification where the status is anything other than Active.",
+            "Done when an Active licence status is confirmed."
+          ],
+          "verify": [
+            "Re-read the status and expiry date directly from NIPR rather than a cached note.",
+            "Pass when the licence is Active and unexpired at the bind date."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Check the licence covers the risk state and line of business",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Read the licensed states and lines of authority on the NIPR record.",
+            "Compare them to the risk state and the line of business being bound.",
+            "Done when the risk state and line both appear on the licence."
+          ],
+          "verify": [
+            "Confirm the line of authority names the exact product line being bound.",
+            "Pass when both the risk state and the bound line are covered."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Verify the carrier appointment is in force in the underwriting workstation",
+          "actor": "UW Operations Manager",
+          "sop": [
+            "Open the producer appointment record for our underwriting company entity.",
+            "Confirm the appointment is in force and not terminated or lapsed for the risk state.",
+            "Done when an in-force appointment is confirmed for the entity and state."
+          ],
+          "verify": [
+            "Check the appointment termination field is empty for the risk state.",
+            "Pass when no termination or lapse date is recorded for the bind state."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm agency and individual dual licensing where the state requires it",
+          "actor": "UW Operations Manager",
+          "sop": [
+            "Check whether the risk state requires both agency and individual licensing.",
+            "Verify both the agency and the individual producer hold active licences where required.",
+            "Done when the dual licensing requirement is satisfied or confirmed not applicable."
+          ],
+          "verify": [
+            "Re-check the state rule reference used for the dual licensing decision.",
+            "Pass when dual licensing is evidenced in every state that requires it."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the verification date and NPN on the producer record",
+          "actor": "Underwriting Assistant",
+          "sop": [
+            "Enter the NIPR verification date and the national producer number on the producer record.",
+            "Attach the NIPR lookup result to the record for audit retrieval.",
+            "Done when the verification date and NPN are saved and the bind is released."
+          ],
+          "verify": [
+            "Confirm the stored verification date is on or before the bind date.",
+            "Pass when the producer record shows a current verification and attached evidence."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "d4898898-0d6e-4e8c-8aa7-6fc237985d74",
+      "verifier": "Billing Operations Manager",
+      "generic": {
+        "Defined scope/population": "Payment method, instalment schedule and premium payment warranty terms for this risk",
+        "In-scope period": "From bind date through the final instalment due date on the policy term",
+        "Required fields populated and valid": "Billing method, deposit amount, due dates and premium warranty date on the billing account",
+        "Control totals or record counts reconcile": "Deposit plus instalments on the billing account equal the bound premium",
+        "Evidence retained with timestamp/version": "Premium finance agreement and payment terms approval stored with signature dates",
+        "Exceptions logged with disposition": "Extended payment terms logged with the UW Operations approval reference",
+        "Test population": "All risks bound in the period carrying a premium payment warranty",
+        "Pass/fail thresholds": "Zero extended payment terms applied without documented approval",
+        "Exception handling path": "Terms beyond the standard warranty period escalated to the Billing Operations Manager",
+        "Documented acceptance criteria": "Billing account holds the agreed method, instalment schedule and premium warranty date",
+        "Evidence location": "Billing account in the billing and commission platform and the quote in the underwriting workstation"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Read the payment method and warranty period from the quote",
+          "actor": "Underwriter",
+          "sop": [
+            "Open the quote in the underwriting workstation and read the payment terms section.",
+            "Record whether the risk is agency bill or direct bill and the warranty period offered.",
+            "Done when the payment method and warranty period are recorded on the submission."
+          ],
+          "verify": [
+            "Compare the recorded terms to the terms stated on the quote letter.",
+            "Pass when the recorded payment terms match the quote letter."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Check the deposit and instalment schedule on the billing account",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Open the billing account in the billing and commission platform.",
+            "Confirm the deposit or first instalment amount and each due date are recorded.",
+            "Done when the full instalment schedule is visible on the account."
+          ],
+          "verify": [
+            "Add the deposit and instalments and compare the total to the bound premium.",
+            "Pass when the schedule totals the bound premium exactly."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Verify the premium finance agreement details where finance is used",
+          "actor": "Underwriter",
+          "sop": [
+            "Open the premium finance agreement held on the submission.",
+            "Confirm it names the correct insured and the correct policy period.",
+            "Done when the finance agreement is confirmed to match the risk being bound."
+          ],
+          "verify": [
+            "Compare insured name and policy dates on the agreement to the bound terms.",
+            "Pass when the finance agreement matches insured and policy period."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the premium payment warranty wording is attached to the risk",
+          "actor": "Underwriter",
+          "sop": [
+            "Check whether the class or risk profile requires a premium payment warranty.",
+            "Confirm the warranty wording is attached on the terms screen where required.",
+            "Done when the required warranty wording is attached to the risk."
+          ],
+          "verify": [
+            "Read the attached wording and confirm the warranty date is consistent with billing.",
+            "Pass when the warranty wording and the billing due dates agree."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Escalate extended payment terms to the Billing Operations Manager",
+          "actor": "Underwriter",
+          "sop": [
+            "Identify any terms extending beyond the standard warranty period.",
+            "Raise the approval request to the Billing Operations Manager with the rationale.",
+            "Done when the extension request is raised and awaiting decision."
+          ],
+          "verify": [
+            "Confirm the bind is held while the extension approval is outstanding.",
+            "Pass when no extended terms are applied ahead of the approval decision."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the approved terms and warranty date on the billing account",
+          "actor": "Billing Operations Manager",
+          "sop": [
+            "Apply the approved payment method, schedule and warranty date to the billing account.",
+            "Attach the approval reference to the account where terms were extended.",
+            "Done when the account reflects the approved terms with the approval attached."
+          ],
+          "verify": [
+            "Re-open the account and confirm the warranty date and approval reference are stored.",
+            "Pass when every extended term on the account carries an approval reference."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "af89ad72-d827-46a8-bc82-845325206e6b",
+      "verifier": "Reinsurance Underwriter",
+      "generic": {
+        "Defined scope/population": "The gross line on this risk and the treaty and facultative capacity supporting it",
+        "In-scope period": "Policy inception date through expiry, matched to the treaty programme year",
+        "Required fields populated and valid": "Gross line, treaty section, facultative share and reinsurer security rating recorded",
+        "Control totals or record counts reconcile": "Facultative shares signed by reinsurers equal the facultative portion required",
+        "Evidence retained with timestamp/version": "Signed facultative slip attached to the submission with the signing date",
+        "Exceptions logged with disposition": "Unplaced capacity logged with the decision to reduce the line or hold the bind",
+        "Test population": "All large or complex risks bound in the period requiring reinsurance support",
+        "Pass/fail thresholds": "Zero net retained lines above treaty retention without facultative confirmation on file",
+        "Exception handling path": "Shortfall in capacity referred to the Reinsurance Underwriter before the bind is authorised",
+        "Documented acceptance criteria": "Signed reinsurance or facultative confirmation attached before the bind date",
+        "Evidence location": "Reinsurance administration system placement record and the submission in the workstation"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Compare the gross line to treaty capacity in the reinsurance administration system",
+          "actor": "Underwriter",
+          "sop": [
+            "Read the gross line and limit from the quote in the underwriting workstation.",
+            "Apply the treaty capacity for the section in the reinsurance administration system.",
+            "Done when the portion needing facultative support is calculated."
+          ],
+          "verify": [
+            "Recalculate the facultative portion as gross line less treaty capacity.",
+            "Pass when the calculated facultative requirement matches the placement being sought."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm each reinsurer has signed its facultative share on the slip",
+          "actor": "Reinsurance Underwriter",
+          "sop": [
+            "Open the facultative placement slip held against the risk.",
+            "Confirm each reinsurer has signed for its written share.",
+            "Done when every share on the slip carries a reinsurer signature."
+          ],
+          "verify": [
+            "Total the signed shares and compare to the facultative requirement.",
+            "Pass when the signed shares fully cover the facultative requirement."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Check each reinsurer against the approved security list",
+          "actor": "Reinsurance Underwriter",
+          "sop": [
+            "Look up each participating reinsurer on the approved security list.",
+            "Confirm the current financial strength rating meets the minimum standard.",
+            "Done when every participating reinsurer is confirmed approved."
+          ],
+          "verify": [
+            "Re-check ratings as at the bind date rather than at slip issue.",
+            "Pass when no unapproved or sub-standard reinsurer holds a share."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the treaty programme is in force for the inception date",
+          "actor": "Reinsurance Underwriter",
+          "sop": [
+            "Open the treaty record and read the programme period and covered lines.",
+            "Confirm the policy inception falls inside the treaty period and the line is covered.",
+            "Done when treaty coverage for the risk is confirmed."
+          ],
+          "verify": [
+            "Compare the policy inception date to the treaty period start and end dates.",
+            "Pass when inception falls inside an in-force treaty covering the line."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Refer any capacity shortfall to the Reinsurance Underwriter",
+          "actor": "Underwriter",
+          "sop": [
+            "Identify any portion of the line still unplaced after treaty and facultative support.",
+            "Refer the shortfall with a recommendation to reduce the line or hold the bind.",
+            "Done when the shortfall referral is raised and a decision is recorded."
+          ],
+          "verify": [
+            "Confirm the bind remains held while the shortfall referral is open.",
+            "Pass when no risk binds with an unplaced and unreferred capacity shortfall."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Attach the signed reinsurance confirmation to the submission",
+          "actor": "Underwriter",
+          "sop": [
+            "Upload the signed slip or reinsurer confirmation against the submission.",
+            "Record the placement reference from the reinsurance administration system.",
+            "Done when the confirmation is attached and the bind step is released."
+          ],
+          "verify": [
+            "Open the attachment and confirm signatures and shares are legible.",
+            "Pass when a signed confirmation dated before bind is on the submission."
+          ]
+        }
+      ]
+    }
+  ]
+}

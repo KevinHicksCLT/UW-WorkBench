@@ -4223,6 +4223,3199 @@
           ]
         }
       ]
+    },
+    {
+      "taskId": "5bc74032-159e-4f82-81a9-3605c245514e",
+      "verifier": "Claims Processor",
+      "generic": {
+        "Defined scope/population": "Rental invoices submitted against the rental authorization on this claim.",
+        "In-scope period": "From invoice receipt to the covered amount being approved and short-pay reasons recorded.",
+        "Required fields populated and valid": "Daily rate, rental start and end dates, vehicle class, ancillary charges and invoice total.",
+        "Control totals or record counts reconcile": "Approved amount equals billed days times the covered daily rate less non-covered charges.",
+        "Evidence retained with timestamp/version": "Approved invoice and the rate comparison worksheet retained with the approval date.",
+        "Exceptions logged with disposition": "Each stripped or short-paid charge recorded with the reason on the invoice record.",
+        "Test population": "Rental invoices approved on the claim in the review period.",
+        "Pass/fail thresholds": "Fail if cumulative rental spend after approval exceeds the policy per-occurrence limit.",
+        "Exception handling path": "Invoices breaching the daily or aggregate limit route to the claims adjuster before approval.",
+        "Documented acceptance criteria": "Approved rental invoice records the covered amount, rate and authorized date range.",
+        "Evidence location": "Claim financials in the claims platform plus the Excel rental tracking worksheet."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Check the invoiced daily rate against contract and policy allowance",
+          "actor": "Claims Processor",
+          "sop": [
+            "Open the rental invoice and read the billed daily rate and vehicle class.",
+            "Compare it to the contracted network rate and the policy daily allowance.",
+            "Done when the daily rate is checked against both limits."
+          ],
+          "verify": [
+            "Recompute the rate variance against contract and policy allowance.",
+            "Pass when the approved rate is at or below both the contract and policy rate."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm billed days fall inside the authorized date range",
+          "actor": "Claims Processor",
+          "sop": [
+            "Read the rental start and end dates on the invoice.",
+            "Compare them to the authorization start and end dates on the claim.",
+            "Done when every billed day is confirmed inside the authorized range."
+          ],
+          "verify": [
+            "Count billed days inside and outside the authorized range.",
+            "Pass when no billed day falls outside the authorized date range."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Test cumulative spend against the per-occurrence limit",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Total rental amounts already paid on the claim.",
+            "Add this invoice and compare the result to the per-occurrence limit.",
+            "Done when the cumulative position against the limit is known."
+          ],
+          "verify": [
+            "Compare cumulative spend plus this invoice to the policy limit.",
+            "Pass when cumulative spend stays within the per-occurrence limit."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Strip non-covered charges from the payable amount",
+          "actor": "Claims Processor",
+          "sop": [
+            "Identify fuel, upgrades, insurance waivers, tolls and late fees on the invoice.",
+            "Remove them to arrive at the covered payable amount.",
+            "Done when all non-covered charges are removed."
+          ],
+          "verify": [
+            "Recompute the payable amount after removing non-covered lines.",
+            "Pass when the payable amount excludes every non-covered charge."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Approve the covered amount in the claims platform",
+          "actor": "Claims Processor",
+          "sop": [
+            "Enter the covered amount as the approved payable on the invoice.",
+            "Submit the approval so the invoice status updates.",
+            "Done when the covered amount is approved on the invoice."
+          ],
+          "verify": [
+            "Reopen the invoice and check the approved amount and status.",
+            "Pass when the approved amount equals the calculated covered amount."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the reason for any short-pay",
+          "actor": "Claims Processor",
+          "sop": [
+            "Record the reason for each short-paid or removed line on the invoice.",
+            "Notify the rental provider of the short-pay and the basis.",
+            "Done when every short-pay carries a recorded reason and notification."
+          ],
+          "verify": [
+            "Read the invoice notes and confirm a reason per short-paid line.",
+            "Pass when no short-pay is recorded without a stated reason."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "ed7c39cf-918f-4914-9859-350acf9ac8bf",
+      "verifier": "Claims Adjuster",
+      "generic": {
+        "Defined scope/population": "Rental vehicle reservations and additional living expense housing placements on this claim.",
+        "In-scope period": "From the coverage check to the authorization being issued and the review diary set.",
+        "Required fields populated and valid": "Coverage confirmation, daily rate cap, start date, expected end date, class or housing type.",
+        "Control totals or record counts reconcile": "Authorized daily cap times authorized days stays within the policy aggregate limit.",
+        "Evidence retained with timestamp/version": "Authorization record and the provider notification retained with the issue date.",
+        "Exceptions logged with disposition": "Class or housing upgrades requested but declined logged with the reason on the claim.",
+        "Test population": "Rental and additional living expense authorizations issued on the claim in the review period.",
+        "Pass/fail thresholds": "Fail if any authorization is issued without an end date.",
+        "Exception handling path": "Placements above the policy allowance route to the claims adjuster for a documented decision.",
+        "Documented acceptance criteria": "Authorization records the daily cap, class or housing type and the end date.",
+        "Evidence location": "Authorization record in the claims platform and coverage detail in the policy administration system."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm rental or living expense coverage and limits on the policy",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Open the in-force policy in the policy administration system.",
+            "Read the rental or additional living expense daily and aggregate limits.",
+            "Done when coverage presence and both limits are confirmed."
+          ],
+          "verify": [
+            "Compare the limits read to the policy endorsement wording.",
+            "Pass when the confirmed limits match the in-force policy."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Set the authorized daily rate and the date range",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Set the authorized daily rate at or below the policy allowance.",
+            "Set the authorization start date and the expected end date.",
+            "Done when rate and both dates are set on the authorization."
+          ],
+          "verify": [
+            "Check the authorization for a populated rate, start and end date.",
+            "Pass when the authorization holds a daily cap and an end date."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Select the vehicle class or housing type",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Select the class or housing type matching the covered exposure.",
+            "Avoid selecting an upgrade above the covered entitlement.",
+            "Done when the class or housing type is selected and recorded."
+          ],
+          "verify": [
+            "Compare the selected class to the covered vehicle or household size.",
+            "Pass when the selection matches the covered entitlement with no upgrade."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Send the authorization to the rental or housing provider",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Send the authorization to the rental branch or housing provider.",
+            "Include the claim number, daily cap, class and end date.",
+            "Done when the provider holds the full authorization detail."
+          ],
+          "verify": [
+            "Check the sent authorization against the recorded cap and end date.",
+            "Pass when the provider authorization matches the recorded terms."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the authorization number and cap on the claim",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Record the authorization number, cap and end date on the claim.",
+            "Link the authorization to the correct coverage and exposure.",
+            "Done when the authorization details are recorded on the claim."
+          ],
+          "verify": [
+            "Open the claim and confirm number, cap and end date are present.",
+            "Pass when the claim holds the authorization number, cap and end date."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Set the review diary before the authorization end date",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Create a diary ahead of the expected end date to review duration.",
+            "Set the action to extend or close based on repair progress.",
+            "Done when the review diary exists on the claim."
+          ],
+          "verify": [
+            "Check the diary date falls before the authorization end date.",
+            "Pass when a review diary exists ahead of the end date."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fkify1exmkfgz0ajnhx0t",
+      "verifier": "Claims Adjuster",
+      "generic": {
+        "Defined scope/population": "The active rental or housing authorization on this claim being extended or closed.",
+        "In-scope period": "From the repair progress update to the extend or close decision being communicated.",
+        "Required fields populated and valid": "Current repair status, revised completion date, decision, reason and new or termination date.",
+        "Control totals or record counts reconcile": "Cumulative spend at the revised end date stays within the policy aggregate limit.",
+        "Evidence retained with timestamp/version": "Shop or contractor status update and the decision note retained with dates.",
+        "Exceptions logged with disposition": "Extensions caused by vendor delay logged against the vendor for the scorecard.",
+        "Test population": "Rental extension or closure decisions made on the claim in the review period.",
+        "Pass/fail thresholds": "Fail if a decision is recorded without a reason and a revised or termination date.",
+        "Exception handling path": "Extensions taking spend above the limit escalate before the new end date is granted.",
+        "Documented acceptance criteria": "Extension or closure decision recorded with the reason and the revised end date.",
+        "Evidence location": "Rental authorization record and decision note in the claims management platform."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Obtain the current repair status and revised completion date",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Contact the shop or contractor for the current repair status.",
+            "Record the revised completion date on the claim.",
+            "Done when the status and revised date are recorded."
+          ],
+          "verify": [
+            "Check the recorded date against the shop or contractor update.",
+            "Pass when the recorded completion date matches the vendor update."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Decide to extend or close and record the reason",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Decide whether to extend or close the authorization.",
+            "Record the specific reason such as parts delay, supplement or repairs complete.",
+            "Done when the decision and specific reason are recorded."
+          ],
+          "verify": [
+            "Read the decision note and confirm the reason is specific.",
+            "Pass when the decision carries a specific documented reason."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Set the new end date and check cumulative spend on extension",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Set the new authorization end date where extending.",
+            "Recalculate cumulative spend to the new end date against the limit.",
+            "Done when the new end date is set and the limit check is complete."
+          ],
+          "verify": [
+            "Compare projected cumulative spend to the aggregate limit.",
+            "Pass when the extension keeps cumulative spend inside the limit."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Set the termination date where closing the authorization",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Set the termination date on the authorization where closing.",
+            "Confirm no further days will be authorized after that date.",
+            "Done when the termination date is set on the authorization."
+          ],
+          "verify": [
+            "Check the authorization end date and status after the change.",
+            "Pass when the closed authorization shows a firm termination date."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Communicate the decision to the insured",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Tell the insured the decision and the revised or termination date.",
+            "Explain what happens to charges after the end date.",
+            "Done when the insured is informed and the note is filed."
+          ],
+          "verify": [
+            "Open the claim and confirm the insured communication is logged.",
+            "Pass when the claim records the insured notification of the decision."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Communicate the decision to the rental or housing provider",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Notify the provider of the new end date or the termination date.",
+            "Log the notification against the authorization record.",
+            "Done when the provider is notified and the log entry exists."
+          ],
+          "verify": [
+            "Check the provider notification date and content on the claim.",
+            "Pass when the provider notification matches the recorded decision."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fki681ervkfgz4oefjm85",
+      "verifier": "Claims Coordinator",
+      "generic": {
+        "Defined scope/population": "Open rental authorizations on this claim being tracked against repair progress.",
+        "In-scope period": "The current monitoring cadence from the last review to the day count being recorded.",
+        "Required fields populated and valid": "Repair status, estimated completion date, rental days used and benchmark duration.",
+        "Control totals or record counts reconcile": "Rental days used plus days remaining equals the authorized rental period.",
+        "Evidence retained with timestamp/version": "Shop status update and the monitoring worksheet retained with the review date.",
+        "Exceptions logged with disposition": "Stalled repairs logged with the chase action and the vendor response.",
+        "Test population": "Open rental authorizations reviewed in the monitoring cadence.",
+        "Pass/fail thresholds": "Fail if a rental authorization runs past the benchmark without a logged review.",
+        "Exception handling path": "Days exceeding the benchmark by the tolerance escalate to the claims adjuster for a decision.",
+        "Documented acceptance criteria": "Current rental day count and variance versus the repair benchmark recorded.",
+        "Evidence location": "Claim notes in the claims platform plus the Excel rental monitoring worksheet."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the current repair status from the shop or contractor",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Request the current repair status and estimated completion date.",
+            "Record the update and the date it was received.",
+            "Done when the current status and date are recorded."
+          ],
+          "verify": [
+            "Check the recorded status date is inside the monitoring cadence.",
+            "Pass when the status update is current for this cadence."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Compare rental days used to the benchmark duration",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Count rental days used from the authorization start to today.",
+            "Compare the count to the benchmark repair duration on the claim.",
+            "Done when the day count and comparison are recorded."
+          ],
+          "verify": [
+            "Recompute the day count from the authorization start date.",
+            "Pass when the recorded day count matches the recomputed figure."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Flag claims exceeding the benchmark by the escalation tolerance",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Apply the escalation tolerance to the benchmark duration.",
+            "Flag every authorization exceeding the tolerance.",
+            "Done when all over-tolerance authorizations are flagged."
+          ],
+          "verify": [
+            "Check the flags against the calculated variance per claim.",
+            "Pass when every over-tolerance authorization carries a flag."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Chase stalled repairs with no recent status change",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Identify repairs with no status change since the last cadence.",
+            "Chase the vendor and record the response on the claim.",
+            "Done when every stalled repair has a logged chase."
+          ],
+          "verify": [
+            "Compare chase entries to the stalled repair list.",
+            "Pass when every stalled repair has a chase entry recorded."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the day count and variance on the claim",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Record the current rental day count and the variance to benchmark.",
+            "Save the monitoring worksheet against the claim.",
+            "Done when count, variance and worksheet are on the claim."
+          ],
+          "verify": [
+            "Open the claim and confirm count, variance and worksheet exist.",
+            "Pass when the claim records the day count and benchmark variance."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Refer over-tolerance claims to the adjuster for a decision",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Refer flagged authorizations to the claims adjuster for extend or close.",
+            "Record the referral date against the authorization.",
+            "Done when every flagged authorization has been referred."
+          ],
+          "verify": [
+            "Check flagged authorizations for a referral entry.",
+            "Pass when no flagged authorization lacks a referral to the adjuster."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "076587d9-0e53-42ba-af5a-488c45a27314",
+      "verifier": "Claims Coordinator",
+      "generic": {
+        "Defined scope/population": "Insureds on this claim holding a rental authorization approaching its end date.",
+        "In-scope period": "From the pre-expiry notice window opening to the notice being sent and diarised.",
+        "Required fields populated and valid": "Repair completion date, authorization end date, notice send date and extension instructions.",
+        "Control totals or record counts reconcile": "Notices sent equal the authorizations reaching expiry in the notice window.",
+        "Evidence retained with timestamp/version": "Sent notice retained on the claim with the send date ahead of the end date.",
+        "Exceptions logged with disposition": "Undeliverable notices logged with the retry channel and outcome.",
+        "Test population": "Rental authorizations approaching expiry in the review period.",
+        "Pass/fail thresholds": "Fail if a notice is sent on or after the authorization end date.",
+        "Exception handling path": "Unreachable insureds escalate to the claims adjuster before the authorization terminates.",
+        "Documented acceptance criteria": "Expiration notice retained with a send date ahead of the authorization end date.",
+        "Evidence location": "Claim correspondence log in the claims platform plus the email or Teams message."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the repair completion date and authorization end date",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Read the scheduled repair completion date from the shop update.",
+            "Read the rental authorization end date on the claim.",
+            "Done when both dates are confirmed."
+          ],
+          "verify": [
+            "Compare the two dates and note any gap.",
+            "Pass when both dates are recorded and the gap is understood."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Send the notice inside the programme notice window",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Calculate the notice date from the programme standard lead time.",
+            "Send the notice to the insured on or before that date.",
+            "Done when the notice is sent inside the notice window."
+          ],
+          "verify": [
+            "Compare the send date to the authorization end date.",
+            "Pass when the notice was sent ahead of the end date by the standard lead time."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "State the exact date rental coverage ends",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "State the exact end date of rental coverage in the notice.",
+            "State that charges after that date are the insured responsibility.",
+            "Done when both statements appear in the notice."
+          ],
+          "verify": [
+            "Read the notice and confirm the end date and liability statement.",
+            "Pass when the notice states the end date and the post-expiry liability."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Explain how to request an extension",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Explain the route to request an extension and who to contact.",
+            "State the evidence needed such as a revised repair completion date.",
+            "Done when the extension route and evidence are explained."
+          ],
+          "verify": [
+            "Read the notice and confirm the extension route is explicit.",
+            "Pass when the notice explains how to request an extension."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "File the notice on the claim",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Save the sent notice against the claim correspondence log.",
+            "Record the send date and the channel used.",
+            "Done when the notice is filed with the send date."
+          ],
+          "verify": [
+            "Open the claim and confirm the filed notice and send date.",
+            "Pass when the claim holds the notice with its send date."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Diary the expiry date for the termination action",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Create a diary on the authorization expiry date.",
+            "Set the action to terminate or extend the authorization.",
+            "Done when the expiry diary exists on the claim."
+          ],
+          "verify": [
+            "Check the diary date equals the authorization end date.",
+            "Pass when a diary exists on the rental authorization expiry date."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhzza0984kfgz8wybl4r9",
+      "verifier": "Claims Processor",
+      "generic": {
+        "Defined scope/population": "All rental invoices paid on this claim up to the authorization termination date.",
+        "In-scope period": "From the termination date to the rental exposure being closed with a reconciled total.",
+        "Required fields populated and valid": "Invoice totals, authorized days, daily cap, return date and termination date on the claim.",
+        "Control totals or record counts reconcile": "Total rental paid equals authorized days times the daily cap less any recorded short-pays.",
+        "Evidence retained with timestamp/version": "Reconciliation worksheet and final invoice retained with the reconciliation date.",
+        "Exceptions logged with disposition": "Post-termination charges logged with the dispute raised and the recovery outcome.",
+        "Test population": "Rental authorizations terminated on the claim in the review period.",
+        "Pass/fail thresholds": "Fail if any rental charge is paid for days after the recorded termination date.",
+        "Exception handling path": "Overpayments are recovered or offset and the recovery recorded on the claim financials.",
+        "Documented acceptance criteria": "Final reconciliation recorded with total paid versus the authorized amount.",
+        "Evidence location": "Claim financials in the claims platform plus the Excel reconciliation worksheet."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Total all rental invoices paid on the claim",
+          "actor": "Claims Processor",
+          "sop": [
+            "Extract every rental invoice paid on the claim into the worksheet.",
+            "Total the paid amounts and the days billed.",
+            "Done when the paid total and day count are calculated."
+          ],
+          "verify": [
+            "Compare the worksheet total to the claim financial paid figure.",
+            "Pass when the worksheet total equals the paid figure on the claim."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Compare the paid total to authorized days times the daily cap",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Multiply the authorized days by the authorized daily cap.",
+            "Compare the result to the total paid and calculate the variance.",
+            "Done when the variance to authorization is calculated."
+          ],
+          "verify": [
+            "Recompute the authorized value and the variance.",
+            "Pass when the recomputed variance matches the worksheet figure."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm the final invoice return date matches termination",
+          "actor": "Claims Processor",
+          "sop": [
+            "Read the vehicle return date on the final rental invoice.",
+            "Compare it to the recorded authorization termination date.",
+            "Done when the return and termination dates are compared."
+          ],
+          "verify": [
+            "Check the two dates for a difference in days.",
+            "Pass when the return date matches the recorded termination date."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Identify and dispute charges billed after termination",
+          "actor": "Claims Processor",
+          "sop": [
+            "Identify any charge dated after the termination date.",
+            "Raise a written dispute with the rental provider for each.",
+            "Done when every post-termination charge is disputed."
+          ],
+          "verify": [
+            "Check each post-termination charge has a dispute record.",
+            "Pass when no post-termination charge is left undisputed."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Recover or offset any overpayment",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Agree the recovery or offset with the rental provider.",
+            "Record the recovery against the claim financials.",
+            "Done when the overpayment is recovered or offset and recorded."
+          ],
+          "verify": [
+            "Check the recovery amount posted against the claim financials.",
+            "Pass when the recorded recovery equals the agreed overpayment."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Close the rental exposure with the reconciled total",
+          "actor": "Claims Processor",
+          "sop": [
+            "Record the final reconciled rental total on the claim.",
+            "Close the rental exposure so no further invoices auto-approve.",
+            "Done when the exposure is closed with the reconciled total."
+          ],
+          "verify": [
+            "Open the exposure and confirm the closed status and final total.",
+            "Pass when the rental exposure is closed with the reconciled total recorded."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "9f3a42d7-1fdd-4df5-b7f5-b61e0b79b374",
+      "verifier": "Claims Examiner",
+      "generic": {
+        "Defined scope/population": "Additional living expense receipts submitted by the insured on this claim.",
+        "In-scope period": "The displacement period recorded on the claim from displacement to reoccupation.",
+        "Required fields populated and valid": "Receipt date, vendor, amount, expense category and the displacement period on the claim.",
+        "Control totals or record counts reconcile": "Allowable total equals submitted receipts less every declined or reduced amount.",
+        "Evidence retained with timestamp/version": "Receipts uploaded and indexed to the claim with the review outcome and review date.",
+        "Exceptions logged with disposition": "Each declined or reduced receipt logged with an itemised reason.",
+        "Test population": "Additional living expense receipts submitted on the claim in the review period.",
+        "Pass/fail thresholds": "Fail if any payment is made for expenses outside the recorded displacement period.",
+        "Exception handling path": "Receipts outside the period or above benchmark are declined with a written explanation.",
+        "Documented acceptance criteria": "Receipts uploaded and indexed to the claim with a recorded review outcome.",
+        "Evidence location": "Claim file document repository plus the review note in the claims management platform."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm each receipt is an additional expense above normal living cost",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Read each receipt and classify the expense category.",
+            "Confirm it represents cost above the normal standard of living.",
+            "Done when every receipt is classified as additional or normal."
+          ],
+          "verify": [
+            "Check each classification against the expense description.",
+            "Pass when every receipt carries an additional or normal classification."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Compare lodging and meal amounts to the local rate benchmark",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Open the reasonable local rate benchmark for lodging and meals.",
+            "Compare each amount and mark those above benchmark.",
+            "Done when every lodging and meal receipt is benchmarked."
+          ],
+          "verify": [
+            "Recompute the variance to benchmark for a sample of receipts.",
+            "Pass when sampled variances match the recorded amounts."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Exclude normal household expenses",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Identify regular groceries, standing bills and other ongoing costs.",
+            "Exclude them from the allowable total.",
+            "Done when all normal household expenses are excluded."
+          ],
+          "verify": [
+            "Review the excluded list against the expense categories.",
+            "Pass when no normal household expense sits in the allowable total."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Verify receipt dates against the displacement period",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Read the displacement start and end dates recorded on the claim.",
+            "Check every receipt date falls inside that period.",
+            "Done when all receipt dates are checked against the period."
+          ],
+          "verify": [
+            "Count receipts dated outside the displacement period.",
+            "Pass when no allowed receipt falls outside the displacement period."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the allowable total and itemised declines",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Total the allowable amounts after exclusions and reductions.",
+            "Record an itemised reason for every declined or reduced amount.",
+            "Done when the allowable total and all reasons are recorded."
+          ],
+          "verify": [
+            "Sum allowable plus declined amounts and compare to submitted total.",
+            "Pass when allowable plus declined equals the submitted receipt total."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Upload and index the receipts with the review outcome",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Upload the receipt set to the claim file repository.",
+            "Index it with the review outcome and reviewer name.",
+            "Done when receipts and outcome are indexed to the claim."
+          ],
+          "verify": [
+            "Filter the claim documents and confirm receipts and outcome appear.",
+            "Pass when the claim holds the indexed receipts and the review outcome."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "e117d6ab-5409-4b33-9d52-8fe1a003c9c5",
+      "verifier": "Claims Adjuster",
+      "generic": {
+        "Defined scope/population": "The expected repair duration for this claim used as the rental and living expense benchmark.",
+        "In-scope period": "From estimate approval to the benchmark completion date being recorded on the claim.",
+        "Required fields populated and valid": "Labour hours, parts lead times, shop start date, benchmark completion date and assumptions.",
+        "Control totals or record counts reconcile": "Benchmark completion date equals the start date plus derived labour and parts duration.",
+        "Evidence retained with timestamp/version": "Benchmark note with assumptions retained on the claim with the estimate version referenced.",
+        "Exceptions logged with disposition": "Known parts backorders logged with the added delay and the source of the information.",
+        "Test population": "Rental duration benchmarks set on claims in the review period.",
+        "Pass/fail thresholds": "Fail if a benchmark is recorded without documented labour hours and parts assumptions.",
+        "Exception handling path": "Approved supplements or scope changes trigger a benchmark revision through the diary.",
+        "Documented acceptance criteria": "Expected repair completion date recorded as the rental duration benchmark.",
+        "Evidence location": "Claim benchmark note in the claims platform plus the estimate in CCC or Mitchell."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Derive expected repair duration from the approved estimate",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Read the labour hours and parts lines from the approved estimate.",
+            "Convert labour hours into expected working days for the shop.",
+            "Done when the expected repair duration is derived."
+          ],
+          "verify": [
+            "Recompute the duration from the estimate labour hours.",
+            "Pass when the derived duration matches the estimate labour content."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the shop or contractor start date",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Contact the shop or contractor for the confirmed repair start date.",
+            "Record the start date on the claim.",
+            "Done when the start date is confirmed and recorded."
+          ],
+          "verify": [
+            "Check the recorded start date against the shop confirmation.",
+            "Pass when the recorded start date matches the shop confirmation."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Add known parts backorder delay",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Check parts lead times and any known backorder for the estimate parts.",
+            "Add the delay to the expected duration and note the source.",
+            "Done when parts delay is added or confirmed as nil."
+          ],
+          "verify": [
+            "Check the delay against the parts availability information.",
+            "Pass when the parts delay applied matches the documented lead times."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Set the benchmark completion date on the claim",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Add the duration and delay to the start date to get the completion date.",
+            "Record it as the rental and living expense benchmark on the claim.",
+            "Done when the benchmark completion date is recorded."
+          ],
+          "verify": [
+            "Recompute the completion date from start, duration and delay.",
+            "Pass when the recorded benchmark equals the recomputed date."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the assumptions behind the benchmark",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Write the assumption note covering labour hours, lead times and start date.",
+            "Reference the estimate version used to derive the benchmark.",
+            "Done when all assumptions and the version are recorded."
+          ],
+          "verify": [
+            "Read the note and confirm all three assumptions and the version appear.",
+            "Pass when the note documents labour hours, lead times and start date."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Set a diary to revisit the benchmark on scope change",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Create a diary to revisit the benchmark if a supplement is approved.",
+            "Set the same diary to trigger on any scope change notification.",
+            "Done when the benchmark revision diary exists."
+          ],
+          "verify": [
+            "Check the diary exists and names the revision trigger.",
+            "Pass when a diary exists to revisit the benchmark on scope change."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhzpv092gkfgzaiv5hs9g",
+      "verifier": "Claims Coordinator",
+      "generic": {
+        "Defined scope/population": "Active rental authorizations on this claim reaching a repair completion or settlement trigger.",
+        "In-scope period": "From the trigger event to the authorization being closed in the claims system.",
+        "Required fields populated and valid": "Trigger event, collection or settlement date, termination date, reason and final day count.",
+        "Control totals or record counts reconcile": "Final authorized day count equals days from authorization start to the termination date.",
+        "Evidence retained with timestamp/version": "Trigger evidence such as the collection confirmation retained with its date.",
+        "Exceptions logged with disposition": "Invoices received after closure logged with the rejection or dispute raised.",
+        "Test population": "Rental authorizations terminated on the claim in the review period.",
+        "Pass/fail thresholds": "Fail if any rental invoice is approved after the authorization closure date.",
+        "Exception handling path": "Late collection evidence triggers a corrected termination date with a documented adjustment.",
+        "Documented acceptance criteria": "Rental authorization status reads Closed with a termination date and reason.",
+        "Evidence location": "Rental authorization record and status history in the claims management platform."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the termination trigger event",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Confirm repairs are complete and the vehicle collected, or the total loss is settled.",
+            "Record which trigger applies on the claim.",
+            "Done when the trigger event is confirmed and recorded."
+          ],
+          "verify": [
+            "Check the trigger against the collection or settlement evidence.",
+            "Pass when the recorded trigger is supported by evidence on the claim."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Set the termination date to the collection or settlement date",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Set the termination date to the confirmed collection or settlement date.",
+            "Do not use the notification date as the termination date.",
+            "Done when the termination date matches the trigger event date."
+          ],
+          "verify": [
+            "Compare the termination date to the trigger event date.",
+            "Pass when the termination date equals the confirmed trigger date."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Notify the provider to close the account on that date",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Notify the rental branch or housing provider of the termination date.",
+            "Ask for confirmation that the account closes on that date.",
+            "Done when the provider is notified and confirmation is requested."
+          ],
+          "verify": [
+            "Check the notification names the exact termination date.",
+            "Pass when the provider notification states the termination date."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Close the authorization in the claims system",
+          "actor": "Claims Processor",
+          "sop": [
+            "Set the authorization status to Closed in the claims platform.",
+            "Confirm no further invoices can auto-approve against it.",
+            "Done when the authorization reads Closed."
+          ],
+          "verify": [
+            "Reopen the authorization and check the status and end date.",
+            "Pass when the authorization status reads Closed with the end date."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the termination reason and final day count",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Record the termination reason on the authorization.",
+            "Record the final authorized day count from start to termination.",
+            "Done when the reason and day count are recorded."
+          ],
+          "verify": [
+            "Recompute the day count from the start and termination dates.",
+            "Pass when the recorded day count matches the recomputed figure."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Reject invoices dated after the closure date",
+          "actor": "Claims Processor",
+          "sop": [
+            "Monitor for invoices dated after the closure date.",
+            "Reject them and notify the provider with the closure evidence.",
+            "Done when every post-closure invoice is rejected."
+          ],
+          "verify": [
+            "Check approved invoices for any dated after closure.",
+            "Pass when no invoice is approved after the authorization closure date."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "bd9c677a-876e-4793-b0e7-64911dfb313a",
+      "verifier": "Claims Examiner",
+      "generic": {
+        "Defined scope/population": "Rental reimbursement and living expense coverage on the policy in force at the loss date.",
+        "In-scope period": "From claim setup to the confirmed limits being recorded before any authorization is issued.",
+        "Required fields populated and valid": "Policy term, endorsement reference, daily allowance, aggregate maximum, day limit and waiting period.",
+        "Control totals or record counts reconcile": "Daily allowance times the day limit equals or is capped by the stated aggregate maximum.",
+        "Evidence retained with timestamp/version": "Policy version reference and limit note retained on the claim with the verification date.",
+        "Exceptions logged with disposition": "Endorsements restricting or excluding the coverage logged with the effect on this loss.",
+        "Test population": "Claims requiring rental or living expense coverage verification in the review period.",
+        "Pass/fail thresholds": "Fail if any authorization is issued before the limits are recorded on the claim.",
+        "Exception handling path": "Ambiguous wording refers to the claims examiner for a documented coverage position.",
+        "Documented acceptance criteria": "Daily allowance and aggregate limit confirmed from the in-force policy and recorded.",
+        "Evidence location": "Policy administration system policy version plus the coverage note in the claims platform."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Open the policy version in force at the date of loss",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Open the policy in the policy administration system.",
+            "Select the term in force at the date of loss rather than the current renewal.",
+            "Done when the correct policy version is open."
+          ],
+          "verify": [
+            "Compare the policy term dates to the date of loss.",
+            "Pass when the open policy term covers the date of loss."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Read the rental or living expense daily allowance and maximum",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Locate the rental reimbursement or living expense endorsement.",
+            "Read the daily allowance and the aggregate maximum.",
+            "Done when both figures are read from the endorsement."
+          ],
+          "verify": [
+            "Cross-check both figures against the endorsement schedule.",
+            "Pass when the figures read match the endorsement schedule."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm the day limit and any waiting period",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Read the maximum number of days or time limit that applies.",
+            "Read any waiting period before coverage starts.",
+            "Done when the day limit and waiting period are confirmed."
+          ],
+          "verify": [
+            "Check the day limit and waiting period against the wording.",
+            "Pass when both are recorded consistently with the policy wording."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Check endorsements that raise, restrict or exclude the coverage",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "List endorsements attached to the in-force policy term.",
+            "Identify any that change the coverage for this loss type.",
+            "Done when all relevant endorsements are identified."
+          ],
+          "verify": [
+            "Read each identified endorsement and note its effect.",
+            "Pass when every coverage-changing endorsement is noted with its effect."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the confirmed limits on the claim",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Record the daily allowance, aggregate maximum and day limit on the claim.",
+            "Reference the policy version used for the verification.",
+            "Done when the limits and version reference are recorded."
+          ],
+          "verify": [
+            "Open the claim note and confirm all limits and the version appear.",
+            "Pass when the claim records the daily and aggregate limits with the version."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Gate authorizations on the recorded limits",
+          "actor": "Claims Adjuster",
+          "sop": [
+            "Confirm the limits are recorded before any rental or housing authorization.",
+            "Hold any authorization raised before verification is complete.",
+            "Done when authorizations only follow recorded limits."
+          ],
+          "verify": [
+            "Compare authorization dates to the limit verification date.",
+            "Pass when no authorization predates the recorded limit verification."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjq8112j2kfgzs8e1wbq4",
+      "verifier": "Claims Director / Manager",
+      "generic": {
+        "Defined scope/population": "Salvage dispositions on this claim ready for approval after proceeds reconciliation.",
+        "In-scope period": "From reconciliation completion to the disposition being approved and released for posting.",
+        "Required fields populated and valid": "Net proceeds, deduction detail, title status, lien release status and approver ID.",
+        "Control totals or record counts reconcile": "Approved net recovery equals gross proceeds less every itemised deduction.",
+        "Evidence retained with timestamp/version": "Reconciliation, remittance advice and approval retained with the approval date and approver.",
+        "Exceptions logged with disposition": "Variances to the salvage reserve logged with the explanation before approval.",
+        "Test population": "Salvage dispositions approved on the claim in the review period.",
+        "Pass/fail thresholds": "Fail if a disposition is approved while lien release or title transfer is outstanding.",
+        "Exception handling path": "Net proceeds above the approver threshold escalate to the claims manager before approval.",
+        "Documented acceptance criteria": "Salvage disposition approved with approver ID and the net recovery amount.",
+        "Evidence location": "Salvage record in the claims platform plus the recovery entry in the payment system."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the proceeds reconciliation is complete",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Open the salvage reconciliation for the asset in the claims platform.",
+            "Confirm variances to the booked reserve are explained.",
+            "Done when the reconciliation is complete with variances explained."
+          ],
+          "verify": [
+            "Read the variance explanations against the reconciliation figures.",
+            "Pass when every material variance carries a written explanation."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Verify title, lien release and storage deductions are settled",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Check title transfer and lien release status on the salvage record.",
+            "Check storage and tow deductions are agreed with the vendor.",
+            "Done when title, lien and deduction items are all settled."
+          ],
+          "verify": [
+            "Open each supporting document and confirm completion.",
+            "Pass when no title or lien item remains outstanding."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Check net proceeds against the salvage authority threshold",
+          "actor": "Claims Director / Manager",
+          "sop": [
+            "Compare the net proceeds figure to the approver authority threshold.",
+            "Escalate where the figure exceeds the approver threshold.",
+            "Done when the approval sits at the correct authority level."
+          ],
+          "verify": [
+            "Check the approver ID against the authority threshold.",
+            "Pass when the approver authority covers the net recovery amount."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Approve the disposition and record the net recovery",
+          "actor": "Claims Director / Manager",
+          "sop": [
+            "Approve the salvage disposition in the claims platform.",
+            "Record the approved net recovery amount on the salvage record.",
+            "Done when the approval and net amount are recorded."
+          ],
+          "verify": [
+            "Reopen the salvage record and confirm approver ID and amount.",
+            "Pass when the record shows the approver ID and net recovery amount."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Attach the remittance advice to the approval",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Attach the auction settlement statement or vendor remittance advice.",
+            "Link it to the approved disposition record.",
+            "Done when the remittance evidence is attached to the approval."
+          ],
+          "verify": [
+            "Open the approval and confirm the remittance advice is attached.",
+            "Pass when the approved disposition carries the remittance evidence."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Release the salvage record for recovery ledger posting",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Release the approved disposition to the payment and subrogation system.",
+            "Confirm the recovery posting task is created.",
+            "Done when the record is released for posting."
+          ],
+          "verify": [
+            "Check the payment system for the pending recovery posting.",
+            "Pass when the approved disposition appears for posting in the recovery ledger."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "1a07a9da-3e7f-4f8b-a6d6-3aedb3b1fae5",
+      "verifier": "Salvage Coordinator",
+      "generic": {
+        "Defined scope/population": "Recovered or damaged assets on this claim being assigned to a salvage pool or vendor.",
+        "In-scope period": "From the salvage decision to the assignment being saved with an assignment reference.",
+        "Required fields populated and valid": "VIN or serial, make, model, year, damage type, pickup location and release authorisation.",
+        "Control totals or record counts reconcile": "Assignments created equal the assets approved for salvage disposal in the period.",
+        "Evidence retained with timestamp/version": "Salvage assignment record retained with creation date and expected pickup date.",
+        "Exceptions logged with disposition": "Assets held from assignment for evidence or title issues logged with the hold reason.",
+        "Test population": "Salvage assets assigned to a pool or vendor in the review period.",
+        "Pass/fail thresholds": "Fail if any salvage asset is left unassigned past the storage accrual threshold.",
+        "Exception handling path": "Assets with no covering pool route to the vendor coordinator for a specialist channel.",
+        "Documented acceptance criteria": "Assignment shows the vendor or pool, asset identifiers and the pickup location.",
+        "Evidence location": "Salvage assignment record and claim timeline in the claims management platform."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Record asset identifiers on the salvage assignment",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Create the salvage assignment on the claim.",
+            "Enter the VIN or serial, make, model, year and damage type.",
+            "Done when all asset identifiers are recorded."
+          ],
+          "verify": [
+            "Compare the identifiers to the claim asset record.",
+            "Pass when the assignment identifiers match the claim asset record."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Select the salvage pool or vendor for the asset type",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Filter approved pools and vendors by asset type and storage location.",
+            "Select the pool or vendor and record the selection reason.",
+            "Done when the pool or vendor is selected and recorded."
+          ],
+          "verify": [
+            "Check the selection covers the asset type and storage geography.",
+            "Pass when the selected pool covers this asset type and location."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Provide the pickup location and release authorisation",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Record the storage facility name, contact and pickup address.",
+            "Provide the release authorisation code the facility requires.",
+            "Done when pickup and release details are on the assignment."
+          ],
+          "verify": [
+            "Check the facility contact and release code are present.",
+            "Pass when the assignment holds the pickup location and release code."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Set the expected pickup date and storage stop",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Agree the expected pickup date with the pool or vendor.",
+            "Confirm storage accrual stops at pickup and record the position.",
+            "Done when the pickup date and storage stop are recorded."
+          ],
+          "verify": [
+            "Read the storage note and confirm the stop position is explicit.",
+            "Pass when the assignment records the pickup date and storage stop."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Save the assignment and confirm the reference appears",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Save the assignment record in the claims platform.",
+            "Confirm the assignment reference appears on the claim.",
+            "Done when the assignment reference is visible on the claim."
+          ],
+          "verify": [
+            "Open the claim and read the assignment reference.",
+            "Pass when the claim shows the assignment with its reference."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Monitor unassigned assets against the storage threshold",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "List salvage assets with no assignment and their storage accrual.",
+            "Assign or escalate any asset approaching the accrual threshold.",
+            "Done when no asset sits unassigned past the threshold."
+          ],
+          "verify": [
+            "Check unassigned assets against their storage accrual days.",
+            "Pass when no asset exceeds the storage accrual threshold unassigned."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2flhgz1w3jkfgziqbqu4ir",
+      "verifier": "Salvage Coordinator",
+      "generic": {
+        "Defined scope/population": "Every lienholder recorded on the title or asset record for this salvage asset.",
+        "In-scope period": "From the salvage decision to the lien status being marked clear on the asset record.",
+        "Required fields populated and valid": "Lienholder name, VIN or asset ID on the release, signatory and release or payoff date.",
+        "Control totals or record counts reconcile": "Release documents on file equal the lienholders recorded on the title.",
+        "Evidence retained with timestamp/version": "Written releases indexed to the claim with receipt dates and document versions.",
+        "Exceptions logged with disposition": "Unresponsive lienholders logged with the chase history and the escalation taken.",
+        "Test population": "Salvage assets with recorded lienholders in the review period.",
+        "Pass/fail thresholds": "Fail if any asset is marked lien-clear without a supporting release document.",
+        "Exception handling path": "Missing releases block disposition and route back for payoff or a further request.",
+        "Documented acceptance criteria": "Written release or payoff confirmation on file for every recorded lienholder.",
+        "Evidence location": "Claim file document repository plus the lien status field in the claims platform."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Identify every recorded lienholder on the asset",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Read the title and asset record for recorded lienholders.",
+            "List each lienholder with its contact details.",
+            "Done when every recorded lienholder is listed."
+          ],
+          "verify": [
+            "Compare the list to the lien entries on the title.",
+            "Pass when the list covers every lien recorded on the title."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Obtain a written release or payoff confirmation",
+          "actor": "Claims Processor",
+          "sop": [
+            "Request a written lien release or payoff confirmation from each lienholder.",
+            "Chase any lienholder that has not responded by the due date.",
+            "Done when a document is held for every lienholder."
+          ],
+          "verify": [
+            "Count release documents against the lienholder list.",
+            "Pass when every lienholder has a release or payoff document."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Verify the release names the correct asset and signatory",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Check the VIN or asset ID stated on each release document.",
+            "Confirm the document is signed by an authorised lienholder representative.",
+            "Done when asset and signatory are verified on every release."
+          ],
+          "verify": [
+            "Compare the asset ID and signatory to the claim and lienholder records.",
+            "Pass when every release names the correct asset and an authorised signatory."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm payoff clearance where a payoff applies",
+          "actor": "Claims Processor",
+          "sop": [
+            "Check the payment record where a payoff rather than a release applies.",
+            "Confirm the payment cleared to the lienholder.",
+            "Done when payoff clearance is confirmed for each applicable lien."
+          ],
+          "verify": [
+            "Check the payment ledger for cleared payoff transactions.",
+            "Pass when every payoff shows a cleared payment."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Index the release documents to the claim",
+          "actor": "Claims Processor",
+          "sop": [
+            "Upload the releases and payoff confirmations to the claim file repository.",
+            "Index them against the salvage asset record.",
+            "Done when all documents are indexed to the claim."
+          ],
+          "verify": [
+            "Filter the claim documents on the lien index and check completeness.",
+            "Pass when the index returns a document for every lienholder."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Mark the lien status as clear on the asset record",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Set the lien status to clear on the salvage asset record.",
+            "Record the date and the supporting documents relied on.",
+            "Done when the lien status is marked clear with references."
+          ],
+          "verify": [
+            "Check the lien-clear flag against the filed release documents.",
+            "Pass when no asset is lien-clear without supporting releases."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "bc2d8b5c-4746-4382-95fd-ef31c6f5e80a",
+      "verifier": "Salvage Coordinator",
+      "generic": {
+        "Defined scope/population": "Hazardous components on this salvage asset requiring controlled disposal evidence.",
+        "In-scope period": "From asset intake to the disposal compliance being marked complete on the salvage record.",
+        "Required fields populated and valid": "Hazard type, vendor permit reference, manifest number, asset identifier and disposal date.",
+        "Control totals or record counts reconcile": "Hazard types identified equal the waste streams covered by manifests on file.",
+        "Evidence retained with timestamp/version": "Waste manifest and certificate of destruction retained with issue dates and document versions.",
+        "Exceptions logged with disposition": "Hazards found with no permitted vendor logged with the alternative route taken.",
+        "Test population": "Salvage assets with hazardous components disposed of in the review period.",
+        "Pass/fail thresholds": "Fail if any asset is closed as disposed without hazardous disposal evidence on file.",
+        "Exception handling path": "Missing manifests hold the asset open and route back to the disposal vendor.",
+        "Documented acceptance criteria": "Waste manifest or certificate of destruction retained against the salvage asset.",
+        "Evidence location": "Claim file document repository plus the compliance evidence repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Identify hazardous components on the asset",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Inspect the asset record and intake photos for hazardous components.",
+            "List fuel, oils, refrigerant, airbags, lithium battery and asbestos debris present.",
+            "Done when every hazardous component is listed."
+          ],
+          "verify": [
+            "Compare the list to the asset type and damage description.",
+            "Pass when the hazard list covers every component the asset type implies."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the disposal vendor holds a current permit",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Request the disposal vendor licence or permit for each waste stream.",
+            "Check the permit is current and covers the listed hazards.",
+            "Done when a current permit is held for every waste stream."
+          ],
+          "verify": [
+            "Check each permit expiry date and the waste streams covered.",
+            "Pass when every listed hazard is covered by a current permit."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Obtain the waste manifest or certificate of destruction",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Request the manifest or certificate referencing the asset identifier.",
+            "Check the document names the asset and the waste stream disposed.",
+            "Done when a manifest is held for every waste stream."
+          ],
+          "verify": [
+            "Compare the asset identifier on the manifest to the salvage record.",
+            "Pass when every manifest references the correct asset identifier."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm fluid drainage and battery removal before disposal",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Obtain evidence that fluids were drained and batteries removed.",
+            "Confirm this happened before the asset was crushed or resold.",
+            "Done when pre-disposal treatment evidence is held."
+          ],
+          "verify": [
+            "Check the evidence dates precede the disposal or resale date.",
+            "Pass when treatment evidence predates disposal for every asset."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "File the manifest and certificate against the salvage record",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Upload the manifest and certificate to the compliance evidence repository.",
+            "Link them to the salvage record in the claim file.",
+            "Done when both documents are filed and linked."
+          ],
+          "verify": [
+            "Open the salvage record and confirm both documents are linked.",
+            "Pass when the salvage record links the manifest and certificate."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Mark disposal compliance complete on the salvage record",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Set the disposal compliance flag once all evidence is filed.",
+            "Record the completion date and the documents relied on.",
+            "Done when compliance is marked complete with references."
+          ],
+          "verify": [
+            "Check the compliance flag against the filed evidence.",
+            "Pass when no asset is marked compliant without filed evidence."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "360a36ba-c3c8-47c3-a859-2013cfbb13d6",
+      "verifier": "Salvage Coordinator",
+      "generic": {
+        "Defined scope/population": "Total-loss and severely damaged assets on settled or recently closed claims.",
+        "In-scope period": "The current salvage identification cycle covering settled and recently closed claims.",
+        "Required fields populated and valid": "Claim number, asset ID, ownership status, expected proceeds, handling cost and storage location.",
+        "Control totals or record counts reconcile": "Eligible plus excluded assets equal the queried settled and closed asset population.",
+        "Evidence retained with timestamp/version": "Eligibility list retained with the query date and the criteria applied.",
+        "Exceptions logged with disposition": "Assets held for subrogation evidence logged with the hold owner and release condition.",
+        "Test population": "Settled and recently closed claims queried for salvage-eligible assets in the cycle.",
+        "Pass/fail thresholds": "Fail if any asset held as subrogation evidence appears as salvage-eligible.",
+        "Exception handling path": "Borderline value assets route to the claims analyst for a documented economics check.",
+        "Documented acceptance criteria": "Salvage-eligible asset list produced with claim number, asset ID and storage location.",
+        "Evidence location": "Excel eligibility list plus the asset and claim records in the claims management platform."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Query settled and recently closed claims for damaged assets",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Query the claims platform for settled and recently closed claims.",
+            "Filter for total-loss and severely damaged assets.",
+            "Done when the candidate asset population is extracted."
+          ],
+          "verify": [
+            "Compare the extracted count to the claims platform filter count.",
+            "Pass when extracted and system counts agree."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Exclude assets never taken into custody or owner retained",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Identify assets where the insured retained ownership.",
+            "Identify assets never taken into company custody and exclude both groups.",
+            "Done when both exclusion groups are removed."
+          ],
+          "verify": [
+            "Cross-check the remaining list against retention and custody records.",
+            "Pass when no retained or non-custody asset remains on the list."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Screen out assets below the handling cost threshold",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Estimate expected proceeds for each remaining asset.",
+            "Remove assets whose proceeds fall below tow, storage and handling cost.",
+            "Done when the economics screen is applied to every asset."
+          ],
+          "verify": [
+            "Recompute proceeds against cost for a sample of assets.",
+            "Pass when every retained asset clears the handling cost threshold."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Hold assets that are subrogation evidence",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Cross-check remaining assets against open subrogation matters.",
+            "Hold any asset whose disposal could destroy evidence.",
+            "Done when all evidence-held assets are removed and logged."
+          ],
+          "verify": [
+            "Compare the eligible list to the open subrogation evidence holds.",
+            "Pass when no evidence-held asset appears on the eligible list."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Produce the salvage-eligible asset list",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Compile the eligible list with claim number, asset ID and storage location.",
+            "Save the list with the query date and criteria applied.",
+            "Done when the eligible list is produced and saved."
+          ],
+          "verify": [
+            "Check every row carries claim number, asset ID and location.",
+            "Pass when no eligible row is missing an identifier or location."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Route the eligible list into salvage disposition",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Send the eligible list into the salvage disposition workflow.",
+            "Confirm each eligible asset gains a disposition task.",
+            "Done when every eligible asset is routed."
+          ],
+          "verify": [
+            "Compare open disposition tasks to the eligible asset list.",
+            "Pass when every eligible asset has an open disposition task."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fk6ar193rkfgzpmcxtp8a",
+      "verifier": "Salvage Coordinator",
+      "generic": {
+        "Defined scope/population": "Gross salvage proceeds and deductions for this asset applied against the recoverable balance.",
+        "In-scope period": "From proceeds receipt to the net amount being applied and the remaining balance recorded.",
+        "Required fields populated and valid": "Gross proceeds, commission, tow, storage, title and administration fee lines with amounts.",
+        "Control totals or record counts reconcile": "Gross proceeds less itemised deductions equals the net applied to the recoverable balance.",
+        "Evidence retained with timestamp/version": "Remittance advice and the netting worksheet retained with the calculation date.",
+        "Exceptions logged with disposition": "Duplicate or disputed deductions logged with the challenge raised and the outcome.",
+        "Test population": "Salvage proceeds netted against recoverable balances in the review period.",
+        "Pass/fail thresholds": "Fail if a duplicate tow or storage deduction is applied to the same asset.",
+        "Exception handling path": "Disputed deductions are challenged with the vendor before the net is applied.",
+        "Documented acceptance criteria": "Netting calculation shows gross, itemised deductions and the net applied.",
+        "Evidence location": "Payment and subrogation system recovery record plus the Excel netting worksheet."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Record gross auction or vendor proceeds for the asset",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Read the gross proceeds from the auction or vendor remittance advice.",
+            "Record the gross figure on the netting worksheet.",
+            "Done when the gross proceeds figure is recorded."
+          ],
+          "verify": [
+            "Compare the recorded gross to the remittance advice.",
+            "Pass when the recorded gross equals the remittance figure."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Deduct commission, tow, storage and administration fees",
+          "actor": "Claims Analyst",
+          "sop": [
+            "List vendor commission, tow, storage and title or administration fees.",
+            "Deduct each line separately rather than as a single lump sum.",
+            "Done when every deduction is itemised on the worksheet."
+          ],
+          "verify": [
+            "Check each deduction against the remittance detail.",
+            "Pass when every deduction ties to a line on the remittance advice."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Check for duplicate deductions across parties",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Compare storage and tow charges billed by facility and salvage vendor.",
+            "Challenge any charge appearing twice for the same period.",
+            "Done when duplicate checks are complete across all deductions."
+          ],
+          "verify": [
+            "Match deduction periods and amounts across both billing parties.",
+            "Pass when no deduction is applied twice for the same asset and period."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Calculate net proceeds for the asset",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Subtract the itemised deductions from the gross proceeds.",
+            "Record the net proceeds figure on the worksheet.",
+            "Done when the net proceeds figure is calculated."
+          ],
+          "verify": [
+            "Recompute gross less deductions and compare to the net.",
+            "Pass when the recorded net equals gross less itemised deductions."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Apply the net against the recoverable balance",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Apply the net proceeds against the recoverable balance on the claim.",
+            "Record the application in the payment and subrogation system.",
+            "Done when the net is applied to the recoverable balance."
+          ],
+          "verify": [
+            "Check the recoverable balance movement equals the net applied.",
+            "Pass when the balance reduces by exactly the net proceeds."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the remaining recoverable balance",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Record the balance still outstanding after the netting.",
+            "Keep it tracked so it is pursued or written off deliberately.",
+            "Done when the remaining balance is recorded and tracked."
+          ],
+          "verify": [
+            "Open the recovery record and confirm the remaining balance.",
+            "Pass when the remaining recoverable balance is recorded on the claim."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "29dd8a85-a65f-4a3a-91c9-2905d314f205",
+      "verifier": "Salvage Coordinator",
+      "generic": {
+        "Defined scope/population": "Settled salvage dispositions on this claim being posted to the recovery ledger.",
+        "In-scope period": "From disposition approval to the salvage recovery exposure being closed.",
+        "Required fields populated and valid": "Recovery amount, recovery type, exposure reference and remittance advice attachment.",
+        "Control totals or record counts reconcile": "Posted amount equals the approved net proceeds with claim file and ledger in agreement.",
+        "Evidence retained with timestamp/version": "Auction settlement statement or remittance advice attached to the posting with its date.",
+        "Exceptions logged with disposition": "Posting differences logged with the correcting entry and the reason.",
+        "Test population": "Settled salvage dispositions posted in the review period.",
+        "Pass/fail thresholds": "Fail if the claim file recovery amount differs from the recovery ledger entry.",
+        "Exception handling path": "Mismatched postings are reversed and reposted with a documented correction note.",
+        "Documented acceptance criteria": "Salvage recovery posted with the approved amount and remittance attached.",
+        "Evidence location": "Recovery ledger in the payment system plus the claim financials in the claims platform."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Post the net salvage recovery to the correct exposure",
+          "actor": "Claims Processor",
+          "sop": [
+            "Open the salvage recovery exposure on the claim.",
+            "Post the net recovery against that exposure with the salvage recovery type.",
+            "Done when the recovery is posted to the correct exposure and type."
+          ],
+          "verify": [
+            "Check the posting exposure and recovery type on the transaction.",
+            "Pass when the posting sits on the salvage recovery exposure and type."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the posted amount matches the approved net proceeds",
+          "actor": "Claims Processor",
+          "sop": [
+            "Compare the posted amount to the approved net proceeds figure.",
+            "Correct any difference before completing the posting.",
+            "Done when posted and approved amounts agree exactly."
+          ],
+          "verify": [
+            "Recompute the difference between posted and approved amounts.",
+            "Pass when posted equals approved net proceeds with no difference."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Attach the settlement statement or remittance advice",
+          "actor": "Claims Processor",
+          "sop": [
+            "Attach the auction settlement statement or vendor remittance to the posting.",
+            "Confirm the document references the asset and the amount.",
+            "Done when the remittance evidence is attached to the posting."
+          ],
+          "verify": [
+            "Open the posting and confirm the attached remittance detail.",
+            "Pass when the posting carries the remittance advice for the amount."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Verify the recovery ledger balance updates",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Open the recovery ledger and check the balance after posting.",
+            "Confirm the movement equals the posted recovery.",
+            "Done when the ledger movement is confirmed."
+          ],
+          "verify": [
+            "Compare the ledger movement to the posted recovery amount.",
+            "Pass when the ledger movement equals the posted amount."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm claim incurred reduces accordingly",
+          "actor": "Claims Processor",
+          "sop": [
+            "Open the claim financial summary after the posting.",
+            "Confirm the incurred figure reduces by the recovery amount.",
+            "Done when the incurred reduction is confirmed."
+          ],
+          "verify": [
+            "Compare the incurred movement to the posted recovery.",
+            "Pass when incurred reduces by exactly the posted recovery."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Close the salvage recovery exposure",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Confirm the full approved amount has been posted.",
+            "Close the salvage recovery exposure on the claim.",
+            "Done when the exposure is closed with the full amount posted."
+          ],
+          "verify": [
+            "Open the exposure and check status and posted total.",
+            "Pass when the exposure is closed with the full recovery posted."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjpyw12eikfgz3edcxljw",
+      "verifier": "Salvage Coordinator",
+      "generic": {
+        "Defined scope/population": "Salvage reserve estimates on this claim compared to actual auction or bid proceeds.",
+        "In-scope period": "From proceeds receipt to the salvage reserve being adjusted to actual.",
+        "Required fields populated and valid": "Booked reserve, actual proceeds, variance amount, variance percent and explanation.",
+        "Control totals or record counts reconcile": "Booked reserve plus variance equals the actual proceeds received for the asset.",
+        "Evidence retained with timestamp/version": "Reconciliation worksheet retained with the reserve version and the proceeds date.",
+        "Exceptions logged with disposition": "Material variances logged with the driver identified and the assumption fed back.",
+        "Test population": "Salvage assets with proceeds received in the review period.",
+        "Pass/fail thresholds": "Fail if a stale salvage reserve remains booked after proceeds are received.",
+        "Exception handling path": "Material variances route to the salvage coordinator for an assumption review.",
+        "Documented acceptance criteria": "Salvage reserve reconciled to actual proceeds with a variance explanation recorded.",
+        "Evidence location": "Reserve history in the claims platform plus the Excel reconciliation worksheet."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the booked reserve and actual proceeds",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Read the booked salvage reserve estimate for the asset.",
+            "Read the actual auction or bid proceeds received.",
+            "Done when both figures are recorded on the worksheet."
+          ],
+          "verify": [
+            "Compare both figures to the claims platform and remittance records.",
+            "Pass when both figures tie to their source records."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Calculate the variance in dollars and percent",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Subtract the reserve from the actual proceeds for the dollar variance.",
+            "Express the variance as a percent of the booked reserve.",
+            "Done when both variance measures are calculated."
+          ],
+          "verify": [
+            "Recompute both variance measures from the source figures.",
+            "Pass when recomputed variances match the worksheet figures."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Explain material variances",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Identify the driver such as market movement, condition, bid count or title brand.",
+            "Record the explanation against the variance on the worksheet.",
+            "Done when every material variance carries an explanation."
+          ],
+          "verify": [
+            "Read each explanation and confirm it names a specific driver.",
+            "Pass when no material variance is left unexplained."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Adjust the salvage reserve to actual",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Post the reserve adjustment to bring the reserve to actual proceeds.",
+            "Record the rationale referencing the variance explanation.",
+            "Done when the reserve equals actual proceeds."
+          ],
+          "verify": [
+            "Compare the adjusted reserve to the actual proceeds figure.",
+            "Pass when the adjusted reserve equals the actual proceeds."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm no stale reserve remains booked",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Review the salvage reserve after the adjustment.",
+            "Release any residual reserve no longer supported.",
+            "Done when no unsupported salvage reserve remains."
+          ],
+          "verify": [
+            "Check the reserve balance against received proceeds.",
+            "Pass when no stale salvage reserve is booked after proceeds."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Feed variance patterns back into estimating assumptions",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Collect repeated variance drivers across recent assets.",
+            "Feed the pattern into the salvage estimating assumptions.",
+            "Done when persistent patterns are recorded for assumption review."
+          ],
+          "verify": [
+            "Check the assumption review record for the fed-back drivers.",
+            "Pass when persistent variance drivers appear in the assumption review."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "7661921f-266c-48f1-a429-b1653302601f",
+      "verifier": "Reinsurance Claims / Recoveries Specialist",
+      "generic": {
+        "Defined scope/population": "Salvage and subrogation recoveries on ceded claims falling under a treaty or certificate.",
+        "In-scope period": "From recovery receipt to the reinsurer acknowledgement and ceded receipt being tracked.",
+        "Required fields populated and valid": "Claim reference, treaty or certificate ID, gross recovery, expenses and ceded share amount.",
+        "Control totals or record counts reconcile": "Ceded share equals the gross recovery less expenses multiplied by the contractual share.",
+        "Evidence retained with timestamp/version": "Recovery advice and submission confirmation retained with the submission date.",
+        "Exceptions logged with disposition": "Recoveries with unclear cession logged with the contract query raised and its answer.",
+        "Test population": "Ceded claims with salvage recoveries received in the review period.",
+        "Pass/fail thresholds": "Fail if a ceded salvage recovery is unreported beyond the treaty reporting deadline.",
+        "Exception handling path": "Contract ambiguity refers to the reinsurance specialist before the advice is submitted.",
+        "Documented acceptance criteria": "Recovery advice submitted with the ceded share calculation and the submission date.",
+        "Evidence location": "Reinsurance administration system submission record plus the claim in the claims platform."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the claim is ceded and identify the contract",
+          "actor": "Reinsurance Claims / Recoveries Specialist",
+          "sop": [
+            "Check the claim cession status in the reinsurance administration system.",
+            "Identify the treaty or facultative certificate that applies.",
+            "Done when the cession and applicable contract are identified."
+          ],
+          "verify": [
+            "Compare the identified contract to the claim cession record.",
+            "Pass when the contract identified matches the claim cession."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Determine the ceded share of the recovery",
+          "actor": "Reinsurance Claims / Recoveries Specialist",
+          "sop": [
+            "Read the share and recovery terms in the contract.",
+            "Calculate the ceded share of the salvage recovery.",
+            "Done when the ceded share amount is calculated."
+          ],
+          "verify": [
+            "Recompute the ceded share from the contract terms.",
+            "Pass when the recomputed share matches the calculated amount."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Prepare the recovery advice",
+          "actor": "Reinsurance Claims / Recoveries Specialist",
+          "sop": [
+            "Prepare the advice with claim reference, gross recovery and expenses.",
+            "Include the ceded share and the calculation basis.",
+            "Done when the advice is prepared with all required elements."
+          ],
+          "verify": [
+            "Read the advice and confirm each required element is present.",
+            "Pass when the advice shows reference, gross, expenses and ceded share."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the salvage figures with the salvage coordinator",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Confirm the gross proceeds and expenses used in the advice.",
+            "Correct any figure that differs from the salvage record.",
+            "Done when the advice figures are confirmed against the salvage record."
+          ],
+          "verify": [
+            "Compare advice figures to the salvage netting worksheet.",
+            "Pass when advice figures match the salvage netting worksheet."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Submit the advice within the treaty reporting timeframe",
+          "actor": "Reinsurance Claims / Recoveries Specialist",
+          "sop": [
+            "Read the reporting timeframe stated in the treaty.",
+            "Submit the advice inside that window and record the submission date.",
+            "Done when the advice is submitted and dated."
+          ],
+          "verify": [
+            "Compare the submission date to the treaty reporting deadline.",
+            "Pass when the submission occurred inside the treaty deadline."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Track the acknowledgement and ceded recovery receipt",
+          "actor": "Reinsurance Claims / Recoveries Specialist",
+          "sop": [
+            "Diary the reinsurer acknowledgement and chase if it is late.",
+            "Track the ceded recovery receipt through to settlement.",
+            "Done when acknowledgement and receipt are tracked to closure."
+          ],
+          "verify": [
+            "Open the submission record and check acknowledgement and receipt status.",
+            "Pass when the acknowledgement and ceded receipt are recorded."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2flh7x1vxzkfgzxgoc8h04",
+      "verifier": "Salvage Coordinator",
+      "generic": {
+        "Defined scope/population": "Custody, title and storage arrangements for this salvage asset.",
+        "In-scope period": "From asset receipt at the storage facility to custody being established on the claim.",
+        "Required fields populated and valid": "Facility name, lot reference, receipt date, storage daily rate and title status.",
+        "Control totals or record counts reconcile": "Storage days accrued equal days from the recorded receipt date to the current date.",
+        "Evidence retained with timestamp/version": "Intake photographs retained with capture dates evidencing condition at custody transfer.",
+        "Exceptions logged with disposition": "Assets with unclear title or disputed custody logged with the resolution action.",
+        "Test population": "Salvage assets taken into custody in the review period.",
+        "Pass/fail thresholds": "Fail if an asset accrues storage past the threshold without a documented disposition action.",
+        "Exception handling path": "Assets approaching the storage threshold escalate for immediate disposition.",
+        "Documented acceptance criteria": "Custody record shows facility, receipt date, storage rate and title status.",
+        "Evidence location": "Salvage custody record in the claims platform plus intake photos in the claim file repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm physical possession and facility details",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Confirm the storage facility name, lot or space reference and receipt date.",
+            "Record them on the salvage custody record.",
+            "Done when possession and facility details are recorded."
+          ],
+          "verify": [
+            "Compare the recorded details to the facility intake confirmation.",
+            "Pass when custody details match the facility confirmation."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Record the storage start date and daily rate",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Record the storage start date and the agreed daily storage rate.",
+            "Confirm accrual is visible against the salvage record.",
+            "Done when the storage start date and rate are recorded."
+          ],
+          "verify": [
+            "Recompute accrued storage from the start date and rate.",
+            "Pass when recorded accrual matches the recomputed figure."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm title is in hand or the state process is started",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Check whether the signed title or ownership document is held.",
+            "Start the state title process where the document is not yet held.",
+            "Done when title status is confirmed and recorded."
+          ],
+          "verify": [
+            "Read the title status against the documents on file.",
+            "Pass when the recorded title status matches the documents held."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Photograph the asset on intake",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Photograph the asset at intake covering all sides and the interior.",
+            "Upload the photos to the claim file repository with capture dates.",
+            "Done when intake photos are uploaded and dated."
+          ],
+          "verify": [
+            "Check the photo capture dates against the receipt date.",
+            "Pass when intake photos are dated at or near the receipt date."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the custody entry on the claim",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Save the custody record with facility, dates, rate and title status.",
+            "Link the intake photos to the custody record.",
+            "Done when the custody record is complete and linked."
+          ],
+          "verify": [
+            "Open the custody record and confirm all four elements and photos.",
+            "Pass when the record shows facility, receipt date, rate and title status."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Diary movement before storage exceeds the recovery threshold",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Calculate the date storage cost reaches the recovery threshold.",
+            "Set a diary to move the asset before that date.",
+            "Done when the storage threshold diary exists."
+          ],
+          "verify": [
+            "Check the diary date against the calculated threshold date.",
+            "Pass when a diary exists before storage reaches the threshold."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "3f25a729-cc2c-4701-a321-a43d4e872209",
+      "verifier": "Claims Examiner",
+      "generic": {
+        "Defined scope/population": "Salvage reserve estimates booked on the recovery exposure for this asset.",
+        "In-scope period": "From the salvage decision to the reserve being booked on the recovery exposure.",
+        "Required fields populated and valid": "Comparable sales source, damage grade, title brand, expected deductions and net estimate.",
+        "Control totals or record counts reconcile": "Booked reserve equals expected gross proceeds less expected commission, tow and storage.",
+        "Evidence retained with timestamp/version": "Comparable sales extract and assumption note retained with the extract date.",
+        "Exceptions logged with disposition": "Assets with no comparable sales logged with the alternative basis used.",
+        "Test population": "Salvage reserves booked on recovery exposures in the review period.",
+        "Pass/fail thresholds": "Fail if a salvage reserve is booked gross of expected commission and storage.",
+        "Exception handling path": "Assets with volatile markets refer to the salvage coordinator for a conservative basis.",
+        "Documented acceptance criteria": "Salvage reserve booked with a documented basis and expected deductions.",
+        "Evidence location": "Recovery exposure reserve in the claims platform plus the Excel estimating worksheet."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Estimate expected proceeds from comparable salvage sales",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Pull recent comparable salvage sales for the asset type and damage grade.",
+            "Estimate expected gross proceeds from those comparables.",
+            "Done when the expected gross figure is estimated."
+          ],
+          "verify": [
+            "Check the comparables used are recent and same asset type.",
+            "Pass when the estimate rests on recent comparable sales."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Adjust for title brand, location and market conditions",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Adjust the estimate for title brand, location and theft-recovery status.",
+            "Adjust for the current scrap and parts market.",
+            "Done when all market adjustments are applied."
+          ],
+          "verify": [
+            "Read each adjustment and confirm the basis is stated.",
+            "Pass when every adjustment carries a documented basis."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Deduct expected commission, tow and storage",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Deduct expected vendor commission, tow and storage from the gross estimate.",
+            "Record each expected deduction separately.",
+            "Done when the expected net figure is derived."
+          ],
+          "verify": [
+            "Recompute gross less deductions and compare to the net.",
+            "Pass when the net equals gross less each expected deduction."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Book the salvage reserve on the recovery exposure",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Open the recovery exposure on the claim.",
+            "Book the salvage reserve at the expected net amount.",
+            "Done when the reserve is booked at the net figure."
+          ],
+          "verify": [
+            "Compare the booked reserve to the calculated net figure.",
+            "Pass when the booked reserve equals the expected net amount."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the data source and assumptions",
+          "actor": "Claims Examiner",
+          "sop": [
+            "Record the comparable sales source and the extract date.",
+            "Record the assumptions used for adjustments and deductions.",
+            "Done when source and assumptions are recorded."
+          ],
+          "verify": [
+            "Read the note and confirm the source and assumptions appear.",
+            "Pass when the reserve note documents source and assumptions."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the reserve is net not gross",
+          "actor": "Salvage Coordinator",
+          "sop": [
+            "Check the booked reserve excludes expected commission and storage.",
+            "Correct the reserve where it was booked gross.",
+            "Done when the booked reserve is confirmed net."
+          ],
+          "verify": [
+            "Compare the booked reserve to the gross estimate.",
+            "Pass when no salvage reserve is booked gross of expected deductions."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fk6k2198okfgzpszt362z",
+      "verifier": "Claims Processor",
+      "generic": {
+        "Defined scope/population": "Claim financials on this claim being updated with netted salvage proceeds.",
+        "In-scope period": "From the recovery posting to the claim financial summary reflecting the updated totals.",
+        "Required fields populated and valid": "Recovery amount, recovery type, exposure reference and the recovery ledger reference.",
+        "Control totals or record counts reconcile": "Paid less recovered equals the updated incurred figure on the claim summary.",
+        "Evidence retained with timestamp/version": "Financial update note with the recovery reference retained with the update date.",
+        "Exceptions logged with disposition": "Misposted recoveries logged with the reversal and the corrected posting reference.",
+        "Test population": "Claims updated with netted salvage proceeds in the review period.",
+        "Pass/fail thresholds": "Fail if any salvage recovery is posted under the subrogation recovery type.",
+        "Exception handling path": "Recovery type errors are reversed and reposted under the salvage recovery type.",
+        "Documented acceptance criteria": "Claim financial summary reflects netted salvage proceeds against incurred.",
+        "Evidence location": "Claim financial summary in the claims platform plus the recovery record in the payment system."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Apply the netted salvage proceeds to the correct exposure",
+          "actor": "Claims Processor",
+          "sop": [
+            "Identify the exposure the salvage asset relates to.",
+            "Apply the netted proceeds to reduce incurred on that exposure.",
+            "Done when the proceeds are applied to the correct exposure."
+          ],
+          "verify": [
+            "Check the exposure reference on the recovery transaction.",
+            "Pass when the recovery sits on the exposure the asset relates to."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the recovery type is salvage",
+          "actor": "Claims Processor",
+          "sop": [
+            "Check the recovery type recorded on the transaction.",
+            "Correct any entry posted as subrogation or a payment reversal.",
+            "Done when the recovery type reads salvage."
+          ],
+          "verify": [
+            "Read the recovery type on the posted transaction.",
+            "Pass when no salvage recovery is posted under the subrogation type."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Verify the reserve releases to match the reduced incurred",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Check the reserve position after the recovery is applied.",
+            "Release any reserve no longer needed for the recovered amount.",
+            "Done when the reserve matches the reduced incurred position."
+          ],
+          "verify": [
+            "Compare the reserve movement to the recovery applied.",
+            "Pass when the reserve position is consistent with the reduced incurred."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Check the claim financial summary totals",
+          "actor": "Claims Processor",
+          "sop": [
+            "Open the claim financial summary after the update.",
+            "Check paid, recovered and incurred totals are consistent.",
+            "Done when the summary totals are checked."
+          ],
+          "verify": [
+            "Recompute incurred as paid less recovered on the exposure.",
+            "Pass when the summary incurred equals paid less recovered."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the update with the recovery reference",
+          "actor": "Claims Processor",
+          "sop": [
+            "Write the update note citing the recovery ledger reference.",
+            "Save the note against the claim financials.",
+            "Done when the update note with reference is saved."
+          ],
+          "verify": [
+            "Read the note and confirm the ledger reference appears.",
+            "Pass when the note ties the update to the ledger posting."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Reconcile the claim figure to the recovery ledger entry",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Compare the claim recovery figure to the recovery ledger entry.",
+            "Raise a correction where the two differ.",
+            "Done when claim and ledger figures agree."
+          ],
+          "verify": [
+            "Compute the difference between claim and ledger recovery figures.",
+            "Pass when there is no difference between the claim and the ledger."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "830c9071-0c1f-4dea-a70c-7115d8736360",
+      "verifier": "Procurement Manager",
+      "generic": {
+        "Defined scope/population": "Vendor invoices paid in the audit period joined to their contracted fee schedules.",
+        "In-scope period": "The audit period from the first to the last paid invoice date included in the extract.",
+        "Required fields populated and valid": "Invoice number, assignment ID, service date, billed rate, line items and paid amount.",
+        "Control totals or record counts reconcile": "Extracted invoice count and paid value reconcile to the claims platform payment ledger.",
+        "Evidence retained with timestamp/version": "Audit worksheet retained with the extract date and the fee schedule version tested against.",
+        "Exceptions logged with disposition": "Each rate variance, duplicate and unauthorized line logged with the recovery action.",
+        "Test population": "Vendor invoices paid in the audit period across the network.",
+        "Pass/fail thresholds": "Fail if a duplicate invoice number is paid twice against the same assignment.",
+        "Exception handling path": "Overbilling raises a recovery or credit request to the vendor with the audit evidence.",
+        "Documented acceptance criteria": "Audit results recorded with the variance count and total exception value.",
+        "Evidence location": "Excel audit worksheet plus the vendor file and payment ledger in the claims platform."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract paid vendor invoices for the audit period",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Extract paid vendor invoices for the period from the claims platform.",
+            "Join them to the contracted fee schedule for each vendor.",
+            "Done when the joined data set is built for the period."
+          ],
+          "verify": [
+            "Compare extracted invoice count and value to the payment ledger.",
+            "Pass when extract and ledger totals agree for the period."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Test billed rates against contracted rates",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Compare every billed rate to the contracted rate for the service date.",
+            "Flag each variance with its dollar impact.",
+            "Done when all rate lines are tested and variances flagged."
+          ],
+          "verify": [
+            "Recompute a sample of rate variances from the contract rates.",
+            "Pass when sampled variances match the flagged values."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Test for duplicate invoices and duplicate line items",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Test for repeated invoice numbers across the period.",
+            "Test for identical line items billed across assignments.",
+            "Done when all duplicate tests are complete."
+          ],
+          "verify": [
+            "Review flagged duplicates against the original invoices.",
+            "Pass when no duplicate invoice number was paid twice."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Test for unauthorized lines and out-of-range charges",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Compare invoice lines to the authorized scope on each assignment.",
+            "Flag charges dated outside the assignment date range.",
+            "Done when unauthorized and out-of-range lines are flagged."
+          ],
+          "verify": [
+            "Check each flag against the assignment scope and dates.",
+            "Pass when every flagged line is outside scope or date range."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Quantify total overbilling and raise recovery requests",
+          "actor": "Procurement Manager",
+          "sop": [
+            "Total the exception value across rate, duplicate and unauthorized lines.",
+            "Raise recovery or credit requests with each affected vendor.",
+            "Done when every exception is quantified and a request raised."
+          ],
+          "verify": [
+            "Compare recovery requests to the exception value by vendor.",
+            "Pass when every exception has a recovery or credit request."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the audit result on the vendor file",
+          "actor": "Procurement Manager",
+          "sop": [
+            "Record the variance count and total exception value on the vendor file.",
+            "Feed the invoice accuracy metric into the vendor scorecard.",
+            "Done when the audit result is recorded per vendor."
+          ],
+          "verify": [
+            "Open the vendor file and confirm the result and metric.",
+            "Pass when the vendor file records the variance count and exception value."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "70037dd0-a780-4131-9492-e3e9d85ef2e4",
+      "verifier": "Vendor Coordinator",
+      "generic": {
+        "Defined scope/population": "Network vendors with assignments in the scorecard reporting period.",
+        "In-scope period": "The scorecard reporting period from the opening to the closing assignment date.",
+        "Required fields populated and valid": "Assignment volume, SLA attainment, cycle time, rework rate, CSAT and invoice accuracy.",
+        "Control totals or record counts reconcile": "Assignment volume in the scorecard reconciles to the claims platform assignment count.",
+        "Evidence retained with timestamp/version": "Scorecard pack retained with the data extract date and the period covered.",
+        "Exceptions logged with disposition": "Vendors below the minimum volume flagged and excluded from ranking with a note.",
+        "Test population": "Network vendors holding assignments in the reporting period.",
+        "Pass/fail thresholds": "Fail if any vendor score is built from vendor-supplied rather than system data.",
+        "Exception handling path": "Metrics with data quality gaps are marked unrated rather than estimated.",
+        "Documented acceptance criteria": "Scorecard published per vendor with SLA, cycle time, rework, CSAT and invoice accuracy.",
+        "Evidence location": "BI reporting platform scorecard plus the Excel scorecard pack for the review meeting."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull core performance metrics per vendor",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Pull assignment volume, SLA attainment and average cycle time per vendor.",
+            "Pull rework or reinspection rate and CSAT for the period.",
+            "Done when all core metrics are extracted per vendor."
+          ],
+          "verify": [
+            "Compare extracted assignment volume to the claims platform count.",
+            "Pass when extracted volume matches the system assignment count."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Add invoice accuracy and average severity",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Add the invoice accuracy result from the audit to each vendor row.",
+            "Add average claim severity so cost and quality sit together.",
+            "Done when both metrics are added per vendor."
+          ],
+          "verify": [
+            "Check the invoice accuracy figure against the audit result.",
+            "Pass when the scorecard accuracy matches the audit result."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Normalise metrics by assignment volume",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Normalise rate-based metrics by assignment volume.",
+            "Mark vendors below the minimum volume as unranked.",
+            "Done when normalisation and volume marking are applied."
+          ],
+          "verify": [
+            "Check low-volume vendors are marked unranked.",
+            "Pass when no low-volume vendor is ranked against high-volume peers."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Apply the agreed weightings to produce the score",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Apply the agreed metric weightings to each vendor row.",
+            "Calculate the overall score and assign the tier.",
+            "Done when every vendor has a score and tier."
+          ],
+          "verify": [
+            "Recompute a sample of scores from the weightings.",
+            "Pass when sampled scores match the published figures."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm all metrics come from system data",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Trace each metric to its system source rather than vendor reporting.",
+            "Mark any metric without a system source as unrated.",
+            "Done when every metric is traced to a system source."
+          ],
+          "verify": [
+            "Check the source reference recorded for each metric.",
+            "Pass when no scored metric relies on vendor-supplied figures."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Publish the scorecard pack to claims and procurement",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Assemble the scorecard pack for the review meeting.",
+            "Publish it to claims management and procurement ahead of the meeting.",
+            "Done when the pack is published before the review."
+          ],
+          "verify": [
+            "Check the publication date against the review meeting date.",
+            "Pass when the pack was published ahead of the review meeting."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2flfbj1v15kfgzvnw3txor",
+      "verifier": "Vendor Coordinator",
+      "generic": {
+        "Defined scope/population": "Scorecard vendors tested against the agreed performance thresholds for the period.",
+        "In-scope period": "The scorecard period used to apply the thresholds and produce the underperformer list.",
+        "Required fields populated and valid": "SLA attainment, rework rate, CSAT, cycle time, assignment volume and remediation status.",
+        "Control totals or record counts reconcile": "Flagged plus unflagged vendors equal the ranked vendor population for the period.",
+        "Evidence retained with timestamp/version": "Underperformer list retained with the scorecard version and the thresholds applied.",
+        "Exceptions logged with disposition": "Vendors excluded for low volume logged with the volume figure and the exclusion note.",
+        "Test population": "Ranked network vendors in the scorecard period.",
+        "Pass/fail thresholds": "Fail if a vendor is flagged underperforming on volume below the minimum sample threshold.",
+        "Exception handling path": "Vendors already under remediation are annotated rather than re-flagged as new.",
+        "Documented acceptance criteria": "Underperformer list produced with the specific failing metrics per vendor.",
+        "Evidence location": "BI reporting platform threshold view plus the Excel underperformer list."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Apply the performance thresholds to the scorecard",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Apply the SLA attainment, rework, CSAT and cycle time thresholds.",
+            "Mark every vendor breaching a threshold.",
+            "Done when all thresholds are applied to the scorecard."
+          ],
+          "verify": [
+            "Recompute a sample of threshold tests from the metric values.",
+            "Pass when sampled threshold results match the markings."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Exclude vendors below the minimum assignment volume",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Apply the minimum assignment volume for statistical relevance.",
+            "Exclude vendors below it and record the volume figure.",
+            "Done when low-volume vendors are excluded and noted."
+          ],
+          "verify": [
+            "Check each flagged vendor volume against the minimum.",
+            "Pass when no flagged vendor sits below the minimum volume."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Check whether underperformance is concentrated",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Split failing metrics by region, loss type and period.",
+            "Note where the failure is concentrated rather than systemic.",
+            "Done when concentration analysis is complete per flagged vendor."
+          ],
+          "verify": [
+            "Read the concentration note for each flagged vendor.",
+            "Pass when every flagged vendor has a concentration observation."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm existing remediation status before re-flagging",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Check whether the vendor already sits under an open remediation plan.",
+            "Annotate rather than raise a new flag where remediation is open.",
+            "Done when remediation status is confirmed for every flagged vendor."
+          ],
+          "verify": [
+            "Compare flags to the open remediation plan register.",
+            "Pass when no vendor under open remediation is flagged as new."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Assemble the evidence per failing metric",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Attach the metric values and periods evidencing each failure.",
+            "Reference the scorecard version used.",
+            "Done when every failing metric carries its evidence."
+          ],
+          "verify": [
+            "Check each failing metric has a value and period recorded.",
+            "Pass when no failing metric is listed without evidence."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Produce the underperformer list",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Compile the list with vendor, failing metrics and evidence.",
+            "Route it into the remediation recommendation step.",
+            "Done when the underperformer list is produced and routed."
+          ],
+          "verify": [
+            "Read the list and confirm each vendor names its failing metrics.",
+            "Pass when every listed vendor shows its specific failing metrics."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "5ecb33ed-98fa-447d-a4ed-3778574f82b5",
+      "verifier": "Procurement Manager",
+      "generic": {
+        "Defined scope/population": "Preferred vendor fee schedules reaching renewal in the negotiation cycle.",
+        "In-scope period": "From the renewal window opening to the executed renewal being loaded with an effective date.",
+        "Required fields populated and valid": "Volume, spend, performance data, proposed rates, SLA terms and renewal effective date.",
+        "Control totals or record counts reconcile": "Volume and spend used in negotiation reconcile to the claims platform payment data.",
+        "Evidence retained with timestamp/version": "Executed renewal and superseded schedule retained with version and effective dates.",
+        "Exceptions logged with disposition": "Rates agreed above benchmark logged with the justification and the approver.",
+        "Test population": "Vendor fee schedules renewed in the negotiation cycle.",
+        "Pass/fail thresholds": "Fail if an expired fee schedule remains active for a vendor still receiving assignments.",
+        "Exception handling path": "Renewals not agreed before expiry trigger an assignment hold on the vendor.",
+        "Documented acceptance criteria": "Executed renewal recorded with the rate schedule, SLA terms and effective date.",
+        "Evidence location": "Contract lifecycle management repository plus the Excel negotiation analysis pack."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Assemble volume, spend and performance data",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Extract vendor assignment volume, spend and performance for the term.",
+            "Build the negotiation pack from that data.",
+            "Done when the negotiation pack is assembled."
+          ],
+          "verify": [
+            "Compare pack volume and spend to the claims platform figures.",
+            "Pass when the pack figures reconcile to system data."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Benchmark proposed rates against market and peers",
+          "actor": "Procurement Manager",
+          "sop": [
+            "Benchmark the proposed rates against market rates for the service.",
+            "Compare against peer vendors inside the network.",
+            "Done when benchmarking is complete for every rate line."
+          ],
+          "verify": [
+            "Check each rate line carries a benchmark comparison.",
+            "Pass when every proposed rate has a benchmark reference."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Agree the rate schedule, SLA and volume mechanism",
+          "actor": "Procurement Manager",
+          "sop": [
+            "Agree the rate schedule and the SLA commitments per stage.",
+            "Agree any volume tier or rebate mechanism.",
+            "Done when rates, SLA and volume terms are agreed."
+          ],
+          "verify": [
+            "Read the agreed terms and confirm all three areas are covered.",
+            "Pass when the agreement covers rates, SLA and volume terms."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm audit, insurance and termination provisions carry over",
+          "actor": "Procurement Manager",
+          "sop": [
+            "Check audit rights, insurance requirements and termination provisions.",
+            "Confirm they carry into the renewal unchanged or improved.",
+            "Done when all three provisions are confirmed in the renewal."
+          ],
+          "verify": [
+            "Compare the renewal provisions to the expiring contract.",
+            "Pass when audit, insurance and termination provisions are retained."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Execute the renewal and load the new rate file",
+          "actor": "Procurement Manager",
+          "sop": [
+            "Execute the renewal in the contract lifecycle management repository.",
+            "Load the new rate file with its effective date.",
+            "Done when the renewal is executed and the rate file loaded."
+          ],
+          "verify": [
+            "Check the loaded rate file effective date against the renewal.",
+            "Pass when the loaded rate file matches the executed renewal."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Archive the superseded schedule and check for expiries",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Archive the superseded rate file with its end date.",
+            "Check no vendor receiving assignments holds an expired schedule.",
+            "Done when the old file is archived and expiries are checked."
+          ],
+          "verify": [
+            "List active vendors and check their schedule expiry dates.",
+            "Pass when no active vendor holds an expired fee schedule."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2flflv1v6akfgzlfi6c47y",
+      "verifier": "Procurement Manager",
+      "generic": {
+        "Defined scope/population": "Vendors on the underperformer list being recommended for remediation, tier change or removal.",
+        "In-scope period": "From the underperformer list to the governance decision being recorded on the vendor record.",
+        "Required fields populated and valid": "Failing metrics, period covered, recommended action, target metrics and review date.",
+        "Control totals or record counts reconcile": "Recommendations raised equal the vendors on the underperformer list for the period.",
+        "Evidence retained with timestamp/version": "Recommendation and governance decision retained on the vendor record with dates.",
+        "Exceptions logged with disposition": "Vendors recommended for removal with open assignments logged with the reassignment plan.",
+        "Test population": "Underperforming vendors reviewed for remediation or removal in the period.",
+        "Pass/fail thresholds": "Fail if any open assignment remains with a vendor removed from the network.",
+        "Exception handling path": "Removals with open assignments hold until reassignment of every open claim is complete.",
+        "Documented acceptance criteria": "Remediation or removal recommendation documented with failing metrics and the decision.",
+        "Evidence location": "Vendor record in the claims platform plus the contract lifecycle management repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "State the failing metrics and the period covered",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "List each failing metric and the period it covers for the vendor.",
+            "Attach the scorecard evidence to the recommendation.",
+            "Done when metrics and period are stated for every vendor."
+          ],
+          "verify": [
+            "Check each recommendation names metrics and a period.",
+            "Pass when every recommendation states the failing metrics and period."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Recommend the action for each vendor",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Recommend remediation, volume throttle, tier downgrade or removal.",
+            "Record the reasoning behind the chosen action.",
+            "Done when every vendor has a recommended action with reasoning."
+          ],
+          "verify": [
+            "Read each action and confirm the reasoning is recorded.",
+            "Pass when every recommended action carries reasoning."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Define target metrics and the improvement window for remediation",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Define the target metric values the vendor must reach.",
+            "Set the improvement window and the review date.",
+            "Done when targets, window and review date are defined."
+          ],
+          "verify": [
+            "Check the remediation plan has targets and a review date.",
+            "Pass when every remediation plan states targets and a review date."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Plan reassignment of open assignments for removals",
+          "actor": "Procurement Manager",
+          "sop": [
+            "List open assignments held by any vendor recommended for removal.",
+            "Plan reassignment so no claim is stranded.",
+            "Done when every open assignment has a reassignment plan."
+          ],
+          "verify": [
+            "Compare open assignments to the reassignment plan entries.",
+            "Pass when no open assignment lacks a reassignment plan."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Take the recommendation to governance",
+          "actor": "Procurement Manager",
+          "sop": [
+            "Present the recommendations to the vendor governance forum.",
+            "Capture the decision made for each vendor.",
+            "Done when a decision is recorded for every recommendation."
+          ],
+          "verify": [
+            "Check each recommendation carries a governance decision.",
+            "Pass when every recommendation has a recorded decision."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the recommendation and decision on the vendor record",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Record the recommendation and the governance decision on the vendor record.",
+            "Update the vendor status where the decision changes it.",
+            "Done when the record reflects the recommendation and decision."
+          ],
+          "verify": [
+            "Open the vendor record and confirm recommendation, decision and status.",
+            "Pass when the vendor record shows the recommendation and decision."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "253a80d5-78dd-4cab-aa50-0c2dee297f56",
+      "verifier": "Claims Analyst",
+      "generic": {
+        "Defined scope/population": "Customer satisfaction responses on claims where a repair or mitigation vendor attended.",
+        "In-scope period": "The survey reporting period covered by the CSAT and net promoter extract.",
+        "Required fields populated and valid": "Vendor, service type, score, response date, response count and detractor verbatim text.",
+        "Control totals or record counts reconcile": "Responses attributed to vendors equal the survey responses on vendor-attended claims.",
+        "Evidence retained with timestamp/version": "Survey extract retained with the extract date and the reporting period covered.",
+        "Exceptions logged with disposition": "Vendors below the reporting minimum flagged and excluded from conclusions.",
+        "Test population": "Survey responses on claims with a repair or mitigation vendor in the period.",
+        "Pass/fail thresholds": "Fail if a vendor conclusion is drawn from a response count below the reporting minimum.",
+        "Exception handling path": "Low response counts are reported as indicative only and carried to the next period.",
+        "Documented acceptance criteria": "Vendor-level results recorded with response counts and detractor drivers.",
+        "Evidence location": "BI reporting platform survey dashboard plus the claim records in the claims platform."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull survey results for vendor-attended claims",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Extract CSAT and net promoter results for the reporting period.",
+            "Filter to claims where a repair or mitigation vendor attended.",
+            "Done when the filtered survey set is extracted."
+          ],
+          "verify": [
+            "Compare the response count to vendor-attended claims in the period.",
+            "Pass when responses tie to vendor-attended claims."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Split scores by vendor and service type",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Split the results by vendor and by service type.",
+            "Keep repair and mitigation results separate rather than blended.",
+            "Done when results are split by vendor and service type."
+          ],
+          "verify": [
+            "Check no vendor row blends repair and mitigation service types.",
+            "Pass when repair and mitigation results are reported separately."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Read detractor verbatims and tag the driver",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Read the detractor verbatim comments for each vendor.",
+            "Tag the driver as delay, communication, workmanship, cleanliness or rework.",
+            "Done when every detractor verbatim carries a driver tag."
+          ],
+          "verify": [
+            "Count tagged verbatims against the detractor response count.",
+            "Pass when every detractor response carries a driver tag."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Compare each vendor to the network average and CSAT floor",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Calculate the network average score for the period.",
+            "Compare each vendor to the average and the contract CSAT floor.",
+            "Done when every vendor is compared to both benchmarks."
+          ],
+          "verify": [
+            "Check each vendor row shows both comparisons.",
+            "Pass when every vendor is compared to the average and the floor."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Flag vendors below the reporting minimum response count",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Apply the minimum response count for reportable conclusions.",
+            "Flag vendors below it as indicative only.",
+            "Done when low-response vendors are flagged."
+          ],
+          "verify": [
+            "Check flagged vendors against their response counts.",
+            "Pass when no conclusion is drawn below the reporting minimum."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Feed vendor drivers into the scorecard and review pack",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Record the findings and vendor-specific drivers.",
+            "Feed them into the scorecard and the vendor review pack.",
+            "Done when findings and drivers are recorded and fed forward."
+          ],
+          "verify": [
+            "Check the scorecard reflects the recorded CSAT drivers.",
+            "Pass when the scorecard carries the vendor-level CSAT drivers."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "c53329ec-10ff-4838-9926-58c20f3fdd89",
+      "verifier": "Vendor Coordinator",
+      "generic": {
+        "Defined scope/population": "Network vendors holding assignments in the closed quarter being scored.",
+        "In-scope period": "The closed quarter with late assignments allocated to their correct period.",
+        "Required fields populated and valid": "Acknowledgement, first-contact and completion timestamps, rework flag and supplement count.",
+        "Control totals or record counts reconcile": "Quarter assignment counts per vendor reconcile to the claims platform for the same period.",
+        "Evidence retained with timestamp/version": "Frozen quarter data set retained with the freeze date and the scoring version.",
+        "Exceptions logged with disposition": "Assignments with missing timestamps logged and excluded from cycle time with a note.",
+        "Test population": "Vendor assignments completed or open in the closed quarter.",
+        "Pass/fail thresholds": "Fail if any vendor holding active assignments is left unscored for the closed quarter.",
+        "Exception handling path": "Data gaps are reported as unrated metrics rather than estimated figures.",
+        "Documented acceptance criteria": "Quarterly SLA, cycle time and rework scores recorded with prior-quarter comparison.",
+        "Evidence location": "BI reporting platform quarterly view plus the Excel quarterly scoring workbook."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Freeze the quarter data set",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Extract the quarter assignment data and freeze the data set.",
+            "Confirm late assignments are allocated to the correct period.",
+            "Done when the quarter data set is frozen."
+          ],
+          "verify": [
+            "Compare frozen counts to the claims platform for the quarter.",
+            "Pass when frozen counts reconcile to system counts."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Calculate cycle times per vendor for the quarter",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Calculate acknowledgement, first-contact and completion cycle times.",
+            "Average them per vendor for the quarter.",
+            "Done when cycle times are calculated per vendor."
+          ],
+          "verify": [
+            "Recompute a sample of cycle times from the raw timestamps.",
+            "Pass when sampled cycle times match the reported figures."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Calculate rework rate and supplement frequency",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Calculate the rework or reinspection rate per vendor.",
+            "Calculate supplement frequency as a quality indicator.",
+            "Done when both quality indicators are calculated."
+          ],
+          "verify": [
+            "Recompute a sample of rework rates from the underlying data.",
+            "Pass when sampled rework rates match the reported figures."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Compute SLA attainment per stage",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Compute SLA attainment percent per stage for each vendor.",
+            "Compare each to the contracted commitment.",
+            "Done when attainment is computed and compared per stage."
+          ],
+          "verify": [
+            "Check each attainment figure against the contracted commitment.",
+            "Pass when every stage attainment is compared to its commitment."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the quarterly scores on the vendor record",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Record the quarterly SLA, cycle time and rework scores per vendor.",
+            "Note quarter-on-quarter movement for each metric.",
+            "Done when scores and movement are recorded."
+          ],
+          "verify": [
+            "Open the vendor record and confirm scores and prior-quarter comparison.",
+            "Pass when the record shows the scores with prior-quarter movement."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm every active vendor is scored",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "List vendors holding active assignments in the quarter.",
+            "Score any vendor left unscored before closing the cycle.",
+            "Done when every active vendor has a quarterly score."
+          ],
+          "verify": [
+            "Compare scored vendors to vendors with active assignments.",
+            "Pass when no active vendor is left unscored for the quarter."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "0048a4d0-7f41-414d-88d2-e2c7cd9b023e",
+      "verifier": "Vendor Coordinator",
+      "generic": {
+        "Defined scope/population": "Vendor directory entries and routing rules in the claims system being updated this cycle.",
+        "In-scope period": "From the governance decision to the directory version being saved with an effective date.",
+        "Required fields populated and valid": "Vendor status, tier, service ZIP or state list, service types, change reason and approver.",
+        "Control totals or record counts reconcile": "Directory entries changed equal the governance decisions raised for the cycle.",
+        "Evidence retained with timestamp/version": "Directory version retained with the change reason, approver and effective date.",
+        "Exceptions logged with disposition": "Routing rules left unchanged despite a decision logged with the reason.",
+        "Test population": "Vendor directory and routing rule changes made in the cycle.",
+        "Pass/fail thresholds": "Fail if a removed or on-hold vendor is still reachable through an active routing rule.",
+        "Exception handling path": "Failed routing tests roll the change back until the rule is corrected.",
+        "Documented acceptance criteria": "Directory and routing rules saved with change reason, approver and effective date.",
+        "Evidence location": "Vendor directory and routing configuration in the claims platform plus the contract repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Update vendor status and tier in the directory",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Open the vendor directory in the claims management platform.",
+            "Set each vendor status to Active, Hold or Removed and update the tier.",
+            "Done when status and tier reflect the governance decisions."
+          ],
+          "verify": [
+            "Compare directory statuses to the governance decision list.",
+            "Pass when every decision is reflected in the directory status."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Update service areas and approved service types",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Update the ZIP and state service areas for each vendor.",
+            "Update the service types each vendor is approved for.",
+            "Done when service areas and types are current."
+          ],
+          "verify": [
+            "Compare service areas to the contract coverage in the repository.",
+            "Pass when directory service areas match the contracted coverage."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Update the routing rules to the revised order",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Update the routing rules so assignments follow the revised tier order.",
+            "Update geography order where service areas changed.",
+            "Done when routing rules reflect the revised tier and geography."
+          ],
+          "verify": [
+            "Read the routing configuration against the revised tiers.",
+            "Pass when routing order matches the revised tier and geography."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record the change reason, approver and effective date",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Record the change reason and the approver on the directory version.",
+            "Set the effective date for the change.",
+            "Done when reason, approver and effective date are recorded."
+          ],
+          "verify": [
+            "Open the directory version and confirm all three fields.",
+            "Pass when the version records reason, approver and effective date."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Run a test assignment routing for an affected geography",
+          "actor": "Claims Coordinator",
+          "sop": [
+            "Run a test routing for an affected ZIP or state.",
+            "Confirm the correct vendor is returned in the expected order.",
+            "Done when the test routing returns the expected vendor."
+          ],
+          "verify": [
+            "Compare the returned vendor to the intended routing order.",
+            "Pass when the test returns the vendor the rules intend."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm removed and on-hold vendors are unreachable",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Test routing for geographies served by removed or on-hold vendors.",
+            "Confirm none of them is returned by an active rule.",
+            "Done when removed and on-hold vendors are unreachable."
+          ],
+          "verify": [
+            "Check test results for any removed or on-hold vendor.",
+            "Pass when no removed or on-hold vendor is returned by a routing rule."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "75245293-0106-4d92-8fd9-42aca9cec33c",
+      "verifier": "Procurement Manager",
+      "generic": {
+        "Defined scope/population": "Credentials, licences, insurance and trade certifications for network member vendors.",
+        "In-scope period": "The verification cycle from the credential review start to reminders being set.",
+        "Required fields populated and valid": "Licence number, issuing authority, insurance limits, certificate holder and expiry dates.",
+        "Control totals or record counts reconcile": "Credential records on file equal the credentials required for each vendor service type.",
+        "Evidence retained with timestamp/version": "Licence verification, certificate of insurance and certifications retained with expiry dates.",
+        "Exceptions logged with disposition": "Lapsed or missing credentials logged with the vendor set to Hold until resolved.",
+        "Test population": "Network member vendors due credential verification in the cycle.",
+        "Pass/fail thresholds": "Fail if a vendor is left Active with an expired licence or insurance certificate.",
+        "Exception handling path": "Any lapsed credential sets the vendor to Hold and pauses new assignments.",
+        "Documented acceptance criteria": "Current licence, insurance certificate and trade certifications on file with expiry dates.",
+        "Evidence location": "Contract lifecycle management repository plus the claim file document repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Verify the licence number with the issuing authority",
+          "actor": "Procurement Manager",
+          "sop": [
+            "Check the contractor or shop licence number with the issuing state authority.",
+            "Record the verification date and the result.",
+            "Done when the licence is verified and the date recorded."
+          ],
+          "verify": [
+            "Compare the verified licence status to the vendor record.",
+            "Pass when the licence is confirmed current with the authority."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Obtain the certificate of insurance and check limits",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Obtain the current certificate of insurance from the vendor.",
+            "Check general liability, auto and workers compensation limits meet the contract minimums.",
+            "Done when all three limits are checked against the contract."
+          ],
+          "verify": [
+            "Compare each limit to the contract minimum requirement.",
+            "Pass when every insurance limit meets the contract minimum."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm the certificate holder and policy currency",
+          "actor": "Procurement Manager",
+          "sop": [
+            "Check the company is named correctly as certificate holder.",
+            "Confirm the policy is in force at the verification date.",
+            "Done when holder and policy currency are confirmed."
+          ],
+          "verify": [
+            "Read the certificate holder name and policy dates.",
+            "Pass when the holder is correct and the policy is in force."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Check trade certifications for the service type",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Identify the certifications required for the vendor service types.",
+            "Confirm each required certification is current.",
+            "Done when every required certification is checked."
+          ],
+          "verify": [
+            "Compare held certifications to those required for the service type.",
+            "Pass when every required certification is current."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record expiry dates and set renewal reminders",
+          "actor": "Vendor Coordinator",
+          "sop": [
+            "Record every credential expiry date on the vendor record.",
+            "Set advance renewal reminders before each expiry.",
+            "Done when expiry dates and reminders are set."
+          ],
+          "verify": [
+            "Check each credential has an expiry date and a reminder.",
+            "Pass when no credential lacks an expiry date and reminder."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Set the vendor to Hold where a credential has lapsed",
+          "actor": "Procurement Manager",
+          "sop": [
+            "Identify vendors with any lapsed credential.",
+            "Set them to Hold so no new assignments route to them.",
+            "Done when every vendor with a lapse is set to Hold."
+          ],
+          "verify": [
+            "Cross-check Active vendors against credential expiry dates.",
+            "Pass when no Active vendor holds an expired licence or insurance certificate."
+          ]
+        }
+      ]
     }
   ]
 }
