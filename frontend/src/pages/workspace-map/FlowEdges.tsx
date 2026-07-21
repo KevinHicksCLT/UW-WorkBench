@@ -48,6 +48,11 @@ export function anchorY(r: DOMRect): number {
   return r.top + Math.min(r.height / 2, HEADER_ANCHOR_Y);
 }
 
+/** Gap (unscaled canvas px) left between an arrowhead and the target anchor, so
+ *  the head lands just outside the card in the gutter instead of overrunning
+ *  its border or text. */
+const TARGET_STANDOFF = 6;
+
 function anchorPoint(
   el: Element,
   side: Side,
@@ -94,9 +99,13 @@ export function useEdges(
         const b = find(s.to);
         if (!a || !b) continue;
         const p0 = anchorPoint(a, s.fromSide ?? 'right', origin, scale);
-        const p1 = anchorPoint(b, s.toSide ?? 'left', origin, scale);
+        const toSide = s.toSide ?? 'left';
+        const p1 = anchorPoint(b, toSide, origin, scale);
         p0.y += s.y0Offset ?? 0;
         p1.y += s.y1Offset ?? 0;
+        // Stop the arrowhead a few px shy of the target so it lands in the
+        // gutter, never on the card border or the element text behind it.
+        p1.x += toSide === 'left' ? -TARGET_STANDOFF : TARGET_STANDOFF;
         next.push({
           id: s.id,
           x0: p0.x,

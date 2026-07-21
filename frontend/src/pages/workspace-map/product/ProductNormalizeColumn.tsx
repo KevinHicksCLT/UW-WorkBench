@@ -3,7 +3,7 @@ import { api } from '../../../lib/api';
 import { GREEN, AMBER, INDIGO } from '../types';
 import ReviewModal, { REVIEW_STATUS, type ReviewStatusChip } from '../ReviewModal';
 import OverviewCard, { OVERVIEW_TONES } from './OverviewCard';
-import { MATCH_META } from './spine';
+import { MATCH_META, groupCitations } from './spine';
 import type {
   Comparison,
   ComponentRow,
@@ -104,11 +104,14 @@ function NormalizedCell({
   detail,
   badge,
   tone,
+  citations,
 }: {
   name: string;
   detail: string;
   badge: string;
   tone: 'same' | 'review';
+  /** Distinct citations across every jurisdiction that carries the concept. */
+  citations: string[];
 }) {
   const review = tone === 'review';
   return (
@@ -128,6 +131,24 @@ function NormalizedCell({
         {name}
       </span>
       <span style={{ fontSize: 10, color: '#525252' }}>{detail}</span>
+      {citations.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 1, marginTop: 1 }}>
+          {citations.map((c) => (
+            <span
+              key={c}
+              style={{
+                fontSize: 9.5,
+                color: '#6366f1',
+                fontFamily: 'ui-monospace, monospace',
+                lineHeight: 1.3,
+                wordBreak: 'break-all',
+              }}
+            >
+              {c}
+            </span>
+          ))}
+        </div>
+      )}
       <span
         style={{
           alignSelf: 'flex-start',
@@ -329,6 +350,9 @@ function GroupCard({
   // An approved review reads as settled (green); still-open or held stays amber.
   const border = review && !approved ? '#fcd34d' : '#bbf7d0';
   const missing = versions.filter((v) => !group.perVersion[v.id]);
+  // Distinct citations across every jurisdiction that carries this concept —
+  // the normalized element cites all of them, each source listed once.
+  const citations = groupCitations(group);
   const badge =
     group.status === 'COMMON'
       ? `${group.presentIn}→1 · AUTO`
@@ -404,9 +428,12 @@ function GroupCard({
         </div>
         <NormalizedCell
           name={group.name}
-          detail={`${group.presentIn} source${group.presentIn === 1 ? '' : 's'} · 1 element`}
+          detail={`${citations.length || group.presentIn} source${
+            (citations.length || group.presentIn) === 1 ? '' : 's'
+          } · 1 element`}
           badge={badge}
           tone={review && !approved ? 'review' : 'same'}
+          citations={citations}
         />
       </div>
       {review && (

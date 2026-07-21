@@ -1,6 +1,6 @@
 import { GREEN } from '../types';
 import OverviewCard, { OVERVIEW_TONES } from './OverviewCard';
-import { MATCH_META } from './spine';
+import { MATCH_META, groupCitations } from './spine';
 import type {
   Comparison,
   ComponentRow,
@@ -157,7 +157,11 @@ function GreenfieldSlot({
           style={{
             borderTop: '1px solid #d1fae5',
             background: '#fff',
-            padding: '6px 10px 8px 26px',
+            // Left padding kept small so each row's connector anchor sits close
+            // to the card's left edge — the per-row arrowhead then lands in the
+            // gutter at the border instead of overrunning the element text. The
+            // visual text indent lives on the rows (paddingLeft) below.
+            padding: '6px 10px 8px 10px',
             display: 'flex',
             flexDirection: 'column',
             gap: 5,
@@ -172,6 +176,8 @@ function GreenfieldSlot({
               // Representative element (first version that carries it) → its functionality.
               const el = Object.values(g.perVersion).find((e) => e) ?? null;
               const adopted = g.status !== 'COMMON' && g.status !== 'SINGLE';
+              // All jurisdictions' sources folded into the model, listed once each.
+              const citations = groupCitations(g);
               return (
                 <div
                   key={g.key}
@@ -180,6 +186,9 @@ function GreenfieldSlot({
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 1,
+                    // Text indent lives here (not on the padded body) so the
+                    // connector anchor's left edge stays near the card border.
+                    paddingLeft: 16,
                     marginTop: rowPads?.[`${row.component}:${g.key}`] || undefined,
                   }}
                 >
@@ -207,6 +216,24 @@ function GreenfieldSlot({
                     <span style={{ fontSize: 10, color: '#525252', lineHeight: 1.35 }}>
                       {el.description}
                     </span>
+                  )}
+                  {citations.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 1, marginTop: 2 }}>
+                      {citations.map((c) => (
+                        <span
+                          key={c}
+                          style={{
+                            fontSize: 9,
+                            color: '#059669',
+                            fontFamily: 'ui-monospace, monospace',
+                            lineHeight: 1.3,
+                            wordBreak: 'break-all',
+                          }}
+                        >
+                          {c}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
               );
@@ -287,7 +314,8 @@ export default function ProductGreenfieldColumn({
           {openDecisions > 0 ? (
             <>
               {' · '}
-              <b style={{ fontWeight: 700, color: MATCH_META.PARTIAL.fg }}>{openDecisions}</b> open
+              <b style={{ fontWeight: 700, color: MATCH_META.PARTIAL.fg }}>{openDecisions}</b> to
+              review
             </>
           ) : (
             <span style={{ color: GREEN }}>· reconciled</span>

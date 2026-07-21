@@ -129,6 +129,32 @@ export const MATCH_META: Record<
   },
 };
 
+/**
+ * Every DISTINCT citation for a normalized concept, gathered across all the
+ * jurisdictions/versions that carry it. A single `livesIn` may itself be a
+ * `; `-joined list of atomic citations (e.g. "PAS B — availability config
+ * PPA6-CA; UW rules engine AUTO_NB_ELIG_CA"), so those are split out and the
+ * whole set is de-duplicated (case-insensitive; the first spelling wins). This
+ * is why a concept common to many jurisdictions lists each source once instead
+ * of repeating identical citation text per column.
+ */
+export function groupCitations(group: ElementGroup): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const el of Object.values(group.perVersion)) {
+    if (!el?.livesIn) continue;
+    for (const raw of el.livesIn.split(';')) {
+      const cite = raw.trim();
+      if (!cite) continue;
+      const norm = cite.toLowerCase();
+      if (seen.has(norm)) continue;
+      seen.add(norm);
+      out.push(cite);
+    }
+  }
+  return out;
+}
+
 /** Parse a node's attributes.elements[] defensively (attributes is Json). */
 export function elementsOf(node: SpineNode): ComponentElement[] {
   const attrs = node.attributes as { elements?: unknown } | null;
