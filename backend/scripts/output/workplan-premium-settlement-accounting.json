@@ -7479,6 +7479,1284 @@
           ]
         }
       ]
+    },
+    {
+      "taskId": "acb5d912-635e-4747-81e7-1fe8a7df2a19",
+      "verifier": "Ceded Reinsurance Analyst",
+      "generic": {
+        "Defined scope/population": "Ceded premium, commission, paid and unpaid recoverables by reinsurer for statutory reporting",
+        "In-scope period": "The statutory reporting period ending at the prescribed reporting cut-off",
+        "Required fields populated and valid": "Reinsurer, NAIC code or FEIN, affiliation flag, premium and recoverable amounts present",
+        "Control totals or record counts reconcile": "Extract totals reconcile to the ceded control accounts in the general ledger",
+        "Evidence retained with timestamp/version": "Versioned extract filed with its cut-off timestamp so the filing can be reperformed",
+        "Exceptions logged with disposition": "Reinsurers with no NAIC code or FEIN are logged and chased before the extract is finalised",
+        "Test population": "All reinsurers appearing on the ceded statutory extract",
+        "Pass/fail thresholds": "Extract reconciles to the GL and no reinsurer lacks an NAIC code or FEIN",
+        "Exception handling path": "Unreconciled extracts are held and escalated to the Reinsurance Accountant",
+        "Documented acceptance criteria": "Affiliated and pooled cessions separately identified from third-party cessions",
+        "Evidence location": "Versioned extract in the enterprise data warehouse with the reconciliation in Microsoft Excel"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract ceded premium, commission and recoverables at the reporting cut-off",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Run the ceded extract by reinsurer from the reinsurance administration system",
+            "Include premium, commission, paid recoverables and unpaid recoverables",
+            "Done when the extract is taken at the statutory cut-off"
+          ],
+          "verify": [
+            "Compare the extract cut-off to the prescribed reporting date",
+            "Pass when the correct cut-off is applied"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm every reinsurer carries a valid NAIC code or FEIN",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Test each reinsurer record for a populated and valid NAIC code or FEIN",
+            "Chase counterparty data owners to fill the gaps before finalising",
+            "Done when every reinsurer has a valid identifier"
+          ],
+          "verify": [
+            "Query the extract for missing or invalid identifiers",
+            "Pass when the query returns zero rows"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Reconcile the extract totals to the GL ceded control accounts",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Compare extract premium and recoverable totals to the ceded control accounts",
+            "Investigate and clear any difference before the extract is versioned",
+            "Done when the extract reconciles to the ledger"
+          ],
+          "verify": [
+            "Recompute the control account balances independently",
+            "Pass when the recomputed balances equal the extract totals"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Identify affiliated and pooled cessions separately",
+          "actor": "Accountant",
+          "sop": [
+            "Flag affiliated reinsurers and pooled cession arrangements on the extract",
+            "Confirm they can be presented apart from third-party cessions",
+            "Done when every affiliated or pooled cession is flagged"
+          ],
+          "verify": [
+            "Compare flagged cessions to the group structure register",
+            "Pass when every affiliate on the register is flagged"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Load the extract into the enterprise data warehouse",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Load the reconciled extract into the warehouse reporting layer",
+            "Confirm loaded row counts match the source extract",
+            "Done when the load completes with matching counts"
+          ],
+          "verify": [
+            "Compare loaded row count to the source extract count",
+            "Pass when the counts agree"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Version and timestamp the extract",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Apply a version number and record the cut-off timestamp on the extract",
+            "Lock the version so downstream schedules draw from a fixed dataset",
+            "Done when the extract is versioned and locked"
+          ],
+          "verify": [
+            "Read back the version and timestamp on the locked extract",
+            "Pass when both are present"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Hand the extract to the Schedule F preparation task",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Notify the schedule preparers of the locked extract version",
+            "Record the handover so all schedules use the same version",
+            "Done when the handover is recorded"
+          ],
+          "verify": [
+            "Compare the version used in the schedules to the handed-over version",
+            "Pass when all schedules use the same version"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fkkpv1g51kfgzrfm88eqi",
+      "verifier": "Ceded Reinsurance Analyst",
+      "generic": {
+        "Defined scope/population": "Ceded balances aggregated to reinsurer legal entity and rolled to ultimate parent where required",
+        "In-scope period": "The reporting period covered by the ceded extract being aggregated",
+        "Required fields populated and valid": "Legal entity, parent, paid recoverable, unpaid recoverable and unearned premium ceded",
+        "Control totals or record counts reconcile": "Sum of per-reinsurer balances equals the total ceded position in the extract",
+        "Evidence retained with timestamp/version": "Entity-mapping table retained with the aggregation date so it can be reapplied",
+        "Exceptions logged with disposition": "Trading names and legacy codes merged onto one identity are logged with the mapping applied",
+        "Test population": "All reinsurers in the aggregated ceded dataset",
+        "Pass/fail thresholds": "Per-reinsurer balances sum to the total and no reinsurer appears under two identities",
+        "Exception handling path": "Ambiguous entity identities escalate to the Reinsurance Credit and Security Analyst",
+        "Documented acceptance criteria": "Subsidiaries rolled to parent with entity detail retained underneath the group view",
+        "Evidence location": "Aggregation working and mapping table held in the enterprise data warehouse"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Aggregate ceded balances to reinsurer legal entity",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Group the ceded extract by reinsurer legal entity",
+            "Merge trading names and legacy codes onto one identity per entity",
+            "Done when every balance sits under a single entity identity"
+          ],
+          "verify": [
+            "Query the aggregation for duplicate identities of the same entity",
+            "Pass when the query returns zero rows"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Resolve ambiguous identities with the Credit and Security Analyst",
+          "actor": "Reinsurance Credit & Security Analyst",
+          "sop": [
+            "Review entities where the mapping is unclear or contested",
+            "Confirm the correct legal entity from the security schedule and counterparty records",
+            "Done when every ambiguous identity is resolved"
+          ],
+          "verify": [
+            "Check resolved identities against the counterparty register",
+            "Pass when each resolution matches the register"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Roll subsidiaries into the ultimate parent for group exposure",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Map each legal entity to its ultimate parent from the group structure",
+            "Roll balances to parent level while keeping the entity detail underneath",
+            "Done when the group view exists with entity detail retained"
+          ],
+          "verify": [
+            "Sum entity balances under each parent and compare to the parent total",
+            "Pass when the entity detail reconciles to the parent"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Split balances by paid, unpaid and unearned premium ceded",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Split each reinsurer balance into paid recoverable, unpaid recoverable and unearned premium ceded",
+            "Confirm the three components sum to the reinsurer total",
+            "Done when every reinsurer shows the three-way split"
+          ],
+          "verify": [
+            "Sum the three components per reinsurer",
+            "Pass when the sum equals the reinsurer total"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm the aggregation totals to the ceded extract",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Sum the per-reinsurer balances across the dataset",
+            "Compare the total to the ceded position in the source extract",
+            "Done when the two totals agree"
+          ],
+          "verify": [
+            "Recompute the aggregate total independently in Microsoft Excel",
+            "Pass when the recomputed total equals the extract total"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Retain the entity-mapping table for reuse",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Save the mapping table used for the aggregation in the data warehouse",
+            "Version it with the aggregation date so it can be reapplied next period",
+            "Done when the mapping table is saved and versioned"
+          ],
+          "verify": [
+            "Reapply the saved mapping to the same extract",
+            "Pass when the reapplied mapping reproduces the aggregation"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Publish the aggregated dataset for schedule preparation",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Publish the aggregated dataset in the warehouse reporting layer",
+            "Record the version handed to the schedule preparers",
+            "Done when the dataset is published and the version recorded"
+          ],
+          "verify": [
+            "Compare the published version to the version used in the schedules",
+            "Pass when they match"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "003e541b-2564-4292-b02b-6e018217acab",
+      "verifier": "Reinsurance Manager",
+      "generic": {
+        "Defined scope/population": "Regulatory review requests, responses and findings covering reinsurance balances",
+        "In-scope period": "The review cycle from scope agreement to closure of the findings raised",
+        "Required fields populated and valid": "Request, owner, due date, compliance review status and finding remediation date recorded",
+        "Control totals or record counts reconcile": "Count of logged requests equals the count of responses released to the regulator",
+        "Evidence retained with timestamp/version": "Request log, responses and findings filed in the compliance evidence repository",
+        "Exceptions logged with disposition": "Requests that cannot be met in the window are logged with a revised date agreed",
+        "Test population": "All regulatory review requests on reinsurance in the cycle",
+        "Pass/fail thresholds": "Every request is logged with an owner and no response is released without compliance review",
+        "Exception handling path": "Overdue requests and open findings escalate to the Reinsurance Manager",
+        "Documented acceptance criteria": "Scope, timetable and single point of contact agreed with compliance and audit before work starts",
+        "Evidence location": "Compliance evidence repository holding the request log, responses and findings"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Agree scope, timetable and single point of contact",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Meet compliance and internal audit over Microsoft Teams before work starts",
+            "Agree the review scope, the timetable and one point of contact for reinsurance",
+            "Done when scope, timetable and contact are documented"
+          ],
+          "verify": [
+            "Check the documented scope against the review terms of reference",
+            "Pass when the two align"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Log each information request in the regulatory filing tracker",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Create a tracker entry for each request with a due date",
+            "Assign the reinsurance owner responsible for the response",
+            "Done when every request is logged with an owner and a date"
+          ],
+          "verify": [
+            "Filter the tracker for requests with no owner or due date",
+            "Pass when the filter returns zero rows"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Prepare reinsurance responses against the logged requests",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Draft the response for each request with the supporting evidence attached",
+            "Trace each figure back to the filed schedule or ledger balance",
+            "Done when every request has a drafted response with evidence"
+          ],
+          "verify": [
+            "Trace a sample of response figures to their source",
+            "Pass when each traces to the stated source"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Have compliance review responses for consistency with prior filings",
+          "actor": "Reinsurance Credit & Security Analyst",
+          "sop": [
+            "Route each drafted response to compliance for consistency review",
+            "Capture the review outcome on the tracker entry",
+            "Done when every response carries a compliance review outcome"
+          ],
+          "verify": [
+            "Query released responses for a missing compliance review",
+            "Pass when the query returns zero rows"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Track findings on reinsurance balances to named owners",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Log each finding raised on reinsurance balances in the tracker",
+            "Assign a named owner and a remediation date to each",
+            "Done when every finding has an owner and a date"
+          ],
+          "verify": [
+            "Filter findings for missing owner or remediation date",
+            "Pass when the filter returns zero rows"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Escalate overdue requests and findings",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Review requests and findings past their dates each cycle",
+            "Escalate to the owners and agree revised dates where needed",
+            "Done when every overdue item has an escalation and a revised date"
+          ],
+          "verify": [
+            "Age the tracker against the agreed dates",
+            "Pass when no overdue item is unescalated"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "File the request log, responses and findings in the compliance evidence repository",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "File the complete request log, all responses and the findings register",
+            "Link the filed pack to the review cycle record",
+            "Done when the pack is filed and linked"
+          ],
+          "verify": [
+            "Compare the filed pack to the tracker contents",
+            "Pass when every tracker item is represented in the pack"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "a76f46b5-084a-446f-826f-ce49a150f1a6",
+      "verifier": "Reinsurance Manager",
+      "generic": {
+        "Defined scope/population": "Completed regulatory reinsurance schedules due for filing within statutory deadlines",
+        "In-scope period": "The filing window from schedule approval to the regulatory due date per jurisdiction",
+        "Required fields populated and valid": "Jurisdiction, due date, schedule version, submission channel and acknowledgement reference",
+        "Control totals or record counts reconcile": "Count of schedules filed equals the count on the filing calendar for the period",
+        "Evidence retained with timestamp/version": "Submitted file and regulator acknowledgement retained against the filing record",
+        "Exceptions logged with disposition": "Schedules at risk of missing a due date are escalated with the reason and mitigation",
+        "Test population": "All regulatory reinsurance schedules due in the filing period",
+        "Pass/fail thresholds": "Acknowledgement recorded on every filed schedule with none passing its due date unfiled",
+        "Exception handling path": "Missed or rejected submissions escalate to the Reinsurance Manager the same day",
+        "Documented acceptance criteria": "Validation passed and internal approval obtained before submission through the prescribed channel",
+        "Evidence location": "Filing record in the regulatory filing tracker with the submitted file in the reporting repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the filing calendar entry, jurisdiction and due date",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Open the filing calendar and confirm the entry for each reinsurance schedule",
+            "Record jurisdiction and due date on the filing record",
+            "Done when every schedule has a confirmed calendar entry"
+          ],
+          "verify": [
+            "Compare recorded due dates to the regulator published dates",
+            "Pass when the dates match"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm validation has passed and internal approval is recorded",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Check the validation output shows zero blocking errors",
+            "Confirm the internal approval is recorded against the schedule version",
+            "Done when both prerequisites are evidenced"
+          ],
+          "verify": [
+            "Open the validation output and the approval record",
+            "Pass when both exist for the version being filed"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Prepare the submission in the prescribed file format",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Generate the submission file from the statutory reporting tool in the prescribed format",
+            "Confirm the file passes the format check before transmission",
+            "Done when a format-valid submission file exists"
+          ],
+          "verify": [
+            "Run the format check on the generated file",
+            "Pass when the check reports no format errors"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Obtain the Reinsurance Manager release before submission",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Review the schedule, validation output and approval before release",
+            "Authorise the submission and record the release decision",
+            "Done when the release is recorded against the filing"
+          ],
+          "verify": [
+            "Check the release record on the filing",
+            "Pass when a release exists before the submission timestamp"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Submit through the prescribed regulatory channel",
+          "actor": "Accountant",
+          "sop": [
+            "Transmit the file through the prescribed regulatory channel",
+            "Capture the submission timestamp and any transmission response",
+            "Done when the submission is transmitted and timestamped"
+          ],
+          "verify": [
+            "Compare the submission timestamp to the due date",
+            "Pass when submission is on or before the due date"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Obtain and file the regulator acknowledgement",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Retrieve the regulator acknowledgement or confirmation number",
+            "File it against the filing record in the regulatory filing tracker",
+            "Done when the acknowledgement is recorded"
+          ],
+          "verify": [
+            "Query filed schedules for a missing acknowledgement",
+            "Pass when the query returns zero rows"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Update the filing inventory to Filed with date and version",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Set the filing inventory status to Filed for the schedule",
+            "Record the submission date and the version filed",
+            "Done when the inventory reflects the completed filing"
+          ],
+          "verify": [
+            "Compare the inventory status to the acknowledgement",
+            "Pass when every acknowledged filing shows status Filed"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "9c150eb5-41af-48c6-8aee-673a3c263c92",
+      "verifier": "Reinsurance Manager",
+      "generic": {
+        "Defined scope/population": "Regulatory filing inputs, outputs and sign-offs retained as the reinsurance filing audit trail",
+        "In-scope period": "The retention period prescribed for each filing including any legal hold",
+        "Required fields populated and valid": "Submitted file, supporting extract, validation output, preparer, approver and submitter recorded",
+        "Control totals or record counts reconcile": "Count of filings with a complete artefact set equals the count of filings made",
+        "Evidence retained with timestamp/version": "Every artefact filed with its version and the filing date recorded",
+        "Exceptions logged with disposition": "Filings with a missing artefact are logged with the gap and a remediation owner",
+        "Test population": "All regulatory reinsurance filings retained in the audit trail",
+        "Pass/fail thresholds": "Each record holds file, extract and acknowledgement with preparer, approver and submitter named",
+        "Exception handling path": "Incomplete records escalate to the Reinsurance Manager for reconstruction",
+        "Documented acceptance criteria": "A prior-period filing can be reconstructed from the retained artefacts as a spot check",
+        "Evidence location": "Filing folders in the document management repository indexed from the regulatory filing tracker"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "File the submitted schedule, extract and validation output together",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Create a filing folder in the document repository per filing",
+            "Place the submitted file, the supporting extract and the validation output in it",
+            "Done when all three artefacts are filed together"
+          ],
+          "verify": [
+            "Open the folder and check for all three artefacts",
+            "Pass when none is missing"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Record preparer, approver and submitter with dates",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Record the three identities and their action dates on the filing record",
+            "Confirm the identities are distinct where segregation is required",
+            "Done when all three identities and dates are recorded"
+          ],
+          "verify": [
+            "Query filing records for a missing identity",
+            "Pass when the query returns zero rows"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Retain the acknowledgement and subsequent correspondence",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "File the regulator acknowledgement with the filing record",
+            "Add any subsequent regulator correspondence to the same folder",
+            "Done when acknowledgement and correspondence are retained together"
+          ],
+          "verify": [
+            "Compare filed correspondence to the tracker query log",
+            "Pass when every logged item is filed"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Apply the retention period and legal-hold flag",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Apply the prescribed retention period to the filing folder",
+            "Set the legal-hold flag where the filing is subject to a hold",
+            "Done when retention and hold settings are applied"
+          ],
+          "verify": [
+            "Read back the retention and hold settings on the folder",
+            "Pass when both match the prescribed policy"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Index the folder from the regulatory filing tracker",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Add the repository link to the tracker entry for the filing",
+            "Confirm the link resolves from the tracker",
+            "Done when every filing entry links to its folder"
+          ],
+          "verify": [
+            "Open a sample of links from the tracker",
+            "Pass when each resolves to the correct folder"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Spot-check that a prior-period filing can be reconstructed",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Select a prior-period filing and attempt reconstruction from the retained artefacts",
+            "Record the spot-check outcome and any gap found",
+            "Done when the spot-check is completed and recorded"
+          ],
+          "verify": [
+            "Compare the reconstructed figures to the filed schedule",
+            "Pass when the reconstruction reproduces the filed figures"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Remediate incomplete filing records",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "List filings with a missing artefact or identity",
+            "Retrieve the missing item and complete the record",
+            "Done when every filing record is complete"
+          ],
+          "verify": [
+            "Re-run the completeness query across filing records",
+            "Pass when the query returns zero incomplete records"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fkky41g9xkfgzzkoyqle7",
+      "verifier": "Reinsurance Accountant",
+      "generic": {
+        "Defined scope/population": "NAIC Schedule F Parts 1 to 5 populated from the locked assumed and ceded extracts",
+        "In-scope period": "The statutory annual reporting period covered by the Schedule F filing",
+        "Required fields populated and valid": "Reinsurer, authorisation status, collateral, ageing and provision figures populated per Part",
+        "Control totals or record counts reconcile": "Parts cross-foot and agree to the annual statement ceded lines",
+        "Evidence retained with timestamp/version": "Prepared Parts retained with the extract version and the preparation date",
+        "Exceptions logged with disposition": "Reinsurers missing authorisation status or collateral figures are logged and chased",
+        "Test population": "All reinsurers presented across Schedule F Parts 1 to 5",
+        "Pass/fail thresholds": "Parts cross-foot to the annual statement and no Part 3 reinsurer lacks status or collateral",
+        "Exception handling path": "Cross-footing failures hold the Parts and escalate to the Ceded Reinsurance Analyst",
+        "Documented acceptance criteria": "Part 4 aged from contractual due dates and Part 5 carried from the approved provision",
+        "Evidence location": "Prepared Parts in the NAIC statutory reporting tool with the Excel working retained"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Populate Part 1 assumed and Part 2 portfolio reinsurance",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Load assumed reinsurance data into Part 1 from the assumed extract",
+            "Load premium portfolio reinsurance into Part 2 from the ceded extract",
+            "Done when both Parts are populated from the locked extracts"
+          ],
+          "verify": ["Compare Part totals to the source extract totals", "Pass when the two agree"]
+        },
+        {
+          "n": 2,
+          "title": "Populate Part 3 ceded recoverables by reinsurer",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Load recoverables per reinsurer with authorisation status and collateral",
+            "Include the overdue ageing per counterparty",
+            "Done when Part 3 is populated for every reinsurer"
+          ],
+          "verify": [
+            "Query Part 3 for reinsurers missing status or collateral",
+            "Pass when the query returns zero rows"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Compute the Part 4 ageing from contractual due dates",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Age ceded recoverables from contractual due dates rather than booking dates",
+            "Load the aged buckets into Part 4",
+            "Done when Part 4 ageing is computed and loaded"
+          ],
+          "verify": [
+            "Recompute a sample of ageing buckets from due dates in Microsoft Excel",
+            "Pass when the sampled buckets match Part 4"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Carry the Part 5 provision from the approved calculation",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Take the provision figure from the approved provision calculation",
+            "Load it into Part 5 without re-deriving it in the schedule",
+            "Done when Part 5 carries the approved provision"
+          ],
+          "verify": [
+            "Compare the Part 5 figure to the approved provision working",
+            "Pass when the two are identical"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Cross-foot each Part in the statutory reporting tool",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Run the cross-footing check within each Part",
+            "Correct the source data where a Part fails to cross-foot",
+            "Done when every Part cross-foots"
+          ],
+          "verify": [
+            "Re-run the cross-footing check after correction",
+            "Pass when every Part passes"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Agree totals across Parts and to the annual statement ceded lines",
+          "actor": "Accountant",
+          "sop": [
+            "Compare related totals across the Parts for internal consistency",
+            "Agree the ceded totals to the annual statement ceded lines",
+            "Done when both agreements hold"
+          ],
+          "verify": [
+            "Recompute the annual statement ceded lines independently",
+            "Pass when the recomputed lines equal the Schedule F totals"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "File the prepared Parts with the working",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Save the prepared Parts and the Microsoft Excel working together",
+            "Record the extract version used on the working",
+            "Done when Parts and working are filed with the version recorded"
+          ],
+          "verify": [
+            "Compare the recorded extract version to the locked extract",
+            "Pass when they match"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "e6d0a8d5-e0e4-4dec-ae1b-05409f516247",
+      "verifier": "Reinsurance Accountant",
+      "generic": {
+        "Defined scope/population": "Solvency II reinsurance and counterparty QRT templates and reinsurance-held contract data",
+        "In-scope period": "The Solvency II reporting reference date and the taxonomy version prescribed for it",
+        "Required fields populated and valid": "Reinsurer LEI, country code, cover details and reinsurer share populated on each template",
+        "Control totals or record counts reconcile": "Reinsurance recoverable in the templates agrees to the Solvency II balance sheet figure",
+        "Evidence retained with timestamp/version": "Prepared templates retained with the taxonomy version and the validation run output",
+        "Exceptions logged with disposition": "Reinsurers missing an LEI or country code are logged and chased before release",
+        "Test population": "All reinsurance QRT templates prepared for the reference date",
+        "Pass/fail thresholds": "Validation shows zero blocking errors and no reinsurer lacks an LEI or country code",
+        "Exception handling path": "Blocking validation errors hold the templates and route to the filing exception process",
+        "Documented acceptance criteria": "S.30 and S.31 populated from ceded programme data with the correct taxonomy version",
+        "Evidence location": "Prepared templates and validation output filed in the financial reporting repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the QRT taxonomy version for the reference date",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Check the prescribed taxonomy version for the reporting reference date",
+            "Confirm the reporting tool is configured to that version",
+            "Done when the correct taxonomy version is confirmed in use"
+          ],
+          "verify": [
+            "Compare the configured version to the prescribed version",
+            "Pass when they match"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Populate S.30 facultative cover from the ceded programme data",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Extract facultative cover data from the reinsurance administration system",
+            "Populate the S.30 template rows from that data",
+            "Done when S.30 is populated for every facultative cover"
+          ],
+          "verify": [
+            "Compare S.30 row count to the facultative cover count",
+            "Pass when the counts agree"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Populate S.31 reinsurer share from the ceded programme data",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Extract reinsurer share data across the ceded programme",
+            "Populate the S.31 template with share per reinsurer",
+            "Done when S.31 is populated for every reinsurer"
+          ],
+          "verify": [
+            "Sum the shares per programme and compare to 100 percent placement",
+            "Pass when the shares reconcile to the placement"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm every reinsurer carries a valid LEI and country code",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Test each reinsurer record for a valid LEI and country code",
+            "Chase the counterparty data owner to fill any gap",
+            "Done when every reinsurer has both identifiers"
+          ],
+          "verify": [
+            "Query the templates for a missing LEI or country code",
+            "Pass when the query returns zero rows"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile the recoverable to the Solvency II balance sheet",
+          "actor": "Accountant",
+          "sop": [
+            "Compare the reinsurance recoverable in the templates to the balance sheet figure",
+            "Investigate and clear any difference before release",
+            "Done when the two figures agree"
+          ],
+          "verify": [
+            "Recompute the balance sheet recoverable independently in Microsoft Excel",
+            "Pass when the recomputed figure equals the template figure"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Run the EIOPA validation rule set",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Run the full validation rule set over the prepared templates",
+            "Clear every blocking error before the templates are released",
+            "Done when the validation reports zero blocking errors"
+          ],
+          "verify": [
+            "Re-run the validation after clearing errors",
+            "Pass when zero blocking errors remain"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "File the templates and validation output in the reporting repository",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "File the prepared templates with the validation output and taxonomy version",
+            "Version the filed pack with the reference date",
+            "Done when the pack is filed and versioned"
+          ],
+          "verify": [
+            "Open the filed pack from the repository",
+            "Pass when it holds the templates and the validation output"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fa31i02inbn7i2drnfnpt",
+      "verifier": "Reinsurance Manager",
+      "generic": {
+        "Defined scope/population": "Validation exceptions raised against the regulatory reinsurance filing",
+        "In-scope period": "The filing preparation window from first validation run to clean re-validation",
+        "Required fields populated and valid": "Rule breached, triggering records, source reference, correction made and root cause recorded",
+        "Control totals or record counts reconcile": "Count of exceptions cleared equals the count raised less those formally accepted",
+        "Evidence retained with timestamp/version": "Versioned corrected extract and each re-validation output retained with run dates",
+        "Exceptions logged with disposition": "Exceptions accepted rather than corrected are logged with the approval and rationale",
+        "Test population": "All validation exceptions raised on the filing",
+        "Pass/fail thresholds": "Every exception has a recorded root cause and re-validation result with no direct file edits",
+        "Exception handling path": "Exceptions that cannot be corrected at source escalate to the Reinsurance Manager",
+        "Documented acceptance criteria": "Corrections made at source and re-extracted with no new exceptions introduced",
+        "Evidence location": "Exception records in the regulatory filing tracker with the re-validation output attached"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "List validation exceptions with the rule breached and triggering records",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Export the validation output from the statutory reporting tool",
+            "List each exception with the rule breached and the records that triggered it",
+            "Done when every exception is listed with its trigger"
+          ],
+          "verify": [
+            "Compare the exception list count to the validation output count",
+            "Pass when the counts agree"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Trace each exception to the source record in the reinsurance system",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Locate the underlying record in the reinsurance administration system",
+            "Record the source reference against the exception",
+            "Done when every exception has a traced source reference"
+          ],
+          "verify": ["Check each exception for a source reference", "Pass when none is untraced"]
+        },
+        {
+          "n": 3,
+          "title": "Correct the source data or the mapping",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Correct the source record or the mapping rule causing the exception",
+            "Never edit the submission file directly to clear an exception",
+            "Done when the correction is applied at source"
+          ],
+          "verify": [
+            "Compare the corrected source value to the exception requirement",
+            "Pass when the source now satisfies the rule"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Re-extract and version the corrected dataset",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Re-run the extract after the source corrections",
+            "Version the corrected extract with the run date",
+            "Done when the corrected extract is produced and versioned"
+          ],
+          "verify": [
+            "Compare the corrected extract version to the version used for re-validation",
+            "Pass when the same version is used"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Re-run the validation suite and confirm the exception cleared",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Run the full validation suite over the corrected submission",
+            "Confirm the exception cleared without introducing new ones",
+            "Done when the exception clears with no new exceptions"
+          ],
+          "verify": [
+            "Compare the new validation output to the prior run",
+            "Pass when the cleared exception is gone and no new one appears"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the root cause for each exception",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Record the root cause category on each exception in the tracker",
+            "Flag recurring causes for upstream data-quality fixes",
+            "Done when every exception has a recorded root cause"
+          ],
+          "verify": [
+            "Query cleared exceptions for a missing root cause",
+            "Pass when the query returns zero rows"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Review residual exceptions with the Reinsurance Manager",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Review exceptions that cannot be corrected at source",
+            "Decide whether to accept with rationale or hold the filing",
+            "Done when every residual exception has a recorded decision"
+          ],
+          "verify": [
+            "Check residual exceptions for an approval and rationale",
+            "Pass when none is accepted without both"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cb0c6cb1-ccf3-4d67-81b2-7e8ab8b46f3a",
+      "verifier": "Reinsurance Manager",
+      "generic": {
+        "Defined scope/population": "Regulatory queries raised on reinsurance data and the supporting calculations",
+        "In-scope period": "From query receipt to the regulator response deadline or an agreed extension",
+        "Required fields populated and valid": "Regulator, query, deadline, owner, compliance review status and sent response date",
+        "Control totals or record counts reconcile": "Figures quoted in the response agree to the filed schedule and the ledger balance",
+        "Evidence retained with timestamp/version": "Query, working and sent response filed together against the filing record",
+        "Exceptions logged with disposition": "Restatements against prior filings are explained explicitly in the response",
+        "Test population": "All regulatory queries on reinsurance data in the period",
+        "Pass/fail thresholds": "Every query has a filed response traceable to the ledger with none sent after the deadline",
+        "Exception handling path": "Queries at risk of missing the deadline escalate to the Reinsurance Manager for an extension",
+        "Documented acceptance criteria": "Response consistent with prior filings and reviewed by compliance before sending",
+        "Evidence location": "Query and response filed in the compliance evidence repository against the filing record"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Log the query with the regulator, deadline and owner",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Create a tracker entry in the regulatory filing tracker for the query",
+            "Record the regulator, the deadline and the reinsurance owner",
+            "Done when the query is logged with all three fields"
+          ],
+          "verify": [
+            "Filter the tracker for queries missing a deadline or owner",
+            "Pass when the filter returns zero rows"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Trace the queried figure to the filed schedule and extract",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Locate the queried figure in the filed schedule and the supporting extract",
+            "Record the trace references on the query entry",
+            "Done when the figure is traced to the filed source"
+          ],
+          "verify": [
+            "Open the traced schedule and extract from the query entry",
+            "Pass when the figure appears as stated"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Trace the figure through to the underlying ledger balance",
+          "actor": "Reinsurance Credit & Security Analyst",
+          "sop": [
+            "Follow the extract figure to the ledger balance it was drawn from",
+            "Record the ledger account and balance on the query entry",
+            "Done when the ledger trace is complete"
+          ],
+          "verify": [
+            "Compare the traced ledger balance to the queried figure",
+            "Pass when the two reconcile or the difference is explained"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Check consistency with prior filings and explain restatements",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Compare the answer to what was reported in prior filings",
+            "Explain any restatement explicitly in the response",
+            "Done when consistency is confirmed or the restatement is explained"
+          ],
+          "verify": [
+            "Compare the response figures to the prior filing",
+            "Pass when differences are explained in the response"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Have compliance review the drafted response",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Route the drafted response to compliance before it is sent",
+            "Capture the compliance review outcome on the query entry",
+            "Done when the compliance review is recorded"
+          ],
+          "verify": [
+            "Query sent responses for a missing compliance review",
+            "Pass when the query returns zero rows"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Send the response within the deadline",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Send the reviewed response to the regulator by the recorded deadline",
+            "Record the sent date on the query entry",
+            "Done when the response is sent and dated"
+          ],
+          "verify": [
+            "Compare the sent date to the deadline",
+            "Pass when the response is sent on or before the deadline"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "File the query, working and response against the filing record",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "File all three documents together in the compliance evidence repository",
+            "Link the filed set to the original filing record",
+            "Done when the set is filed and linked"
+          ],
+          "verify": [
+            "Open the linked set from the filing record",
+            "Pass when all three documents are present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fa2j902iabn7ii3klasbr",
+      "verifier": "Reinsurance Accountant",
+      "generic": {
+        "Defined scope/population": "The complete regulatory reinsurance submission across all schedules for the reporting period",
+        "In-scope period": "The reporting period being submitted with prior-period comparatives included",
+        "Required fields populated and valid": "Submission version, validation output, cross-foot result and reviewer sign-off recorded",
+        "Control totals or record counts reconcile": "Submission reinsurance figures reconcile to the ledger and the prior-period filing",
+        "Evidence retained with timestamp/version": "Validation output and reviewer sign-off recorded against the submission version",
+        "Exceptions logged with disposition": "Restatements of prior comparatives are documented with the reason and approval",
+        "Test population": "All schedules within the regulatory reinsurance submission",
+        "Pass/fail thresholds": "Validation and sign-off recorded and no unexplained movement against the prior filing",
+        "Exception handling path": "Blocking errors and unexplained movements route to the filing exception process",
+        "Documented acceptance criteria": "Zero blocking errors, schedules cross-footed and comparatives agreed to what was filed",
+        "Evidence location": "Validation output and sign-off in the regulatory filing tracker against the submission version"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Run the prescribed validation rule set over the submission",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Run the full validation rule set in the statutory reporting tool",
+            "Capture the validation output against the submission version",
+            "Done when the validation run completes with output captured"
+          ],
+          "verify": ["Read the blocking error count in the output", "Pass when the count is zero"]
+        },
+        {
+          "n": 2,
+          "title": "Cross-foot the schedules and agree totals across related parts",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Run cross-footing checks within and across the related schedules",
+            "Correct the source data where a check fails",
+            "Done when all cross-footing checks pass"
+          ],
+          "verify": [
+            "Re-run the cross-footing checks after correction",
+            "Pass when every check passes"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Reconcile submission figures to the ledger balances",
+          "actor": "Accountant",
+          "sop": [
+            "Compare the reinsurance figures in the submission to the ledger balances",
+            "Investigate and clear any difference before sign-off",
+            "Done when the submission reconciles to the ledger"
+          ],
+          "verify": [
+            "Recompute the ledger balances independently in Microsoft Excel",
+            "Pass when the recomputed balances equal the submission figures"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Compare the submission to the prior-period filing",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Compare period-on-period movements in the reinsurance figures",
+            "Investigate any movement that is unexpected in size or direction",
+            "Done when every material movement is explained"
+          ],
+          "verify": [
+            "Check each material movement for a written explanation",
+            "Pass when none is left unexplained"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm prior-period comparatives match what was filed",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Compare the comparatives in the submission to the prior filed schedules",
+            "Document any restatement with the reason and the approval",
+            "Done when comparatives agree or restatements are documented"
+          ],
+          "verify": [
+            "Compare comparatives to the retained prior filing artefacts",
+            "Pass when they agree or the restatement is documented"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the validation output against the submission version",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Attach the validation output to the submission record in the tracker",
+            "Confirm the output relates to the version being signed off",
+            "Done when the output is attached to the correct version"
+          ],
+          "verify": [
+            "Compare the version on the output to the submission version",
+            "Pass when they match"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Record the reviewer sign-off on the submission",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Review the validation, cross-footing and reconciliation results",
+            "Record the sign-off against the submission version",
+            "Done when the sign-off is recorded"
+          ],
+          "verify": [
+            "Query submissions for a missing sign-off",
+            "Pass when the query returns zero rows"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "43132ceb-0861-4aea-ab4f-9bb47fc3309a",
+      "verifier": "Reinsurance Credit & Security Analyst",
+      "generic": {
+        "Defined scope/population": "Every reinsurer counterparty requiring a classification for statutory and regulatory presentation",
+        "In-scope period": "The reporting date at which classifications are refreshed and evidenced",
+        "Required fields populated and valid": "Classification, evidence reference, effective date, rating and affiliation flag recorded",
+        "Control totals or record counts reconcile": "Count of classified counterparties equals the count with a ceded balance at the reporting date",
+        "Evidence retained with timestamp/version": "Regulator list evidence and rating evidence filed with the classification effective date",
+        "Exceptions logged with disposition": "Counterparties whose status cannot be confirmed are logged and treated as unauthorised",
+        "Test population": "All reinsurer counterparties classified at the reporting date",
+        "Pass/fail thresholds": "Each record carries classification, evidence reference and effective date with no stale carry-forward",
+        "Exception handling path": "Downgrades and status changes escalate to the Reinsurance Accountant for provision impact",
+        "Documented acceptance criteria": "Status confirmed against the regulator list with collateral supporting the classification claimed",
+        "Evidence location": "Counterparty records in the reinsurance administration system with evidence in the document repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm each reinsurer against the regulator list",
+          "actor": "Reinsurance Credit & Security Analyst",
+          "sop": [
+            "Check each reinsurer legal entity against the regulator authorised and certified lists",
+            "Record the relevant state and the status found",
+            "Done when every reinsurer has a status from the regulator list"
+          ],
+          "verify": [
+            "Compare recorded statuses to the regulator list at the reporting date",
+            "Pass when each matches"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Check the current financial strength rating and note downgrades",
+          "actor": "Reinsurance Credit & Security Analyst",
+          "sop": [
+            "Retrieve the current financial strength rating for each reinsurer",
+            "Note any downgrade since the previous reporting date",
+            "Done when ratings and downgrades are recorded"
+          ],
+          "verify": [
+            "Compare current ratings to the prior period record",
+            "Pass when every downgrade is noted"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Flag affiliated reinsurers for separate presentation",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Identify affiliated reinsurers from the group structure register",
+            "Flag each so it is presented separately in the filing",
+            "Done when every affiliate is flagged"
+          ],
+          "verify": [
+            "Compare flagged affiliates to the group structure register",
+            "Pass when every register affiliate is flagged"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Verify collateral supports the classification claimed",
+          "actor": "Reinsurance Credit & Security Analyst",
+          "sop": [
+            "Check trust, letter of credit and funds withheld positions per counterparty",
+            "Confirm the collateral supports the classification being claimed",
+            "Done when collateral support is confirmed for every classification"
+          ],
+          "verify": [
+            "Compare collateral held to the classification requirements",
+            "Pass when no classification is claimed without supporting collateral"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Escalate downgrades and status changes for provision impact",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Review downgrades and status changes for their impact on the provision",
+            "Route material changes into the provision calculation",
+            "Done when every material change is routed"
+          ],
+          "verify": [
+            "Compare status changes to the provision inputs",
+            "Pass when every material change is reflected"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Update counterparty records with classification and effective date",
+          "actor": "Reinsurance Credit & Security Analyst",
+          "sop": [
+            "Update each counterparty record with the classification and evidence reference",
+            "Record the effective date of the classification",
+            "Done when every record carries all three fields"
+          ],
+          "verify": [
+            "Query counterparty records for a missing classification field",
+            "Pass when the query returns zero rows"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Confirm no classification is carried forward without refresh",
+          "actor": "Reinsurance Credit & Security Analyst",
+          "sop": [
+            "Compare classification effective dates to the reporting date",
+            "Refresh any classification predating the current reporting date",
+            "Done when every classification carries a current effective date"
+          ],
+          "verify": [
+            "Query classifications with an effective date before the reporting date",
+            "Pass when the query returns zero rows"
+          ]
+        }
+      ]
     }
   ]
 }
