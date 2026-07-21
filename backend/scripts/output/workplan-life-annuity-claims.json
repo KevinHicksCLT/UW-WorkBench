@@ -7848,6 +7848,2295 @@
           ]
         }
       ]
+    },
+    {
+      "taskId": "bdf55da5-5dca-4fa9-8351-2ad51b57e682",
+      "verifier": "Annuity Service Specialist",
+      "generic": {
+        "Defined scope/population": "All death benefit bases available on the annuity contract and its rider endorsements.",
+        "In-scope period": "Rider status and charges assessed through to the date of death.",
+        "Required fields populated and valid": "Rider status, charge history, guarantee mechanics and age cut-offs captured.",
+        "Control totals or record counts reconcile": "Guarantee value reflects prior withdrawals on the basis the wording requires.",
+        "Evidence retained with timestamp/version": "Determination stored on the claim citing the contract or endorsement clause.",
+        "Exceptions logged with disposition": "Riders whose charges ceased before death logged with the benefit impact.",
+        "Test population": "All annuity death claims with a guarantee rider in the reporting period.",
+        "Pass/fail thresholds": "No guaranteed benefit is paid where rider charges ceased before the date of death.",
+        "Exception handling path": "Unclear withdrawal treatment routes to the Claims Analyst and product actuarial.",
+        "Documented acceptance criteria": "Determination cites the specific contract or rider endorsement clause.",
+        "Evidence location": "Claim document repository contract folder with the ClaimCenter determination note."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Read the contract and rider endorsements",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Retrieve the contract and every rider endorsement on file.",
+            "List each death benefit basis the contract makes available.",
+            "Record the list on the claim.",
+            "Done when every available benefit basis is listed."
+          ],
+          "verify": [
+            "Compare the listed bases to the endorsements on file.",
+            "Pass when every endorsement basis appears on the list."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm guarantee riders were in force and charged",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Confirm the guarantee riders were in force at the date of death.",
+            "Confirm rider charges were deducted through to that date.",
+            "Record the charge history reference on the claim.",
+            "Done when rider force and charge status are confirmed."
+          ],
+          "verify": [
+            "Read the charge history up to the date of death.",
+            "Pass when charges ran through to the date of death for each rider claimed."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Apply the guarantee mechanics as worded",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Apply the ratchet, roll-up or return-of-premium mechanics as worded.",
+            "Apply any age cut-off that stops the guarantee accruing.",
+            "Record the mechanics applied and the cut-off tested.",
+            "Done when the guarantee value is computed on the worded mechanics."
+          ],
+          "verify": [
+            "Recompute the guarantee using the rider wording and the age cut-off.",
+            "Pass when the recomputed value equals the recorded guarantee."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Apply the withdrawal reduction basis",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Read whether prior withdrawals reduce the guarantee proportionally or dollar-for-dollar.",
+            "Apply that basis to the withdrawal history.",
+            "Record the basis and the resulting reduction.",
+            "Done when the withdrawal reduction is applied on the worded basis."
+          ],
+          "verify": [
+            "Recompute the reduction on the recorded basis.",
+            "Pass when the recomputed reduction equals the applied reduction."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Select the payable benefit basis",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Compare all computed bases including the account value.",
+            "Select the basis producing the highest payable benefit.",
+            "Record the selection and the comparison on the claim.",
+            "Done when the selected basis and comparison are recorded."
+          ],
+          "verify": [
+            "Read the comparison and the selected basis.",
+            "Pass when the selected basis is the highest computed value."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Cite the governing clause on the determination",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Cite the specific contract or endorsement clause relied upon.",
+            "Attach the clause extract to the determination.",
+            "File the determination to the claim.",
+            "Done when the determination cites and attaches the governing clause."
+          ],
+          "verify": [
+            "Open the determination and follow the clause attachment.",
+            "Pass when the cited clause matches the basis selected."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fimi40jqkkfgzy8foe83k",
+      "verifier": "Annuity Service Specialist",
+      "generic": {
+        "Defined scope/population": "Contracts reaching maturity or endowment in the next 90 to 120 days.",
+        "In-scope period": "The forward window used for the extract run in the current cycle.",
+        "Required fields populated and valid": "Contract number, maturity date, status, mailing address and notification due date.",
+        "Control totals or record counts reconcile": "Contracts maturing in the window equal records on the published working list.",
+        "Evidence retained with timestamp/version": "Extract retained with its run date and the parameters used.",
+        "Exceptions logged with disposition": "Returned-mail flagged records logged and routed to address verification.",
+        "Test population": "All contracts with a maturity date inside the forward window.",
+        "Pass/fail thresholds": "No contract maturing in the period is absent from the generated working list.",
+        "Exception handling path": "Contracts already in death-claim status are excluded and logged as such.",
+        "Documented acceptance criteria": "Working list carries maturity date and notification due date per record.",
+        "Evidence location": "BI reporting platform extract published to the annuity service queue."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Run the maturity and endowment extract",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Run the extract for contracts maturing in the next 90 to 120 days.",
+            "Record the run date and the window parameters used.",
+            "Save the raw extract for evidence.",
+            "Done when the extract is run and saved with its parameters."
+          ],
+          "verify": [
+            "Re-run the extract for the same window and compare record counts.",
+            "Pass when the counts agree."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Filter out contracts already in another status",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Remove contracts already surrendered, annuitised or in death-claim status.",
+            "Log each exclusion with its status reason.",
+            "Retain the exclusion log with the extract.",
+            "Done when exclusions are applied and logged."
+          ],
+          "verify": [
+            "Compare the exclusion log to the raw extract statuses.",
+            "Pass when every excluded record carries a status reason."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Validate maturity dates against contract terms",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Compare each maturity date to the contract issue date and term.",
+            "Check for extension or continuation endorsements changing the date.",
+            "Correct any record whose maturity date is wrong.",
+            "Done when every maturity date is validated against the contract."
+          ],
+          "verify": [
+            "Sample three records and recompute their maturity dates.",
+            "Pass when the recomputed dates equal the extract dates."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm mailing addresses and returned-mail flags",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Confirm each record carries a current mailing address.",
+            "Flag records marked as returned mail.",
+            "Route flagged records to address verification.",
+            "Done when address status is recorded for every record."
+          ],
+          "verify": [
+            "Count records with no address or a returned-mail flag.",
+            "Pass when each such record carries an address verification referral."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Compute the notification due date per record",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Read the contractual notification lead time for each product.",
+            "Compute the notification due date from the maturity date.",
+            "Record the due date on the working list.",
+            "Done when every record carries a notification due date."
+          ],
+          "verify": [
+            "Recompute a sample of due dates from the lead times.",
+            "Pass when the recomputed dates equal the recorded dates."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Publish the working list to the annuity service queue",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Publish the validated working list to the annuity service queue.",
+            "Confirm every record is assigned for action.",
+            "Retain the published version with its publication date.",
+            "Done when the working list is published and assigned."
+          ],
+          "verify": [
+            "Compare contracts maturing in the period to the published list.",
+            "Pass when no maturing contract is absent from the list."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fi01d0998kfgzvwdhbszw",
+      "verifier": "Accountant",
+      "generic": {
+        "Defined scope/population": "Annuity and endowment payouts requiring Form 1099-R reporting for the tax year.",
+        "In-scope period": "The tax year of payment, filed by the IRS deadline for that year.",
+        "Required fields populated and valid": "Distribution code, gross distribution, taxable amount, basis and withholding populated.",
+        "Control totals or record counts reconcile": "Form withholding boxes equal the amounts actually remitted for the payee.",
+        "Evidence retained with timestamp/version": "Filing acknowledgment and recipient copy evidence retained with dates.",
+        "Exceptions logged with disposition": "TIN or address mismatches logged and corrected before the file is produced.",
+        "Test population": "All annuity payouts made in the tax year.",
+        "Pass/fail thresholds": "No form issues with a taxable amount inconsistent with the recorded cost basis.",
+        "Exception handling path": "Basis disputes route to the Annuity Service Specialist before filing.",
+        "Documented acceptance criteria": "Distribution code, taxable amount and withholding agree with the payment transaction.",
+        "Evidence location": "ERP tax reporting records with the PolicyCenter contract basis record."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Select the correct distribution code",
+          "actor": "Accountant",
+          "sop": [
+            "Read the payment type of death benefit, normal, early or 1035 exchange.",
+            "Select the matching distribution code.",
+            "Record the code and its basis on the reporting record.",
+            "Done when every payout carries a selected distribution code."
+          ],
+          "verify": [
+            "Compare the selected code to the payment type recorded.",
+            "Pass when the code matches the payment type for every payout."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Populate gross, taxable and basis amounts",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Populate gross distribution from the payment transaction.",
+            "Populate taxable amount and employee contributions from the contract calculation.",
+            "Confirm gross less basis equals the taxable amount.",
+            "Done when the three amounts are populated and consistent."
+          ],
+          "verify": [
+            "Recompute taxable amount as gross less cost basis.",
+            "Pass when the recomputed amount equals the reported taxable amount."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Populate federal and state withholding boxes",
+          "actor": "Accountant",
+          "sop": [
+            "Populate the federal and state withholding boxes.",
+            "Agree each to the amounts actually remitted to the authority.",
+            "Correct any difference before the file is produced.",
+            "Done when the withholding boxes agree with the remittances."
+          ],
+          "verify": [
+            "Compare the withholding boxes to the remittance records.",
+            "Pass when the amounts agree exactly."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Validate recipient TIN and address",
+          "actor": "Accountant",
+          "sop": [
+            "Validate the recipient TIN against the IRS matching result.",
+            "Confirm the recipient address is current.",
+            "Correct any mismatch before the file is produced.",
+            "Done when TIN and address are validated for every recipient."
+          ],
+          "verify": [
+            "List recipients with a TIN or address mismatch flag.",
+            "Pass when no flagged recipient remains in the production file."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Transmit the file by the IRS deadline",
+          "actor": "Accountant",
+          "sop": [
+            "Transmit the file through the required electronic channel.",
+            "Confirm transmission occurs on or before the IRS deadline.",
+            "Retain the acknowledgment with its receipt date.",
+            "Done when the file is transmitted and acknowledged."
+          ],
+          "verify": [
+            "Compare the transmission date to the IRS deadline.",
+            "Pass when the acknowledged transmission predates the deadline."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Retain recipient copy mailing evidence",
+          "actor": "Accountant",
+          "sop": [
+            "Despatch the recipient copies by the statutory date.",
+            "Retain the mailing or electronic delivery evidence.",
+            "Link the evidence to the reporting record.",
+            "Done when recipient copy evidence is retained and linked."
+          ],
+          "verify": [
+            "Open the reporting record and follow the delivery evidence link.",
+            "Pass when the evidence opens and is dated within the statutory window."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fimrw0juckfgzmpx80biy",
+      "verifier": "Annuity Service Specialist",
+      "generic": {
+        "Defined scope/population": "Policyowners of contracts approaching maturity who must be notified of their elections.",
+        "In-scope period": "From the contractual notification lead time until the election deadline passes.",
+        "Required fields populated and valid": "Projected value, options, deadline, default and withholding form referenced.",
+        "Control totals or record counts reconcile": "Notices issued equal contracts on the maturity working list.",
+        "Evidence retained with timestamp/version": "Notice imaged with template version and logged send date per contract.",
+        "Exceptions logged with disposition": "Non-responding owners logged with second-channel outreach attempts.",
+        "Test population": "All contracts maturing in the reporting period.",
+        "Pass/fail thresholds": "No contract is defaulted at maturity without evidence of notice and follow-up.",
+        "Exception handling path": "Returned notices route to address verification and repeat outreach.",
+        "Documented acceptance criteria": "Notice issued and logged within the contractual lead time per contract.",
+        "Evidence location": "CRM correspondence history with the imaged notice in the claim repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Issue the maturity notice within the lead time",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Read the contractual notification lead time for the product.",
+            "Issue the maturity notice on or before the due date.",
+            "Log the issue date against the contract.",
+            "Done when the notice is issued within the lead time."
+          ],
+          "verify": [
+            "Compare the issue date to the notification due date.",
+            "Pass when the notice was issued on or before the due date."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Show the projected value and available options",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Show the projected maturity value on the notice.",
+            "Show annuitisation, lump sum and continuation alternatives.",
+            "Confirm the options match the contract terms.",
+            "Done when value and options appear on the notice."
+          ],
+          "verify": [
+            "Compare the shown options to the contract option list.",
+            "Pass when every contractual option is presented."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "State the election deadline and the default",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "State the election deadline clearly on the notice.",
+            "State the default that applies if no election is received.",
+            "Confirm the default matches the contract wording.",
+            "Done when the deadline and default are stated."
+          ],
+          "verify": [
+            "Read the notice for the deadline and the default.",
+            "Pass when both appear and the default matches the contract."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Include the tax summary and withholding form",
+          "actor": "Claims Processor",
+          "sop": [
+            "Include the tax consequences summary for each option.",
+            "Enclose the withholding election form for the elected route.",
+            "Confirm the enclosures are the current approved versions.",
+            "Done when the tax summary and form are enclosed."
+          ],
+          "verify": [
+            "Read the enclosure list against the approved template register.",
+            "Pass when both enclosures are present and current."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Log the notice and set the follow-up diary",
+          "actor": "Claims Processor",
+          "sop": [
+            "Log the notice date and channel in the CRM against the owner.",
+            "Set the follow-up diary before the election deadline.",
+            "Assign the diary to the annuity service queue.",
+            "Done when the notice is logged and the diary is set."
+          ],
+          "verify": [
+            "Read the CRM history and the diary for the contract.",
+            "Pass when both the log entry and a future diary exist."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Escalate to second-channel outreach on no response",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Work the diary where no election has been received.",
+            "Attempt a second channel and log the outcome.",
+            "Block default application where no notice and follow-up exist.",
+            "Done when non-responders show second-channel outreach."
+          ],
+          "verify": [
+            "Query contracts defaulted with no notice or follow-up evidence.",
+            "Pass when that query returns no contracts."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhzsp093skfgztpzvcu1k",
+      "verifier": "Annuity Service Specialist",
+      "generic": {
+        "Defined scope/population": "Contracts reaching maturity where a payout or annuitisation is to be processed.",
+        "In-scope period": "Values computed as at the maturity date with payment issued thereafter.",
+        "Required fields populated and valid": "Maturity value, elected route, deductions, withholding and contract status recorded.",
+        "Control totals or record counts reconcile": "Maturity value less deductions and withholding equals the amount released.",
+        "Evidence retained with timestamp/version": "Payout record retained with computation date and payment reference.",
+        "Exceptions logged with disposition": "Missing withholding elections logged and resolved before release.",
+        "Test population": "All maturity payouts processed in the reporting period.",
+        "Pass/fail thresholds": "No maturity payout releases with no withholding election on file for taxable gain.",
+        "Exception handling path": "Unclear elections default per the contract with the default evidence retained.",
+        "Documented acceptance criteria": "Payout record shows value, deductions, withholding and matured-paid status.",
+        "Evidence location": "PolicyCenter contract record with the payment system and ERP postings."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Compute the maturity value as at the maturity date",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Compute the contract value at the maturity date.",
+            "Include any terminal bonus or interest credit due.",
+            "Record each component as a separate line.",
+            "Done when the maturity value is computed with its components."
+          ],
+          "verify": [
+            "Recompute the value from the contract terms and the maturity date.",
+            "Pass when the recomputed value equals the recorded value."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Apply the elected payout route",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Read the owner's election of lump sum, annuitisation or continuation.",
+            "Apply the guaranteed or current annuitisation rate where relevant.",
+            "Record the route applied and the rate basis used.",
+            "Done when the elected route and rate basis are applied."
+          ],
+          "verify": [
+            "Compare the applied route to the signed election.",
+            "Pass when the route matches the election on file."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Deduct loans, charges and unpaid rider charges",
+          "actor": "Claims Processor",
+          "sop": [
+            "Deduct outstanding loans from the maturity value.",
+            "Deduct surrender charges where applicable and unpaid rider charges.",
+            "Record each deduction on its own line.",
+            "Done when all deductions are applied and shown separately."
+          ],
+          "verify": [
+            "Recompute the deductions from the contract records.",
+            "Pass when the recomputed deductions equal those applied."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Apply withholding to the taxable gain",
+          "actor": "Accountant",
+          "sop": [
+            "Identify the taxable gain within the maturity value.",
+            "Confirm the withholding election form is on file.",
+            "Apply federal and state withholding to the gain.",
+            "Done when withholding is applied against a filed election."
+          ],
+          "verify": [
+            "List maturity payouts and check for a filed withholding election.",
+            "Pass when no payout releases without an election on file."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Release the payment to the policyowner",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Release the net payment through the payment system.",
+            "Record the payment reference and issue date on the contract.",
+            "Confirm the destination matches the verified owner record.",
+            "Done when the payment is released and referenced on the contract."
+          ],
+          "verify": [
+            "Compare the released amount to the computed net payable.",
+            "Pass when the two amounts agree."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Set matured-paid status and reconcile the ledger",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Post the contract to matured-paid status.",
+            "Reconcile the payment to the annuity payable account in the ERP.",
+            "Clear the item within the accounting period.",
+            "Done when the contract is matured-paid and the ledger reconciles."
+          ],
+          "verify": [
+            "Read the contract status and the annuity payable balance.",
+            "Pass when the status is matured-paid and the item is cleared."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fkj8d1fc2kfgzpo0e3ucf",
+      "verifier": "Annuity Service Specialist",
+      "generic": {
+        "Defined scope/population": "Annuity death benefit claims notified on in-force annuity contracts.",
+        "In-scope period": "From notification receipt until the claim is registered with requirements loaded.",
+        "Required fields populated and valid": "Contract link, owner or annuitant indicator, qualification status and reporter captured.",
+        "Control totals or record counts reconcile": "Annuity death notifications equal annuity claims registered.",
+        "Evidence retained with timestamp/version": "Notification imaged with received date and the sanctions screen timestamped.",
+        "Exceptions logged with disposition": "Claims opened on the wrong template logged and corrected before requirements issue.",
+        "Test population": "All annuity death claims registered in the reporting period.",
+        "Pass/fail thresholds": "No annuity death claim uses the life death-claim requirements template.",
+        "Exception handling path": "Contracts that fail to link route to the Claims Processor for policy lookup.",
+        "Documented acceptance criteria": "Claim linked to the contract with death indicator and qualification status set.",
+        "Evidence location": "ClaimCenter claim header with the PolicyCenter contract link."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Register the claim and link the contract",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Register the annuity death claim in ClaimCenter.",
+            "Link it to the annuity contract in PolicyCenter.",
+            "Confirm product type and account value pull through.",
+            "Done when the claim is linked with contract values pulled through."
+          ],
+          "verify": [
+            "Compare the pulled-through values to the contract record.",
+            "Pass when product type and account value match the contract."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Capture whether the owner or annuitant died",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Determine whether the deceased was the owner or the annuitant.",
+            "Record the indicator, since the payable benefit differs.",
+            "Flag contracts where both roles were held by the deceased.",
+            "Done when the death indicator is recorded on the claim."
+          ],
+          "verify": [
+            "Compare the indicator to the contract roles held by the deceased.",
+            "Pass when the indicator matches the contract role."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record reporter details and qualification status",
+          "actor": "Claims Processor",
+          "sop": [
+            "Record the reporter name, relationship and the date of death.",
+            "Record whether the contract is qualified or non-qualified.",
+            "Confirm both are stored on the claim header.",
+            "Done when reporter and qualification status are recorded."
+          ],
+          "verify": [
+            "Read the claim header for reporter and qualification fields.",
+            "Pass when both are populated."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Load the annuity death requirements template",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Load the annuity death requirements template, not the life template.",
+            "Confirm the distribution election form and W-9 are included.",
+            "Record the template version loaded.",
+            "Done when the annuity template is loaded with its forms."
+          ],
+          "verify": [
+            "Read the loaded template name on the claim.",
+            "Pass when the annuity death template is loaded, not the life template."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Run the first-notice sanctions screen",
+          "actor": "Claims Processor",
+          "sop": [
+            "Submit the reporter and named beneficiaries for sanctions screening.",
+            "Record the result and timestamp against the claim.",
+            "Hold payment set-up on any potential hit.",
+            "Done when a screening result is recorded for every named party."
+          ],
+          "verify": [
+            "List named parties and read their screening results.",
+            "Pass when each carries a result with a timestamp."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Image the notification and set intake diaries",
+          "actor": "Claims Processor",
+          "sop": [
+            "Image the source notification to the claim document repository.",
+            "Set the intake diary for the requirements return.",
+            "Assign the diary to the annuity service queue.",
+            "Done when the notification is imaged and the diary is set."
+          ],
+          "verify": [
+            "Open the claim and read the imaged notification and diary.",
+            "Pass when both are present with dates."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "2db28f2d-14fa-437a-ba2e-48d9f878b43e",
+      "verifier": "Claims Analyst",
+      "generic": {
+        "Defined scope/population": "Matured contracts with no owner response after the required outreach attempts.",
+        "In-scope period": "The dormancy period measured from the maturity date under the owner's state rules.",
+        "Required fields populated and valid": "Outreach history, dormancy computation, owner address and property type code recorded.",
+        "Control totals or record counts reconcile": "Balances moved to the holding account equal the referred contract values.",
+        "Evidence retained with timestamp/version": "Outreach and dormancy evidence retained with dates against each contract.",
+        "Exceptions logged with disposition": "Owner contact within the dormancy period logged and the referral withdrawn.",
+        "Test population": "All maturities referred to unclaimed property in the reporting period.",
+        "Pass/fail thresholds": "No contract is escheated where owner contact occurred within the dormancy period.",
+        "Exception handling path": "Incomplete outreach returns the contract to the outreach process before referral.",
+        "Documented acceptance criteria": "Outreach history and dormancy computation attached to each referred contract.",
+        "Evidence location": "ERP unclaimed property holding account with the PolicyCenter contract record."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm required outreach attempts were made",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Read the outreach history for each candidate contract.",
+            "Confirm the required attempts including address searches after returned mail.",
+            "Return contracts with incomplete outreach to the outreach process.",
+            "Done when outreach completeness is confirmed per contract."
+          ],
+          "verify": [
+            "Count documented attempts against the required number.",
+            "Pass when each referred contract meets the required attempt count."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Compute the dormancy period",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Read the owner's last known state of residence.",
+            "Compute the dormancy period from the maturity date under that state's rules.",
+            "Record the computation and the state rule reference.",
+            "Done when the dormancy computation is recorded per contract."
+          ],
+          "verify": [
+            "Recompute the dormancy end date from the maturity date and state rule.",
+            "Pass when the recomputed date equals the recorded date."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm no owner-initiated contact restarted the clock",
+          "actor": "Annuity Service Specialist",
+          "sop": [
+            "Search for owner-initiated contact or transactions in the period.",
+            "Exclude company mailings and interest postings from the test.",
+            "Record the finding against the contract.",
+            "Done when the owner-activity test is recorded per contract."
+          ],
+          "verify": [
+            "List contracts with owner activity inside the dormancy period.",
+            "Pass when none of those contracts is referred."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Move the balance to the holding account",
+          "actor": "Accountant",
+          "sop": [
+            "Transfer the contract balance to the unclaimed property holding account.",
+            "Freeze further contract activity after the transfer.",
+            "Record the transfer reference and date.",
+            "Done when the balance is transferred and activity is frozen."
+          ],
+          "verify": [
+            "Compare the holding account movement to the referred balances.",
+            "Pass when the movement equals the total referred value."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Add the contract to the state remittance working file",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Add owner details, last known address and property type code.",
+            "Add the dormancy date and the amount for each item.",
+            "Confirm the item is assigned to the correct state.",
+            "Done when the contract appears on the remittance working file."
+          ],
+          "verify": [
+            "Read the working file entry for the required fields.",
+            "Pass when owner, address, property type, dormancy date and amount are present."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Attach the evidence pack to the contract",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Attach the outreach history and dormancy computation to the contract record.",
+            "Record the referral date on the ClaimCenter record.",
+            "Retain the pack for the statutory examination period.",
+            "Done when the evidence pack is attached and dated."
+          ],
+          "verify": [
+            "Open a referred contract and read its attached evidence.",
+            "Pass when outreach history and dormancy computation both open."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjw5p1532kfgzu63fqh4e",
+      "verifier": "Life Claims Examiner",
+      "generic": {
+        "Defined scope/population": "Claims from beneficiaries located through outreach or a search sweep.",
+        "In-scope period": "Interest computed from the original date of death to the current payment date.",
+        "Required fields populated and valid": "Claimant identity, entitlement basis, benefit principal and interest recorded.",
+        "Control totals or record counts reconcile": "Benefit plus interest equals the amount recorded payable on the claim.",
+        "Evidence retained with timestamp/version": "Identity and entitlement documents imaged with received dates.",
+        "Exceptions logged with disposition": "Deceased original beneficiaries logged with estate documentation obtained.",
+        "Test population": "All located-beneficiary claims adjudicated in the reporting period.",
+        "Pass/fail thresholds": "No claim is paid on identity evidence alone with no proof of entitlement.",
+        "Exception handling path": "Successor entitlement questions route to Legal Counsel through the examiner.",
+        "Documented acceptance criteria": "Entitlement determination names the claimant, the basis and the amount payable.",
+        "Evidence location": "ClaimCenter adjudication note with documents in the claim repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Verify the claimant is the beneficiary or lawful successor",
+          "actor": "Life Claims Examiner",
+          "sop": [
+            "Compare the located claimant to the beneficiary of record.",
+            "Where they differ, establish the lawful succession to that interest.",
+            "Record the entitlement route on the claim.",
+            "Done when the entitlement route is recorded."
+          ],
+          "verify": [
+            "Read the entitlement route against the designation of record.",
+            "Pass when the claimant is the beneficiary or a documented successor."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Obtain identity and relationship proof",
+          "actor": "Claims Processor",
+          "sop": [
+            "Obtain a government-issued photo ID from the claimant.",
+            "Obtain proof of relationship to the insured.",
+            "Obtain the death certificate if not already on file.",
+            "Done when identity, relationship and death proof are on file."
+          ],
+          "verify": [
+            "Open the three document types on the claim.",
+            "Pass when all three are present and legible."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Obtain estate documentation for deceased beneficiaries",
+          "actor": "Life Claims Examiner",
+          "sop": [
+            "Where the original beneficiary has since died, obtain their death certificate.",
+            "Obtain letters testamentary or equivalent estate documentation.",
+            "Record the successor chain on the claim.",
+            "Done when the successor chain is documented."
+          ],
+          "verify": [
+            "Follow the successor chain from the original beneficiary to the claimant.",
+            "Pass when each link in the chain has supporting documentation."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Compute benefit plus interest to the payment date",
+          "actor": "Claims Processor",
+          "sop": [
+            "Take the original benefit principal from the policy record.",
+            "Compute interest from the original date of death to the payment date.",
+            "Record principal and interest as separate figures.",
+            "Done when principal and interest are computed separately."
+          ],
+          "verify": [
+            "Recompute the interest from the two dates and the rate.",
+            "Pass when the recomputed interest equals the recorded amount."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the adjudication decision",
+          "actor": "Life Claims Examiner",
+          "sop": [
+            "Record the decision, the entitlement basis and the amount payable.",
+            "Link the identity and entitlement documents to the decision.",
+            "Route the decision to payment set-up.",
+            "Done when the decision is recorded with its linked evidence."
+          ],
+          "verify": [
+            "Open the decision and follow its evidence links.",
+            "Pass when the decision names the claimant, basis and amount."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Block payment on identity evidence alone",
+          "actor": "Life Claims Examiner",
+          "sop": [
+            "Confirm proof of entitlement exists beyond the identity documents.",
+            "Hold any claim supported only by identity evidence.",
+            "Record the hold reason on the claim.",
+            "Done when no claim proceeds on identity evidence alone."
+          ],
+          "verify": [
+            "Query located-beneficiary payments with no entitlement proof.",
+            "Pass when that query returns no payments."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "34b84282-6fdc-4161-a06f-99277e9c607c",
+      "verifier": "Claims Processor",
+      "generic": {
+        "Defined scope/population": "Beneficiaries who cannot be reached on unpaid benefits requiring documented outreach.",
+        "In-scope period": "The outreach cycle prescribed by the settlement agreement before escheatment.",
+        "Required fields populated and valid": "Attempt date, channel, address used and outcome recorded per attempt.",
+        "Control totals or record counts reconcile": "Attempts logged equal the prescribed number of documented attempts.",
+        "Evidence retained with timestamp/version": "Locator search output and returned mail evidence retained with dates.",
+        "Exceptions logged with disposition": "Beneficiaries found deceased logged and routed to successor identification.",
+        "Test population": "All unreachable beneficiaries worked in the reporting period.",
+        "Pass/fail thresholds": "No benefit moves to escheatment with fewer than the required attempts.",
+        "Exception handling path": "Newly located addresses restart the written contact sequence.",
+        "Documented acceptance criteria": "Outreach history shows the prescribed attempts with dates and outcomes.",
+        "Evidence location": "ClaimCenter outreach history with the LexisNexis Risk search output attached."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Run the locator search in LexisNexis Risk",
+          "actor": "Claims Processor",
+          "sop": [
+            "Submit the beneficiary identifiers to the commercial locator service.",
+            "Capture the returned addresses and the search run date.",
+            "Attach the output to the benefit record.",
+            "Done when the locator output is attached with its run date."
+          ],
+          "verify": [
+            "Open the attached output and read the run date.",
+            "Pass when the output is present and dated."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Attempt written contact at each known address",
+          "actor": "Claims Processor",
+          "sop": [
+            "Write to the last known address and any newly located address.",
+            "Record each mailing date and the address used.",
+            "Record returned mail against the address that failed.",
+            "Done when written attempts are made at every known address."
+          ],
+          "verify": [
+            "Count written attempts against known addresses.",
+            "Pass when each known address has a logged written attempt."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Attempt telephone and email contact",
+          "actor": "Claims Processor",
+          "sop": [
+            "Attempt telephone contact on every number held.",
+            "Attempt email where an address is available.",
+            "Log the outcome of each attempt in the CRM.",
+            "Done when telephone and email attempts are logged."
+          ],
+          "verify": [
+            "Read the CRM history for telephone and email attempts.",
+            "Pass when each held contact route shows a logged attempt."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Search the Death Master File for the beneficiary",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Submit the beneficiary to the Death Master File search.",
+            "Record whether the beneficiary is also deceased.",
+            "Route confirmed deaths to successor identification.",
+            "Done when the beneficiary death search result is recorded."
+          ],
+          "verify": [
+            "Read the recorded search result for the beneficiary.",
+            "Pass when a result is present for every worked beneficiary."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the full outreach history",
+          "actor": "Claims Processor",
+          "sop": [
+            "Record every attempt with date, channel, address and outcome.",
+            "Store the history against the benefit rather than only the claim note.",
+            "Confirm the history can be produced to an examiner.",
+            "Done when the complete outreach history is stored on the benefit."
+          ],
+          "verify": [
+            "Export the outreach history for one benefit.",
+            "Pass when the export shows every attempt with its four fields."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm attempt count before any escheatment referral",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Count documented attempts against the prescribed number.",
+            "Block the escheatment referral where the count falls short.",
+            "Record the completeness check on the benefit.",
+            "Done when only fully worked benefits can be referred."
+          ],
+          "verify": [
+            "Query benefits referred with fewer than the required attempts.",
+            "Pass when that query returns no benefits."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "3a0e435b-340c-401e-abe2-9c3183b4113e",
+      "verifier": "Claims Processor",
+      "generic": {
+        "Defined scope/population": "Beneficiaries whose proceeds are settled into a retained asset account.",
+        "In-scope period": "Delivered at or before the account funding date.",
+        "Required fields populated and valid": "Interest rate, crediting method, withdrawal terms, fees and dormancy terms stated.",
+        "Control totals or record counts reconcile": "Accounts opened equal disclosure packages logged as delivered.",
+        "Evidence retained with timestamp/version": "Disclosure imaged with template version and logged delivery date and channel.",
+        "Exceptions logged with disposition": "Undeliverable packages logged and re-issued to a verified address.",
+        "Test population": "All accounts opened in the reporting period.",
+        "Pass/fail thresholds": "No account is funded before the disclosure package delivery date.",
+        "Exception handling path": "Rate changes before funding require a re-issued disclosure.",
+        "Documented acceptance criteria": "Delivery logged with template version at or before the funding date.",
+        "Evidence location": "ClaimCenter correspondence log with the imaged package in the claim repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "State the account is a company obligation",
+          "actor": "Claims Processor",
+          "sop": [
+            "State that the account is an obligation of the company.",
+            "State that balances are not bank deposits and not FDIC insured.",
+            "Use the approved wording without amendment.",
+            "Done when the obligation and insurance statements are present."
+          ],
+          "verify": [
+            "Read the package for both statements.",
+            "Pass when both appear in the approved wording."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "State the interest rate and crediting method",
+          "actor": "Claims Analyst",
+          "sop": [
+            "State the current interest rate and how it is set.",
+            "State how often the rate changes and the crediting method.",
+            "Confirm the rate matches the rate to be applied on funding.",
+            "Done when rate, change frequency and crediting method are stated."
+          ],
+          "verify": [
+            "Compare the stated rate to the rate applied at funding.",
+            "Pass when the two rates match."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Explain immediate full withdrawal by a single draft",
+          "actor": "Claims Processor",
+          "sop": [
+            "Explain that the full balance can be withdrawn immediately.",
+            "Confirm that a single draft can take the whole balance with no penalty.",
+            "Use plain language in the explanation.",
+            "Done when the full-withdrawal explanation is present."
+          ],
+          "verify": [
+            "Read the package for the full-withdrawal wording.",
+            "Pass when the wording states a single penalty-free full draft."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Disclose fees, minimums and escheatment consequences",
+          "actor": "Claims Processor",
+          "sop": [
+            "Disclose any fees and minimum draft amounts.",
+            "Disclose the dormancy and escheatment consequences.",
+            "Confirm the disclosure matches the account terms in the payment system.",
+            "Done when fees, minimums and dormancy terms are disclosed."
+          ],
+          "verify": [
+            "Compare the disclosed terms to the configured account terms.",
+            "Pass when the disclosure matches the configured terms."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Deliver the package and log the send",
+          "actor": "Claims Processor",
+          "sop": [
+            "Send the package to the beneficiary's verified address.",
+            "Log the delivery date and channel against the account.",
+            "Retain the exact template version sent.",
+            "Done when the delivery is logged with the template version."
+          ],
+          "verify": [
+            "Read the delivery log for date, channel and version.",
+            "Pass when all three are recorded."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Block funding before disclosure delivery",
+          "actor": "Claims Processor",
+          "sop": [
+            "Compare the planned funding date to the disclosure delivery date.",
+            "Hold funding where the disclosure has not been delivered.",
+            "Record the sequencing check on the account.",
+            "Done when no account funds before its disclosure delivery."
+          ],
+          "verify": [
+            "Query accounts funded before the disclosure delivery date.",
+            "Pass when that query returns no accounts."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjtou144wkfgzy799wn6w",
+      "verifier": "Claims Processor",
+      "generic": {
+        "Defined scope/population": "Retained asset accounts opened to settle a beneficiary share.",
+        "In-scope period": "From election or default confirmation until the account is opened and funded.",
+        "Required fields populated and valid": "Legal name, verified address, TIN, opening balance and crediting rate populated.",
+        "Control totals or record counts reconcile": "Opening balance equals the claim net payable plus statutory interest.",
+        "Evidence retained with timestamp/version": "Account opening record retained with the funding date and the rate applied.",
+        "Exceptions logged with disposition": "Identity or sanctions gaps logged and the account opening held.",
+        "Test population": "All accounts opened in the reporting period.",
+        "Pass/fail thresholds": "No account opens for a beneficiary with unresolved identity or sanctions checks.",
+        "Exception handling path": "Rate mismatches route to the Claims Analyst before funding.",
+        "Documented acceptance criteria": "Opening balance equals net payable plus interest with the disclosed rate applied.",
+        "Evidence location": "Payment system account record reconciled to the ERP and ClaimCenter claim."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the account election or contractual default",
+          "actor": "Claims Processor",
+          "sop": [
+            "Read the beneficiary's settlement election.",
+            "Where the account is the contractual default, confirm the options disclosure was delivered.",
+            "Record the basis for the account settlement.",
+            "Done when the election or default basis is recorded."
+          ],
+          "verify": [
+            "Read the recorded basis against the election or disclosure log.",
+            "Pass when the basis is supported by an election or a logged disclosure."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Verify identity and sanctions clearance before opening",
+          "actor": "Claims Processor",
+          "sop": [
+            "Read the beneficiary identity verification result.",
+            "Read the sanctions screening result and timestamp.",
+            "Hold the opening where either is unresolved.",
+            "Done when both checks are cleared before opening."
+          ],
+          "verify": [
+            "Compare both results to the account opening timestamp.",
+            "Pass when both cleared before the account was opened."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Open the account in the beneficiary's legal name",
+          "actor": "Claims Processor",
+          "sop": [
+            "Open the account in the beneficiary's legal name.",
+            "Use the verified mailing address and the TIN on file.",
+            "Link the account to the claim and beneficiary share.",
+            "Done when the account is opened with verified details and linked."
+          ],
+          "verify": [
+            "Compare the account name and address to the verified claimant record.",
+            "Pass when both match the verified record."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Fund the account with the full net benefit plus interest",
+          "actor": "Claims Processor",
+          "sop": [
+            "Fund the account with the net benefit plus statutory interest.",
+            "Confirm the opening balance equals the claim payable for that share.",
+            "Record the funding date and reference.",
+            "Done when the account is funded to the full payable amount."
+          ],
+          "verify": [
+            "Compare the opening balance to the claim net payable plus interest.",
+            "Pass when the two figures agree exactly."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Set the crediting rate to the disclosed rate",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Set the interest crediting rate on the account.",
+            "Confirm the rate matches the rate stated in the delivered disclosure.",
+            "Record the rate and its effective date.",
+            "Done when the crediting rate matches the disclosed rate."
+          ],
+          "verify": [
+            "Compare the configured rate to the disclosed rate.",
+            "Pass when the two rates match."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Post the funding to the ledger and the claim",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Post the funding to the ERP account liability.",
+            "Record the account reference on the ClaimCenter share.",
+            "Reconcile the ledger posting to the account opening balance.",
+            "Done when the funding is posted and reconciled."
+          ],
+          "verify": [
+            "Compare the ledger posting to the account opening balance.",
+            "Pass when the two agree with no variance."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjtww148ekfgzhqs2is8x",
+      "verifier": "Claims Processor",
+      "generic": {
+        "Defined scope/population": "Draftbooks and welcome kits due to newly opened retained asset account holders.",
+        "In-scope period": "Issued within the service standard from the account funding date.",
+        "Required fields populated and valid": "Account holder name, verified address, opening balance, rate and bank details.",
+        "Control totals or record counts reconcile": "Draftbooks issued equal accounts funded in the period.",
+        "Evidence retained with timestamp/version": "Issuance logged with delivery method and date against the account.",
+        "Exceptions logged with disposition": "Returned undeliverable kits logged and re-issued after address verification.",
+        "Test population": "All accounts funded in the reporting period.",
+        "Pass/fail thresholds": "No account is funded without an access instrument issued within the standard.",
+        "Exception handling path": "Address doubts hold the draftbook and route to address verification.",
+        "Documented acceptance criteria": "Issuance logged against the account with delivery method and date.",
+        "Evidence location": "Payment system account record with the imaged kit in the claim repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Issue the draftbook to the verified address",
+          "actor": "Claims Processor",
+          "sop": [
+            "Issue the draftbook in the account holder's name.",
+            "Send it to the verified address on the account.",
+            "Record the issue date and delivery method.",
+            "Done when the draftbook is issued to the verified address."
+          ],
+          "verify": [
+            "Compare the despatch address to the verified account address.",
+            "Pass when the two addresses match."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Include the welcome kit with balance and rate",
+          "actor": "Claims Processor",
+          "sop": [
+            "State the opening balance and the current crediting rate.",
+            "Explain how to draft the entire balance at once.",
+            "Confirm the figures match the account record.",
+            "Done when the welcome kit states balance, rate and full-draft mechanics."
+          ],
+          "verify": [
+            "Compare the kit figures to the account opening record.",
+            "Pass when balance and rate match the account."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Include statement schedule and contact routes",
+          "actor": "Claims Analyst",
+          "sop": [
+            "State the statement schedule for the account.",
+            "Include the customer service contact and complaint escalation route.",
+            "Confirm the contact details are current.",
+            "Done when schedule and contact routes are included."
+          ],
+          "verify": [
+            "Read the kit for the three items.",
+            "Pass when schedule, service contact and escalation route all appear."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the draft instrument bank details",
+          "actor": "Claims Processor",
+          "sop": [
+            "Confirm the draft carries the correct processing bank details.",
+            "Confirm the account reference printed matches the opened account.",
+            "Reject any batch with mismatched references.",
+            "Done when the draft instrument details are confirmed correct."
+          ],
+          "verify": [
+            "Compare the printed account reference to the account record.",
+            "Pass when the reference matches on the sampled drafts."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Log the issuance against the account",
+          "actor": "Claims Processor",
+          "sop": [
+            "Log the issuance date and delivery method on the account.",
+            "Link the imaged kit to the account record.",
+            "Confirm the issuance falls within the service standard from funding.",
+            "Done when the issuance is logged with method and date."
+          ],
+          "verify": [
+            "Compare the issuance date to the funding date.",
+            "Pass when the gap falls within the service standard."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Diary the kit for undeliverable returns",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Set a diary to confirm the kit was not returned undeliverable.",
+            "Log any return and route it to address verification.",
+            "Re-issue only after a verified address is recorded.",
+            "Done when the return diary is set and returns are worked."
+          ],
+          "verify": [
+            "Query funded accounts with no access instrument issued.",
+            "Pass when that query returns no accounts."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl7hf1r5wkfgzojbj4dy7",
+      "verifier": "Claims Analyst",
+      "generic": {
+        "Defined scope/population": "All open retained asset accounts monitored for dormancy against state periods.",
+        "In-scope period": "The dormancy period applicable to each holder's last known state of residence.",
+        "Required fields populated and valid": "Last owner-activity date, state, dormancy period and balance recorded per account.",
+        "Control totals or record counts reconcile": "Dormant account population and balance reconcile to the ledger liability.",
+        "Evidence retained with timestamp/version": "Dormancy report retained with its run date and parameters.",
+        "Exceptions logged with disposition": "Returned-mail accounts flagged immediately regardless of balance activity.",
+        "Test population": "All open accounts in the reporting period.",
+        "Pass/fail thresholds": "No interest posting or company mailing is treated as owner activity.",
+        "Exception handling path": "Accounts approaching the threshold route to the outreach process.",
+        "Documented acceptance criteria": "Report shows last owner-activity date and the applicable state dormancy period.",
+        "Evidence location": "BI reporting platform dormancy report reconciled to the ERP liability account."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Run the dormancy report by holder state",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Run the dormancy report using each holder's last known state of residence.",
+            "Apply that state's dormancy period to each account.",
+            "Record the run date and parameters with the report.",
+            "Done when the dormancy report is produced with state-specific periods."
+          ],
+          "verify": [
+            "Sample three accounts and check the dormancy period applied.",
+            "Pass when each matches the holder's state rule."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Count only owner-generated activity",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Treat only owner-generated transactions as resetting the clock.",
+            "Exclude interest postings and company-generated mailings.",
+            "Record the last owner-activity date per account.",
+            "Done when every account carries a last owner-activity date."
+          ],
+          "verify": [
+            "Check accounts whose clock reset for the triggering transaction type.",
+            "Pass when no reset was driven by interest or a company mailing."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Flag accounts approaching the dormancy threshold",
+          "actor": "Claims Processor",
+          "sop": [
+            "Identify accounts with no owner activity approaching the threshold.",
+            "Flag them and route them to the outreach process.",
+            "Record the flag and routing date.",
+            "Done when every approaching account is flagged and routed."
+          ],
+          "verify": [
+            "List accounts inside the approach window and read their flags.",
+            "Pass when each carries a flag and an outreach referral."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Flag returned-mail accounts immediately",
+          "actor": "Claims Processor",
+          "sop": [
+            "Identify accounts with returned mail regardless of balance activity.",
+            "Flag them immediately for outreach.",
+            "Record the returned-mail date on the account.",
+            "Done when every returned-mail account is flagged."
+          ],
+          "verify": [
+            "List accounts with returned mail and read their flags.",
+            "Pass when each is flagged irrespective of activity."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile the dormant population to the ledger",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Total the dormant account population and balances.",
+            "Reconcile them to the ERP unclaimed property liability.",
+            "Investigate and clear any variance.",
+            "Done when the dormant population reconciles to the ledger."
+          ],
+          "verify": [
+            "Compare the report total to the liability account balance.",
+            "Pass when the two agree with no unexplained variance."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Publish the dormancy report to claims management",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Publish the report with flagged accounts and reconciliation.",
+            "Record the publication date and the recipients.",
+            "Retain the published version for examination.",
+            "Done when the report is published and retained."
+          ],
+          "verify": [
+            "Open the published report and read its run date and flags.",
+            "Pass when the report shows per-account activity dates and periods."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjwg4157pkfgz1l776wei",
+      "verifier": "Claims Processor",
+      "generic": {
+        "Defined scope/population": "Payments to located beneficiaries requiring interest from the original date of death.",
+        "In-scope period": "From the original date of death to the current payment date.",
+        "Required fields populated and valid": "Principal, interest rate, rate source, interest amount and payee details recorded.",
+        "Control totals or record counts reconcile": "Principal plus interest equals the total released to the payee.",
+        "Evidence retained with timestamp/version": "Interest calculation retained with the rate source and computation date.",
+        "Exceptions logged with disposition": "Rate conflicts between statute and contract logged with the rate applied.",
+        "Test population": "All located-beneficiary payments made in the reporting period.",
+        "Pass/fail thresholds": "No located-beneficiary payment issues with no interest for the dormancy period.",
+        "Exception handling path": "Stale identity verification holds the payment until re-verified.",
+        "Documented acceptance criteria": "Payment shows principal and interest as separate lines with the rate source.",
+        "Evidence location": "Payment system record reconciled to the ERP and the ClaimCenter claim."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Compute interest from the original date of death",
+          "actor": "Claims Processor",
+          "sop": [
+            "Set the accrual start at the original date of death.",
+            "Set the accrual end at the current payment date.",
+            "Apply the rate required by statute or the settlement agreement.",
+            "Done when the interest amount is computed across the full period."
+          ],
+          "verify": [
+            "Recompute the interest from the two dates and the rate.",
+            "Pass when the recomputed amount equals the recorded interest."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Apply the higher of the statutory and account rates",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Compare the statutory rate to the account or contract rate.",
+            "Apply the higher rate where the terms require it.",
+            "Record the rate comparison and the rate applied.",
+            "Done when the applied rate and comparison are recorded."
+          ],
+          "verify": [
+            "Read the rate comparison against the two candidate rates.",
+            "Pass when the higher rate was applied and documented."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Show principal and interest as separate lines",
+          "actor": "Claims Processor",
+          "sop": [
+            "Enter principal and interest as separate payment instruction lines.",
+            "Confirm the total equals the amount payable to the beneficiary.",
+            "Confirm the interest line is reportable separately.",
+            "Done when both lines exist on the instruction."
+          ],
+          "verify": [
+            "Read the instruction lines for principal and interest.",
+            "Pass when both appear as discrete lines."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Screen the payee and confirm identity currency",
+          "actor": "Claims Processor",
+          "sop": [
+            "Screen the payee against sanctions lists before release.",
+            "Confirm the identity verification is current, not stale.",
+            "Hold the payment where either check fails.",
+            "Done when screening and identity checks are current."
+          ],
+          "verify": [
+            "Read both results and their dates against the release date.",
+            "Pass when both are current at the release date."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Flag the interest for Form 1099-INT reporting",
+          "actor": "Accountant",
+          "sop": [
+            "Flag the interest component for 1099-INT reporting.",
+            "Confirm the payee TIN supports the reporting.",
+            "Record the flag on the payment record.",
+            "Done when the interest is flagged for tax reporting."
+          ],
+          "verify": [
+            "Read the reporting flag on the payment.",
+            "Pass when every interest component carries the flag."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Post the payment and reconcile the ledger",
+          "actor": "Accountant",
+          "sop": [
+            "Post the payment to the ERP ledger with claim and account references.",
+            "Reconcile the posting to the payment system record.",
+            "Clear the item in the accounting period.",
+            "Done when the payment is posted and reconciled."
+          ],
+          "verify": [
+            "Compare the ledger posting to the released amount.",
+            "Pass when the two agree with no variance."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhy6808gqkfgzo1g3ppym",
+      "verifier": "Accountant",
+      "generic": {
+        "Defined scope/population": "Reportable unclaimed property items due for remittance in the reporting cycle.",
+        "In-scope period": "Items whose dormancy elapsed before the state report cut-off date.",
+        "Required fields populated and valid": "Owner name, last known address, TIN, property type, dormancy date and amount.",
+        "Control totals or record counts reconcile": "Package value reconciles to the unclaimed property liability account.",
+        "Evidence retained with timestamp/version": "Due-diligence letter evidence retained with issue dates per item.",
+        "Exceptions logged with disposition": "Items missing due-diligence evidence logged and held from the package.",
+        "Test population": "All items prepared for remittance in the reporting cycle.",
+        "Pass/fail thresholds": "No item is included without required due-diligence letter evidence.",
+        "Exception handling path": "Aggregate threshold uncertainty routes to the Claims Analyst for state rule review.",
+        "Documented acceptance criteria": "Per-state package with owner detail, property type and dormancy date per item.",
+        "Evidence location": "ERP unclaimed property records with the BI extract and document repository evidence."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Assemble reportable items by state and property type",
+          "actor": "Accountant",
+          "sop": [
+            "Group items by the owner's last known address state.",
+            "Assign the property type code to each item.",
+            "Produce the per-state item listing.",
+            "Done when items are grouped by state and property type."
+          ],
+          "verify": [
+            "Sample items and check their assigned state and property code.",
+            "Pass when each matches the owner address and item type."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Populate owner detail for every item",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Populate owner name, last known address and TIN where held.",
+            "Populate the dormancy date and the amount.",
+            "Flag items with incomplete owner detail.",
+            "Done when every item carries the required owner fields."
+          ],
+          "verify": [
+            "Count items with any blank required owner field.",
+            "Pass when that count is zero for the package."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Apply each state's aggregate reporting threshold",
+          "actor": "Accountant",
+          "sop": [
+            "Read the aggregate reporting threshold for each state.",
+            "Report small items in the aggregate form the state requires.",
+            "Record the threshold applied per state.",
+            "Done when aggregate thresholds are applied per state."
+          ],
+          "verify": [
+            "Compare the aggregation applied to the state rule table.",
+            "Pass when each state's aggregation follows its rule."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Include due-diligence letter evidence",
+          "actor": "Claims Processor",
+          "sop": [
+            "Identify items above the state notice threshold.",
+            "Attach the due-diligence letter evidence for each such item.",
+            "Hold items lacking the evidence from the package.",
+            "Done when every above-threshold item has letter evidence."
+          ],
+          "verify": [
+            "List above-threshold items and open their letter evidence.",
+            "Pass when every such item has dated letter evidence."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile the package to the liability account",
+          "actor": "Accountant",
+          "sop": [
+            "Total the package value across all states.",
+            "Reconcile it to the ERP unclaimed property liability account.",
+            "Document any variance and its cause.",
+            "Done when the package reconciles to the liability account."
+          ],
+          "verify": [
+            "Compare the package total to the liability balance.",
+            "Pass when the two agree or the variance is documented."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Finalise and retain the remittance package",
+          "actor": "Accountant",
+          "sop": [
+            "Finalise the per-state packages ready for filing.",
+            "Retain the package files and the reconciliation.",
+            "Record the preparation date and preparer.",
+            "Done when the packages are finalised and retained."
+          ],
+          "verify": [
+            "Open a finalised state package and read its item detail.",
+            "Pass when every item shows owner, property type and dormancy date."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl7on1r9hkfgzhzsfvcs4",
+      "verifier": "Claims Analyst",
+      "generic": {
+        "Defined scope/population": "Dormant benefits and accounts whose dormancy period has fully elapsed.",
+        "In-scope period": "Dormancy measured to the report cut-off date under the owner's state rules.",
+        "Required fields populated and valid": "Dormancy elapsed date, outreach completeness, balance and referral date recorded.",
+        "Control totals or record counts reconcile": "Balances transferred equal the referred benefit values.",
+        "Evidence retained with timestamp/version": "Outreach and dormancy evidence pack retained against each referred item.",
+        "Exceptions logged with disposition": "Items with incomplete outreach logged and returned to the outreach process.",
+        "Test population": "All benefits referred to escheatment in the reporting period.",
+        "Pass/fail thresholds": "No referred benefit remains available for draft or withdrawal after referral.",
+        "Exception handling path": "Late owner contact reverses the referral and unfreezes the account.",
+        "Documented acceptance criteria": "Referral shows dormancy elapsed, outreach complete and balance transferred.",
+        "Evidence location": "ERP unclaimed property liability account with the ClaimCenter referral record."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the state dormancy period has fully elapsed",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Read the dormancy period for the owner's state.",
+            "Confirm it has fully elapsed as at the report cut-off date.",
+            "Record the elapsed computation against the item.",
+            "Done when dormancy elapse is confirmed and recorded."
+          ],
+          "verify": [
+            "Recompute the dormancy end date from the last owner activity.",
+            "Pass when the end date precedes the report cut-off date."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm outreach and search evidence is complete",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Read the documented outreach attempts for the item.",
+            "Confirm the Death Master File and locator searches were completed.",
+            "Confirm no owner contact resulted from any attempt.",
+            "Done when outreach and search completeness are confirmed."
+          ],
+          "verify": [
+            "Count attempts and searches against the required set.",
+            "Pass when the required outreach and searches are all evidenced."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Freeze the account or benefit",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Apply the freeze so no further drafts can be presented.",
+            "Block interest elections and address changes on the item.",
+            "Record the freeze date on the account.",
+            "Done when the item is frozen against further activity."
+          ],
+          "verify": [
+            "Attempt a draft or address change on a frozen item.",
+            "Pass when the system rejects the transaction."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Transfer the balance to the liability account",
+          "actor": "Accountant",
+          "sop": [
+            "Transfer the item balance to the unclaimed property liability account.",
+            "Record the transfer reference and date in the ERP.",
+            "Reconcile the transfer to the item balance.",
+            "Done when the balance is transferred and reconciled."
+          ],
+          "verify": [
+            "Compare the transferred amount to the item balance.",
+            "Pass when the amounts agree exactly."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the escheat referral date",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Record the escheat referral date on the ClaimCenter record.",
+            "Link the referral to the remittance working file entry.",
+            "Note the state to which the item will be reported.",
+            "Done when the referral date and state are recorded."
+          ],
+          "verify": [
+            "Read the referral record for date and target state.",
+            "Pass when both are recorded on every referred item."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Retain the dormancy evidence pack",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Retain the outreach history and dormancy computation with the item.",
+            "Apply the statutory examination retention period.",
+            "Confirm the pack is retrievable for examination.",
+            "Done when the evidence pack is retained and retrievable."
+          ],
+          "verify": [
+            "Retrieve the evidence pack for a referred item.",
+            "Pass when outreach history and dormancy computation both open."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhye008kpkfgzlh5xsvh2",
+      "verifier": "Accountant",
+      "generic": {
+        "Defined scope/population": "Prepared unclaimed property packages due for filing and remittance to each state.",
+        "In-scope period": "Each state's statutory reporting deadline for the current cycle.",
+        "Required fields populated and valid": "State, filing channel, report total, remittance method and confirmation number.",
+        "Control totals or record counts reconcile": "Remittance total equals the reported detail total for each state.",
+        "Evidence retained with timestamp/version": "State confirmation number and filing date retained per state.",
+        "Exceptions logged with disposition": "State rejections and queries logged and tracked to resolution.",
+        "Test population": "All states reported in the current cycle.",
+        "Pass/fail thresholds": "No reported item remains in the liability account after remittance.",
+        "Exception handling path": "Rejected filings return to the Claims Analyst for correction and refiling.",
+        "Documented acceptance criteria": "Filing confirmation and remittance evidence retained for every state reported.",
+        "Evidence location": "Regulatory filing tracker entries reconciled to the ERP liability account."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "File each state report by its statutory deadline",
+          "actor": "Accountant",
+          "sop": [
+            "File each state report through the channel that state requires.",
+            "File on or before that state's statutory deadline.",
+            "Record the filing date in the regulatory filing tracker.",
+            "Done when every state report is filed within its deadline."
+          ],
+          "verify": [
+            "Compare each filing date to the state deadline.",
+            "Pass when no filing is later than its deadline."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Remit funds by the required method",
+          "actor": "Accountant",
+          "sop": [
+            "Remit funds by the method each state requires.",
+            "Confirm the remittance total equals the reported detail total.",
+            "Record the remittance reference per state.",
+            "Done when funds are remitted and totals agree."
+          ],
+          "verify": [
+            "Compare the remittance total to the reported detail total.",
+            "Pass when the two agree for every state."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Retain confirmation numbers and property identifiers",
+          "actor": "Accountant",
+          "sop": [
+            "Retain the state confirmation number and the filing date.",
+            "Retain any property identifiers the state assigns.",
+            "Link them to the state package in the tracker.",
+            "Done when confirmations and identifiers are retained per state."
+          ],
+          "verify": [
+            "Open the tracker entry for each state and read its confirmation.",
+            "Pass when every state shows a confirmation number and filing date."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Clear remitted items from the liability account",
+          "actor": "Accountant",
+          "sop": [
+            "Clear the remitted items from the ERP liability account.",
+            "Clear them in the same period as the remittance.",
+            "Reconcile the cleared amount to the remittance total.",
+            "Done when the remitted items are cleared in period."
+          ],
+          "verify": [
+            "Query reported items still carried in the liability account.",
+            "Pass when that query returns no items."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Log and work state rejections and queries",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Log every state rejection or query in the filing tracker.",
+            "Assign an owner and a target resolution date.",
+            "Track each to resolution before the next reporting cycle.",
+            "Done when every rejection and query is logged and owned."
+          ],
+          "verify": [
+            "List open rejections and read their owners and target dates.",
+            "Pass when each has an owner and a target date."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Reconcile the cycle and report completion",
+          "actor": "Accountant",
+          "sop": [
+            "Reconcile filings, remittances and liability clearances for the cycle.",
+            "Report completion and any open exceptions to claims management.",
+            "Retain the cycle reconciliation for examination.",
+            "Done when the cycle reconciliation is completed and retained."
+          ],
+          "verify": [
+            "Read the cycle reconciliation against the state confirmations.",
+            "Pass when every state reported has a matching confirmation and clearance."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl7um1rcvkfgzm58lgk0s",
+      "verifier": "Claims Analyst",
+      "generic": {
+        "Defined scope/population": "Retained asset account settlement obligations reportable to regulators this cycle.",
+        "In-scope period": "The reporting period defined by the settlement agreement schedule.",
+        "Required fields populated and valid": "Population, balances, interest credited, dormancy and outreach statistics captured.",
+        "Control totals or record counts reconcile": "Every reported figure reconciles to its source system extract.",
+        "Evidence retained with timestamp/version": "Reconciliation and submission confirmation retained with dates.",
+        "Exceptions logged with disposition": "Figures that will not reconcile logged and explained before submission.",
+        "Test population": "All scheduled reporting periods in the year.",
+        "Pass/fail thresholds": "No scheduled reporting period lacks a submission confirmation on file.",
+        "Exception handling path": "Unreconciled figures hold the submission pending Accountant review.",
+        "Documented acceptance criteria": "Submission carries reconciliation to source extracts and recorded internal approval.",
+        "Evidence location": "GRC platform submission record with the regulatory filing tracker confirmation."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract the account population and balances",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Extract the account population and balances for the period.",
+            "Extract interest credited and dormancy statistics.",
+            "Record the extract run date and parameters.",
+            "Done when the population extract is produced for the period."
+          ],
+          "verify": [
+            "Re-run the extract and compare totals.",
+            "Pass when the re-run totals equal the reported totals."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Compile the outreach and payment statistics",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Compile outreach attempt statistics for the period.",
+            "Compile located-beneficiary payment statistics required by the agreement.",
+            "Record the source of each statistic.",
+            "Done when the required statistics are compiled with sources."
+          ],
+          "verify": [
+            "Trace two statistics back to their source reports.",
+            "Pass when each traced statistic matches its source."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Reconcile every reported figure to source",
+          "actor": "Accountant",
+          "sop": [
+            "Reconcile each reported figure to the source system extract.",
+            "Document any difference and its explanation.",
+            "Retain the reconciliation with the submission pack.",
+            "Done when every figure is reconciled and retained."
+          ],
+          "verify": [
+            "Read the reconciliation for unexplained differences.",
+            "Pass when no figure carries an unexplained difference."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Obtain the internal sign-off",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Route the submission pack for the required internal approval.",
+            "Record the approver identity and approval date.",
+            "Hold the submission until the approval is recorded.",
+            "Done when the internal approval is recorded on the pack."
+          ],
+          "verify": [
+            "Compare the approval date to the submission date.",
+            "Pass when the approval precedes the submission."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Submit through the required channel by the due date",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Submit the report through the required regulator channel.",
+            "Submit on or before the scheduled date.",
+            "Record the submission date and channel in the tracker.",
+            "Done when the report is submitted within the schedule."
+          ],
+          "verify": [
+            "Compare the submission date to the scheduled date.",
+            "Pass when the submission is on or before the scheduled date."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "File the submission confirmation",
+          "actor": "Accountant",
+          "sop": [
+            "Retain the submission confirmation with its receipt date.",
+            "Link it to the GRC obligation record for the period.",
+            "Close the period obligation once the confirmation is filed.",
+            "Done when the confirmation is filed and the obligation closed."
+          ],
+          "verify": [
+            "Query scheduled periods with no submission confirmation on file.",
+            "Pass when that query returns no periods."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "d00e28ab-755d-4a5c-b86d-01cfcddb9458",
+      "verifier": "Claims Analyst",
+      "generic": {
+        "Defined scope/population": "The in-force and dormant benefit population swept against death and locator services.",
+        "In-scope period": "The scheduled sweep cycle covering the current population extract.",
+        "Required fields populated and valid": "Name, SSN, date of birth and last known address submitted per record.",
+        "Control totals or record counts reconcile": "Records submitted equal records returned and dispositioned.",
+        "Evidence retained with timestamp/version": "Input file, output file and match criteria retained with the sweep date.",
+        "Exceptions logged with disposition": "Every hit carries a recorded disposition with its validating evidence.",
+        "Test population": "All sweeps run in the reporting period.",
+        "Pass/fail thresholds": "No near-match is closed as no-match without documented second-source validation.",
+        "Exception handling path": "Exact matches route to claim opening and near matches to a review queue.",
+        "Documented acceptance criteria": "Sweep record shows input population, match criteria and per-hit disposition.",
+        "Evidence location": "LexisNexis Risk sweep files retained with the ClaimCenter disposition records."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract the benefit population for the sweep",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Extract in-force and dormant benefit records for the sweep.",
+            "Include name, SSN, date of birth and last known address.",
+            "Record the extract count and run date.",
+            "Done when the sweep input file is produced with its count."
+          ],
+          "verify": [
+            "Compare the input file count to the source population count.",
+            "Pass when the counts agree."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Submit the extract to the search services",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Submit the extract to the Death Master File service.",
+            "Submit it to the lost-beneficiary search service on the sweep cycle.",
+            "Capture the submission references and run dates.",
+            "Done when both submissions are made and referenced."
+          ],
+          "verify": [
+            "Read the submission references and run dates.",
+            "Pass when both services show a submission for the cycle."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Apply the documented fuzzy-match criteria",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Apply the documented fuzzy-match criteria to the returned results.",
+            "Route exact matches and near matches into separate review queues.",
+            "Record the criteria version applied.",
+            "Done when results are routed by the documented criteria."
+          ],
+          "verify": [
+            "Read the criteria version against the documented standard.",
+            "Pass when the criteria applied match the documented version."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Validate potential matches against a second source",
+          "actor": "Claims Processor",
+          "sop": [
+            "Validate each potential match against an independent second source.",
+            "Record the second source used and its result.",
+            "Do not open a claim on a single unvalidated match.",
+            "Done when every potential match carries second-source validation."
+          ],
+          "verify": [
+            "List near matches closed as no-match and read their validation.",
+            "Pass when each carries documented second-source validation."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Open claims for validated matches",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Open a claim in ClaimCenter for each validated match.",
+            "Link the claim to the swept benefit record.",
+            "Record the sweep reference on the claim.",
+            "Done when every validated match has an open linked claim."
+          ],
+          "verify": [
+            "Compare validated matches to claims opened.",
+            "Pass when every validated match has a corresponding claim."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Retain the sweep files and dispositions",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Retain the input file, output file and match criteria.",
+            "Retain the disposition of every hit for examination.",
+            "Record the retention date on the sweep record.",
+            "Done when the full sweep evidence set is retained."
+          ],
+          "verify": [
+            "Open the sweep record and list its retained artefacts.",
+            "Pass when input, output, criteria and dispositions are all retained."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "57d1e7d2-11e7-4658-9a0e-db9ea0b848e5",
+      "verifier": "Claims Processor",
+      "generic": {
+        "Defined scope/population": "Drafts, withdrawals, interest crediting and statements on open retained asset accounts.",
+        "In-scope period": "Each crediting and statement cycle while the account remains open.",
+        "Required fields populated and valid": "Draft amount, available balance, credited rate, cycle dates and statement fields.",
+        "Control totals or record counts reconcile": "Opening balance plus interest less drafts equals the closing balance each cycle.",
+        "Evidence retained with timestamp/version": "Transaction history and statements retained with cycle dates per account.",
+        "Exceptions logged with disposition": "Declined or partially honoured drafts logged with the reason and remedy.",
+        "Test population": "All open accounts serviced in the reporting period.",
+        "Pass/fail thresholds": "No draft for the full account balance is declined or partially honoured.",
+        "Exception handling path": "Rate shortfalls against statute route to the Claims Analyst for correction.",
+        "Documented acceptance criteria": "Interest credited each cycle at or above the disclosed and statutory rate.",
+        "Evidence location": "Payment system account transaction history reconciled to the ERP liability."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Process presented drafts against the balance",
+          "actor": "Claims Processor",
+          "sop": [
+            "Process each presented draft against the available balance.",
+            "Confirm no minimum-balance rule blocks a full withdrawal.",
+            "Record the draft outcome on the account.",
+            "Done when every presented draft is processed and recorded."
+          ],
+          "verify": [
+            "List drafts for the full balance and read their outcomes.",
+            "Pass when none was declined or partially honoured."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Credit interest at the disclosed rate",
+          "actor": "Claims Processor",
+          "sop": [
+            "Credit interest on the required crediting cycle.",
+            "Apply the rate stated in the delivered disclosure.",
+            "Record the rate and cycle dates on the transaction.",
+            "Done when interest is credited at the disclosed rate for the cycle."
+          ],
+          "verify": [
+            "Compare the credited rate to the disclosed rate.",
+            "Pass when the credited rate matches the disclosure."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Apply the higher statutory minimum rate where prescribed",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Read the state statutory minimum crediting rate where one applies.",
+            "Apply the higher of that and the disclosed rate.",
+            "Record the rate comparison on the account.",
+            "Done when the higher rate is applied and documented."
+          ],
+          "verify": [
+            "Compare the applied rate to both candidate rates.",
+            "Pass when the higher rate was applied every cycle."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Produce and mail the periodic statement",
+          "actor": "Claims Processor",
+          "sop": [
+            "Produce the statement showing opening balance, drafts and interest credited.",
+            "Show the closing balance for the cycle.",
+            "Mail it to the verified address and log the despatch.",
+            "Done when the cycle statement is produced and despatched."
+          ],
+          "verify": [
+            "Recompute the closing balance from the statement lines.",
+            "Pass when the recomputed balance equals the stated closing balance."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Track cumulative interest for tax reporting",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Track cumulative interest credited per account for the year.",
+            "Flag accounts meeting the 1099-INT reporting threshold.",
+            "Record the cumulative figure on the account.",
+            "Done when cumulative interest is tracked per account."
+          ],
+          "verify": [
+            "Sum the cycle interest postings for one account.",
+            "Pass when the sum equals the recorded cumulative interest."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Reconcile account activity to the ledger",
+          "actor": "Claims Processor",
+          "sop": [
+            "Reconcile drafts and interest postings to the ERP liability account.",
+            "Investigate any variance in the cycle.",
+            "Record the reconciliation outcome.",
+            "Done when the cycle activity reconciles to the ledger."
+          ],
+          "verify": [
+            "Compare the account movement to the ledger movement.",
+            "Pass when the two agree with no unexplained variance."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl7mx1r8jkfgzgamew9ly",
+      "verifier": "Claims Analyst",
+      "generic": {
+        "Defined scope/population": "Every retained asset account settlement obligation tracked in the requirement register.",
+        "In-scope period": "The current compliance cycle covering disclosure, crediting, dormancy and outreach.",
+        "Required fields populated and valid": "Obligation, mapped control, owner, current status and last test date populated.",
+        "Control totals or record counts reconcile": "Obligations in the register equal obligations with a current status recorded.",
+        "Evidence retained with timestamp/version": "Sample test evidence retained with test dates against each obligation.",
+        "Exceptions logged with disposition": "Every exception carries a root cause, remediation owner and target date.",
+        "Test population": "A sample of accounts tested each period against each obligation.",
+        "Pass/fail thresholds": "No open compliance exception exists without a remediation owner and target date.",
+        "Exception handling path": "Failed samples raise an exception routed to the control owner for remediation.",
+        "Documented acceptance criteria": "Register shows current status, sample evidence and open exceptions per obligation.",
+        "Evidence location": "GRC platform register with the BI reporting evidence extracts."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Maintain the requirement register in the GRC platform",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Map each settlement obligation to a control and an owner.",
+            "Confirm every obligation in the agreement appears in the register.",
+            "Record the register version and review date.",
+            "Done when every obligation is mapped to a control and an owner."
+          ],
+          "verify": [
+            "Compare register entries to the settlement agreement obligations.",
+            "Pass when every obligation is represented with a control and owner."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Update the compliance status each cycle",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Update status for disclosure delivery and interest crediting.",
+            "Update status for dormancy monitoring and outreach.",
+            "Record the cycle date on each status update.",
+            "Done when all four areas carry a current status."
+          ],
+          "verify": [
+            "Read the status dates against the current cycle.",
+            "Pass when every obligation shows a status dated in the cycle."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Test a sample of accounts against each obligation",
+          "actor": "Claims Processor",
+          "sop": [
+            "Select the sample of accounts for the period.",
+            "Test each sampled account against every obligation.",
+            "Record a pass or fail with the supporting evidence.",
+            "Done when every obligation has sample test results."
+          ],
+          "verify": [
+            "Open the test results and follow their evidence links.",
+            "Pass when every result resolves to retained evidence."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Log exceptions with root cause and owner",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Log each failed test as an exception.",
+            "Record the root cause, remediation owner and target date.",
+            "Track the exception until it is closed.",
+            "Done when every exception carries cause, owner and target date."
+          ],
+          "verify": [
+            "List open exceptions and read their three fields.",
+            "Pass when no open exception lacks an owner or target date."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile the register to the source data",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Reconcile register statuses to the source system extracts.",
+            "Correct any status not supported by the source data.",
+            "Retain the reconciliation with the cycle record.",
+            "Done when the register reconciles to the source extracts."
+          ],
+          "verify": [
+            "Trace two register statuses to their source extracts.",
+            "Pass when each status is supported by the source data."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Report the compliance position to claims management",
+          "actor": "Claims Analyst",
+          "sop": [
+            "Report the current compliance position on the agreed cadence.",
+            "Include the open exceptions and their target dates.",
+            "Record the report date and the recipients.",
+            "Done when the compliance position is reported and recorded."
+          ],
+          "verify": [
+            "Read the issued report against the register.",
+            "Pass when the report reflects every obligation status and open exception."
+          ]
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,576 @@
+{
+  "area": "Annuity New Business & Servicing",
+  "tasks": [
+    {
+      "taskId": "cmr2fhych08jlkfgzv2kvxv2z",
+      "verifier": "New Business Case Manager",
+      "generic": {
+        "Defined scope/population": "Annuity applications flagged in good order and awaiting routing to suitability in the workflow case management tool",
+        "In-scope period": "Cases reaching good-order status during the current processing day",
+        "Required fields populated and valid": "Good-order flag, producer of record, state of solicitation and product code populated before routing",
+        "Control totals or record counts reconcile": "Count of cases routed to suitability equals the count that reached good order that day",
+        "Evidence retained with timestamp/version": "Routing event stored on the case with routing user, target queue and timestamp",
+        "Exceptions logged with disposition": "Cases that fail routing or land in the wrong queue logged with reason and reroute date",
+        "Test population": "All suitability-queue routing events raised on the sampled processing day",
+        "Pass/fail thresholds": "Every routed case carries a good-order flag set before its routing event",
+        "Exception handling path": "Misrouted cases are returned to the case manager and rerouted within one business day",
+        "Documented acceptance criteria": "Case resides in the suitability queue with routing user, timestamp and turnaround clock started",
+        "Evidence location": "Case history in the workflow case management tool"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Open the good-order case in the workflow case management tool",
+          "actor": "Processing Clerk",
+          "sop": [
+            "Select the application case from the ready-to-route work queue",
+            "Confirm the good-order flag reads GO and no deficiency line is open",
+            "Done when the case is open and its good-order flag is confirmed"
+          ],
+          "verify": [
+            "Re-read the case header status field",
+            "Pass when the case status shows In Good Order with no open deficiency lines"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Verify suitability questionnaire images are attached in the case",
+          "actor": "Processing Clerk",
+          "sop": [
+            "Open the imaged document set attached to the case",
+            "Check every suitability questionnaire page is present and legible",
+            "Done when all questionnaire pages are confirmed attached and readable"
+          ],
+          "verify": [
+            "Count questionnaire pages against the form page count",
+            "Pass when the attached page count equals the form page count and all pages are legible"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm producer and solicitation state on the policy administration system record",
+          "actor": "New Business Case Manager",
+          "sop": [
+            "Open the contract record and read the producer of record and state of solicitation",
+            "Compare both to the signed application image",
+            "Done when producer and solicitation state match the application"
+          ],
+          "verify": [
+            "Re-read both fields on the contract record",
+            "Pass when producer and state of solicitation are populated and agree with the application"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Select the suitability review queue as the routing target in the workflow tool",
+          "actor": "New Business Case Manager",
+          "sop": [
+            "Choose the suitability review queue from the routing target list",
+            "Confirm the issue queue has not been selected by default",
+            "Done when the suitability review queue is selected as the target"
+          ],
+          "verify": [
+            "Read the selected target queue before committing the route",
+            "Pass when the target queue reads Suitability Review and not Issue"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Commit the routing action and stamp the routing date on the case",
+          "actor": "New Business Case Manager",
+          "sop": [
+            "Commit the routing action so the case leaves the intake queue",
+            "Confirm the system stamps the routing date that starts the suitability clock",
+            "Done when the case is assigned to the suitability queue with a routing date"
+          ],
+          "verify": [
+            "Open the case history and read the newest routing event",
+            "Pass when a routing event to Suitability Review exists with user and timestamp"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm queue assignment and clear the case from the intake work list",
+          "actor": "Processing Clerk",
+          "sop": [
+            "Refresh the suitability queue and confirm the case appears in it",
+            "Confirm the case no longer appears in the intake work list",
+            "Done when the case is visible only in the suitability queue"
+          ],
+          "verify": [
+            "Search both queues for the case number",
+            "Pass when the case is found in the suitability queue and absent from the intake queue"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhgk300kpkfgz7k7u12sb",
+      "verifier": "Policy Administration Analyst",
+      "generic": {
+        "Defined scope/population": "Annuity contracts awaiting a rate lock or interest crediting start date in the policy administration system",
+        "In-scope period": "Applications with funds applied or rate locks expiring in the current processing week",
+        "Required fields populated and valid": "Rate sheet version, lock start date, lock expiry date and crediting start date all populated",
+        "Control totals or record counts reconcile": "Count of contracts with a locked rate equals the count of applications in the lock population",
+        "Evidence retained with timestamp/version": "Rate sheet version and lock dates stored on the contract with the setting user and timestamp",
+        "Exceptions logged with disposition": "Re-locks and lock extensions logged with the approver and the approval note",
+        "Test population": "Contracts with a rate lock applied during the sampled week",
+        "Pass/fail thresholds": "Every locked contract shows a lock effective date, expiry date and rate sheet reference",
+        "Exception handling path": "Contracts outside the lock window are re-rated and the new rate is confirmed to the producer",
+        "Documented acceptance criteria": "Locked rate written to the contract record and reproduced on the owner confirmation",
+        "Evidence location": "Contract rate record in the policy administration system"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Retrieve the application signature and receipt dates from the policy administration system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Open the contract record and read the application signature date and intake receipt date",
+            "Confirm both dates agree with the imaged application and the intake stamp",
+            "Done when both dates are confirmed from source"
+          ],
+          "verify": [
+            "Compare the recorded dates to the application image",
+            "Pass when signature and receipt dates on the record match the source documents"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Select the rate sheet version effective on the application signature date",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Open the product rate sheet library and locate the version effective on the signature date",
+            "Confirm the sheet covers the product, share class and premium band applied for",
+            "Done when the correct rate sheet version is selected"
+          ],
+          "verify": [
+            "Read the effective and superseded dates of the selected rate sheet",
+            "Pass when the signature date falls inside the selected sheet's effective range"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Calculate the rate lock expiry date from the receipt date in the workflow tool",
+          "actor": "New Business Case Manager",
+          "sop": [
+            "Apply the product's lock window length to the intake receipt date",
+            "Record the resulting expiry date on the case",
+            "Done when the lock expiry date is calculated and recorded"
+          ],
+          "verify": [
+            "Recompute the expiry date from receipt date plus the product lock window",
+            "Pass when the recorded expiry date equals the recomputed date"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Set the interest crediting start date to the good-funds date on the contract",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Read the date the premium was confirmed collected and applied",
+            "Key that date as the interest crediting start date rather than the application date",
+            "Done when the crediting start date equals the good-funds date"
+          ],
+          "verify": [
+            "Compare the crediting start date to the premium application transaction date",
+            "Pass when the crediting start date equals the date good funds were applied"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Write the locked rate and dates to the contract record",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Key the locked rate, rate sheet reference, lock start and lock expiry to the contract",
+            "Save and confirm the values persist on the contract rate panel",
+            "Done when the locked rate and all lock dates are stored on the contract"
+          ],
+          "verify": [
+            "Re-open the contract rate panel after saving",
+            "Pass when locked rate, rate sheet version and both lock dates are populated"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Document any re-lock or lock extension approval on the case",
+          "actor": "New Business Case Manager",
+          "sop": [
+            "Where the lock was extended or reset, record the reason and the approving manager",
+            "Attach the approval note to the case in the workflow tool",
+            "Done when every re-lock or extension carries a documented approval"
+          ],
+          "verify": [
+            "List all lock changes on the contract and match each to an approval note",
+            "Pass when no lock change exists without a recorded approver and reason"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Confirm the locked rate appears on the owner confirmation output",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Preview the contract confirmation document generated from the record",
+            "Check the locked rate and crediting start date print correctly",
+            "Done when the confirmation shows the locked rate and crediting start date"
+          ],
+          "verify": [
+            "Compare the printed rate to the contract rate panel",
+            "Pass when the confirmation rate equals the rate stored on the contract"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "022b4cfe-40ad-4c39-b158-927b85bde39b",
+      "verifier": "Compliance Analyst",
+      "generic": {
+        "Defined scope/population": "New annuity applications requiring customer identification programme verification under BSA",
+        "In-scope period": "Applications received and pending CIP clearance in the current processing week",
+        "Required fields populated and valid": "Legal name, date of birth, residential address and TIN or SSN present and matching the application",
+        "Control totals or record counts reconcile": "Count of CIP records equals the count of applications pending identification clearance",
+        "Evidence retained with timestamp/version": "ID image and CIP verification result filed in the document repository with capture date",
+        "Exceptions logged with disposition": "Expired, missing or mismatched identification logged as an exception with its cure date",
+        "Test population": "Applications cleared for CIP during the sampled week",
+        "Pass/fail thresholds": "Every cleared application holds an unexpired ID image and a recorded verification method",
+        "Exception handling path": "Cases failing CIP are pended and escalated to compliance before funds are applied",
+        "Documented acceptance criteria": "CIP result, method and reviewer recorded against the application before issue",
+        "Evidence location": "Document management repository indexed to the application number"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Retrieve the identification documents from the document management repository",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Open the application folder and locate the government-issued photo identification image",
+            "Confirm the image is legible and shows the full document face",
+            "Done when the identification image is retrieved and readable"
+          ],
+          "verify": [
+            "Inspect the image for cropping or illegible fields",
+            "Pass when name, date of birth and expiry date are all readable on the image"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Check the identification expiry date against the application date",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Read the expiry date printed on the identification document",
+            "Compare it to the application signature date",
+            "Done when the identification is confirmed unexpired at the application date"
+          ],
+          "verify": [
+            "Re-read the expiry date and the application date together",
+            "Pass when the expiry date is later than the application signature date"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Match name, date of birth, address and TIN to the policy administration system record",
+          "actor": "New Business Case Manager",
+          "sop": [
+            "Open the owner record and compare each identity field to the identification document",
+            "Note any mismatch as a deficiency rather than correcting silently",
+            "Done when all four identity fields are compared and results noted"
+          ],
+          "verify": [
+            "List any field where document and record differ",
+            "Pass when no identity field mismatch remains unresolved"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the correct tax certification form for the owner type",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Determine whether the owner is a US person or a non-resident alien",
+            "Confirm a signed Form W-9 or Form W-8BEN is on file as appropriate",
+            "Done when the correct signed tax certification form is confirmed present"
+          ],
+          "verify": [
+            "Open the filed certification form and read the signature and date",
+            "Pass when the form type matches the owner status and carries a signature and date"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Obtain beneficial ownership certification for entity-owned contracts",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Where the owner is an entity, locate the beneficial ownership certification",
+            "Confirm every beneficial owner at 25 percent or more is named and identified",
+            "Done when beneficial ownership certification is complete for entity owners"
+          ],
+          "verify": [
+            "Compare the certified ownership percentages to the 25 percent threshold",
+            "Pass when every owner at or above the threshold is named with identifying data"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the CIP verification result and method on the contract record",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Key the verification outcome and the method used, documentary or non-documentary",
+            "Record the reviewer name and the verification date",
+            "Done when the CIP result, method and reviewer are stored on the case"
+          ],
+          "verify": [
+            "Re-open the CIP panel on the contract record",
+            "Pass when result, method, reviewer and date are all populated"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "File the identification evidence set to the document repository",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Index the identification image, tax form and CIP record to the application number",
+            "Apply the retention class required for BSA records",
+            "Done when the full identification evidence set is indexed and retained"
+          ],
+          "verify": [
+            "Search the repository by application number",
+            "Pass when the identification image and CIP record are both retrievable"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2f3zkv006xbn7ivl2sxp65",
+      "verifier": "New Business Case Manager",
+      "generic": {
+        "Defined scope/population": "Annuity applications under good-order review in the workflow case management tool",
+        "In-scope period": "Applications received and reviewed during the current processing day",
+        "Required fields populated and valid": "Signatures, dates, premium amount, product code and share class all present on the application",
+        "Control totals or record counts reconcile": "Count of good-order determinations equals the count of applications reviewed that day",
+        "Evidence retained with timestamp/version": "Good-order determination stored with the reviewer name and the determination timestamp",
+        "Exceptions logged with disposition": "Applications failing any good-order criterion logged as NIGO with a reason code",
+        "Test population": "Applications given a good-order determination in the sampled day",
+        "Pass/fail thresholds": "No application is marked in good order while a mandatory requirement is unmet",
+        "Exception handling path": "Failed applications are set to NIGO and returned to the producer with itemised defects",
+        "Documented acceptance criteria": "Status reads In Good Order with reviewer and determination date recorded",
+        "Evidence location": "Case record in the workflow case management tool"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Open the application case and its imaged forms in the workflow tool",
+          "actor": "New Business Case Manager",
+          "sop": [
+            "Select the case from the good-order review queue",
+            "Open the imaged application, disclosures and funding paperwork together",
+            "Done when the case and all imaged forms are open for review"
+          ],
+          "verify": [
+            "Confirm each expected form appears in the image set",
+            "Pass when application, disclosures and funding paperwork are all present"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Check signatures and dates for every required signer on the application",
+          "actor": "New Business Case Manager",
+          "sop": [
+            "Check the owner, joint owner, annuitant and producer signature blocks",
+            "Confirm each signature carries a date on or before the receipt date",
+            "Done when every required signature and date is confirmed present"
+          ],
+          "verify": [
+            "Re-inspect each signature block for a signature and a date",
+            "Pass when no required signature or signature date is missing"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm state-specific replacement and disclosure forms for the solicitation state",
+          "actor": "Processing Clerk",
+          "sop": [
+            "Read the state of solicitation from the application",
+            "Confirm each form the state requires is present at the correct edition",
+            "Done when all state-required forms are confirmed present and current"
+          ],
+          "verify": [
+            "Compare the filed form editions to the state requirement list",
+            "Pass when every state-required form is present at the current edition"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Agree the application premium to the funds or transfer paperwork",
+          "actor": "New Business Case Manager",
+          "sop": [
+            "Read the premium amount stated on the application",
+            "Compare it to the deposit advice or the transfer request amount",
+            "Done when the premium is agreed to the funding evidence"
+          ],
+          "verify": [
+            "Recompute the difference between application premium and funding amount",
+            "Pass when the difference is zero or an explained partial funding is documented"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm the elected product and share class are open for new business",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Look up the product and share class in the policy administration system product table",
+            "Confirm both are open for new business on the application date",
+            "Done when the product and share class are confirmed open"
+          ],
+          "verify": [
+            "Read the product open and close dates in the product table",
+            "Pass when the application date falls inside the product availability window"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the good-order determination with the reviewer name",
+          "actor": "New Business Case Manager",
+          "sop": [
+            "Select the In Good Order disposition on the case",
+            "Confirm the reviewer name and determination timestamp are captured",
+            "Done when the good-order determination is recorded with the reviewer"
+          ],
+          "verify": [
+            "Re-read the case disposition panel",
+            "Pass when status equals In Good Order with reviewer and date recorded"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Release the case only after all good-order gates pass",
+          "actor": "New Business Case Manager",
+          "sop": [
+            "Confirm no open deficiency line remains on the case",
+            "Release the case to the next stage in the workflow tool",
+            "Done when the case is released with no open deficiencies"
+          ],
+          "verify": [
+            "List open deficiency lines on the released case",
+            "Pass when the released case has zero open deficiency lines"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhg8000gekfgznhx30hv9",
+      "verifier": "Operations Specialist",
+      "generic": {
+        "Defined scope/population": "Initial annuity premium remittances received by cheque, wire or ACH awaiting application",
+        "In-scope period": "Remittances received in the current banking day",
+        "Required fields populated and valid": "Application number, remitter, amount and receipt date populated on the deposit record",
+        "Control totals or record counts reconcile": "Total premium applied equals the total deposit banked for the day",
+        "Evidence retained with timestamp/version": "Deposit advice and application posting retained with the receipt date and posting timestamp",
+        "Exceptions logged with disposition": "Unmatched or third-party remittances logged in suspense with an investigation owner",
+        "Test population": "Initial premium receipts posted during the sampled banking day",
+        "Pass/fail thresholds": "No initial premium remains unapplied in suspense beyond 48 hours",
+        "Exception handling path": "Unmatched funds are held in suspense and referred to the case manager for identification",
+        "Documented acceptance criteria": "Premium posted to the matching application with a recorded collected-funds date",
+        "Evidence location": "Deposit and premium transaction records in the billing and commission platform"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Retrieve the day's remittance advices from the billing and commission platform",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Open the daily receipts list for annuity new business",
+            "Extract cheque, wire and ACH advices awaiting application",
+            "Done when the day's unapplied remittances are listed"
+          ],
+          "verify": [
+            "Compare the list count to the bank deposit summary count",
+            "Pass when the number of advices equals the number of banked items"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Match each remittance to an application number in the policy administration system",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Search by remitter name, application number and amount",
+            "Attach the matched application number to the remittance record",
+            "Done when every remittance is matched or flagged as unmatched"
+          ],
+          "verify": [
+            "Count matched and unmatched remittances",
+            "Pass when matched plus unmatched equals the total remittances retrieved"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Agree the deposit amount to the application premium",
+          "actor": "Accountant",
+          "sop": [
+            "Compare the banked amount to the premium stated on the application",
+            "Record any shortfall or overpayment as a difference on the case",
+            "Done when each deposit is agreed or a difference is recorded"
+          ],
+          "verify": [
+            "Recompute deposit less application premium for each item",
+            "Pass when every non-zero difference carries a recorded explanation"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm funds are collected rather than merely presented",
+          "actor": "Accountant",
+          "sop": [
+            "Check the bank clearing status for each cheque and ACH item",
+            "Hold items still in the clearing period from application",
+            "Done when only collected funds are released for application"
+          ],
+          "verify": [
+            "Read the clearing status of each item to be applied",
+            "Pass when every item being applied shows collected status"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Apply the premium to the matching application in the policy administration system",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Post the collected premium against the matched application number",
+            "Avoid posting to a generic suspense account where a match exists",
+            "Done when the premium is posted to the matched application"
+          ],
+          "verify": [
+            "Open the application premium panel after posting",
+            "Pass when the application shows the premium applied with the correct amount"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the receipt date that drives the contract effective date",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Key the collected-funds date to the receipt date field on the application",
+            "Confirm the field is used downstream as the contract effective date driver",
+            "Done when the receipt date is recorded on the application"
+          ],
+          "verify": [
+            "Compare the recorded receipt date to the bank collected date",
+            "Pass when the receipt date equals the collected-funds date"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Flag unmatched or third-party remittances rather than force-applying them",
+          "actor": "Accountant",
+          "sop": [
+            "Leave unmatched items in suspense with an investigation note",
+            "Refer third-party remittances to the case manager for authorisation",
+            "Done when all unmatched items carry an investigation owner and note"
+          ],
+          "verify": [
+            "List items remaining in suspense with their age",
+            "Pass when no suspense item is older than 48 hours without an escalation note"
+          ]
+        }
+      ]
+    }
+  ]
+}

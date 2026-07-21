@@ -1,0 +1,1925 @@
+{
+  "area": "Reinsurance Reporting & Governance",
+  "tasks": [
+    {
+      "taskId": "cmr2fl5zx1qeqkfgze1f30nfq",
+      "verifier": "Reinsurance Ops Manager",
+      "generic": {
+        "Defined scope/population": "Every recipient on the current reinsurance MI matrix across Underwriting, Finance, ERM, and reinsurance leadership",
+        "In-scope period": "The closed reporting month, circulated on or before working day 8",
+        "Required fields populated and valid": "Covering note states pack version, reporting period, and the locked PDF or BI link",
+        "Control totals or record counts reconcile": "Delivery confirmations counted equal the recipient count on the matrix",
+        "Evidence retained with timestamp/version": "Sent covering note and locked pack filed to the monthly MI folder with send timestamp",
+        "Exceptions logged with disposition": "Bounced or unconfirmed deliveries logged with the resend action and final outcome",
+        "Test population": "All delivery records for the reporting month checked against the recipient matrix",
+        "Pass/fail thresholds": "Fail if any matrix recipient lacks a delivery confirmation or the send is after working day 8",
+        "Exception handling path": "Analyst resends failed deliveries and escalates unresolved recipients to the Reinsurance Ops Manager",
+        "Documented acceptance criteria": "Locked pack matching the signed-off version reached every recipient by working day 8",
+        "Evidence location": "Monthly MI folder for the period plus the BI/reporting platform subscription delivery log"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Identify the signed-off MI pack version in the BI/reporting platform",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Open the monthly reinsurance MI report in the BI/reporting platform.",
+            "Check the version reference and reporting period against the sign-off record on the cover sheet.",
+            "Export or lock the approved version as the distribution PDF or shareable link.",
+            "Done when the locked pack version for the period is identified and exported."
+          ],
+          "verify": [
+            "Compare the exported pack version reference against the signed-off report record.",
+            "Pass when the locked pack matches the signed-off version and reporting period."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Refresh the distribution list against the current recipient matrix",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Open the standing reinsurance MI distribution list in Microsoft Teams / Email.",
+            "Compare it line by line to the current recipient matrix for Underwriting, Finance, ERM, and leadership.",
+            "Add joiners, remove leavers, and correct any changed group mailbox.",
+            "Done when the distribution list matches the current recipient matrix."
+          ],
+          "verify": [
+            "Count list entries against matrix entries and inspect the differences.",
+            "Pass when no matrix recipient is missing and no non-matrix recipient remains."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Draft the covering note in Microsoft Teams / Email",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Create the covering note naming the reporting period and pack version reference.",
+            "Summarise the headline ceded and assumed movements for the month in the body.",
+            "Attach the locked PDF or embed the BI/reporting platform link.",
+            "Done when the covering note is drafted with period, version, and pack reference present."
+          ],
+          "verify": [
+            "Read the drafted note against the locked pack cover sheet.",
+            "Pass when period and version in the note match the pack exactly."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Send the locked MI pack to the standing distribution list",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Send the covering note and locked pack from Microsoft Teams / Email by working day 8.",
+            "Enable read receipts or trigger the BI/reporting platform subscription for the period.",
+            "Record the send date and time against the period entry in the MI tracker.",
+            "Done when the pack has been sent to the full distribution list."
+          ],
+          "verify": [
+            "Check the recorded send timestamp against the working day 8 deadline.",
+            "Pass when the send timestamp is on or before working day 8."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Capture delivery confirmations from receipts and the BI subscription log",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Collect read receipts from Microsoft Teams / Email for each recipient.",
+            "Export the BI/reporting platform subscription delivery log for the period.",
+            "Enter a delivery confirmation against each recipient in the MI tracker.",
+            "Done when a confirmation status is recorded for every recipient."
+          ],
+          "verify": [
+            "Reconcile confirmed recipients to the recipient matrix count.",
+            "Pass when a delivery entry exists for every recipient for the period."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Resend to recipients with no confirmed delivery",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "List recipients with a bounce, block, or no confirmation after two working days.",
+            "Correct the address or access permission and resend the locked pack.",
+            "Log each failure with the cause and the resend outcome in the MI tracker.",
+            "Done when every unconfirmed recipient has been resent or escalated."
+          ],
+          "verify": [
+            "Review the failure log for open items without a disposition.",
+            "Pass when no delivery failure remains without a resend outcome or escalation."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "File the circulated pack and covering note to the monthly MI folder",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Save the exact circulated pack and covering note to the monthly MI folder for the period.",
+            "Name the files with the reporting period and pack version reference.",
+            "Attach the delivery confirmation export to the same folder.",
+            "Done when pack, note, and delivery evidence are filed for the period."
+          ],
+          "verify": [
+            "Open the period folder and check for pack, covering note, and delivery log.",
+            "Pass when all three items are present and version stamped."
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Confirm circulation completeness with the Reinsurance Ops Manager",
+          "actor": "Reinsurance Ops Manager",
+          "sop": [
+            "Review the MI tracker entry for the period covering send date and confirmations.",
+            "Challenge any recipient without a delivery confirmation or any late send.",
+            "Record confirmation of circulation against the period entry.",
+            "Done when circulation for the period is confirmed by the Reinsurance Ops Manager."
+          ],
+          "verify": [
+            "Check the confirmation entry names the reviewer and the date.",
+            "Pass when circulation is confirmed with no open delivery exception."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl5rh1q9kkfgzedv1bxco",
+      "verifier": "Reinsurance Ops Manager",
+      "generic": {
+        "Defined scope/population": "All ceded and assumed programs with premium, commission, or loss activity in the reporting month",
+        "In-scope period": "The closed reporting month, extracted after the period close date",
+        "Required fields populated and valid": "Premium, commission, paid loss, and outstanding loss populated for every program in the pack",
+        "Control totals or record counts reconcile": "Ceded premium and recoverable balances agree to the general ledger reinsurance control accounts",
+        "Evidence retained with timestamp/version": "MI workbook saved with extract timestamp, preparer and reviewer initials, and version reference",
+        "Exceptions logged with disposition": "Unreconciled differences and threshold variances logged with cause commentary and disposition",
+        "Test population": "All programs in the monthly MI pack plus the matching control account balances",
+        "Pass/fail thresholds": "Fail if any GL difference is unexplained or the extract predates the period close date",
+        "Exception handling path": "Analyst investigates with the Reinsurance Accountant and escalates unresolved breaks to the Ops Manager",
+        "Documented acceptance criteria": "Complete drafted MI pack tied to the ledger with commentary on every threshold variance",
+        "Evidence location": "Monthly MI folder for the period holding the workbook, extracts, and reconciliation"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract ceded and assumed activity from the reinsurance administration system",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Run the monthly ceded and assumed extract in the reinsurance administration system after period close.",
+            "Include premium, commission, paid loss, and outstanding loss by program and treaty.",
+            "Record the extract run timestamp and the as-at date on the extract sheet.",
+            "Done when the monthly extract is produced with its run timestamp recorded."
+          ],
+          "verify": [
+            "Compare the extract run timestamp against the period close date.",
+            "Pass when the extract timestamp is after the period close date."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Load the extract into the MI workbook in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Paste the extract into the data tab of the monthly MI workbook in Microsoft Excel.",
+            "Refresh all workbook links and pivot sources against the new data tab.",
+            "Scan for #REF! errors, stale period labels, and hard-coded overrides and clear them.",
+            "Done when the workbook is refreshed and free of broken or overridden values."
+          ],
+          "verify": [
+            "Run the workbook error check and inspect the period labels on each sheet.",
+            "Pass when no #REF!, stale period, or hard-coded override remains."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Tie ceded balances to the general ledger control accounts",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Pull the reinsurance control account balances for the period from the ledger.",
+            "Compare ceded premium and recoverable balances in the workbook to those control accounts.",
+            "Itemise each difference with its cause and clear or explain it.",
+            "Done when every difference is cleared or carries a written explanation."
+          ],
+          "verify": [
+            "Review the reconciliation sheet for unexplained residual differences.",
+            "Pass when no unexplained difference remains between MI and the control accounts."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Build the program performance views in the BI/reporting platform",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Refresh the monthly reinsurance MI dataset in the BI/reporting platform.",
+            "Render ceded and assumed performance by program with month-on-month comparatives.",
+            "Confirm the BI figures agree to the reconciled workbook totals.",
+            "Done when the BI views render the reconciled figures for the period."
+          ],
+          "verify": [
+            "Spot-check three program totals in BI against the workbook.",
+            "Pass when BI and workbook totals agree for every checked program."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Write variance commentary for programs beyond the reporting threshold",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "List every program with a month-on-month movement beyond the reporting threshold.",
+            "Investigate each movement back to the underlying cessions or loss transactions.",
+            "Write a cause commentary naming rate, loss activity, timing, or data as the driver.",
+            "Done when every threshold-breaching program has a written commentary."
+          ],
+          "verify": [
+            "Filter the variance sheet for breaches without commentary text.",
+            "Pass when no threshold breach is left without a cause commentary."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review the drafted pack with the Reinsurance Accountant",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Review the drafted MI pack against the reconciliation and the ledger balances.",
+            "Challenge commentary that does not explain the movement shown.",
+            "Record review points and confirm they are cleared in the workbook.",
+            "Done when accountant review points are cleared on the drafted pack."
+          ],
+          "verify": [
+            "Check the review log for open points on the drafted pack.",
+            "Pass when no review point remains open."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Record preparer and reviewer initials on the MI cover sheet",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Enter preparer initials and preparation date on the MI cover sheet.",
+            "Obtain reviewer initials and review date from the Reinsurance Ops Manager.",
+            "Stamp the pack version reference and reporting period on the cover sheet.",
+            "Done when preparer and reviewer initials plus dates are present on the cover sheet."
+          ],
+          "verify": [
+            "Inspect the cover sheet for initials, dates, version, and period.",
+            "Pass when all four fields are populated before release."
+          ]
+        },
+        {
+          "n": 8,
+          "title": "File the completed workbook and extracts to the monthly MI folder",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Save the completed MI workbook to the monthly MI folder with its version reference.",
+            "Attach the source extract and the ledger reconciliation to the same folder.",
+            "Lock the workbook version so later edits create a new version.",
+            "Done when workbook, extract, and reconciliation are filed for the period."
+          ],
+          "verify": [
+            "Open the period folder and confirm the three artefacts exist.",
+            "Pass when workbook, extract, and reconciliation are all present and versioned."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "0a535b4e-3cdc-48d8-9555-0d5e6242021f",
+      "verifier": "Reinsurance Ops Manager",
+      "generic": {
+        "Defined scope/population": "Underwriting, Finance, and ERM stakeholder groups on the MI distribution tracker",
+        "In-scope period": "The current MI reporting period being published to the shared reporting workspace",
+        "Required fields populated and valid": "Notification carries the direct MI link, reporting period, and headline movements",
+        "Control totals or record counts reconcile": "Acknowledged groups on the tracker equal the groups holding current-period access",
+        "Evidence retained with timestamp/version": "Publication record and notification retained with publish timestamp and pack version",
+        "Exceptions logged with disposition": "Groups without acknowledgement after two working days logged with the chase and outcome",
+        "Test population": "All stakeholder groups listed on the distribution tracker for the period",
+        "Pass/fail thresholds": "Fail if any recipient group lacks current-period access or a recorded acknowledgement",
+        "Exception handling path": "Reinsurance Analyst chases non-acknowledging groups and refers persistent gaps to the Ops Manager",
+        "Documented acceptance criteria": "MI published with access granted and every group acknowledgement recorded for the period",
+        "Evidence location": "Shared reporting workspace publication log and the period distribution tracker"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Publish the MI pack to the shared reporting workspace",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Upload the approved MI pack to the shared reporting workspace on the BI/reporting platform.",
+            "Stamp the item with the reporting period and pack version reference.",
+            "Retire or supersede the prior period item so only the current pack is prominent.",
+            "Done when the current pack is published with period and version stamped."
+          ],
+          "verify": [
+            "Open the workspace item and read the period and version metadata.",
+            "Pass when the published item shows the correct period and version."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Grant workspace access to Underwriting, Finance, and ERM groups",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Open the workspace permission settings on the BI/reporting platform.",
+            "Grant read access to the Underwriting, Finance, and ERM recipient groups.",
+            "Remove access for groups no longer on the recipient matrix.",
+            "Done when the three recipient groups hold current-period access."
+          ],
+          "verify": [
+            "Export the workspace access list and compare it to the recipient matrix.",
+            "Pass when all three recipient groups appear with current-period access."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Draft the stakeholder notification in Microsoft Teams / Email",
+          "actor": "Reinsurance Ops Manager",
+          "sop": [
+            "Write the notification with the direct link to the published pack.",
+            "State the reporting period and summarise the key headline movements in the body.",
+            "Name the acknowledgement expectation and the two working day response window.",
+            "Done when the notification is drafted with link, period, and headlines present."
+          ],
+          "verify": [
+            "Click the embedded link from a stakeholder view and read the body text.",
+            "Pass when the link resolves to the current pack and period and headlines are stated."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Send the notification to the stakeholder groups",
+          "actor": "Reinsurance Ops Manager",
+          "sop": [
+            "Send the notification to the Underwriting, Finance, and ERM groups.",
+            "Record the send timestamp against the period entry on the distribution tracker.",
+            "Open a tracker row for each group awaiting acknowledgement.",
+            "Done when the notification is sent and tracker rows are open for each group."
+          ],
+          "verify": [
+            "Check the tracker for a row per recipient group with a send timestamp.",
+            "Pass when every group has a row with a recorded send timestamp."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Log stakeholder acknowledgements on the distribution tracker",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Collect acknowledgement replies from Microsoft Teams / Email for each group.",
+            "Record the acknowledging person, group, and date on the distribution tracker.",
+            "Leave rows open where no acknowledgement has been received.",
+            "Done when every received acknowledgement is logged against its group."
+          ],
+          "verify": [
+            "Filter the tracker for rows without an acknowledgement entry.",
+            "Pass when logged acknowledgements match the replies received."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Chase groups without acknowledgement after two working days",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Identify tracker rows still open after two working days from the send date.",
+            "Send a chase to the group contact naming the pack and the period.",
+            "Record the chase date and the response on the tracker row.",
+            "Done when every open row has a recorded chase or an acknowledgement."
+          ],
+          "verify": [
+            "Review open tracker rows for a recorded chase date.",
+            "Pass when no open row is older than two working days without a chase."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Close the distribution tracker for the period",
+          "actor": "Reinsurance Ops Manager",
+          "sop": [
+            "Review the tracker for the period against the recipient matrix.",
+            "Escalate any group still unacknowledged after the chase cycle.",
+            "Mark the period distribution as complete once all groups are acknowledged or escalated.",
+            "Done when the period distribution entry is closed by the Reinsurance Ops Manager."
+          ],
+          "verify": [
+            "Check the closure entry names the reviewer and the closure date.",
+            "Pass when no recipient group is left without an acknowledgement or escalation."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "7b3f12e5-f9af-4d00-91ba-311f8d08c153",
+      "verifier": "Head of Reinsurance",
+      "generic": {
+        "Defined scope/population": "Quarterly reinsurance performance across ceded spend, recoveries, net loss position, and retention performance",
+        "In-scope period": "The reporting quarter presented at the scheduled CUO, CFO, and CEO session",
+        "Required fields populated and valid": "Pack shows ceded spend, recoveries, net loss, net PML movement, and reinsurance cost to gross written premium",
+        "Control totals or record counts reconcile": "Pack figures agree to the published quarterly reinsurance reporting dataset",
+        "Evidence retained with timestamp/version": "Pack version and upload timestamp held on the board portal with the annotated post-session copy",
+        "Exceptions logged with disposition": "Executive questions unresolved in session logged as follow-up actions with owners and due dates",
+        "Test population": "The uploaded quarterly pack and the full action log arising from the session",
+        "Pass/fail thresholds": "Fail if the pack posted later than five days before the meeting or any action lacks owner or due date",
+        "Exception handling path": "Head of Reinsurance assigns unresolved questions to the Reinsurance Manager with a due date",
+        "Documented acceptance criteria": "Pack presented to CUO, CFO, and CEO with annotated pack and action log circulated within two working days",
+        "Evidence location": "Executive board portal quarter folder holding the pack, annotated copy, and action log"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Assemble the quarterly performance content in the BI/reporting platform",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Refresh the quarterly reinsurance dataset in the BI/reporting platform.",
+            "Pull ceded spend, recoveries, net loss position, and retention performance versus plan.",
+            "Add quarter-on-quarter net PML movement and reinsurance cost as a share of gross written premium.",
+            "Done when all required quarterly measures are assembled for the pack."
+          ],
+          "verify": [
+            "Compare each assembled measure against the published quarterly reporting dataset.",
+            "Pass when every measure agrees to the published dataset for the quarter."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Review and finalise the executive pack narrative",
+          "actor": "Head of Reinsurance",
+          "sop": [
+            "Read the drafted pack for consistency between the figures and the narrative.",
+            "Sharpen the messages on retention performance and reinsurance cost efficiency.",
+            "Mark the pack as the final executive version with a version reference.",
+            "Done when the pack is finalised with a version reference for the quarter."
+          ],
+          "verify": [
+            "Check the pack version reference and that narrative claims trace to a chart or table.",
+            "Pass when every narrative claim is supported by a figure inside the pack."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Upload the pack to the board portal ahead of the session",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Upload the final pack to the quarter folder on the board portal.",
+            "Set access for the CUO, CFO, and CEO and confirm the meeting date on the item.",
+            "Complete the upload at least five days before the session.",
+            "Done when the pack is posted to the board portal for the session."
+          ],
+          "verify": [
+            "Compare the portal upload timestamp against the scheduled meeting date.",
+            "Pass when the pack was posted at least five days before the meeting."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Present ceded spend, recoveries, and net loss position to the executives",
+          "actor": "Head of Reinsurance",
+          "sop": [
+            "Walk the executives through ceded spend and recoveries for the quarter.",
+            "Present the net loss position and retention performance against plan.",
+            "Answer challenge on any variance from the planned retention outcome.",
+            "Done when the performance section has been presented and challenged."
+          ],
+          "verify": [
+            "Check the meeting record covers ceded spend, recoveries, net loss, and retention.",
+            "Pass when all four sections are recorded as presented."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Present the net PML and reinsurance cost movement",
+          "actor": "Head of Reinsurance",
+          "sop": [
+            "Show quarter-on-quarter movement in net PML by peak zone.",
+            "Show reinsurance cost as a percentage of gross written premium and the trend.",
+            "Explain the drivers behind any material movement in either measure.",
+            "Done when the PML and cost movement section has been presented."
+          ],
+          "verify": [
+            "Check the presented movement figures against the BI/reporting platform source.",
+            "Pass when presented movements agree to the source dataset."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Capture executive questions, decisions, and follow-up actions",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Record each executive question and the answer given in the session.",
+            "Record every decision taken and every follow-up action arising.",
+            "Assign a named owner and a due date to each action.",
+            "Done when all questions, decisions, and actions are captured with owners and dates."
+          ],
+          "verify": [
+            "Filter the action log for entries without an owner or a due date.",
+            "Pass when every action has a named owner and a due date."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Circulate the annotated pack and action log within two working days",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Annotate the pack with the decisions and answers given in the session.",
+            "Attach the action log and circulate both to the executive attendees.",
+            "File the annotated pack and action log in the board portal quarter folder.",
+            "Done when the annotated pack and action log are circulated and filed."
+          ],
+          "verify": [
+            "Compare the circulation timestamp against the session date.",
+            "Pass when circulation occurred within two working days of the session."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "025ff900-0fe8-4539-9f5f-2ed9f2ed3445",
+      "verifier": "Reinsurance Manager",
+      "generic": {
+        "Defined scope/population": "All in-force assumed treaties in the analysis period by treaty and underwriting year",
+        "In-scope period": "The analysis period covering current underwriting year and prior-year development separately",
+        "Required fields populated and valid": "Assumed premium, incurred loss, acquisition cost, brokerage, and combined ratio present per treaty",
+        "Control totals or record counts reconcile": "Total assumed premium in the analysis agrees to the assumed ledger balance for the period",
+        "Evidence retained with timestamp/version": "Analysis workbook saved with extract date, version reference, and review record",
+        "Exceptions logged with disposition": "Treaties above the combined ratio target logged with a cause commentary and review outcome",
+        "Test population": "Every in-force assumed treaty extracted for the analysis period",
+        "Pass/fail thresholds": "Fail if any treaty above the combined ratio target lacks a written cause commentary",
+        "Exception handling path": "Reinsurance Analyst refers unexplained treaty results to the Reinsurance Actuary before review",
+        "Documented acceptance criteria": "Ranked treaty profitability reviewed with the Reinsurance Manager before renewal use",
+        "Evidence location": "Treaty profitability folder holding the workbook, extract, and ledger reconciliation"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract assumed treaty results from the reinsurance administration system",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Run the assumed treaty result extract for the analysis period by treaty and underwriting year.",
+            "Include premium, incurred loss, acquisition cost, and brokerage on every treaty row.",
+            "Confirm the extract covers all in-force assumed treaties for the period.",
+            "Done when the assumed treaty extract is produced for the analysis period."
+          ],
+          "verify": [
+            "Compare the extracted treaty list against the assumed in-force register.",
+            "Pass when every in-force assumed treaty appears in the extract."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Build the treaty combined ratio view in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Load the extract into the treaty profitability workbook in Microsoft Excel.",
+            "Calculate loss ratio, expense ratio, and combined ratio per treaty and underwriting year.",
+            "Check that no treaty row carries a null premium or a null loss component.",
+            "Done when combined ratio is calculated for every treaty row."
+          ],
+          "verify": [
+            "Filter the workbook for rows with missing ratio components.",
+            "Pass when every treaty row has a complete calculated combined ratio."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Split current underwriting year from prior-year development",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Separate current underwriting year result from prior-year reserve development in the workbook.",
+            "Show both components alongside the all-years total for each treaty.",
+            "Confirm reserve movement is not folded into current-year performance.",
+            "Done when current-year and prior-year development are reported separately."
+          ],
+          "verify": [
+            "Recompute the all-years total from the two components for a sample of treaties.",
+            "Pass when the components sum to the all-years total on every sampled treaty."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reconcile total assumed premium to the assumed ledger balance",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Pull the assumed premium ledger balance for the analysis period.",
+            "Compare it to the total assumed premium in the profitability analysis.",
+            "Investigate and explain any difference before the analysis is used.",
+            "Done when the analysis premium total is reconciled to the ledger."
+          ],
+          "verify": [
+            "Inspect the reconciliation sheet for residual unexplained differences.",
+            "Pass when no unexplained difference remains against the assumed ledger."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Flag treaties above the portfolio combined ratio target",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Apply the portfolio combined ratio target to every treaty row.",
+            "Flag each treaty breaching the target and rank them by premium exposed.",
+            "Write a cause commentary naming rate, loss activity, or commission for each flagged treaty.",
+            "Done when every flagged treaty carries a written cause commentary."
+          ],
+          "verify": [
+            "Filter flagged treaties for rows without commentary text.",
+            "Pass when no flagged treaty is left without a cause commentary."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review the actuarial view on prior-year development",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Review the prior-year development shown per treaty class against the reserving view.",
+            "Challenge treaties where the development shown conflicts with the reserving position.",
+            "Confirm or correct the development split used in the analysis.",
+            "Done when the actuarial view on development is confirmed in the workbook."
+          ],
+          "verify": [
+            "Compare treaty development in the analysis to the latest reserving output.",
+            "Pass when the analysis development agrees to the reserving view or the difference is explained."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Publish the treaty profitability view to the BI/reporting platform",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Publish the reconciled treaty profitability dataset to the BI/reporting platform.",
+            "Stamp the published view with the analysis period, extract date, and version.",
+            "Confirm the published totals agree to the workbook.",
+            "Done when the treaty profitability view is published and stamped."
+          ],
+          "verify": [
+            "Compare three published treaty results against the workbook rows.",
+            "Pass when published and workbook results agree for every checked treaty."
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Review the ranked treaty list with the Reinsurance Manager",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Walk the ranked treaty list and the flagged underperformers with the analyst.",
+            "Challenge the cause commentary where it does not explain the result.",
+            "Confirm the list is fit to inform renewal decisions and record the review.",
+            "Done when the ranked list is reviewed and recorded by the Reinsurance Manager."
+          ],
+          "verify": [
+            "Check the review record names the reviewer, the version reviewed, and the date.",
+            "Pass when the review is recorded before the analysis is used for renewal decisions."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "19a8aef9-b40b-4651-b07d-b05d596ec811",
+      "verifier": "Head of Reinsurance",
+      "generic": {
+        "Defined scope/population": "All retro layers placed or planned plus peak peril zones carrying modelled net PML",
+        "In-scope period": "The year-to-date position as at the briefing date, including events already incurred",
+        "Required fields populated and valid": "Retro spend versus budget, unplaced layers, gross and net PML, and remaining limit populated",
+        "Control totals or record counts reconcile": "Retro spend to date agrees to the reinsurance ledger retro premium balance",
+        "Evidence retained with timestamp/version": "Briefing pack filed with as-at date, model version, and briefing date in the governance file",
+        "Exceptions logged with disposition": "Layers eroded below the agreed remaining limit threshold logged with the mitigating action",
+        "Test population": "All retro layers and every peak peril zone in the briefing pack",
+        "Pass/fail thresholds": "Fail if net-of-retro PML is missing at any agreed return period for a peak zone",
+        "Exception handling path": "Reinsurance Manager escalates unplaced or exhausted layers to the Head of Reinsurance for decision",
+        "Documented acceptance criteria": "Senior management briefed and acknowledgement recorded in the reinsurance governance file",
+        "Evidence location": "Reinsurance governance file entry for the briefing with the pack and acknowledgement"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Compile retro spend against budget in Microsoft Excel",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Pull retro premium booked to date and the approved retro budget into the briefing workbook.",
+            "Show spend against budget by layer and the remaining budget available.",
+            "List layers still unplaced or unpriced at the briefing date.",
+            "Done when spend against budget and unplaced layers are compiled."
+          ],
+          "verify": [
+            "Reconcile retro spend to date to the reinsurance ledger retro premium balance.",
+            "Pass when spend agrees to the ledger with no unexplained difference."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Pull gross and net-of-retro PML from the BI/reporting platform",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Open the catastrophe exposure view on the BI/reporting platform.",
+            "Extract gross and net-of-retro PML at the agreed return periods for each peak zone.",
+            "Record the model version, event set, and as-at date alongside the figures.",
+            "Done when gross and net PML are extracted for every peak zone."
+          ],
+          "verify": [
+            "Check each peak zone has a value at every agreed return period.",
+            "Pass when no peak zone or return period is missing a net-of-retro figure."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Assess layer erosion from year-to-date events",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "List the year-to-date events that have attached to any retro layer.",
+            "Calculate limit consumed and remaining limit for each affected layer.",
+            "Highlight layers where remaining limit sits below the agreed threshold.",
+            "Done when remaining limit is stated for every layer touched by events."
+          ],
+          "verify": [
+            "Filter the layer schedule for touched layers without a remaining limit figure.",
+            "Pass when remaining limit is stated for every layer touched year to date."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Quantify reinstatement premium exposure at the current loss position",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Apply reinstatement terms to the current loss position for each affected layer.",
+            "Calculate the reinstatement premium payable and any further exposure if losses develop.",
+            "Show the total reinstatement exposure against the retro budget headroom.",
+            "Done when reinstatement premium exposure is quantified for the briefing."
+          ],
+          "verify": [
+            "Recalculate reinstatement premium for one layer against the treaty terms.",
+            "Pass when the recalculated figure agrees to the briefing pack."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Assemble the retrocession briefing pack",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Build the pack from spend versus budget, PML positions, erosion, and reinstatement exposure.",
+            "State the model version, event set, and as-at date on the front page.",
+            "Name the decisions being sought from senior management.",
+            "Done when the briefing pack is assembled with an as-at date and decisions stated."
+          ],
+          "verify": [
+            "Read the pack front page for model version, event set, and as-at date.",
+            "Pass when all three are stated on the assembled pack."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Deliver the retrocession briefing to senior management",
+          "actor": "Head of Reinsurance",
+          "sop": [
+            "Present retro spend, net PML, erosion, and reinstatement exposure to senior management.",
+            "Take challenge on unplaced layers and layers close to exhaustion.",
+            "Record decisions taken and any further action required.",
+            "Done when the briefing is delivered and decisions are recorded."
+          ],
+          "verify": [
+            "Check the briefing record lists attendees, decisions, and any actions.",
+            "Pass when the record is complete for the briefing session."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Record the briefing and acknowledgement in the governance file",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "File the briefing pack in the reinsurance governance file for the period.",
+            "Record the briefing date, attendees, and the senior management acknowledgement.",
+            "Log any action arising with an owner and a due date.",
+            "Done when the briefing, attendees, and acknowledgement are recorded."
+          ],
+          "verify": [
+            "Open the governance file entry and check date, attendees, and acknowledgement.",
+            "Pass when the acknowledgement is recorded against the delivered pack."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "ef120631-cf09-4a1b-86c3-59f4df7691fb",
+      "verifier": "Reinsurance Manager",
+      "generic": {
+        "Defined scope/population": "Every assumed treaty renewed, declined, restructured, or non-renewed in the reporting period",
+        "In-scope period": "The renewal reporting period covered by the portfolio actions report",
+        "Required fields populated and valid": "Signed line, share, risk-adjusted rate change, and commission movement populated per treaty",
+        "Control totals or record counts reconcile": "Treaty count in the report agrees to the renewal register in the administration system",
+        "Evidence retained with timestamp/version": "Issued report filed in the treaty governance folder with period and version reference",
+        "Exceptions logged with disposition": "Treaties written outside standard terms logged with the authority approval reference",
+        "Test population": "All assumed treaties with a renewal decision recorded in the period",
+        "Pass/fail thresholds": "Fail if any renewed treaty lacks a signed line and share or an off-standard treaty lacks an approval",
+        "Exception handling path": "Reinsurance Analyst refers missing approvals to the Reinsurance Manager before the report is issued",
+        "Documented acceptance criteria": "Report issued to the governance committee distribution and filed for the period",
+        "Evidence location": "Treaty governance folder holding the issued report and the source renewal extract"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract the renewal decision register from the reinsurance administration system",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Run the assumed renewal decision extract for the reporting period.",
+            "Include treaties renewed, declined, restructured, and non-renewed with the decision date.",
+            "Confirm the extract row count against the renewal register.",
+            "Done when the renewal decision extract is produced for the period."
+          ],
+          "verify": [
+            "Compare extract row count to the renewal register count for the period.",
+            "Pass when the counts agree with no missing decision."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Populate signed line and share for each renewed treaty",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Pull the signed line and share for each renewed treaty from the administration system.",
+            "Populate the report row for each treaty with line and share.",
+            "Chase placement for any renewed treaty with no recorded signed line.",
+            "Done when every renewed treaty carries a signed line and share."
+          ],
+          "verify": [
+            "Filter renewed treaty rows for blank line or share fields.",
+            "Pass when no renewed treaty is missing a signed line and share."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Calculate risk-adjusted rate change and commission movement",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Compare renewal terms against expiring terms for each treaty.",
+            "Calculate risk-adjusted rate change and the movement in ceding commission.",
+            "Note any treaty where exposure change drives the rate movement.",
+            "Done when rate change and commission movement are calculated per treaty."
+          ],
+          "verify": [
+            "Recalculate rate change on a sample of treaties from expiring and renewal terms.",
+            "Pass when sampled recalculations agree to the report."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Identify treaties written outside standard terms",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Compare each treaty against the standard terms and authority parameters.",
+            "Flag treaties written outside standard terms or above delegated limit.",
+            "Attach the authority approval reference that permitted each off-standard treaty.",
+            "Done when every off-standard treaty carries an approval reference."
+          ],
+          "verify": [
+            "Filter off-standard treaties for rows without an approval reference.",
+            "Pass when each off-standard treaty references a recorded approval."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Summarise the net portfolio effect of the period actions",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Calculate the change in assumed premium income from the period actions.",
+            "Show the change in aggregate exposure and the movement in cedent count.",
+            "Explain the portfolio shift driven by the declined and non-renewed treaties.",
+            "Done when the net portfolio effect summary is complete."
+          ],
+          "verify": [
+            "Recompute premium income change from the treaty rows.",
+            "Pass when the summary figures agree to the underlying treaty rows."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Publish the portfolio actions view to the BI/reporting platform",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Publish the portfolio actions dataset to the BI/reporting platform.",
+            "Stamp the published view with the reporting period and version reference.",
+            "Confirm published totals agree to the source extract.",
+            "Done when the portfolio actions view is published and stamped."
+          ],
+          "verify": [
+            "Compare published treaty counts and premium totals to the extract.",
+            "Pass when published and extracted totals agree."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Issue the report to the governance committee distribution",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Review the report for completeness of decisions, lines, rate change, and approvals.",
+            "Issue it to the governance committee distribution for the period.",
+            "File the issued version in the treaty governance folder.",
+            "Done when the report is issued and filed for the period."
+          ],
+          "verify": [
+            "Check the governance folder for the issued version and its distribution record.",
+            "Pass when the issued report and its distribution record are both filed."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "2138671b-1171-4b65-bee3-5dc1b32aabfb",
+      "verifier": "Reinsurance Accountant",
+      "generic": {
+        "Defined scope/population": "All ceded programs and assumed treaty classes with activity in the reporting period",
+        "In-scope period": "The reporting period published, with prior period comparatives restated on the same basis",
+        "Required fields populated and valid": "Ceded written and earned premium, paid and outstanding recoveries, net loss, assumed premium, and combined ratio",
+        "Control totals or record counts reconcile": "Ceded premium and recoverables agree to the general ledger reinsurance control accounts",
+        "Evidence retained with timestamp/version": "Published dataset stamped with reporting period, extract date, and version reference",
+        "Exceptions logged with disposition": "Restatements and unreconciled items logged with a footnote explanation and disposition",
+        "Test population": "The published dataset for the period plus the matching control account balances",
+        "Pass/fail thresholds": "Fail if period, extract date, or version is blank or any control account difference is unreconciled",
+        "Exception handling path": "Reinsurance Analyst refers unreconciled balances to the Reinsurance Accountant before publication",
+        "Documented acceptance criteria": "Reconciled ceded and assumed metrics published with comparatives and version stamping",
+        "Evidence location": "Enterprise data warehouse published dataset plus the period reconciliation file"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract ceded and assumed balances from the reinsurance administration system",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Run the ceded and assumed balance extract for the reporting period.",
+            "Include written and earned premium, paid and outstanding recoveries, and assumed premium income.",
+            "Record the extract date on the extract header.",
+            "Done when the period extract is produced with its extract date recorded."
+          ],
+          "verify": [
+            "Check the extract header for period and extract date values.",
+            "Pass when both period and extract date are populated."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Load the extract into the enterprise data warehouse reporting layer",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Load the extract into the reinsurance reporting tables in the data warehouse.",
+            "Run the load validation for null keys, duplicate programs, and out-of-period rows.",
+            "Clear every load validation failure before proceeding.",
+            "Done when the load completes with no open validation failure."
+          ],
+          "verify": [
+            "Review the load validation report for open failures.",
+            "Pass when the validation run shows zero open failures."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Reconcile ceded balances to the general ledger control accounts",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Pull the reinsurance control account balances for the reporting period.",
+            "Compare ceded premium and recoverable balances in the dataset to those accounts.",
+            "Itemise and clear or explain each difference before publication.",
+            "Done when all control account differences are cleared or explained."
+          ],
+          "verify": [
+            "Review the reconciliation for residual unexplained differences.",
+            "Pass when no unreconciled difference remains against the control accounts."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Calculate assumed combined ratio by treaty class",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Compute assumed premium income and incurred loss by treaty class for the period.",
+            "Add acquisition and expense loads to derive the combined ratio per class.",
+            "Check no treaty class carries a null component in the ratio.",
+            "Done when combined ratio is calculated for every assumed treaty class."
+          ],
+          "verify": [
+            "Filter treaty classes for null ratio components.",
+            "Pass when every class has a complete combined ratio."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Restate prior period comparatives on the same basis",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Restate the prior period figures using the current reporting basis.",
+            "Compare restated to originally published prior figures and quantify the change.",
+            "Write a footnote explaining every restatement made.",
+            "Done when comparatives are restated and footnoted."
+          ],
+          "verify": [
+            "Check each restated line has a matching footnote entry.",
+            "Pass when no restatement is published without a footnote."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Publish the metrics to the BI/reporting platform",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Publish ceded and assumed metrics by program and treaty class to the BI/reporting platform.",
+            "Stamp the published dataset with reporting period, extract date, and version reference.",
+            "Confirm the published totals agree to the reconciled warehouse tables.",
+            "Done when the metrics are published and stamped for the period."
+          ],
+          "verify": [
+            "Read the published dataset properties for period, extract date, and version.",
+            "Pass when all three stamps are populated on the published dataset."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Confirm the published figures with the Reinsurance Accountant",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Compare the published ceded balances against the reconciled control accounts.",
+            "Challenge any figure that moved after the reconciliation was signed.",
+            "Record confirmation of the published dataset for the period.",
+            "Done when the published dataset is confirmed by the Reinsurance Accountant."
+          ],
+          "verify": [
+            "Check the confirmation record names the dataset version and the date.",
+            "Pass when confirmation is recorded against the published version."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "c9ccfc1f-964f-46b5-b045-4f3fb1a94110",
+      "verifier": "Reinsurance Ops Manager",
+      "generic": {
+        "Defined scope/population": "All cedents with an expected bordereaux submission plus unprocessed cessions and suspense cash for the period",
+        "In-scope period": "The operational reporting period covered by the metrics tile",
+        "Required fields populated and valid": "Received date, due date, rejection reason, ageing, and tolerance status populated per metric",
+        "Control totals or record counts reconcile": "Expected cedent submissions counted equal submissions tracked in the metric set",
+        "Evidence retained with timestamp/version": "Metrics workbook and published tile retained with the period and refresh timestamp",
+        "Exceptions logged with disposition": "Every metric breaching its agreed tolerance logged as an exception with an owner and action",
+        "Test population": "All expected cedent submissions and all defined operational metrics for the period",
+        "Pass/fail thresholds": "Fail if any expected submission lacks received and due dates or a metric has no current-period value",
+        "Exception handling path": "Reinsurance Analyst raises tolerance breaches to the Reinsurance Ops Manager for remedial action",
+        "Documented acceptance criteria": "Current-period values published for each defined metric with breaches raised as exceptions",
+        "Evidence location": "Reinsurance operations dashboard on the BI/reporting platform plus the period metrics workbook"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract bordereaux receipt data from the reinsurance administration system",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Run the bordereaux receipt extract for the period listing each cedent submission.",
+            "Include due date, received date, and processing status per submission.",
+            "Add expected submissions that were never received as open rows.",
+            "Done when the receipt extract covers every expected cedent submission."
+          ],
+          "verify": [
+            "Compare the extract cedent list to the expected submission schedule.",
+            "Pass when received and due dates are populated for every expected submission."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Calculate the on-time submission rate in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Load the receipt extract into the operational metrics workbook.",
+            "Compute days late per submission and the on-time rate for the period.",
+            "Split the rate by cedent so persistent late submitters are visible.",
+            "Done when the on-time submission rate is calculated for the period."
+          ],
+          "verify": [
+            "Recompute the on-time rate from the underlying rows.",
+            "Pass when the recomputed rate agrees to the workbook figure."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Classify rejected and re-submitted bordereaux by reason",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "List bordereaux rejected or re-submitted in the period from the administration system.",
+            "Classify each rejection as format, missing fields, or failed control totals.",
+            "Count rejections by reason and by cedent.",
+            "Done when every rejection carries a classified reason."
+          ],
+          "verify": [
+            "Filter rejection rows for a blank reason classification.",
+            "Pass when no rejection row is left unclassified."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Measure ageing of unprocessed cessions and suspense cash",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Extract unprocessed cessions and unallocated cash in the reinsurance suspense account.",
+            "Age each item into the agreed ageing buckets at the period end date.",
+            "Identify the oldest items and the total value sitting beyond tolerance.",
+            "Done when ageing is calculated for unprocessed cessions and suspense cash."
+          ],
+          "verify": [
+            "Check every item carries an ageing bucket at the period end date.",
+            "Pass when no unprocessed item is left without an ageing bucket."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Compare each metric against its agreed tolerance",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Apply the agreed tolerance to each operational metric for the period.",
+            "Mark each metric as within tolerance or breaching.",
+            "Raise an exception entry for every breach with the driver identified.",
+            "Done when every metric carries a tolerance status."
+          ],
+          "verify": [
+            "Filter the metric set for entries without a tolerance status.",
+            "Pass when every metric shows a status and each breach has an exception."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Publish the operational metrics tile to the reinsurance operations dashboard",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Publish the period metric values to the operations dashboard on the BI/reporting platform.",
+            "Stamp the tile with the reporting period and refresh timestamp.",
+            "Confirm each defined metric shows a current-period value.",
+            "Done when the metrics tile is published for the period."
+          ],
+          "verify": [
+            "Open the dashboard and read the value and period on each metric.",
+            "Pass when current-period values are published for every defined metric."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Review breaches and assign remedial action",
+          "actor": "Reinsurance Ops Manager",
+          "sop": [
+            "Review every tolerance breach raised for the period.",
+            "Assign a remedial owner and target date for each breach.",
+            "Confirm the published metrics reflect the reviewed position.",
+            "Done when each breach has an assigned owner and target date."
+          ],
+          "verify": [
+            "Filter the exception list for entries without an owner or a target date.",
+            "Pass when no breach is left without an owner and a target date."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "9bc5da0a-342d-4464-b954-eea2bd1532b2",
+      "verifier": "Reinsurance Actuary",
+      "generic": {
+        "Defined scope/population": "All assumed treaty classes with paid and incurred triangles requiring development factor selection",
+        "In-scope period": "The factor review cycle covering underwriting years since the last selection review",
+        "Required fields populated and valid": "Loss development factor, tail factor, IBNR basis, and rationale populated per treaty class",
+        "Control totals or record counts reconcile": "Triangle totals agree to the assumed loss extract for the same underwriting years",
+        "Evidence retained with timestamp/version": "Factor selections saved with a versioned model run reference and review date",
+        "Exceptions logged with disposition": "Factors changed from the prior review logged with a rationale and peer review outcome",
+        "Test population": "Every selected development and tail factor for the assumed treaty classes in scope",
+        "Pass/fail thresholds": "Fail if any changed factor has no written rationale or no peer reviewer sign-off",
+        "Exception handling path": "Reinsurance Actuary refers unresolved challenge points back into the factor selection paper",
+        "Documented acceptance criteria": "Agreed factor set saved under a versioned run with peer review recorded",
+        "Evidence location": "Actuarial modeling platform run library plus the factor selection paper"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract the assumed loss data for triangle construction",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Extract assumed paid and incurred losses by underwriting year and treaty class.",
+            "Include the development period so the data can be arrayed into triangles.",
+            "Agree record counts and loss totals with the actuary before hand-off.",
+            "Done when the assumed loss extract is delivered with agreed totals."
+          ],
+          "verify": [
+            "Compare extract loss totals to the assumed ledger for the same years.",
+            "Pass when extract totals agree to the ledger within the agreed tolerance."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Build paid and incurred triangles in the actuarial modeling platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Load the assumed loss extract into the actuarial modeling platform.",
+            "Build paid and incurred triangles by underwriting year and treaty class.",
+            "Check the latest diagonal against the extract for each treaty class.",
+            "Done when triangles are built for every in-scope treaty class."
+          ],
+          "verify": [
+            "Reconcile each triangle latest diagonal to the source extract.",
+            "Pass when every triangle ties to the extract for its treaty class."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Select development and tail factors per treaty class",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Review link ratios and select development factors for each treaty class.",
+            "Select the tail factor and document the curve or method used.",
+            "Note where the selection differs from the prior review and why.",
+            "Done when factors and tails are selected for every treaty class."
+          ],
+          "verify": [
+            "Compare each selection against the prior review selection.",
+            "Pass when every changed factor carries a written rationale."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Agree the IBNR basis for long-tail assumed classes",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Discuss the IBNR method for long-tail assumed classes with the reserving actuary.",
+            "Agree the method and any blending between chain ladder and expected loss ratio.",
+            "Record the agreed method against each long-tail class.",
+            "Done when the IBNR basis is agreed and recorded for long-tail classes."
+          ],
+          "verify": [
+            "Check each long-tail class carries a recorded IBNR method.",
+            "Pass when no long-tail class is left without an agreed method."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Test selections against actual-versus-expected emergence",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Compare emerged losses since the last review to the expectation under prior factors.",
+            "Apply the new selections and test whether emergence is better explained.",
+            "Note any material distortion from large losses or commutations.",
+            "Done when actual-versus-expected testing is complete for the selections."
+          ],
+          "verify": [
+            "Review the actual-versus-expected output for unexplained distortion.",
+            "Pass when every material distortion is identified and noted."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Document the selections in the factor selection paper",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Write the selection paper in Microsoft Excel covering method, data, and selections.",
+            "Include the rationale for each changed factor and the actual-versus-expected result.",
+            "Attach the triangle exhibits supporting the selections.",
+            "Done when the factor selection paper is drafted with rationale and exhibits."
+          ],
+          "verify": [
+            "Check each changed factor in the paper has a rationale entry.",
+            "Pass when no changed factor is documented without a rationale."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Obtain peer review and log challenge points",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Send the selection paper for peer review by the reserving actuary.",
+            "Log the reviewer name, review date, and every challenge point raised.",
+            "Address each challenge point and record the resolution.",
+            "Done when peer review is complete with all challenge points resolved."
+          ],
+          "verify": [
+            "Review the challenge log for unresolved points.",
+            "Pass when peer reviewer sign-off is recorded with no open challenge."
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Save the agreed factor set under a versioned run reference",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Save the agreed factors into the actuarial modeling platform run library.",
+            "Assign a version reference and record the effective review cycle.",
+            "Lock the run so downstream reserving uses the agreed version.",
+            "Done when the factor set is saved with a versioned run reference."
+          ],
+          "verify": [
+            "Open the run library entry and read the version reference and date.",
+            "Pass when the saved factors carry a versioned run reference."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "011667f9-fb13-4114-ae98-6471de02449d",
+      "verifier": "Reinsurance Manager",
+      "generic": {
+        "Defined scope/population": "All reinsurance assumptions feeding the reserve review across ceded and assumed programs",
+        "In-scope period": "The reserve review cycle for which the assumptions are being documented",
+        "Required fields populated and valid": "Retentions, limits, reinstatements, aggregate deductibles, and commission structures recorded per treaty",
+        "Control totals or record counts reconcile": "Treaties documented equal the treaties in force for the reserve review period",
+        "Evidence retained with timestamp/version": "Approved assumptions paper filed with version number and approval date",
+        "Exceptions logged with disposition": "Known data limitations recorded with their effect on the reserve estimate and the mitigation",
+        "Test population": "Every documented assumption in the approved assumptions paper",
+        "Pass/fail thresholds": "Fail if any assumption lacks a named owner and a stated basis or the paper lacks an approval date",
+        "Exception handling path": "Reinsurance Actuary escalates unconfirmed treaty terms to the Reinsurance Manager before approval",
+        "Documented acceptance criteria": "Assumptions paper approved and filed with a version reference in the reserving library",
+        "Evidence location": "Document management repository reserving documentation library for the review cycle"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "List the treaty terms applied in the reserve review",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Extract the treaty terms used in the reserve review from the actuarial modeling platform.",
+            "Record retentions, limits, reinstatements, aggregate deductibles, and commission structures.",
+            "Cover both ceded and assumed programs in force for the review period.",
+            "Done when the treaty terms schedule is drafted for the review."
+          ],
+          "verify": [
+            "Compare the schedule treaty count to the in-force treaty list for the period.",
+            "Pass when every in-force treaty appears in the schedule."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "State the ceded recoverable and counterparty-default assumptions",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Document the recoverable recognition assumption used in the reserve review.",
+            "Document the counterparty-default assumption and the basis for the rate applied.",
+            "Reference the source analysis for each assumption.",
+            "Done when recoverable and default assumptions are documented with their basis."
+          ],
+          "verify": [
+            "Check each assumption entry carries a stated basis and a source reference.",
+            "Pass when no assumption is recorded without a basis."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record data limitations affecting the reserve estimate",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "List known data limitations in the ceded and assumed data used.",
+            "Describe the effect each limitation has on the reserve estimate.",
+            "State the mitigation or judgement applied to compensate.",
+            "Done when every known limitation is recorded with its effect."
+          ],
+          "verify": [
+            "Read each limitation entry for a stated effect and mitigation.",
+            "Pass when no limitation is recorded without an effect and a mitigation."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Assign a named owner to each documented assumption",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Assign a named owner to each assumption in the paper.",
+            "Confirm the owner accepts the assumption as stated.",
+            "Record the owner name against every assumption row.",
+            "Done when every assumption carries a named owner."
+          ],
+          "verify": [
+            "Filter the assumptions table for rows without an owner.",
+            "Pass when no assumption is left without a named owner."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm documented terms match the placed program",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Compare the documented treaty terms against the program as currently placed.",
+            "Challenge any retention, limit, or commission that differs from the placement.",
+            "Confirm the terms schedule matches the placed program.",
+            "Done when the Reinsurance Manager confirms the documented terms."
+          ],
+          "verify": [
+            "Check the confirmation entry names the reviewer and the schedule version.",
+            "Pass when confirmation is recorded against the final terms schedule."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Obtain approval of the assumptions paper",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Review the complete assumptions paper including limitations and owners.",
+            "Approve or return the paper with points to address.",
+            "Record the approval decision and the approval date.",
+            "Done when the assumptions paper is approved with a recorded date."
+          ],
+          "verify": [
+            "Read the approval record for approver name and approval date.",
+            "Pass when the approval is recorded against the final paper version."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "File the approved paper in the reserving documentation library",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Upload the approved assumptions paper to the document management repository.",
+            "Apply the version number and the review cycle reference to the record.",
+            "Supersede the prior cycle version in the library.",
+            "Done when the approved paper is filed with a version reference."
+          ],
+          "verify": [
+            "Open the library record and read version number and approval date.",
+            "Pass when both are present on the filed version."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "2310a715-d716-43d8-8443-7b1b86a9bb3f",
+      "verifier": "Reinsurance Actuary",
+      "generic": {
+        "Defined scope/population": "Signed-off ceded and assumed IBNR indications for all programs in the reporting period",
+        "In-scope period": "The financial reporting period into which the actuarial indications are booked",
+        "Required fields populated and valid": "Reserve indication amounts, actuarial output version, and journal narrative populated",
+        "Control totals or record counts reconcile": "Reported ceded and assumed reserve balances agree line by line to the actuarial output",
+        "Evidence retained with timestamp/version": "Journal, load file, and reconciliation retained with the actuarial output version reference",
+        "Exceptions logged with disposition": "Movements above the reporting materiality threshold logged with commentary and disposition",
+        "Test population": "All reserve lines loaded into the reinsurance reporting layer for the period",
+        "Pass/fail thresholds": "Fail if the journal narrative omits the actuarial version or any reserve difference is unexplained",
+        "Exception handling path": "Reinsurance Accountant refers differences against the indication to the Reinsurance Actuary",
+        "Documented acceptance criteria": "Reporting reflects the signed-off indications with a full reconciliation and commentary",
+        "Evidence location": "Period reserve support folder holding the load file, journal, and reconciliation"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Obtain the signed-off ceded and assumed IBNR indications",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Export the signed-off ceded and assumed IBNR indications for the period.",
+            "Record the actuarial output version reference on the export.",
+            "Confirm the export is the version approved for booking.",
+            "Done when the signed-off indications are exported with a version reference."
+          ],
+          "verify": [
+            "Compare the export version against the reserve sign-off record.",
+            "Pass when the exported version matches the signed-off version."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Load the indications into the reinsurance reporting layer",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Load the indication file into the reinsurance administration system reporting layer.",
+            "Map each indication line to its program and reporting segment.",
+            "Clear any unmapped line before completing the load.",
+            "Done when all indication lines are loaded and mapped."
+          ],
+          "verify": [
+            "Compare loaded line count to the indication export line count.",
+            "Pass when counts agree with no unmapped line remaining."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Post the ceded reserve credit movement journal in the general ledger",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Calculate the ceded reserve credit movement for the period.",
+            "Post the journal in the ERP general ledger to the reinsurance reserve accounts.",
+            "Reference the actuarial output version in the journal narrative.",
+            "Done when the reserve movement journal is posted with a version reference."
+          ],
+          "verify": [
+            "Read the posted journal narrative for the actuarial version reference.",
+            "Pass when the narrative names the signed-off actuarial output version."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm reserve credit does not exceed the placed program recoverable",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Compare the ceded reserve credit booked against the recoverable supported by the placed program.",
+            "Identify any program where the credit exceeds available limit.",
+            "Restrict the credit and document the restriction where an excess is found.",
+            "Done when reserve credit is confirmed within the placed program limits."
+          ],
+          "verify": [
+            "Test the booked credit against program limit for each program.",
+            "Pass when no program shows credit above the supported recoverable."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile reported reserves to the actuarial output line by line",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Build the reconciliation between reported ceded and assumed reserves and the actuarial output.",
+            "Itemise every difference with its cause.",
+            "Clear or explain each difference in the reconciliation.",
+            "Done when the line by line reconciliation is complete."
+          ],
+          "verify": [
+            "Review the reconciliation for unexplained residual differences.",
+            "Pass when no unexplained difference remains against the indication."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Write the reserve movement commentary in Microsoft Excel",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "List movements above the reporting materiality threshold for the period.",
+            "Write commentary explaining the driver of each material movement.",
+            "Attach the commentary to the period reserve support pack.",
+            "Done when every material movement carries a written commentary."
+          ],
+          "verify": [
+            "Filter material movements for entries without commentary.",
+            "Pass when no material movement is left unexplained."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Confirm the booked position agrees with the actuarial indication",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Review the reconciliation and the posted reserve position for the period.",
+            "Challenge any booked figure that departs from the signed-off indication.",
+            "Record confirmation that reporting reflects the indications.",
+            "Done when the actuary confirms the booked reserve position."
+          ],
+          "verify": [
+            "Check the confirmation names the output version and the period.",
+            "Pass when the confirmation is recorded against the booked position."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "476a2138-db2c-4d1e-9879-e7a75ef34024",
+      "verifier": "Reinsurance Manager",
+      "generic": {
+        "Defined scope/population": "Assumed and ceded reinsurance topics on the annual loss reserve workshop agenda",
+        "In-scope period": "The annual reserve review cycle covered by the workshop",
+        "Required fields populated and valid": "Attendance, challenge points, program changes, and arising actions recorded for the session",
+        "Control totals or record counts reconcile": "Actions in the minutes equal actions carried into the reinsurance action list",
+        "Evidence retained with timestamp/version": "Workshop minutes and action list filed to the reserving workspace with the session date",
+        "Exceptions logged with disposition": "Unresolved reinsurance challenge points logged as actions with owners and due dates",
+        "Test population": "The workshop attendance record and every reinsurance action arising",
+        "Pass/fail thresholds": "Fail if the reinsurance representative is missing from attendance or an action lacks owner or due date",
+        "Exception handling path": "Reinsurance Manager assigns unresolved points to the Reinsurance Actuary with a due date",
+        "Documented acceptance criteria": "Participation recorded with minutes and reinsurance actions filed to the reserving workspace",
+        "Evidence location": "Reserving workspace on Microsoft 365 / SharePoint holding minutes and the action list"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Review the pre-read reserving pack",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Download the pre-read reserving pack from Microsoft 365 / SharePoint.",
+            "Read the ceded and assumed sections against the current program position.",
+            "Note where the pack view conflicts with known program facts.",
+            "Done when the pre-read pack has been reviewed and notes taken."
+          ],
+          "verify": [
+            "Check the notes cover both ceded and assumed sections of the pack.",
+            "Pass when review notes exist for both sections."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Prepare reinsurance challenge points for the workshop",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Convert the review notes into specific challenge points for the session.",
+            "Reference the treaty, class, or event behind each challenge point.",
+            "Share the challenge list with the Reinsurance Actuary before the session.",
+            "Done when the challenge list is prepared and shared."
+          ],
+          "verify": [
+            "Check each challenge point names a treaty, class, or event.",
+            "Pass when no challenge point is stated without a reference."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Present ceded and assumed program changes affecting segmentation",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Present program changes since the last review that affect reserve segmentation.",
+            "Explain how retention, limit, or structure changes alter the ceded pattern.",
+            "Confirm the reserving team has captured each change.",
+            "Done when program changes have been presented and captured."
+          ],
+          "verify": [
+            "Compare the changes presented against the placement record for the year.",
+            "Pass when every material program change was presented."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Raise commutations, run-off, and restructures affecting recoverables",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "List treaty commutations, run-off transfers, and restructures in the period.",
+            "Explain how each changes the recoverable profile in the reserve view.",
+            "Confirm the reserving model treatment for each item.",
+            "Done when every commutation, run-off, and restructure is raised."
+          ],
+          "verify": [
+            "Compare items raised against the treaty status register.",
+            "Pass when no commutation or run-off in the register is omitted."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record attendance for the workshop session",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Record attendees from the Microsoft Teams session or the sign-in sheet.",
+            "Confirm the reinsurance representative is listed on the attendance record.",
+            "File the attendance record with the session date.",
+            "Done when attendance is recorded for the session."
+          ],
+          "verify": [
+            "Read the attendance record for the reinsurance representative entry.",
+            "Pass when the reinsurance representative is listed for the session."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Capture reinsurance actions with owners and due dates",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "List each reinsurance action arising from the workshop.",
+            "Assign a named owner and a due date to each action.",
+            "Confirm the owner accepts the action before the session closes.",
+            "Done when every reinsurance action has an owner and a due date."
+          ],
+          "verify": [
+            "Filter the action list for entries without an owner or a due date.",
+            "Pass when no reinsurance action lacks an owner and a due date."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "File the minutes and reinsurance action list to the reserving workspace",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Upload the workshop minutes to the reserving workspace on Microsoft 365 / SharePoint.",
+            "Attach the reinsurance action list to the same workspace item.",
+            "Circulate the filed location to attendees via Microsoft Teams / Email.",
+            "Done when minutes and the action list are filed and circulated."
+          ],
+          "verify": [
+            "Open the workspace item and confirm minutes and action list are present.",
+            "Pass when both artefacts are filed for the workshop."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "5f1fe1ef-edd8-4d1f-b32c-f07fe885f0f3",
+      "verifier": "Reinsurance Actuary",
+      "generic": {
+        "Defined scope/population": "All ceded paid losses, outstanding case recoverables, and ceded premium by treaty and underwriting year",
+        "In-scope period": "The reserving data period agreed with actuarial for the review cycle",
+        "Required fields populated and valid": "Treaty reference, underwriting year, line of business, and amounts populated on every record",
+        "Control totals or record counts reconcile": "Record counts and monetary control totals agreed with the receiving actuary",
+        "Evidence retained with timestamp/version": "Delivered package retained with delivery date, file version, and data dictionary",
+        "Exceptions logged with disposition": "Excluded, restated, and manually adjusted records listed with the reason for each",
+        "Test population": "Every cession record in the delivered reserving package",
+        "Pass/fail thresholds": "Fail if any cession record has no valid treaty reference or control totals do not match",
+        "Exception handling path": "Ceded Reinsurance Analyst clears unmapped cessions before delivery and flags residual gaps",
+        "Documented acceptance criteria": "Reserving-ready package delivered with matching control totals and a data dictionary",
+        "Evidence location": "Actuarial data location plus the ceded reserving package delivery log"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract ceded losses and recoverables from the reinsurance administration system",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Run the ceded extract for paid losses, outstanding case recoverables, and ceded premium.",
+            "Break the data by treaty, underwriting year, and line of business.",
+            "Record the extract date and the as-at position on the file header.",
+            "Done when the ceded extract is produced for the reserving period."
+          ],
+          "verify": [
+            "Check the extract header carries extract date and as-at position.",
+            "Pass when both are populated on the extract."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Map every cession to its treaty reference",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Join each cession record to the treaty master by treaty reference.",
+            "List cessions that fail to map and trace them to the source cession record.",
+            "Correct or assign the treaty reference for every unmapped cession.",
+            "Done when every cession record carries a valid treaty reference."
+          ],
+          "verify": [
+            "Filter the dataset for records without a valid treaty reference.",
+            "Pass when no cession record is left unmapped."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Stage the package in the enterprise data warehouse",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Load the mapped extract into the reserving staging tables in the data warehouse.",
+            "Run the agreed structural checks for nulls, duplicates, and out-of-period rows.",
+            "Clear every check failure before the package is finalised.",
+            "Done when the staged package passes the structural checks."
+          ],
+          "verify": [
+            "Review the staging check report for open failures.",
+            "Pass when the staged package shows zero open check failures."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Agree record counts and control totals with the receiving actuary",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Compare the package record count and monetary totals against the source extract.",
+            "Confirm the totals against the ceded ledger for the same period.",
+            "Record the agreed counts and totals in the delivery note.",
+            "Done when counts and control totals are agreed and recorded."
+          ],
+          "verify": [
+            "Compare the recorded control totals to the package totals.",
+            "Pass when the package totals match the agreed control totals."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Produce the data dictionary and exclusions note in Microsoft Excel",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Write the data dictionary describing every field and its permitted values.",
+            "List excluded, restated, and manually adjusted records with the reason for each.",
+            "Attach both to the package as supporting documentation.",
+            "Done when the dictionary and exclusions note are attached."
+          ],
+          "verify": [
+            "Check every field in the package appears in the dictionary.",
+            "Pass when no package field is undocumented."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Deliver the package to the actuarial data location",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Copy the finalised package to the agreed actuarial data location.",
+            "Apply the file version reference and delivery date to the file name.",
+            "Notify the receiving actuary that the package is available.",
+            "Done when the package is delivered and the actuary is notified."
+          ],
+          "verify": [
+            "Open the delivered file and read version reference and delivery date.",
+            "Pass when both are present on the delivered package."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Log the delivery and confirm actuarial acceptance",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Record the delivery date and file version in the reserving delivery log.",
+            "Run acceptance checks on the received package against the agreed totals.",
+            "Confirm acceptance or return the package with defects listed.",
+            "Done when the package is accepted or returned with defects."
+          ],
+          "verify": [
+            "Read the delivery log entry for acceptance status and date.",
+            "Pass when the package is recorded as accepted with matching control totals."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "6a411005-03c8-46b9-951c-d957718f9e03",
+      "verifier": "Reinsurance Actuary",
+      "generic": {
+        "Defined scope/population": "Ceded and assumed premium, loss, and exposure records by treaty and underwriting year for the quarter",
+        "In-scope period": "The reporting quarter, submitted by the quarterly actuarial data deadline",
+        "Required fields populated and valid": "Treaty key, underwriting year, premium, loss, and exposure fields populated and typed correctly",
+        "Control totals or record counts reconcile": "Dataset totals reconcile to the quarter-end reinsurance ledger balances",
+        "Evidence retained with timestamp/version": "Submitted dataset retained with submission reference, validation run, and reconciliation attached",
+        "Exceptions logged with disposition": "Validation failures logged with the correction applied and the re-run outcome",
+        "Test population": "The full quarterly dataset submitted to actuarial",
+        "Pass/fail thresholds": "Fail if any validation rule remains failed or the submission misses the quarterly deadline",
+        "Exception handling path": "Reinsurance Analyst corrects failing records and re-runs validation before resubmission",
+        "Documented acceptance criteria": "Quarterly dataset submitted with a passing validation run and actuarial acceptance recorded",
+        "Evidence location": "Enterprise data warehouse quarterly submission area plus the submission log"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Produce the quarterly ceded and assumed dataset",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Run the quarterly premium, loss, and exposure extract from the reinsurance administration system.",
+            "Break the data by treaty and underwriting year for ceded and assumed.",
+            "Stage the dataset in the enterprise data warehouse quarterly area.",
+            "Done when the quarterly dataset is produced and staged."
+          ],
+          "verify": [
+            "Compare the staged treaty list against the quarter in-force register.",
+            "Pass when every in-force treaty appears in the dataset."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Run the agreed validation rules on the dataset",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Execute the agreed validation rules for null keys and negative premium.",
+            "Execute the duplicate cession and out-of-period transaction rules.",
+            "Export the validation result with the failure detail.",
+            "Done when the validation run completes and results are exported."
+          ],
+          "verify": [
+            "Read the validation export for the count of failures by rule.",
+            "Pass when the validation run produced a result for every agreed rule."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Clear every validation failure",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Trace each failing record back to its source cession or transaction.",
+            "Correct the record in the reinsurance administration system where the data is wrong.",
+            "Re-run the validation until no failure remains.",
+            "Done when the dataset passes validation with zero failures."
+          ],
+          "verify": [
+            "Review the final validation run for open failures.",
+            "Pass when no open validation failure remains on the dataset."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reconcile dataset totals to the quarter-end ledger",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Pull the quarter-end reinsurance ledger balances for ceded and assumed.",
+            "Compare dataset premium and loss totals to those balances in Microsoft Excel.",
+            "Explain or clear each difference and attach the reconciliation.",
+            "Done when the reconciliation is complete and attached to the dataset."
+          ],
+          "verify": [
+            "Review the reconciliation for unexplained residual differences.",
+            "Pass when no unexplained difference remains against the ledger."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Submit the dataset by the quarterly actuarial deadline",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Publish the validated dataset to the agreed actuarial submission location.",
+            "Record the submission reference, version, and submission timestamp.",
+            "Notify the receiving actuary that the quarterly dataset is available.",
+            "Done when the dataset is submitted and the reference recorded."
+          ],
+          "verify": [
+            "Compare the submission timestamp to the quarterly deadline.",
+            "Pass when the submission occurred on or before the deadline."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm actuarial acceptance of the quarterly dataset",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Run the receiving checks on the submitted dataset against the reconciliation.",
+            "Raise any defect found back to the analyst with the failing records named.",
+            "Record acceptance of the dataset for the quarter.",
+            "Done when acceptance or defect return is recorded for the quarter."
+          ],
+          "verify": [
+            "Read the submission log for the acceptance entry and its date.",
+            "Pass when acceptance is recorded against the submitted version."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Close the quarterly data task in the submission log",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Update the submission log with the acceptance outcome for the quarter.",
+            "Attach the validation run and the ledger reconciliation to the log entry.",
+            "Close the quarterly data task once acceptance is recorded.",
+            "Done when the quarterly data task is closed with evidence attached."
+          ],
+          "verify": [
+            "Open the log entry and confirm validation run and reconciliation are attached.",
+            "Pass when both artefacts are attached to the closed entry."
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,550 @@
+{
+  "area": "Life Policy Administration & Inforce Servicing",
+  "tasks": [
+    {
+      "taskId": "4b717eeb-f990-458f-8865-3de8d035e5cd",
+      "verifier": "Policy Administration Analyst",
+      "generic": {
+        "Defined scope/population": "Beneficiary change requests awaiting compliance assessment against the contract beneficiary provision",
+        "In-scope period": "Requests sitting in the pending-assessment queue for the current servicing day",
+        "Required fields populated and valid": "Designation type, allocation splits, trust name, trust date, trustee and cited contract provision all present",
+        "Control totals or record counts reconcile": "Count of assessed requests equals the count pulled from the pending-assessment queue",
+        "Evidence retained with timestamp/version": "Assessment note and the contract form image version stored on the service request with a timestamp",
+        "Exceptions logged with disposition": "Blocked or defective designations pended with a specific reason code and owner notification",
+        "Test population": "Sample of assessed beneficiary change requests spanning individual, trust and estate designations",
+        "Pass/fail thresholds": "Fail where the assessment note omits the cited contract provision or the permitted or blocked outcome",
+        "Exception handling path": "Irrevocable-beneficiary blocks and trust defects pend to the Policy Administration Analyst for resolution",
+        "Documented acceptance criteria": "Designation type is permitted by the contract form and allocation splits total exactly 100 percent",
+        "Evidence location": "Service request notes in the policy administration system plus the form image in OpenText Document Mgmt"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Retrieve the contract form image from OpenText Document Mgmt",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Open the policy in the policy administration system and note the product form number and state of issue",
+            "Search OpenText Document Mgmt for the issued contract image matching that form number",
+            "Confirm the image is the issued contract and not a specimen or marketing version",
+            "Done when the correct contract form image is open alongside the service request"
+          ],
+          "verify": [
+            "Check the form number on the image against the form number on the policy record",
+            "Pass when the opened image is the issued contract for this policy and state"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Read the Beneficiary provision and confirm the requested designation type is permitted",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Locate the Beneficiary provision in the contract image and read it in full",
+            "Compare the requested type (primary, contingent, irrevocable, trust, estate) against what the provision allows",
+            "Note the provision paragraph reference for citation in the assessment",
+            "Done when the requested designation type is classified permitted or blocked with a provision reference"
+          ],
+          "verify": [
+            "Re-read the provision reference and confirm it supports the classification recorded",
+            "Pass when the permitted or blocked call is traceable to a named contract paragraph"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Check the admin system for irrevocable beneficiary or collateral assignment blocks",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Open the beneficiary and assignment panels in the policy administration system",
+            "Flag any irrevocable beneficiary that removes the owner's unilateral right to change",
+            "Flag any recorded collateral or absolute assignment that constrains the designation",
+            "Done when every blocking interest on the policy is listed on the service request"
+          ],
+          "verify": [
+            "Cross-check the assignment register entry against the imaged assignment form",
+            "Pass when every active irrevocable or assignment interest is captured on the request"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Validate allocation percentages and per-stirpes wording in the admin system",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Total the primary allocations and total the contingent allocations separately",
+            "Confirm each total equals exactly 100 percent with no rounding shortfall",
+            "Compare the per-stirpes or per-capita wording requested against the contract language",
+            "Done when both totals and the distribution wording are confirmed or flagged"
+          ],
+          "verify": [
+            "Recompute both allocation totals from the form image rather than the keyed values",
+            "Pass when both totals equal 100 percent and the wording matches the contract"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Test trust and entity designations for existence and insurable-interest defects",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Confirm a trust designation carries trust name, trust date and named trustee",
+            "Confirm an entity designation carries the legal entity name and tax identification number",
+            "Assess whether the named party has an insurable interest consistent with the contract",
+            "Done when each trust or entity designation is cleared or flagged with the specific defect"
+          ],
+          "verify": [
+            "Compare the trust details on the request against the trust document image where one is on file",
+            "Pass when no trust or entity designation is cleared with a missing name, date or tax ID"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the compliance assessment and cited provision on the service request",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Write the outcome, permitted or blocked, into the service request notes",
+            "Cite the contract provision relied on and list any blocking interest found",
+            "Set the pend reason code where the designation cannot proceed as requested",
+            "Done when the service request carries a dated assessment note with the citation"
+          ],
+          "verify": [
+            "Reopen the service request and read the assessment note as saved",
+            "Pass when the note states the outcome, the citation and any pend reason code"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "707ce7df-b098-48ab-9882-5b7f31ac7012",
+      "verifier": "Operations Specialist",
+      "generic": {
+        "Defined scope/population": "Beneficiary change requests received by mail, phone, agent or portal awaiting requestor authentication",
+        "In-scope period": "Requests received since the last authentication queue sweep",
+        "Required fields populated and valid": "Authentication method, identifiers matched, verifier ID and authentication outcome all recorded",
+        "Control totals or record counts reconcile": "Authenticated request count equals intake count for the same receipt window",
+        "Evidence retained with timestamp/version": "Authentication stamp with date, method and verifier ID held on the service request",
+        "Exceptions logged with disposition": "Failed authentications logged with the reason and the callback or return-to-owner action taken",
+        "Test population": "Sample of authenticated beneficiary change requests across mail, phone and portal channels",
+        "Pass/fail thresholds": "Fail where fewer than two owner identifiers were matched before the request advanced",
+        "Exception handling path": "Suspected impersonation routed to the fraud queue and the request held pending investigation",
+        "Documented acceptance criteria": "At least two identifiers matched and the signature agrees with the signature of record",
+        "Evidence location": "Service request authentication panel in the policy administration system and the CRM interaction record"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Log the incoming request and its channel in the CRM",
+          "actor": "Processing Clerk",
+          "sop": [
+            "Create or open the CRM interaction for the beneficiary change request",
+            "Record the channel used: mail, telephone, agent submission or self-service portal",
+            "Attach the request image or portal submission reference to the interaction",
+            "Done when the interaction records the channel and links the source document"
+          ],
+          "verify": [
+            "Reopen the interaction and confirm the channel and the source link are present",
+            "Pass when every request in the queue has a channel and a linked source"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Match at least two owner identifiers against the policy administration system",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Pull the owner record and compare full name, date of birth and last four of the tax ID",
+            "Compare the policy number and the address of record given by the requestor",
+            "Record which identifiers matched and which failed",
+            "Done when at least two identifiers are confirmed matched or the request is marked failed"
+          ],
+          "verify": [
+            "Recheck one matched identifier directly against the owner panel",
+            "Pass when two or more identifiers are recorded as matched on the request"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Compare the form signature to the signature of record in the document repository",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Open the application image or the last signed servicing form for this owner",
+            "Compare the signature on the change form against that signature of record",
+            "Refer any material difference to a second reviewer before proceeding",
+            "Done when the signature is accepted or referred with the difference noted"
+          ],
+          "verify": [
+            "Confirm the comparison document ID is recorded on the request",
+            "Pass when the signature comparison outcome and the document ID are both recorded"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Apply the address-change hold check in the policy administration system",
+          "actor": "Processing Clerk",
+          "sop": [
+            "Open the address history panel and read the date of the last mailing address change",
+            "Determine whether that change falls inside the 30 day fraud-hold window",
+            "Apply the address-change hold to the request where it does",
+            "Done when the hold is applied or the request is confirmed outside the window"
+          ],
+          "verify": [
+            "Recheck the address history date against the hold decision recorded",
+            "Pass when no request inside the 30 day window advanced without the hold"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm multi-factor authentication for portal-submitted requests",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Open the portal session detail for the submission in the policy administration system",
+            "Confirm multi-factor authentication succeeded on that session",
+            "Confirm the portal user is the registered owner and not a delegate or agent",
+            "Done when the session is confirmed authenticated and owner-submitted, or the request is failed"
+          ],
+          "verify": [
+            "Compare the portal user identity against the owner of record",
+            "Pass when no portal request advanced from a delegate account or an unauthenticated session"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Stamp the authentication result and verifier ID on the service request",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Set the authentication status to passed or failed on the service request",
+            "Record the method used, the identifiers matched and the verifier ID with the date",
+            "Return failed requests to the owner in writing citing the authentication shortfall",
+            "Done when the request carries a complete dated authentication stamp"
+          ],
+          "verify": [
+            "Reopen the request and read the authentication panel as saved",
+            "Pass when no request advances to posting with status failed or not attempted"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "5114b1f6-9195-456b-b06a-5a12be5ef4f8",
+      "verifier": "Operations Specialist",
+      "generic": {
+        "Defined scope/population": "Posted beneficiary changes requiring a written confirmation to the policyowner of record",
+        "In-scope period": "Beneficiary changes posted in the current business day",
+        "Required fields populated and valid": "New primary and contingent names, relationships, allocation splits and posting date on the letter",
+        "Control totals or record counts reconcile": "Confirmation letters generated equals beneficiary changes posted for the day",
+        "Evidence retained with timestamp/version": "Generated confirmation PDF imaged to the policy folder with the generation timestamp",
+        "Exceptions logged with disposition": "Undeliverable or suppressed confirmations logged with the reason and the reissue action",
+        "Test population": "Sample of posted beneficiary changes across print and e-delivery elections",
+        "Pass/fail thresholds": "Fail where a posted change has no confirmation correspondence record within one business day",
+        "Exception handling path": "Returned mail routed to address research and the confirmation reissued to the corrected address",
+        "Documented acceptance criteria": "Letter addressed to the policyowner of record and shows the designation exactly as posted",
+        "Evidence location": "Policy document folder in OpenText Document Mgmt under the beneficiary-change document type"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Generate the beneficiary change confirmation letter in the policy administration system",
+          "actor": "Processing Clerk",
+          "sop": [
+            "Open the posted beneficiary change transaction and launch the confirmation letter template",
+            "Populate the new primary and contingent names, relationships and allocation splits as posted",
+            "Include the posting effective date on the letter",
+            "Done when a draft confirmation exists showing the designation exactly as posted"
+          ],
+          "verify": [
+            "Compare each name and percentage on the draft against the beneficiary panel",
+            "Pass when every name, relationship and percentage on the letter matches the posted record"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the letter is addressed to the policyowner of record",
+          "actor": "Processing Clerk",
+          "sop": [
+            "Check the addressee block resolves to the policyowner and not the new beneficiary",
+            "Check the mailing address equals the address of record on the admin system",
+            "Correct the addressee where the template resolved the wrong party",
+            "Done when the addressee and address both match the owner of record"
+          ],
+          "verify": [
+            "Compare the addressee block against the owner panel in the admin system",
+            "Pass when no confirmation is addressed to a party other than the owner of record"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Insert the review and how-to-correct instructions block",
+          "actor": "Processing Clerk",
+          "sop": [
+            "Confirm the standard review your designation paragraph is present on the letter",
+            "Confirm the how-to-correct instructions and the servicing contact details are present",
+            "Add the block from the approved template where it is missing",
+            "Done when both required content blocks appear on the confirmation"
+          ],
+          "verify": [
+            "Read the issued letter and locate both required blocks",
+            "Pass when no confirmation is released without the review and correction instructions"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Route the confirmation to e-delivery or print per the owner election",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Read the paperless election flag on the policy administration system",
+            "Send to the e-delivery inbox where the election is active",
+            "Release to the print and mail stream the same business day otherwise",
+            "Done when the confirmation is queued on the channel matching the election"
+          ],
+          "verify": [
+            "Compare the delivery channel used against the current paperless election",
+            "Pass when the channel used matches the owner election on the policy"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Attach the generated PDF to the policy folder in OpenText Document Mgmt",
+          "actor": "Processing Clerk",
+          "sop": [
+            "Export the issued confirmation PDF exactly as sent",
+            "Index it to the policy under the beneficiary-change document type",
+            "Record the policy number, transaction ID and send date on the index",
+            "Done when the PDF is retrievable from the policy folder by transaction ID"
+          ],
+          "verify": [
+            "Search the policy folder by the beneficiary-change transaction ID",
+            "Pass when the imaged confirmation returns and opens legibly"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the send date on the beneficiary change transaction",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Write the confirmation send date and channel back to the transaction record",
+            "Log any suppression or undeliverable outcome with its reason",
+            "Raise a reissue task where delivery failed",
+            "Done when every posted change carries a confirmation send date or a logged exception"
+          ],
+          "verify": [
+            "Run the posted-changes list and check for missing confirmation send dates",
+            "Pass when no posted beneficiary change lacks a send date or a logged exception"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "88b07ff5-ac48-4667-8992-79e721924291",
+      "verifier": "Policy Administration Analyst",
+      "generic": {
+        "Defined scope/population": "Beneficiary change requests requiring spousal, irrevocable beneficiary or assignee consent before posting",
+        "In-scope period": "Requests in the consent determination queue for the current servicing day",
+        "Required fields populated and valid": "State of issue, contract type, consent type required and consent document status all recorded",
+        "Control totals or record counts reconcile": "Consent determinations recorded equals requests routed for consent review",
+        "Evidence retained with timestamp/version": "Consent determination note and any imaged consent document with received date and version",
+        "Exceptions logged with disposition": "Missing consents pended with the specific missing-consent reason code and owner notification",
+        "Test population": "Sample of requests across community property states, ERISA contracts and assigned policies",
+        "Pass/fail thresholds": "Fail where a posted change on an irrevocable-beneficiary policy has no imaged consent",
+        "Exception handling path": "Absent consent pends the request and triggers a written consent request to the owner",
+        "Documented acceptance criteria": "Every consent required by state and contract type is on file, signed and correctly dated",
+        "Evidence location": "Consent requirement panel in the policy administration system and consent images in OpenText"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Determine the state of issue and contract type in the policy administration system",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Open the policy header and read the state of issue and the product or contract type",
+            "Identify whether the contract is qualified or ERISA covered",
+            "Record both on the consent determination note",
+            "Done when the state of issue and contract type are recorded on the request"
+          ],
+          "verify": [
+            "Compare the recorded state and contract type against the policy header",
+            "Pass when both values are recorded and match the policy record"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Determine whether spousal or community-property consent is required",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Check the consent matrix entry for the state of issue and contract type",
+            "Decide whether spousal or community-property consent applies to this change",
+            "Record the determination and the rule relied on",
+            "Done when the spousal consent requirement is determined and recorded"
+          ],
+          "verify": [
+            "Re-read the matrix entry for the recorded state and contract type",
+            "Pass when the determination matches the matrix entry for that state"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Check the policy for an irrevocable beneficiary requiring written consent",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Open the beneficiary panel and identify any beneficiary flagged irrevocable",
+            "Where one exists, raise the requirement for that beneficiary's written consent",
+            "Block the request from being keyed until that consent is imaged",
+            "Done when any irrevocable beneficiary consent requirement is raised on the request"
+          ],
+          "verify": [
+            "Check the requirement list against the irrevocable flags on the beneficiary panel",
+            "Pass when every irrevocable beneficiary has a matching open or satisfied consent requirement"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm assignee consent or subordination where an assignment is recorded",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Query the assignment register for any active collateral or absolute assignment",
+            "Locate the assignee consent or subordination document in OpenText Document Mgmt",
+            "Raise a requirement where no consent document is on file",
+            "Done when assignee consent is confirmed on file or raised as outstanding"
+          ],
+          "verify": [
+            "Open the imaged consent and confirm it names this policy and this change",
+            "Pass when every active assignment has a matching consent document or open requirement"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Validate the ERISA or qualified contract spousal waiver form",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Open the spousal waiver image for the qualified or ERISA covered contract",
+            "Confirm it is notarized or witnessed by a plan representative",
+            "Confirm the waiver date sits inside the required election window",
+            "Done when the waiver is accepted or rejected with the defect stated"
+          ],
+          "verify": [
+            "Recheck the notary seal, commission expiry and the waiver date",
+            "Pass when no qualified contract change is cleared on an unnotarized or out-of-window waiver"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Pend the request with the missing-consent reason code",
+          "actor": "Policy Administration Analyst",
+          "sop": [
+            "Set the pend status and the specific missing-consent reason code on the request",
+            "Issue the written consent request to the owner listing exactly what is outstanding",
+            "Diary the follow-up date for the outstanding consent",
+            "Done when every request with a missing consent is pended and the owner is notified"
+          ],
+          "verify": [
+            "Review the pended queue and read the reason code on each item",
+            "Pass when no request with an outstanding consent sits in a ready-to-post status"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "a8ea4cf5-c2f4-4f9f-abca-6cc789beb20a",
+      "verifier": "Document Management Specialist",
+      "generic": {
+        "Defined scope/population": "Posted beneficiary changes requiring distribution of an updated document package to the owner",
+        "In-scope period": "Beneficiary changes posted and endorsed in the current distribution cycle",
+        "Required fields populated and valid": "Policy number, endorsement effective date, revised beneficiary schedule and transaction ID present",
+        "Control totals or record counts reconcile": "Packages distributed equals endorsed beneficiary changes released for the cycle",
+        "Evidence retained with timestamp/version": "Distributed package indexed with document type, version and distribution date",
+        "Exceptions logged with disposition": "Failed or returned distributions logged with the reason and the reissue outcome",
+        "Test population": "Sample of distributed packages across e-delivery and print elections",
+        "Pass/fail thresholds": "Fail where a superseded beneficiary schedule remains flagged active on the policy",
+        "Exception handling path": "Undeliverable packages route to address research and are reissued once corrected",
+        "Documented acceptance criteria": "Current schedule indexed under the beneficiary-change transaction ID with no active superseded version",
+        "Evidence location": "Policy document folder in OpenText Document Mgmt and the distribution log on the transaction"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Assemble the updated document package in OpenText Document Mgmt",
+          "actor": "Document Management Specialist",
+          "sop": [
+            "Collect the endorsement page, the revised beneficiary schedule and the confirmation letter",
+            "Confirm all three relate to the same beneficiary-change transaction",
+            "Assemble them into a single package for distribution",
+            "Done when the three-part package exists against the transaction"
+          ],
+          "verify": [
+            "Open the assembled package and confirm each component is present",
+            "Pass when the package contains the endorsement, schedule and confirmation letter"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Verify the endorsement page details against the policy record",
+          "actor": "Document Management Specialist",
+          "sop": [
+            "Check the policy number and effective date on the endorsement against the admin system",
+            "Check the beneficiary schedule on the endorsement equals the posted designation",
+            "Return the package for regeneration where any value differs",
+            "Done when the endorsement details are confirmed to match the posted record"
+          ],
+          "verify": [
+            "Compare the endorsement schedule line by line against the beneficiary panel",
+            "Pass when no endorsement is distributed with a policy number or schedule mismatch"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Route the package to e-delivery or print per the owner election",
+          "actor": "Processing Clerk",
+          "sop": [
+            "Read the current paperless election on the policy administration system",
+            "Post to the e-delivery inbox or release to print and mail accordingly",
+            "Confirm the mailing address is not flagged undeliverable before print release",
+            "Done when the package is queued on the correct channel"
+          ],
+          "verify": [
+            "Compare the channel used against the paperless election on the policy",
+            "Pass when no package is mailed to an address flagged undeliverable"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Log the distribution date on the beneficiary-change transaction",
+          "actor": "Processing Clerk",
+          "sop": [
+            "Write the distribution date and channel back to the transaction record",
+            "Record any bounce, return or suppression with its reason",
+            "Raise a reissue task where distribution failed",
+            "Done when every package has a distribution date or a logged failure"
+          ],
+          "verify": [
+            "List endorsed changes for the cycle and check for missing distribution dates",
+            "Pass when every endorsed change carries a distribution date or a logged exception"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Index the package to the policy folder with the transaction ID",
+          "actor": "Document Management Specialist",
+          "sop": [
+            "Index the package under document type, effective date and beneficiary-change transaction ID",
+            "Confirm the index values are keyed rather than left to default",
+            "Confirm the images are legible and complete",
+            "Done when the package is retrievable by transaction ID from the policy folder"
+          ],
+          "verify": [
+            "Search the policy folder by the transaction ID and open the result",
+            "Pass when the package returns on a transaction ID search and opens legibly"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Retire the prior beneficiary schedule version in the repository",
+          "actor": "Document Management Specialist",
+          "sop": [
+            "Locate any earlier beneficiary schedule still flagged active for the policy",
+            "Mark it superseded and set the current schedule as the active document",
+            "Retain the superseded version rather than deleting it",
+            "Done when exactly one beneficiary schedule is flagged active for the policy"
+          ],
+          "verify": [
+            "Filter the policy folder for active beneficiary schedules",
+            "Pass when only the current schedule is flagged active and prior versions are retained as superseded"
+          ]
+        }
+      ]
+    }
+  ]
+}

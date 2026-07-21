@@ -1,0 +1,1747 @@
+{
+  "area": "Producer Acquisition & Onboarding",
+  "tasks": [
+    {
+      "taskId": "0fc62724-8384-44f2-855a-f95fb366c3d6",
+      "verifier": "Distribution Operations Manager",
+      "generic": {
+        "Defined scope/population": "All unappointed agencies and brokers in the territories flagged below target agent density.",
+        "In-scope period": "Current recruitment planning cycle using premium and policy counts for the trailing 12 months.",
+        "Required fields populated and valid": "Every prospect row carries agency name, state, ZIP territory, estimated writable premium and owner.",
+        "Control totals or record counts reconcile": "CRM campaign record count equals the ranked white-space model output after exclusions.",
+        "Evidence retained with timestamp/version": "White-space model extract and CRM list saved with build date and model version.",
+        "Exceptions logged with disposition": "Prospects excluded for prior decline or in-flight pipeline are listed with the exclusion reason.",
+        "Test population": "The full CRM target prospect list for the cycle, not a sample of territories.",
+        "Pass/fail thresholds": "Fail if any record lacks territory, estimated premium or an assigned owner.",
+        "Exception handling path": "Ambiguous or duplicate prospects route to the Agency Relations Manager for adjudication.",
+        "Documented acceptance criteria": "List is accepted when ranked, capped at target count and fully owned by territory.",
+        "Evidence location": "CRM campaign record plus the white-space model extract in the BI reporting platform."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract appointed-producer footprint from the agency/producer management system",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Run the appointed-producer extract by state and line of business from the producer management system.",
+            "Confirm the extract as-at date and record the row count as the footprint control total.",
+            "Done when the footprint extract is saved with as-at date and row count."
+          ],
+          "verify": [
+            "Compare extract row count to the active appointment count in the producer management system.",
+            "Pass when the two counts agree and the as-at date is the run date."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Load the footprint into the white-space model in the BI/reporting platform",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Load the appointed-producer footprint into the white-space model dataset in the BI platform.",
+            "Confirm every state and line code maps to a model dimension with no unmapped rows.",
+            "Done when the model loads with zero unmapped state or line codes."
+          ],
+          "verify": [
+            "Review the load log for rejected rows and unmapped dimension members.",
+            "Pass when the load log shows zero rejects and zero unmapped codes."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Overlay premium and policy count by ZIP territory in the BI/reporting platform",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Join written premium and policy count by ZIP territory onto the appointed footprint.",
+            "Flag every territory whose agent density falls below the published target density.",
+            "Done when each ZIP territory carries a density value and a below-target flag."
+          ],
+          "verify": [
+            "Reconcile total overlaid premium to the BI platform premium report for the same period.",
+            "Pass when the overlaid premium total equals the source premium report."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Apply exclusion rules against the agency/producer management system",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Remove agencies with an active appointment record in the producer management system.",
+            "Remove agencies in-flight in the CRM pipeline or declined within the last 24 months.",
+            "Log each exclusion with its reason code against the candidate record.",
+            "Done when every excluded candidate carries an exclusion reason code."
+          ],
+          "verify": [
+            "Sample the remaining candidates against active appointment records by FEIN.",
+            "Pass when no remaining candidate matches an active appointment record."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Rank and cap the prospect list in the BI/reporting platform",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Score each remaining prospect on estimated writable premium and underwriting appetite match.",
+            "Sort descending on the combined score and cut the list at the agreed target count.",
+            "Done when the ranked list is capped at the agreed target count."
+          ],
+          "verify": [
+            "Check the record count of the capped list against the agreed target count.",
+            "Pass when the capped count equals the agreed target and ranking is monotonic."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Publish the target prospect list as a CRM campaign",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Create the dated CRM campaign and load the ranked prospect records into it.",
+            "Assign a territory and a named owner to every prospect record in the campaign.",
+            "Done when the CRM campaign holds every ranked prospect with owner and territory."
+          ],
+          "verify": [
+            "Run a CRM report on campaign members with blank owner, territory or estimated premium.",
+            "Pass when that report returns zero records."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Review and accept the prospect list with distribution leadership",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Walk the ranked list and territory coverage with the Agency Relations Manager.",
+            "Confirm the exclusions and the cap are consistent with the recruitment plan.",
+            "Record acceptance and the accepted list version on the CRM campaign record.",
+            "Done when the campaign record shows a dated acceptance and list version."
+          ],
+          "verify": [
+            "Confirm the acceptance note names the reviewer and the list version.",
+            "Pass when acceptance is recorded against the exact published list version."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "89df6799-f4bc-4f00-8964-be190918329c",
+      "verifier": "Agency Relations Manager",
+      "generic": {
+        "Defined scope/population": "The full agency application package for the prospect under consideration for appointment.",
+        "In-scope period": "Financial statements covering two years ending within the last 12 months.",
+        "Required fields populated and valid": "FEIN, legal entity name, DBA, principal names and E&O limits are complete on the application.",
+        "Control totals or record counts reconcile": "Owner count on the ownership chart equals the principal count on the application form.",
+        "Evidence retained with timestamp/version": "Every package item is filed in the document repository with received date and version.",
+        "Exceptions logged with disposition": "Missing or expired package items are logged as open items with a chase date.",
+        "Test population": "All required package items for the prospect: application, financials, ownership chart, E&O certificate.",
+        "Pass/fail thresholds": "Fail if any required item is absent, unsigned or expired at the check date.",
+        "Exception handling path": "Incomplete packages return to the prospect with a written list of outstanding items.",
+        "Documented acceptance criteria": "Package status is set Complete only when every required item is present and in force.",
+        "Evidence location": "Prospect record in the document management repository linked from the CRM record."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Validate the signed agency application form in the CRM prospect record",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Open the submitted agency application and check the signature block is complete and dated.",
+            "Confirm FEIN, legal entity name, DBA and every principal name are populated.",
+            "Done when the application form is confirmed signed and fully populated."
+          ],
+          "verify": [
+            "Re-read the FEIN and legal name against the ownership documents supplied.",
+            "Pass when FEIN and legal name agree across application and ownership documents."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Collect two years of agency financial statements into the document repository",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Request and receive the two most recent annual financial statements from the agency.",
+            "Confirm the latest reporting period ends within the last 12 months.",
+            "File both statements to the prospect folder in the document repository.",
+            "Done when two in-date financial statements are filed to the prospect folder."
+          ],
+          "verify": [
+            "Check the period-end date on the most recent statement against today.",
+            "Pass when the latest period end is within 12 months of the check date."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Capture the ownership structure chart in the agency/producer management system",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Obtain the ownership structure chart showing all entities and individual owners.",
+            "Record every owner holding 10 percent or greater interest on the prospect record.",
+            "Done when all 10 percent or greater owners are recorded on the prospect record."
+          ],
+          "verify": [
+            "Sum the recorded ownership percentages across the captured owners.",
+            "Pass when the ownership chart accounts for 100 percent of the entity."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Validate the E&O certificate against carrier minimums",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Confirm the E&O certificate names the applying agency as the insured.",
+            "Confirm the policy is in force today and the limits meet or exceed the carrier minimum.",
+            "Record the E&O expiry date on the prospect record.",
+            "Done when E&O insured name, in-force status and limits are confirmed and dated."
+          ],
+          "verify": [
+            "Compare the certificate limits to the published carrier minimum for the segment.",
+            "Pass when per-claim and aggregate limits both meet or exceed the minimum."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Index the package to the prospect record in the document repository",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Attach every collected item to the prospect record with document type and received date.",
+            "Link the repository folder from the CRM prospect record so it is retrievable.",
+            "Done when all package items are indexed and linked from the CRM record."
+          ],
+          "verify": [
+            "Open the CRM link and list the attached document types against the required list.",
+            "Pass when every required document type is present in the repository folder."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Log outstanding items and set the package status",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Log every missing or expired item as an open item with a chase date and owner.",
+            "Set the application package status to Complete only when no open item remains.",
+            "Done when package status reflects the true state of the open item list."
+          ],
+          "verify": [
+            "Check that no open item exists on a package marked Complete.",
+            "Pass when Complete status coexists with zero open items."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Review the completed package before selection",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Review each package item for legibility, currency and consistency with the application.",
+            "Challenge any document dated outside the acceptable window and return it for replacement.",
+            "Record the package review outcome on the CRM prospect record.",
+            "Done when a dated package review outcome is recorded on the prospect record."
+          ],
+          "verify": [
+            "Confirm no filed document carries an expiration date earlier than today.",
+            "Pass when every dated document in the package is in force at review."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "3aeb4d86-668e-4f5a-ab7f-fabe59f57dd3",
+      "verifier": "Agency Relations Manager",
+      "generic": {
+        "Defined scope/population": "The single prospect agency scheduled for the introductory recruitment discovery meeting.",
+        "In-scope period": "Book-of-business figures for the trailing year and growth intent for the next three years.",
+        "Required fields populated and valid": "Meeting date, attendees, premium, line mix, carrier relationships and growth intent are recorded.",
+        "Control totals or record counts reconcile": "Line-of-business premium split sums to the stated total written premium.",
+        "Evidence retained with timestamp/version": "Discovery notes are logged as a dated CRM activity within one business day.",
+        "Exceptions logged with disposition": "Disclosed regulatory action or prior for-cause termination is logged for compliance follow-up.",
+        "Test population": "The discovery meeting activity record for the prospect on the CRM record.",
+        "Pass/fail thresholds": "Fail if the activity lacks date, attendees or book-of-business profile notes.",
+        "Exception handling path": "Adverse disclosures route immediately to the Producer Compliance Manager screening step.",
+        "Documented acceptance criteria": "Meeting is complete when profile, growth intent and disclosure questions are all recorded.",
+        "Evidence location": "CRM prospect record discovery activity with attached meeting notes."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Schedule the discovery meeting via Microsoft Teams and confirm in CRM",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Agree a date with the agency principal and issue the Teams invitation.",
+            "Log the scheduled date, attendee list and location on the CRM prospect record.",
+            "Done when the CRM record shows the confirmed date and attendee list."
+          ],
+          "verify": [
+            "Check that the invite acceptance is received from the agency principal.",
+            "Pass when the principal has accepted and the CRM date matches the invite."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Prepare the discovery agenda and prospect brief in CRM",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Pull the prospect white-space rationale and territory data from the CRM record.",
+            "Build the agenda covering book profile, growth intent, carriers and disclosures.",
+            "Done when the agenda and prospect brief are attached to the CRM record."
+          ],
+          "verify": [
+            "Check the agenda covers every mandatory discovery topic.",
+            "Pass when all mandatory topics appear on the attached agenda."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Capture the book-of-business profile during the meeting",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Record total written premium, line-of-business mix and average account size.",
+            "Record the top carrier relationships and the share of book held with each.",
+            "Done when premium, line mix, average account size and carriers are captured."
+          ],
+          "verify": [
+            "Add the line-of-business premium splits and compare to stated total premium.",
+            "Pass when the line splits sum to the stated total written premium."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record three-year growth intent in the discovery notes",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Ask for planned premium growth, producer headcount plans and target segments.",
+            "Record each answer in the discovery notes with the year it applies to.",
+            "Done when growth intent, headcount and target segments are recorded by year."
+          ],
+          "verify": [
+            "Check the growth intent notes name specific segments rather than generic ambition.",
+            "Pass when each growth statement names a segment and a period."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Ask and record the regulatory and prior-carrier disclosure questions",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Ask about open regulatory action, prior carrier termination for cause and open E&O claims.",
+            "Record each answer verbatim in the discovery notes with the date asked.",
+            "Raise a compliance follow-up item for every affirmative answer.",
+            "Done when all three disclosure questions carry a recorded answer."
+          ],
+          "verify": [
+            "Check that each affirmative disclosure has a linked compliance follow-up item.",
+            "Pass when no affirmative disclosure is left without a follow-up item."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Log the discovery summary and next steps in CRM",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Write the discovery call summary onto the CRM prospect record as a dated activity.",
+            "Create next-step tasks with owners and due dates from the meeting outcome.",
+            "Complete the logging within one business day of the meeting.",
+            "Done when the dated summary and next-step tasks exist on the CRM record."
+          ],
+          "verify": [
+            "Compare the activity log date to the meeting date on the CRM record.",
+            "Pass when the summary is logged within one business day of the meeting."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fk66q191tkfgz65j2pwf6",
+      "verifier": "Agency Relations Manager",
+      "generic": {
+        "Defined scope/population": "The prospect contacts entitled to the next-steps notification at the current pipeline stage.",
+        "In-scope period": "The current recruitment decision cycle for this prospect record.",
+        "Required fields populated and valid": "Recipient address, stage-correct template, outstanding items and response dates are populated.",
+        "Control totals or record counts reconcile": "Outstanding items listed in the notice equal the open items on the prospect record.",
+        "Evidence retained with timestamp/version": "The sent copy is attached to the CRM prospect record with a send timestamp.",
+        "Exceptions logged with disposition": "Bounced or undelivered notifications are logged and re-sent to a verified address.",
+        "Test population": "All next-steps notifications issued for the prospect in the current cycle.",
+        "Pass/fail thresholds": "Fail if no timestamped sent copy or no follow-up task exists after sending.",
+        "Exception handling path": "Address mismatches route to the Agency Relations Manager before any send.",
+        "Documented acceptance criteria": "Notification is accepted when sent, filed and paired with an open follow-up task.",
+        "Evidence location": "CRM prospect record activity feed with the attached sent notification."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Determine the prospect stage and select the approved template",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Read the current pipeline stage from the CRM prospect record.",
+            "Select the approved advance, pending-information or decline template for that stage.",
+            "Done when the stage-correct approved template is selected."
+          ],
+          "verify": [
+            "Compare the chosen template name to the stage on the prospect record.",
+            "Pass when the template matches the recorded prospect stage."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Verify the recipient address against the CRM principal contact",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Open the principal contact on the CRM prospect record and read the email address.",
+            "Match the intended recipient address character by character to that contact.",
+            "Done when the recipient address matches the CRM principal contact exactly."
+          ],
+          "verify": [
+            "Re-check the recipient domain against the agency domain on the application.",
+            "Pass when recipient address and CRM principal contact agree."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "List the outstanding items and dates in the notification body",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Pull the open item list from the prospect record in CRM.",
+            "State each outstanding item and the date by which it is required in the body.",
+            "Done when every open item appears in the body with a required-by date."
+          ],
+          "verify": [
+            "Count items in the notification against open items on the prospect record.",
+            "Pass when the two counts agree with no unlisted open item."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Obtain manager review before issuing a decline notification",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Review the draft notification content and the stated outstanding items.",
+            "Confirm the decline reason wording matches the recorded decision rationale.",
+            "Record approval to send on the CRM prospect record.",
+            "Done when approval to send is recorded on the prospect record."
+          ],
+          "verify": [
+            "Check the approval note names the reviewer and the draft version approved.",
+            "Pass when the approved draft is the version queued for send."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Send the notification and attach the sent copy in CRM",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Send the notification from the marketing automation platform or email as configured.",
+            "Attach the sent copy to the CRM prospect record with the send timestamp.",
+            "Done when the timestamped sent copy is attached to the prospect record."
+          ],
+          "verify": [
+            "Confirm the delivery receipt or platform send status shows delivered.",
+            "Pass when the platform reports delivered and the copy is attached."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Set the follow-up task on the stated response deadline",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Create a CRM follow-up task dated to the response deadline in the notification.",
+            "Assign the task to the prospect owner and link it to the sent notification.",
+            "Done when an open follow-up task exists dated to the stated deadline."
+          ],
+          "verify": [
+            "Compare the follow-up task due date to the deadline stated in the notice.",
+            "Pass when the task due date equals the stated response deadline."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjhe20y84kfgzl39tvob9",
+      "verifier": "Distribution Operations Manager",
+      "generic": {
+        "Defined scope/population": "One appointment recommendation memo covering the prospect agency and its requested authority.",
+        "In-scope period": "Screening and fit results current as at the memo drafting date.",
+        "Required fields populated and valid": "Legal name, FEIN, territory, requested lines, fit score and screening outcomes are populated.",
+        "Control totals or record counts reconcile": "States and lines in the memo match the states and lines on the prospect record.",
+        "Evidence retained with timestamp/version": "The memo is attached to the prospect record with draft version and date.",
+        "Exceptions logged with disposition": "Every requested deviation is recorded with justification and intended approver.",
+        "Test population": "The drafted recommendation memo and its supporting screening evidence set.",
+        "Pass/fail thresholds": "Fail if any supporting screening result is missing or unresolved at submission.",
+        "Exception handling path": "Unresolved screening findings return the memo to draft until cleared or referred.",
+        "Documented acceptance criteria": "Memo is Pending Approval only with complete background, watchlist and E&O outcomes.",
+        "Evidence location": "Document management repository memo attached to the CRM prospect record."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Populate the memo template from the agency/producer management system",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Open the current appointment recommendation memo template from the repository.",
+            "Populate agency legal name, FEIN, territory and requested lines of authority from the prospect record.",
+            "Done when all identity and authority fields are populated from source records."
+          ],
+          "verify": [
+            "Compare memo FEIN and legal name against the producer management system record.",
+            "Pass when memo identity fields match the system record exactly."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Summarise fit score and premium projection from CRM",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Pull the recorded fit score, model version and projected written premium from CRM.",
+            "Summarise the three-year loss-ratio history and the states and lines requested.",
+            "Done when fit score, premium projection and loss-ratio history are in the memo."
+          ],
+          "verify": [
+            "Cross-check the memo fit score against the score stored on the CRM record.",
+            "Pass when memo score and model version match the CRM values."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "State the screening and E&O outcomes with completion dates",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Record the background-check outcome and the date it completed.",
+            "Record the watchlist screening outcome and the E&O validation outcome with dates.",
+            "Done when all three outcomes appear with their completion dates."
+          ],
+          "verify": [
+            "Trace each stated outcome to its evidence document on the producer file.",
+            "Pass when every stated outcome has a matching evidence document."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record requested exceptions and justifications",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "List every requested deviation such as commission, authority level or minimum premium waiver.",
+            "State the business justification and the expected financial impact for each.",
+            "Done when each requested exception carries a written justification."
+          ],
+          "verify": [
+            "Check each exception names the approving authority level required.",
+            "Pass when every exception states its required approval level."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Review the draft memo with distribution operations",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Review the memo for completeness against the recommendation checklist.",
+            "Challenge any figure not traceable to the application package or a carrier reference.",
+            "Record review comments and the accepted draft version on the prospect record.",
+            "Done when the review outcome and accepted version are recorded."
+          ],
+          "verify": [
+            "Confirm no unresolved review comment remains on the accepted version.",
+            "Pass when all review comments are closed on the accepted draft."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Attach the memo and set status Pending Approval",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Attach the final memo to the prospect record in the document repository.",
+            "Set the memo status to Pending Approval and record the submission date.",
+            "Done when the memo is attached and its status is Pending Approval."
+          ],
+          "verify": [
+            "Check that no supporting screening result is missing or unresolved.",
+            "Pass when the memo is Pending Approval with all screenings resolved."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "922a8e09-db53-4a0b-99b8-a4e926cba21a",
+      "verifier": "Distribution Operations Manager",
+      "generic": {
+        "Defined scope/population": "The prospect record whose appointment selection decision has been approved or declined.",
+        "In-scope period": "The decision date and the approval window recorded on the recommendation memo.",
+        "Required fields populated and valid": "Decision status, approval date, approver name and memo reference are populated.",
+        "Control totals or record counts reconcile": "Approved states and lines equal the states and lines on the signed memo.",
+        "Evidence retained with timestamp/version": "The system audit trail records the recording user and the save timestamp.",
+        "Exceptions logged with disposition": "Declines carry a standardised reason code and a re-approach eligibility date.",
+        "Test population": "All selection decisions recorded in the distribution system for the cycle.",
+        "Pass/fail thresholds": "Fail if any approved record has a blank approver or blank decision date.",
+        "Exception handling path": "Mismatches between memo and system authority route back for correction before save.",
+        "Documented acceptance criteria": "Decision recording is accepted when status, approver, date and memo reference all exist.",
+        "Evidence location": "Prospect decision fields and audit trail in the agency/producer management system."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Open the prospect record in the agency/producer management system",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Locate the prospect by FEIN in the distribution management system.",
+            "Confirm the record matches the signed recommendation memo entity.",
+            "Done when the correct prospect record is open and confirmed."
+          ],
+          "verify": [
+            "Compare the record FEIN and legal name to the signed memo.",
+            "Pass when record identity matches the memo identity."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Set the decision status in Duck Creek Distribution",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Set the decision status field to Approved or Declined per the signed memo.",
+            "Confirm no other decision status remains active on the record.",
+            "Done when a single decision status is set on the prospect record."
+          ],
+          "verify": [
+            "Re-open the record and read back the saved decision status.",
+            "Pass when the saved status equals the memo decision."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Key the approval date, approver and memo reference",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Enter the approval date and the approver name exactly as signed on the memo.",
+            "Enter the recommendation memo reference identifier into the decision fields.",
+            "Done when approval date, approver and memo reference are all keyed."
+          ],
+          "verify": [
+            "Compare keyed approver and date to the memo signature block.",
+            "Pass when keyed values match the memo signature block."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record the approved lines of authority and states",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Enter each approved line of authority exactly as stated on the signed memo.",
+            "Enter each approved state and reject any state not on the memo.",
+            "Done when approved lines and states equal the memo scope."
+          ],
+          "verify": [
+            "Compare the saved state and line list against the memo line by line.",
+            "Pass when the saved scope matches the memo scope with no additions."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record decline reason code and re-approach date where declined",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "For declines select the standardised decline reason code from the picklist.",
+            "Record the re-approach eligibility date per the recruitment policy.",
+            "Done when declines carry a reason code and a re-approach date."
+          ],
+          "verify": [
+            "Check no decline record carries a free-text reason instead of a code.",
+            "Pass when every decline uses a standardised reason code."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Save and confirm the audit-trail entry",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Save the record and open the audit trail for the prospect.",
+            "Confirm the entry shows the recording user and the save timestamp.",
+            "Sync the decision back to the CRM prospect record.",
+            "Done when the audit entry and the CRM sync are both confirmed."
+          ],
+          "verify": [
+            "Compare the CRM decision status to the distribution system status.",
+            "Pass when both systems show the same decision and date."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Spot-check recorded decisions for completeness",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Run the decision completeness report for the recording period.",
+            "Identify any approved record with a blank approver or decision date.",
+            "Return every incomplete record to the specialist for correction.",
+            "Done when the completeness report returns zero incomplete approvals."
+          ],
+          "verify": [
+            "Re-run the completeness report after corrections are applied.",
+            "Pass when no approved record has a blank approver or decision date."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fk5x218xakfgzmy5xzah7",
+      "verifier": "Distribution Operations Manager",
+      "generic": {
+        "Defined scope/population": "Approved prospect files ready for handoff from recruitment to contracting.",
+        "In-scope period": "The interval between decision approval and contracting case acknowledgement.",
+        "Required fields populated and valid": "Case links, target contracting date and attached approval evidence are populated.",
+        "Control totals or record counts reconcile": "Attached documents on the contracting case equal the approved package item list.",
+        "Evidence retained with timestamp/version": "Contracting case creation and acknowledgement carry timestamps in the workflow tool.",
+        "Exceptions logged with disposition": "Handoffs blocked by missing evidence are logged with the blocking item and owner.",
+        "Test population": "All approved prospects routed to contracting in the period.",
+        "Pass/fail thresholds": "Fail if a recruitment case closes without an acknowledged contracting case.",
+        "Exception handling path": "Unacknowledged cases escalate to the Distribution Operations Manager after the SLA.",
+        "Documented acceptance criteria": "Handoff is complete when the contracting queue acknowledges receipt of the linked case.",
+        "Evidence location": "Workflow case management tool case record linked to the producer prospect record."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm decision status Approved in the agency/producer management system",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Open the prospect record and read the decision status and approver.",
+            "Stop the handoff if the status is anything other than Approved.",
+            "Done when Approved status with a named approver is confirmed."
+          ],
+          "verify": [
+            "Re-read the decision date and approver on the prospect record.",
+            "Pass when both approver and decision date are populated."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Create the contracting case in the workflow/case management tool",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Create a contracting case using the producer contracting case type.",
+            "Link the case to the producer prospect record identifier.",
+            "Done when the contracting case exists and is linked to the prospect record."
+          ],
+          "verify": [
+            "Open the case and follow the link back to the prospect record.",
+            "Pass when the link resolves to the correct prospect record."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Attach the approval and screening evidence to the case",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Attach the approved recommendation memo from the document repository.",
+            "Attach the application package and the screening result documents.",
+            "Done when memo, application package and screening results are attached."
+          ],
+          "verify": [
+            "List attachments on the case against the required evidence list.",
+            "Pass when every required evidence item is attached."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Assign the case to the contracting queue with a target date",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Assign the case to the contracting queue in the workflow tool.",
+            "Record the target contracting completion date on the case.",
+            "Done when the case is queued with a target completion date."
+          ],
+          "verify": [
+            "Check the queue assignment and target date on the saved case.",
+            "Pass when the case sits in the contracting queue with a target date."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Obtain the contracting queue receipt acknowledgement",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Request acknowledgement of receipt from the contracting queue owner.",
+            "Record the acknowledgement and its timestamp on the contracting case.",
+            "Chase daily until the acknowledgement is recorded.",
+            "Done when a timestamped acknowledgement is on the contracting case."
+          ],
+          "verify": [
+            "Read the acknowledgement entry and its recorded timestamp.",
+            "Pass when the acknowledgement is present and timestamped."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Close the recruitment case in the workflow tool",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Confirm the contracting case is acknowledged before closing recruitment.",
+            "Close the recruitment case with a handoff completion note.",
+            "Done when the recruitment case is closed with a handoff note."
+          ],
+          "verify": [
+            "Check that the closed recruitment case references an acknowledged contracting case.",
+            "Pass when no recruitment case is closed without that acknowledgement."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Review handoff SLA performance for the period",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Run the handoff report showing approval date to contracting acknowledgement date.",
+            "Identify handoffs exceeding the agreed SLA and record the delay reason.",
+            "Done when every SLA breach carries a recorded delay reason."
+          ],
+          "verify": [
+            "Recount open handoffs without acknowledgement past the SLA.",
+            "Pass when no unacknowledged handoff sits past SLA without escalation."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "d49d0930-a3a9-4122-b1d9-6584a30322ed",
+      "verifier": "Producer Compliance Manager",
+      "generic": {
+        "Defined scope/population": "The agency entity plus every principal holding 10 percent or greater ownership.",
+        "In-scope period": "Background and reference results obtained within the current appointment assessment.",
+        "Required fields populated and valid": "Legal name, FEIN, principal identifiers and reference contacts are complete and valid.",
+        "Control totals or record counts reconcile": "Background report count equals the entity plus the count of qualifying principals.",
+        "Evidence retained with timestamp/version": "Each report is filed with its retrieval date and the source data service name.",
+        "Exceptions logged with disposition": "Every adverse hit is logged with its disposition and the reviewing analyst.",
+        "Test population": "The entity and all qualifying principals on the ownership chart.",
+        "Pass/fail thresholds": "Fail if any qualifying principal has no background report on file.",
+        "Exception handling path": "Adverse findings set the file to Referred pending compliance leadership review.",
+        "Documented acceptance criteria": "Status Cleared is permitted only when no unresolved adverse finding remains.",
+        "Evidence location": "Producer file in the agency/producer management system with attached report set."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Build the check population from the ownership chart",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "List the agency entity and every principal at 10 percent or greater ownership.",
+            "Confirm each principal name and identifier against the application package.",
+            "Done when the check population list is complete and confirmed."
+          ],
+          "verify": [
+            "Count the listed principals against the ownership chart entries.",
+            "Pass when every qualifying owner appears on the check population list."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Run entity and principal background checks in LexisNexis Risk",
+          "actor": "Producer Compliance Manager",
+          "sop": [
+            "Submit the entity and each principal to LexisNexis Risk for background search.",
+            "Capture each returned report with its retrieval timestamp.",
+            "Done when a report is returned for the entity and every principal."
+          ],
+          "verify": [
+            "Match returned report count to the check population count.",
+            "Pass when report count equals the check population count."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Verify entity standing against the state corporate registry",
+          "actor": "Producer Compliance Manager",
+          "sop": [
+            "Query the state corporate registry for legal entity name and FEIN.",
+            "Confirm the entity is in good standing and note the registry status date.",
+            "Done when good-standing status and registry date are recorded."
+          ],
+          "verify": [
+            "Compare registry legal name and FEIN to the application package values.",
+            "Pass when registry identity matches the application identity."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Obtain prior-carrier references via Credit Bureau & Data Services contacts",
+          "actor": "Producer Compliance Manager",
+          "sop": [
+            "Contact at least two prior appointing carriers named on the application.",
+            "Record contact name, date and the substance of each reference given.",
+            "Done when two completed references with contact and date are recorded."
+          ],
+          "verify": [
+            "Count completed references recorded on the producer file.",
+            "Pass when at least two carrier references are recorded with contacts."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Review adverse findings and record dispositions",
+          "actor": "Producer Compliance Manager",
+          "sop": [
+            "Review criminal, civil judgment, bankruptcy and regulatory results per principal.",
+            "Record a disposition and rationale for every hit returned.",
+            "Escalate misappropriation or fraud indicators to compliance leadership.",
+            "Done when every hit carries a recorded disposition and rationale."
+          ],
+          "verify": [
+            "List hits with no recorded disposition on the producer file.",
+            "Pass when that list is empty."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "File the report set and set the background-check status",
+          "actor": "Producer Compliance Manager",
+          "sop": [
+            "Attach the full report set to the producer file in the producer management system.",
+            "Set the background-check status to Cleared or Referred with the decision date.",
+            "Done when the report set is filed and the status is set with a date."
+          ],
+          "verify": [
+            "Check that no file marked Cleared carries an unresolved adverse finding.",
+            "Pass when Cleared files show zero unresolved adverse findings."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjh640y3rkfgzkpc6unad",
+      "verifier": "Agency Relations Manager",
+      "generic": {
+        "Defined scope/population": "The candidate agency being scored against the approved distribution fit-scoring model.",
+        "In-scope period": "Loss-ratio and premium inputs covering the three years ending at the scoring date.",
+        "Required fields populated and valid": "Appetite match, projected premium, loss ratio, carrier count and geographic fit are scored.",
+        "Control totals or record counts reconcile": "The computed total score equals the sum of the individual weighted inputs.",
+        "Evidence retained with timestamp/version": "Score, model version and scoring date are stamped on the CRM prospect record.",
+        "Exceptions logged with disposition": "Inputs without a supporting document are logged as estimates with a rationale.",
+        "Test population": "All scored inputs for the candidate on the current model version.",
+        "Pass/fail thresholds": "Fail if the stored score lacks a model version or a scoring date.",
+        "Exception handling path": "Refer-band results route to the Agency Relations Manager for a judgement decision.",
+        "Documented acceptance criteria": "Score is accepted when every input traces to a document or carrier reference.",
+        "Evidence location": "CRM prospect record scoring fields with the Excel scoring workbook attached."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Open the approved fit-scoring model in Microsoft Excel",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Retrieve the current approved fit-scoring workbook from the controlled location.",
+            "Read the model version and confirm it is the version published for the cycle.",
+            "Done when the current approved model version is open and confirmed."
+          ],
+          "verify": [
+            "Compare the workbook version to the published current model version.",
+            "Pass when the workbook version equals the published version."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Stamp the model version on the CRM prospect record",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Record the scoring model version on the CRM prospect record before scoring.",
+            "Record the scoring date on the same record.",
+            "Done when model version and scoring date are stamped on the record."
+          ],
+          "verify": [
+            "Read back the stamped version and date on the CRM record.",
+            "Pass when both fields are populated and match the workbook."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Enter the scored inputs into the model",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Enter appetite match, projected premium and three-year loss ratio.",
+            "Enter carrier count and geographic fit from the application package.",
+            "Done when all five scored inputs are entered into the model."
+          ],
+          "verify": [
+            "Check each entered input against the source document value.",
+            "Pass when every input equals its source document value."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Trace each input to a source document in the producer management system",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Record the source document or carrier reference for each scored input.",
+            "Flag any input supported only by an unverified producer assertion.",
+            "Done when every input carries a named source reference."
+          ],
+          "verify": [
+            "List inputs without a source reference on the scoring workbook.",
+            "Pass when that list is empty."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Compute the total score and apply the published bands",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Compute the weighted total score in the workbook.",
+            "Compare the total against the approve, refer and decline thresholds.",
+            "Record the resulting band alongside the total score.",
+            "Done when the total score and its band are computed and recorded."
+          ],
+          "verify": [
+            "Recompute the weighted sum independently from the input values.",
+            "Pass when the recomputed total equals the workbook total."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Write the score back to the CRM prospect record",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Write the numeric score, band and scoring date onto the CRM prospect record.",
+            "Attach the scoring workbook to the record as the supporting evidence.",
+            "Done when score, band, date and workbook are on the CRM record."
+          ],
+          "verify": [
+            "Open the CRM record and confirm score, band, version and date are present.",
+            "Pass when all four values are stored on the prospect record."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Review the score and band before selection",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Review the scored inputs and challenge any unsupported estimate.",
+            "Confirm the band assignment against the published thresholds.",
+            "Record the review outcome on the CRM prospect record.",
+            "Done when a dated review outcome is recorded on the record."
+          ],
+          "verify": [
+            "Confirm the recorded band matches the score against published thresholds.",
+            "Pass when band and threshold assignment agree."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "20c0f045-9b06-4d64-90cd-3429d007a1b9",
+      "verifier": "Agency Relations Manager",
+      "generic": {
+        "Defined scope/population": "Every prospect entering qualification screening in the current recruitment pipeline.",
+        "In-scope period": "Three-year loss-ratio history and current-year appetite matrix at the screening date.",
+        "Required fields populated and valid": "Line mix, projected premium, loss ratio and prohibited-class check results are populated.",
+        "Control totals or record counts reconcile": "Screened prospect count equals the pipeline prospect count for the period.",
+        "Evidence retained with timestamp/version": "Qualification status is stored with the screening date and appetite matrix version.",
+        "Exceptions logged with disposition": "Out-of-appetite lines and threshold breaches are logged as open flags with owners.",
+        "Test population": "All prospects screened in the period across every territory.",
+        "Pass/fail thresholds": "Fail if a prospect carries no qualification status or no driving criterion.",
+        "Exception handling path": "Flagged prospects hold at screening until the Agency Relations Manager rules on them.",
+        "Documented acceptance criteria": "Qualified status requires appetite fit, volume and loss ratio all within thresholds.",
+        "Evidence location": "CRM prospect record qualification fields with the BI screening extract attached."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Check line-of-business mix against the appetite matrix in CRM",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Read the prospect line-of-business mix from the CRM prospect record.",
+            "Compare each line against the current underwriting appetite matrix.",
+            "Flag every line falling outside appetite on the prospect record.",
+            "Done when every line is marked in or out of appetite."
+          ],
+          "verify": [
+            "Confirm the appetite matrix version used is the current published version.",
+            "Pass when the matrix version matches the current publication."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Verify projected premium against the territory volume threshold",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Pull the projected annual written premium for the prospect from the BI platform.",
+            "Compare it to the published minimum volume threshold for the territory.",
+            "Done when the premium comparison result is recorded on the record."
+          ],
+          "verify": [
+            "Re-read the threshold for the specific territory from the published table.",
+            "Pass when the comparison uses the territory-specific threshold."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Review three-year loss-ratio history in the BI/reporting platform",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Load the agency supplied three-year loss-ratio history into the BI screening view.",
+            "Compare each year and the three-year average against the maximum acceptable ratio.",
+            "Done when the loss-ratio comparison and its outcome are recorded."
+          ],
+          "verify": [
+            "Check the loss-ratio years used cover three complete consecutive years.",
+            "Pass when three complete consecutive years are present."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Check the book for prohibited classes in the producer management system",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Compare the prospect class list against the carrier prohibited class list.",
+            "Record any prohibited class present in the book with its premium share.",
+            "Done when the prohibited class check result is recorded."
+          ],
+          "verify": [
+            "Confirm the prohibited class list version used is current.",
+            "Pass when the check cites the current prohibited class list version."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Set the qualification status and driving criterion in CRM",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Set qualification status to Qualified or Not Qualified on the prospect record.",
+            "Record the single criterion that drove the status decision.",
+            "Done when status and driving criterion are both recorded."
+          ],
+          "verify": [
+            "Run a CRM report on screened prospects with a blank status or criterion.",
+            "Pass when that report returns zero records."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Hold flagged prospects and adjudicate open flags",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Review every open out-of-appetite or loss-ratio flag on the pipeline.",
+            "Decide to close the flag, accept with condition, or stop the prospect.",
+            "Record the adjudication and rationale on the prospect record.",
+            "Done when every open flag carries an adjudication and rationale."
+          ],
+          "verify": [
+            "List prospects advanced to selection with an open flag.",
+            "Pass when no prospect advances while a flag remains open."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "933ae4ea-6209-4601-b23f-4b90cbb73125",
+      "verifier": "Producer Compliance Manager",
+      "generic": {
+        "Defined scope/population": "The agency legal name, DBA and every named principal submitted to sanctions screening.",
+        "In-scope period": "Screening run against the list versions published on the screening run date.",
+        "Required fields populated and valid": "Names, dates of birth and state list are complete on every screening submission record.",
+        "Control totals or record counts reconcile": "Names submitted equal names returned on the screening system response file.",
+        "Evidence retained with timestamp/version": "The screening certificate records the OFAC list version and run timestamp.",
+        "Exceptions logged with disposition": "Every potential match is adjudicated as true hit or false positive with analyst and date.",
+        "Test population": "The agency entity, its DBA and all named principals for this appointment.",
+        "Pass/fail thresholds": "Fail if the certificate omits the list version or any disposition is missing.",
+        "Exception handling path": "True matches escalate to compliance leadership and stop the appointment.",
+        "Documented acceptance criteria": "Status Clear requires zero unresolved true matches across all screened names.",
+        "Evidence location": "Producer file in the agency/producer management system with the screening certificate."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Assemble the screening submission from the producer management system",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Extract the agency legal name, DBA and each principal name and date of birth.",
+            "Confirm each name matches the application package spelling exactly.",
+            "Done when the submission list is assembled and name-checked."
+          ],
+          "verify": [
+            "Count submission names against the principals on the ownership chart.",
+            "Pass when every principal and the entity appear on the submission list."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Submit names to the sanctions screening system",
+          "actor": "Producer Compliance Manager",
+          "sop": [
+            "Load the submission into the LexisNexis Bridger or FircoSoft screening system.",
+            "Run the screen and capture the response file with its run timestamp.",
+            "Done when the screening run completes and the response is captured."
+          ],
+          "verify": [
+            "Compare returned name count to submitted name count.",
+            "Pass when returned names equal submitted names."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm the OFAC and consolidated list versions in use",
+          "actor": "Producer Compliance Manager",
+          "sop": [
+            "Read the OFAC SDN and consolidated list versions loaded in the screening system.",
+            "Compare them against the currently published list versions.",
+            "Done when the loaded list versions are confirmed current."
+          ],
+          "verify": [
+            "Check the list publication dates against the screening run date.",
+            "Pass when the loaded lists are the latest published at run date."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Screen state DOI regulatory action databases via LexisNexis Risk",
+          "actor": "Producer Compliance Manager",
+          "sop": [
+            "Screen each principal against state regulatory action and revocation databases.",
+            "Cover every state in which the producer intends to be licensed.",
+            "Done when each licensed state database has been screened."
+          ],
+          "verify": [
+            "List states screened against the requested state list.",
+            "Pass when no requested state is missing from the screened list."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Adjudicate every potential match",
+          "actor": "Producer Compliance Manager",
+          "sop": [
+            "Review each potential match against identifying data on the producer file.",
+            "Record true hit or false positive with the analyst name, rationale and date.",
+            "Escalate every true hit to compliance leadership immediately.",
+            "Done when every potential match carries a recorded adjudication."
+          ],
+          "verify": [
+            "List potential matches lacking an adjudication entry.",
+            "Pass when that list is empty."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "File the certificate and set the watchlist screening status",
+          "actor": "Producer Compliance Manager",
+          "sop": [
+            "Attach the screening certificate to the producer file with the run timestamp.",
+            "Set watchlist screening status to Clear or Escalated on the producer record.",
+            "Done when the certificate is filed and the status is set."
+          ],
+          "verify": [
+            "Check no prospect proceeds to appointment with an unresolved true match.",
+            "Pass when Clear status coexists with zero unresolved true matches."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "49ce4dd3-aa0b-4204-804c-4d42955074a5",
+      "verifier": "Head of Distribution",
+      "generic": {
+        "Defined scope/population": "One appointment approval request covering the selected producer and its requested authority.",
+        "In-scope period": "Screening and fit results current at the submission date and within their validity window.",
+        "Required fields populated and valid": "Approval level, submission date, SLA due date and attachment set are populated.",
+        "Control totals or record counts reconcile": "Attached evidence items equal the required approval evidence checklist.",
+        "Evidence retained with timestamp/version": "The workflow tool records submitter, submission timestamp and routed approver level.",
+        "Exceptions logged with disposition": "Requests submitted with any incomplete screening are rejected and logged with the gap.",
+        "Test population": "All appointment approval requests submitted in the period.",
+        "Pass/fail thresholds": "Fail if the routed approval level does not match the authority matrix requirement.",
+        "Exception handling path": "Requests exceeding standard authority route to the Head of Distribution for decision.",
+        "Documented acceptance criteria": "Submission is valid when screening, background and fit are all complete and cleared.",
+        "Evidence location": "Workflow case management tool approval request linked to the producer record."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm screening and fit completeness on the producer file",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Read the fit score, background-check and watchlist statuses on the producer file.",
+            "Confirm each status is complete and cleared with no open finding.",
+            "Done when all three statuses are confirmed complete and cleared."
+          ],
+          "verify": [
+            "List any status that is incomplete, referred or escalated.",
+            "Pass when that list is empty before submission."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Determine the required approval level from the authority matrix",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Read projected written premium and requested binding authority from the memo.",
+            "Look up the required approval level in the current authority matrix.",
+            "Record the required level on the producer record.",
+            "Done when the required approval level is recorded on the record."
+          ],
+          "verify": [
+            "Recheck the matrix row using premium and binding authority values.",
+            "Pass when the recorded level equals the matrix requirement."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Raise the appointment request in the workflow/case management tool",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Create the appointment approval request against the producer record.",
+            "Route the request to the approver at the required authority level.",
+            "Done when the request exists routed to the required approver level."
+          ],
+          "verify": [
+            "Read the routed approver level on the submitted request.",
+            "Pass when the routed level equals the recorded required level."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Attach the memo, certificate and package to the request",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Attach the recommendation memo and the screening certificate.",
+            "Attach the full application package from the document repository.",
+            "Done when all three evidence items are attached to the request."
+          ],
+          "verify": [
+            "List attachments against the required approval evidence checklist.",
+            "Pass when every checklist item is attached."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record submission date and SLA due date in the producer record",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Record the submission date on the producer record in the CRM and producer system.",
+            "Calculate and record the approval SLA due date.",
+            "Done when submission date and SLA due date are both recorded."
+          ],
+          "verify": [
+            "Compare the SLA due date to the published approval SLA duration.",
+            "Pass when the due date equals submission date plus the SLA duration."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review and decide the appointment approval request",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Review the memo, screening outcomes and requested exceptions.",
+            "Approve, decline or return the request with the reason recorded.",
+            "Record the decision, date and any conditions on the workflow request.",
+            "Done when a dated decision with conditions is recorded on the request."
+          ],
+          "verify": [
+            "Confirm no request was decided while a screening status was incomplete.",
+            "Pass when every approved request had complete screening at decision."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "63601b29-9cb6-406b-96bc-64cd81b678d4",
+      "verifier": "Producer Compliance Manager",
+      "generic": {
+        "Defined scope/population": "The prospective agency and each named principal checked against the producer master.",
+        "In-scope period": "All historical appointment records held for the entity regardless of status date.",
+        "Required fields populated and valid": "FEIN and NPN are present and valid for every searched entity and principal.",
+        "Control totals or record counts reconcile": "Search count equals the entity plus principal count on the prospect record.",
+        "Evidence retained with timestamp/version": "The validation outcome is recorded with the search date on the prospect record.",
+        "Exceptions logged with disposition": "Duplicate or prior-terminated records are merge-flagged with a disposition note.",
+        "Test population": "The prospective entity plus every named principal on the application.",
+        "Pass/fail thresholds": "Fail if any searched party has no recorded validation outcome.",
+        "Exception handling path": "For-cause prior terminations route to the Producer Compliance Manager before selection.",
+        "Documented acceptance criteria": "Validation is complete when the outcome is keyed on both FEIN and NPN.",
+        "Evidence location": "Prospect record in the agency/producer management system with the search results attached."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Search the producer master by FEIN in the producer management system",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Search the producer master for the FEIN of the prospective agency.",
+            "Capture every returned record with its status and effective dates.",
+            "Done when the FEIN search results are captured on the prospect record."
+          ],
+          "verify": [
+            "Re-run the FEIN search and compare the returned record set.",
+            "Pass when both runs return the same record set."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Search by NPN in NIPR and the producer master",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Search the producer master and NIPR by NPN for the agency and each principal.",
+            "Capture any matching producer record identifiers returned.",
+            "Done when NPN searches are complete for the entity and all principals."
+          ],
+          "verify": [
+            "Count NPN searches performed against the principal list.",
+            "Pass when every principal and the entity have an NPN search result."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Classify existing appointment records found",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Classify each found record as active, terminated or pending appointment.",
+            "Record the appointment effective and termination dates for each.",
+            "Done when every found record carries a status classification."
+          ],
+          "verify": [
+            "Re-read statuses in Duck Creek Distribution for the same records.",
+            "Pass when classifications match the Duck Creek record statuses."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Retrieve prior termination reasons and check for cause",
+          "actor": "Producer Compliance Manager",
+          "sop": [
+            "Retrieve the termination reason for every prior appointment found.",
+            "Determine whether any termination was recorded as for cause.",
+            "Escalate any for-cause termination before selection proceeds.",
+            "Done when every prior termination has a recorded reason and cause flag."
+          ],
+          "verify": [
+            "List prior terminations without a recorded reason.",
+            "Pass when that list is empty."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Check for duplicate producer codes under DBA or predecessor names",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Search the producer master by DBA and predecessor entity names.",
+            "Merge-flag any duplicate producer code found for the same entity.",
+            "Done when duplicate checks are complete and any duplicate is merge-flagged."
+          ],
+          "verify": [
+            "Confirm no new producer code exists where an active record shares the FEIN.",
+            "Pass when the FEIN has at most one active producer code."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the validation outcome on the prospect record",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Record the outcome as No Prior Record, Reinstatement or Duplicate.",
+            "Attach the FEIN and NPN search evidence to the prospect record.",
+            "Done when the outcome and search evidence are on the prospect record."
+          ],
+          "verify": [
+            "Confirm the outcome cites both the FEIN and NPN search results.",
+            "Pass when the outcome is keyed on both identifiers."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "c7e22050-866d-4e10-8a96-1aad81f8bf4e",
+      "verifier": "Agency Relations Manager",
+      "generic": {
+        "Defined scope/population": "The full executed document set required before the producer can be released for activation.",
+        "In-scope period": "Documents in force at the agreement effective date and the collection date.",
+        "Required fields populated and valid": "Document type, effective date and signature status are populated on every indexed item.",
+        "Control totals or record counts reconcile": "Indexed document count equals the required document checklist count.",
+        "Evidence retained with timestamp/version": "Each item is indexed with its version and the date received into the repository.",
+        "Exceptions logged with disposition": "Missing or unsigned items are logged as open items with owner and chase date.",
+        "Test population": "Agreement, W-9, EFT form, E&O certificate and every state licence copy.",
+        "Pass/fail thresholds": "Fail if any required signature block is unsigned on a set marked complete.",
+        "Exception handling path": "Unsigned or missing documents return to the producer with a written request.",
+        "Documented acceptance criteria": "The set is complete when every checklist item is indexed and fully signed.",
+        "Evidence location": "Producer record in OpenText Document Mgmt and the contract lifecycle repository."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Verify signatures on the executed producer agreement",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Open the executed agreement in the contract lifecycle management repository.",
+            "Confirm both the producer principal and the carrier signatory have signed and dated.",
+            "Done when both signature blocks are confirmed signed and dated."
+          ],
+          "verify": [
+            "Re-inspect each signature block for a name, title and date.",
+            "Pass when no required signature block is blank."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Collect the W-9, EFT authorisation and E&O certificate",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Request and receive the signed W-9 and EFT banking authorisation form.",
+            "Receive the current E&O certificate and read its expiry date.",
+            "Done when W-9, EFT form and E&O certificate are all received."
+          ],
+          "verify": [
+            "Check the E&O expiry date against the intended activation date.",
+            "Pass when the E&O policy is in force at the activation date."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Collect resident and non-resident licence copies per state",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "List every state on the agreement territory exhibit.",
+            "Collect a resident or non-resident licence copy for each listed state.",
+            "Done when a licence copy exists for every state on the exhibit."
+          ],
+          "verify": [
+            "Count licence copies against the states on the territory exhibit.",
+            "Pass when counts agree with no state missing a copy."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Verify the commission schedule exhibit and addenda",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Confirm the commission schedule exhibit is attached to the executed agreement.",
+            "Confirm every addendum is present and initialled where the template requires.",
+            "Done when the exhibit and all addenda are attached and initialled."
+          ],
+          "verify": [
+            "Compare attached exhibit rates to the approved recommendation memo rates.",
+            "Pass when exhibit rates match the approved memo rates."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Index the document set in OpenText Document Mgmt",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Index every item to the producer record with document type and effective date.",
+            "Confirm each indexed item is retrievable by producer code.",
+            "Done when all items are indexed with type and effective date."
+          ],
+          "verify": [
+            "Search the repository by producer code and list returned document types.",
+            "Pass when every required document type is returned."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review the assembled set before contracting closure",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Review the indexed set against the required document checklist.",
+            "Log every missing or unsigned item as an open item with owner and chase date.",
+            "Record the completeness review outcome on the producer record.",
+            "Done when the review outcome and any open items are recorded."
+          ],
+          "verify": [
+            "Check that no set marked complete carries an open item.",
+            "Pass when complete status coexists with zero open items."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "ac070b69-7855-44e9-a02e-d33e5a087689",
+      "verifier": "Producer Compliance Manager",
+      "generic": {
+        "Defined scope/population": "Every state included on the producer appointment submission for this producer.",
+        "In-scope period": "DOI status as at the confirmation run date following appointment filing.",
+        "Required fields populated and valid": "State, appointment status and effective date are populated for each state row.",
+        "Control totals or record counts reconcile": "Confirmed state count equals the requested state count on the submission.",
+        "Evidence retained with timestamp/version": "The NIPR status report is filed with its retrieval timestamp.",
+        "Exceptions logged with disposition": "Pending, rejected or not-found states are logged with a reason code and remediation.",
+        "Test population": "All states on the appointment request, not a sample.",
+        "Pass/fail thresholds": "Fail if any requested state lacks an Active status with an effective date.",
+        "Exception handling path": "Rejected states are re-filed and tracked to acceptance by the compliance manager.",
+        "Documented acceptance criteria": "Confirmation status is set only when every state shows Active at the DOI.",
+        "Evidence location": "Compliance evidence repository with the DOI report linked to the producer file."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Retrieve the NIPR appointment status report per state",
+          "actor": "Producer Compliance Manager",
+          "sop": [
+            "Query NIPR for the appointment status of the producer in each submitted state.",
+            "Capture the report with its retrieval timestamp.",
+            "Done when a status report exists covering every submitted state."
+          ],
+          "verify": [
+            "Count report state rows against the submitted state list.",
+            "Pass when report rows equal the submitted state count."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm Active status and effective date per state",
+          "actor": "Producer Compliance Manager",
+          "sop": [
+            "Read the DOI status and effective date for each state row.",
+            "Mark each state as confirmed Active or not confirmed.",
+            "Done when every state row carries a confirmation mark."
+          ],
+          "verify": [
+            "List states marked confirmed without an effective date.",
+            "Pass when that list is empty."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Reconcile the confirmed list to the requested states",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Compare the confirmed state list line by line to the requested state list.",
+            "Record any requested state absent from the confirmed list.",
+            "Done when the reconciliation is complete and variances are recorded."
+          ],
+          "verify": [
+            "Recount confirmed states against requested states.",
+            "Pass when the counts agree or every variance is recorded."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Investigate and re-file pending or rejected states in NIPR",
+          "actor": "Producer Compliance Manager",
+          "sop": [
+            "Read the rejection or pending reason code for each unconfirmed state.",
+            "Correct the underlying data and re-file the appointment transaction.",
+            "Record the re-filing date and new confirmation number.",
+            "Done when every unconfirmed state has a re-filing or an open remediation item."
+          ],
+          "verify": [
+            "List unconfirmed states without a remediation item.",
+            "Pass when that list is empty."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Attach the DOI status report to the producer file",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "File the DOI status report in the compliance evidence repository.",
+            "Link the filed report to the producer record in the producer management system.",
+            "Done when the report is filed and linked to the producer record."
+          ],
+          "verify": [
+            "Open the producer record link and confirm the report opens.",
+            "Pass when the linked report resolves and shows the retrieval timestamp."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Set the appointment confirmation status on the producer record",
+          "actor": "Producer Compliance Manager",
+          "sop": [
+            "Set appointment confirmation status to Confirmed where all states are Active.",
+            "Leave the status open where any state remains unconfirmed.",
+            "Done when the confirmation status reflects the true state coverage."
+          ],
+          "verify": [
+            "Check no Confirmed status coexists with a pending or rejected state.",
+            "Pass when Confirmed implies every requested state is Active."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhrxa05kwkfgzmw4wodmn",
+      "verifier": "Distribution Operations Manager",
+      "generic": {
+        "Defined scope/population": "One new producer master record for the approved and contracted agency entity.",
+        "In-scope period": "Record created effective from the executed agreement effective date.",
+        "Required fields populated and valid": "Legal name, DBA, FEIN, NPN, producer code and effective date are populated.",
+        "Control totals or record counts reconcile": "One active producer code exists for the FEIN after creation.",
+        "Evidence retained with timestamp/version": "Record creation carries the creating user and creation timestamp in the audit trail.",
+        "Exceptions logged with disposition": "Duplicate hits found at creation are logged with the merge or reject disposition.",
+        "Test population": "The new producer master record and its downstream propagation records.",
+        "Pass/fail thresholds": "Fail if a second active producer code exists for the same FEIN.",
+        "Exception handling path": "Duplicate FEIN detections stop creation and route to the operations manager.",
+        "Documented acceptance criteria": "Creation is accepted when the code propagates to the billing platform successfully.",
+        "Evidence location": "Producer master record in the agency/producer management system and Duck Creek Distribution."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Re-run the duplicate check on FEIN and NPN",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Search the producer master by FEIN and NPN immediately before creation.",
+            "Stop and escalate if any active record is returned.",
+            "Done when the duplicate check returns no active record."
+          ],
+          "verify": [
+            "Repeat the FEIN search after the check completes.",
+            "Pass when no active producer record exists for the FEIN."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Create the producer master record with identity data",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Create the record with legal entity name, DBA, FEIN and NPN.",
+            "Enter the principal contact name, email and phone from the application.",
+            "Done when the record exists with identity and contact data populated."
+          ],
+          "verify": [
+            "Compare keyed identity fields to the executed agreement.",
+            "Pass when identity fields match the executed agreement."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Assign the producer code from the controlled sequence",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Assign the next producer code from the controlled sequence, never manually.",
+            "Record the agreement effective date on the master record.",
+            "Done when the producer code and effective date are assigned."
+          ],
+          "verify": [
+            "Check the assigned code follows the controlled sequence format.",
+            "Pass when the code is sequence-issued and unique."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Set producer type, channel and servicing territory",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Set producer type and distribution channel on the master record.",
+            "Set the servicing branch or territory from the assignment decision.",
+            "Done when type, channel and servicing territory are set."
+          ],
+          "verify": [
+            "Compare the territory assignment to the recruitment territory record.",
+            "Pass when the assigned territory matches the recruitment record."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm propagation to the billing/commission platform",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Check the billing and commission platform for the new producer code.",
+            "Re-trigger the interface if the code has not propagated.",
+            "Done when the producer code is visible in the billing platform."
+          ],
+          "verify": [
+            "Search the billing platform by producer code and read the record.",
+            "Pass when the billing platform returns the new producer code."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review the created record before contracting continues",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Review identity, code, effective date and territory on the new record.",
+            "Confirm no second active code exists for the same FEIN in Duck Creek.",
+            "Record the review sign-off on the producer record.",
+            "Done when a dated review sign-off is on the producer record."
+          ],
+          "verify": [
+            "Run the duplicate producer code report for the FEIN.",
+            "Pass when the report shows exactly one active code."
+          ]
+        }
+      ]
+    }
+  ]
+}

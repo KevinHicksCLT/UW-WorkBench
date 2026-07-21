@@ -1,0 +1,1734 @@
+{
+  "area": "Producer Compensation Management",
+  "tasks": [
+    {
+      "taskId": "cmr2fjnhf11arkfgzjwcxcnq3",
+      "verifier": "Distribution Operations Manager",
+      "generic": {
+        "Defined scope/population": "The approved commission schedule version and the products, channels and producer tiers it covers",
+        "In-scope period": "From the schedule effective date to the end date of the version being activated",
+        "Required fields populated and valid": "Schedule version, effective date, status, release ticket and deploying user recorded on the schedule row",
+        "Control totals or record counts reconcile": "Active rate row count in production equals the approved rate row count promoted from UAT",
+        "Evidence retained with timestamp/version": "Release ticket, promotion log and post-activation test result stored against the schedule version",
+        "Exceptions logged with disposition": "Any post-activation rate mismatch logged with cause and a fix or rollback decision",
+        "Test population": "The activated schedule version plus one live bound policy run through the engine after activation",
+        "Pass/fail thresholds": "Zero rate variance on the live test policy and zero overlapping active date ranges",
+        "Exception handling path": "A rate mismatch or wrong status halts activation and is escalated to the Distribution Operations Manager",
+        "Documented acceptance criteria": "Status is Active on the approved effective date with a release ticket reference and no version overlap",
+        "Evidence location": "Release ticket in the billing/commission platform change log and the schedule version register"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Promote the approved schedule from UAT to production in the billing/commission platform",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Open the approved release ticket and confirm it names the exact schedule version to promote",
+            "Run the promotion job rather than re-keying rate rows directly in production",
+            "Done when the schedule version exists in production referencing the release ticket"
+          ],
+          "verify": [
+            "Compare the promoted rate row count in production to the approved UAT rate row count",
+            "Pass when production rate rows match UAT exactly and cite the release ticket"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Set the schedule status and effective date in the billing/commission platform",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Confirm the status is Pending until the approved effective date and flips to Active on that date",
+            "Confirm the effective date matches the approved schedule design and not the promotion date",
+            "Done when status and effective date match the approved schedule"
+          ],
+          "verify": [
+            "Query the schedule header for status and effective date",
+            "Pass when status is Active only from the approved effective date"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "End-date the superseded schedule version in the billing/commission platform",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Set the prior version end date to the day before the new effective date",
+            "Check no product or tier has a date gap or overlap across the two versions",
+            "Done when the prior version is closed with no gap or overlap"
+          ],
+          "verify": [
+            "Run the overlapping-date-range check for each product and tier combination",
+            "Pass when no product/tier has two active schedule versions on any date"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Run one live bound policy through the commission engine after activation",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Select a bound policy dated on or after the effective date on an in-scope product",
+            "Compare the engine commission to the approved rate table value for that product and tier",
+            "Done when the engine result equals the approved rate table value"
+          ],
+          "verify": [
+            "Recompute the expected commission independently from the approved rate table",
+            "Pass when engine and independent values agree to the cent"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm producer tier mapping resolves in the agency/producer management system",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Check that in-scope producer codes carry the tier used by the activated schedule",
+            "Confirm no in-scope producer code falls back to the system default rate",
+            "Done when every in-scope producer code resolves to an activated schedule row"
+          ],
+          "verify": [
+            "List in-scope producer codes with no matched schedule row",
+            "Pass when the unmatched list is empty"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm segregation of duties on the production deployment record",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Check the deploying user against the schedule builder and approver on the release ticket",
+            "Reject the activation where the same user built, approved or deployed the change",
+            "Done when the deployer is confirmed independent of the builder and approver"
+          ],
+          "verify": [
+            "Compare the deployer user ID to the builder and approver user IDs",
+            "Pass when the three user IDs are not the same person"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "File activation evidence against the schedule version register",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Attach the promotion log, live test result and release ticket to the schedule version",
+            "Stamp the activation timestamp and the deploying user on the register row",
+            "Done when the register row carries activation evidence and timestamp"
+          ],
+          "verify": [
+            "Open the register row and check each attachment is present and readable",
+            "Pass when promotion log, test result and ticket are all attached"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "8c951f55-9127-403f-b6a2-fe73bcc8a68f",
+      "verifier": "Compensation Analyst",
+      "generic": {
+        "Defined scope/population": "All tier bands and bonus thresholds in the commission schedule being built for the in-scope products",
+        "In-scope period": "The tier measurement period defined for the schedule, with its true-up point",
+        "Required fields populated and valid": "Lower bound, upper bound, rate, retroactive flag and measurement basis populated on every tier row",
+        "Control totals or record counts reconcile": "Tier band count in the engine equals the band count in the signed schedule design",
+        "Evidence retained with timestamp/version": "Boundary test workings and the signed schedule design retained against the schedule version",
+        "Exceptions logged with disposition": "Any tier band that cannot be modelled in the engine logged with its workaround decision",
+        "Test population": "One producer tested at each band boundary, at threshold, one dollar under and one dollar over",
+        "Pass/fail thresholds": "Zero gaps or overlaps between consecutive bands and zero boundary test variances",
+        "Exception handling path": "A boundary mispay or overlapping band blocks build sign-off and returns to schedule design",
+        "Documented acceptance criteria": "Bands contiguous, retroactive versus incremental set explicitly and measurement basis stated",
+        "Evidence location": "Tier configuration screen in the billing/commission platform and the Excel boundary test workbook"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Enter each tier band with explicit bounds in the billing/commission platform",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Key the lower and upper written-premium bound for every band from the signed design",
+            "Leave no band open-ended unless the design states an uncapped top band",
+            "Done when every band has explicit bounds recorded"
+          ],
+          "verify": [
+            "Sort bands by lower bound and inspect the boundaries between consecutive rows",
+            "Pass when no gap or overlap exists between any two consecutive bands"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Set the retroactive or incremental payment flag on each tier in the engine",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Select retroactive-to-first-dollar or incremental-on-excess per the signed schedule design",
+            "Do not accept the system default without checking it against the design",
+            "Done when the flag on every band matches the signed design"
+          ],
+          "verify": [
+            "Compare each band flag to the design document line by line",
+            "Pass when every band flag matches the signed design"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Configure the bonus threshold measurement basis in the billing/commission platform",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Set written versus earned premium and gross versus net of cancellations explicitly",
+            "Record the basis on the schedule row so it is visible without opening configuration",
+            "Done when the basis is explicitly set rather than inherited"
+          ],
+          "verify": [
+            "Open the threshold configuration and read the stored basis values",
+            "Pass when the basis is explicitly set and matches the design"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Set the tier measurement period and true-up point in the engine",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Select calendar year, policy year or rolling twelve months per the design",
+            "Set the true-up point at which tier attainment is recalculated and settled",
+            "Done when period and true-up point are stored on the schedule"
+          ],
+          "verify": [
+            "Read back the measurement period and true-up point from the schedule header",
+            "Pass when both match the signed design"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Build the boundary test workbook in Microsoft Excel",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Build expected commission at threshold, one dollar under and one dollar over for each band",
+            "Derive the expected values from the design, not from engine output",
+            "Done when expected values exist for every band boundary"
+          ],
+          "verify": [
+            "Check that each band has three independently derived expected values",
+            "Pass when no band boundary is missing an expected value"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Run the boundary tests through the commission engine and compare",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Run each boundary case through the engine and capture the calculated commission",
+            "Compare engine output to the Excel expected value for each case",
+            "Done when every boundary case has an engine result recorded"
+          ],
+          "verify": [
+            "List all cases where engine and expected values differ",
+            "Pass when the variance list is empty"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Record unresolved tier build issues and route them to design",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Log any band the engine cannot express and the workaround proposed",
+            "Assign each issue an owner in schedule design with a target date",
+            "Done when every open issue is logged with an owner"
+          ],
+          "verify": [
+            "Review the issue log for items without an owner or target date",
+            "Pass when no logged issue lacks an owner and date"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "a12db716-794f-4fbd-99bc-a4a5584422fe",
+      "verifier": "Distribution Operations Manager",
+      "generic": {
+        "Defined scope/population": "Schedule effective dates and grandfathering rules for all in-force and renewal business in scope",
+        "In-scope period": "From the new schedule effective date back to the superseded version start date",
+        "Required fields populated and valid": "Effective from, effective to, grandfathering flag and agreement addendum date populated",
+        "Control totals or record counts reconcile": "Count of schedule versions with contiguous date ranges equals the total version count",
+        "Evidence retained with timestamp/version": "Dating configuration screenshots and boundary test results kept with the schedule version",
+        "Exceptions logged with disposition": "Any effective date preceding the addendum date logged and corrected before activation",
+        "Test population": "One policy dated the day before and one dated the day after the schedule effective date",
+        "Pass/fail thresholds": "Correct schedule selected on both boundary policies and zero date gaps or overlaps",
+        "Exception handling path": "Wrong schedule selection on a boundary policy stops configuration and returns for correction",
+        "Documented acceptance criteria": "Dates on policy effective basis, grandfathering explicit, superseded version end-dated",
+        "Evidence location": "Schedule dating configuration in the billing/commission platform and the version register"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Set the schedule effective date on a policy effective date basis in the engine",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Select policy effective date as the dating basis rather than transaction posting date",
+            "Enter the effective date from the approved schedule design",
+            "Done when the dating basis and effective date are stored on the schedule"
+          ],
+          "verify": [
+            "Read back the dating basis and effective date from the schedule header",
+            "Pass when the basis is policy effective date and the date matches the design"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Check the effective date against the producer agreement addendum date",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Retrieve the executed addendum date from the agency/producer management system",
+            "Confirm the schedule effective date is not earlier than the addendum date",
+            "Done when the comparison is recorded on the schedule row"
+          ],
+          "verify": [
+            "Compare schedule effective date to addendum date for each in-scope producer",
+            "Pass when no effective date precedes its addendum date"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Configure grandfathering treatment for in-force policies in the engine",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Set whether in-force policies keep the prior rate at renewal per the agreement",
+            "Configure grandfathering as an explicit rule rather than a manual override list",
+            "Done when the grandfathering rule is stored against the schedule version"
+          ],
+          "verify": [
+            "Open the grandfathering rule and confirm it covers renewal business",
+            "Pass when the rule is explicitly set for in-force and renewal business"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "End-date the superseded schedule version in the billing/commission platform",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Enter an explicit end date on the prior version rather than leaving it open",
+            "Set the end date to the day before the new effective date",
+            "Done when the prior version carries an explicit end date"
+          ],
+          "verify": [
+            "List schedule versions with no end date for the same product and tier",
+            "Pass when only the current version is open-ended"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Test policies either side of the effective date through the engine",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Run one policy dated the day before and one the day after the effective date",
+            "Record which schedule version each policy selected",
+            "Done when both boundary results are recorded"
+          ],
+          "verify": [
+            "Compare selected schedule version to the expected version for each boundary policy",
+            "Pass when each policy selects the version in force on its effective date"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Test a grandfathered renewal policy through the commission engine",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Select an in-force policy renewing after the new effective date",
+            "Confirm the engine applies the prior rate where grandfathering requires it",
+            "Done when the grandfathered renewal result is recorded"
+          ],
+          "verify": [
+            "Compare the renewal commission to the prior schedule rate",
+            "Pass when the grandfathered renewal pays at the prior rate"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Confirm dating and grandfathering with the Distribution Operations Manager",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Review the dating basis, grandfathering rule and boundary test results",
+            "Challenge any treatment that differs from the producer agreement",
+            "Done when the review outcome is recorded on the schedule version"
+          ],
+          "verify": [
+            "Check the schedule version carries a recorded review outcome",
+            "Pass when the review is recorded and no open objection remains"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "a0abe905-93b1-46b3-a2fd-96980238d685",
+      "verifier": "Compensation Analyst",
+      "generic": {
+        "Defined scope/population": "Every product line and producer tier combination in scope for the commission schedule",
+        "In-scope period": "The effective period of the schedule version being configured",
+        "Required fields populated and valid": "New business rate, renewal rate, commission basis and non-commissionable flags set on every row",
+        "Control totals or record counts reconcile": "Configured rate row count equals the product line by tier combination count in the source rate table",
+        "Evidence retained with timestamp/version": "Source rate table version and the re-key sample results retained with the configuration",
+        "Exceptions logged with disposition": "Any product-tier left on default rate logged with the reason and target fix date",
+        "Test population": "A ten-row sample of configured rates re-keyed independently from the source rate table",
+        "Pass/fail thresholds": "Zero variances on the re-key sample and zero product-tier rows on the default rate",
+        "Exception handling path": "A re-key variance sends the affected rate rows back for correction before sign-off",
+        "Documented acceptance criteria": "Distinct new business and renewal rates per product with an explicit commissionable basis",
+        "Evidence location": "Rate configuration in the billing/commission platform and the Excel re-key sample workbook"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Load the source rate table into Microsoft Excel as the configuration input",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Take the approved rate table version and record its version reference",
+            "Lay out one row per product, channel, tier and new business or renewal split",
+            "Done when the input sheet covers every in-scope combination"
+          ],
+          "verify": [
+            "Count combinations in the input sheet against the in-scope product and tier lists",
+            "Pass when every in-scope combination appears exactly once"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Configure new business and renewal rates by product in the billing/commission platform",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Enter a distinct new business and renewal rate for every product line in scope",
+            "Do not enter a single blended rate where the schedule specifies two",
+            "Done when both rates exist for every in-scope product line"
+          ],
+          "verify": [
+            "List product lines with only one rate configured",
+            "Pass when no in-scope product line is missing a new business or renewal rate"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Map producer tier codes to rate rows in the agency/producer management system",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Map each active tier code to its configured rate row",
+            "Check no tier code resolves to the system default rate",
+            "Done when every tier code maps to an explicit rate row"
+          ],
+          "verify": [
+            "Run the default-rate usage report for in-scope product and tier combinations",
+            "Pass when the default-rate usage list is empty"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Set the commission basis per product in the billing/commission platform",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Select written, collected or earned premium explicitly for each product",
+            "Record the basis on the rate row so it is visible on inspection",
+            "Done when every product carries an explicit commission basis"
+          ],
+          "verify": [
+            "Read back the basis field for each configured product",
+            "Pass when no product has a blank or inherited basis"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Flag taxes, fees and surcharges as non-commissionable in the engine",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Set the non-commissionable flag on the premium components the schedule excludes",
+            "Run one policy carrying fees and confirm the base excludes them",
+            "Done when the exclusion flags match the schedule definitions"
+          ],
+          "verify": [
+            "Recompute the commissionable base for the test policy excluding fees and taxes",
+            "Pass when the engine base equals the recomputed base"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Re-key a ten-row rate sample independently in Microsoft Excel",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Select ten rate rows across products and tiers without seeing the configured values",
+            "Re-key each rate from the source rate table and compare to the configured value",
+            "Done when all ten comparisons are recorded"
+          ],
+          "verify": [
+            "List sample rows where re-keyed and configured rates differ",
+            "Pass when the variance list is empty"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Log and clear configuration exceptions before schedule sign-off",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Log every default-rate row, missing rate and re-key variance found",
+            "Correct each item and re-run the affected check",
+            "Done when every logged exception has a recorded disposition"
+          ],
+          "verify": [
+            "Review the exception log for items without a disposition",
+            "Pass when no exception remains open at sign-off"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2flb7o1sy4kfgzmy5vrux9",
+      "verifier": "Distribution Operations Manager",
+      "generic": {
+        "Defined scope/population": "All split and override rules for multi-producer and hierarchy business on the schedule",
+        "In-scope period": "The effective period of the schedule version carrying the split and override rules",
+        "Required fields populated and valid": "Split percentage, split basis, override rate and hierarchy level set on every rule row",
+        "Control totals or record counts reconcile": "Each split rule sums to exactly 100 percent across participating producer codes",
+        "Evidence retained with timestamp/version": "Rule configuration export and the multi-producer end-to-end test result retained by version",
+        "Exceptions logged with disposition": "Any rule not summing to 100 percent or exceeding agreed override levels logged and fixed",
+        "Test population": "One multi-producer policy run end to end plus every configured override chain",
+        "Pass/fail thresholds": "Split totals equal 100 percent and override chains stop at the agreed hierarchy level",
+        "Exception handling path": "An overpaying rule is disabled and escalated to the Distribution Operations Manager",
+        "Documented acceptance criteria": "Total paid commission equals the schedule rate with splits and overrides applied",
+        "Evidence location": "Split and override configuration in the billing/commission platform with the test workbook"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Configure split rules by producer code in the billing/commission platform",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Enter each participating producer code and its split percentage",
+            "Confirm the percentages total exactly 100 with no rounding residue",
+            "Done when every split rule totals 100 percent"
+          ],
+          "verify": [
+            "Sum the split percentages for each rule",
+            "Pass when every rule sums to exactly 100 percent"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Set the split basis explicitly on each rule in the engine",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Select percentage of premium or percentage of commission per the agreement",
+            "Record the basis on the rule row rather than relying on the system default",
+            "Done when every rule carries an explicit split basis"
+          ],
+          "verify": [
+            "Read back the basis on each split rule",
+            "Pass when no rule has a blank or defaulted basis"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Configure override rates by hierarchy level in the billing/commission platform",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Enter the override rate at each agreed hierarchy level",
+            "Cap the override chain at the agreed number of levels",
+            "Done when override rates and level caps are stored"
+          ],
+          "verify": [
+            "Trace one override chain from writing producer to top parent",
+            "Pass when the chain stops at the agreed number of levels"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Check participating producer codes in the agency/producer management system",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Confirm each split and override recipient is an appointed and licensed active code",
+            "Remove placeholder or inactive codes from the rules",
+            "Done when every participant is an active appointed code"
+          ],
+          "verify": [
+            "Match each rule participant to its status in the producer master",
+            "Pass when no rule includes an inactive or placeholder code"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Run a multi-producer policy end to end through the commission engine",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Select a policy with a split and an override chain and run the calculation",
+            "Sum all commission lines generated for the policy",
+            "Done when the total paid commission for the policy is recorded"
+          ],
+          "verify": [
+            "Compare total paid commission to the schedule rate applied to the commissionable base",
+            "Pass when the total equals the schedule rate and does not exceed it"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review split and override configuration with the Distribution Operations Manager",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Review the rule export and the multi-producer test result",
+            "Challenge any override chain or split that overpays against the schedule",
+            "Done when the review decision is recorded against the schedule version"
+          ],
+          "verify": [
+            "Check the review decision is recorded with no open objection",
+            "Pass when the review is signed and all objections are closed"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2flayf1su6kfgzzahoersg",
+      "verifier": "Distribution Operations Manager",
+      "generic": {
+        "Defined scope/population": "All active writing producer codes and their agency, general agent and regional parents",
+        "In-scope period": "The hierarchy effective dates covering the current and next commission periods",
+        "Required fields populated and valid": "Child code, parent code, hierarchy level, effective from and effective to populated on every row",
+        "Control totals or record counts reconcile": "Hierarchy node count in the compensation engine equals the producer master node count",
+        "Evidence retained with timestamp/version": "Hierarchy extract and reconciliation result retained with the load timestamp",
+        "Exceptions logged with disposition": "Multi-parent, circular or orphan codes logged with the correction applied",
+        "Test population": "Every active producer code plus a sample of mid-period producer moves",
+        "Pass/fail thresholds": "Zero codes with more than one active parent and zero circular parent chains",
+        "Exception handling path": "A circular or multi-parent code is held out of calculation until corrected",
+        "Documented acceptance criteria": "One active parent per code at any date and node counts reconciling to the master",
+        "Evidence location": "Hierarchy tables in the billing/commission platform and the producer master extract"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract the producer hierarchy from the agency/producer management system",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Extract every active writing code with its agency, general agent and regional parent",
+            "Capture the extract record count and timestamp",
+            "Done when the extract and its control count are saved"
+          ],
+          "verify": [
+            "Compare the extract count to the active producer count in the master",
+            "Pass when the counts agree"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Map each writing code to its parent chain in the billing/commission platform",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Load the child to parent mappings at each hierarchy level",
+            "Do not create a parent node that does not exist in the producer master",
+            "Done when every extracted code has a mapped parent chain"
+          ],
+          "verify": [
+            "List loaded codes with no parent at a required level",
+            "Pass when the unmapped list is empty"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Run the single-parent and circularity checks in the compensation engine",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Run the check for codes with more than one active parent on any date",
+            "Run the check for circular parent chains",
+            "Done when both checks have been run and results captured"
+          ],
+          "verify": [
+            "Review the multi-parent and circularity exception lists",
+            "Pass when both lists are empty"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Set effective-dated hierarchy rows for mid-period producer moves",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Enter effective from and to dates on moved codes rather than overwriting the parent",
+            "Confirm a prior-period recalculation does not restate the earlier parent",
+            "Done when moved codes carry effective-dated rows"
+          ],
+          "verify": [
+            "Recalculate a prior period for a moved code and compare to the original result",
+            "Pass when the prior-period commission is unchanged"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile hierarchy node counts to the producer master",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Compare node counts by level between the engine and the producer master",
+            "Investigate every difference in both directions",
+            "Done when differences are zero or explained in writing"
+          ],
+          "verify": [
+            "Read the residual difference count and its explanations",
+            "Pass when the residual is zero or fully explained"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Inactivate terminated and non-appointed codes in the engine",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Mark terminated and non-appointed codes inactive rather than deleting them",
+            "Confirm history remains queryable for the inactivated codes",
+            "Done when all terminated codes are inactive with history intact"
+          ],
+          "verify": [
+            "Query a sample inactivated code for prior-period commission history",
+            "Pass when history is retrievable and the code is excluded from future roll-ups"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Sign off the hierarchy mapping with the Distribution Operations Manager",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Review the reconciliation, exception lists and effective dating approach",
+            "Confirm no exception remains open before the hierarchy is used in calculation",
+            "Done when the sign-off is recorded with the reconciliation attached"
+          ],
+          "verify": [
+            "Check the sign-off record and attached reconciliation",
+            "Pass when sign-off is recorded and no exception is open"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "aa64b746-d9b2-475b-878e-61569a917d07",
+      "verifier": "Distribution Operations Manager",
+      "generic": {
+        "Defined scope/population": "Base rates, tiers and qualifying criteria for every product line and channel in the design",
+        "In-scope period": "The intended effective period of the new schedule and the modelled production year",
+        "Required fields populated and valid": "Base rate, commissionable basis, tier metric, threshold and qualifying gate stated for each line",
+        "Control totals or record counts reconcile": "Modelled commission expense at expected production reconciles to the commission expense budget",
+        "Evidence retained with timestamp/version": "Design document version, scenario model and conduct assessment retained with dates",
+        "Exceptions logged with disposition": "Product lines whose modelled expense exceeds budget logged with the design decision taken",
+        "Test population": "Low, expected and high production scenarios across all in-scope product lines",
+        "Pass/fail thresholds": "Modelled expense at expected production within the approved commission budget tolerance",
+        "Exception handling path": "A design breaching budget or raising conduct risk returns for revision before approval",
+        "Documented acceptance criteria": "Base rates, tiers, qualifying criteria and commissionable basis all explicitly specified",
+        "Evidence location": "Design workbook in Microsoft Excel and the scenario model on the BI/reporting platform"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Define base rates by product line and channel in the Excel design workbook",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Set a base rate for each product line and channel combination in scope",
+            "State the commissionable premium basis alongside each base rate",
+            "Done when every combination has a rate and a stated basis"
+          ],
+          "verify": [
+            "List combinations with a rate but no stated basis",
+            "Pass when no combination is missing its commissionable basis"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Define tier thresholds and the qualifying metric in the design workbook",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Name the qualifying metric explicitly as written premium, policy count or growth rate",
+            "Set the threshold value for each tier and the rate that applies above it",
+            "Done when every tier has a named metric and a threshold value"
+          ],
+          "verify": [
+            "Read the metric and threshold on each tier row",
+            "Pass when no tier lacks a named metric or a threshold"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "State qualifying gates such as loss ratio or persistency per tier",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Add the minimum loss ratio or persistency gate where the design applies one",
+            "State how the gate is measured and at what valuation date",
+            "Done when every gate has a measurement definition"
+          ],
+          "verify": [
+            "Check each gate has a stated measurement basis and valuation date",
+            "Pass when no gate is stated without a measurement definition"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Model commission expense scenarios on the BI/reporting platform",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Model total commission expense at low, expected and high production",
+            "Split modelled expense by product line and channel",
+            "Done when all three scenarios are modelled and stored"
+          ],
+          "verify": [
+            "Compare the expected-production scenario to the approved commission budget",
+            "Pass when expected expense is within the budget tolerance or the breach is flagged"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Assess whether the design could drive business against customer interest",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Test each threshold for an incentive to place unsuitable or poor-quality business",
+            "Record the mitigation applied where a risk is identified",
+            "Done when the conduct assessment is written into the design document"
+          ],
+          "verify": [
+            "Read the conduct assessment section for each identified risk and mitigation",
+            "Pass when every identified risk carries a stated mitigation"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review the design with the Distribution Operations Manager",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Review base rates, tiers, gates, cost model and conduct assessment together",
+            "Record required changes as actions with owners rather than verbal comments",
+            "Done when the review outcome and actions are recorded"
+          ],
+          "verify": [
+            "Check every review action has an owner and a due date",
+            "Pass when no review action is unassigned"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Version and issue the approved design for build",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Assign a version number and date to the design document",
+            "Issue the versioned design to the Commission Analyst for configuration",
+            "Done when the versioned design is issued and acknowledged"
+          ],
+          "verify": [
+            "Confirm the issued version matches the reviewed version",
+            "Pass when the issued and reviewed version references agree"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "6ff30930-1769-4dbc-b29d-2601698f60e7",
+      "verifier": "Compensation Analyst",
+      "generic": {
+        "Defined scope/population": "Every commission schedule version issued for the in-scope products, channels and tiers",
+        "In-scope period": "The full date sequence of schedule versions for each product line",
+        "Required fields populated and valid": "Version ID, effective from, effective to, approver, approval date and superseded version populated",
+        "Control totals or record counts reconcile": "Register version count equals the active and historical version count in the compensation engine",
+        "Evidence retained with timestamp/version": "Approval evidence attached to each register row with approver name and date",
+        "Exceptions logged with disposition": "Any date gap or missing approval evidence logged with the correction made",
+        "Test population": "All register rows for the current schedule year across every product line",
+        "Pass/fail thresholds": "Zero unexplained date gaps and zero rows missing approver or superseded reference",
+        "Exception handling path": "A missing approval or gap is raised to the Compensation Analyst before the register is published",
+        "Documented acceptance criteria": "Every version carries ID, date range, approver and superseded version reference",
+        "Evidence location": "Master schedule register in Microsoft Excel filed in the document management repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Assign a sequential version number in the master register",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Take the next sequential number for the product line version sequence",
+            "Record the version it supersedes on the same row",
+            "Done when the new row carries a version number and superseded reference"
+          ],
+          "verify": [
+            "Check the version sequence for duplicates or skipped numbers",
+            "Pass when the sequence is unbroken and unique per product line"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Record effective from and effective to dates on the register row",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Enter the effective from date and the effective to date of the version",
+            "Match the dates to the schedule header in the compensation engine",
+            "Done when register dates match the engine dates"
+          ],
+          "verify": [
+            "Compare register dates to the engine schedule header dates",
+            "Pass when the dates agree exactly"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Attach approval evidence to the register row",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Attach the approver name, approval date and approval method to the row",
+            "Use the workflow approval record rather than an email restatement",
+            "Done when approval evidence is attached to the row"
+          ],
+          "verify": [
+            "Open the attachment and read the approver and approval date",
+            "Pass when both are present and legible"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record the products, channels and tiers in scope for the version",
+          "actor": "Commission Analyst",
+          "sop": [
+            "List the in-scope products, channels and producer tiers on the row",
+            "Note explicitly where a version applies to a subset of producers",
+            "Done when the scope fields are populated for the version"
+          ],
+          "verify": [
+            "Compare the recorded scope to the schedule configuration in the engine",
+            "Pass when the recorded scope matches the configured scope"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Run the date-sequence gap check across the register",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Sort versions by product line and effective date and check for gaps",
+            "Investigate every gap to confirm it is intentional",
+            "Done when every gap is closed or explained on the register"
+          ],
+          "verify": [
+            "Review the gap list and the explanation on each remaining gap",
+            "Pass when no unexplained gap exists for any product line"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "File the updated register in the document management repository",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Save the register with the version and date in the file name",
+            "Store it in the commission schedules folder with access controls applied",
+            "Done when the filed register is retrievable by version and date"
+          ],
+          "verify": [
+            "Retrieve the filed register by its version reference",
+            "Pass when the retrieved file matches the version just logged"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjn8e1169kfgzlyif55tl",
+      "verifier": "Head of Distribution",
+      "generic": {
+        "Defined scope/population": "The commission schedule version submitted for approval and the producers it will apply to",
+        "In-scope period": "From submission for approval to the schedule effective date",
+        "Required fields populated and valid": "Approver name, approval decision, timestamp and authority level captured on the workflow record",
+        "Control totals or record counts reconcile": "Modelled commission expense in the package equals the value used to select the approval tier",
+        "Evidence retained with timestamp/version": "Approval package with rate tables, cost model and compliance comments retained by version",
+        "Exceptions logged with disposition": "Conditions attached to the approval logged as open actions with owners and due dates",
+        "Test population": "The submitted schedule version and every condition attached to its approval",
+        "Pass/fail thresholds": "Approval dated before both the effective date and production activation",
+        "Exception handling path": "An approval outside the delegation matrix is rejected and re-routed to the correct approver",
+        "Documented acceptance criteria": "Approver, timestamp and decision captured against the schedule version in the workflow tool",
+        "Evidence location": "Approval record in the workflow/case management tool and package in the document repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Assemble the approval package in the document management repository",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Include the rate tables, cost model and legal or compliance review comments",
+            "Include the conduct assessment and the modelled expense at expected production",
+            "Done when the package is complete against the approval checklist"
+          ],
+          "verify": [
+            "Check each required item against the approval checklist",
+            "Pass when no checklist item is missing from the package"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Select the approver from the delegation of authority matrix",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Read the modelled expense value and find the matching authority tier",
+            "Name the approver for that tier on the routing record",
+            "Done when the named approver matches the authority tier"
+          ],
+          "verify": [
+            "Compare the named approver to the matrix entry for the expense value",
+            "Pass when the approver matches the matrix for that value"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Route the schedule for approval in the workflow/case management tool",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Raise the approval task with the package attached and the version referenced",
+            "Set the required response date ahead of the intended effective date",
+            "Done when the approval task is open with the package attached"
+          ],
+          "verify": [
+            "Open the workflow record and confirm attachments and version reference",
+            "Pass when the record shows the correct version and a complete package"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record the approval decision in the workflow/case management tool",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Record approve, reject or approve-with-conditions as a structured decision",
+            "Ensure the identity and timestamp are captured by the tool, not typed in free text",
+            "Done when the decision, approver and timestamp are stored on the record"
+          ],
+          "verify": [
+            "Read back the decision, approver identity and timestamp",
+            "Pass when all three are present on the workflow record"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Check the approval date against the effective and activation dates",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Compare the approval timestamp to the schedule effective date",
+            "Compare the approval timestamp to the planned production activation date",
+            "Done when both comparisons are recorded on the schedule version"
+          ],
+          "verify": [
+            "Read the recorded date comparison on the schedule version",
+            "Pass when the approval predates both the effective date and activation"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Log approval conditions as open actions with owners",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Convert each condition attached to the approval into a tracked action",
+            "Assign an owner and due date to every condition",
+            "Done when every condition exists as a tracked action"
+          ],
+          "verify": [
+            "List conditions without a tracked action, owner or due date",
+            "Pass when the list is empty"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cc53ae28-f7d8-4d33-aa04-58c65faf413b",
+      "verifier": "Agency Relations Manager",
+      "generic": {
+        "Defined scope/population": "Every in-scope producer receiving the new schedule and its agreement addendum",
+        "In-scope period": "From the publication date to the close of the addendum response window",
+        "Required fields populated and valid": "Producer code, addendum issue date, acknowledgement status and published version populated",
+        "Control totals or record counts reconcile": "Count of addenda issued equals the count of in-scope producers on the distribution list",
+        "Evidence retained with timestamp/version": "Published portal version, issued addendum copies and acknowledgement log retained by date",
+        "Exceptions logged with disposition": "Unacknowledged addenda logged with chase date and escalation decision",
+        "Test population": "A test producer login plus the full in-scope producer distribution list",
+        "Pass/fail thresholds": "Published version equals the activated engine version and zero in-scope producers unissued",
+        "Exception handling path": "A version mismatch or wrong entitlement stops publication until corrected",
+        "Documented acceptance criteria": "Schedule visible to in-scope producers only and matching the engine active version",
+        "Evidence location": "Publication record on the Broker & Agent Portal and addenda in the document repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the published version matches the engine active version",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Read the active schedule version from the compensation engine",
+            "Compare it to the version prepared for portal publication",
+            "Done when the two version references agree"
+          ],
+          "verify": [
+            "Compare the two version references side by side",
+            "Pass when the published version equals the active engine version"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Publish the effective schedule to the Broker & Agent Portal",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Publish the schedule document against the in-scope producer segment",
+            "Set the publication effective date to the schedule effective date",
+            "Done when the schedule shows as published on the portal"
+          ],
+          "verify": [
+            "Open a test producer login and view the published schedule",
+            "Pass when the schedule renders correctly for the test producer"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Check portal entitlements exclude out-of-scope producers",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Review the segment used for publication against the in-scope producer list",
+            "Confirm producers outside the change cannot see the new schedule",
+            "Done when entitlement is confirmed for in and out of scope producers"
+          ],
+          "verify": [
+            "Open an out-of-scope producer view and search for the schedule",
+            "Pass when the schedule is not visible to out-of-scope producers"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Issue the agreement addendum from the document management repository",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Generate the addendum for each in-scope producer from the approved template",
+            "Send using the contact of record held on the producer file",
+            "Done when an addendum is issued to every in-scope producer"
+          ],
+          "verify": [
+            "Compare the issued addendum count to the in-scope producer count",
+            "Pass when the counts agree with no producer unissued"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Track addendum signature and acknowledgement status",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Record acknowledgement or signature status against each producer code",
+            "Update status as responses are received rather than at the end",
+            "Done when every producer has a recorded response status"
+          ],
+          "verify": [
+            "List producers with no recorded status",
+            "Pass when every issued addendum carries a status"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Chase unacknowledged addenda after the response window",
+          "actor": "Agency Relations Manager",
+          "sop": [
+            "Identify producers still unacknowledged after the stated window",
+            "Send the chase and log the outstanding producer list",
+            "Done when all outstanding producers are chased and logged"
+          ],
+          "verify": [
+            "Review the outstanding list and the chase evidence",
+            "Pass when every outstanding producer has a logged chase"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "1c975928-4fc8-411c-8e41-0e0d01d8c5cf",
+      "verifier": "Compensation Analyst",
+      "generic": {
+        "Defined scope/population": "External benchmark rates and internal rates for every product line and channel compared",
+        "In-scope period": "The benchmark data vintage and the internal rate period being compared",
+        "Required fields populated and valid": "Benchmark source, vintage, sample size, normalised basis and internal rate populated per line",
+        "Control totals or record counts reconcile": "Product line count in the gap analysis equals the count of lines with internal rates in force",
+        "Evidence retained with timestamp/version": "Benchmark extract, normalisation working and gap analysis retained with source and vintage",
+        "Exceptions logged with disposition": "Lines with thin or stale benchmark data logged and marked low confidence",
+        "Test population": "All in-scope product lines and channels with an internal rate in force",
+        "Pass/fail thresholds": "Every comparison on a like-for-like commissionable basis with a stated source and vintage",
+        "Exception handling path": "A basis mismatch removes the line from comparison until it is normalised",
+        "Documented acceptance criteria": "Gap to market shown in basis points by line with source, vintage and confidence stated",
+        "Evidence location": "Benchmark workbook in Microsoft Excel with the extract from the data warehouse"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract internal rates in force from the enterprise data warehouse",
+          "actor": "Sales Operations Analyst",
+          "sop": [
+            "Extract current internal rates by product line, channel and new business or renewal",
+            "Capture the extract date and the commissionable basis for each rate",
+            "Done when internal rates and their bases are extracted"
+          ],
+          "verify": [
+            "Compare the extracted line count to the lines with schedules in force",
+            "Pass when every in-force line appears in the extract"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Normalise external benchmark rates to the internal commissionable basis",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Restate benchmark rates onto the same premium basis used internally",
+            "Show the normalisation adjustment for each benchmark rather than hiding it",
+            "Done when every benchmark rate carries a normalisation working"
+          ],
+          "verify": [
+            "Check each benchmark rate has a stated basis and normalisation step",
+            "Pass when no rate is compared on an unnormalised basis"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Build the gap analysis in Microsoft Excel by line and channel",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Compare new business and renewal rates separately for each channel",
+            "Express the gap to market in basis points per product line",
+            "Done when every line and channel has a basis point gap"
+          ],
+          "verify": [
+            "List lines and channels with a missing gap value",
+            "Pass when no in-scope line and channel combination is missing"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Flag lines outside the target band on the BI/reporting platform",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Apply the target band and flag lines above or below it",
+            "Rank flagged lines by premium volume so materiality is visible",
+            "Done when flagged lines are listed and ranked"
+          ],
+          "verify": [
+            "Review flagged lines against the target band definition",
+            "Pass when every line outside the band is flagged"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Mark low confidence lines where benchmark data is thin or stale",
+          "actor": "Sales Operations Analyst",
+          "sop": [
+            "Check the sample size and vintage behind each benchmark rate",
+            "Mark lines with thin or stale data as low confidence",
+            "Done when confidence is marked on every benchmarked line"
+          ],
+          "verify": [
+            "List benchmarked lines with no confidence marking",
+            "Pass when every line carries a confidence marking"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Attach source, vintage and sample size before circulating the analysis",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Record the benchmark provider, data vintage and sample size on the analysis",
+            "Circulate only after the provenance fields are complete",
+            "Done when provenance is stated on the face of the analysis"
+          ],
+          "verify": [
+            "Read the provenance block on the circulated analysis",
+            "Pass when source, vintage and sample size are all stated"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "95c28a06-c33d-4047-ad63-8965ed729bd0",
+      "verifier": "Compensation Analyst",
+      "generic": {
+        "Defined scope/population": "The test pack of sample bound transactions covering every transaction type in scope",
+        "In-scope period": "The pre-go-live test window for the schedule version under test",
+        "Required fields populated and valid": "Case ID, transaction type, expected value, engine value and variance disposition populated",
+        "Control totals or record counts reconcile": "Count of executed test cases equals the count of designed cases in the test pack",
+        "Evidence retained with timestamp/version": "Test pack, independent expected values and engine results retained with the schedule version",
+        "Exceptions logged with disposition": "Every expected versus engine variance logged with cause and disposition before sign-off",
+        "Test population": "New business, renewal, endorsement, cancellation and multi-producer split cases plus tier boundaries",
+        "Pass/fail thresholds": "Zero unexplained variances between independently derived expected values and engine output",
+        "Exception handling path": "An unexplained variance blocks go-live and returns the schedule to configuration",
+        "Documented acceptance criteria": "Every case carries an independently derived expected value and a recorded outcome",
+        "Evidence location": "Test workbook in Microsoft Excel with engine outputs from the billing/commission platform"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Build the test pack covering every transaction type in Microsoft Excel",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Include new business, renewal, endorsement, cancellation and a multi-producer split case",
+            "Include a case at each tier boundary and one just below the bonus threshold",
+            "Done when every required transaction type has at least one case"
+          ],
+          "verify": [
+            "Check the case list against the required transaction type list",
+            "Pass when no required transaction type is missing a case"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Derive expected commission independently in Microsoft Excel",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Compute the expected commission from the approved rate tables before running the engine",
+            "Do not copy or reconcile back to any engine output while deriving",
+            "Done when every case has an independently derived expected value"
+          ],
+          "verify": [
+            "List cases with no expected value recorded before the engine run",
+            "Pass when every case has a pre-run expected value"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Run the test pack through the billing/commission platform",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Run each case against the schedule version under test in the test environment",
+            "Capture the engine commission and the schedule version selected for each case",
+            "Done when every case has an engine result recorded"
+          ],
+          "verify": [
+            "Compare executed case count to designed case count",
+            "Pass when all designed cases have been executed"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Check tier boundary and bonus threshold cases against expectations",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Compare engine output at each boundary and threshold to the expected value",
+            "Include the just-below-threshold case to confirm the bonus does not trigger",
+            "Done when every boundary case is compared and recorded"
+          ],
+          "verify": [
+            "Read the boundary comparison results",
+            "Pass when boundary outcomes match the expected values exactly"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm non-commissionable fees and taxes are excluded from the base",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Select cases carrying policy fees, taxes or surcharges",
+            "Compare the engine commissionable base to the premium net of those components",
+            "Done when exclusion is confirmed on every applicable case"
+          ],
+          "verify": [
+            "Recompute the commissionable base excluding non-commissionable components",
+            "Pass when engine and recomputed bases agree"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record and dispose of every variance before test sign-off",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Log each variance with its case, expected value, engine value and cause",
+            "Correct the configuration and re-run rather than adjusting the expected value",
+            "Done when every variance carries a disposition"
+          ],
+          "verify": [
+            "Review the variance log for open items",
+            "Pass when no variance is left open at sign-off"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "d9b23ef0-872e-491a-b90c-83ba7d18490f",
+      "verifier": "Compensation Analyst",
+      "generic": {
+        "Defined scope/population": "Every executed producer agreement whose commission terms feed the rate tables",
+        "In-scope period": "The agreement or addendum effective dates covering the rate table version",
+        "Required fields populated and valid": "Product, channel, tier, business type, rate, effective date and clause reference on every row",
+        "Control totals or record counts reconcile": "Rate row count equals the count of product, channel, tier and business type combinations in force",
+        "Evidence retained with timestamp/version": "Rate table version, source agreements and the reviewer trace sample retained together",
+        "Exceptions logged with disposition": "Contract terms the engine cannot express logged with the exception handling agreed",
+        "Test population": "A sample of rate rows traced back to the executed contract clause by a second reviewer",
+        "Pass/fail thresholds": "Every rate row cites a clause and no in-force combination is missing a rate row",
+        "Exception handling path": "An unexpressible term is escalated to schedule design rather than approximated silently",
+        "Documented acceptance criteria": "Rate rows traceable to executed agreement clauses with matching effective dates",
+        "Evidence location": "Rate table workbook in Microsoft Excel with agreements in the document repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract commission terms from executed agreements in the document repository",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Open each executed producer agreement and addendum in scope",
+            "Record the commission clause text and its clause reference",
+            "Done when every in-scope agreement has extracted terms"
+          ],
+          "verify": [
+            "Compare the extracted agreement count to the in-scope agreement list",
+            "Pass when no in-scope agreement is unextracted"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Build one rate row per product, channel, tier and business type",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Create a discrete row for each combination rather than a blended rate",
+            "Enter the rate exactly as expressed in the agreement clause",
+            "Done when every in-force combination has its own rate row"
+          ],
+          "verify": [
+            "List in-force combinations with no rate row",
+            "Pass when the missing-row list is empty"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Cite the source agreement and clause on every rate row",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Record the agreement reference and clause number on each row",
+            "Do not leave a rate row citing only the producer name",
+            "Done when every row carries an agreement and clause reference"
+          ],
+          "verify": [
+            "List rows with a blank agreement or clause reference",
+            "Pass when no row is missing its citation"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Set the effective date on each rate row from the agreement",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Enter the agreement or addendum effective date on the rate row",
+            "Confirm no rate row predates the executed agreement date",
+            "Done when every row carries an agreement-based effective date"
+          ],
+          "verify": [
+            "Compare row effective dates to agreement execution dates",
+            "Pass when no row effective date precedes its agreement date"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Flag contract terms the engine rate structure cannot express",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Identify terms that cannot be modelled as a standard rate row",
+            "Log each with the proposed exception handling and an owner",
+            "Done when every unexpressible term is logged with an owner"
+          ],
+          "verify": [
+            "Review the exception list for items without an owner or proposal",
+            "Pass when every logged term has an owner and a proposal"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Trace a sample of rate rows back to contract clauses as second reviewer",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Select a sample of rate rows across products and channels",
+            "Open the cited clause and confirm the rate and dates match",
+            "Done when every sampled row has a recorded trace result"
+          ],
+          "verify": [
+            "List sampled rows where the clause does not support the rate",
+            "Pass when the unsupported list is empty"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "03b3b783-91eb-4b2a-bda0-be34f587db10",
+      "verifier": "Commission Analyst",
+      "generic": {
+        "Defined scope/population": "All mid-term endorsement and pro-rata premium adjustments for the calculation period",
+        "In-scope period": "The commission calculation period covering the endorsement posting dates",
+        "Required fields populated and valid": "Endorsement reference, original policy, producer code, split and applied schedule version populated",
+        "Control totals or record counts reconcile": "Endorsement commission total ties to the endorsement premium extract for the period",
+        "Evidence retained with timestamp/version": "Endorsement extract, applied rate evidence and adjustment output retained with run timestamp",
+        "Exceptions logged with disposition": "Endorsements with no original commission record logged and held pending investigation",
+        "Test population": "A sample of positive and negative endorsements plus cancellations across product lines",
+        "Pass/fail thresholds": "Zero endorsements priced on a schedule version other than the one in force at policy inception",
+        "Exception handling path": "A wrong-version pricing case is held from payment and returned for recalculation",
+        "Documented acceptance criteria": "Each endorsement line references its originating transaction and the correct schedule version",
+        "Evidence location": "Adjustment output in the billing/commission platform and the warehouse endorsement extract"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract endorsement and pro-rata transactions from the data warehouse",
+          "actor": "Sales Operations Analyst",
+          "sop": [
+            "Extract mid-term endorsements and pro-rata premium adjustments for the period",
+            "Capture the record count and premium total as control figures",
+            "Done when the extract and control totals are captured"
+          ],
+          "verify": [
+            "Compare extract totals to the policy system endorsement report",
+            "Pass when counts and premium totals agree"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Apply the schedule version in force at policy effective date",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Look up the schedule version active at the original policy effective date",
+            "Price the endorsement premium at that version rather than the current one",
+            "Done when every endorsement carries its originating schedule version"
+          ],
+          "verify": [
+            "List endorsements priced on a version other than the inception version",
+            "Pass when the list is empty"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Carry the original producer code and split onto the adjustment",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Copy the producer code and split from the original policy transaction",
+            "Do not apply the producer current hierarchy where it has since changed",
+            "Done when every adjustment carries the original code and split"
+          ],
+          "verify": [
+            "Compare adjustment producer and split to the original transaction",
+            "Pass when they match on every adjustment line"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm negative endorsements generate negative commission lines",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Select return-premium endorsements from the extract",
+            "Confirm the engine produces a negative commission line rather than suppressing it",
+            "Done when every negative endorsement has a matching negative line"
+          ],
+          "verify": [
+            "Count negative endorsements against negative commission lines",
+            "Pass when the counts agree"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Check short-rate versus pro-rata treatment on cancellations",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Read the cancellation basis from the policy contract terms",
+            "Confirm the engine applied the same basis to the commission adjustment",
+            "Done when the basis is confirmed on every cancellation in the sample"
+          ],
+          "verify": [
+            "Recompute one short-rate and one pro-rata cancellation independently",
+            "Pass when both recomputations match the engine result"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Tie endorsement adjustment totals to the premium extract",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Sum endorsement commission by product line and compare to the extract premium",
+            "Investigate any difference outside the tolerance",
+            "Done when the tie-out is documented for the period"
+          ],
+          "verify": [
+            "Read the tie-out difference and its explanation",
+            "Pass when the difference is nil or fully explained"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "6044370c-ff87-433e-9bc8-cadbc7a6437e",
+      "verifier": "Compensation Analyst",
+      "generic": {
+        "Defined scope/population": "All loaded premium transactions for the period across every product line and producer",
+        "In-scope period": "The calculation period start and end dates on the published commission calendar",
+        "Required fields populated and valid": "Run period, schedule version, run status and record counts populated on the run header",
+        "Control totals or record counts reconcile": "Records processed plus records rejected equals records loaded for the period",
+        "Evidence retained with timestamp/version": "Run log, run parameters and output totals retained with the run identifier and timestamp",
+        "Exceptions logged with disposition": "Skipped, aborted or errored records logged with the reason and the rerun outcome",
+        "Test population": "The full calculation run output including split and override lines",
+        "Pass/fail thresholds": "Zero records in skipped, aborted or error status and movement within the tolerance band",
+        "Exception handling path": "Any aborted record stops acceptance of the run until it is reprocessed",
+        "Documented acceptance criteria": "Run uses the active schedule version and correct period with zero errored records",
+        "Evidence location": "Run log in the billing/commission platform and the warehouse comparison extract"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm run period dates against the published commission calendar",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Read the period start and end dates from the commission calendar",
+            "Enter them on the run parameters before submitting",
+            "Done when run parameters match the calendar dates"
+          ],
+          "verify": [
+            "Compare run header dates to the calendar entry",
+            "Pass when the dates agree exactly"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the run selects the active schedule version",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Check the schedule version resolved by the run parameters",
+            "Reject any draft or superseded version before submission",
+            "Done when the run references the active version only"
+          ],
+          "verify": [
+            "Read the schedule version on the run header",
+            "Pass when it equals the active version for the period"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Submit the calculation run in the billing/commission platform",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Submit the run and monitor it through to completion",
+            "Do not start downstream steps while the run is still processing",
+            "Done when the run reaches completed status"
+          ],
+          "verify": [
+            "Read the run status and completion timestamp",
+            "Pass when the run completed without abort"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Review the run log for skipped, aborted or errored records",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Open the run log and read the skipped, aborted and error counts",
+            "Reprocess any affected records before accepting the run",
+            "Done when all three counts are zero"
+          ],
+          "verify": ["Read the final skipped, aborted and error counts", "Pass when all are zero"]
+        },
+        {
+          "n": 5,
+          "title": "Confirm split and override lines generated for multi-producer policies",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Select multi-producer policies from the run output",
+            "Confirm base, split and override lines all exist for each",
+            "Done when every multi-producer policy has its full line set"
+          ],
+          "verify": [
+            "List multi-producer policies missing a split or override line",
+            "Pass when the list is empty"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Compare run totals to the prior period in the data warehouse",
+          "actor": "Compensation Analyst",
+          "sop": [
+            "Compare total calculated commission and commission ratio to the prior period",
+            "Investigate movements outside the agreed tolerance band",
+            "Done when every out-of-tolerance movement has an explanation"
+          ],
+          "verify": [
+            "Read the movement analysis and the explanations recorded",
+            "Pass when no out-of-tolerance movement is unexplained"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "84fa4953-9723-4cd5-b341-c273daa3c9cc",
+      "verifier": "Distribution Operations Manager",
+      "generic": {
+        "Defined scope/population": "The approved statement batch for the period and the producers it covers",
+        "In-scope period": "The commission period covered by the approved statement batch",
+        "Required fields populated and valid": "Batch ID, sign-off flag, statement count, posting timestamp and entitlement set populated",
+        "Control totals or record counts reconcile": "Posted statement count equals the approved statement count for the period",
+        "Evidence retained with timestamp/version": "Posting log, spot-check evidence and notification record retained with the batch ID",
+        "Exceptions logged with disposition": "Failed postings and entitlement errors logged with the corrective action taken",
+        "Test population": "The full posted batch plus a spot-checked statement compared to its calculation record",
+        "Pass/fail thresholds": "Posted count equals approved count and zero statements visible to the wrong producer",
+        "Exception handling path": "An entitlement breach withdraws the affected statement immediately and is escalated",
+        "Documented acceptance criteria": "Batch carries final sign-off before posting and each statement is visible only to its owner",
+        "Evidence location": "Posting log on the Broker & Agent Portal and batch record in the commission platform"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the final sign-off flag on the batch in the commission platform",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Open the statement batch and read the sign-off status",
+            "Do not post while the batch is in draft or pending status",
+            "Done when the batch shows the final sign-off flag"
+          ],
+          "verify": [
+            "Read the sign-off flag and the approving user on the batch",
+            "Pass when the flag is set and an approver is recorded"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Post the statement batch to the Broker & Agent Portal",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Run the posting job for the signed-off batch only",
+            "Capture the posting timestamp and the posted statement count",
+            "Done when the posting job completes with counts captured"
+          ],
+          "verify": [
+            "Compare posted statement count to the approved statement count",
+            "Pass when the counts are equal"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Spot-check a posted statement against its calculation record",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Select one producer and open the posted statement on the portal",
+            "Compare gross, adjustments and net to the calculation record",
+            "Done when the spot-check comparison is recorded"
+          ],
+          "verify": [
+            "Read the spot-check comparison result",
+            "Pass when portal and calculation figures agree"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm portal entitlements restrict statements to their owners",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Open a test producer login and attempt to view another producer statement",
+            "Confirm the entitlement model blocks the access",
+            "Done when the entitlement test result is recorded"
+          ],
+          "verify": [
+            "Read the entitlement test evidence",
+            "Pass when no statement is visible to a producer other than its owner"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Log failed postings and correct them before notification",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Read the posting error list and identify the affected producers",
+            "Repost after correction and confirm the statement appears",
+            "Done when the posting error list is cleared"
+          ],
+          "verify": [
+            "Re-read the posting error list after correction",
+            "Pass when the error list is empty"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Notify producers per the published statement calendar",
+          "actor": "Commission Analyst",
+          "sop": [
+            "Trigger the portal notification for the posted batch",
+            "Record the notification timestamp against the batch",
+            "Done when notification is sent and timestamped"
+          ],
+          "verify": [
+            "Compare the notification timestamp to the statement calendar date",
+            "Pass when the notification was sent on or before the calendar date"
+          ]
+        }
+      ]
+    }
+  ]
+}

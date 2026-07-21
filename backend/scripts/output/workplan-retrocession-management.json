@@ -1,0 +1,2401 @@
+{
+  "area": "Retrocession Management",
+  "tasks": [
+    {
+      "taskId": "09e8e34f-5e41-4bfa-b114-638e8347a924",
+      "verifier": "Retrocession Manager",
+      "generic": {
+        "Defined scope/population": "All in-force assumed treaties held in the reinsurance administration system at the accumulation as-of date",
+        "In-scope period": "The current accumulation as-of date and the treaty year in force on that date",
+        "Required fields populated and valid": "Every assumed treaty row carries peril, CRESTA zone, territory code and sum insured",
+        "Control totals or record counts reconcile": "Aggregated sums insured equal the in-force treaty register control total for the as-of date",
+        "Evidence retained with timestamp/version": "Extract query, run timestamp and record count stored in the accumulation working paper",
+        "Exceptions logged with disposition": "Treaties with missing or defaulted geocoding listed with a follow-up owner and outcome",
+        "Test population": "All assumed treaty rows in the accumulation extract for the as-of date",
+        "Pass/fail thresholds": "Zero rows with null peril or null zone code and nil variance to the treaty register total",
+        "Exception handling path": "Ungeocoded or unmapped treaties routed to the Retrocession Manager for manual mapping",
+        "Documented acceptance criteria": "Extract ties to the register and every row maps to a peril, zone and territory code",
+        "Evidence location": "Accumulation working paper holding the extract query, record count and reconciliation"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract in-force assumed treaties from the reinsurance administration system at the as-of date",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Set the as-of date agreed for this accumulation cycle",
+            "Run the in-force assumed treaty extract filtered to that date",
+            "Record the query text and the returned record count",
+            "Done when the extract file is produced with its record count noted"
+          ],
+          "verify": [
+            "Check the extract header shows the intended as-of date",
+            "Check the record count is written into the working paper",
+            "Pass when the extract exists for the correct as-of date with a recorded count"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Load the treaty extract into the enterprise data warehouse accumulation staging area",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Load the extract into the staging table for the accumulation cycle",
+            "Confirm the loaded row count equals the extract row count",
+            "Reject and re-load if any row fails the load validation",
+            "Done when staged rows equal extracted rows with no load rejects"
+          ],
+          "verify": [
+            "Compare staged row count to the source extract count",
+            "Review the load reject log for the run",
+            "Pass when staged and extracted counts match and the reject log is empty"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Map each assumed treaty to peril, CRESTA zone and territory code in the data warehouse",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Join the staged treaties to the peril and CRESTA zone reference tables",
+            "Apply the territory code mapping for each cedant location",
+            "List rows that fail to map for manual assignment",
+            "Done when every staged treaty carries a peril, zone and territory value"
+          ],
+          "verify": [
+            "Query the staged set for null peril or null zone code",
+            "Confirm the unmapped list is empty or fully assigned",
+            "Pass when no staged treaty row holds a null peril or zone code"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Flag treaties with missing or defaulted exposure geocoding in the data warehouse exception view",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Identify treaties carrying default or centroid geocodes rather than real locations",
+            "Record each flagged treaty with its cedant and the reason for the default",
+            "Assign a follow-up owner and target date to each flagged treaty",
+            "Done when every geocoding exception is logged with an owner"
+          ],
+          "verify": [
+            "Check each flagged treaty has an owner and a target date",
+            "Check no defaulted geocode is left off the exception view",
+            "Pass when all geocoding exceptions are logged with an owner and date"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile extracted assumed sums insured to the treaty register control report",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Run the treaty register control report for the same as-of date",
+            "Compare total sums insured from the extract to the control total",
+            "Investigate and explain any difference before proceeding",
+            "Done when the extract total agrees to the register control total"
+          ],
+          "verify": [
+            "Recompute the difference between extract and control totals",
+            "Read the explanation for any residual difference",
+            "Pass when the extract total agrees to the register total or the difference is explained"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Aggregate exposures by peril, geography and cedant in the actuarial modeling platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Import the mapped exposure set into the actuarial modeling platform",
+            "Aggregate sums insured by peril, by CRESTA zone and by cedant",
+            "Confirm the aggregate total equals the input exposure total",
+            "Done when the three aggregation views are produced and balance to input"
+          ],
+          "verify": [
+            "Sum each aggregation view and compare to the input total",
+            "Spot check one cedant total back to the source extract",
+            "Pass when every aggregation view sums back to the loaded exposure total"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "File the extract query, counts and aggregations in the accumulation working paper",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Attach the extract query, record count and reconciliation to the working paper",
+            "Attach the aggregation output with the model run reference",
+            "Note the geocoding exceptions carried into the run as a data limitation",
+            "Done when the working paper is complete and dated for the cycle"
+          ],
+          "verify": [
+            "Open the working paper and confirm all attachments are present",
+            "Confirm the data limitation note is recorded",
+            "Pass when the dated working paper holds the extract, reconciliation and aggregations"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "4e337372-0929-461c-9c3f-b26c6ac0caf9",
+      "verifier": "Retrocession Manager",
+      "generic": {
+        "Defined scope/population": "All groups of assumed contracts exposed to peak perils within the IFRS-17 measurement model",
+        "In-scope period": "The current IFRS-17 reporting period and its contract service margin roll-forward",
+        "Required fields populated and valid": "Each contract group carries a CSM balance, loss component and peak-peril exposure tag",
+        "Control totals or record counts reconcile": "Opening plus movements equals closing CSM for every group in the sensitivity run",
+        "Evidence retained with timestamp/version": "Model version, run date and scenario definition stored with the CSM volatility memo",
+        "Exceptions logged with disposition": "Groups excluded from the sensitivity run listed with the reason for exclusion",
+        "Test population": "All peak-peril exposed contract groups in the current reporting period",
+        "Pass/fail thresholds": "Sensitivity runs exist at the 1-in-100 and 1-in-250 return periods with a recorded model version",
+        "Exception handling path": "Unexplained CSM movements referred to the Reinsurance Accountant before the memo is issued",
+        "Documented acceptance criteria": "CSM impact is split between onerous and profitable groups and shown gross and net of retro",
+        "Evidence location": "CSM volatility memo with the attached model run log for the reporting period"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract the current CSM and loss component balances by contract group from the data warehouse",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Pull the closing CSM and loss component per group of assumed contracts",
+            "Confirm the balances agree to the ledger IFRS-17 subledger",
+            "Tag each group with its peak-peril exposure flag",
+            "Done when tagged balances are extracted and agree to the subledger"
+          ],
+          "verify": [
+            "Compare extracted CSM totals to the subledger balance",
+            "Confirm every extracted group carries a peril tag",
+            "Pass when extracted balances agree to the subledger and all groups are tagged"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Define the peak-peril event scenarios to be run in the actuarial modeling platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Select the 1-in-100 and 1-in-250 peak-peril events from the current event set",
+            "Document the perils, territories and event severities used",
+            "Record the model version and event set reference",
+            "Done when the scenario definitions are recorded with the model version"
+          ],
+          "verify": [
+            "Read the scenario definition against the current approved event set",
+            "Confirm the model version is recorded",
+            "Pass when both return-period scenarios are defined with a recorded model version"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Run the CSM roll-forward with and without the peak-peril event in the actuarial platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Run the base CSM roll-forward for the period",
+            "Re-run with each peak-peril event applied to the exposed groups",
+            "Confirm opening plus movements equals closing CSM in every run",
+            "Done when base and stressed roll-forwards are complete and internally balanced"
+          ],
+          "verify": [
+            "Check the roll-forward balances for each run",
+            "Compare base run closing CSM to the extracted subledger balance",
+            "Pass when every roll-forward balances and the base run ties to the subledger"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Split the CSM impact between onerous and profitable groups in Microsoft Excel",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Classify each affected group as onerous or profitable at the reporting date",
+            "Allocate the modelled CSM impact to each classification",
+            "Quantify the loss component release triggered on each affected cohort",
+            "Done when the impact split and loss component release are quantified"
+          ],
+          "verify": [
+            "Confirm every affected group appears in exactly one classification",
+            "Recompute the total split back to the modelled impact",
+            "Pass when the split totals equal the modelled CSM impact"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Compare CSM volatility gross and net of the current retro programme in Excel",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Apply the in-force retro recoveries to each stressed scenario",
+            "Recompute the CSM impact after retro recovery",
+            "Show gross and net volatility side by side by return period",
+            "Done when the gross and net comparison exhibit is produced"
+          ],
+          "verify": [
+            "Check the net impact is never larger than the gross impact",
+            "Confirm both return periods appear in the exhibit",
+            "Pass when gross and net CSM volatility are shown for both return periods"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Circulate the CSM volatility memo to Group Finance from the modelling platform outputs",
+          "actor": "Reinsurance Accountant",
+          "sop": [
+            "Draft the memo covering scenarios, impacts, splits and the retro effect",
+            "Attach the model run log and the scenario definitions",
+            "Send the memo to Group Finance ahead of the reporting close",
+            "Done when the memo is issued before the close deadline"
+          ],
+          "verify": [
+            "Check the issue date against the reporting close deadline",
+            "Confirm the model version appears in the issued memo",
+            "Pass when the dated memo is issued before close with the model version stated"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "622a8ea8-9335-4d9c-b578-2666aca54c04",
+      "verifier": "Retrocession Manager",
+      "generic": {
+        "Defined scope/population": "The gross event loss table for the assumed book together with every in-force inuring retro layer",
+        "In-scope period": "The current accumulation cycle and the retro layers in force at the as-of date",
+        "Required fields populated and valid": "Each layer carries attachment, limit, share, reinstatement terms and inuring order",
+        "Control totals or record counts reconcile": "Gross less ceded equals net at every modelled return period",
+        "Evidence retained with timestamp/version": "Model run reference, layer set version and run date stored with the net PML exhibit",
+        "Exceptions logged with disposition": "Layers excluded from the netting run recorded with the reason and approver",
+        "Test population": "All modelled return periods from 1-in-50 to 1-in-500 by peril",
+        "Pass/fail thresholds": "No return period where modelled ceded loss exceeds the contractual layer limit",
+        "Exception handling path": "Ceded amounts breaching a layer limit returned to the Reinsurance Analyst for correction",
+        "Documented acceptance criteria": "Exhibit shows gross, ceded and net PML at each stated return period by peril",
+        "Evidence location": "Net PML exhibit filed with the actuarial model run output for the cycle"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Load the in-force retro layer terms into the actuarial modeling platform",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Extract attachment, limit, share and reinstatement terms for every in-force layer",
+            "Load the layer set into the modelling platform netting module",
+            "Confirm the loaded terms match the executed slips",
+            "Done when every in-force layer is loaded and matches its slip"
+          ],
+          "verify": [
+            "Compare a sample of loaded layers to the executed slips",
+            "Confirm the layer count equals the in-force programme count",
+            "Pass when all in-force layers are loaded and sampled terms match the slips"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Apply occurrence and aggregate retro layers to the gross event loss table in the actuarial platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Apply occurrence layers to each modelled event in the loss table",
+            "Apply aggregate layers to the annual accumulated loss",
+            "Respect the inuring order so lower layers respond first",
+            "Done when every event carries a modelled recovery by layer"
+          ],
+          "verify": [
+            "Check the inuring sequence applied in the run log",
+            "Confirm no event has a recovery without an attaching layer",
+            "Pass when recoveries follow the inuring order for every modelled event"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Net down for reinstatement premium payable on cat layers in the actuarial platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Calculate reinstatement premium triggered by each modelled recovery",
+            "Deduct the reinstatement premium from the modelled recovery",
+            "Record the reinstatement basis used per layer",
+            "Done when net recoveries are stated after reinstatement premium"
+          ],
+          "verify": [
+            "Recompute reinstatement premium for one layer by hand",
+            "Confirm the deduction appears in the net recovery figure",
+            "Pass when reinstatement premium is deducted on every layer that allows it"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Produce net PML at the 1-in-50 to 1-in-500 return periods by peril in the actuarial platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Compute net PML at 1-in-50, 1-in-100, 1-in-250 and 1-in-500 by peril",
+            "Produce results on both occurrence and aggregate bases",
+            "Record the model run reference for the output",
+            "Done when net PML is produced at all four return periods by peril"
+          ],
+          "verify": [
+            "Check all four return periods are present for every modelled peril",
+            "Confirm the run reference is recorded on the output",
+            "Pass when net PML exists at all four return periods for every peril"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile ceded amounts to modelled retro recoveries by layer in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Sum ceded amounts by layer from the netting output",
+            "Compare each layer total to the contractual limit and reinstatements available",
+            "Investigate any layer where ceded exceeds the available limit",
+            "Done when every layer ceded amount sits within its contractual limit"
+          ],
+          "verify": [
+            "Recompute the ceded total for the largest layer",
+            "Check no layer exceeds limit times reinstatements available",
+            "Pass when no modelled ceded amount exceeds its contractual layer limit"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Build the gross, ceded and net PML comparison exhibit in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Lay out gross, ceded and net PML side by side by peril and return period",
+            "Confirm gross less ceded equals net in every cell",
+            "File the exhibit with the model run reference and date",
+            "Done when the balanced exhibit is filed with its run reference"
+          ],
+          "verify": [
+            "Test the gross less ceded equals net identity across the exhibit",
+            "Confirm the run reference and date appear on the exhibit",
+            "Pass when the identity holds in every cell and the run reference is shown"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "483ae9de-4ee1-4f26-bd6d-46b81f652f5c",
+      "verifier": "Head of Reinsurance",
+      "generic": {
+        "Defined scope/population": "Every peril carrying a board-approved net PML tolerance in the risk appetite statement",
+        "In-scope period": "The current reporting cycle and the risk appetite statement version in force",
+        "Required fields populated and valid": "Each peril row holds modelled net PML, approved tolerance and computed headroom",
+        "Control totals or record counts reconcile": "Modelled net PML in the comparison equals the actuarial net PML exhibit figure",
+        "Evidence retained with timestamp/version": "Appetite statement version and model run reference recorded on the comparison",
+        "Exceptions logged with disposition": "Every tolerance breach recorded with cause and the proposed mitigating retro action",
+        "Test population": "All perils and return periods listed in the current risk appetite statement",
+        "Pass/fail thresholds": "Amber at 90% of tolerance and breach above 100% of tolerance",
+        "Exception handling path": "Breaches escalated to the Head of Reinsurance with a mitigating action before committee",
+        "Documented acceptance criteria": "Every modelled peril carries a tolerance value and a computed headroom figure",
+        "Evidence location": "Tolerance comparison workbook and Power BI view filed for the reporting cycle"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the board-approved net PML tolerances by peril from the risk appetite statement into Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Obtain the current approved risk appetite statement version",
+            "Extract the net PML tolerance by peril and return period",
+            "Record the appetite statement version and approval date",
+            "Done when tolerances are loaded with the appetite version recorded"
+          ],
+          "verify": [
+            "Compare loaded tolerances to the approved statement",
+            "Confirm the version and approval date are recorded",
+            "Pass when every loaded tolerance matches the current approved statement"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Import the modelled net PML by peril from the actuarial modeling platform into Excel",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Export net PML by peril and return period from the model run",
+            "Confirm the exported figures match the net PML exhibit",
+            "Record the model run reference against the import",
+            "Done when modelled net PML is imported and ties to the exhibit"
+          ],
+          "verify": [
+            "Compare imported figures to the source net PML exhibit",
+            "Confirm the model run reference is recorded",
+            "Pass when imported net PML agrees to the exhibit for every peril"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Compute headroom or breach in amount and percentage for each peril in Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Subtract modelled net PML from tolerance to derive headroom by peril",
+            "Express headroom as a percentage of tolerance",
+            "Show negative headroom as a breach",
+            "Done when every peril carries an amount and percentage headroom figure"
+          ],
+          "verify": [
+            "Recompute headroom for two perils by hand",
+            "Check no peril row is left without a headroom value",
+            "Pass when every peril shows both amount and percentage headroom"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Flag perils above 90% of tolerance as amber early warnings in the Power BI view",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Apply the amber rule at 90% of tolerance utilisation",
+            "Apply the red rule where utilisation exceeds 100%",
+            "Publish the flags in the tolerance dashboard view",
+            "Done when every peril carries a green, amber or red status"
+          ],
+          "verify": [
+            "Test the flag logic against two boundary values",
+            "Confirm no peril is unflagged in the published view",
+            "Pass when the flag rules apply correctly to every peril in the view"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the cause and proposed mitigating retro action for each breach in Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Record the driver of each breach such as new business or model change",
+            "Record the proposed mitigating retro action with an owner and date",
+            "Link the action to the breach register entry",
+            "Done when every breach has a cause and a proposed mitigating action"
+          ],
+          "verify": [
+            "Check each breach row holds a cause and a named action owner",
+            "Confirm no breach is carried forward without an action",
+            "Pass when every breach shows a cause, action and owner"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Obtain Head of Reinsurance sign-off on the tolerance comparison before committee",
+          "actor": "Head of Reinsurance",
+          "sop": [
+            "Review the comparison against the appetite statement and model output",
+            "Challenge any breach lacking a credible mitigating action",
+            "Sign and date the comparison once satisfied",
+            "Done when the signed and dated comparison is filed"
+          ],
+          "verify": [
+            "Confirm the sign-off names the approver and the date",
+            "Confirm the signed version matches the version taken to committee",
+            "Pass when a dated sign-off exists for the version presented to committee"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "be6c5f55-4dda-41b1-8821-16ee368684c5",
+      "verifier": "Head of Reinsurance",
+      "generic": {
+        "Defined scope/population": "Every peak peril and assumed line of business requiring a stated retention and protection objective",
+        "In-scope period": "The forthcoming programme year for which the retrocession objectives are being set",
+        "Required fields populated and valid": "Each objective states a target retention, a net PML ceiling and a spend limit",
+        "Control totals or record counts reconcile": "Objectives cover every peak peril identified in the accumulation analysis with none omitted",
+        "Evidence retained with timestamp/version": "Objectives document versioned and dated in the document management repository",
+        "Exceptions logged with disposition": "Perils left without a stated objective recorded with the reason and approver",
+        "Test population": "All peak perils and assumed lines listed in the current accumulation output",
+        "Pass/fail thresholds": "Objectives document is approved, dated and version-controlled before structuring begins",
+        "Exception handling path": "Unapproved or disputed objectives escalated to executive approval before structuring",
+        "Documented acceptance criteria": "Objectives state net retention, 1-in-250 net PML ceiling, capital relief and spend limits",
+        "Evidence location": "Reinsurance and risk-mitigation policy held in the document management repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Assemble the current net PML and tolerance position into the objectives workbook in Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Import the latest net PML by peril and the approved tolerances",
+            "Show current headroom or breach as the starting position",
+            "Note the perils where objectives must change from last year",
+            "Done when the starting position is assembled by peril"
+          ],
+          "verify": [
+            "Compare the imported figures to the tolerance comparison output",
+            "Confirm every peak peril appears in the workbook",
+            "Pass when the starting position covers every peak peril"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "State the target net retention per occurrence and in aggregate per peak peril in Excel",
+          "actor": "Head of Reinsurance",
+          "sop": [
+            "Set the per-occurrence net retention for each peak peril",
+            "Set the aggregate annual net retention for each peak peril",
+            "Test each retention against the earnings volatility appetite",
+            "Done when both retention figures are stated for every peak peril"
+          ],
+          "verify": [
+            "Check every peak peril carries both retention figures",
+            "Confirm the retentions sit within the earnings volatility appetite",
+            "Pass when both retentions are stated and within appetite for each peril"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Set the maximum acceptable net PML at the 1-in-250 return period in Excel",
+          "actor": "Head of Reinsurance",
+          "sop": [
+            "Set the 1-in-250 net PML ceiling in line with the capital tolerance",
+            "Confirm the ceiling is consistent with the approved risk appetite statement",
+            "Record the rationale where the ceiling changes from the prior year",
+            "Done when the 1-in-250 ceiling is set and reconciled to appetite"
+          ],
+          "verify": [
+            "Compare the ceiling to the appetite statement figure",
+            "Confirm any change from prior year carries a rationale",
+            "Pass when the ceiling is consistent with appetite and any change is explained"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Set the earnings-volatility and capital-relief objectives in the objectives workbook",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Quantify the earnings volatility reduction the programme must deliver",
+            "Quantify the capital relief target in the internal capital model",
+            "State the metric and measurement basis for each objective",
+            "Done when both objectives are quantified with a stated metric"
+          ],
+          "verify": [
+            "Check each objective carries a numeric target and a metric",
+            "Confirm the capital relief target references the capital model",
+            "Pass when both objectives are quantified against a stated metric"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Set the maximum retro spend as a percentage of assumed premium in Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Derive the assumed premium base for the programme year",
+            "Set the maximum retro spend as a percentage of that base",
+            "Convert the percentage to an absolute budget figure",
+            "Done when the spend limit is stated in both percentage and amount"
+          ],
+          "verify": [
+            "Recompute the absolute budget from the stated percentage",
+            "Confirm the premium base matches the planning assumption",
+            "Pass when the spend limit is stated in both percentage and amount"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "File the objectives in the reinsurance policy in the document management repository",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Update the reinsurance and risk-mitigation policy with the agreed objectives",
+            "Apply a version number and date to the document",
+            "Route the document for executive approval",
+            "Done when the versioned document is filed and routed for approval"
+          ],
+          "verify": [
+            "Confirm the repository holds a versioned and dated document",
+            "Confirm the approval route is recorded",
+            "Pass when the filed document is versioned, dated and routed for approval"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Record executive approval of the objectives in the document management repository",
+          "actor": "Head of Reinsurance",
+          "sop": [
+            "Present the objectives to the executive for approval",
+            "Capture the approval decision and any conditions attached",
+            "File the approval against the objectives document",
+            "Done when the approval is filed against the objectives document"
+          ],
+          "verify": [
+            "Confirm the approval names the approver and the date",
+            "Confirm the approved version matches the filed document",
+            "Pass when a dated approval is filed against the correct document version"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhg2q00dykfgzjkchpqml",
+      "verifier": "Retrocession Manager",
+      "generic": {
+        "Defined scope/population": "All aggregated assumed exposure by peril and CRESTA zone from the current PML output",
+        "In-scope period": "The current accumulation cycle with the prior quarter retained for comparison",
+        "Required fields populated and valid": "Each ranked row carries peril, zone, aggregate exposure and share of the 1-in-250 loss",
+        "Control totals or record counts reconcile": "Zonal aggregates sum back to the total assumed exposure in the accumulation run",
+        "Evidence retained with timestamp/version": "Concentration ranking saved with the model run reference and the as-of date",
+        "Exceptions logged with disposition": "Zones excluded from the ranking recorded with the reason for exclusion",
+        "Test population": "All perils and CRESTA zones present in the current accumulation output",
+        "Pass/fail thresholds": "Top five concentrations identified per peril with prior-quarter comparison shown",
+        "Exception handling path": "Unexpected concentration movements referred to the Reinsurance Actuary before publication",
+        "Documented acceptance criteria": "Report ranks aggregate exposure by peril and zone against the prior period",
+        "Evidence location": "Peak-peril concentration report filed with the accumulation cycle working papers"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract aggregate assumed exposure by peril and zone from the enterprise data warehouse",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Query aggregated exposure by peril and CRESTA zone for the as-of date",
+            "Confirm the total equals the accumulation run input total",
+            "Record the query and the as-of date",
+            "Done when the zonal aggregate extract balances to the run total"
+          ],
+          "verify": [
+            "Sum the extract and compare to the accumulation total",
+            "Confirm the as-of date matches the current cycle",
+            "Pass when the extract total equals the accumulation run total"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Rank the top five aggregate concentrations by peril and zone in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Sort aggregate exposure descending within each peril",
+            "Take the top five zones for each peril",
+            "Show each zone share as a percentage of the peril total",
+            "Done when the top five zones are listed for every peril"
+          ],
+          "verify": [
+            "Check five zones appear for each peril unless fewer exist",
+            "Confirm the percentage shares sum correctly within each peril",
+            "Pass when the ranking lists the top zones with shares for every peril"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Identify the single zone contributing most to the 1-in-250 gross loss in the actuarial platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Decompose the 1-in-250 gross event loss by contributing zone",
+            "Identify the zone with the largest loss contribution",
+            "Record its share of the total 1-in-250 loss",
+            "Done when the largest contributing zone and its share are recorded"
+          ],
+          "verify": [
+            "Sum the zonal contributions back to the 1-in-250 total",
+            "Confirm the identified zone holds the largest share",
+            "Pass when zonal contributions sum to the 1-in-250 total and the top zone is named"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Separate US wind, US quake, Euro wind and Japan quake accumulations in Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Split the aggregation into the four named peak-peril views",
+            "Confirm each view carries its own zonal ranking",
+            "Confirm no exposure is counted in more than one view",
+            "Done when the four peak-peril views are produced without overlap"
+          ],
+          "verify": [
+            "Sum the four views and reconcile to the mapped peak-peril total",
+            "Check for exposure appearing in two views",
+            "Pass when the four views reconcile and hold no duplicated exposure"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Compare current concentrations against the prior quarter in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Import the prior quarter zonal aggregates",
+            "Compute the movement by zone in amount and percentage",
+            "Explain movements above the agreed threshold",
+            "Done when every top zone shows a quarter-on-quarter movement"
+          ],
+          "verify": [
+            "Confirm every ranked zone carries a prior-quarter figure",
+            "Read the explanations for movements above threshold",
+            "Pass when all ranked zones show movement with above-threshold moves explained"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "List the cedants driving each peak-peril concentration in the data warehouse",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Decompose each top zone aggregate by contributing cedant",
+            "List the cedants contributing the largest shares per zone",
+            "Confirm each cedant resolves to a live record in the treaty data",
+            "Done when driver cedants are listed for every top concentration"
+          ],
+          "verify": [
+            "Check each listed cedant resolves in the treaty data",
+            "Sum cedant contributions back to the zone aggregate",
+            "Pass when cedant contributions reconcile to each zone aggregate"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "File the concentration report with the model run reference in the accumulation papers",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Assemble the rankings, peak-peril views and cedant drivers into one report",
+            "Record the model run reference and the as-of date on the report",
+            "File the report in the accumulation cycle working papers",
+            "Done when the dated report is filed with its run reference"
+          ],
+          "verify": [
+            "Open the filed report and confirm the run reference is shown",
+            "Confirm all four peak-peril views are included",
+            "Pass when the filed report is dated, referenced and complete"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "0ab8672e-6ef7-42d7-8e54-79df30b93f8e",
+      "verifier": "Retrocession Manager",
+      "generic": {
+        "Defined scope/population": "All assumed treaties contributing to the modelled 1-in-250 gross event loss",
+        "In-scope period": "The current accumulation cycle and treaties in force at the as-of date",
+        "Required fields populated and valid": "Each driver row carries treaty reference, cedant, inception date, premium and loss contribution",
+        "Control totals or record counts reconcile": "Treaty loss contributions sum back to the modelled 1-in-250 gross loss",
+        "Evidence retained with timestamp/version": "Driver-treaty list saved with the model run reference and extraction date",
+        "Exceptions logged with disposition": "Driver treaties that fail to resolve in the register logged for investigation",
+        "Test population": "All treaties contributing more than 5% of the peak-peril loss",
+        "Pass/fail thresholds": "Every listed driver treaty resolves to an active record in the assumed treaty register",
+        "Exception handling path": "Unresolved treaty references referred to the Reinsurance Manager for correction",
+        "Documented acceptance criteria": "List shows premium alongside modelled loss contribution and flags upcoming renewals",
+        "Evidence location": "Driver-treaty list filed with the accumulation cycle working papers"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Decompose the 1-in-250 gross event loss by contributing treaty in the actuarial platform",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Run the loss decomposition by assumed treaty for the 1-in-250 event",
+            "Export the treaty level loss contributions",
+            "Confirm the contributions sum to the modelled gross loss",
+            "Done when treaty contributions are exported and sum to the gross loss"
+          ],
+          "verify": [
+            "Sum the exported contributions and compare to the 1-in-250 loss",
+            "Confirm the run reference is recorded on the export",
+            "Pass when contributions sum to the modelled 1-in-250 gross loss"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Select treaties contributing more than 5% of the peak-peril loss in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Compute each treaty share of the peak-peril loss",
+            "Filter to treaties above the 5% threshold",
+            "Record the threshold applied on the output",
+            "Done when the above-threshold treaty list is produced"
+          ],
+          "verify": [
+            "Recompute two treaty shares by hand",
+            "Confirm no treaty above threshold is excluded",
+            "Pass when every treaty above the 5% threshold appears on the list"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Enrich the driver list with cedant and inception date from the reinsurance administration system",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Look up cedant name and inception date for each driver treaty",
+            "Confirm each treaty reference resolves to an active register record",
+            "Log any reference that fails to resolve",
+            "Done when every driver treaty carries a cedant and inception date"
+          ],
+          "verify": [
+            "Check every listed treaty resolves in the register",
+            "Confirm no driver row is missing cedant or inception date",
+            "Pass when all driver treaties resolve and carry cedant and inception data"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Add written premium alongside modelled loss contribution in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Extract written premium per driver treaty from the administration system",
+            "Show premium and modelled loss contribution side by side",
+            "Compute the loss contribution to premium ratio per treaty",
+            "Done when premium and loss contribution are shown for every driver"
+          ],
+          "verify": [
+            "Reconcile total driver premium to the administration system",
+            "Confirm each row carries a computed ratio",
+            "Pass when premium reconciles and every driver row shows a ratio"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Flag driver treaties due for renewal within twelve months in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Compare each driver treaty expiry to the next twelve months",
+            "Flag the treaties falling due for renewal in that window",
+            "Sort the flagged treaties by loss contribution",
+            "Done when every driver treaty carries a renewal flag"
+          ],
+          "verify": [
+            "Spot check two expiry dates against the administration system",
+            "Confirm no driver row is left without a renewal flag",
+            "Pass when renewal flags are correct and present on every driver row"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Share the driver-treaty list with the assumed underwriting team for validation",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Circulate the driver list to the assumed underwriting team",
+            "Request confirmation that the treaty and cedant details are correct",
+            "Capture and apply any corrections returned",
+            "Done when underwriting confirmation is received and applied"
+          ],
+          "verify": [
+            "Confirm a written validation response is on file",
+            "Confirm corrections raised have been applied to the list",
+            "Pass when the validated list is on file with all corrections applied"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "f49aa820-44bc-45a9-b889-92c4632cb183",
+      "verifier": "Retrocession Manager",
+      "generic": {
+        "Defined scope/population": "All quoted and expected-to-bind assumed treaties in the renewal season pipeline",
+        "In-scope period": "The forthcoming renewal season covered by the pipeline submission",
+        "Required fields populated and valid": "Each pipeline treaty carries exposure data, expected inception and a bind probability",
+        "Control totals or record counts reconcile": "Pipeline exposure in the model equals the exposure in the underwriting pipeline list",
+        "Evidence retained with timestamp/version": "Pipeline list version, bind weightings and model run reference stored with the output",
+        "Exceptions logged with disposition": "Pipeline treaties excluded from the model listed with the reason for exclusion",
+        "Test population": "All pipeline treaties supplied by assumed underwriting for the renewal season",
+        "Pass/fail thresholds": "Pro-forma run includes bind-probability weighting documented in the run inputs",
+        "Exception handling path": "Pipeline treaties with unusable exposure data returned to the Reinsurance Analyst",
+        "Documented acceptance criteria": "Pro-forma gross PML shown at both 100% bind and weighted bind for comparison",
+        "Evidence location": "Pipeline pro-forma exhibit filed with the accumulation cycle model run output"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Obtain the assumed underwriting pipeline of quoted and expected treaties into Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Request the pipeline list from assumed underwriting for the renewal season",
+            "Confirm each entry carries expected inception, limit and class",
+            "Record the pipeline list version and date received",
+            "Done when the dated pipeline list is received and complete"
+          ],
+          "verify": [
+            "Check each pipeline entry carries inception, limit and class",
+            "Confirm the list version and date are recorded",
+            "Pass when the dated pipeline list is complete for every entry"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Assign an agreed bind probability to each pipeline treaty in Microsoft Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Apply the agreed bind-probability scale by quote status",
+            "Assign a probability to each pipeline treaty",
+            "Record the basis for any probability set outside the standard scale",
+            "Done when every pipeline treaty carries a bind probability"
+          ],
+          "verify": [
+            "Check no pipeline treaty is left without a probability",
+            "Confirm off-scale probabilities carry a recorded basis",
+            "Pass when all pipeline treaties carry a documented bind probability"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Stage pipeline exposure data in the enterprise data warehouse for modelling",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Map pipeline exposures to peril, zone and territory codes",
+            "Exclude entries whose exposure data cannot be mapped and log them",
+            "Confirm staged exposure equals the pipeline list exposure less exclusions",
+            "Done when staged pipeline exposure balances to the list less exclusions"
+          ],
+          "verify": [
+            "Reconcile staged exposure to the pipeline list",
+            "Confirm each exclusion carries a logged reason",
+            "Pass when staged exposure reconciles and all exclusions are logged"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Model incremental gross PML from the pipeline in the actuarial modeling platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Run the cat model on the in-force book plus the pipeline exposure",
+            "Derive the incremental gross PML contributed by the pipeline",
+            "Record the model version and event set used",
+            "Done when incremental pipeline PML is produced with a recorded model version"
+          ],
+          "verify": [
+            "Compare the combined run to the in-force only run",
+            "Confirm the model version is recorded in the run log",
+            "Pass when the incremental PML is isolated and the model version is recorded"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Produce pro-forma gross PML at 100% bind and weighted bind in the actuarial platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Run the pipeline at full bind and at probability-weighted bind",
+            "Present both pro-forma gross PML results by peril",
+            "Show the in-force only position as the baseline",
+            "Done when both pro-forma results are produced against the baseline"
+          ],
+          "verify": [
+            "Check the weighted result sits below the full bind result",
+            "Confirm the baseline appears alongside both results",
+            "Pass when both pro-forma results are shown against the in-force baseline"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Document excluded pipeline treaties and the reasons in the model run inputs",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "List every pipeline treaty excluded from the model run",
+            "Record the reason for each exclusion",
+            "Attach the exclusion list to the run inputs",
+            "Done when all exclusions are documented in the run inputs"
+          ],
+          "verify": [
+            "Compare the exclusion list to the staging reject log",
+            "Confirm each exclusion carries a reason",
+            "Pass when every excluded treaty is documented with a reason"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fkadt1b4wkfgzr2qx226y",
+      "verifier": "Head of Reinsurance",
+      "generic": {
+        "Defined scope/population": "The accumulation dashboard covering gross, ceded and net PML for all peak perils",
+        "In-scope period": "The current accumulation reporting cycle presented to the committee",
+        "Required fields populated and valid": "Pack shows data as-of date, tolerance comparison and flagged breaches for every peril",
+        "Control totals or record counts reconcile": "Dashboard figures presented agree to the published accumulation dashboard output",
+        "Evidence retained with timestamp/version": "Circulated pack version, circulation date and minutes filed in the document repository",
+        "Exceptions logged with disposition": "Committee actions logged with a named owner and a due date in the action tracker",
+        "Test population": "All peak perils and tolerance breaches presented at the committee meeting",
+        "Pass/fail thresholds": "Pack circulated at least five business days ahead of the committee meeting",
+        "Exception handling path": "Unresolved committee challenges carried as tracked actions to the next meeting",
+        "Documented acceptance criteria": "Minutes record the dashboard review and every action with a named owner",
+        "Evidence location": "Committee pack, minutes and action tracker in the document management repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Assemble the accumulation pack from the Power BI dashboard for the committee",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Export the dashboard views for gross, ceded and net PML by peril",
+            "Add the tolerance comparison and breach summary",
+            "Version and date the pack",
+            "Done when the versioned pack is assembled from the current dashboard"
+          ],
+          "verify": [
+            "Compare pack figures to the live dashboard",
+            "Confirm the pack carries a version and date",
+            "Pass when pack figures agree to the dashboard and the pack is versioned"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Circulate the pack through the document management repository five business days ahead",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "File the pack in the committee folder in the repository",
+            "Notify committee members of the pack availability",
+            "Record the circulation date against the meeting",
+            "Done when the pack is circulated and the date recorded"
+          ],
+          "verify": [
+            "Count business days between circulation and the meeting date",
+            "Confirm every committee member received the notification",
+            "Pass when circulation is at least five business days before the meeting"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Walk the committee through gross, ceded and net PML against tolerance by peril",
+          "actor": "Head of Reinsurance",
+          "sop": [
+            "Present the gross to net bridge for each peak peril",
+            "Present net PML against tolerance and the headroom position",
+            "Take questions and note challenges raised",
+            "Done when every peak peril has been presented against tolerance"
+          ],
+          "verify": [
+            "Check the minutes list each peril presented",
+            "Confirm challenges raised are noted",
+            "Pass when the minutes evidence every peak peril was reviewed"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Highlight tolerance breaches and amber early warnings on a single pack slide",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Consolidate all breaches and ambers onto one slide",
+            "State the cause and proposed mitigation for each",
+            "Present the slide before the discussion closes",
+            "Done when all breaches and ambers appear on the single slide"
+          ],
+          "verify": [
+            "Compare the slide to the underlying tolerance comparison",
+            "Confirm no breach is omitted from the slide",
+            "Pass when the slide lists every breach and amber from the comparison"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Capture committee decisions on retro purchase or underwriting action in the minutes",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Record each committee decision as it is taken",
+            "Record the rationale where the committee departs from the recommendation",
+            "Circulate the draft minutes for confirmation",
+            "Done when the decisions are recorded and the minutes circulated"
+          ],
+          "verify": [
+            "Check each decision in the minutes has a clear outcome",
+            "Confirm the minutes were circulated for confirmation",
+            "Pass when every decision is recorded and the minutes are circulated"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Log every committee action with owner and due date in the action tracker",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Transfer each action from the minutes into the action tracker",
+            "Assign a named owner and a due date to each action",
+            "Confirm no action is left unassigned",
+            "Done when every action carries a named owner and due date"
+          ],
+          "verify": [
+            "Compare the tracker entries to the minutes",
+            "Confirm each entry holds an owner and a due date",
+            "Pass when every minuted action appears in the tracker with owner and date"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fka501b09kfgzqc44cdwy",
+      "verifier": "Retrocession Manager",
+      "generic": {
+        "Defined scope/population": "All peak perils and return periods required on the assumed book accumulation dashboard",
+        "In-scope period": "The current accumulation cycle with the prior quarter shown for movement",
+        "Required fields populated and valid": "Every dashboard view carries peril, return period, data as-of date and tolerance value",
+        "Control totals or record counts reconcile": "Dashboard totals agree to the source actuarial model output before publishing",
+        "Evidence retained with timestamp/version": "Dashboard published with the data as-of date and the source model run reference",
+        "Exceptions logged with disposition": "Views failing validation held back from publication with the issue and fix recorded",
+        "Test population": "All dashboard views for gross PML, ceded recovery, net PML and zonal aggregates",
+        "Pass/fail thresholds": "Dashboard displays the as-of date and net PML against tolerance for every peak peril",
+        "Exception handling path": "Validation differences referred to the Reinsurance Actuary before the dashboard is published",
+        "Documented acceptance criteria": "Dashboard shows tolerance gauges, zonal heat view and quarter-on-quarter movement",
+        "Evidence location": "Published Power BI accumulation dashboard with its validation workbook"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Load the accumulation model output into the enterprise data warehouse dashboard tables",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Load gross, ceded and net PML by peril and return period",
+            "Load the zonal aggregate table for the same as-of date",
+            "Confirm loaded totals equal the model output totals",
+            "Done when all dashboard tables are loaded and balance to the model"
+          ],
+          "verify": [
+            "Compare loaded totals to the model output",
+            "Confirm the as-of date is consistent across tables",
+            "Pass when every loaded table balances to the model output"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Build the gross, ceded and net PML views by peril and return period in Power BI",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Create the PML views split by peril and return period",
+            "Show gross, ceded and net side by side in each view",
+            "Confirm gross less ceded equals net in every view",
+            "Done when the PML views are built and internally consistent"
+          ],
+          "verify": [
+            "Test the gross less ceded equals net identity in each view",
+            "Confirm every peril and return period is represented",
+            "Pass when the identity holds across all perils and return periods"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Add a tolerance-versus-actual gauge for each peak peril in Power BI",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Load the approved tolerance by peril into the dashboard model",
+            "Build a gauge showing net PML against tolerance per peril",
+            "Apply amber at 90% and red above 100% utilisation",
+            "Done when every peak peril carries a working tolerance gauge"
+          ],
+          "verify": [
+            "Check each gauge against the tolerance comparison workbook",
+            "Confirm the colour thresholds apply correctly",
+            "Pass when every peak peril gauge matches the tolerance comparison"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Add the top ten accumulation zone heat view in Power BI",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Rank zones by aggregate exposure and take the top ten",
+            "Present them as a heat view with the exposure amount",
+            "Allow drill-through to the contributing treaties",
+            "Done when the top ten zonal heat view is published in the dashboard"
+          ],
+          "verify": [
+            "Compare the ranked zones to the concentration report",
+            "Test the drill-through on one zone",
+            "Pass when the heat view matches the concentration ranking and drills through"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Add quarter-on-quarter net PML movement with drivers in Power BI",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Load the prior quarter net PML for comparison",
+            "Compute the movement by peril in amount and percentage",
+            "Attribute the movement to new business, model change or retro change",
+            "Done when movement and drivers are shown for every peril"
+          ],
+          "verify": [
+            "Check the prior quarter figures against the prior published dashboard",
+            "Confirm each movement carries a driver attribution",
+            "Pass when every peril shows movement with an attributed driver"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Validate dashboard totals against the source model output in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Export the dashboard figures to the validation workbook",
+            "Compare each figure to the source model output",
+            "Investigate and clear any difference before publishing",
+            "Done when all dashboard figures agree to the model output"
+          ],
+          "verify": [
+            "Recheck the validation workbook for unresolved differences",
+            "Confirm the workbook is dated for the current cycle",
+            "Pass when the validation workbook shows nil unresolved differences"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Publish the dashboard with the data as-of date and run reference in Power BI",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Stamp the dashboard with the data as-of date and model run reference",
+            "Publish to the accumulation workspace",
+            "Notify the exposure management distribution list",
+            "Done when the stamped dashboard is published and users notified"
+          ],
+          "verify": [
+            "Open the published dashboard and confirm the stamp is visible",
+            "Confirm the notification was issued",
+            "Pass when the published dashboard shows the as-of date and run reference"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhfph0082kfgzqq7hvnyc",
+      "verifier": "Retrocession Manager",
+      "generic": {
+        "Defined scope/population": "The full assumed exposure set for every peak peril modelled in the cat model run",
+        "In-scope period": "The current accumulation cycle as-of date and the event set version in force",
+        "Required fields populated and valid": "Run inputs carry model version, event set, blending weights and uncertainty settings",
+        "Control totals or record counts reconcile": "Exposure loaded into the cat model equals the aggregated assumed exposure total",
+        "Evidence retained with timestamp/version": "Run log records vendor model name, version, event set and run timestamp",
+        "Exceptions logged with disposition": "Curve movements above the agreed threshold explained and signed off in the run log",
+        "Test population": "All OEP and AEP curves produced from 1-in-10 to 1-in-1000 by peak peril",
+        "Pass/fail thresholds": "No PML curve produced from a model version outside the approved vendor model list",
+        "Exception handling path": "Unapproved model versions blocked and referred to the Retrocession Manager",
+        "Documented acceptance criteria": "OEP and AEP curves exist per peril with blending weights and uncertainty settings recorded",
+        "Evidence location": "Cat model run log and curve output filed with the accumulation working papers"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Load the aggregated assumed exposure set into the actuarial modeling platform",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Import the mapped exposure set for the accumulation as-of date",
+            "Confirm loaded exposure equals the aggregation control total",
+            "Record the import timestamp and record count",
+            "Done when loaded exposure balances to the aggregation total"
+          ],
+          "verify": [
+            "Compare loaded exposure to the aggregation control total",
+            "Confirm the import timestamp is recorded",
+            "Pass when loaded exposure equals the aggregation control total"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the vendor model version is on the approved model list before running",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Check the vendor model and event set version against the approved list",
+            "Block the run if the version is not approved",
+            "Record the approved version in the run inputs",
+            "Done when an approved model version is confirmed and recorded"
+          ],
+          "verify": [
+            "Compare the recorded version to the approved model list",
+            "Confirm no run proceeded on an unapproved version",
+            "Pass when the run uses a version present on the approved model list"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Run the cat model over the assumed exposure for each peak peril",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Run the model separately for each peak peril",
+            "Confirm the run completes without error or truncation",
+            "Record the run identifier for each peril",
+            "Done when a clean run exists for every peak peril"
+          ],
+          "verify": [
+            "Review the run log for errors or warnings",
+            "Confirm a run identifier exists for each peril",
+            "Pass when every peak peril has a clean completed run"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Produce OEP and AEP curves from 1-in-10 to 1-in-1000 in the actuarial platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Generate occurrence and aggregate exceedance probability curves",
+            "Cover the 1-in-10 through 1-in-1000 return periods",
+            "Confirm the curves are monotonic across return periods",
+            "Done when both curve types are produced across the full range"
+          ],
+          "verify": [
+            "Check each curve rises consistently with return period",
+            "Confirm both OEP and AEP exist for every peril",
+            "Pass when both curves exist per peril and are monotonic"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Apply the agreed model-blending weights in the actuarial modeling platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Apply the approved blending weights where multiple vendor views are used",
+            "Record the weights applied per peril in the run inputs",
+            "Confirm the blended curve sits between the component views",
+            "Done when blending weights are applied and recorded"
+          ],
+          "verify": [
+            "Check the recorded weights against the approved blending policy",
+            "Confirm the blended curve lies between the component curves",
+            "Pass when approved weights are recorded and the blend is bounded correctly"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record secondary uncertainty and demand-surge settings in the run log",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Record the secondary uncertainty setting used in the run",
+            "Record the demand surge and storm surge settings used",
+            "Confirm the settings match the agreed modelling standard",
+            "Done when all key settings are recorded in the run log"
+          ],
+          "verify": [
+            "Compare recorded settings to the agreed modelling standard",
+            "Confirm no setting is left unrecorded",
+            "Pass when all run settings are recorded and match the standard"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Compare the current curve to the prior run and explain movements in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Import the prior run curves for the same perils",
+            "Compute the movement at each key return period",
+            "Explain movements above the agreed threshold",
+            "Done when every above-threshold movement carries an explanation"
+          ],
+          "verify": [
+            "Check the movement calculation at two return periods",
+            "Confirm each above-threshold movement is explained",
+            "Pass when all above-threshold movements carry a recorded explanation"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "b225a389-906d-4bcd-8a52-2c8f3fe5d787",
+      "verifier": "Retrocession Manager",
+      "generic": {
+        "Defined scope/population": "All in-force assumed treaties required to report exposure through cedant bordereaux",
+        "In-scope period": "The current reporting period for which bordereaux are contractually due",
+        "Required fields populated and valid": "Each treaty row carries bordereau received date, reported sums insured and modelled sums insured",
+        "Control totals or record counts reconcile": "Modelled assumed sums insured agree to bordereaux totals within the 5% tolerance",
+        "Evidence retained with timestamp/version": "Bordereaux receipt dates and variance calculations filed in the accumulation working paper",
+        "Exceptions logged with disposition": "Missing or stale bordereaux logged with the chase date and the cedant contacted",
+        "Test population": "All in-force assumed treaties required to report exposure this period",
+        "Pass/fail thresholds": "Variance to bordereaux within 5% per treaty and no treaty without a received bordereau",
+        "Exception handling path": "Treaties above tolerance escalated to the Reinsurance Ops Manager for cedant follow-up",
+        "Documented acceptance criteria": "Variance calculated for every treaty with an explanation for each above-tolerance case",
+        "Evidence location": "Accumulation working paper holding the bordereaux reconciliation and chase log"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "List treaties required to report exposure this period from the reinsurance administration system",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Extract in-force assumed treaties with a bordereaux reporting obligation",
+            "Record the contractual reporting frequency and due date per treaty",
+            "Confirm the list count against the in-force treaty register",
+            "Done when the reporting obligation list is produced and counted"
+          ],
+          "verify": [
+            "Compare the list count to the in-force register",
+            "Confirm each treaty carries a due date",
+            "Pass when the list matches the register and every treaty has a due date"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Record bordereaux receipt status per treaty in the enterprise data warehouse",
+          "actor": "Reinsurance Ops Manager",
+          "sop": [
+            "Record the received date for each bordereau against its treaty",
+            "Mark treaties with no bordereau received as outstanding",
+            "Mark bordereaux older than the reporting period as stale",
+            "Done when every obligated treaty carries a receipt status"
+          ],
+          "verify": [
+            "Check every obligated treaty carries a status",
+            "Confirm stale and outstanding markers are applied consistently",
+            "Pass when all obligated treaties carry a receipt status"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Reconcile modelled assumed sums insured to the bordereaux by treaty in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Compare modelled sums insured to the reported bordereau figure per treaty",
+            "Compute the variance in amount and percentage",
+            "Sum modelled and reported totals for a portfolio level check",
+            "Done when a variance is computed for every treaty with a bordereau"
+          ],
+          "verify": [
+            "Recompute the variance for two treaties by hand",
+            "Confirm the portfolio totals tie to the treaty level sums",
+            "Pass when every treaty with a bordereau carries a computed variance"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Investigate treaties with variance above the 5% tolerance in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Filter treaties with variance above the agreed 5% tolerance",
+            "Investigate each cause such as timing, currency or scope differences",
+            "Record the cause and the conclusion per treaty",
+            "Done when every above-tolerance treaty has a recorded cause"
+          ],
+          "verify": [
+            "Check each above-tolerance treaty carries a cause",
+            "Confirm no above-tolerance treaty is left uninvestigated",
+            "Pass when all above-tolerance variances carry a recorded cause"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Chase cedants for missing or stale bordereaux and log the chase date",
+          "actor": "Reinsurance Ops Manager",
+          "sop": [
+            "Contact each cedant with an outstanding or stale bordereau",
+            "Record the chase date and the response received",
+            "Escalate cedants that fail to respond within the agreed period",
+            "Done when every outstanding bordereau carries a logged chase"
+          ],
+          "verify": [
+            "Check the chase log covers every outstanding treaty",
+            "Confirm escalations are recorded where no response was received",
+            "Pass when every outstanding bordereau shows a logged chase or escalation"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Document data limitations carried into the model run in the accumulation working paper",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Summarise treaties modelled without a current bordereau",
+            "Summarise the above-tolerance variances accepted into the run",
+            "State the likely direction of any resulting bias",
+            "Done when the limitations note is filed with the working paper"
+          ],
+          "verify": [
+            "Confirm the note lists every unresolved data gap",
+            "Confirm the note is dated for the current cycle",
+            "Pass when the dated limitations note covers every unresolved gap"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "80379ce5-ca7b-47eb-b776-ab33a649e928",
+      "verifier": "Head of Reinsurance",
+      "generic": {
+        "Defined scope/population": "The final recommended retro programme structure covering every layer to be placed",
+        "In-scope period": "The forthcoming programme year from the intended inception date",
+        "Required fields populated and valid": "Approval memo states retention, limit, layer configuration, cost and structure version",
+        "Control totals or record counts reconcile": "Recommended spend in the memo equals the priced cost in the structure paper",
+        "Evidence retained with timestamp/version": "Signed approval memo names the approver, date and the exact structure version",
+        "Exceptions logged with disposition": "Conditions attached to the approval recorded with the owner responsible for clearing them",
+        "Test population": "All layers and the total spend in the structure submitted for approval",
+        "Pass/fail thresholds": "Recommended spend sits within the board-approved retro budget",
+        "Exception handling path": "Spend above budget referred back for re-structuring before approval is sought",
+        "Documented acceptance criteria": "Written approval from the delegated authority holder exists before broker release",
+        "Evidence location": "Approval memo and structure paper in the document management repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the structure paper reflects the final modelled net PML and cost in Microsoft Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Compare the paper figures to the final modelling and pricing output",
+            "Update the paper where any figure has moved",
+            "Version and date the final structure paper",
+            "Done when the paper matches the final modelled figures and is versioned"
+          ],
+          "verify": [
+            "Trace two figures from the paper to the model output",
+            "Confirm the paper version and date are shown",
+            "Pass when the paper figures match the model output and carry a version"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Check the recommended spend against the board-approved retro budget in Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Total the priced cost across all layers in the recommended structure",
+            "Compare the total to the board-approved retro budget",
+            "Flag any excess for restructuring before approval",
+            "Done when the spend is confirmed within budget or flagged"
+          ],
+          "verify": [
+            "Recompute the total priced cost from the layer table",
+            "Confirm the budget figure matches the approved budget",
+            "Pass when the recommended spend is confirmed within the approved budget"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Circulate the approval pack to CUO, CFO and the capital committee via the repository",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "File the structure paper and approval memo in the repository",
+            "Circulate to the CUO, CFO and capital committee members",
+            "Record the circulation date and recipients",
+            "Done when the pack is circulated and the distribution recorded"
+          ],
+          "verify": [
+            "Confirm all required approvers received the pack",
+            "Confirm the circulation date is recorded",
+            "Pass when the distribution record shows every required approver"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Obtain written approval from the delegated authority holder for the layer structure",
+          "actor": "Head of Reinsurance",
+          "sop": [
+            "Confirm the approver holds authority for the recommended spend",
+            "Obtain written approval referencing the structure version",
+            "Record any conditions attached to the approval",
+            "Done when written approval referencing the version is received"
+          ],
+          "verify": [
+            "Check the approver against the delegated authority schedule",
+            "Confirm the approval names the structure version",
+            "Pass when written approval is within authority and names the version"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the approved retention, limit and layer configuration in the approval memo",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Record retention, limit and reinstatements per approved layer",
+            "Record the approved total spend",
+            "File the memo against the programme year folder",
+            "Done when the approved configuration is recorded in the filed memo"
+          ],
+          "verify": [
+            "Compare the memo layer table to the approved structure paper",
+            "Confirm the memo is filed in the programme year folder",
+            "Pass when the memo configuration matches the approved paper"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Release the approved structure to the broker only after the approval is filed",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Confirm the signed approval is filed in the repository",
+            "Release the approved structure to the appointed broker",
+            "Record the release date and the version released",
+            "Done when release follows the filed approval and is recorded"
+          ],
+          "verify": [
+            "Compare the release date to the approval filing date",
+            "Confirm the released version matches the approved version",
+            "Pass when release post-dates the filed approval and matches its version"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "8ad8597b-bb00-414a-bba2-8c28bebdb9a1",
+      "verifier": "Retrocession Manager",
+      "generic": {
+        "Defined scope/population": "Every candidate retro trigger structure measured against the actual assumed portfolio loss",
+        "In-scope period": "The historical event set used for back-testing and the forthcoming programme year",
+        "Required fields populated and valid": "Each candidate carries trigger definition, index source and modelled portfolio loss",
+        "Control totals or record counts reconcile": "Modelled index recovery and portfolio loss are computed on the same event set",
+        "Evidence retained with timestamp/version": "Model run reference and event set version stored with the basis risk analysis",
+        "Exceptions logged with disposition": "Events where the trigger fails to respond logged with the shortfall quantified",
+        "Test population": "All historical and modelled events at the 1-in-100 and 1-in-250 severities",
+        "Pass/fail thresholds": "Basis risk quantified per candidate trigger with a stated conclusion against appetite",
+        "Exception handling path": "Candidates with basis risk outside appetite referred to the Retrocession Manager for rejection",
+        "Documented acceptance criteria": "Shortfall and over-recovery quantified as a percentage of layer limit per candidate",
+        "Evidence location": "Basis risk analysis filed with the structuring model run output"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Assemble the historical event set and portfolio losses in the actuarial modeling platform",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Select the historical events relevant to the covered perils",
+            "Compute the actual assumed portfolio loss for each event",
+            "Record the event set version used",
+            "Done when portfolio losses are computed for every selected event"
+          ],
+          "verify": [
+            "Check each selected event carries a portfolio loss",
+            "Confirm the event set version is recorded",
+            "Pass when all selected events carry a portfolio loss on a recorded event set"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Model the trigger index recovery for each candidate structure in the actuarial platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Apply each candidate trigger definition to the same event set",
+            "Compute the recovery the trigger would have paid per event",
+            "Record the index source assumed for each candidate",
+            "Done when a modelled recovery exists per event per candidate"
+          ],
+          "verify": [
+            "Confirm every candidate has recoveries for every event",
+            "Confirm the index source is recorded per candidate",
+            "Pass when each candidate has a full recovery set with a named index source"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Quantify shortfall where the index under-recovers the portfolio loss in Microsoft Excel",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Subtract the modelled trigger recovery from the portfolio loss per event",
+            "Isolate events where the recovery falls short",
+            "Express the shortfall in amount and as a percentage of layer limit",
+            "Done when shortfall is quantified for every under-recovering event"
+          ],
+          "verify": [
+            "Recompute the shortfall for the largest event",
+            "Confirm every under-recovery event is captured",
+            "Pass when shortfall is quantified for every under-recovering event"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Quantify over-recovery cases and confirm they are permitted under the wording",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Isolate events where the trigger recovery exceeds the portfolio loss",
+            "Quantify the over-recovery amount per event",
+            "Confirm the wording permits retaining the over-recovery",
+            "Done when over-recoveries are quantified and their treatment confirmed"
+          ],
+          "verify": [
+            "Check the wording reference supporting the treatment",
+            "Confirm every over-recovery event is quantified",
+            "Pass when all over-recoveries are quantified with a wording reference"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Express basis risk as a percentage of layer limit at 1-in-100 and 1-in-250 in Excel",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Compute basis risk at the 1-in-100 and 1-in-250 severities",
+            "Express the result as a percentage of the layer limit",
+            "Present the result for every candidate structure side by side",
+            "Done when basis risk is expressed at both severities per candidate"
+          ],
+          "verify": [
+            "Check both severities appear for every candidate",
+            "Recompute one percentage from the underlying amounts",
+            "Pass when both severities are shown for every candidate structure"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Conclude whether residual basis risk sits within appetite and record it in Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Compare the quantified basis risk to the stated appetite",
+            "State an explicit accept or reject conclusion per candidate",
+            "Record the conclusion and the appetite reference",
+            "Done when each candidate carries an explicit conclusion"
+          ],
+          "verify": [
+            "Confirm every candidate carries an accept or reject conclusion",
+            "Confirm the appetite reference is recorded",
+            "Pass when each candidate has an explicit conclusion against a stated appetite"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "b40bf71a-7887-46b7-adf4-84a7950d7cea",
+      "verifier": "Head of Reinsurance",
+      "generic": {
+        "Defined scope/population": "A whole-account aggregate structure and an equivalent set of peril-specific covers on the same exposure",
+        "In-scope period": "The forthcoming programme year priced on the current exposure snapshot",
+        "Required fields populated and valid": "Each option carries rate on line, expected loss to layer, multiple and total cost",
+        "Control totals or record counts reconcile": "Both options are priced on the identical exposure snapshot and event set",
+        "Evidence retained with timestamp/version": "Pricing run reference and exposure snapshot date stored with the comparison",
+        "Exceptions logged with disposition": "Coverage gaps left by the peril-specific option listed with their assessed materiality",
+        "Test population": "All layers within each of the two structure options being compared",
+        "Pass/fail thresholds": "Comparison shows rate on line and cost per unit of PML relief for each option",
+        "Exception handling path": "Options priced on differing exposure bases rejected and re-priced before comparison",
+        "Documented acceptance criteria": "A single option is recommended with a written cost-efficiency rationale",
+        "Evidence location": "Cost-efficiency comparison filed with the structuring papers for the programme year"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Fix the exposure snapshot to be used for both options in the actuarial modeling platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Select the exposure snapshot and event set for the comparison",
+            "Lock the snapshot so both options price on identical data",
+            "Record the snapshot date and run reference",
+            "Done when a locked snapshot is recorded for the comparison"
+          ],
+          "verify": [
+            "Confirm both pricing runs reference the same snapshot",
+            "Confirm the snapshot date is recorded",
+            "Pass when both options reference the identical locked snapshot"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Price the whole-account aggregate structure in the actuarial modeling platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Model the whole-account aggregate attachment and limit",
+            "Derive expected loss to layer and the technical rate on line",
+            "Compute the total annual cost of the option",
+            "Done when the whole-account option is fully priced"
+          ],
+          "verify": [
+            "Check expected loss and rate on line are both produced",
+            "Confirm the cost is derived from the priced rate",
+            "Pass when the whole-account option shows expected loss, rate on line and cost"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Price the equivalent set of peril-specific covers in the actuarial modeling platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Model each peril-specific layer on the same snapshot",
+            "Derive expected loss to layer and rate on line per layer",
+            "Total the annual cost across the peril-specific set",
+            "Done when every peril-specific layer is priced and totalled"
+          ],
+          "verify": [
+            "Confirm each peril-specific layer carries its own pricing",
+            "Recompute the set total from the layer costs",
+            "Pass when every layer is priced and the set total reconciles"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Compute cost per unit of net PML reduction for both options in Microsoft Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Compute the net PML relief delivered by each option",
+            "Divide the annual cost by the PML relief for each option",
+            "Present the results side by side",
+            "Done when both options carry a cost per unit of PML relief"
+          ],
+          "verify": [
+            "Recompute one ratio from the underlying figures",
+            "Confirm both options use the same PML measurement basis",
+            "Pass when both options show cost per unit of relief on the same basis"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Assess coverage gaps left by the peril-specific option in Microsoft Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "List non-modelled and secondary perils not covered by the peril-specific set",
+            "Estimate the exposure left unprotected by each gap",
+            "Assess the materiality of each gap against appetite",
+            "Done when every coverage gap is listed with a materiality assessment"
+          ],
+          "verify": [
+            "Confirm each listed gap carries an exposure estimate",
+            "Confirm the assessment references appetite",
+            "Pass when every gap is listed with an exposure estimate and assessment"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Recommend one option with a written cost-efficiency rationale in Microsoft Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "State the recommended option and the deciding metric",
+            "Set out why the rejected option was not chosen",
+            "Attach the pricing outputs supporting the recommendation",
+            "Done when a single recommendation with rationale is documented"
+          ],
+          "verify": [
+            "Confirm exactly one option is recommended",
+            "Confirm the rationale references the computed metrics",
+            "Pass when one option is recommended with a metric-based rationale"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Review the comparison with the Head of Reinsurance before it enters the structure paper",
+          "actor": "Head of Reinsurance",
+          "sop": [
+            "Review the pricing basis and the recommendation",
+            "Challenge any gap accepted without a materiality assessment",
+            "Record agreement or required rework",
+            "Done when the review outcome is recorded against the comparison"
+          ],
+          "verify": [
+            "Confirm the review outcome is recorded and dated",
+            "Confirm any rework requested has been applied",
+            "Pass when a dated review outcome exists with rework applied"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "28c19824-52f4-47e0-a57f-e49fab84820a",
+      "verifier": "Head of Reinsurance",
+      "generic": {
+        "Defined scope/population": "Every assumed line of business requiring a per-occurrence and aggregate retention",
+        "In-scope period": "The forthcoming programme year for which retentions are being set",
+        "Required fields populated and valid": "Each line carries an occurrence retention, an aggregate retention and a rationale",
+        "Control totals or record counts reconcile": "The retention table covers every assumed line in the underwriting plan with none missing",
+        "Evidence retained with timestamp/version": "Retention table versioned and dated in the document management repository",
+        "Exceptions logged with disposition": "Lines without a set retention recorded with the reason and the approver",
+        "Test population": "All assumed lines of business including property cat, marine, aviation and casualty",
+        "Pass/fail thresholds": "Approved retention table covers every assumed line with a stated rationale",
+        "Exception handling path": "Retentions failing the earnings or capital test returned for revision before sign-off",
+        "Documented acceptance criteria": "Every retention is tested against earnings-at-risk and capital tolerances before approval",
+        "Evidence location": "Approved retention table filed in the document management repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "List every assumed line of business requiring a retention in Microsoft Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Extract the assumed lines from the underwriting plan",
+            "Confirm property cat, marine, aviation and casualty are all present",
+            "Record the plan version used",
+            "Done when the line list is complete against the underwriting plan"
+          ],
+          "verify": [
+            "Compare the line list to the underwriting plan",
+            "Confirm no assumed line is omitted",
+            "Pass when the line list matches the underwriting plan in full"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Set the per-occurrence retention for each assumed line in Microsoft Excel",
+          "actor": "Head of Reinsurance",
+          "sop": [
+            "Set the per-occurrence retention for each line",
+            "Reference the prior year retention for comparison",
+            "Record the proposed change where the retention moves",
+            "Done when every line carries a per-occurrence retention"
+          ],
+          "verify": [
+            "Confirm no line is left without an occurrence retention",
+            "Confirm prior year figures appear for comparison",
+            "Pass when every line carries an occurrence retention with a prior year comparison"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Set the aggregate annual retention for each assumed line in Microsoft Excel",
+          "actor": "Head of Reinsurance",
+          "sop": [
+            "Set the aggregate annual retention for each line",
+            "Confirm the aggregate is consistent with the occurrence retention",
+            "Record the basis on which the aggregate was derived",
+            "Done when every line carries an aggregate annual retention"
+          ],
+          "verify": [
+            "Check the aggregate is not below the occurrence retention",
+            "Confirm the derivation basis is recorded",
+            "Pass when every line carries a consistent aggregate retention with a basis"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Test each proposed retention against earnings-at-risk and capital tolerances in Excel",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Model earnings at risk at each proposed retention",
+            "Compare the result to the earnings and capital tolerances",
+            "Flag retentions that fail either test",
+            "Done when every retention is tested against both tolerances"
+          ],
+          "verify": [
+            "Confirm both tests are run for every line",
+            "Confirm failures are flagged for revision",
+            "Pass when both tolerance tests are recorded for every line"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Document the rationale for each retention change in Microsoft Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Record the rationale where a retention differs from the prior year",
+            "Reference the modelling result supporting the change",
+            "Record the rationale for lines held unchanged",
+            "Done when every line carries a stated rationale"
+          ],
+          "verify": [
+            "Confirm no line is left without a rationale",
+            "Confirm changed lines reference the supporting modelling",
+            "Pass when every line carries a rationale and changes cite the modelling"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Obtain executive sign-off on the retention table and file it in the repository",
+          "actor": "Head of Reinsurance",
+          "sop": [
+            "Present the tested retention table for executive sign-off",
+            "Record the approval and any conditions attached",
+            "File the signed table with a version and date",
+            "Done when the signed and dated table is filed in the repository"
+          ],
+          "verify": [
+            "Confirm the filed table shows the approver and date",
+            "Confirm the filed version matches the approved version",
+            "Pass when the repository holds a signed and dated retention table"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "f49be479-d9e7-4d07-8360-6dec84a1083e",
+      "verifier": "Retrocession Manager",
+      "generic": {
+        "Defined scope/population": "Quota-share and surplus retrocession options designed across the assumed book",
+        "In-scope period": "The forthcoming programme year modelled on the current exposure and premium plan",
+        "Required fields populated and valid": "Each option records cession percentage, commission terms and modelled net loss ratio",
+        "Control totals or record counts reconcile": "Ceded plus retained premium equals the assumed premium base in every option",
+        "Evidence retained with timestamp/version": "Option definitions and model run reference stored with the structuring papers",
+        "Exceptions logged with disposition": "Options discarded during design recorded with the reason for rejection",
+        "Test population": "All proportional options modelled across the tested cession percentages",
+        "Pass/fail thresholds": "Each option records cession percentage, commission terms and modelled net loss ratio",
+        "Exception handling path": "Options failing the retention objectives referred to the Reinsurance Actuary for re-modelling",
+        "Documented acceptance criteria": "Two proportional options are shortlisted against the stated retention objectives",
+        "Evidence location": "Proportional option pack filed with the programme year structuring papers"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Define the assumed premium and exposure base for the options in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Extract the assumed premium plan and exposure base for the programme year",
+            "Confirm the base matches the underwriting plan",
+            "Record the base version used for all options",
+            "Done when a single agreed base is recorded for the option set"
+          ],
+          "verify": [
+            "Compare the base to the underwriting plan",
+            "Confirm all options reference the same base",
+            "Pass when every option is built on the same recorded base"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Design quota-share options at alternative cession percentages in Microsoft Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Define quota-share options across a range of cession percentages",
+            "State the classes of assumed business included in each",
+            "Record the ceded and retained premium at each percentage",
+            "Done when each quota-share option is fully specified"
+          ],
+          "verify": [
+            "Confirm ceded plus retained equals the base for each option",
+            "Confirm the class scope is stated per option",
+            "Pass when every quota-share option balances to the base with a stated scope"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Design surplus options with alternative retained line and number of lines in Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Set the retained line and the number of lines for each surplus option",
+            "Derive the resulting maximum cession per risk",
+            "Record the classes to which the surplus applies",
+            "Done when each surplus option states line, lines and maximum cession"
+          ],
+          "verify": [
+            "Recompute maximum cession from line and number of lines",
+            "Confirm the class scope is stated",
+            "Pass when each surplus option states line, lines and a correct maximum cession"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Set ceding, profit and sliding-scale commission terms per option in Microsoft Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Set the ceding commission rate for each option",
+            "Set the profit commission and any sliding scale bands",
+            "Confirm the terms are within market ranges observed",
+            "Done when every option carries a complete commission specification"
+          ],
+          "verify": [
+            "Confirm no option is missing a commission term",
+            "Check the sliding scale bands are continuous",
+            "Pass when every option carries complete and continuous commission terms"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Model ceded premium, ceded loss and net loss ratio in the actuarial modeling platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Model ceded premium and ceded loss at each cession percentage",
+            "Derive the net loss ratio after commission for each option",
+            "Record the model run reference for the option set",
+            "Done when every option carries a modelled net loss ratio"
+          ],
+          "verify": [
+            "Confirm every option carries a net loss ratio",
+            "Confirm the run reference is recorded",
+            "Pass when all options show a modelled net loss ratio with a run reference"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Shortlist the two options best meeting the retention objectives in Microsoft Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Score each option against the stated retention objectives",
+            "Select the two highest scoring options",
+            "Record the reason each other option was discarded",
+            "Done when two options are shortlisted with reasons for the rest"
+          ],
+          "verify": [
+            "Confirm exactly two options are shortlisted",
+            "Confirm each discarded option carries a reason",
+            "Pass when two options are shortlisted and all rejections are explained"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "f3105598-3ed6-4c41-aa56-f0dc205f5b69",
+      "verifier": "Head of Reinsurance",
+      "generic": {
+        "Defined scope/population": "The recommended retro structure and every option considered during structuring",
+        "In-scope period": "The forthcoming programme year covered by the recommendation",
+        "Required fields populated and valid": "Layer table shows attachment, limit, reinstatements and expected cost for every layer",
+        "Control totals or record counts reconcile": "Total expected cost in the layer table equals the cost quoted in the recommendation",
+        "Evidence retained with timestamp/version": "Recommendation pack versioned and dated in the document management repository",
+        "Exceptions logged with disposition": "Rejected options recorded with the reason each was not recommended",
+        "Test population": "All layers in the recommended structure and all rejected alternatives",
+        "Pass/fail thresholds": "Paper contains the layer table, net PML comparison and rejected-option rationale",
+        "Exception handling path": "Missing appendices block issue of the pack until the modelling output is attached",
+        "Documented acceptance criteria": "Gross, ceded and net PML shown before and after the recommended programme",
+        "Evidence location": "Recommendation pack in the document management repository for the programme year"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Build the recommended layer table with attachment, limit and cost in Microsoft Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "List every recommended layer with attachment, limit and reinstatements",
+            "Add the expected cost and rate on line per layer",
+            "Total the expected programme cost",
+            "Done when the layer table is complete and totalled"
+          ],
+          "verify": [
+            "Recompute the programme cost total from the layer rows",
+            "Confirm no layer row is missing a field",
+            "Pass when the layer table is complete and the total reconciles"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Show gross, ceded and net PML before and after the programme in Microsoft Excel",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Present net PML before the programme by peril and return period",
+            "Present net PML after the recommended programme on the same basis",
+            "Show the PML relief delivered by the programme",
+            "Done when the before and after comparison is complete"
+          ],
+          "verify": [
+            "Check gross less ceded equals net in the after position",
+            "Confirm both views cover the same perils and return periods",
+            "Pass when the before and after views are consistent and complete"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "State the capital relief and earnings-volatility benefit in Microsoft Excel",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Quantify the capital relief expected in the internal capital model",
+            "Quantify the reduction in earnings volatility",
+            "Reference the modelling supporting each figure",
+            "Done when both benefits are quantified with a modelling reference"
+          ],
+          "verify": [
+            "Confirm both benefit figures carry a modelling reference",
+            "Check the figures against the capital model output",
+            "Pass when both benefits are quantified and traceable to the modelling"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Include the rejected options and the reasons in the recommendation pack",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "List every option considered and not recommended",
+            "Record the deciding reason for each rejection",
+            "Show the key metric that drove each decision",
+            "Done when every rejected option carries a recorded reason"
+          ],
+          "verify": [
+            "Compare the rejected list to the structuring option set",
+            "Confirm no considered option is omitted",
+            "Pass when every considered option appears with a decision reason"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Attach the pricing model output and basis-risk analysis as appendices",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Attach the pricing model output with its run reference",
+            "Attach the basis-risk analysis and its conclusion",
+            "Confirm the appendices match the figures quoted in the paper",
+            "Done when both appendices are attached and consistent with the paper"
+          ],
+          "verify": [
+            "Trace two paper figures into the appendices",
+            "Confirm both appendices are present",
+            "Pass when both appendices are attached and agree with the paper"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "File the versioned recommendation pack in the document management repository",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Apply a version number and date to the pack",
+            "File the pack in the programme year folder",
+            "Circulate to the approvers listed for the structure",
+            "Done when the versioned pack is filed and circulated"
+          ],
+          "verify": [
+            "Confirm the repository holds the versioned dated pack",
+            "Confirm the circulation record lists the approvers",
+            "Pass when the versioned pack is filed and its circulation is recorded"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2figlj0gv2kfgz2butdg25",
+      "verifier": "Head of Reinsurance",
+      "generic": {
+        "Defined scope/population": "The design decisions behind the selected retrocession structure for the programme year",
+        "In-scope period": "The current programme year from structure selection to approval",
+        "Required fields populated and valid": "Rationale records attachment choice, limits, model version, basis risk and reinstatement treatment",
+        "Control totals or record counts reconcile": "Every layer in the approved structure has a corresponding rationale entry",
+        "Evidence retained with timestamp/version": "Rationale document carries author, date and version in the document repository",
+        "Exceptions logged with disposition": "Design decisions taken against the modelling recorded with the approver who accepted them",
+        "Test population": "All layers and design features in the approved structure",
+        "Pass/fail thresholds": "Design rationale document is filed for the current programme year with author and date",
+        "Exception handling path": "Layers without a recorded rationale referred back to the Reinsurance Actuary",
+        "Documented acceptance criteria": "Rationale explains retained basis risk and why it is acceptable",
+        "Evidence location": "Retro programme folder in the document management repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Record why the selected attachment points and limits were chosen in Microsoft Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Record the chosen attachment and limit for each layer",
+            "Record the alternatives considered and rejected",
+            "Reference the modelling that supported the choice",
+            "Done when every layer carries a recorded attachment rationale"
+          ],
+          "verify": [
+            "Confirm every approved layer has a rationale entry",
+            "Confirm the modelling reference is present",
+            "Pass when each layer carries a rationale citing the supporting modelling"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Document the modelling assumptions and model version in the rationale document",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Record the vendor model, version and event set used",
+            "Record blending weights and uncertainty settings applied",
+            "Record any manual adjustments made to the model output",
+            "Done when the modelling basis is fully documented"
+          ],
+          "verify": [
+            "Compare the recorded version to the structuring run log",
+            "Confirm all manual adjustments are disclosed",
+            "Pass when the recorded modelling basis matches the structuring run log"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Explain the retained basis risk and why it is acceptable in the rationale document",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Summarise the quantified basis risk for the chosen structure",
+            "State the appetite against which it was assessed",
+            "State why the residual risk is acceptable",
+            "Done when retained basis risk is explained against appetite"
+          ],
+          "verify": [
+            "Confirm the quantified figure matches the basis-risk analysis",
+            "Confirm the appetite reference is stated",
+            "Pass when the retained basis risk is explained and reconciles to the analysis"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record the treatment of reinstatements and aggregate features in the rationale document",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Record the number and cost of reinstatements chosen per layer",
+            "Record any aggregate deductible or franchise features",
+            "State why each feature was selected",
+            "Done when every reinstatement and aggregate feature is recorded"
+          ],
+          "verify": [
+            "Compare recorded features to the approved layer table",
+            "Confirm each feature carries a reason",
+            "Pass when the recorded features match the approved structure with reasons"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Assemble and version the rationale narrative in the document management repository",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Assemble the sections into a single rationale document",
+            "Apply author, version and date",
+            "File in the retro programme folder",
+            "Done when the versioned rationale document is filed"
+          ],
+          "verify": [
+            "Confirm the filed document shows author, version and date",
+            "Confirm it sits in the programme year folder",
+            "Pass when the filed document carries author, version and date"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Obtain Head of Reinsurance review of the rationale before it accompanies the approval memo",
+          "actor": "Head of Reinsurance",
+          "sop": [
+            "Review the rationale against the approved structure",
+            "Challenge any layer whose rationale is missing or thin",
+            "Record the review outcome against the document",
+            "Done when the review outcome is recorded on the document"
+          ],
+          "verify": [
+            "Confirm a dated review outcome is recorded",
+            "Confirm any rework requested has been applied",
+            "Pass when a dated review outcome exists with rework applied"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "ea1cd316-33ad-44ad-974a-ead32a399106",
+      "verifier": "Head of Reinsurance",
+      "generic": {
+        "Defined scope/population": "Cat bond, industry loss warranty and collateralised layer options covering the same exposure",
+        "In-scope period": "The forthcoming programme year with multi-year options annualised for comparison",
+        "Required fields populated and valid": "Each alternative carries indicative pricing, trigger type, term and total cost of ownership",
+        "Control totals or record counts reconcile": "All alternatives are priced against the identical exposure and limit",
+        "Evidence retained with timestamp/version": "Indications dated and stored with the provider name in the evaluation file",
+        "Exceptions logged with disposition": "Alternatives without an obtainable indication logged with the reason",
+        "Test population": "All alternative capital options considered for the programme year",
+        "Pass/fail thresholds": "Comparison includes traditional and collateralised options priced on the same exposure basis",
+        "Exception handling path": "Options with unquantified basis risk excluded and referred to the Reinsurance Actuary",
+        "Documented acceptance criteria": "Conclusion states whether alternative capital forms part of the programme this year",
+        "Evidence location": "Alternative capital evaluation filed in the document management repository"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Define the common exposure and limit basis for all alternatives in the actuarial platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Fix the exposure snapshot, covered perils and limit to be quoted",
+            "Record the basis so every provider quotes identically",
+            "Circulate the basis with the indication request",
+            "Done when a single quoting basis is fixed and circulated"
+          ],
+          "verify": [
+            "Confirm each indication references the circulated basis",
+            "Confirm the basis is recorded with a date",
+            "Pass when every indication is quoted on the circulated basis"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Obtain indicative pricing for a cat bond, an ILW and a collateralised layer",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Request indications for each alternative structure on the fixed basis",
+            "Record the provider, date and terms of each indication",
+            "Log any alternative for which no indication was obtainable",
+            "Done when indications are received or logged as unobtainable"
+          ],
+          "verify": [
+            "Confirm each indication carries a provider and date",
+            "Confirm unobtainable options are logged with a reason",
+            "Pass when every alternative has an indication or a logged reason"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Compare multi-year ILS certainty against annually renewable traditional cover in Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Annualise the multi-year ILS cost across its risk period",
+            "Compare against the annual traditional cost on the same limit",
+            "Assess the value of price certainty across the term",
+            "Done when annualised costs are comparable across options"
+          ],
+          "verify": [
+            "Recompute one annualisation from the multi-year terms",
+            "Confirm the same limit is used across options",
+            "Pass when all options are compared on an annualised same-limit basis"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Quantify the basis risk introduced by any parametric or index trigger in the actuarial platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Model the trigger recovery against the portfolio loss for each option",
+            "Quantify shortfall as a percentage of limit",
+            "Exclude options whose basis risk cannot be quantified",
+            "Done when basis risk is quantified for every triggered option"
+          ],
+          "verify": [
+            "Confirm every index or parametric option carries a basis risk figure",
+            "Confirm excluded options are logged",
+            "Pass when all triggered options carry a quantified basis risk"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Load collateral, trust and issuance costs into the total cost comparison in Excel",
+          "actor": "Retrocession Manager",
+          "sop": [
+            "Add arranger, legal, trustee and collateral costs to each ILS option",
+            "Show the fully loaded cost against the traditional cost",
+            "Identify the break-even traditional rate on line",
+            "Done when fully loaded costs and the break-even point are shown"
+          ],
+          "verify": [
+            "Recompute one fully loaded cost from its components",
+            "Confirm the break-even figure is derived from the comparison",
+            "Pass when fully loaded costs and a derived break-even are shown"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Conclude on alternative capital use and file the evaluation in the repository",
+          "actor": "Head of Reinsurance",
+          "sop": [
+            "State whether alternative capital forms part of this year programme",
+            "Record the deciding factors behind the conclusion",
+            "File the dated evaluation in the repository",
+            "Done when the dated conclusion is filed"
+          ],
+          "verify": [
+            "Confirm the filed evaluation states an explicit conclusion",
+            "Confirm the conclusion references the cost and basis risk findings",
+            "Pass when a dated evaluation with an explicit conclusion is filed"
+          ]
+        }
+      ]
+    }
+  ]
+}

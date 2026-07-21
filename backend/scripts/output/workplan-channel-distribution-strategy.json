@@ -1,0 +1,1531 @@
+{
+  "area": "Channel & Distribution Strategy",
+  "tasks": [
+    {
+      "taskId": "f4666e3b-fe03-4b0a-9763-6edc04767e5f",
+      "verifier": "Head of Distribution",
+      "generic": {
+        "Defined scope/population": "All written and earned premium by channel code, line of business and region held in the EDW distribution mart",
+        "In-scope period": "Trailing eight quarters ending at the agreed as-of date stated in the baseline filename",
+        "Required fields populated and valid": "Channel code, line of business, region, written premium and earned premium populated on every row",
+        "Control totals or record counts reconcile": "Total channel premium ties to policy administration general-ledger premium within 0.5 percent",
+        "Evidence retained with timestamp/version": "Baseline workbook saved to the distribution strategy folder with as-of date and locked source tabs",
+        "Exceptions logged with disposition": "Unmapped or blank channel codes listed as Unassigned with the remap decision recorded",
+        "Test population": "Every premium row in the published eight-quarter channel baseline extract",
+        "Pass/fail thresholds": "Reconciliation variance to the general ledger at or below 0.5 percent and zero null channel codes",
+        "Exception handling path": "Unmapped channel premium is routed to the Sales Operations Analyst for taxonomy remap before publication",
+        "Documented acceptance criteria": "Baseline shows premium by channel, line and region for eight quarters with a signed reconciliation tab",
+        "Evidence location": "Distribution strategy folder baseline workbook plus the BI channel baseline dataset"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract eight quarters of channel premium from the enterprise data warehouse",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Query the EDW distribution mart for written and earned premium by channel code, line of business and region",
+            "Set the period filter to the trailing eight quarters ending at the agreed as-of date",
+            "Record the extract date, filters applied and row count on a provenance tab",
+            "Done when the eight-quarter channel premium extract is saved with its provenance tab"
+          ],
+          "verify": [
+            "Confirm the extract covers eight consecutive quarters with no missing period",
+            "Pass when row counts and period coverage match the documented extract parameters"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Reconcile extracted channel premium to the policy administration general ledger",
+          "actor": "Sales Operations Analyst",
+          "sop": [
+            "Total the extracted premium by quarter and compare it to the general-ledger premium for the same periods",
+            "Calculate the variance percentage per quarter and investigate any quarter above the 0.5 percent tolerance",
+            "Document the cause and value of each residual variance on the reconciliation tab",
+            "Done when every quarter reconciles within tolerance or carries a documented variance explanation"
+          ],
+          "verify": [
+            "Check the reconciliation tab shows a variance figure for every quarter in scope",
+            "Pass when no quarter exceeds the 0.5 percent tolerance without a written explanation"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Map legacy and blank channel codes to the current taxonomy in Microsoft Excel",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "List every distinct channel code in the extract and join it to the approved channel taxonomy",
+            "Assign each legacy or retired code to its current taxonomy equivalent and record the mapping rule",
+            "Bucket premium with no resolvable code as Unassigned rather than forcing it into a channel",
+            "Done when every premium row carries a current taxonomy channel or the Unassigned label"
+          ],
+          "verify": [
+            "Run a distinct count of channel codes after mapping and confirm all sit in the taxonomy",
+            "Pass when no premium row carries a null or unrecognised channel code"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Split new business and renewal premium per channel in the baseline workbook",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Apply the transaction type flag from the EDW to separate new business from renewal premium",
+            "Build the mix view showing new business share and renewal share by channel and quarter",
+            "Check that new business plus renewal equals total premium for every channel and quarter",
+            "Done when the new business versus renewal split is complete and foots to total premium"
+          ],
+          "verify": [
+            "Recompute the sum of new business and renewal premium against the channel total",
+            "Pass when the split foots to total premium for every channel and quarter"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Publish the channel baseline view in the BI reporting platform",
+          "actor": "Sales Operations Analyst",
+          "sop": [
+            "Load the reconciled baseline dataset into the BI reporting platform with channel, line and region dimensions",
+            "Build the baseline report showing premium trend by channel over the eight quarters",
+            "Spot-check three channels in BI against the workbook figures to confirm the load is faithful",
+            "Done when the BI baseline report renders figures identical to the reconciled workbook"
+          ],
+          "verify": [
+            "Compare the BI channel totals to the workbook totals for the latest quarter",
+            "Pass when BI and workbook channel totals agree exactly"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review and lock the baseline workbook with the Head of Distribution",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Walk the reconciliation, taxonomy mapping and mix split with the Distribution Analyst",
+            "Confirm the Unassigned premium value is acceptable or send it back for further mapping",
+            "Approve the baseline and record the approval date on the workbook cover tab",
+            "Done when the baseline is approved and the source tabs are locked against edits"
+          ],
+          "verify": [
+            "Check the cover tab carries the approver name, approval date and as-of date",
+            "Pass when the baseline is approved and the source tabs cannot be edited"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhm3f030tkfgz7f2bggsp",
+      "verifier": "Head of Distribution",
+      "generic": {
+        "Defined scope/population": "Every channel listed in the approved channel taxonomy from independent agent through to embedded",
+        "In-scope period": "The current channel strategy planning cycle up to the value proposition sign-off date",
+        "Required fields populated and valid": "Target segment, primary need, proof point and service commitments stated for each channel",
+        "Control totals or record counts reconcile": "Count of value proposition pages equals the count of channels in the taxonomy",
+        "Evidence retained with timestamp/version": "Dated value proposition pack held with the review log in the distribution strategy folder",
+        "Exceptions logged with disposition": "Channels without an agreed proposition logged with the blocking issue and owner",
+        "Test population": "All channel value proposition pages issued for review in this cycle",
+        "Pass/fail thresholds": "One dated proposition per taxonomy channel and zero out-of-target-market product references",
+        "Exception handling path": "Propositions naming a product outside target market return to the Distribution Analyst for rewrite",
+        "Documented acceptance criteria": "Each proposition names segment, need, proof point and service commitments and carries reviewer sign-off",
+        "Evidence location": "Distribution strategy folder value proposition pack and the CRM channel reference record"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the channel list from the approved taxonomy in Microsoft Excel",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Pull the current channel taxonomy and list every channel requiring a value proposition",
+            "Remove retired channels and add any channel launched since the last cycle",
+            "Circulate the confirmed channel list to the Head of Distribution for agreement",
+            "Done when the channel list for this cycle is agreed and dated"
+          ],
+          "verify": [
+            "Compare the list against the taxonomy reference data",
+            "Pass when every active taxonomy channel appears on the confirmed list"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Assemble segment and buying evidence from the CRM for each channel",
+          "actor": "Customer Insights Lead",
+          "sop": [
+            "Pull segment mix and win reasons by channel from CRM opportunity and account data",
+            "Summarise for each channel who buys there today and the stated reason they chose it",
+            "Flag channels where the evidence is too thin to assert a proposition",
+            "Done when each channel has an evidence summary or a thin-evidence flag"
+          ],
+          "verify": [
+            "Check every channel on the confirmed list has an evidence summary attached",
+            "Pass when no channel proceeds to drafting without evidence or an explicit flag"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Draft the one-page value proposition per channel in Microsoft Excel",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Write one page per channel stating who it serves and why the customer buys there",
+            "State the target segment, the primary need met and the proof point of price advice speed or appetite",
+            "Keep each page to a single page so the proposition stays a decision tool not a brochure",
+            "Done when a drafted page exists for every channel on the confirmed list"
+          ],
+          "verify": [
+            "Count drafted pages against the confirmed channel list",
+            "Pass when the page count equals the channel count with no gaps"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Add the carrier service commitments per channel to each proposition",
+          "actor": "Head of Distribution",
+          "sop": [
+            "State the quote turnaround, underwriting access and marketing support the carrier commits to that channel",
+            "Check each commitment against what distribution operations can actually deliver today",
+            "Mark any commitment that requires a capability not yet in place as conditional",
+            "Done when every proposition carries deliverable service commitments"
+          ],
+          "verify": [
+            "Review the commitments with distribution operations for feasibility",
+            "Pass when no commitment is stated that operations cannot support or has not flagged conditional"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Cross-check each proposition against the approved product target market",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "List the products referenced in each channel proposition",
+            "Compare each reference to the approved product target market statement for that channel",
+            "Strike or rewrite any claim that promises a product the channel cannot legitimately place",
+            "Done when every product reference sits inside the approved target market"
+          ],
+          "verify": [
+            "Sample every proposition for product references and test them against target market",
+            "Pass when no proposition names a product outside the channel target market"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Circulate for product and marketing sign-off and record comments in the review log",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Issue the proposition pack to product and marketing leads with a stated response date",
+            "Capture every comment in the review log with raiser, channel affected and disposition",
+            "Apply accepted changes and reissue the affected pages",
+            "Done when each reviewer has signed off or their dissent is logged"
+          ],
+          "verify": [
+            "Check the review log for a recorded response from every named reviewer",
+            "Pass when all reviewers are logged as signed off or explicitly dissenting"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhmfu035ikfgzlbry1oqn",
+      "verifier": "Producer Compliance Manager",
+      "generic": {
+        "Defined scope/population": "Every active product line crossed with every channel in the approved channel taxonomy",
+        "In-scope period": "The current filing and appointment position as at the eligibility matrix effective date",
+        "Required fields populated and valid": "Each matrix cell marked Eligible, Eligible with approval or Not eligible with no blanks",
+        "Control totals or record counts reconcile": "Matrix cell count equals active product lines multiplied by active channels",
+        "Evidence retained with timestamp/version": "Approved eligibility matrix versioned and dated before hand-off to distribution operations",
+        "Exceptions logged with disposition": "Licence, registration and jurisdiction restrictions logged against the affected cell with a decision",
+        "Test population": "All product-by-channel cells in the issued eligibility matrix",
+        "Pass/fail thresholds": "Zero blank cells and zero eligible pairings in unfiled jurisdictions",
+        "Exception handling path": "Cells failing the filing or licence check are set to Not eligible pending compliance clearance",
+        "Documented acceptance criteria": "Matrix covers every product line and channel with jurisdiction and licence restrictions recorded",
+        "Evidence location": "Eligibility matrix workbook and the product authorisation rules in the producer management system"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract the active product line list from the policy administration system",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Pull the active product lines and their filed jurisdictions from the policy administration system",
+            "Exclude products withdrawn or in run-off and note them separately",
+            "Record the extract date so the matrix reflects a stated filing position",
+            "Done when the active product line and jurisdiction list is extracted and dated"
+          ],
+          "verify": [
+            "Compare the product count to the current product catalogue",
+            "Pass when every active product line appears in the extract"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Build the product-by-channel eligibility grid in Microsoft Excel",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Create one row per product line and one column per channel from the approved taxonomy",
+            "Mark each cell Eligible, Eligible with approval or Not eligible using the strategy position",
+            "Leave no cell blank so silence is never read as permission",
+            "Done when every cell in the grid carries an eligibility marking"
+          ],
+          "verify": [
+            "Run a blank-cell check across the whole grid",
+            "Pass when the grid contains zero blank cells"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record jurisdiction restrictions against each eligible cell",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "For each Eligible cell compare the filed jurisdictions to the states the channel operates in",
+            "Record the state or jurisdiction restriction where the product is not filed everywhere",
+            "Downgrade to Not eligible where the channel operates only in unfiled jurisdictions",
+            "Done when every eligible cell carries its jurisdiction restriction note"
+          ],
+          "verify": [
+            "Sample eligible cells against the filing extract",
+            "Pass when no cell is eligible in a jurisdiction where the product is unfiled"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Flag licence and registration constraints in the producer management system",
+          "actor": "Producer Compliance Manager",
+          "sop": [
+            "Identify products needing a licence or registration the channel does not universally hold",
+            "Check variable products, surplus lines, crop and flood against producer qualification data",
+            "Mark the affected cells Eligible with approval and state the qualification required",
+            "Done when every qualification-constrained pairing is flagged with its requirement"
+          ],
+          "verify": [
+            "Test flagged cells against producer licence and appointment records",
+            "Pass when every qualification-constrained pairing carries its stated requirement"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm each eligible pairing against the product target-market statement",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Read each eligible pairing against the approved target-market statement for that product",
+            "Note the justification where the eligibility is deliberately narrower than the target market",
+            "Escalate any pairing that appears wider than target market for correction",
+            "Done when every eligible pairing is consistent with target market or justified"
+          ],
+          "verify": [
+            "Review the justification notes on narrowed pairings",
+            "Pass when no eligible pairing exceeds the approved product target market"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Hand the approved matrix to distribution operations for system configuration",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Version and date the approved matrix and record the approver",
+            "Issue it to distribution operations as the configuration specification for product authorisation rules",
+            "Agree the configuration target date and the validation approach in the producer management system",
+            "Done when the versioned matrix is handed over with an agreed configuration date"
+          ],
+          "verify": [
+            "Confirm receipt and the configuration date from distribution operations",
+            "Pass when the hand-over is acknowledged against the versioned matrix"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "caacb5a9-52d3-4a48-812c-afff734be149",
+      "verifier": "Head of Distribution",
+      "generic": {
+        "Defined scope/population": "All channels carried in the strategy with their hold, grow and exit investment options",
+        "In-scope period": "The channel strategy planning horizon covered by the draft document",
+        "Required fields populated and valid": "Current state, target mix, options, trade-offs, risks and decision request all populated",
+        "Control totals or record counts reconcile": "Premium and expense figures in the draft tie to the baseline and economics appendices",
+        "Evidence retained with timestamp/version": "Draft saved with version number and date and its appendices attached",
+        "Exceptions logged with disposition": "Figures without a traceable source flagged and resolved before the draft is circulated",
+        "Test population": "Every numeric figure and option set in the draft channel strategy document",
+        "Pass/fail thresholds": "At least two options per channel and zero figures lacking a source reference",
+        "Exception handling path": "Unsourced figures are returned to the Distribution Analyst for tracing or removal",
+        "Documented acceptance criteria": "Draft contains option sets, explicit trade-offs and a numbered decision log at the front",
+        "Evidence location": "Distribution strategy folder draft document with baseline and economics appendices"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Set the document structure in Microsoft Excel and agree the storyline",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Structure the draft as current state, target mix, investment options, trade-offs, risks and decision request",
+            "Agree the storyline with the Distribution Analyst before content is written",
+            "Fix the page budget per section so the pack stays decision-sized",
+            "Done when the agreed structure and section owners are recorded"
+          ],
+          "verify": [
+            "Check the skeleton contains all six required sections",
+            "Pass when every section has a named owner and a page budget"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Populate current state from the approved channel revenue baseline",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Insert the current channel mix, premium and trend from the approved baseline workbook",
+            "Reference the baseline version and as-of date beside each figure",
+            "Avoid restating figures that differ from the baseline without an explanation",
+            "Done when the current state section is populated with referenced baseline figures"
+          ],
+          "verify": [
+            "Trace three current state figures back to the baseline workbook",
+            "Pass when each traced figure matches the baseline exactly"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Build the hold, grow and exit option set per channel in the BI reporting platform",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Model at least two investment options per channel covering hold, grow or exit",
+            "Show the premium and expense impact of each option over the planning horizon",
+            "Use the approved economics model outputs rather than fresh assumptions",
+            "Done when every channel carries at least two costed options"
+          ],
+          "verify": [
+            "Count the options presented per channel",
+            "Pass when no channel has fewer than two costed investment options"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "State the explicit funding trade-off for each growth option",
+          "actor": "Head of Distribution",
+          "sop": [
+            "For each growth option name what gets defunded to pay for it",
+            "Quantify the reduction in the defunded channel or activity",
+            "Avoid presenting any growth option as cost-free",
+            "Done when every growth option carries a quantified trade-off"
+          ],
+          "verify": [
+            "Review each growth option for a named and quantified trade-off",
+            "Pass when no growth option is presented without its funding source"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Attach the baseline and channel economics outputs as appendices",
+          "actor": "Sales Operations Analyst",
+          "sop": [
+            "Attach the channel revenue baseline and channel economics outputs as numbered appendices",
+            "Cross-reference each figure in the body to its appendix table",
+            "Flag any figure with no traceable appendix source for correction",
+            "Done when every body figure carries an appendix reference"
+          ],
+          "verify": [
+            "Sample body figures and follow their appendix references",
+            "Pass when no figure lacks a traceable source reference"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Write the numbered decision log at the front of the draft",
+          "actor": "Head of Distribution",
+          "sop": [
+            "List the decisions required from the executive sponsor as a numbered log",
+            "State for each decision the options, the recommendation and the consequence of deferring",
+            "Place the log at the front so the ask is visible before the analysis",
+            "Done when the numbered decision log is complete and positioned at the front"
+          ],
+          "verify": [
+            "Check every option set in the body maps to a numbered decision",
+            "Pass when no option set is presented without a corresponding decision request"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "3750a578-6e5e-462b-bb89-ab3a0c2afb7d",
+      "verifier": "Head of Distribution",
+      "generic": {
+        "Defined scope/population": "All active channels with their acquisition cost, cost-to-serve and margin contribution components",
+        "In-scope period": "The financial periods agreed for the economics assessment with matching expense boundaries",
+        "Required fields populated and valid": "Commission, override, marketing, field salary, servicing volumes and loss data populated per channel",
+        "Control totals or record counts reconcile": "Commission and override expense ties to the finance expense ledger before feeding the margin calculation",
+        "Evidence retained with timestamp/version": "Economics model versioned with the allocation basis documented on a dedicated tab",
+        "Exceptions logged with disposition": "Channels below the target margin hurdle flagged with the reason and follow-up owner",
+        "Test population": "Every active channel row in the channel economics model",
+        "Pass/fail thresholds": "Commission reconciliation variance to the ledger at zero and every channel carrying an allocation basis",
+        "Exception handling path": "Unreconciled commission expense is returned to the billing platform owner before the model is published",
+        "Documented acceptance criteria": "Model shows acquisition cost, cost-to-serve and margin contribution for every active channel",
+        "Evidence location": "Channel economics model workbook plus the EDW expense and premium extracts"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Compute acquisition cost per channel in the channel economics model",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Gather commission, override, marketing spend and field salary loading by channel",
+            "Divide the total acquisition spend by new policies acquired to get cost per acquisition",
+            "State the loading basis used for field salary rather than leaving it implicit",
+            "Done when acquisition cost per channel is computed with its components visible"
+          ],
+          "verify": [
+            "Recompute acquisition cost for two channels from the component figures",
+            "Pass when the recomputed values match the model output"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Derive cost-to-serve per channel from policy and service transaction volumes",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Pull endorsement, call and billing contact volumes per channel from the EDW",
+            "Apply the agreed unit cost per transaction type to produce servicing cost per channel",
+            "Express the result as a per-policy rate so channels of different sizes compare",
+            "Done when cost-to-serve per in-force policy is computed for every channel"
+          ],
+          "verify": [
+            "Check the transaction volumes used reconcile to the source service reporting",
+            "Pass when volumes tie to source and every channel carries a per-policy rate"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Reconcile commission and override expense from the billing platform to the ledger",
+          "actor": "Sales Operations Analyst",
+          "sop": [
+            "Extract commission, override and contingent commission by channel from the billing and commission platform",
+            "Compare the total to the finance expense ledger for the same period",
+            "Resolve or document any variance before the figures enter the margin calculation",
+            "Done when commission expense is reconciled to the ledger and signed off"
+          ],
+          "verify": [
+            "Review the reconciliation working for a stated variance and its cause",
+            "Pass when the commission total ties to the ledger or the variance is documented"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Calculate combined ratio and margin contribution by channel",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Combine earned premium, incurred loss and the allocated expense stack per channel",
+            "Compute combined ratio and margin contribution for each channel",
+            "Document the expense allocation basis used on the allocation tab",
+            "Done when combined ratio and margin contribution are produced for every channel"
+          ],
+          "verify": [
+            "Check each channel margin figure has a stated allocation basis",
+            "Pass when no margin figure exists without a documented allocation basis"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Rank channels by margin per dollar of acquisition spend",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Divide margin contribution by acquisition spend for each channel",
+            "Rank the channels on that ratio and compare each against the target hurdle",
+            "Flag every channel falling below the hurdle with the size of the shortfall",
+            "Done when the ranked table is produced with hurdle breaches flagged"
+          ],
+          "verify": [
+            "Confirm the hurdle rate applied matches the approved target",
+            "Pass when every channel below the hurdle is flagged in the ranking"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review the economics output with the Head of Distribution and release it",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Walk the acquisition cost, cost-to-serve and margin results channel by channel",
+            "Challenge the allocation bases where a result looks driven by allocation rather than performance",
+            "Approve the model version for use in the strategy and investment work",
+            "Done when the economics model version is approved and released"
+          ],
+          "verify": [
+            "Check the model version and approval date are recorded on the cover tab",
+            "Pass when the released version carries the approver name and date"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl3i91p8zkfgz03wp9zx0",
+      "verifier": "Head of Distribution",
+      "generic": {
+        "Defined scope/population": "All review comments received on the channel-segment strategy from every circulated stakeholder group",
+        "In-scope period": "From the opening of the review window to the issue of the revised strategy version",
+        "Required fields populated and valid": "Raiser, channel affected, comment, disposition and owner populated on every log entry",
+        "Control totals or record counts reconcile": "Log entry count equals the number of comments received across all review channels",
+        "Evidence retained with timestamp/version": "Revised strategy issued with tracked changes and a version number tied to the feedback log",
+        "Exceptions logged with disposition": "Rejected and deferred items carry a written reason returned to the original commenter",
+        "Test population": "Every entry in the channel strategy feedback log for this review round",
+        "Pass/fail thresholds": "Zero log entries without a disposition once the revision is issued",
+        "Exception handling path": "Comments needing a decision above the owner are escalated to the Head of Distribution",
+        "Documented acceptance criteria": "Feedback log lists every comment with disposition and owner and accepted changes are applied",
+        "Evidence location": "Feedback log workbook and the tracked-change strategy revision in the strategy folder"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Consolidate all review comments into a single feedback log in Microsoft Excel",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Collect comments from email, review sessions and CRM notes into one log",
+            "Create columns for raiser, channel affected, comment, disposition and owner",
+            "De-duplicate identical points raised by more than one reviewer and note both raisers",
+            "Done when every comment received sits in the single feedback log"
+          ],
+          "verify": [
+            "Compare the log entry count to the comments received across all sources",
+            "Pass when no received comment is missing from the log"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Mark each item Accepted, Rejected or Deferred with a reason",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Work through the log assigning a disposition to each item",
+            "Record the reason for every Rejected or Deferred item in the log",
+            "Assign an owner to each Accepted item so the change has a named implementer",
+            "Done when every log item carries a disposition, reason where needed and an owner"
+          ],
+          "verify": [
+            "Filter the log for blank dispositions or missing reasons",
+            "Pass when no item lacks a disposition or a required reason"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Apply accepted changes to the strategy document with tracked changes",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Edit the strategy document with tracked changes so reviewers can see what moved",
+            "Reference the log item number against each applied change",
+            "Increment the document version and date the revision",
+            "Done when all accepted changes are applied with tracked changes and a new version number"
+          ],
+          "verify": [
+            "Check each Accepted log item appears as a tracked change in the document",
+            "Pass when every Accepted item is traceable to a document change"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Re-run affected channel mix and target numbers rather than editing narrative",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Identify accepted changes that alter a channel mix percentage or target figure",
+            "Recompute the affected figures in the underlying model and reload them into the document",
+            "Check the revised figures still reconcile to the corporate plan total",
+            "Done when every number affected by an accepted change is recomputed"
+          ],
+          "verify": [
+            "Reconcile the revised channel targets to the plan total",
+            "Pass when the revised numbers reconcile and match the model output"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Log the disposition decisions against the CRM stakeholder records",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Record the disposition against each commenting stakeholder in the CRM engagement record",
+            "Note the strategy version in which their point was addressed",
+            "Keep the CRM record consistent with the feedback log wording",
+            "Done when every commenting stakeholder has their disposition recorded in CRM"
+          ],
+          "verify": [
+            "Sample CRM records against the feedback log entries",
+            "Pass when the CRM disposition matches the log for every sampled item"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Return the disposition log to commenters and close the round",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Issue the completed disposition log with the revised strategy to every original commenter",
+            "State that the round is closed and how to raise anything genuinely new",
+            "Confirm no open item remains without an owner and a due date",
+            "Done when the disposition log is returned and the review round is closed"
+          ],
+          "verify": [
+            "Check the issue record covers every commenter on the log",
+            "Pass when all commenters received the disposition log and no item is open without an owner"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fk82q19z8kfgzw29ofeq5",
+      "verifier": "Head of Distribution",
+      "generic": {
+        "Defined scope/population": "All in-force and quoted business cross-tabulated by customer segment and acquisition channel",
+        "In-scope period": "The trailing twenty-four months of policy and quote activity",
+        "Required fields populated and valid": "Segment code, acquisition channel, quote count, bind count and premium populated on every cell",
+        "Control totals or record counts reconcile": "Segment-channel cell totals reconcile to total in-force policy count and premium",
+        "Evidence retained with timestamp/version": "Preference heat map saved with extract date, sample sizes and the query used",
+        "Exceptions logged with disposition": "Thin cells below the sample threshold flagged as unreliable rather than reported as findings",
+        "Test population": "Every segment-by-channel cell in the published preference map",
+        "Pass/fail thresholds": "Zero personally identifiable fields in the output and sample size shown on every cell",
+        "Exception handling path": "Cells below the minimum sample size are suppressed and noted in the map footnotes",
+        "Documented acceptance criteria": "Preference map shows conversion rates and sample sizes by segment and channel",
+        "Evidence location": "BI preference dashboard and the governed EDW query saved with the analysis pack"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Cross-tabulate policy count and premium by segment and channel in the EDW",
+          "actor": "Customer Insights Lead",
+          "sop": [
+            "Query the EDW for policy count and premium by customer segment and acquisition channel",
+            "Restrict the query to the trailing twenty-four months of activity",
+            "Save the query text with the analysis pack so the pull is reproducible",
+            "Done when the segment-by-channel volume cross-tab is produced and the query saved"
+          ],
+          "verify": [
+            "Reconcile the cross-tab totals to in-force policy count and premium",
+            "Pass when the cross-tab totals tie to the in-force control totals"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Layer quote-to-bind conversion by segment and channel from CRM data",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Pull quote and bind counts by segment and channel from CRM opportunity data",
+            "Compute conversion rate per cell rather than reading volume as preference",
+            "Align the CRM period boundaries to the EDW extract period",
+            "Done when conversion rate is attached to every segment-channel cell"
+          ],
+          "verify": [
+            "Check period alignment between the CRM and EDW extracts",
+            "Pass when every cell carries a conversion rate on matching period boundaries"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm no personally identifiable field leaves the governed environment",
+          "actor": "Customer Insights Lead",
+          "sop": [
+            "Review the output columns and remove any customer name, address, policy number or contact field",
+            "Confirm the analysis runs on segment aggregates only",
+            "Record the privacy check and the date it was performed",
+            "Done when the output is confirmed free of personally identifiable fields"
+          ],
+          "verify": [
+            "Scan the published output columns for identifier fields",
+            "Pass when no individual customer identifier appears in the output"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Identify segments where observed buying channel diverges from carrier investment",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Compare the observed channel share per segment to the current channel investment allocation",
+            "List segments where the divergence is material against the agreed threshold",
+            "Note the premium at stake for each divergence so it can be prioritised",
+            "Done when every material divergence is listed with its premium impact"
+          ],
+          "verify": [
+            "Check the divergence threshold applied is the agreed one",
+            "Pass when each listed divergence carries a quantified premium impact"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Build the segment-by-channel preference heat map in the BI platform",
+          "actor": "Customer Insights Lead",
+          "sop": [
+            "Publish the heat map with conversion rate as the colour measure",
+            "Show the sample size in every cell so thin cells are not over-read",
+            "Suppress or grey cells below the minimum sample threshold",
+            "Done when the heat map is published with sample sizes visible"
+          ],
+          "verify": [
+            "Check a sample of cells for a displayed sample size",
+            "Pass when every cell shows its sample size or is suppressed"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review the preference map with the Head of Distribution and log follow-ups",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Walk the divergences and the thin-cell caveats with the Market Research Analyst and Distribution Analyst",
+            "Agree which divergences feed the channel strategy and which need more evidence",
+            "Record the agreed follow-up actions with owners",
+            "Done when the map is reviewed and follow-up actions are recorded"
+          ],
+          "verify": [
+            "Check each agreed follow-up carries an owner and a date",
+            "Pass when no agreed follow-up is recorded without an owner"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "2a093e37-5301-495e-8b5b-0f1e56506a8e",
+      "verifier": "Chief Marketing Officer",
+      "generic": {
+        "Defined scope/population": "The approved channel strategy and segment plan plus all field and distributor facing summaries",
+        "In-scope period": "From executive approval to the recorded next review date of the published strategy",
+        "Required fields populated and valid": "Approver name, approval date, version, retention class and next review date recorded",
+        "Control totals or record counts reconcile": "Published document count matches the document register entries for this strategy",
+        "Evidence retained with timestamp/version": "Locked watermarked final version stored with the register entry and publication date",
+        "Exceptions logged with disposition": "Superseded drafts identified and archived with the archive action recorded",
+        "Test population": "All copies of the channel strategy in the published distribution location",
+        "Pass/fail thresholds": "Zero superseded drafts accessible and all register fields populated",
+        "Exception handling path": "Any draft found in the published location is withdrawn and the withdrawal logged",
+        "Documented acceptance criteria": "Strategy published with approver, approval date and next review date recorded in the register",
+        "Evidence location": "Distribution shared site published folder, document register and Broker and Agent Portal notice"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Produce the locked watermarked final version of the strategy",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Apply the final version number, approval date and approver name to the cover",
+            "Watermark and lock the document against further editing",
+            "Confirm the content matches the version the executive approved",
+            "Done when the locked final version is produced and matches the approved content"
+          ],
+          "verify": [
+            "Compare the final version against the approved draft",
+            "Pass when the published content matches the approved version exactly"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Archive superseded drafts from the distribution shared site",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "List every draft of the strategy present on the distribution shared site",
+            "Move each superseded draft to the archive location with restricted access",
+            "Record the archive action and date for each draft removed",
+            "Done when no superseded draft remains in the published location"
+          ],
+          "verify": [
+            "Search the published location for any prior version",
+            "Pass when the published location contains only the final version"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Prepare the field and distributor summary communication",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Draft the summary setting out the distribution strategy and what changes for the reader",
+            "Produce separate internal and distributor versions where the obligations differ",
+            "Keep the summary consistent with the locked final strategy wording",
+            "Done when both summary versions are drafted and consistent with the final strategy"
+          ],
+          "verify": [
+            "Cross-read the summaries against the final strategy",
+            "Pass when neither summary states anything the final strategy does not support"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Clear the field-facing summary for unapproved product or commission claims",
+          "actor": "Chief Marketing Officer",
+          "sop": [
+            "Review the field-facing summary for product claims outside the approved target market",
+            "Review for any commission or incentive statement not carried in an approved schedule",
+            "Amend or remove any claim that cannot be substantiated before release",
+            "Done when the summary is cleared of unapproved product and commission claims"
+          ],
+          "verify": [
+            "Check the clearance record against the summary version issued",
+            "Pass when the issued version carries a recorded clearance"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Publish the distributor summary to the Broker and Agent Portal",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Post the cleared distributor summary to the Broker and Agent Portal notice area",
+            "Set the effective date and the audience so the right distributors see it",
+            "Confirm the posted content renders correctly and the links resolve",
+            "Done when the distributor summary is live on the portal with its effective date"
+          ],
+          "verify": [
+            "Open the portal notice as a distributor user",
+            "Pass when the notice is visible to the intended audience with the correct effective date"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the publication in the document register",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Enter the version, approver, approval date, retention class and next review date in the register",
+            "Link the register entry to the stored final version",
+            "Set the review reminder against the next review date",
+            "Done when the register entry is complete and linked to the published document"
+          ],
+          "verify": [
+            "Inspect the register entry for all required fields",
+            "Pass when approver, approval date and next review date are all recorded"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl3uc1pehkfgzs0fo6ze5",
+      "verifier": "Head of Distribution",
+      "generic": {
+        "Defined scope/population": "All unresolved cross-functional issues raised during channel strategy review",
+        "In-scope period": "From issue capture at review through to the last decision recorded before republication",
+        "Required fields populated and valid": "Issue description, parties, decision forum, target date, decision and rationale populated",
+        "Control totals or record counts reconcile": "Conflict log entry count matches the unresolved issues raised in the review record",
+        "Evidence retained with timestamp/version": "Dated decisions recorded in the conflict log and reflected in the strategy document version",
+        "Exceptions logged with disposition": "Issues escalated because parties could not agree carry each side's written position",
+        "Test population": "Every issue entry in the channel strategy conflict log",
+        "Pass/fail thresholds": "Every issue carries a dated decision and a named decision-maker before closure",
+        "Exception handling path": "Unresolved issues escalate to the executive distribution forum with written positions attached",
+        "Documented acceptance criteria": "Conflict log shows a dated decision and rationale for every issue raised in review",
+        "Evidence location": "Conflict log workbook, CRM issue records and the updated strategy document"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "List every unresolved cross-functional issue in the conflict log",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Extract unresolved issues from the review record covering product versus channel and region versus centre",
+            "Add direct versus intermediated conflicts raised by field or product leads",
+            "Record the parties and the specific point in dispute for each issue",
+            "Done when every unresolved review issue is logged with its parties"
+          ],
+          "verify": [
+            "Compare the log against the review record",
+            "Pass when no unresolved review issue is missing from the log"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Assign each issue to the decision forum with authority to settle it",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Match each issue to the forum whose decision rights cover it",
+            "Record the target resolution date against each issue",
+            "Notify the forum chair of the items added to their agenda",
+            "Done when every issue has a named forum and a target resolution date"
+          ],
+          "verify": [
+            "Check each issue for an assigned forum and date",
+            "Pass when no issue sits without a forum and a target date"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Convene the working session and apply the documented channel priority rules",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Convene the parties with the case facts and the published channel priority rules to hand",
+            "Apply the rules in their documented order of precedence to each issue",
+            "Record the decision and its rationale against the issue in the log",
+            "Done when each session issue carries a decision and rationale"
+          ],
+          "verify": [
+            "Review the decisions for the rule applied and the rationale recorded",
+            "Pass when every decided issue names the rule applied and the decision-maker"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Escalate unresolved items with written positions from each side",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Identify issues where the parties could not agree in the working session",
+            "Collect a written position from each side and attach it to the issue",
+            "Escalate to the executive distribution forum with a recommended resolution",
+            "Done when every unresolved item is escalated with both written positions attached"
+          ],
+          "verify": [
+            "Check escalated issues for both party positions",
+            "Pass when no escalation proceeds without written positions from both sides"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Update the CRM issue records with the settled decisions",
+          "actor": "Distribution Operations Manager",
+          "sop": [
+            "Record the decision, rule applied and effective date against each CRM issue record",
+            "Close the CRM record only once the decision is reflected in the strategy document",
+            "Keep the CRM wording consistent with the conflict log entry",
+            "Done when every settled issue is recorded and closed in CRM"
+          ],
+          "verify": [
+            "Sample CRM records against the conflict log",
+            "Pass when every closed CRM record matches its log decision"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Update the strategy document and close the issues in the log",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Apply each settled decision to the affected section of the strategy document",
+            "Increment the document version and note the issues resolved in the change log",
+            "Close each issue in the conflict log with the closure date",
+            "Done when the strategy reflects every settled decision and the issues are closed"
+          ],
+          "verify": [
+            "Check each closed issue for a named decision-maker and a document change",
+            "Pass when no issue is closed without a named decision-maker recorded"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "50bdbc1e-217d-4192-a808-a31a8201b244",
+      "verifier": "Chief Marketing Officer",
+      "generic": {
+        "Defined scope/population": "The final channel-segment strategy, its decision log and the associated investment ask",
+        "In-scope period": "The executive distribution forum cycle in which the strategy is tabled and approved",
+        "Required fields populated and valid": "Approver name, authority level, decision, conditions and effective date recorded in the minutes",
+        "Control totals or record counts reconcile": "Investment ask in the pack equals the amount recorded as approved in the minutes",
+        "Evidence retained with timestamp/version": "Minute extract or e-signature filed with the dated strategy pack version",
+        "Exceptions logged with disposition": "Conditions attached to the approval logged as tracked actions with owners and due dates",
+        "Test population": "The approval record and all conditions attached to the channel strategy sign-off",
+        "Pass/fail thresholds": "Approver authority covers the full investment amount and written evidence exists",
+        "Exception handling path": "Amounts above the approver's limit route to the higher forum before any release",
+        "Documented acceptance criteria": "Sign-off evidence names approver, date and conditions and is filed with the strategy pack",
+        "Evidence location": "Executive forum minutes, the e-signature record and the filed strategy pack"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Table the final strategy, decision log and investment ask at the executive forum",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Submit the final strategy, the numbered decision log and the investment ask to the forum secretary",
+            "Confirm the pack meets the forum deadline and reaches the standing membership",
+            "Present the decision requests in the numbered order of the log",
+            "Done when the pack is tabled and the decisions are presented at the forum"
+          ],
+          "verify": [
+            "Check the forum agenda and circulation record",
+            "Pass when the pack was circulated to the full membership before the deadline"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the approver authority against the delegation of authority matrix",
+          "actor": "Chief Marketing Officer",
+          "sop": [
+            "Read the total investment amount from the ask and locate the matching authority band",
+            "Confirm the intended approver holds that authority level",
+            "Route the decision upward where the amount exceeds the band",
+            "Done when the approving authority is confirmed as sufficient for the amount"
+          ],
+          "verify": [
+            "Compare the amount to the delegation of authority matrix band",
+            "Pass when the recorded approver sits at or above the required authority level"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Capture the approval outcome and conditions in the meeting minutes",
+          "actor": "Chief Marketing Officer",
+          "sop": [
+            "Record the decision against each numbered item in the decision log",
+            "Note any condition attached and the effective date of the approval",
+            "Confirm the minute wording with the forum chair before it is finalised",
+            "Done when the outcome, conditions and effective date are minuted"
+          ],
+          "verify": [
+            "Read the minutes for the decision, conditions and effective date",
+            "Pass when all three are present against the strategy item"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Obtain the written or system-recorded sign-off",
+          "actor": "Chief Marketing Officer",
+          "sop": [
+            "Obtain a minute extract or e-signature evidencing the approval",
+            "Confirm the evidence names the approver and carries the approval date",
+            "Reject a verbal confirmation as sufficient evidence",
+            "Done when written or system-recorded sign-off evidence exists"
+          ],
+          "verify": [
+            "Inspect the sign-off artefact for approver name and date",
+            "Pass when the evidence is written or system-recorded rather than verbal"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Log approval conditions as tracked actions in the BI action register",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Create a tracked action for each condition attached to the approval",
+            "Assign an owner and due date to each condition",
+            "Publish the condition status to the distribution governance reporting",
+            "Done when every condition is a tracked action with an owner and due date"
+          ],
+          "verify": [
+            "Compare the tracked actions to the conditions in the minutes",
+            "Pass when every minuted condition has a matching tracked action"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "File the sign-off evidence with the published strategy pack",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Store the minute extract or e-signature alongside the approved strategy pack",
+            "Cross-reference the evidence in the document register entry",
+            "Confirm the filed pack version matches the version approved",
+            "Done when the sign-off evidence is filed against the correct pack version"
+          ],
+          "verify": [
+            "Open the filed pack and locate the sign-off evidence",
+            "Pass when the evidence is present and tied to the approved version"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "45fee0e1-9fa8-4d40-a1e9-fbcb9c63e181",
+      "verifier": "Head of Distribution",
+      "generic": {
+        "Defined scope/population": "The full in-force customer and policy base held in the enterprise data warehouse",
+        "In-scope period": "The in-force position at the agreed as-at date used for segmentation",
+        "Required fields populated and valid": "Line of business, premium size band, tenure and renewal behaviour populated for every customer",
+        "Control totals or record counts reconcile": "Segment counts sum to total in-force customers and premium without residual",
+        "Evidence retained with timestamp/version": "Segment definitions published as dated reference data with the cut-point rules recorded",
+        "Exceptions logged with disposition": "Customers failing assignment logged with the missing attribute and a remediation owner",
+        "Test population": "Every in-force customer record in the segmentation run",
+        "Pass/fail thresholds": "Zero unassigned customers and zero customers assigned to more than one segment",
+        "Exception handling path": "Unassignable records are routed to data management for attribute remediation before publication",
+        "Documented acceptance criteria": "Segment definitions published and every in-force customer maps to exactly one segment",
+        "Evidence location": "EDW segmentation table, BI segment profile report and the published reference data entry"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract the in-force customer and policy base from the EDW",
+          "actor": "Customer Insights Lead",
+          "sop": [
+            "Query the EDW for in-force customers with line of business, premium size band, tenure and renewal behaviour",
+            "Set the as-at date and record it with the extract",
+            "Reconcile the extracted customer and premium totals to the in-force reporting",
+            "Done when the in-force extract is produced and reconciled"
+          ],
+          "verify": [
+            "Compare extract totals to the in-force control report",
+            "Pass when customer count and premium tie to the in-force control totals"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Define and document the segment cut-points in Microsoft Excel",
+          "actor": "Customer Insights Lead",
+          "sop": [
+            "Define the commercial and personal segment cut-points such as micro, small, mid and mass affluent",
+            "Write the assignment rule for each segment in unambiguous terms",
+            "Check the rules are mutually exclusive so no customer can satisfy two",
+            "Done when each segment has a written and mutually exclusive cut-point rule"
+          ],
+          "verify": [
+            "Test the rule set for overlap across adjacent segments",
+            "Pass when no two segment rules can both be true for one customer"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Assign every customer record to exactly one segment",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Apply the documented rules to the in-force extract to assign a segment per customer",
+            "List customers that fail assignment with the attribute that is missing",
+            "Route failures for attribute remediation rather than defaulting them into a segment",
+            "Done when every assignable customer holds exactly one segment code"
+          ],
+          "verify": [
+            "Count unassigned and multiply assigned records",
+            "Pass when both counts are zero in the published segmentation"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reconcile segment counts to total in-force",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Sum customer count and premium by segment and compare to the in-force totals",
+            "Investigate any residual difference before publishing",
+            "Record the reconciliation with the run date",
+            "Done when segment totals reconcile to in-force without residual"
+          ],
+          "verify": [
+            "Review the reconciliation working",
+            "Pass when the sum of segments equals the in-force control totals"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Profile each segment in the BI reporting platform",
+          "actor": "Market Research Analyst",
+          "sop": [
+            "Build the profile showing premium, retention, loss ratio and product holding by segment",
+            "Check the segments are commercially distinct and not merely demographic splits",
+            "Flag any two segments whose commercial profile is indistinguishable for merge consideration",
+            "Done when every segment carries a published commercial profile"
+          ],
+          "verify": [
+            "Compare profiles across adjacent segments",
+            "Pass when each segment shows a distinct commercial profile or is flagged for merge"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Publish the segment definitions as governed reference data",
+          "actor": "Customer Insights Lead",
+          "sop": [
+            "Publish the segment codes, cut-point rules and effective date as reference data in the EDW",
+            "Notify downstream channel and territory teams that the definitions are live",
+            "Record the version so later work can cite the definition set used",
+            "Done when the segment definitions are published as versioned reference data"
+          ],
+          "verify": [
+            "Query the reference data table for the published definitions",
+            "Pass when the definitions are retrievable with version and effective date"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fk7ud19vgkfgzlmo3rd2v",
+      "verifier": "Head of Distribution",
+      "generic": {
+        "Defined scope/population": "All prospect segments proposed as targets for the channel strategy planning cycle",
+        "In-scope period": "The strategy planning horizon covered by the target segment list",
+        "Required fields populated and valid": "Market size, premium pool, expected win rate, average premium and reaching channel populated",
+        "Control totals or record counts reconcile": "CRM segment code count matches the approved target segment list count",
+        "Evidence retained with timestamp/version": "Target segment list dated and stored with the market sizing sources cited",
+        "Exceptions logged with disposition": "Segments excluded for appetite or target market reasons logged with the stated reason",
+        "Test population": "Every segment on the proposed target list",
+        "Pass/fail thresholds": "Zero target segments outside approved underwriting appetite and every segment naming a channel",
+        "Exception handling path": "Segments with no channel reach are routed to the channel-gap candidate list",
+        "Documented acceptance criteria": "Target list carries market size, expected win rate and reaching channel for each segment",
+        "Evidence location": "Target segment workbook and the campaign-usable segment codes registered in the CRM"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Select candidate target segments and size them from the EDW",
+          "actor": "Customer Insights Lead",
+          "sop": [
+            "Draw candidate prospect segments from the published segmentation and market data",
+            "State the addressable market size and premium pool for each candidate",
+            "Cite the sizing source and date beside each figure",
+            "Done when every candidate segment carries a sourced market size and premium pool"
+          ],
+          "verify": [
+            "Check each sizing figure for a cited source",
+            "Pass when no market size is stated without a source and date"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Screen candidates against underwriting appetite and target market",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Test each candidate segment against the underwriting appetite statement",
+            "Test against the approved product target market for the products intended",
+            "Exclude failing segments and record the reason for exclusion",
+            "Done when every candidate is screened and exclusions are recorded"
+          ],
+          "verify": [
+            "Review the exclusion list for stated reasons",
+            "Pass when no retained segment sits outside approved underwriting appetite"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Attach expected win rate and average premium per target segment",
+          "actor": "Market Research Analyst",
+          "sop": [
+            "Derive historical conversion and average premium by segment where data exists",
+            "State the basis where a win rate is estimated rather than observed",
+            "Flag segments with no historical basis so the plan does not over-rely on them",
+            "Done when every target segment carries a win rate and average premium with its basis"
+          ],
+          "verify": [
+            "Check the basis stated for each win rate",
+            "Pass when every win rate is marked as observed or estimated with its basis"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Name the reaching channel for each target segment",
+          "actor": "Customer Insights Lead",
+          "sop": [
+            "Map each target segment to the channel that can actually reach it today",
+            "Flag segments where no channel has meaningful reach as channel-gap candidates",
+            "Pass the channel-gap candidates to the channel strategy work",
+            "Done when every target segment names a reaching channel or a gap flag"
+          ],
+          "verify": [
+            "Check every segment row for a channel or gap flag",
+            "Pass when no target segment is left without a reaching channel named or flagged"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Register the target segments as campaign-usable codes in the CRM",
+          "actor": "Customer Insights Lead",
+          "sop": [
+            "Create the segment codes in the CRM so campaigns and pipeline can be tagged",
+            "Confirm the codes align exactly with the approved segment definitions",
+            "Test that a campaign can be filtered by each new code",
+            "Done when every target segment exists as a usable CRM segment code"
+          ],
+          "verify": [
+            "Filter CRM records by each registered segment code",
+            "Pass when every code returns records and matches its definition"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review and approve the target segment list with the Head of Distribution",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Walk the target list, exclusions and channel gaps with the Customer Insights Lead",
+            "Confirm the list is deliverable within current channel reach and capacity",
+            "Approve and date the target segment list",
+            "Done when the target segment list is approved and dated"
+          ],
+          "verify": [
+            "Check the approved list for approver name and date",
+            "Pass when the list carries an approver and date and no unscreened segment"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "6572de43-c6af-4ab9-8537-151b72674082",
+      "verifier": "Head of Distribution",
+      "generic": {
+        "Defined scope/population": "Growth, mix and economics targets for every channel across the planning horizon",
+        "In-scope period": "The full planning horizon covered by the corporate premium plan",
+        "Required fields populated and valid": "New business premium, retention, mix percentage, economics target, owner and source populated",
+        "Control totals or record counts reconcile": "Sum of channel premium targets equals the corporate plan premium figure",
+        "Evidence retained with timestamp/version": "Target register versioned and dated with the plan version it reconciles to",
+        "Exceptions logged with disposition": "Targets without a trackable reporting source logged and resolved before release",
+        "Test population": "Every target line in the channel target register",
+        "Pass/fail thresholds": "Channel targets reconcile to plan exactly and every target names a BI reporting source",
+        "Exception handling path": "Targets lacking a reporting source return to the Sales Operations Analyst before publication",
+        "Documented acceptance criteria": "Register lists growth, mix and economics targets with owner and measurement source per channel",
+        "Evidence location": "Channel target register workbook and the BI target tracking dataset"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Set new business premium and retention targets per channel in Microsoft Excel",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Set new business premium and retention targets per channel for each period of the horizon",
+            "Base the targets on the approved economics and scenario outputs not on last year plus a percentage",
+            "Record the assumption behind any step change in a channel target",
+            "Done when every channel carries premium and retention targets for the full horizon"
+          ],
+          "verify": [
+            "Check each channel for targets covering every period",
+            "Pass when no channel or period is missing a target"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Set the channel mix percentage targets across the horizon",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Convert the channel premium targets into mix percentages by period",
+            "Confirm the mix percentages sum to one hundred percent in every period",
+            "Show the mix shift against the current baseline so the change is explicit",
+            "Done when mix targets are set and sum correctly in every period"
+          ],
+          "verify": [
+            "Sum the mix percentages per period",
+            "Pass when every period sums to one hundred percent"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Set an economics target per channel alongside the growth target",
+          "actor": "Distribution Analyst",
+          "sop": [
+            "Set an acquisition cost ratio or margin contribution target for each channel",
+            "Align the economics target with the channel economics model outputs",
+            "Reject any growth target that has no paired economics target",
+            "Done when every channel carries a paired growth and economics target"
+          ],
+          "verify": [
+            "Check each growth target for a paired economics target",
+            "Pass when no growth target stands without an economics target"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reconcile the sum of channel targets to the corporate plan premium",
+          "actor": "Sales Operations Analyst",
+          "sop": [
+            "Sum the channel premium targets by period and compare to the corporate plan figure",
+            "Resolve any difference by adjusting channel targets rather than the plan total",
+            "Record the reconciliation and the plan version used",
+            "Done when the channel targets reconcile to the corporate plan"
+          ],
+          "verify": [
+            "Review the reconciliation against the named plan version",
+            "Pass when the channel target total equals the corporate plan premium"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Name the BI reporting source and refresh cadence for each target",
+          "actor": "Sales Operations Analyst",
+          "sop": [
+            "Name the BI dataset and measure that will report actuals against each target",
+            "Confirm the measure exists and refreshes on the stated cadence",
+            "Flag any target with no usable reporting source for redefinition",
+            "Done when every target names an existing BI source and refresh cadence"
+          ],
+          "verify": [
+            "Open the named BI measure for a sample of targets",
+            "Pass when every target resolves to an existing BI reporting source"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Assign accountable channel owners and publish the target register",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Assign an accountable owner to each target line",
+            "Publish the target register with version, date and the plan version referenced",
+            "Notify each owner of the targets they now hold",
+            "Done when the register is published with an owner against every target line"
+          ],
+          "verify": [
+            "Check the register for owner coverage across all target lines",
+            "Pass when no target line is published without an accountable owner"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "09073b3c-1a7c-4d00-b038-87c3ba046d92",
+      "verifier": "Head of Distribution",
+      "generic": {
+        "Defined scope/population": "All regional distribution leaders and product line owners on the strategy circulation list",
+        "In-scope period": "From the opening of the socialisation window to its stated closing date",
+        "Required fields populated and valid": "Reviewer, group, session date, comment, affected channel and section recorded on each entry",
+        "Control totals or record counts reconcile": "Responses or noted non-responses recorded for every group on the circulation list",
+        "Evidence retained with timestamp/version": "Dated feedback register held with the draft version that was circulated",
+        "Exceptions logged with disposition": "Recorded dissent captured explicitly so it can be escalated rather than absorbed",
+        "Test population": "Every stakeholder group on the strategy circulation list",
+        "Pass/fail thresholds": "Zero circulation-list groups without a recorded response or noted non-response",
+        "Exception handling path": "Non-responding groups are chased once then recorded as a nil return with the date",
+        "Documented acceptance criteria": "Feedback register holds dated entries from every stakeholder group on the list",
+        "Evidence location": "Feedback register workbook and the CRM engagement records for each reviewer"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Build the circulation list of regional and product stakeholders in the CRM",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "List the regional distribution leaders and product line owners in scope for review",
+            "Confirm the contact and group for each reviewer in the CRM",
+            "Agree the list with the Head of Distribution before invitations go out",
+            "Done when the agreed circulation list is recorded with groups and contacts"
+          ],
+          "verify": [
+            "Compare the list to the regions and product lines in the strategy",
+            "Pass when every affected region and product line has a named reviewer"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Schedule structured review sessions rather than emailing the deck cold",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Schedule a session per group with the draft issued in advance",
+            "Set the session agenda around the decisions rather than a page-by-page read",
+            "Record attendance against the circulation list",
+            "Done when every group has a scheduled session and the draft issued ahead of it"
+          ],
+          "verify": [
+            "Check scheduling and attendance against the circulation list",
+            "Pass when every group has a session scheduled and the draft delivered"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Issue the specific review questions to each reviewer",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Give each reviewer the questions to answer on mix achievability, target market and operational impact",
+            "State the response format and the closing date",
+            "Confirm the questions are consistent across groups so answers can be compared",
+            "Done when every reviewer holds the same structured question set"
+          ],
+          "verify": [
+            "Check the question set issued to each group",
+            "Pass when all groups received the same structured questions and closing date"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Log every comment in the feedback register at the point it is raised",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Capture comments live in the session into the feedback register",
+            "Tag each comment to the channel and the document section affected",
+            "Confirm the wording back to the raiser before closing the session",
+            "Done when every comment raised is logged and tagged"
+          ],
+          "verify": [
+            "Compare session notes to the register entries",
+            "Pass when every raised comment appears in the register with its tags"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record dissent explicitly where a stakeholder disagrees with a target",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Mark disagreements on targets as dissent rather than folding them into general comments",
+            "Record the reason and the stakeholder position in the register",
+            "Route recorded dissent to the escalation route rather than closing it locally",
+            "Done when every disagreement on a target is recorded as explicit dissent"
+          ],
+          "verify": [
+            "Review register entries relating to targets",
+            "Pass when disagreements are recorded as dissent with the stated position"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Close the feedback window and confirm receipt to every group",
+          "actor": "Distribution Specialist",
+          "sop": [
+            "Close the window on the stated date and chase outstanding groups once before closing",
+            "Record a nil return with its date for any group that does not respond",
+            "Confirm back to each group that their input is captured in the register",
+            "Done when the window is closed and every group has a response or nil return recorded"
+          ],
+          "verify": [
+            "Check the register for coverage of every circulation-list group",
+            "Pass when no group is missing a recorded response or noted non-response"
+          ]
+        }
+      ]
+    }
+  ]
+}
