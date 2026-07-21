@@ -525,8 +525,9 @@ function ComponentSection({
           {row.component}
         </span>
         <span style={{ fontSize: 11.5, color: '#525252', fontVariantNumeric: 'tabular-nums' }}>
-          {raw} current →{' '}
-          <b style={{ fontWeight: 800, color: INDIGO, fontSize: 13 }}>{row.groups.length}</b>
+          {raw} element{raw === 1 ? '' : 's'} →{' '}
+          <b style={{ fontWeight: 800, color: INDIGO, fontSize: 13 }}>{row.groups.length}</b> row
+          {row.groups.length === 1 ? '' : 's'}
         </span>
       </button>
       {open && (
@@ -568,28 +569,21 @@ export default function ProductNormalizeColumn({
   expandedComponents,
   onToggleComponent,
 }: Props) {
-  // Outstanding review = flagged groups not yet approved (held still counts).
-  const approvedCount = comparison.rows.reduce(
-    (a, r) =>
-      a +
-      r.groups.filter(
-        (g) => (g.status === 'PARTIAL' || g.status === 'UNIQUE') && decisions[g.key] === 'APPROVED',
-      ).length,
+  // Every row lands in exactly ONE of three buckets, so the headline
+  // counts always sum to the row total a reader just saw:
+  // in the model (auto-folds + adopted) + kept as variants (held) + need a decision.
+  const flagged = comparison.rows.flatMap((r) =>
+    r.groups.filter((g) => g.status === 'PARTIAL' || g.status === 'UNIQUE'),
+  );
+  const approvedCount = flagged.filter((g) => decisions[g.key] === 'APPROVED').length;
+  const heldCount = flagged.filter((g) => decisions[g.key] === 'HELD').length;
+  const outstandingReview = Math.max(0, comparison.reviewCount - approvedCount - heldCount);
+  const autoCount = comparison.rows.reduce(
+    (a, r) => a + r.groups.filter((g) => g.status === 'COMMON' || g.status === 'SINGLE').length,
     0,
   );
-  const outstandingReview = Math.max(0, comparison.reviewCount - approvedCount);
-  // Break the normalized total into what it's actually made of, so the numbers
-  // are self-explanatory: common (in every version, auto-fold) + varies/unique
-  // (need a review decision) + already-approved.
-  const commonCount = comparison.rows.reduce(
-    (a, r) => a + r.groups.filter((g) => g.status === 'COMMON').length,
-    0,
-  );
-  const singleCount = comparison.rows.reduce(
-    (a, r) => a + r.groups.filter((g) => g.status === 'SINGLE').length,
-    0,
-  );
-  const settled = commonCount + singleCount + approvedCount;
+  const settled = autoCount + approvedCount;
+  const decided = settled + heldCount;
   return (
     <div style={{ width: 560, flexShrink: 0, alignSelf: 'flex-start' }}>
       <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>
@@ -625,9 +619,9 @@ export default function ProductNormalizeColumn({
             whiteSpace: 'nowrap',
           }}
         >
-          <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.rawCount}</b> elements ·{' '}
+          <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.rawCount}</b> elements across{' '}
           {versions.length} version{versions.length === 1 ? '' : 's'} →{' '}
-          <b style={{ fontWeight: 700, color: INDIGO }}>{comparison.normalizedCount}</b> distinct
+          <b style={{ fontWeight: 700, color: INDIGO }}>{comparison.normalizedCount}</b> rows
         </span>
         {versions.length > 1 && (
           <span
@@ -645,9 +639,9 @@ export default function ProductNormalizeColumn({
               whiteSpace: 'nowrap',
             }}
           >
-            <CountKey color={MATCH_META.COMMON.fg} n={commonCount} label="common" />
-            <CountKey color={GREEN} n={settled} label="in model" />
-            <CountKey color={MATCH_META.PARTIAL.fg} n={outstandingReview} label="to review" />
+            <CountKey color={GREEN} n={settled} label="in the model" />
+            {heldCount > 0 && <CountKey color="#94a3b8" n={heldCount} label="kept as variants" />}
+            <CountKey color={MATCH_META.PARTIAL.fg} n={outstandingReview} label="need a decision" />
           </span>
         )}
       </div>
@@ -658,20 +652,23 @@ export default function ProductNormalizeColumn({
         right={`${
           comparison.normalizedCount === 0
             ? 0
-            : Math.round((settled / comparison.normalizedCount) * 100)
-        }%`}
+            : Math.round((decided / comparison.normalizedCount) * 100)
+        }% decided`}
         track="#e0e7ff"
         segments={[
           { value: settled, color: INDIGO },
+          { value: heldCount, color: '#94a3b8' },
           { value: outstandingReview, color: MATCH_META.PARTIAL.fg },
         ]}
       >
         <span style={{ color: INDIGO }}>
-          {settled} settled into the model ·{' '}
+          {settled} of {comparison.normalizedCount} rows in the model ·{' '}
           {outstandingReview > 0 ? (
-            <span style={{ color: MATCH_META.PARTIAL.fg }}>{outstandingReview} to review</span>
+            <span style={{ color: MATCH_META.PARTIAL.fg }}>
+              {outstandingReview} need a decision
+            </span>
           ) : (
-            <span style={{ color: GREEN }}>nothing left to review</span>
+            <span style={{ color: GREEN }}>every decision made</span>
           )}
         </span>
       </OverviewCard>

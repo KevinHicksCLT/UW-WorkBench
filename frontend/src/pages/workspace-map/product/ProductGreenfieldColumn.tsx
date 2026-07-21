@@ -59,10 +59,12 @@ function GreenfieldSlot({
   onToggle: () => void;
 }) {
   const normalized = normalizedGroups(row, decisions);
-  const toReconcile = row.groups.filter(
-    (g) => (g.status === 'PARTIAL' || g.status === 'UNIQUE') && decisions[g.key] !== 'APPROVED',
+  // Still-open decisions only — a group HELD as a version variant is decided
+  // (it stays out of the model), so it no longer counts against this slot.
+  const toDecide = row.groups.filter(
+    (g) => (g.status === 'PARTIAL' || g.status === 'UNIQUE') && !decisions[g.key],
   ).length;
-  const settled = toReconcile === 0;
+  const settled = toDecide === 0;
 
   return (
     <div
@@ -136,7 +138,7 @@ function GreenfieldSlot({
               textOverflow: 'ellipsis',
             }}
           >
-            {settled ? 'reconciled' : `${toReconcile} to reconcile`}
+            {settled ? 'all decided' : `${toDecide} need${toDecide === 1 ? 's' : ''} a decision`}
           </span>
         </span>
         <span
@@ -169,7 +171,8 @@ function GreenfieldSlot({
         >
           {normalized.length === 0 ? (
             <span style={{ fontSize: 10.5, color: '#a3a3a3' }}>
-              No normalized elements yet — {toReconcile} awaiting a review decision.
+              Nothing in the model yet — {toDecide} element{toDecide === 1 ? '' : 's'} need a
+              decision.
             </span>
           ) : (
             normalized.map((g) => {
@@ -197,7 +200,7 @@ function GreenfieldSlot({
                       {g.name}
                     </span>
                     <span style={{ fontSize: 10, color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                      {g.presentIn}→1
+                      from {g.presentIn} version{g.presentIn === 1 ? '' : 's'}
                     </span>
                     {adopted && (
                       <span
@@ -253,14 +256,13 @@ export default function ProductGreenfieldColumn({
   expandedComponents,
   onToggleComponent,
 }: Props) {
-  // Reconciled = normalized elements actually in the model ÷ total groups.
   const inModel = comparison.rows.reduce((a, r) => a + normalizedGroups(r, decisions).length, 0);
+  // Still-open decisions only — HELD groups are decided out of the model.
   const openDecisions = comparison.rows.reduce(
     (a, r) =>
       a +
-      r.groups.filter(
-        (g) => (g.status === 'PARTIAL' || g.status === 'UNIQUE') && decisions[g.key] !== 'APPROVED',
-      ).length,
+      r.groups.filter((g) => (g.status === 'PARTIAL' || g.status === 'UNIQUE') && !decisions[g.key])
+        .length,
     0,
   );
   // Model composition (the card) — WHAT the target model is made of, not the
@@ -310,15 +312,15 @@ export default function ProductGreenfieldColumn({
             fontVariantNumeric: 'tabular-nums',
           }}
         >
-          <b style={{ fontWeight: 700, color: GREEN }}>{inModel}</b> in model
+          <b style={{ fontWeight: 700, color: GREEN }}>{inModel}</b> in the model
           {openDecisions > 0 ? (
             <>
               {' · '}
-              <b style={{ fontWeight: 700, color: MATCH_META.PARTIAL.fg }}>{openDecisions}</b> to
-              review
+              <b style={{ fontWeight: 700, color: MATCH_META.PARTIAL.fg }}>{openDecisions}</b> need
+              a decision
             </>
           ) : (
-            <span style={{ color: GREEN }}>· reconciled</span>
+            <span style={{ color: GREEN }}>· all decided</span>
           )}
         </span>
       </div>
@@ -333,7 +335,7 @@ export default function ProductGreenfieldColumn({
         ]}
       >
         <span style={{ color: GREEN }}>
-          {autoIn} fold in automatically ·{' '}
+          {autoIn} added automatically ·{' '}
           <span style={{ color: '#4f46e5' }}>{adoptedIn} adopted by decision</span>
         </span>
       </OverviewCard>

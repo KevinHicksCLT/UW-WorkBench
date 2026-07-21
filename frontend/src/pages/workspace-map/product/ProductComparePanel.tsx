@@ -139,6 +139,15 @@ export default function ProductComparePanel(props: Props) {
   const countBy = (s: MatchStatus) =>
     comparison.rows.reduce((a, r) => a + r.groups.filter((g) => g.status === s).length, 0);
   const filterable: MatchStatus[] = ['COMMON', 'PARTIAL', 'UNIQUE'];
+  // Vocabulary the counts live by: an ELEMENT is one card, specific to its
+  // version; a ROW lines up the semantically-same element across versions.
+  // Users count cards, so the headline counts elements; the chips count rows.
+  const chipLabel: Record<MatchStatus, string> = {
+    COMMON: 'shared by all versions',
+    PARTIAL: 'shared by some',
+    UNIQUE: 'in one version only',
+    SINGLE: '',
+  };
 
   return (
     <div
@@ -184,8 +193,11 @@ export default function ProductComparePanel(props: Props) {
               whiteSpace: 'nowrap',
             }}
           >
-            <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.normalizedCount}</b>
-            <span style={{ color: '#525252' }}>concepts</span>
+            <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.rawCount}</b>
+            <span style={{ color: '#525252' }}>
+              elements in{' '}
+              <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.normalizedCount}</b> rows
+            </span>
             {filterable.map((s) => {
               const meta = MATCH_META[s];
               const active = matchFilter === s;
@@ -220,8 +232,7 @@ export default function ProductComparePanel(props: Props) {
                       flexShrink: 0,
                     }}
                   />
-                  <b style={{ fontWeight: 700, color: meta.fg }}>{countBy(s)}</b>{' '}
-                  {meta.label.toLowerCase()}
+                  <b style={{ fontWeight: 700, color: meta.fg }}>{countBy(s)}</b> {chipLabel[s]}
                 </button>
               );
             })}
@@ -306,6 +317,8 @@ export default function ProductComparePanel(props: Props) {
               ? row.groups.filter((g) => g.status === matchFilter)
               : row.groups;
             const common = row.groups.filter((g) => g.status === 'COMMON').length;
+            // Elements = the cards a user can actually count in this band.
+            const rawInRow = row.groups.reduce((a, g) => a + g.presentIn, 0);
             const open = !!expandedComponents[row.component];
             const counts = (
               <div
@@ -316,12 +329,13 @@ export default function ProductComparePanel(props: Props) {
                   whiteSpace: 'nowrap',
                 }}
               >
-                <b style={{ fontWeight: 700, color: '#525252' }}>{row.groups.length}</b> concerns
+                <b style={{ fontWeight: 700, color: '#525252' }}>{rawInRow}</b>{' '}
+                {rawInRow === 1 ? 'element' : 'elements'}
                 {!single && common > 0 && (
                   <>
                     {' · '}
                     <span style={{ color: MATCH_META.COMMON.fg, fontWeight: 600 }}>
-                      {common} common
+                      {common} shared by all
                     </span>
                   </>
                 )}
