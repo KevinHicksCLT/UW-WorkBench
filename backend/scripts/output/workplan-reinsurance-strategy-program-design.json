@@ -1,0 +1,829 @@
+{
+  "area": "Reinsurance Strategy & Program Design",
+  "tasks": [
+    {
+      "taskId": "a094f5a1-a616-4ae0-b66f-b7eb4d6f72c9",
+      "verifier": "Catastrophe & Exposure Manager",
+      "generic": {
+        "Defined scope/population": "All in-force policies carrying TIV or sums insured across every line, peril, and CRESTA zone.",
+        "In-scope period": "In-force position as at the agreed exposure cut-off date for the current treaty year.",
+        "Required fields populated and valid": "Each policy row carries line of business, peril code, location or CRESTA zone, TIV, and currency.",
+        "Control totals or record counts reconcile": "Aggregated gross TIV and policy count tie to the policy admin in-force premium register within tolerance.",
+        "Evidence retained with timestamp/version": "Aggregation workbook stored with the extract timestamp and the policy admin extract version reference.",
+        "Exceptions logged with disposition": "Policies with missing peril code or blank location listed with a fix, exclude, or accept disposition.",
+        "Test population": "The full aggregated in-force exposure set by line, peril, and geography at the cut-off date.",
+        "Pass/fail thresholds": "Gross TIV reconciles to the in-force register within tolerance and no null peril codes remain in scope.",
+        "Exception handling path": "Unresolved missing peril or location records are referred to the Catastrophe & Exposure Manager before release.",
+        "Documented acceptance criteria": "Accepted when totals reconcile, the as-at date is recorded, and every exception carries a disposition.",
+        "Evidence location": "Exposure aggregation folder in the lakehouse with the Excel summary and reconciliation attached."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract in-force TIV and sums insured from the policy administration system",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Run the in-force extract in the policy administration system at the agreed cut-off date.",
+            "Include policy number, line, peril code, location, CRESTA zone, TIV, and currency.",
+            "Done when the in-force extract file is produced with its as-at date stamped."
+          ],
+          "verify": [
+            "Check the extract as-at date matches the agreed cut-off date.",
+            "Pass when the extract exists with the correct as-at date and all required columns."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Load the extract into the enterprise data warehouse staging area",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Load the extract into the lakehouse exposure staging table for the treaty year.",
+            "Confirm the loaded row count equals the extract row count.",
+            "Done when the staged exposure table is populated and row counts match."
+          ],
+          "verify": [
+            "Compare staged row count to the source extract row count.",
+            "Pass when staged and source row counts are identical."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Aggregate exposure by line, peril, and CRESTA zone in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Pivot the staged exposure by line of business, peril, and CRESTA or postcode zone.",
+            "Sum TIV and policy count for each combination and hold currency separately.",
+            "Done when the aggregated exposure summary is built across all three dimensions."
+          ],
+          "verify": [
+            "Check every line, peril, and zone combination present in staging appears in the summary.",
+            "Pass when no populated combination is missing from the aggregation."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reconcile aggregated gross TIV to the in-force premium register",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Compare aggregated gross TIV and policy count to the policy admin in-force premium register.",
+            "Investigate any difference above the agreed tolerance and record the cause.",
+            "Done when the reconciliation is completed and differences are explained."
+          ],
+          "verify": [
+            "Check the reconciling difference against the agreed tolerance.",
+            "Pass when the difference is within tolerance or fully explained in writing."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Flag policies with missing peril codes or blank location fields",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Filter the staged exposure for null peril code or blank location or zone.",
+            "List each affected policy with its TIV and assign a disposition.",
+            "Done when the exception list is complete with a disposition on every row."
+          ],
+          "verify": [
+            "Check no exception row is left without a disposition.",
+            "Pass when every flagged policy carries a fix, exclude, or accept decision."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm facultative assumed treatment and release the aggregation",
+          "actor": "Catastrophe & Exposure Manager",
+          "sop": [
+            "Confirm whether inward facultative assumed business is included or excluded and state it on the summary.",
+            "Review the reconciliation and exception list before release.",
+            "Done when the aggregation is released for downstream modelling and structuring."
+          ],
+          "verify": [
+            "Check the released summary states the facultative assumed treatment explicitly.",
+            "Pass when the release is recorded with the facultative treatment stated and exceptions dispositioned."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fiyq50phokfgzu6dtpud4",
+      "verifier": "Head of Reinsurance",
+      "generic": {
+        "Defined scope/population": "The final net-retention strategy covering per-risk and per-event retentions for every line of business.",
+        "In-scope period": "Retentions applying from the stated effective date through the current treaty year.",
+        "Required fields populated and valid": "Approval record carries pack version, per-risk and per-event values, approver name, and effective date.",
+        "Control totals or record counts reconcile": "Every approved retention value matches the presented pack or a minuted in-session amendment.",
+        "Evidence retained with timestamp/version": "Signed approval filed in the model governance repository with the approved pack version and date.",
+        "Exceptions logged with disposition": "In-session amendments to retention values logged with the reason and the amended figure.",
+        "Test population": "All per-risk and per-event retention values in the approved net-retention strategy.",
+        "Pass/fail thresholds": "Approval is valid only with a named approver, date, pack version, and stated effective date.",
+        "Exception handling path": "Values differing from the pack without a minuted amendment are returned to the Head of Reinsurance.",
+        "Documented acceptance criteria": "Accepted when signed approval, actuarial opinion, and effective date are all recorded together.",
+        "Evidence location": "Model governance repository approval folder with the SharePoint retention pack version linked."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the retention pack version in SharePoint matches the version tabled",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Open the retention recommendation pack in SharePoint and note its version reference.",
+            "Confirm the tabled pack is the same version with no later draft outstanding.",
+            "Done when the pack version to be approved is confirmed and recorded."
+          ],
+          "verify": [
+            "Check the recorded version reference against the SharePoint file version history.",
+            "Pass when the approved version reference matches the tabled pack exactly."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Capture the actuarial function opinion on reinsurance adequacy",
+          "actor": "Chief Actuary",
+          "sop": [
+            "State the actuarial opinion on the adequacy of the proposed reinsurance arrangement.",
+            "Record any reservation or condition attached to that opinion.",
+            "Done when the actuarial opinion is recorded against the pack version."
+          ],
+          "verify": [
+            "Check the opinion is written, attributed, and dated.",
+            "Pass when a dated actuarial opinion covering adequacy is on file."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record per-risk and per-event retention values as approved",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Record the approved per-risk retention by line and the per-event catastrophe retention.",
+            "Record any amendment made in session with the original and amended value.",
+            "Done when every approved retention value is written into the approval record."
+          ],
+          "verify": [
+            "Compare each recorded value to the pack and to the minuted amendments.",
+            "Pass when no recorded value differs from the pack without a minuted amendment."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Obtain signed approval from the Head of Reinsurance",
+          "actor": "Head of Reinsurance",
+          "sop": [
+            "Sign the approval page confirming the retention values and pack version.",
+            "Note CFO and CUO concurrence and any condition attached.",
+            "Done when the signed approval carries approver name and date."
+          ],
+          "verify": [
+            "Check the signature block for name, role, and date.",
+            "Pass when the approval is signed and dated by the Head of Reinsurance."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Set the effective date from which the approved retentions apply",
+          "actor": "Head of Reinsurance",
+          "sop": [
+            "State the date from which the approved retentions take effect.",
+            "Confirm the date aligns with the treaty year and planned placement dates.",
+            "Done when the effective date is stated on the approval record."
+          ],
+          "verify": [
+            "Check the effective date is not earlier than the approval date without a stated reason.",
+            "Pass when a coherent effective date is recorded on the approval."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "File the signed approval in the model governance repository",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Upload the signed approval and the approved pack version to the governance repository.",
+            "Link the approval reference to the retention rationale document.",
+            "Done when the approval is filed and retrievable by its reference."
+          ],
+          "verify": [
+            "Retrieve the filed approval by its reference and check the pack version attached.",
+            "Pass when the signed approval and matching pack version are both retrievable."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "c8df8194-c48c-4647-b280-9e66ef411260",
+      "verifier": "Reinsurance Manager",
+      "generic": {
+        "Defined scope/population": "The selected peer set of reinsurers matched on line mix, premium size, and territory.",
+        "In-scope period": "Most recent published peer financials and current rating-agency capital adequacy commentary.",
+        "Required fields populated and valid": "Each peer row carries retention, surplus, gross written premium, and the source of the figures.",
+        "Control totals or record counts reconcile": "Peer retention ratios recompute from the stated surplus and premium figures without difference.",
+        "Evidence retained with timestamp/version": "Benchmarking workbook retained with the peer data extraction date and source document versions.",
+        "Exceptions logged with disposition": "Peers excluded from the set logged with the reason for exclusion.",
+        "Test population": "All peers in the selected set plus the company's own retention ratios.",
+        "Pass/fail thresholds": "Own retention must be positioned against the peer quartile range and the agency guidance threshold.",
+        "Exception handling path": "Outlier positions versus the peer range are explained in writing or escalated to the Reinsurance Manager.",
+        "Documented acceptance criteria": "Accepted when peer basis, own ratios, agency guidance, and the implication for retention are documented.",
+        "Evidence location": "Benchmarking workbook in the lakehouse analysis folder with the Excel exhibit for the retention pack."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Select the peer set and record the selection basis in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Select peers matched on line mix, premium size, and territory.",
+            "Record the matching criteria and list any peer excluded with the reason.",
+            "Done when the peer set and its selection basis are documented."
+          ],
+          "verify": [
+            "Check each peer against the stated matching criteria.",
+            "Pass when every peer in the set meets the recorded selection basis."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Pull peer retention, surplus, and premium data into the warehouse workbook",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Extract published retention, surplus, and gross written premium for each peer.",
+            "Record the source document and its date for every figure.",
+            "Done when the peer data table is populated with sources cited."
+          ],
+          "verify": [
+            "Check each peer figure traces to a cited source document.",
+            "Pass when no peer figure lacks a dated source reference."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Express own retention as a percentage of surplus and of gross written premium",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Calculate own per-risk and per-event retention as a percentage of surplus.",
+            "Calculate the same retentions as a percentage of gross written premium.",
+            "Done when both own comparability ratios are calculated."
+          ],
+          "verify": [
+            "Recompute the ratios from the underlying surplus and premium figures.",
+            "Pass when recomputed ratios match the stated ratios."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Compare against rating-agency retention guidance thresholds",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Retrieve the current rating-agency capital adequacy commentary on retention guidance.",
+            "Compare own ratios against the stated guidance thresholds.",
+            "Done when the position versus agency guidance is recorded."
+          ],
+          "verify": [
+            "Check the agency commentary cited is the current published version.",
+            "Pass when the comparison cites a current, dated agency source."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Position own retention against the peer quartile range",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Calculate the peer quartile range for each retention ratio.",
+            "Mark where own retention sits and explain any outlier position.",
+            "Done when own position versus the quartile range is documented with explanation."
+          ],
+          "verify": [
+            "Check every outlier position carries a written explanation.",
+            "Pass when no outlier is left unexplained."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "State the benchmarking implication for the recommended retention range",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Draw the conclusion on whether own retention is high, low, or in line with peers.",
+            "State the implied retention range for the recommendation.",
+            "Done when the benchmarking conclusion and implied range are documented."
+          ],
+          "verify": [
+            "Check the conclusion follows from the peer and agency comparisons shown.",
+            "Pass when the implied range is supported by the exhibits in the workbook."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "96d7706f-fd6d-46c5-9a15-04b85103f5cc",
+      "verifier": "Reinsurance Manager",
+      "generic": {
+        "Defined scope/population": "Underwriting, ceded operations, and pricing teams plus all systems holding retention parameters.",
+        "In-scope period": "From the approved retention effective date through the treaty year the limits apply to.",
+        "Required fields populated and valid": "Communication states per-risk and per-event values, effective date, and treaty year for each line.",
+        "Control totals or record counts reconcile": "Retention values in the policy admin and reinsurance admin systems match the approved retention table.",
+        "Evidence retained with timestamp/version": "Issued retention notice retained with send date, recipient list, and approved pack version cited.",
+        "Exceptions logged with disposition": "Teams or systems not updated by the effective date logged with owner and remediation date.",
+        "Test population": "All active treaty records and underwriting referral thresholds affected by the new retentions.",
+        "Pass/fail thresholds": "No active treaty or referral threshold may still carry the superseded prior-year retention value.",
+        "Exception handling path": "Systems still holding superseded values are escalated to the Reinsurance Manager for immediate correction.",
+        "Documented acceptance criteria": "Accepted when all recipients acknowledge and both systems reflect the approved values and effective date.",
+        "Evidence location": "Distribution log in the email and Teams record with system update evidence from the reinsurance admin system."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Issue the approved retention table to underwriting, ceded ops, and pricing",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Send the approved per-risk and per-event retention table by email and Teams.",
+            "Name the approved pack version and the approval reference in the message.",
+            "Done when the retention table has been issued to all three teams."
+          ],
+          "verify": [
+            "Check the sent message against the intended recipient list.",
+            "Pass when every named team received the retention table."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "State the effective date and treaty year in the communication",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "State the date from which the retentions apply and the treaty year covered.",
+            "State that prior-year values are superseded from that date.",
+            "Done when the effective date and treaty year are stated in the issued notice."
+          ],
+          "verify": [
+            "Check the notice text carries both the effective date and treaty year.",
+            "Pass when both are present and consistent with the approval record."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Update underwriting referral and authority limits in the policy admin system",
+          "actor": "Reinsurance Underwriter",
+          "sop": [
+            "Update referral thresholds and authority limits to the new retention values.",
+            "Set the change to take effect on the stated effective date.",
+            "Done when referral and authority limits reflect the approved retentions."
+          ],
+          "verify": [
+            "Query referral thresholds in the policy admin system for the affected lines.",
+            "Pass when every threshold equals the approved retention with the correct effective date."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Update retention parameters on treaty records in the reinsurance admin system",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "Update the retention parameter on each active treaty record.",
+            "Confirm no active treaty still carries the prior-year retention.",
+            "Done when all active treaty records hold the approved retention values."
+          ],
+          "verify": [
+            "List active treaties and compare their retention parameter to the approved table.",
+            "Pass when no active treaty carries a superseded retention value."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Collect acknowledgements from each recipient team lead",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Request written acknowledgement from underwriting, ceded operations, and pricing leads.",
+            "Chase any lead who has not responded before the effective date.",
+            "Done when an acknowledgement is held from every recipient team lead."
+          ],
+          "verify": [
+            "Check the acknowledgement log against the recipient list.",
+            "Pass when every recipient team lead has acknowledged."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Log outstanding system or team gaps with owners and remediation dates",
+          "actor": "Ceded Reinsurance Analyst",
+          "sop": [
+            "List any system or team not aligned to the new retentions by the effective date.",
+            "Assign an owner and remediation date to each gap.",
+            "Done when every gap carries an owner and a remediation date."
+          ],
+          "verify": [
+            "Check each logged gap has an owner and a date.",
+            "Pass when no gap is recorded without owner and remediation date."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "83f9f973-1a1b-4617-a876-bca662dcc17c",
+      "verifier": "Reinsurance Manager",
+      "generic": {
+        "Defined scope/population": "All retention options analysed for the cycle plus the recommended retention by line of business.",
+        "In-scope period": "The retention setting cycle preceding the treaty year the recommendation applies to.",
+        "Required fields populated and valid": "Pack contains recommendation, options exhibit, capital and cost exhibit, stress results, and sign-off page.",
+        "Control totals or record counts reconcile": "Figures in the pack agree to the source scenario and stress workbooks with no restated numbers.",
+        "Evidence retained with timestamp/version": "Pack saved in SharePoint with a version number and the date it was assembled.",
+        "Exceptions logged with disposition": "Any exhibit missing at assembly logged with owner and the date it will be added.",
+        "Test population": "Every section of the assembled retention recommendation pack.",
+        "Pass/fail thresholds": "Pack is complete only with recommendation, options, stress, benchmarking, and an unsigned sign-off page.",
+        "Exception handling path": "Missing or inconsistent exhibits are returned to the Reinsurance Actuary before the pack is circulated.",
+        "Documented acceptance criteria": "Accepted when all five required sections are present and figures tie to their source workbooks.",
+        "Evidence location": "SharePoint retention pack library with the supporting Excel exhibits linked to the pack version."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Draft the recommendation section with alternatives considered and rejected",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "State the recommended retention by line of business.",
+            "List each alternative considered and the reason it was rejected.",
+            "Done when the recommendation section names the recommendation and rejected alternatives."
+          ],
+          "verify": [
+            "Check every alternative modelled appears with a rejection reason.",
+            "Pass when no modelled alternative is omitted from the section."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Attach the capital relief and cost-of-cover exhibit for each option",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Insert the capital relief and net cost of cover figures for every retention option.",
+            "Confirm the figures agree to the scenario workbook.",
+            "Done when the exhibit is attached for all options."
+          ],
+          "verify": [
+            "Trace a sample of exhibit figures back to the scenario workbook.",
+            "Pass when sampled figures match the scenario workbook exactly."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Insert the 1-in-100 and 1-in-250 stress results at the recommended retention",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Insert net loss at the 1-in-100 and 1-in-250 return periods for the recommended retention.",
+            "State the tolerance threshold alongside each result.",
+            "Done when both stress results and their tolerances are shown."
+          ],
+          "verify": [
+            "Compare the inserted results to the stress-testing output.",
+            "Pass when both return-period figures match the stress workbook."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Insert the peer benchmarking exhibit and agency commentary",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Insert the peer benchmarking exhibit with own position versus the quartile range.",
+            "Include the rating-agency guidance commentary reference.",
+            "Done when benchmarking and agency commentary are in the pack."
+          ],
+          "verify": [
+            "Check the benchmarking exhibit version matches the completed benchmarking analysis.",
+            "Pass when the exhibit matches the source benchmarking workbook."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Add the sign-off page for Head of Reinsurance, CUO, and CFO",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Add a sign-off page listing Head of Reinsurance, CUO, and CFO with date fields.",
+            "Leave the page unsigned pending the approval session.",
+            "Done when the unsigned sign-off page is present in the pack."
+          ],
+          "verify": [
+            "Check all three named signatories and date fields appear on the page.",
+            "Pass when the sign-off page is present, complete, and unsigned."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Version and publish the assembled pack to SharePoint",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Review the assembled pack for completeness across all five sections.",
+            "Publish it to the SharePoint retention pack library with a version number.",
+            "Done when the versioned pack is published and circulated for the approval session."
+          ],
+          "verify": [
+            "Open the published pack and confirm all five sections are present.",
+            "Pass when the published version contains every required section."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "7d2827c8-6ff4-4d3e-a741-3b879cf9ee68",
+      "verifier": "Reinsurance Manager",
+      "generic": {
+        "Defined scope/population": "Per-risk retention for every line of business plus the per-event catastrophe retention.",
+        "In-scope period": "The treaty year for which retentions are being set, using the current in-force exposure basis.",
+        "Required fields populated and valid": "Each selected retention carries the modelled net loss, earnings-at-risk, and capital impact beside it.",
+        "Control totals or record counts reconcile": "Modelled net losses at each retention agree to the actuarial platform scenario outputs.",
+        "Evidence retained with timestamp/version": "Retention selection workbook retained with the model version and run date used to support it.",
+        "Exceptions logged with disposition": "Any retention breaching a board quantitative limit logged with the escalation and its outcome.",
+        "Test population": "All candidate per-risk and per-event retention values tested in the cycle.",
+        "Pass/fail thresholds": "No selected retention may project a solvency ratio below the internal capital target.",
+        "Exception handling path": "Retentions failing the solvency floor are rejected and re-set by the Reinsurance Manager.",
+        "Documented acceptance criteria": "Accepted when every value is recorded with net loss, capital impact, and a passed appetite test.",
+        "Evidence location": "Retention selection workbook in the lakehouse with the actuarial platform run reference recorded."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Set per-risk retention by line against the earnings-at-risk tolerance",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Set a candidate per-risk retention for each line of business.",
+            "Compare the resulting earnings at risk to the approved tolerance.",
+            "Done when a candidate per-risk retention is set for every line."
+          ],
+          "verify": [
+            "Check each line has a candidate value with its earnings-at-risk figure.",
+            "Pass when no line is left without a candidate retention and tolerance test."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Set the per-event catastrophe retention against the 1-in-N net loss tolerance",
+          "actor": "Catastrophe & Exposure Manager",
+          "sop": [
+            "Set the per-event retention using the modelled OEP curve.",
+            "Compare net loss at the approved return period to the tolerance.",
+            "Done when the per-event retention candidate is set and tested."
+          ],
+          "verify": [
+            "Check the net loss figure ties to the cat model output.",
+            "Pass when the per-event candidate is supported by a modelled net loss."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Test each proposed retention in the actuarial modeling platform",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Run each candidate retention through the capital model.",
+            "Record the projected solvency ratio and required capital for each.",
+            "Done when every candidate has a modelled solvency and capital result."
+          ],
+          "verify": [
+            "Check each candidate has a recorded solvency ratio.",
+            "Pass when no candidate lacks a modelled solvency result."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Compare results to the solvency floor and internal capital target",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Compare each candidate's projected solvency ratio to the internal capital target.",
+            "Reject any candidate falling below the target and record the rejection.",
+            "Done when every candidate is marked pass or fail against the capital target."
+          ],
+          "verify": [
+            "Check no retained candidate falls below the internal capital target.",
+            "Pass when all surviving candidates meet or exceed the capital target."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm the selection against board-approved quantitative risk limits",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Check the selected retentions against the board-approved quantitative risk limits.",
+            "Log and escalate any breach with the proposed treatment.",
+            "Done when the selection is confirmed against every applicable board limit."
+          ],
+          "verify": [
+            "Check each applicable board limit has been tested against the selection.",
+            "Pass when no untested board limit remains and any breach is logged."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record selected values with net loss and capital impact in Microsoft Excel",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Record the final per-risk and per-event values in the selection workbook.",
+            "Record the modelled net loss and capital impact alongside each value.",
+            "Done when every selected value is recorded with its supporting metrics."
+          ],
+          "verify": [
+            "Check each recorded value carries net loss and capital impact figures.",
+            "Pass when no selected value is recorded without supporting metrics."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fiz060pmjkfgz2tcfrfbw",
+      "verifier": "Reinsurance Manager",
+      "generic": {
+        "Defined scope/population": "The approved net-retention strategy, the rejected alternatives, and the appetite metrics tested.",
+        "In-scope period": "The retention setting cycle covered by the signed approval record.",
+        "Required fields populated and valid": "Rationale names selected value, rejected alternatives, appetite metrics, model version, and limitations.",
+        "Control totals or record counts reconcile": "Every retention value cited in the rationale matches the signed approval record.",
+        "Evidence retained with timestamp/version": "Rationale filed in the model governance repository with a version and cross-reference to the approval.",
+        "Exceptions logged with disposition": "Known data limitations recorded with their effect on the conclusion and any mitigating action.",
+        "Test population": "All retention decisions documented in the rationale for the cycle.",
+        "Pass/fail thresholds": "Rationale is complete only if rejected alternatives, appetite metrics, and model version are all named.",
+        "Exception handling path": "Gaps found at review are returned to the Reinsurance Analyst before the rationale is filed.",
+        "Documented acceptance criteria": "Accepted when the rationale is cross-referenced to the signed approval and reviewed by the Manager.",
+        "Evidence location": "Model governance repository rationale folder with the SharePoint working papers linked."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Record why the selected retention was chosen over each rejected alternative",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "List each alternative retention considered in the cycle.",
+            "State the specific reason the selected value was preferred to each.",
+            "Done when every rejected alternative carries a written reason."
+          ],
+          "verify": [
+            "Check the alternatives listed match those in the recommendation pack.",
+            "Pass when no alternative from the pack is missing a rejection reason."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Document the appetite metric and threshold each retention was tested against",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Name the appetite metric applied to each per-risk and per-event retention.",
+            "State the threshold value and the tested result.",
+            "Done when every retention has a named metric, threshold, and result."
+          ],
+          "verify": [
+            "Check each retention in the approval has a matching appetite test.",
+            "Pass when no approved retention lacks a documented appetite test."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "List the model, version, and parameter set used to support the decision",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Record the actuarial and cat model names and versions used.",
+            "Record the parameter set and run reference for each supporting result.",
+            "Done when model versions and run references are documented."
+          ],
+          "verify": [
+            "Check the recorded run references resolve in the governance repository.",
+            "Pass when every cited run reference is retrievable."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "State known data limitations affecting the retention analysis",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "List the data quality or coverage limitations affecting the analysis.",
+            "State the likely direction and size of their effect on the conclusion.",
+            "Done when each limitation is recorded with its assessed effect."
+          ],
+          "verify": [
+            "Check limitations raised in the exposure validation appear in the list.",
+            "Pass when no known validation limitation is omitted."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Cross-reference the rationale to the signed approval record",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Insert the approval reference and pack version into the rationale document.",
+            "Confirm the retention values cited match the signed approval.",
+            "Done when the cross-reference is in place and values agree."
+          ],
+          "verify": [
+            "Compare cited retention values to the signed approval record.",
+            "Pass when every cited value matches the approval."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review and file the rationale in the model governance repository",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Review the rationale for completeness against the five required elements.",
+            "File the reviewed version in the governance repository with a version number.",
+            "Done when the reviewed rationale is filed and retrievable."
+          ],
+          "verify": [
+            "Retrieve the filed rationale and check all five elements are present.",
+            "Pass when the filed version contains all five required elements."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "8a68905a-7577-4d42-b110-69c498ccf3a0",
+      "verifier": "Reinsurance Manager",
+      "generic": {
+        "Defined scope/population": "Every per-risk and per-event retention limit set for the cycle across all lines of business.",
+        "In-scope period": "The treaty year covered by the current board-approved risk appetite statement.",
+        "Required fields populated and valid": "Each mapping row carries the retention, the named appetite limit, escalation trigger, and owner.",
+        "Control totals or record counts reconcile": "The count of mapped retentions equals the count of retentions in the approved retention table.",
+        "Evidence retained with timestamp/version": "Mapping table saved in SharePoint citing the board-approved appetite statement version.",
+        "Exceptions logged with disposition": "Retentions sitting outside the stated tolerance logged as exceptions with the agreed treatment.",
+        "Test population": "All per-risk and per-event retention limits in the approved retention table.",
+        "Pass/fail thresholds": "No retention limit may be left unmapped to a named risk appetite metric.",
+        "Exception handling path": "Out-of-tolerance retentions are escalated to the Reinsurance Manager and recorded as appetite exceptions.",
+        "Documented acceptance criteria": "Accepted when every retention maps to a named limit and the appetite version cited is current.",
+        "Evidence location": "SharePoint appetite mapping library with the Excel mapping table attached to the retention pack."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Retrieve the current board-approved appetite statement from SharePoint",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Open the risk appetite statement library and select the current approved version.",
+            "Record the version reference and board approval date.",
+            "Done when the current appetite version is identified and recorded."
+          ],
+          "verify": [
+            "Check no later approved version exists in the library.",
+            "Pass when the cited version is the latest board-approved one."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Map each per-risk retention to its underwriting appetite limit",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "List each per-risk retention by line of business.",
+            "Name the underwriting risk appetite limit it is constrained by.",
+            "Done when every per-risk retention has a named appetite limit."
+          ],
+          "verify": [
+            "Count mapped per-risk retentions against the approved retention table.",
+            "Pass when the counts match with no unmapped per-risk retention."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Map each per-event retention to catastrophe and earnings volatility tolerances",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Name the catastrophe tolerance and earnings volatility tolerance for each per-event retention.",
+            "Record the threshold value from the appetite statement.",
+            "Done when each per-event retention carries both tolerance references."
+          ],
+          "verify": [
+            "Check each per-event mapping cites a threshold from the appetite statement.",
+            "Pass when every per-event retention has a cited threshold."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Identify retentions sitting outside the stated tolerance",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Compare each retention's tested result to its mapped tolerance.",
+            "Mark any line breaching tolerance as an appetite exception.",
+            "Done when every retention is marked in or out of tolerance."
+          ],
+          "verify": [
+            "Check each out-of-tolerance line is recorded as an exception.",
+            "Pass when no breach is left unmarked."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the escalation trigger and owner for each mapped limit",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "State the trigger level at which each mapped limit escalates.",
+            "Name the owner accountable for monitoring that limit.",
+            "Done when every mapping row carries a trigger and an owner."
+          ],
+          "verify": [
+            "Check no mapping row is missing a trigger or an owner.",
+            "Pass when trigger and owner are populated on every row."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Review the completed mapping table with the Reinsurance Manager",
+          "actor": "Reinsurance Manager",
+          "sop": [
+            "Review the mapping for completeness and correct appetite references.",
+            "Approve the exception treatments proposed for out-of-tolerance lines.",
+            "Done when the mapping table is reviewed and the exceptions are accepted."
+          ],
+          "verify": [
+            "Check the review is recorded against the mapping version.",
+            "Pass when a dated review is recorded and all exceptions carry a treatment."
+          ]
+        }
+      ]
+    }
+  ]
+}

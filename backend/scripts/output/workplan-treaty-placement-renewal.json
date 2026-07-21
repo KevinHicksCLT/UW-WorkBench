@@ -1,0 +1,238 @@
+{
+  "area": "Treaty Placement & Renewal",
+  "tasks": [
+    {
+      "taskId": "062f9fa4-7e2b-45d3-a864-bebde45fe5f9",
+      "verifier": "Reinsurance Actuary",
+      "generic": {
+        "Defined scope/population": "All treaty sections in the renewal program with their ceded premium, exposure and loss records.",
+        "In-scope period": "Five to ten years of loss experience plus exposure as at the agreed snapshot date.",
+        "Required fields populated and valid": "Accident or underwriting year, section, ceded premium, paid, outstanding and IBNR populated on every record.",
+        "Control totals or record counts reconcile": "Ceded premium extract total equals the general ledger written premium control total.",
+        "Evidence retained with timestamp/version": "Each extract saved with the snapshot date and version number in the renewal data folder.",
+        "Exceptions logged with disposition": "Unmatched or missing loss records logged with cause and correction before the pack is released.",
+        "Test population": "Every dataset in the submission pack plus the large-loss listing above attachment point.",
+        "Pass/fail thresholds": "Nil variance to the general ledger control total and one common as-at date across all datasets.",
+        "Exception handling path": "Reinsurance Analyst investigates the break and refers unresolved items to the Reinsurance Actuary.",
+        "Documented acceptance criteria": "Datasets accepted when reconciled, restated on agreed factors and dated to the snapshot.",
+        "Evidence location": "Renewal submission data folder in the reinsurance administration system under the treaty reference."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract ceded premium and exposure data from the enterprise data warehouse",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Run the renewal extract in the enterprise data warehouse for every treaty section in the program",
+            "Apply the as-at snapshot date agreed with the Reinsurance Actuary to all queries",
+            "Export the result to Microsoft Excel keeping section, currency and period fields intact",
+            "Done when the premium and exposure extract is saved under the renewal reference"
+          ],
+          "verify": [
+            "Check the snapshot date shown on the extract header equals the agreed as-at date",
+            "Pass when every treaty section appears with a premium value or a documented nil"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Pull five to ten years of loss experience from the reinsurance administration system",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Query loss history by accident year and by underwriting year for each treaty section",
+            "Include paid, outstanding and IBNR components on every loss record pulled",
+            "Label each triangle with the basis used so accident and underwriting years are not mixed",
+            "Done when a labelled loss triangle exists for every treaty section"
+          ],
+          "verify": [
+            "Compare the earliest and latest years pulled against the agreed experience window",
+            "Pass when each section has a complete triangle with no missing development year"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Reconcile the ceded premium extract to the general ledger in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Build a reconciliation tab comparing extract premium totals to the ledger written premium control total",
+            "Split any difference by section and currency to locate the source of the break",
+            "Record the explanation for each reconciling item on the same tab",
+            "Done when the reconciliation shows nil unexplained variance"
+          ],
+          "verify": [
+            "Recompute the control total from the ledger figure independently of the extract",
+            "Pass when the residual unexplained variance is zero"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Restate historical losses to current terms using agreed indexation factors in Excel",
+          "actor": "Reinsurance Actuary",
+          "sop": [
+            "Apply the trend, indexation and on-level factors agreed for this renewal to each loss year",
+            "Show gross and restated figures side by side so the adjustment is visible",
+            "Record the factor source and effective date on the restatement tab",
+            "Done when every loss year carries a restated value and its factor"
+          ],
+          "verify": [
+            "Recalculate one restated year by hand against the stated factor",
+            "Pass when the manual recalculation equals the workbook value"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Build the large-loss listing above attachment point in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "List every loss above the attachment point with date of loss, cause and section",
+            "Show paid, outstanding and IBNR split for each listed loss",
+            "Cross-check the listing count against the claims extract from the administration system",
+            "Done when the listing is complete for all years in the experience window"
+          ],
+          "verify": [
+            "Compare the listed large-loss total to the aggregate loss triangle for the same years",
+            "Pass when the large-loss total ties into the triangle without unexplained difference"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Produce the exposure profile banding from the warehouse snapshot",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Band sums insured and limits into the profile bands requested by the market",
+            "Use the same as-at snapshot date applied to the premium and loss extracts",
+            "State policy counts and aggregate limit per band on the profile",
+            "Done when the exposure profile is produced for every section"
+          ],
+          "verify": [
+            "Sum the banded aggregate limit and compare to the warehouse total exposure",
+            "Pass when banded totals equal the source exposure total"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Assemble and version the dataset pack for the submission",
+          "actor": "Treaty Specialist",
+          "sop": [
+            "Combine the premium, loss, large-loss and exposure outputs into one versioned workbook",
+            "Stamp every tab with the as-at date and the pack version number",
+            "Store the pack in the renewal folder under the treaty reference",
+            "Done when the versioned pack is stored and the version is logged"
+          ],
+          "verify": [
+            "Open each tab and confirm the same as-at date appears on all of them",
+            "Pass when all datasets carry one identical snapshot date"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "3699b919-c9f6-41e9-b168-4c8cb175429d",
+      "verifier": "Treaty Specialist",
+      "generic": {
+        "Defined scope/population": "Every broker and reinsurer template variant required for this renewal submission.",
+        "In-scope period": "The submission as-at date and the treaty period being placed.",
+        "Required fields populated and valid": "Every mapped template field carries a value or an explicit nil, with no placeholder text.",
+        "Control totals or record counts reconcile": "Premium, loss and exposure totals on each template agree to the source data pack.",
+        "Evidence retained with timestamp/version": "Each workbook tab version-stamped with the as-at date and submission version number.",
+        "Exceptions logged with disposition": "Fields the template cannot accommodate logged with the agreed treatment and market note.",
+        "Test population": "All released template files including each reinsurer bespoke variant.",
+        "Pass/fail thresholds": "No live external link, no formula error and no total differing from the source pack.",
+        "Exception handling path": "Reinsurance Analyst raises mapping queries to the Treaty Specialist before release.",
+        "Documented acceptance criteria": "Template accepted when totals tie, cells are protected and values replace formulas.",
+        "Evidence location": "Submission folder on Microsoft 365 SharePoint under the treaty reference and version."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Map internal data fields into the broker standard template in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Open the broker exposure and loss template and map each internal field to its template column",
+            "Copy values across without altering, rounding or re-basing any figure",
+            "Record the field mapping on a hidden mapping tab for audit",
+            "Done when every required broker template column is populated"
+          ],
+          "verify": [
+            "Spot-check five mapped fields back to the source data pack",
+            "Pass when each checked value equals the source value exactly"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Produce each reinsurer bespoke template variant in Microsoft Excel",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Build a separate variant for each market requiring bespoke currency, banding or section split",
+            "Convert currency using the single FX rate agreed for the submission",
+            "Name each file with the reinsurer, treaty reference and version",
+            "Done when a variant exists for every market that requires one"
+          ],
+          "verify": [
+            "List the bespoke requirements against the variants produced",
+            "Pass when no requested variant is missing from the release set"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Version-stamp every workbook tab with the as-at date and version",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Add the as-at date and submission version to the header of each tab",
+            "Apply the same version number across all files in the release set",
+            "Update the file properties to match the stamped version",
+            "Done when all tabs and files carry the same version stamp"
+          ],
+          "verify": [
+            "Open each file and read the stamp on the first and last tab",
+            "Pass when a single consistent version and date appears everywhere"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Convert working and formula tabs to values and protect cells",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Paste formula ranges as values so no calculation remains live in the released file",
+            "Remove or clear internal working tabs not intended for the market",
+            "Apply sheet protection to prevent accidental edit after release",
+            "Done when the release copy contains values only and is protected"
+          ],
+          "verify": [
+            "Search the workbook for remaining formulas and external links",
+            "Pass when no live external link or unresolved formula error remains"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Check formatted template totals against the source data pack",
+          "actor": "Reinsurance Analyst",
+          "sop": [
+            "Compare premium, loss and exposure totals on each template to the source pack totals",
+            "Investigate and correct any difference caused by banding or rounding",
+            "Record the tie-out on the check tab of the release file",
+            "Done when every template total agrees to the source pack"
+          ],
+          "verify": [
+            "Recompute one template total independently from the source pack",
+            "Pass when the recomputed total equals the template total"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "File the formatted release set on Microsoft 365 SharePoint",
+          "actor": "Treaty Specialist",
+          "sop": [
+            "Upload the approved release set to the submission folder under the treaty reference",
+            "Mark the version as the controlling release copy for this submission",
+            "Remove or supersede earlier drafts in the same folder",
+            "Done when only the controlling version is visible as current"
+          ],
+          "verify": [
+            "Open the folder and list the files marked current",
+            "Pass when only the released version is marked current"
+          ]
+        }
+      ]
+    }
+  ]
+}
