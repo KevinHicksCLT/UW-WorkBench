@@ -111,7 +111,14 @@ export type ItemDetail = ItemRow & {
     createdAt: string;
   }[];
   sourceRowCount: number;
-  sourceRows: SourceRow[];
+  /** Every distinct citation across the regulation's source rows, with the
+   *  jurisdictions that carry it (deduplicated server-side). */
+  citations: {
+    citation: string;
+    url: string | null;
+    requirementId: string;
+    jurisdictions: { code: string; name: string }[];
+  }[];
 };
 
 export const FREQ_ALIGN_LABEL: Record<string, string> = {

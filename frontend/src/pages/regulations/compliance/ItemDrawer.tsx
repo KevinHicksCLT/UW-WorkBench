@@ -1,6 +1,8 @@
 /**
- * Compliance item drawer — the read-first detail panel for one L2 item, laid
- * out in the workbook's two zones (task → grounding evidence).
+ * Compliance item drawer — the read-first detail panel for one L2 item.
+ * Sections are visually separated cards: the task → grounding evidence →
+ * the regulation's full citation coverage (every jurisdiction, each distinct
+ * citation listed once with the jurisdictions that carry it).
  */
 import { Link } from 'react-router-dom';
 import { useApi } from '../../../lib/useApi';
@@ -11,17 +13,20 @@ import { FREQ_ALIGN_LABEL, type ItemDetail } from './shared';
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="text-[11px] uppercase tracking-wide text-[#a3a3a3]">{label}</div>
+      <div className="text-[11px] uppercase tracking-wide text-[#a3a3a3] mb-0.5">{label}</div>
       <div className="text-sm text-[#171717]">{children}</div>
     </div>
   );
 }
 
+/** Bordered section card — keeps the drawer's zones visually separate. */
 function Zone({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mb-5">
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-[#525252] mb-2">{title}</h3>
-      <div className="space-y-3">{children}</div>
+    <section className="mb-4 rounded-lg border border-[#eaeaea] bg-white overflow-hidden">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-[#525252] px-3 py-2 bg-[#fafafa] border-b border-[#eaeaea]">
+        {title}
+      </h3>
+      <div className="space-y-3 p-3">{children}</div>
     </section>
   );
 }
@@ -49,16 +54,14 @@ export function ItemDrawer({
     <div className="fixed inset-0 z-40">
       <DrawerShell
         onClose={onClose}
-        width={640}
+        width={720}
         maxWidth="94vw"
         header={
           <div className="min-w-0">
             <div className="text-[11px] uppercase tracking-wide text-[#a3a3a3]">
               {item ? `${item.regulation.regCode} · ${item.regulation.name}` : 'Compliance item'}
             </div>
-            <div className="text-sm font-semibold text-[#171717] flex items-center gap-2 flex-wrap">
-              {item?.itemCode}
-            </div>
+            <div className="text-sm font-semibold text-[#171717]">{item?.itemCode}</div>
           </div>
         }
       >
@@ -67,7 +70,7 @@ export function ItemDrawer({
         {item && (
           <>
             <Zone title="The task">
-              <p className="text-sm text-[#171717]">{item.name}</p>
+              <p className="text-sm text-[#171717] leading-relaxed">{item.name}</p>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Owner">{item.ownerTeam}</Field>
                 <Field label="Frequency">{item.frequency}</Field>
@@ -92,12 +95,9 @@ export function ItemDrawer({
                 <Field label="Deadline signals">{item.deadlineSignals || '—'}</Field>
               </div>
               <Field label={`Representative requirement (${item.repJurisdiction})`}>
-                <blockquote className="border-l-2 border-[#eaeaea] pl-3 text-[13px] text-[#525252]">
+                <blockquote className="border-l-2 border-[#eaeaea] pl-3 text-[13px] text-[#525252] leading-relaxed">
                   {item.representativeRequirement}
                 </blockquote>
-              </Field>
-              <Field label="Supporting citations (top 3)">
-                <span className="text-[13px]">{item.supportingCitations || '—'}</span>
               </Field>
               {item.selectedRequirements.length > 0 && (
                 <Field label="Selected source rows">
@@ -115,25 +115,34 @@ export function ItemDrawer({
                   </ul>
                 </Field>
               )}
-              <Field
-                label={`Source rows of ${item.regulation.regCode} (${item.sourceRowCount.toLocaleString()} total, showing ${item.sourceRows.length})`}
-              >
-                <ul className="text-[13px] space-y-1 max-h-56 overflow-y-auto border border-[#eaeaea] rounded-md p-2">
-                  {item.sourceRows.map((r) => (
-                    <li key={r.id} className="flex items-start gap-2">
-                      <span className="min-w-0">
-                        <Link
-                          className="text-[#2563eb] hover:underline"
-                          to={`/regulations/requirement/${r.id}`}
+            </Zone>
+
+            <Zone
+              title={`Citations — all jurisdictions (${item.citations.length.toLocaleString()} distinct across ${item.sourceRowCount.toLocaleString()} source rows)`}
+            >
+              <ul className="divide-y divide-[#f5f5f5]">
+                {item.citations.map((c) => (
+                  <li key={c.citation} className="py-2 first:pt-0 last:pb-0">
+                    <Link
+                      className="text-[13px] font-medium text-[#2563eb] hover:underline break-words"
+                      to={`/regulations/requirement/${c.requirementId}`}
+                    >
+                      {c.citation}
+                    </Link>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {c.jurisdictions.map((j) => (
+                        <span
+                          key={j.code}
+                          title={j.name}
+                          className="inline-block rounded border border-[#eaeaea] bg-[#fafafa] px-1.5 py-0.5 text-[10.5px] text-[#525252]"
                         >
-                          {r.jurisdiction.name}
-                        </Link>
-                        : {r.citation ?? r.title}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </Field>
+                          {j.name}
+                        </span>
+                      ))}
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </Zone>
           </>
         )}
