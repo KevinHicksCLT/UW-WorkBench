@@ -1,0 +1,4519 @@
+[
+  {
+    "taskId": "f53505ee-27e8-4a5a-bed2-6c8ecc3438b9",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      },
+      {
+        "appId": "89cd2109-63ff-4bf7-a31c-14e6b68e7ed9",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp34t1n4mmbk8go3b2xdt",
+      "cmqscp3do1n54mbk8m6ubfgf4",
+      "cmqscp4o01n7gmbk8nzsb85bd",
+      "cmqscoh081m1qmbk8av2zausw"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5ha4j02b5v880ti1ex1fr",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Source systems confirmed as governed/certified before extraction",
+      "Row counts reconciled to source of record",
+      "Dataset registered in the catalog with owner and steward"
+    ],
+    "checklistSpecific": [
+      "Extract policy, billing, CRM, and web/portal behavioural tables into the segmentation staging schema for the agreed 36-month window",
+      "Join on the customer master ID (not policy number) so multi-policy households resolve to one customer row",
+      "Reconcile customer count and in-force premium in the assembled dataset to the policy admin in-force report within 0.5%",
+      "Confirm restricted fields (SSN, full DOB, bank details) are excluded or masked in the segmentation extract",
+      "Register the unified customer dataset in the data catalog with owner, steward, classification, and refresh frequency"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Unified customer segmentation dataset exists in the analytics schema with a documented refresh job and catalog entry"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No unmasked restricted PII columns present in the segmentation dataset"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2flcfu1tm1kfgzw5ni5e4f",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "93c26f4e-2c06-4b8f-89ca-2e56818aaf8c",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscogfn1m0qmbk8bixjxca5",
+      "cmqscp2wa1n46mbk8x2pbyjic",
+      "cmqscp2ye1n4ambk8m0v8mkq5",
+      "cmqscp4be1n6smbk8q7c323vx"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Model build follows the documented model development lifecycle",
+      "Model version, parameters, and training data snapshot recorded",
+      "Results reproducible from stored code and inputs"
+    ],
+    "checklistSpecific": [
+      "Tune the cluster count by comparing silhouette and within-cluster sum-of-squares across the candidate k range and record the chosen k",
+      "Re-run the tuned model on a random holdout of customers to confirm cluster assignments are stable",
+      "Check no single segment holds more than ~40% or less than ~3% of the customer base; re-tune if it does",
+      "Record final hyperparameters, random seed, and training snapshot date in the model documentation",
+      "Store the tuned model artefact and scoring script in the model governance repository under a new version"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Tuned segmentation model version recorded in the model governance repository with hyperparameters and stability results"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fj5w10spjkfgzqqfiic46",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03vgmbk81b8spm25",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscpkz61o10mbk89h2emobr"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Objectives signed off by the requesting business owners",
+      "Scope and exclusions documented",
+      "Success measures agreed before work starts"
+    ],
+    "checklistSpecific": [
+      "Document the business questions segmentation must answer (targeting, retention, pricing tiering, channel fit) with the requesting owner named for each",
+      "Agree the in-scope population — personal lines, commercial lines, or both — and the exclusion rules for lapsed and non-renewed customers",
+      "Agree how segments will be activated (campaign targeting, producer prioritisation, product design) so the design fits the use",
+      "Define success measures for the segmentation (e.g. campaign response lift, segment stability over 12 months) and record baselines",
+      "Circulate the objectives and approach note to marketing, distribution, and product for written sign-off"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Approved segmentation objectives and approach document stored in the team workspace with named business owners"
+      }
+    ]
+  },
+  {
+    "taskId": "a1c67bb6-1e07-4869-990e-c26e9d29f1b6",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "89cd2109-63ff-4bf7-a31c-14e6b68e7ed9",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp3co1n52mbk8zfr9bm39",
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscoh271m1umbk87ebv27kx",
+      "cmqscp2vb1n44mbk8kht26wp6"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5ha4j02b5v880ti1ex1fr",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Each variable traced to a governed source field",
+      "Definitions linked to the business glossary",
+      "Variable list reviewed with the business owner"
+    ],
+    "checklistSpecific": [
+      "List candidate variables across demographics, tenure, premium/value, product holding, claims history, and channel/engagement behaviour",
+      "Exclude protected characteristics and their close proxies (e.g. ZIP-only race proxies) from the variable list and document why",
+      "Set the clustering distance measure and standardisation/scaling rule for continuous variables",
+      "Define minimum populated rate per variable (e.g. 95%) and drop or impute variables that fail it",
+      "Publish the final variable dictionary with source table, column, transformation, and glossary term for each entry"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Segmentation variable dictionary published with source lineage and glossary links for every variable"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No protected-characteristic variables present in the approved clustering variable list"
+      }
+    ]
+  },
+  {
+    "taskId": "1a3fa7fa-2f61-4c04-a665-0bb5ff4ea594",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zxmbk8fvc9wihw",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscogqp1m1ambk8y9e9eoy6",
+      "cmqscoh271m1umbk87ebv27kx",
+      "cmqscp3do1n54mbk8m6ubfgf4",
+      "cmqscp4be1n6smbk8q7c323vx"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Feature build code stored in version control",
+      "Feature logic peer-reviewed before use",
+      "Nulls and outliers handled by documented rule"
+    ],
+    "checklistSpecific": [
+      "Build behavioural features (portal logins, service contacts, digital quote activity) over rolling 3/12/36-month windows",
+      "Build value features — earned premium, loss ratio contribution, tenure, and product count per customer",
+      "Build risk features from claims frequency and severity history at customer rather than policy level",
+      "Cap or winsorise premium and claim-amount outliers at the agreed percentile and record the thresholds used",
+      "Run a correlation check and drop one of any feature pair correlated above the agreed threshold"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Feature table built with documented window definitions and a peer-reviewed build script in version control"
+      }
+    ]
+  },
+  {
+    "taskId": "e4b01160-2d75-4236-94b7-04254db99f6e",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "93c26f4e-2c06-4b8f-89ca-2e56818aaf8c",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscoghb1m0smbk8c41jpghh",
+      "cmqscp2uf1n42mbk8jnc7s9hq",
+      "cmqscp2zj1n4cmbk8z3eev8he",
+      "cmqscp3wr1n60mbk81e4azhgu"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Monitoring owner and frequency named",
+      "Thresholds documented and approved",
+      "Escalation route defined for breaches"
+    ],
+    "checklistSpecific": [
+      "Set the quarterly drift check comparing current segment size distribution to the baseline at model build",
+      "Define the drift threshold that triggers investigation (e.g. any segment shifting more than 5 percentage points)",
+      "Schedule the annual segmentation model refresh with a calendar date and named owner",
+      "Build the segment-stability monitoring view in the BI platform and add it to the marketing analytics workspace",
+      "Document the escalation path to the Customer Insights Lead when drift breaches the threshold between refreshes"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Segment drift monitoring view live with documented thresholds and a scheduled annual refresh date"
+      }
+    ]
+  },
+  {
+    "taskId": "e9240c55-9750-41db-aef9-84282fb8d7ed",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "89cd2109-63ff-4bf7-a31c-14e6b68e7ed9",
+        "use": "performed"
+      },
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp48a1n6mmbk8jt03x7wn",
+      "cmqscp47b1n6kmbk8914adc9y",
+      "cmqscp4o01n7gmbk8nzsb85bd",
+      "cmqscoh081m1qmbk8av2zausw"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5ha4j02b5v880ti1ex1fr",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5ozpz0bwnv880figjybzk",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Deduplication rules documented and applied consistently",
+      "Third-party data used only under a permitted contract",
+      "Data quality results recorded before release"
+    ],
+    "checklistSpecific": [
+      "Run the match-and-merge rules to collapse duplicate customer records into a single golden record per household/customer",
+      "Standardise addresses and contact fields before matching so near-duplicates are caught",
+      "Append the licensed third-party demographic and lifestyle attributes and record the vendor, licence, and permitted-use terms",
+      "Profile the prepared attribute set and record completeness by field, rejecting any attribute below the agreed populated rate",
+      "Log every data quality exception found during preparation in the issue tracker with an owner and due date"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Prepared customer attribute set with deduplication results and a field-level completeness profile"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Vendor licence and permitted-use record on file for each appended third-party attribute"
+      }
+    ]
+  },
+  {
+    "taskId": "84cc8823-8eab-4ac4-8a50-03e7d7c6eeb8",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp2vb1n44mbk8kht26wp6",
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscplh81o1ymbk8u8i73x3e"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Profiles based only on governed model output",
+      "Naming reviewed with the business users",
+      "Profile pack version-controlled"
+    ],
+    "checklistSpecific": [
+      "Produce the profile table for each segment showing size, average premium, product holding, tenure, retention rate, and loss ratio",
+      "Write a one-page persona narrative per segment covering needs, channel preference, and typical product mix",
+      "Estimate average customer value and expected lifetime value per segment and show it on the profile page",
+      "Assign a plain-business name to each segment (not \"Cluster 3\") and confirm names are neutral and non-pejorative",
+      "Publish the segment profile pack to the marketing workspace with the model version it was derived from"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Segment profile pack published with named segments, size, value, and persona narrative for every segment"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No segment left with a numeric cluster label in the published profile pack"
+      }
+    ]
+  },
+  {
+    "taskId": "b5da08de-e33a-4305-974c-dd94b610a792",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscogqp1m1ambk8y9e9eoy6",
+      "cmqscp37s1n4smbk8v03mmcl5",
+      "cmqscp4cf1n6umbk85bpt2uag",
+      "cmqscp4dd1n6wmbk8dj12odxc"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5ha4j02b5v880ti1ex1fr",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5ozai0bvzv880phdym5mz",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Load reconciled to source record count",
+      "Refresh schedule documented",
+      "Field access restricted to authorised users"
+    ],
+    "checklistSpecific": [
+      "Load the segment code and segment name onto the CRM customer record as a controlled, read-only field",
+      "Reconcile the number of customers scored in CRM to the segmentation output and investigate any variance above 0.5%",
+      "Schedule the recurring segment refresh job into CRM and confirm the first scheduled run completes",
+      "Confirm the segment field is visible to marketing and distribution users but not editable by them",
+      "Confirm no account numbers or restricted PII are carried across in the segment publication feed"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Segment code populated on CRM customer records with a scheduled refresh job and reconciliation record"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No account number or restricted PII fields present in the CRM segment publication feed"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2flco91tqckfgz5l95na35",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zxmbk8fvc9wihw",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscogfn1m0qmbk8bixjxca5",
+      "cmqscp2ye1n4ambk8m0v8mkq5",
+      "cmqscp4be1n6smbk8q7c323vx",
+      "cmqscp32w1n4imbk8cl9att9q"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Run executed against the approved model version",
+      "Run inputs and outputs retained",
+      "Output reviewed before circulation"
+    ],
+    "checklistSpecific": [
+      "Execute the approved clustering model against the current prepared customer attribute set",
+      "Record the run date, model version, input snapshot, and record count in the run log",
+      "Produce the segment membership table with one segment assignment per customer and no unassigned records",
+      "Compare the resulting segment sizes to the previous run and flag any segment moving more than the agreed tolerance",
+      "Store the segment membership output in the governed analytics schema, not on a local drive"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Segment membership output stored in the governed analytics schema with a completed run log entry"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No customer records left without a segment assignment in the output table"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fj63i0st8kfgzsdd7eat6",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscogfn1m0qmbk8bixjxca5",
+      "cmqscp2vb1n44mbk8kht26wp6",
+      "cmqscp38o1n4umbk8ne8wtn63"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Options compared against documented criteria",
+      "Decision recorded with rationale",
+      "Method reviewed by an analytics peer"
+    ],
+    "checklistSpecific": [
+      "Compare candidate methods (k-means, hierarchical, latent class, RFM-style rules) against interpretability, stability, and data-type fit",
+      "Confirm the chosen method can be explained to marketing and distribution users without a statistics background",
+      "Record the rejected options and the reason each was not selected",
+      "Confirm the method is supported by the approved analytics tooling so it can be re-run on schedule",
+      "Log the methodology decision in the model documentation with date, decision-maker, and reviewer"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Clustering methodology decision recorded with comparison of options and named reviewer"
+      }
+    ]
+  },
+  {
+    "taskId": "aba4ef49-b0ec-4679-97e9-e55324b7ab46",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03vgmbk81b8spm25",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4v60007v8w005phxlv9",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp3an1n4ymbk8z80rd202",
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscpl5q1o1cmbk8lijej5j4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Validation session held with named business reviewers",
+      "Feedback logged and dispositioned",
+      "Sign-off recorded before activation"
+    ],
+    "checklistSpecific": [
+      "Walk distribution and product teams through each segment profile and capture whether it matches what they see in the field",
+      "Test each segment against a real planned use (campaign target, producer prioritisation, product fit) and confirm it is actionable",
+      "Log every challenge raised, with a decision to accept, adjust, or defer, and the rationale",
+      "Confirm segment sizes are large enough to support planned campaign volumes in each channel",
+      "Obtain written sign-off from distribution and product leads before the segmentation is used for targeting"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Signed validation record from distribution and product with all logged challenges dispositioned"
+      }
+    ]
+  },
+  {
+    "taskId": "0f728918-1306-4100-bd26-9b04187e4732",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscovfm1mqembk8jo2ssfsh"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Sources cited for every external figure used",
+      "Assumptions documented and dated",
+      "Analysis reviewed before circulation"
+    ],
+    "checklistSpecific": [
+      "Pull macro indicators relevant to insurance demand — GDP growth, employment, housing starts, vehicle sales, construction activity — for the in-scope geographies",
+      "Summarise pending regulatory and rate-environment changes by state/region and note the lines they affect",
+      "Summarise catastrophe exposure trend signals (wildfire, wind, flood, severe convective storm) affecting appetite and demand",
+      "Translate each trend into a directional demand impact by line of business with a stated confidence level",
+      "Record the source, publication date, and retrieval date for every external figure cited"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Trend impact assessment produced with a demand direction and confidence level per line of business"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No external figure cited in the assessment without a named source and date"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2finjs0k5zkfgz1yu5odm7",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscp37s1n4smbk8v03mmcl5"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Prior-quarter figures restated consistently",
+      "Internal and external data reconciled",
+      "Analysis versioned and dated"
+    ],
+    "checklistSpecific": [
+      "Refresh written and earned premium growth by line of business for the latest quarter and the trailing four quarters",
+      "Pull filed and approved rate change percentages by line and state from the regulatory filing portal and industry rate surveys",
+      "Compare our rate change per line against the market average and quantify the gap in percentage points",
+      "Split growth into rate, exposure, and new-business components so the driver of movement is visible",
+      "Explain any line where our growth diverges from market growth by more than the agreed threshold"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Quarterly line-of-business growth and rate analysis produced with rate/exposure/new-business decomposition"
+      }
+    ]
+  },
+  {
+    "taskId": "5d4ce648-cf06-4b87-a607-0b83ca6d414f",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03vgmbk81b8spm25",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4v60007v8w005phxlv9",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscpkz61o10mbk89h2emobr"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Scope agreed with the requesting stakeholders",
+      "Out-of-scope items explicitly listed",
+      "Deliverable dates agreed"
+    ],
+    "checklistSpecific": [
+      "List the priority questions leadership needs answered this planning cycle and name the requesting executive for each",
+      "Agree the lines of business, geographies, and channels in scope, and record what is deliberately excluded",
+      "Agree the evidence standard — which industry sources, filings, and surveys are acceptable for the answers",
+      "Agree the delivery dates for interim and final outputs against the planning calendar",
+      "Publish the scope note to the market intelligence workspace and confirm stakeholder acknowledgement"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Market intelligence scope note published with prioritised questions, named requesters, and delivery dates"
+      }
+    ]
+  },
+  {
+    "taskId": "137d2d02-a1ab-4dff-8771-716d20d8ae39",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zpmbk8ity27cv5",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscp4o01n7gmbk8nzsb85bd",
+      "cmqscp3do1n54mbk8m6ubfgf4",
+      "cmqscp34t1n4mmbk8go3b2xdt"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "All sources licensed for the intended use",
+      "Data completeness checked before analysis",
+      "Extract dated and archived"
+    ],
+    "checklistSpecific": [
+      "Assemble market direct written and earned premium by line of business and state from statutory market share data",
+      "Assemble market growth rates for the trailing three years alongside the current period",
+      "Cross-check at least two independent sources for each material market size figure and resolve differences",
+      "Flag and document every state/line cell where market data is unavailable or suppressed rather than leaving it blank",
+      "Archive the dated source extracts alongside the assembled dataset so figures can be reproduced"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Market size dataset assembled by line and geography with dated source extracts archived"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No blank market cell left unexplained in the assembled dataset"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjj840z6skfgzxkislboz",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03vgmbk81b8spm25",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4v60007v8w005phxlv9",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkx81o0wmbk8sved8cuw",
+      "cmqscpkos1o0imbk8o7q2zq9h",
+      "cmqscpl181o14mbk8bom24dzb"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Every action has a named owner and due date",
+      "Actions logged in the tracked register",
+      "Register reviewed at the next cycle"
+    ],
+    "checklistSpecific": [
+      "Capture each recommended action from the briefing review as a separate entry with a single named owner",
+      "Assign a target date to each action aligned to the planning cycle",
+      "Classify each action by the team that must act (distribution, product, pricing, marketing)",
+      "Circulate the action log to attendees within two business days of the review for correction",
+      "Carry open actions forward to the next quarterly briefing agenda for status update"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Action log from the briefing with a named owner and due date on every entry"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No action recorded without an owner"
+      }
+    ]
+  },
+  {
+    "taskId": "2cab27c5-0ce5-4e2e-9bd6-c1fbfa21e1b2",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovdd1mqambk8nf5s8p4j",
+      "cmqscpksp1o0ombk8ubuf84ya",
+      "cmqscpl3d1o18mbk8rk6n5z9p",
+      "cmqscpkr61o0mmbk8k0o0kemv"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Archive location controlled and access-managed",
+      "Superseded versions retained not overwritten",
+      "Retention schedule applied"
+    ],
+    "checklistSpecific": [
+      "File each briefing, source extract, and dataset in the market intelligence archive using the agreed naming and indexing convention",
+      "Update the assumptions register with any changed market assumption, showing old value, new value, and effective date",
+      "Mark superseded briefings as superseded rather than deleting them, keeping the version history intact",
+      "Confirm the archive index lets a user find any prior briefing by quarter, line of business, and topic",
+      "Apply the documented retention period to archive items and remove only those past retention"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Market intelligence archive current to the latest quarter with an updated assumptions register"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No superseded briefing deleted outside the documented retention schedule"
+      }
+    ]
+  },
+  {
+    "taskId": "e78de2f7-911a-43ea-bb28-f89a99fb5e26",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscp33v1n4kmbk8itj5vrxx",
+      "cmqscplh81o1ymbk8u8i73x3e"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Internal premium reconciled to the general ledger view",
+      "Market denominator source stated",
+      "Map reviewed before publication"
+    ],
+    "checklistSpecific": [
+      "Calculate our market share by line and state as our direct written premium over the market denominator, stating the denominator source",
+      "Plot each line/state cell on a market-size versus our-share grid to expose where we are sub-scale",
+      "Identify white-space cells — meaningful market size with materially below-average share for us",
+      "Overlay current appetite and licensing status so white space we cannot legally or practically write is excluded",
+      "Publish the share position map with a short read-out of the top white-space opportunities"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Market share and white-space map published by line and state with the market denominator source stated"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2finbi0k0skfgzp1zmc4eo",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkz61o10mbk89h2emobr",
+      "cmqscp37s1n4smbk8v03mmcl5",
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscogja1m0wmbk84a33mear"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Indicator definitions unchanged between periods",
+      "Refresh completed on the published schedule",
+      "Movements explained not just reported"
+    ],
+    "checklistSpecific": [
+      "Refresh the agreed indicator set — market premium growth, rate change, combined ratio, capacity, and new-entrant activity",
+      "Record the current reading and the prior-quarter reading side by side for each indicator",
+      "Flag any indicator breaching its predefined watch threshold and add a note explaining the movement",
+      "Confirm the indicator definitions are unchanged from the previous quarter, or record the restatement",
+      "Refresh the market indicator dashboard in the BI platform and confirm the data-as-of date displays"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Market indicator dashboard refreshed for the current quarter with an as-of date and threshold flags"
+      }
+    ]
+  },
+  {
+    "taskId": "ecce82fe-d474-4a50-af9e-4df846dbe047",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscp2vb1n44mbk8kht26wp6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Assumptions listed and sourced",
+      "Estimates ranged not single-point where uncertain",
+      "Method reviewed before use in planning"
+    ],
+    "checklistSpecific": [
+      "Estimate addressable premium by segment, line, and distribution channel using the market size data and our appetite filters",
+      "Apply and document the realistic capture-rate assumption used to convert addressable premium to attainable premium",
+      "Present low, base, and high cases rather than a single-point estimate for each opportunity",
+      "Cross-check the total attainable estimate against current plan volumes for plausibility and explain large gaps",
+      "List the assumptions and their sources on the face of the output so planners can challenge them"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Addressable growth estimates produced by segment, line, and channel with low/base/high cases and stated assumptions"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjiz20z0nkfgzgygbyelf",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03vgmbk81b8spm25",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4v60007v8w005phxlv9",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscplg21o1wmbk8lyl7zs1m",
+      "cmqscpl181o14mbk8bom24dzb",
+      "cmqscovfm1mqembk8jo2ssfsh"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Materials circulated in advance of the meeting",
+      "Attendance and decisions recorded",
+      "Follow-ups captured before close"
+    ],
+    "checklistSpecific": [
+      "Circulate the market briefing to distribution and marketing leadership at least two business days before the review",
+      "Walk the leadership team through market movements, share position, and the top growth opportunities",
+      "Capture leadership challenges to the findings and note where further evidence is required",
+      "Record the decisions taken on which opportunities to pursue in the current planning cycle",
+      "Confirm the attendee list and minute the meeting in the market intelligence workspace"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Minuted market briefing review with attendees, decisions, and follow-ups recorded"
+      }
+    ]
+  },
+  {
+    "taskId": "9b54e663-1150-4a7c-a0f1-3d43c592becc",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sembk8s77c6zri",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscogk91m0ymbk8wxxmgpcq",
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscpl3d1o18mbk8rk6n5z9p"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Findings traceable to underlying analysis",
+      "Peer review completed before issue",
+      "Version and date on the document"
+    ],
+    "checklistSpecific": [
+      "Draft the briefing to answer the priority questions agreed in the scope note, question by question",
+      "Include the market size and share position, trend impacts, and quantified growth opportunities in one pack",
+      "State the \"so what\" implication for appetite, pricing, product, and channel for each major finding",
+      "Have a second analyst peer-review the figures against the underlying workbooks before issue",
+      "Version, date, and file the final briefing in the market intelligence archive"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Finalised strategic intelligence briefing with peer-review record and version/date stamp"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjox511wqkfgzjkgg09e3",
+    "roles": [
+      {
+        "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      },
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl3d1o18mbk8rk6n5z9p",
+      "cmqscovdd1mqambk8nf5s8p4j",
+      "cmqscpksp1o0ombk8ubuf84ya",
+      "cmqscpkr61o0mmbk8k0o0kemv"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Superseded versions retained, not overwritten",
+      "Version numbering applied consistently",
+      "Access restricted to internal users"
+    ],
+    "checklistSpecific": [
+      "Move the superseded battlecard version to the archive folder before the new version is published",
+      "Stamp each archived battlecard with its version number, publication date, and withdrawal date",
+      "Keep the compliance review record attached to each archived version so past claims can be traced",
+      "Confirm archived battlecards remain retrievable by competitor name and version for the retention period",
+      "Confirm archived battlecards are not reachable from the live field-facing battlecard folder"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Prior battlecard versions retained in the archive with version, publication, and withdrawal dates"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No superseded battlecard reachable from the live field-facing folder"
+      }
+    ]
+  },
+  {
+    "taskId": "7e4cd371-4fd2-4fed-9ab0-8834aa935a34",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zpmbk8ity27cv5",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscplh81o1ymbk8u8i73x3e"
+    ],
+    "regs": [
+      {
+        "regId": "cmrbx8xlh019tv8ukib7dn0ib",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5p3em0c2jv8803q1ftdak",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Only lawfully obtained public or licensed data used",
+      "Every comparison point sourced",
+      "Analysis reviewed before circulation"
+    ],
+    "checklistSpecific": [
+      "Build the comparison grid covering coverage forms, limits, endorsements, price position, and service proposition for each priority competitor",
+      "Use filed forms and published rates as the evidence base for coverage and price comparisons, citing the filing reference",
+      "Score our position against each competitor on the agreed criteria and show where we win and where we lose",
+      "Confirm every comparative statement is factually substantiated and could be evidenced if challenged",
+      "Note the as-of date of each competitor data point so stale comparisons are visible"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Competitor benchmark grid completed with a cited source and as-of date for every comparison point"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No comparative claim in the benchmark lacking documented substantiation"
+      }
+    ]
+  },
+  {
+    "taskId": "897b06cc-8337-4f18-b0f6-de04f116afa7",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zpmbk8ity27cv5",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp34t1n4mmbk8go3b2xdt",
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscp3do1n54mbk8m6ubfgf4",
+      "cmqscp4o01n7gmbk8nzsb85bd"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Only public or contractually licensed sources used",
+      "Collection log maintained with source and date",
+      "No confidential competitor information accepted"
+    ],
+    "checklistSpecific": [
+      "Pull competitor rate and form filings for the priority states from the regulatory filing portal and record the filing numbers",
+      "Capture published competitor rate change percentages and effective dates by line and state",
+      "Capture competitor product and endorsement launches from public releases and distribution bulletins",
+      "Log each signal with its source, retrieval date, and reliability rating in the competitive intelligence log",
+      "Reject and record any submission that appears to contain confidential or improperly obtained competitor information"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Competitive signal log populated with source, retrieval date, and reliability rating on each entry"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No entry in the signal log sourced from confidential or improperly obtained competitor material"
+      }
+    ]
+  },
+  {
+    "taskId": "d53a8481-5a2e-43b8-b464-52feb4e6d6b2",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03vgmbk81b8spm25",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscpl2b1o16mbk8fi8bjetx",
+      "cmqscp37s1n4smbk8v03mmcl5",
+      "cmqscpl181o14mbk8bom24dzb"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Sources approved for lawful and licensed use",
+      "Cadence documented with a named owner",
+      "Procedure reviewed annually"
+    ],
+    "checklistSpecific": [
+      "List the approved collection sources — regulatory filings, published rates, public releases, industry press, licensed data feeds",
+      "Set the refresh cadence per source (filings monthly, messaging monitoring weekly, win/loss continuous) with a named owner",
+      "Document the prohibited-sources rule covering confidential competitor material and misrepresentation to obtain information",
+      "Confirm each licensed feed has a current contract and permitted internal-use terms",
+      "Publish the collection SOP and cadence calendar to the competitive intelligence workspace"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Competitive intelligence collection SOP published with approved sources, cadence, and named owners"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No collection source in use without a current licence or public-source classification"
+      }
+    ]
+  },
+  {
+    "taskId": "4b1ee49c-6c30-44c4-ba7b-6a93a97f2c39",
+    "roles": [
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscplc61o1ombk8wptz9hx9",
+      "cmqscpl5q1o1cmbk8lijej5j4",
+      "cmqscoh271m1umbk87ebv27kx",
+      "cmqscplh81o1ymbk8u8i73x3e"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Feedback captured in the system of record, not email",
+      "Response coverage tracked against closed deals",
+      "Free-text handled under the feedback standard"
+    ],
+    "checklistSpecific": [
+      "Capture the win/loss reason code on every closed opportunity in CRM using the controlled reason-code list",
+      "Collect the competitor named on each loss so losses can be attributed by competitor",
+      "Run structured debriefs with producers on the largest lost accounts in the period and record notes on the opportunity",
+      "Track win/loss response coverage as a percentage of closed opportunities and chase gaps with sales management",
+      "Summarise the top loss reasons by line and channel for the quarter"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Win/loss reason code and named competitor recorded on closed opportunities in CRM"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No material lost account closed without a recorded loss reason"
+      }
+    ]
+  },
+  {
+    "taskId": "19747ed9-a2d5-41a4-b0f0-2f3f743c9f7b",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03vgmbk81b8spm25",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscpkuv1o0smbk8fgixitde"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Selection criteria documented",
+      "List approved by marketing and distribution",
+      "List reviewed on a set cycle"
+    ],
+    "checklistSpecific": [
+      "Rank potential competitors by market share in our target lines and states using statutory market share data",
+      "Overlay how often each competitor appears in our win/loss data to catch competitors we actually meet in the field",
+      "Agree the priority competitor list per line and region, capped at a workable number for the team to monitor",
+      "Record the inclusion rationale for each competitor and the reason any large carrier was excluded",
+      "Set the review date for refreshing the priority competitor list"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Approved priority competitor list by line and region with documented inclusion rationale and review date"
+      }
+    ]
+  },
+  {
+    "taskId": "2411e5d3-6d3c-48b3-8284-5d6a7402e2b7",
+    "roles": [
+      {
+        "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4v60007v8w005phxlv9",
+        "use": "performed"
+      },
+      {
+        "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788",
+        "use": "performed"
+      },
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovcf1mq8mbk86bcg9d13",
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscpl3d1o18mbk8rk6n5z9p"
+    ],
+    "regs": [
+      {
+        "regId": "cmrbx8xlh019tv8ukib7dn0ib",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Content reviewed for factual accuracy before send",
+      "Distribution limited to internal recipients",
+      "Send recorded for audit"
+    ],
+    "checklistSpecific": [
+      "Draft the alert stating the competitor action, the evidence source, and the effect on our position in plain language",
+      "Confirm every factual claim in the alert is supported by a logged, sourced signal",
+      "Confirm the alert contains no confidential competitor information and no disparaging or unsubstantiated statements",
+      "Send the alert to the defined internal sales and product distribution list only, marked internal use only",
+      "File the issued alert with its send date and recipient list in the competitive intelligence workspace"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Issued competitive alert filed with send date, recipient list, and sourced evidence for each claim"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No competitive alert issued to external or non-approved distribution lists"
+      }
+    ]
+  },
+  {
+    "taskId": "483e3559-e7b7-4449-80e2-33e4973d9aa8",
+    "roles": [
+      {
+        "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      },
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl3d1o18mbk8rk6n5z9p",
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscovfm1mqembk8jo2ssfsh"
+    ],
+    "regs": [
+      {
+        "regId": "cmrbx8xlh019tv8ukib7dn0ib",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5p3em0c2jv8803q1ftdak",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Every claim substantiated before drafting",
+      "Content version-controlled",
+      "Review date set on each card"
+    ],
+    "checklistSpecific": [
+      "Update each battlecard with our differentiators, the competitor position, and the evidence supporting each point",
+      "Write objection-handling responses for the top objections producers actually report from that competitor",
+      "Confirm competitor statements are factual, current, and non-disparaging, with the source cited on the card",
+      "Remove or update any claim whose supporting evidence is older than the agreed staleness limit",
+      "Set the next scheduled review date on each battlecard and record the current version number"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Current battlecard per priority competitor with substantiated claims, objection handling, and a next review date"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No unsubstantiated or disparaging competitor claim present in a live battlecard"
+      }
+    ]
+  },
+  {
+    "taskId": "249398d9-2d8d-4789-9a81-76e0aacfecbf",
+    "roles": [
+      {
+        "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4u70005v8w0ttfgsudc",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp34t1n4mmbk8go3b2xdt",
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscp37s1n4smbk8v03mmcl5"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Only publicly available channels monitored",
+      "Observations logged with date and source link",
+      "No misrepresentation used to obtain access"
+    ],
+    "checklistSpecific": [
+      "Review competitor public websites, product pages, and pricing pages on the agreed cadence and note changes",
+      "Review competitor paid and organic advertising themes and any new campaign creative in market",
+      "Review competitor social and broker-facing communications for shifts in positioning or target audience",
+      "Log each observed messaging shift with the date first seen, the channel, and a link or screenshot reference",
+      "Summarise material messaging shifts for the next competitive alert or briefing"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Messaging monitoring log updated for the period with dated observations and source references per competitor"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No monitoring performed via accounts obtained by misrepresenting identity or affiliation"
+      }
+    ]
+  },
+  {
+    "taskId": "a4a88ad8-d936-4675-bc08-86cce698dec1",
+    "roles": [
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03vembk8fvl6frdu",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscplh81o1ymbk8u8i73x3e"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Only public and licensed sources used",
+      "Profile dated and versioned",
+      "Reviewed with distribution before issue"
+    ],
+    "checklistSpecific": [
+      "Profile each priority competitor channel mix — independent agents, captive, direct, embedded, and affinity partnerships",
+      "Record recent channel moves such as new agency appointments, MGA arrangements, or partnership launches with dates",
+      "Note appointment and commission positioning where publicly disclosed and flag where it is inferred rather than confirmed",
+      "Identify overlap between their appointed distribution and our appointed producers",
+      "Review the profile with distribution leadership before it is circulated"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Competitor distribution strategy profile documented per priority competitor with dated channel moves"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No inferred commission or appointment figure presented as confirmed fact"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjolv11sfkfgznbouzzy7",
+    "roles": [
+      {
+        "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4v60007v8w005phxlv9",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl3d1o18mbk8rk6n5z9p",
+      "cmqscovdd1mqambk8nf5s8p4j",
+      "cmqscovko1mqombk8e7lb7kdj"
+    ],
+    "regs": [
+      {
+        "regId": "cmrbx8xlh019tv8ukib7dn0ib",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Publication only after compliance validation",
+      "Recipients limited to authorised internal users",
+      "Publication recorded with date and version"
+    ],
+    "checklistSpecific": [
+      "Confirm the compliance validation record is attached to every battlecard in the pack before publishing",
+      "Publish the pack to the field enablement library and confirm producers can open the current version",
+      "Retire the previous pack from the live library at the moment the new pack goes live",
+      "Notify field teams of what changed in this release rather than just that a new pack exists",
+      "Record the publication date, version, and distribution list"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Current battlecard pack live in the field enablement library with recorded publication date and version"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No prior battlecard pack version still live alongside the current pack"
+      }
+    ]
+  },
+  {
+    "taskId": "824df5a9-2c12-4d12-957c-772695534500",
+    "roles": [
+      {
+        "roleId": "c5f70484-a30c-4143-bf27-8b085c9d1e75",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4v60007v8w005phxlv9",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscpl3d1o18mbk8rk6n5z9p",
+      "cmqscovfm1mqembk8jo2ssfsh"
+    ],
+    "regs": [
+      {
+        "regId": "cmrbx8xlh019tv8ukib7dn0ib",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5p3em0c2jv8803q1ftdak",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Review completed before any distribution",
+      "Reviewer and date recorded",
+      "Rejected content corrected and re-reviewed"
+    ],
+    "checklistSpecific": [
+      "Check every comparative claim on the battlecard against its cited evidence and confirm the evidence is current",
+      "Check the content contains no misleading, disparaging, or unfair comparison of a competitor or its products",
+      "Check any statement about coverage or price is consistent with filed forms and rates",
+      "Record the reviewer name, review date, and outcome (approved / approved with changes / rejected) for each battlecard",
+      "Send rejected or amended battlecards back to the author and re-review before publication"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Compliance review record with reviewer, date, and outcome attached to every battlecard before publication"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No battlecard distributed to the field without a completed compliance review record"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi1z40a5okfgzigaamfba",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sembk8s77c6zri",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "93c26f4e-2c06-4b8f-89ca-2e56818aaf8c",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp2xe1n48mbk8dj6qe145",
+      "cmqscogia1m0umbk8ny2vq7d7",
+      "cmqscogfn1m0qmbk8bixjxca5",
+      "cmqscp4be1n6smbk8q7c323vx"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Approval recorded by an authorised approver",
+      "Validation evidence attached to the approval",
+      "Approval scope and expiry stated"
+    ],
+    "checklistSpecific": [
+      "Confirm validation results, bias testing, and the monitoring plan are all attached before approval is granted",
+      "Confirm the approved use of the model is stated explicitly (campaign targeting and producer prioritisation, not pricing or underwriting)",
+      "Record the approver name, role, date, and approved model version in the model governance repository",
+      "Set the approval expiry or next mandatory review date on the model record",
+      "Confirm the production scoring job references the approved model version and not a development build"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Model approval record in the model governance repository with approver, version, permitted use, and review date"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No production scoring job running against an unapproved model version"
+      }
+    ]
+  },
+  {
+    "taskId": "f8abfc69-ae7e-47ca-8a6d-d2d993cb6b82",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zxmbk8fvc9wihw",
+        "use": "performed"
+      },
+      {
+        "appId": "89cd2109-63ff-4bf7-a31c-14e6b68e7ed9",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscogfn1m0qmbk8bixjxca5",
+      "cmqscp3do1n54mbk8m6ubfgf4",
+      "cmqscp4o01n7gmbk8nzsb85bd",
+      "cmqscoh081m1qmbk8av2zausw"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5ha4j02b5v880ti1ex1fr",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Training data sourced from governed tables only",
+      "Label definition documented and agreed",
+      "Data snapshot dated and retained"
+    ],
+    "checklistSpecific": [
+      "Define the outcome label precisely (e.g. purchased an additional policy within 12 months of the observation date) and record it",
+      "Build the training set with a strict observation cut-off so no post-outcome information leaks into features",
+      "Confirm positive-class volume is sufficient for stable training and document the class balance",
+      "Confirm restricted PII and protected characteristics are excluded from the training feature set",
+      "Snapshot and retain the training dataset with a version and date so the model can be reproduced"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Versioned training dataset retained with documented label definition and observation cut-off"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No post-outcome or leakage feature present in the training feature set"
+      }
+    ]
+  },
+  {
+    "taskId": "51518a69-7111-4d77-804a-d770d1b4165c",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "93c26f4e-2c06-4b8f-89ca-2e56818aaf8c",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp2zj1n4cmbk8z3eev8he",
+      "cmqscp2uf1n42mbk8jnc7s9hq",
+      "cmqscoghb1m0smbk8c41jpghh",
+      "cmqscp2ye1n4ambk8m0v8mkq5"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Trigger threshold defined in advance",
+      "Decision recorded with supporting metrics",
+      "Refresh work tracked to completion"
+    ],
+    "checklistSpecific": [
+      "Compare the current decile lift against the agreed minimum lift threshold and record the measured value",
+      "Confirm the degradation persists across at least two consecutive monitoring periods before commissioning a refresh",
+      "Record the refresh decision, the triggering metric, and the approver in the model governance record",
+      "Raise the refresh as a tracked work item with a named owner and target date",
+      "Note whether the interim action is to continue, restrict, or suspend use of the current scores while the refresh runs"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Model refresh decision recorded with the triggering lift metric, approver, and tracked work item"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No degraded model left in production use without a recorded interim-use decision"
+      }
+    ]
+  },
+  {
+    "taskId": "8c23246d-86a3-4f30-a001-b8d6bb0cc30f",
+    "roles": [
+      {
+        "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      },
+      {
+        "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscp3an1n4ymbk8z80rd202",
+      "cmqscp4cf1n6umbk85bpt2uag",
+      "cmqscpl3d1o18mbk8rk6n5z9p"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5ha4j02b5v880ti1ex1fr",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5p4or0c4tv880jf6mrcgs",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Rule logic documented and peer-reviewed",
+      "Change tested before production release",
+      "Alert volume monitored after go-live"
+    ],
+    "checklistSpecific": [
+      "Configure the CRM rule that surfaces customers in the top propensity deciles to the owning producer",
+      "Set the alert volume cap per producer per period so the queue stays workable",
+      "Exclude customers with active do-not-contact, opt-out, or complaint-in-progress flags from the alert population",
+      "Test the rule in the sandbox against a sample account set and confirm the expected customers surface",
+      "Confirm the alert shows the reason/driver for the recommendation, not just a score"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Active CRM alert rule for high-propensity customers with a documented volume cap and driver display"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No customer with a do-not-contact or opt-out flag appearing in the high-propensity alert population"
+      }
+    ]
+  },
+  {
+    "taskId": "bdeceac9-e0f5-4431-9860-f20f1ee7923b",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03vgmbk81b8spm25",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscpkz61o10mbk89h2emobr",
+      "cmqscogfn1m0qmbk8bixjxca5",
+      "cmqscpl181o14mbk8bom24dzb"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Use cases agreed with the consuming business teams",
+      "Success criteria measurable and baselined",
+      "Permitted use explicitly bounded"
+    ],
+    "checklistSpecific": [
+      "List the intended propensity use cases (cross-sell targeting, renewal save, producer lead prioritisation) with the owning team for each",
+      "Define the target outcome and measurement window for each use case",
+      "Set the minimum acceptable model performance (e.g. top-decile lift threshold) before the model can be used",
+      "State explicitly that propensity scores must not be used for pricing, underwriting, or eligibility decisions",
+      "Obtain written agreement on the criteria from marketing and distribution before build starts"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Agreed propensity use case and success criteria document with a stated minimum lift threshold"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No propensity use case approved for pricing, underwriting, or eligibility decisioning"
+      }
+    ]
+  },
+  {
+    "taskId": "6083d71b-4304-4d19-b834-9d35a25f075c",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscogqp1m1ambk8y9e9eoy6",
+      "cmqscp37s1n4smbk8v03mmcl5",
+      "cmqscp4cf1n6umbk85bpt2uag",
+      "cmqscp32w1n4imbk8cl9att9q"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5ha4j02b5v880ti1ex1fr",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5ozai0bvzv880phdym5mz",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Load reconciled to the scoring output",
+      "Refresh schedule documented and monitored",
+      "Score field access restricted"
+    ],
+    "checklistSpecific": [
+      "Load the propensity score and decile onto the CRM customer record with the score-as-of date",
+      "Reconcile the CRM loaded record count to the scoring output and investigate variances above 0.5%",
+      "Confirm the score field is read-only to marketing and sales users",
+      "Schedule the recurring score refresh and confirm stale scores are visibly flagged when a refresh fails",
+      "Confirm no raw model features or restricted PII are pushed to CRM alongside the score"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Propensity score and decile populated on CRM records with score-as-of date and a scheduled refresh job"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No raw model features or restricted PII loaded to CRM with the propensity score"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi2870a9akfgzi6p735m0",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "93c26f4e-2c06-4b8f-89ca-2e56818aaf8c",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscogfn1m0qmbk8bixjxca5",
+      "cmqscp2vb1n44mbk8kht26wp6",
+      "cmqscoghb1m0smbk8c41jpghh",
+      "cmqscp4be1n6smbk8q7c323vx"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Documentation stored with the model version",
+      "Assumptions and limitations both recorded",
+      "Monitoring owner named"
+    ],
+    "checklistSpecific": [
+      "Document the model purpose, permitted use, target definition, and population it was trained on",
+      "Document the key assumptions and known limitations, including where the model is expected to perform poorly",
+      "Document the top drivers of the score in business language so producers can explain a recommendation",
+      "Document the monitoring plan — metrics, thresholds, frequency, and the named monitoring owner",
+      "Store the documentation against the model version in the model governance repository"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Model documentation stored against the approved model version covering assumptions, limitations, drivers, and monitoring plan"
+      }
+    ]
+  },
+  {
+    "taskId": "e66ea192-7368-4f5e-aca9-9ff6d29760cc",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zxmbk8fvc9wihw",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5sj001rv8w055x0ddut",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscogqp1m1ambk8y9e9eoy6",
+      "cmqscp3do1n54mbk8m6ubfgf4",
+      "cmqscoh271m1umbk87ebv27kx",
+      "cmqscp2tc1n40mbk81o3e7wtg"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5ha4j02b5v880ti1ex1fr",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Feature code version-controlled and peer-reviewed",
+      "Feature definitions documented",
+      "Protected characteristics excluded"
+    ],
+    "checklistSpecific": [
+      "Build customer-level features from policy history — tenure, product count, coverage limits, endorsement activity, and lapse history",
+      "Build payment and billing behaviour features such as payment method, late payments, and reinstatement history",
+      "Build engagement features from service contacts, portal usage, and quote activity within the observation window",
+      "Exclude protected characteristics and known close proxies from the feature set and document the exclusion test",
+      "Peer-review the feature build code and record the reviewer before the features are used for training"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Peer-reviewed feature build script in version control with a documented feature dictionary"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No protected characteristic or documented proxy present in the final feature set"
+      }
+    ]
+  },
+  {
+    "taskId": "2e17badc-050c-443f-86a4-c189ced5de4b",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03vgmbk81b8spm25",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscogfn1m0qmbk8bixjxca5",
+      "cmqscpkz61o10mbk89h2emobr"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Business problem stated before technique is chosen",
+      "Target definition unambiguous",
+      "Framing reviewed with the consuming team"
+    ],
+    "checklistSpecific": [
+      "State the business decision the score will support and who will act on it",
+      "Define the target event precisely, including which products count as a purchase and over what horizon",
+      "Define the eligible scoring population and the exclusions (e.g. recently lapsed, do-not-contact, commercial accounts)",
+      "Confirm the outcome is observable in the data with sufficient history to train on",
+      "Review the framing with marketing and distribution and record their agreement"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Documented propensity-to-buy use case framing with target event, horizon, and eligible population defined"
+      }
+    ]
+  },
+  {
+    "taskId": "a1325fd1-0f3d-4df7-b624-e7955c67eb59",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "93c26f4e-2c06-4b8f-89ca-2e56818aaf8c",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscoghb1m0smbk8c41jpghh",
+      "cmqscp2uf1n42mbk8jnc7s9hq",
+      "cmqscp2ye1n4ambk8m0v8mkq5",
+      "cmqscogja1m0wmbk84a33mear"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Monitoring runs on the documented schedule",
+      "Results compared to baseline",
+      "Breaches escalated to the model owner"
+    ],
+    "checklistSpecific": [
+      "Compare the current score distribution to the distribution at model build and flag material shift",
+      "Measure realised conversion by propensity decile and compare it to the predicted ordering",
+      "Track top-decile lift against the agreed minimum threshold and chart it over time",
+      "Check input feature availability and null rates each run so a broken upstream feed is caught early",
+      "Publish the monitoring results to the model monitoring dashboard and notify the model owner of any breach"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Live model monitoring dashboard showing score distribution, decile conversion, and lift against threshold"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No monitoring period left without a recorded result for the production model"
+      }
+    ]
+  },
+  {
+    "taskId": "d0541ca6-9da2-487f-96e1-ff8886456550",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zxmbk8fvc9wihw",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscogfn1m0qmbk8bixjxca5",
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscp4be1n6smbk8q7c323vx",
+      "cmqscp4o01n7gmbk8nzsb85bd"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5ha4j02b5v880ti1ex1fr",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Scoring run against the approved model version",
+      "Run log completed",
+      "Output stored in the governed schema"
+    ],
+    "checklistSpecific": [
+      "Run the approved model against the eligible customer population and record the run date and model version",
+      "Assign propensity deciles so each decile holds an approximately equal share of the scored population",
+      "Check the scored count reconciles to the eligible population and investigate unscored records",
+      "Spot-check a sample of top-decile and bottom-decile customers for face validity before release",
+      "Store the scored output in the governed analytics schema with the score-as-of date"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Decile-ranked propensity score table in the governed analytics schema with run log and score-as-of date"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No eligible customer left unscored without a recorded exclusion reason"
+      }
+    ]
+  },
+  {
+    "taskId": "6579dcae-5152-415f-9072-9e7b6a7470e3",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zxmbk8fvc9wihw",
+        "use": "performed"
+      },
+      {
+        "appId": "93c26f4e-2c06-4b8f-89ca-2e56818aaf8c",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp2wa1n46mbk8x2pbyjic",
+      "cmqscogia1m0umbk8ny2vq7d7",
+      "cmqscp2tc1n40mbk81o3e7wtg",
+      "cmqscp2ye1n4ambk8m0v8mkq5"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Train/holdout split defined before training",
+      "Performance measured on unseen data",
+      "Results recorded with the model version"
+    ],
+    "checklistSpecific": [
+      "Split the training data into train and holdout sets with no customer appearing in both",
+      "Train the candidate model and record AUC/Gini and top-decile lift on the holdout, not the training sample",
+      "Produce the decile lift table on the holdout and confirm monotonic ordering of conversion by decile",
+      "Run fairness/bias testing across the agreed monitored groups and record the results",
+      "Record the final model version, metrics, and holdout results in the model governance repository"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Holdout validation results with lift table and bias test outcomes recorded against the model version"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No performance metric reported from the training sample alone"
+      }
+    ]
+  },
+  {
+    "taskId": "fea2708a-d180-46cd-a548-ec115b069638",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03vgmbk81b8spm25",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "93c26f4e-2c06-4b8f-89ca-2e56818aaf8c",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscogia1m0umbk8ny2vq7d7",
+      "cmqscp2vb1n44mbk8kht26wp6",
+      "cmqscp2tc1n40mbk81o3e7wtg",
+      "cmqscp3an1n4ymbk8z80rd202"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Independent review of the model results",
+      "Business applicability confirmed by the consuming team",
+      "Findings recorded before deployment"
+    ],
+    "checklistSpecific": [
+      "Confirm the holdout lift meets the minimum threshold agreed in the success criteria",
+      "Review the top score drivers with marketing and distribution and confirm they are business-plausible",
+      "Review a sample of high-scoring customers for obvious mis-targeting (e.g. customers who already hold the product)",
+      "Confirm the bias testing results are acceptable and record the reviewer sign-off",
+      "Record the validation outcome and any conditions of use before the model is submitted for approval"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Validation record confirming lift threshold met, drivers reviewed, and business applicability signed off"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No high-scoring customer already holding the target product in the reviewed sample without explanation"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhsrj05yfkfgzhthung4l",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscp2vb1n44mbk8kht26wp6",
+      "cmqscp4v51n7smbk8csomhpjp"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Analysis based on governed lapse/cancellation data",
+      "Drivers evidenced not asserted",
+      "Findings reviewed before circulation"
+    ],
+    "checklistSpecific": [
+      "Classify non-renewals and mid-term cancellations by reason code and identify where reason codes are missing or generic",
+      "Test the association between churn and candidate drivers — premium change at renewal, claims experience, service contacts, payment issues, tenure",
+      "Quantify the churn rate difference between customers who experienced a rate increase band and those who did not",
+      "Separate voluntary churn from involuntary (non-payment, underwriting-driven) so remedies are not misdirected",
+      "Document the top churn drivers with the supporting evidence and the segments most affected"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Documented churn driver analysis with quantified effect per driver and voluntary/involuntary split"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No churn driver stated in the findings without supporting quantified evidence"
+      }
+    ]
+  },
+  {
+    "taskId": "d5be34b8-1a25-4ddb-865a-f90865833781",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zxmbk8fvc9wihw",
+        "use": "performed"
+      },
+      {
+        "appId": "93c26f4e-2c06-4b8f-89ca-2e56818aaf8c",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscogfn1m0qmbk8bixjxca5",
+      "cmqscp2wa1n46mbk8x2pbyjic",
+      "cmqscp2tc1n40mbk81o3e7wtg",
+      "cmqscoghb1m0smbk8c41jpghh"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5ha4j02b5v880ti1ex1fr",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Model built under the model development lifecycle",
+      "Validated on unseen data before use",
+      "Permitted use stated and bounded"
+    ],
+    "checklistSpecific": [
+      "Define the churn event and prediction horizon (e.g. non-renewal within the next 90 days) and record it",
+      "Build features from payment behaviour, service contact history, engagement, claims, and renewal premium change",
+      "Validate the model on a holdout period and record the lift in the highest-risk decile",
+      "Confirm the churn score is used for retention outreach only and not for pricing, non-renewal, or underwriting decisions",
+      "Write the at-risk flag and score back to the governed analytics schema with the score-as-of date"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Validated churn-risk scores in the governed analytics schema with holdout lift recorded"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No churn score consumed by any pricing, underwriting, or non-renewal process"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2flaz61su9kfgz3ptetg77",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscoh271m1umbk87ebv27kx"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5p4or0c4tv880jf6mrcgs",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5p5ln0c6bv880bj04tvn3",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Suppression rules applied before list release",
+      "List volumes sized to channel capacity",
+      "List version and generation date recorded"
+    ],
+    "checklistSpecific": [
+      "Rank customers by combined churn risk and value so the highest-value at-risk customers appear first",
+      "Rank cross-sell candidates by propensity score and expected premium from the coverage-gap analysis",
+      "Apply suppression for do-not-contact, opt-out, deceased, in-litigation, and open-complaint records before release",
+      "Cap the list to the volume distribution and marketing can genuinely action in the period",
+      "Stamp each list with its generation date, model versions used, and the owning team"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Prioritised retention and cross-sell target lists generated with suppression applied and generation date recorded"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No opted-out or do-not-contact customer present on a released target list"
+      }
+    ]
+  },
+  {
+    "taskId": "60c5e1ed-638b-4686-a298-74283e5edea7",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscp2vb1n44mbk8kht26wp6",
+      "cmqscp3co1n52mbk8zfr9bm39"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Calculation method documented and approved",
+      "Inputs traced to governed sources",
+      "Results reviewed for plausibility"
+    ],
+    "checklistSpecific": [
+      "Define the CLV formula components — expected tenure, margin per year, and discount rate — and document each assumption",
+      "Source retention curves by segment and product line from actual historical persistency, not assumption",
+      "Calculate CLV by segment and product-line combination and show the cell counts behind each figure",
+      "Sense-check CLV against actual observed multi-year premium for a sample of long-tenure customers",
+      "Publish the CLV definition to the business glossary so downstream reporting uses the same measure"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "CLV computed by segment and product line with a published definition and documented assumptions"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No CLV cell published on a sample size below the agreed minimum"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fht0e061mkfgzw89qigkl",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5sj001rv8w055x0ddut",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscp3co1n52mbk8zfr9bm39",
+      "cmqscp37s1n4smbk8v03mmcl5",
+      "cmqscplh81o1ymbk8u8i73x3e"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Metric definition consistent across periods",
+      "Figures reconciled to the policy system",
+      "Refresh schedule documented"
+    ],
+    "checklistSpecific": [
+      "Calculate policy and customer retention rates by segment and product for the period on the agreed definition",
+      "Reconcile in-force and non-renewal counts used in the calculation to the policy administration system",
+      "Split retention by voluntary lapse, non-payment cancellation, and carrier-initiated non-renewal",
+      "Show the trailing twelve-month trend alongside the current period so movements are visible",
+      "Publish the retention definition to the business glossary and confirm reports use it consistently"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Retention and churn rates published by segment and product with reconciliation to the policy system"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No retention figure published on a definition differing from the published glossary term"
+      }
+    ]
+  },
+  {
+    "taskId": "d6de57c6-035a-449f-8d53-918c6b1765ca",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03vgmbk81b8spm25",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4v60007v8w005phxlv9",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscpkz61o10mbk89h2emobr",
+      "cmqscpl181o14mbk8bom24dzb"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Questions agreed with the consuming teams",
+      "Scope and data availability confirmed",
+      "Delivery dates agreed"
+    ],
+    "checklistSpecific": [
+      "List the retention and cross-sell questions leadership needs answered this planning period with a named requester for each",
+      "Confirm the data needed to answer each question exists and is accessible before committing to it",
+      "Prioritise the questions against the planning calendar and drop or defer those that cannot be answered in time",
+      "Agree the measure of success for each question (decision enabled, campaign informed, target set)",
+      "Publish the agreed question set to the analytics workspace and confirm stakeholder acknowledgement"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Agreed retention and cross-sell question set published with named requesters and delivery dates"
+      }
+    ]
+  },
+  {
+    "taskId": "ea30420b-382f-4d2f-aed3-5d5eb34ef05b",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03vgmbk81b8spm25",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscpkvy1o0umbk859edutzs",
+      "cmqscovfm1mqembk8jo2ssfsh"
+    ],
+    "regs": [
+      {
+        "regId": "cmrbx8xlh019tv8ukib7dn0ib",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5p3em0c2jv8803q1ftdak",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Offer economics reviewed before approval",
+      "Offer terms consistent with filed rates and forms",
+      "Approvals recorded before launch"
+    ],
+    "checklistSpecific": [
+      "Define the offer construct per segment — the product, the message, the channel, and any eligibility conditions",
+      "Confirm any premium or discount element is consistent with filed rates and available in the relevant states",
+      "Model the expected retention or conversion uplift and the margin impact for each construct",
+      "Confirm the offer wording is accurate and not misleading about coverage, price, or conditions",
+      "Record product and pricing sign-off on each construct before it goes to campaign build"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Documented retention and cross-sell offer constructs by segment with product and pricing sign-off"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No offer construct containing a rate or discount element not supported by a filed rate"
+      }
+    ]
+  },
+  {
+    "taskId": "ec1e8db3-aa32-4b9b-b4c8-0352146fe962",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5sj001rv8w055x0ddut",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscp4o01n7gmbk8nzsb85bd",
+      "cmqscp2vb1n44mbk8kht26wp6",
+      "cmqscplh81o1ymbk8u8i73x3e"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5ha4j02b5v880ti1ex1fr",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Analysis based on governed policy and product data",
+      "Opportunity logic documented",
+      "Output reviewed with product before use"
+    ],
+    "checklistSpecific": [
+      "Build the product-holding matrix showing which products each customer holds and which they do not",
+      "Identify coverage gaps against the expected product set for the customer segment (e.g. auto-only households with property exposure)",
+      "Rank next-best-product recommendations per segment by observed attach rate and expected premium",
+      "Exclude products the customer is ineligible for by state, appetite, or existing declination from the opportunity set",
+      "Catalogue the resulting bundling and cross-sell opportunities with estimated eligible customer counts"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Cross-sell opportunity catalogue with next-best-product ranking and eligible customer counts per segment"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No recommended product in the catalogue that the customer segment is ineligible to purchase"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2flb8j1sykkfgzcjoxxwn8",
+    "roles": [
+      {
+        "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4v60007v8w005phxlv9",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp4cf1n6umbk85bpt2uag",
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscpl3d1o18mbk8rk6n5z9p",
+      "cmqscp4dd1n6wmbk8dj12odxc"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5ha4j02b5v880ti1ex1fr",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5ozai0bvzv880phdym5mz",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Lists delivered through the controlled system, not spreadsheets by email",
+      "Recipient access restricted to owning producers",
+      "Distribution recorded for audit"
+    ],
+    "checklistSpecific": [
+      "Load the prioritised action lists into CRM as producer-assigned work queues rather than emailing spreadsheets",
+      "Confirm each producer sees only the customers assigned to them and not the whole book",
+      "Include the reason for inclusion on each record so the producer knows why the customer is on the list",
+      "Confirm no restricted PII or account numbers are included in the published list fields",
+      "Record the distribution date, list version, and record count per producer"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Action lists distributed as producer-assigned CRM queues with inclusion reason on each record"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No target list distributed as an unrestricted spreadsheet outside the controlled system"
+      }
+    ]
+  },
+  {
+    "taskId": "854c0f87-8e05-4c44-a54f-3dda6f3d18d8",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "ae67c788-f3db-43a0-a648-33cdf5dc0bb4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03vgmbk81b8spm25",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4v60007v8w005phxlv9",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscplg21o1wmbk8lyl7zs1m",
+      "cmqscpl181o14mbk8bom24dzb"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Materials circulated before the session",
+      "Assumptions and limitations explained",
+      "Feedback captured and dispositioned"
+    ],
+    "checklistSpecific": [
+      "Walk distribution and product through the opportunity model logic, inputs, and the segments it prioritises",
+      "State the model limitations and where the recommendations should not be relied on",
+      "Capture challenges from the field on whether the prioritisation matches what producers see",
+      "Agree which opportunities each team will act on and by when",
+      "File the shared pack and the agreed actions in the analytics workspace"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Record of the opportunity model share-out with attendees, agreed actions, and captured feedback"
+      }
+    ]
+  },
+  {
+    "taskId": "a519a60d-e1e7-442e-acf9-f2f931b85df6",
+    "roles": [
+      {
+        "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03vgmbk81b8spm25",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788",
+        "use": "performed"
+      },
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkvy1o0umbk859edutzs",
+      "cmqscpkz61o10mbk89h2emobr",
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscovko1mqombk8e7lb7kdj"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Results measured against a stated baseline or control",
+      "Attribution method documented",
+      "Reporting on the agreed cadence"
+    ],
+    "checklistSpecific": [
+      "Track contact, response, quote, and bind conversion at each stage for every retention and cross-sell campaign",
+      "Compare campaign outcomes against a holdout or control group rather than pre/post alone",
+      "Quantify the premium written and retained premium attributable to each campaign",
+      "Reconcile campaign-attributed policies back to the policy administration system to confirm they bound",
+      "Report performance by segment and channel on the agreed cadence and flag campaigns below threshold"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Campaign performance report showing conversion and premium impact against a control or holdout group"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No campaign result reported without a stated baseline or control comparison"
+      }
+    ]
+  },
+  {
+    "taskId": "3f7af593-b150-47e6-b0bf-1d17b0cec62f",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp37s1n4smbk8v03mmcl5",
+      "cmqscp4be1n6smbk8q7c323vx",
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscoghb1m0smbk8c41jpghh"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Refresh run on the published schedule",
+      "Inputs re-sourced not carried forward",
+      "Changes versus prior version explained"
+    ],
+    "checklistSpecific": [
+      "Refresh the churn scores and CLV inputs with the latest completed quarter of data",
+      "Re-run the opportunity model and record the new version number and refresh date",
+      "Compare the refreshed opportunity ranking to the prior quarter and explain material movements",
+      "Confirm segment definitions and glossary measures used are still current before refreshing",
+      "Publish the refreshed model outputs and retire the prior quarter version from active use"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Quarterly refreshed growth opportunity model with new version number, refresh date, and movement commentary"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No prior-quarter opportunity model version left in active use after the refresh"
+      }
+    ]
+  },
+  {
+    "taskId": "4b7945db-6d16-48df-a781-058c4607c369",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscple51o1smbk87hh8ihv7",
+      "cmqscovb11mq6mbk86d88dcae",
+      "cmqscoh081m1qmbk8av2zausw",
+      "cmqscp4dd1n6wmbk8dj12odxc"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5ha4j02b5v880ti1ex1fr",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5pcy70cj7v8800wrio215",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "All feedback sources ingested on a documented schedule",
+      "Personal data handled under the privacy standard",
+      "Source system and date retained on every record"
+    ],
+    "checklistSpecific": [
+      "Ingest survey responses, NPS and CSAT results, complaint records, and contact-centre verbatims into the single VoC repository",
+      "Keep the source system, channel, interaction date, and journey stage on every feedback record",
+      "Link feedback to the customer record where consent and policy allow, and keep it anonymous where it does not",
+      "Mask or remove free-text personal identifiers (names, policy numbers, bank details) before analysis access is granted",
+      "Reconcile ingested volumes against each source system count and investigate gaps"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Single VoC repository containing survey, NPS, complaint, and contact-centre feedback with source and date on every record"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No unmasked personal identifier present in the analyst-accessible verbatim text"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi2940a9tkfgzjjvmrq9p",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sembk8s77c6zri",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4v60007v8w005phxlv9",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl5q1o1cmbk8lijej5j4",
+      "cmqscovea1mqcmbk8um82vnx8",
+      "cmqscpl181o14mbk8bom24dzb",
+      "cmqscpkvy1o0umbk859edutzs"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Decision made by an authorised executive forum",
+      "Priorities recorded with owners",
+      "Funding and capacity confirmed"
+    ],
+    "checklistSpecific": [
+      "Present the prioritised experience opportunities with expected customer impact and effort for executive decision",
+      "Secure a decision on each opportunity — approve, defer, or reject — and record the rationale",
+      "Assign an accountable executive owner to every approved remediation action",
+      "Confirm the capacity or budget to deliver the approved actions in the agreed period",
+      "Minute the decisions and circulate to the owners within the agreed turnaround"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Executive decision record showing approve/defer/reject and an accountable owner for each remediation action"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No approved remediation action left without an accountable executive owner"
+      }
+    ]
+  },
+  {
+    "taskId": "d7f77bc3-bebf-49e5-ab2a-90280297013c",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscple51o1smbk87hh8ihv7",
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscp2vb1n44mbk8kht26wp6",
+      "cmqscoh081m1qmbk8av2zausw"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5ha4j02b5v880ti1ex1fr",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Analysis run on the governed feedback repository",
+      "Themes evidenced with example verbatims",
+      "Findings reviewed before circulation"
+    ],
+    "checklistSpecific": [
+      "Group verbatim comments into recurring themes and record the volume and share of feedback per theme",
+      "Report theme volume by journey stage (quote, bind, service, billing, claim) and by channel",
+      "Attach representative anonymised example verbatims to each theme so the theme is recognisable",
+      "Compare theme volumes against the prior period to separate emerging issues from persistent ones",
+      "Flag themes that indicate a potential regulatory or conduct concern for referral to compliance"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Documented verbatim theme analysis with volume, journey stage, and anonymised examples per theme"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No customer-identifying detail present in the example verbatims shared in the analysis"
+      }
+    ]
+  },
+  {
+    "taskId": "a3d0fea0-7abc-47b5-b88f-5b811a19d3bf",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zxmbk8fvc9wihw",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscoh271m1umbk87ebv27kx",
+      "cmqscp4l91n7cmbk83gl6rt5r",
+      "cmqscple51o1smbk87hh8ihv7",
+      "cmqscp2vb1n44mbk8kht26wp6"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5ha4j02b5v880ti1ex1fr",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Coding scheme documented and version-controlled",
+      "Coding accuracy sampled and measured",
+      "Ambiguous responses routed for manual review"
+    ],
+    "checklistSpecific": [
+      "Apply the documented theme taxonomy to open-text responses and record the code assigned to each response",
+      "Apply sentiment classification (positive / neutral / negative) and store the confidence score with each result",
+      "Manually review a sample of coded responses and measure agreement against the automated coding",
+      "Route low-confidence and unclassified responses to a manual review queue rather than discarding them",
+      "Record the taxonomy version used so results across periods can be compared or restated"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Coded response set with sentiment, theme code, confidence score, and taxonomy version on every record"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No open-text response left unclassified and unrouted to manual review"
+      }
+    ]
+  },
+  {
+    "taskId": "7d99945b-d41c-4596-bcdd-b3ac2d87a7f5",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03vgmbk81b8spm25",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4v60007v8w005phxlv9",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscogk91m0ymbk8wxxmgpcq",
+      "cmqscplg21o1wmbk8lyl7zs1m",
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscpl3d1o18mbk8rk6n5z9p"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5ha4j02b5v880ti1ex1fr",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Report reviewed before distribution",
+      "Figures traceable to the VoC repository",
+      "Distribution list controlled"
+    ],
+    "checklistSpecific": [
+      "Compile the quarterly report covering NPS, CSAT, theme volumes, and movement against the prior quarter",
+      "Include the status of previously agreed remediation actions so the report closes the loop",
+      "Include specific improvement recommendations with the expected customer impact for each",
+      "Confirm no customer-identifying information appears in the quoted verbatims",
+      "Distribute the report to the agreed internal distribution list and file the version in the workspace"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Quarterly VoC report issued with metric movements, theme analysis, prior-action status, and recommendations"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No customer-identifying information present in the distributed report"
+      }
+    ]
+  },
+  {
+    "taskId": "2a5ea198-2bdb-4374-84dd-081a596e44e2",
+    "roles": [
+      {
+        "roleId": "34b1ae9d-ad32-4679-8314-e68912fd3620",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ac79552c-c2ae-4c64-9258-6f2c612ab788",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4u70005v8w0ttfgsudc",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscplc61o1ombk8wptz9hx9",
+      "cmqscplb71o1mmbk8j1kh9zit",
+      "cmqscovip1mqkmbk85tyfcfym",
+      "cmqscp38o1n4umbk8ne8wtn63"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5h9wi02arv880v8p1q1pm",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5p5ln0c6bv880bj04tvn3",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Survey content reviewed before launch",
+      "Contact preferences respected in the send",
+      "Response data stored in the governed repository"
+    ],
+    "checklistSpecific": [
+      "Configure the relationship NPS survey and the transactional CSAT surveys at the agreed journey trigger points",
+      "Set the survey frequency cap per customer so the same customer is not over-surveyed across triggers",
+      "Suppress customers with marketing opt-outs, do-not-contact flags, or open complaints from survey sends where required",
+      "Include the opt-out mechanism and the privacy statement in every survey invitation",
+      "Test each survey end to end in the test environment and confirm responses land in the VoC repository"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Live NPS, CSAT, and transactional surveys at the agreed trigger points with responses landing in the VoC repository"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No survey invitation sent to a customer with an active opt-out or do-not-contact flag"
+      }
+    ]
+  },
+  {
+    "taskId": "2685860f-a7b7-4740-a08b-c4c76a6291e9",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03vgmbk81b8spm25",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp38o1n4umbk8ne8wtn63",
+      "cmqscpkz61o10mbk89h2emobr",
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscpl181o14mbk8bom24dzb"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5ha4j02b5v880ti1ex1fr",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Framework agreed with the consuming business owners",
+      "Metric definitions documented",
+      "Ownership and cadence assigned"
+    ],
+    "checklistSpecific": [
+      "Map the customer journey stages and identify the touchpoints where feedback will be collected",
+      "Select the metric for each touchpoint (relationship NPS, transactional CSAT, effort score) and define how each is calculated",
+      "Define the feedback channels in scope — survey, complaint, contact-centre verbatim, digital feedback, producer feedback",
+      "Set the measurement cadence and the named owner for each metric and touchpoint",
+      "Publish the framework and confirm sign-off from customer service, marketing, and distribution"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Published VoC measurement framework covering touchpoints, metrics, channels, cadence, and named owners"
+      }
+    ]
+  },
+  {
+    "taskId": "9f0d514f-b5a4-4032-9f57-703eea556989",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscovea1mqcmbk8um82vnx8",
+      "cmqscple51o1smbk87hh8ihv7"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Mapping based on the coded feedback themes",
+      "Each pain point traced to evidence",
+      "Mapping reviewed with process owners"
+    ],
+    "checklistSpecific": [
+      "Place each identified pain point on the journey map at the stage where the customer actually experiences it",
+      "Attach the feedback volume and negative sentiment share to each mapped pain point",
+      "Name the process owner accountable for the touchpoint where each pain point sits",
+      "Distinguish pain points caused by process from those caused by product, pricing, or system behaviour",
+      "Review the completed mapping with the accountable process owners and record their agreement"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Completed journey-stage pain point map with feedback volume and a named process owner per pain point"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No mapped pain point without supporting feedback evidence"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fl0ep1ntxkfgzjwzmz57r",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkvy1o0umbk859edutzs",
+      "cmqscpl5q1o1cmbk8lijej5j4",
+      "cmqscplb71o1mmbk8j1kh9zit",
+      "cmqscp32w1n4imbk8cl9att9q"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Pre-change baseline captured before measurement",
+      "Measurement window defined in advance",
+      "Result reported whether positive or not"
+    ],
+    "checklistSpecific": [
+      "Record the pre-remediation NPS and CSAT baseline for the affected touchpoint and customer group",
+      "Measure NPS and CSAT for the same touchpoint over the defined post-implementation window",
+      "Confirm the change in score is measured on a comparable population and not distorted by mix shift",
+      "State whether the movement is statistically meaningful given the response volume",
+      "Record the measured impact against the remediation action, including where no improvement was observed"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Measured NPS/CSAT impact recorded against each completed remediation action with pre-change baseline"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No remediation action closed as successful without a post-implementation measurement"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi1y50a5ekfgz3rnscpvy",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sembk8s77c6zri",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4v60007v8w005phxlv9",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscplg21o1wmbk8lyl7zs1m",
+      "cmqscpl5q1o1cmbk8lijej5j4",
+      "cmqscpl181o14mbk8bom24dzb",
+      "cmqscovko1mqombk8e7lb7kdj"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Pack circulated before the session",
+      "Attendance and decisions recorded",
+      "Actions carried to the tracking register"
+    ],
+    "checklistSpecific": [
+      "Circulate the VoC findings pack to the executive team ahead of the session",
+      "Present metric movement, top themes, and the customer and financial impact of the leading pain points",
+      "Present the prioritised improvement opportunities and the recommendation for each",
+      "Capture executive challenges and requests for further analysis during the session",
+      "Minute the session with attendees, decisions, and follow-up actions and circulate afterwards"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Minuted executive VoC review with attendees, decisions, and follow-up actions recorded"
+      }
+    ]
+  },
+  {
+    "taskId": "e8be54a8-9f0f-400b-9de7-500d70548978",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03vgmbk81b8spm25",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovea1mqcmbk8um82vnx8",
+      "cmqscpkx81o0wmbk8sved8cuw",
+      "cmqscpkvy1o0umbk859edutzs",
+      "cmqscpkz61o10mbk89h2emobr"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Prioritisation criteria agreed before scoring",
+      "Each opportunity scored on the same basis",
+      "Ranking reviewed with delivery owners"
+    ],
+    "checklistSpecific": [
+      "Score each improvement opportunity on customer impact using feedback volume and negative sentiment share",
+      "Score each opportunity on feasibility using delivery effort, dependency, and cost estimates from the owning team",
+      "Plot the opportunities on the impact-versus-feasibility grid and derive the ranked shortlist",
+      "Confirm the effort estimates with the teams that would deliver them before finalising the ranking",
+      "Publish the ranked opportunity list with the score and rationale visible for each entry"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Ranked experience improvement list with impact and feasibility scores and rationale per opportunity"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No opportunity ranked using effort estimates not confirmed by the delivering team"
+      }
+    ]
+  },
+  {
+    "taskId": "908e55b4-a1fc-4bea-ba82-f5fb2583176c",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tkmbk8bayqsxpa",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4wg0009v8w0kvco6gha",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp2vb1n44mbk8kht26wp6",
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscplb71o1mmbk8j1kh9zit",
+      "cmqscovip1mqkmbk85tyfcfym"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Analysis run on the governed feedback repository",
+      "Method and limitations documented",
+      "Findings reviewed before use"
+    ],
+    "checklistSpecific": [
+      "Run the driver analysis relating touchpoint experience ratings and operational measures to overall NPS and CSAT",
+      "Rank the drivers by strength of association and report the share of score variation each explains",
+      "Confirm the response volume is sufficient per segment before reporting segment-level drivers",
+      "State explicitly that the drivers are associations and note where a causal claim cannot be supported",
+      "Document the top drivers and hand them to the prioritisation step as scoring inputs"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Documented NPS/CSAT driver analysis with ranked drivers, explained variation, and stated method"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No driver reported at segment level below the minimum response volume threshold"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fl0451norkfgz3k0h7tgx",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03thmbk8xznzk1nc",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zambk8kfrzp0ud",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4v60007v8w005phxlv9",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkos1o0imbk8o7q2zq9h",
+      "cmqscpl5q1o1cmbk8lijej5j4",
+      "cmqscovea1mqcmbk8um82vnx8",
+      "cmqscpkx81o0wmbk8sved8cuw"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Every action tracked in the central register",
+      "Status updated on the agreed cadence",
+      "Closure evidenced before an action is closed"
+    ],
+    "checklistSpecific": [
+      "Log every agreed remediation action in the tracking register with owner, target date, and expected outcome",
+      "Update action status on the agreed cadence and flag actions that have slipped past target date",
+      "Require evidence of implementation before an action is marked complete, not just an owner assertion",
+      "Escalate actions overdue beyond the agreed tolerance to the accountable executive owner",
+      "Confirm each closed action is passed to the impact measurement step before it leaves the register"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Remediation action register current with status, owner, and target date on every open action"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No action marked complete without attached evidence of implementation"
+      }
+    ]
+  }
+]

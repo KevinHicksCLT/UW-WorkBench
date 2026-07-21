@@ -1,0 +1,3501 @@
+{
+  "area": "Claims Reserving & Financial Management",
+  "companyId": "cmqscjws60004mbk8zemn9re4",
+  "tasks": [
+    {
+      "taskId": "8db5f89d-2b06-478c-9843-6aa8250dcf3e",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "cmqsck0z103z2mbk8u1zgiax3",
+          "use": "performed"
+        },
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofla1lz4mbk85sg21l6z",
+        "cmqscp0761mz8mbk8zr3vrq47",
+        "cmqscp0671mz6mbk84gimolja"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Confirm the claim carries the fast-track triage tier and has no litigation, fatality, or coverage-dispute flag that disqualifies templating",
+        "Select the severity band template matching line of business, cause of loss, and damage tier on the Financials > Reserves screen",
+        "Confirm the template posts both an indemnity and an expense reserve line rather than a single combined amount",
+        "Override the template amount only where a documented reason code is selected, and record the override note",
+        "Confirm the posted reserve total equals the template value (or the approved override) before saving the transaction"
+      ],
+      "testing": [
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Financials > Reserves",
+          "checkType": "presence",
+          "expected": "A reserve transaction exists with a fast-track template code and a non-zero indemnity and expense line"
+        },
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Claim > Exposures",
+          "checkType": "absence",
+          "expected": "No fast-track template reserve exists on a claim flagged litigated, fatality, or coverage-disputed"
+        }
+      ]
+    },
+    {
+      "taskId": "2a5fd353-ee67-4f51-b63b-dfaeaf489dfd",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofla1lz4mbk85sg21l6z",
+        "cmqscof3h1ly6mbk85m8momdy",
+        "cmqscp0671mz6mbk84gimolja"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Identify the line of business and claim type on the claim summary and open the matching reserving guideline version",
+        "Confirm the guideline version in use is the current effective edition, not a superseded copy in local files",
+        "Apply the guideline-prescribed valuation basis (ultimate probable exposure, not most-likely-settlement) to the reserve figure",
+        "Record which guideline section and paragraph drove the reserve basis in the reserve note",
+        "Escalate to the reserving actuary where the claim type falls outside any published guideline"
+      ],
+      "testing": [
+        {
+          "system": "claim file/document repository",
+          "location": "Claim notes > Reserve rationale",
+          "checkType": "presence",
+          "expected": "Reserve note cites the reserving guideline name, version, and section applied"
+        }
+      ]
+    },
+    {
+      "taskId": "42e212bf-c342-4ad5-8d9a-3cec8a71b199",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "cmqsck0z103z2mbk8u1zgiax3",
+          "use": "performed"
+        },
+        {
+          "appId": "cmrqex4wg0009v8w0kvco6gha",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofla1lz4mbk85sg21l6z",
+        "cmqscomop1mbcmbk8hcolxq5d",
+        "cmqscofd61lyombk8ef0uqvus"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Confirm each reserve line is coded to the correct exposure, coverage code, and loss cause on the exposure record",
+        "Confirm the reserve is split by indemnity versus expense cost category rather than posted to a default bucket",
+        "Confirm the accident year and policy period on the reserve line match the loss date on the claim, not the report date",
+        "Confirm the reporting segment (state, line, program) on the reserve matches the policy declarations page",
+        "Correct any line coded to a suspense, unallocated, or \"other\" segment before the reserve is released"
+      ],
+      "testing": [
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Financials > Reserves line detail",
+          "checkType": "absence",
+          "expected": "No reserve line is coded to a suspense, default, or unallocated segment"
+        },
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Financials > Reserves line detail",
+          "checkType": "presence",
+          "expected": "Every reserve line carries coverage code, cost category, and accident year"
+        }
+      ]
+    },
+    {
+      "taskId": "a5959382-5c45-4778-8f59-b64f522fe5a8",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscp0671mz6mbk84gimolja",
+        "cmqscozkh1my0mbk8uzg517r4",
+        "cmqscof2i1ly4mbk8tr6uatym"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Write the reserve note against the reserve transaction itself, not as a free-standing claim note",
+        "State the exposure components used: medical specials, wage loss, general damages, expense, and any expected recovery offset",
+        "State the evidence relied on (police report, estimate, medical records, coverage opinion) with document dates",
+        "State the confidence level and the key uncertainty that could move the reserve materially",
+        "Confirm the note is entered within the guideline window of the reserve posting, not backfilled at file review"
+      ],
+      "testing": [
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Financials > Reserve transaction note",
+          "checkType": "presence",
+          "expected": "A rationale note is attached to the reserve transaction naming exposure components and source evidence"
+        }
+      ]
+    },
+    {
+      "taskId": "b465336e-24ba-4170-b2a3-8685ee4be598",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "cmqsck0z103z2mbk8u1zgiax3",
+          "use": "performed"
+        },
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofla1lz4mbk85sg21l6z",
+        "cmqscozrb1myembk85ilmptjr",
+        "cmqscofd61lyombk8ef0uqvus"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Create a discrete indemnity reserve per exposure rather than one blended claim-level figure",
+        "Create a separate ALAE reserve covering defense counsel, experts, and independent adjuster fees",
+        "Create a separate litigation reserve component where suit has been filed or is reasonably anticipated",
+        "Confirm each component posts to its own cost type so ALAE is not absorbed into indemnity in the ledger feed",
+        "Confirm multi-claimant losses carry a reserve per claimant, not a single pooled amount"
+      ],
+      "testing": [
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Financials > Reserves by cost type",
+          "checkType": "presence",
+          "expected": "Distinct indemnity and expense reserve lines exist for each open exposure"
+        },
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Financials > Reserves by cost type",
+          "checkType": "absence",
+          "expected": "No ALAE amount is booked inside an indemnity cost type"
+        }
+      ]
+    },
+    {
+      "taskId": "cace69e4-120d-4698-a4d3-4efc4a127de5",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0rq03wzmbk8iu5btcuv",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03t2mbk8h6wx6ilk",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofml1lz6mbk8ukgwn4aq",
+        "cmqscp0931mzcmbk8kbuzaa1i",
+        "cmqscof4c1ly8mbk8eptl1pff"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Compare total incurred (indemnity plus expense) against the published large-loss threshold for the line of business",
+        "Trigger the large-loss notification the same day the threshold is first breached, not at the next diary",
+        "Include claim number, accident year, coverage, cause of loss, current reserve split, and expected ultimate in the notification",
+        "Confirm the claim is added to the large-loss watchlist feed the reserving actuary reviews",
+        "Confirm actuarial acknowledgement is logged back on the claim file"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Large-loss notification queue",
+          "checkType": "presence",
+          "expected": "Every claim over the large-loss threshold has a dated actuarial notification record with acknowledgement"
+        }
+      ]
+    },
+    {
+      "taskId": "f66154e2-67d3-48a6-b0fa-96279d539810",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0rn03s7mbk85nkvof8n",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "cmqsck0z103z2mbk8u1zgiax3",
+          "use": "performed"
+        },
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscp0b31mzgmbk8b2rocjpq",
+        "cmqscp0841mzambk8yfpw8urr",
+        "cmqscp0561mz4mbk8dx4o04eh"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Compare the proposed reserve against the handler authority level held in the authority matrix, not the handler job title",
+        "Route the reserve to the approver one level above the breached band, and to the next band up where two bands are crossed",
+        "Confirm the approval is recorded in the system workflow rather than an email thread",
+        "Confirm the reserve remains in pending status and does not hit the ledger until the approval is applied",
+        "Confirm the approver is not the same user who requested the reserve"
+      ],
+      "testing": [
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Financials > Reserve approval history",
+          "checkType": "presence",
+          "expected": "An approval record exists from a user whose authority level covers the reserve amount"
+        },
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Financials > Reserve approval history",
+          "checkType": "absence",
+          "expected": "No reserve above authority was posted with requester and approver as the same user"
+        }
+      ]
+    },
+    {
+      "taskId": "4ac53076-3d47-46a4-a8e4-33b9272d4a8c",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscp0761mz8mbk8zr3vrq47",
+        "cmqscol481m8umbk8ipeerr6e",
+        "cmqscpc9m1nlcmbk86982l9uc",
+        "cmqscomop1mbcmbk8hcolxq5d"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Post the reserve with an effective date equal to the date the exposure was evaluated, never a prior closed period",
+        "Confirm the handler ID and authority level are stamped on the reserve transaction",
+        "Confirm the reserve transaction generates a ledger feed entry to the correct loss reserve account for the line and accident year",
+        "Confirm the transaction posts within the initial-reserve SLA measured from claim assignment",
+        "Investigate and clear any transaction sitting in the interface error/suspense queue before end of day"
+      ],
+      "testing": [
+        {
+          "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "location": "Claims-to-GL interface log",
+          "checkType": "absence",
+          "expected": "No claims reserve transaction remains unposted in the interface suspense queue"
+        },
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Financials > Reserve transaction header",
+          "checkType": "presence",
+          "expected": "Reserve carries an effective date within the open accounting period and a handler ID"
+        }
+      ]
+    },
+    {
+      "taskId": "b4adc8ee-30eb-48f4-8f5e-89898645ccd9",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03t2mbk8h6wx6ilk",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "cmqsck0z103z2mbk8u1zgiax3",
+          "use": "performed"
+        },
+        {
+          "appId": "cmrqex5xf0021v8w0yodqycdf",
+          "use": "performed"
+        },
+        {
+          "appId": "cmrqex4wg0009v8w0kvco6gha",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofla1lz4mbk85sg21l6z",
+        "cmqscp0561mz4mbk8dx4o04eh",
+        "cmqscp0671mz6mbk84gimolja"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Obtain current medical records and a bill review summary before projecting the bodily-injury exposure",
+        "Project future medical on treatment plan and life expectancy rather than billed-to-date multiplied by a factor",
+        "Separate past specials, future medical, wage loss, and general damages as distinct lines in the projection worksheet",
+        "Apply the jurisdiction venue factor and comparative negligence assessment to the general damages component",
+        "Attach the projection worksheet to the claim file and cite it in the reserve note"
+      ],
+      "testing": [
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Claim documents",
+          "checkType": "presence",
+          "expected": "A medical projection worksheet is attached and referenced by the current indemnity reserve note"
+        },
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Financials > Reserves",
+          "checkType": "absence",
+          "expected": "No complex bodily-injury reserve is set from a flat template with no projection attached"
+        }
+      ]
+    },
+    {
+      "taskId": "30c0aa5e-ee3b-4fb7-9a35-d2fb99b9f111",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "cmqsck0z103z2mbk8u1zgiax3",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscp0a31mzembk8hmjzblgt",
+        "cmqscofnt1lz8mbk8jldiwsv6",
+        "cmqscozkh1my0mbk8uzg517r4"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Set the first adequacy diary at the guideline interval for the claim severity tier, not a default 90 days for all files",
+        "Confirm the diary is owned by the handling adjuster and is not left on a generic team queue",
+        "Confirm the diary subject names the reserve review, so it is distinguishable from contact and status diaries",
+        "Shorten the diary interval where litigation, fatality, or a policy-limits exposure is present",
+        "Confirm the diary date falls before the next scheduled financial close"
+      ],
+      "testing": [
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Claim > Diary/Activities",
+          "checkType": "presence",
+          "expected": "An open reserve-adequacy diary activity exists on every open claim with a named owner and due date"
+        }
+      ]
+    },
+    {
+      "taskId": "b33961f7-69c7-47ba-b742-6e411e738d84",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "cmqsck0z103z2mbk8u1zgiax3",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscp0761mz8mbk8zr3vrq47",
+        "cmqscofla1lz4mbk85sg21l6z",
+        "cmqscp0671mz6mbk84gimolja"
+      ],
+      "regs": [
+        {
+          "regId": "cmrc5uihs0jwvv880e2287jfw",
+          "rel": "GOVERNS"
+        }
+      ],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Confirm coverage is verified and the policy limit is loaded before setting the reserve, so the reserve cannot exceed limits unnoticed",
+        "Read the triage severity tier and damage assessment from the FNOL record and map to the guideline reserve band",
+        "Post indemnity and expense reserves as separate amounts on first entry",
+        "Confirm the reserve is set within the initial-reserve SLA measured from assignment date, not from FNOL date",
+        "Where facts are too thin to value, post the guideline placeholder and set a short diary rather than leaving the reserve at zero"
+      ],
+      "testing": [
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Financials > Reserves",
+          "checkType": "absence",
+          "expected": "No open claim past the initial-reserve SLA carries a zero indemnity reserve"
+        },
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Claim > Coverage",
+          "checkType": "presence",
+          "expected": "Coverage verification is complete and policy limits are loaded before the reserve transaction date"
+        }
+      ]
+    },
+    {
+      "taskId": "53340174-c3ce-44f3-925e-d4a1e248d558",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofnt1lz8mbk8jldiwsv6",
+        "cmqscp0671mz6mbk84gimolja",
+        "cmqscozkh1my0mbk8uzg517r4"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Identify the triggering evidence (IME report, demand package, surgery recommendation, liability decision, wage records) and its receipt date",
+        "Adjust the reserve within the guideline window of receiving the evidence rather than waiting for the next diary",
+        "Move indemnity and expense components separately so the driver of the change is visible",
+        "Confirm the revised reserve still reflects ultimate probable exposure and does not exceed the applicable policy limit",
+        "Attach the triggering document to the claim and cite its document ID in the reserve change note"
+      ],
+      "testing": [
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Financials > Reserve transaction note",
+          "checkType": "presence",
+          "expected": "Each reserve change note names the triggering document and its receipt date"
+        },
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Financials > Reserves",
+          "checkType": "absence",
+          "expected": "No reserve exceeds the policy limit loaded on the coverage record"
+        }
+      ]
+    },
+    {
+      "taskId": "f897f3a5-1aa0-4067-ab6d-e8ead2aef9b3",
+      "roles": [
+        {
+          "roleId": "cmqsck0rn03s7mbk85nkvof8n",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03t2mbk8h6wx6ilk",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "cmqsck0z103z2mbk8u1zgiax3",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscp0841mzambk8yfpw8urr",
+        "cmqscp0931mzcmbk8kbuzaa1i",
+        "cmqscp0b31mzgmbk8b2rocjpq"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Confirm the approval request states the prior reserve, the revised reserve, and the incremental movement, not just the new total",
+        "Confirm the incremental movement is measured against the authority band, since stacked small increases can breach it cumulatively",
+        "Review the supporting evidence attached to the request before approving, and record the review in the approval comment",
+        "Reject and return requests with no rationale note rather than approving and asking for documentation afterwards",
+        "Confirm the approval is applied in the system before the reserve is released to the ledger"
+      ],
+      "testing": [
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Financials > Reserve approval queue",
+          "checkType": "absence",
+          "expected": "No reserve increase above the delegated limit is in posted status without a recorded approver"
+        },
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Financials > Reserve approval queue",
+          "checkType": "presence",
+          "expected": "Approval records include an approver comment referencing the supporting evidence"
+        }
+      ]
+    },
+    {
+      "taskId": "be0c0da9-c9ef-4b5f-b018-80d30ab4bcf1",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscp0671mz6mbk84gimolja",
+        "cmqscof2i1ly4mbk8tr6uatym",
+        "cmqscozkh1my0mbk8uzg517r4"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "State what changed since the prior valuation, not merely the new reserve figure",
+        "Quantify the movement by component: indemnity, ALAE, and expected recovery offset",
+        "Name the evidence and its date, and link the document in the claim file",
+        "Explain why the change was not foreseeable at the prior review, so development can be classified as new information versus mis-estimation",
+        "Confirm the note is written on the reserve transaction so it survives in the reserve development history"
+      ],
+      "testing": [
+        {
+          "system": "claim file/document repository",
+          "location": "Claim notes > Reserve change",
+          "checkType": "presence",
+          "expected": "Every reserve change over the materiality threshold carries a rationale note with component breakdown"
+        }
+      ]
+    },
+    {
+      "taskId": "a3f21114-6223-4305-aa33-b39706b63028",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0rq03wzmbk8iu5btcuv",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+          "use": "performed"
+        },
+        {
+          "appId": "cmrqex4wg0009v8w0kvco6gha",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofnt1lz8mbk8jldiwsv6",
+        "cmqscox441mtimbk89jxao5pl",
+        "cmqscofml1lz6mbk8ukgwn4aq"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Run the reserve development report over open claims for the period and compute movement against the opening reserve",
+        "Apply the deterioration rule consistently (for example three consecutive upward movements, or cumulative increase above the defined percentage)",
+        "Exclude movements caused purely by a coverage or exposure correction so the flag list is not polluted",
+        "Raise the flag on the claim record itself so it surfaces on the handler and manager worklists",
+        "Deliver the flagged list to claims management and the reserving actuary with accident year and line of business breakdown"
+      ],
+      "testing": [
+        {
+          "system": "Enterprise data warehouse/lakehouse",
+          "location": "Reserve development report",
+          "checkType": "presence",
+          "expected": "Claims meeting the deterioration rule carry a management-review flag for the current period"
+        }
+      ]
+    },
+    {
+      "taskId": "82403798-1ecb-4fec-9590-77e00ada43db",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "cmrqex4wg0009v8w0kvco6gha",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscp0b31mzgmbk8b2rocjpq",
+        "cmqscp0841mzambk8yfpw8urr",
+        "cmqscol561m8wmbk8rrhp9138",
+        "cmqscol7f1m90mbk8uqz22zfo"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Extract all reserve movements for the period with requester, approver, amount, and authority band",
+        "Match each movement above a band threshold to a recorded approval, and list unmatched items as exceptions",
+        "Test for split transactions: multiple same-day movements on one claim that individually sit under the band but together breach it",
+        "Confirm no movement has the same user as requester and approver, and that reserve totals stay within the policy coverage limit",
+        "Report the exception list to claims management with claim number, amount, and handler"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Reserve movement extract",
+          "checkType": "absence",
+          "expected": "No period reserve movement above the authority band lacks a matching approval record"
+        },
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Reserve movement extract",
+          "checkType": "absence",
+          "expected": "No same-day split reserve movements on one claim aggregate above an unapproved band"
+        }
+      ]
+    },
+    {
+      "taskId": "6f6ddaba-025f-4cf5-8ee5-b6568504187f",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "cmqsck0z103z2mbk8u1zgiax3",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscp0a31mzembk8hmjzblgt",
+        "cmqscofnt1lz8mbk8jldiwsv6",
+        "cmqscofjb1lz0mbk80oj495hj"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Work the reserve-adequacy diary queue to zero for the period rather than deferring items forward without reason",
+        "For each file, re-value indemnity and expense against current medicals, liability position, and litigation posture",
+        "Record an explicit \"reserve confirmed adequate, no change\" note where no adjustment is made, so a no-change review is evidenced",
+        "Reset the next diary date at the interval matching the claim severity tier",
+        "Escalate files where the reviewer disagrees with the handler valuation to the claims manager"
+      ],
+      "testing": [
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Claim > Diary/Activities",
+          "checkType": "absence",
+          "expected": "No reserve-adequacy diary remains overdue past the review period"
+        },
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Claim notes",
+          "checkType": "presence",
+          "expected": "Each reviewed claim has a dated adequacy-review note, including no-change reviews"
+        }
+      ]
+    },
+    {
+      "taskId": "e62b50c2-fa53-4f54-9bd9-1ca14a56a7eb",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03t2mbk8h6wx6ilk",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofkb1lz2mbk8bf6had6v",
+        "cmqscp0431mz2mbk8c0gkfukx",
+        "cmqscofml1lz6mbk8ukgwn4aq"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Recompute total incurred after the reserve change and compare against the excess and reinsurance reporting triggers",
+        "Submit the update where the revised reserve crosses a trigger, and also where it materially moves an already-notified claim",
+        "Include the prior notified figure alongside the revised figure so the reinsurer sees the movement",
+        "Confirm the submission lands in the excess/reinsurance notification queue with a system confirmation reference",
+        "Diary the acknowledgement due date and chase where no confirmation is received"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Reinsurance notification queue",
+          "checkType": "presence",
+          "expected": "A submission record with confirmation reference exists for each claim whose revised reserve crosses a reporting trigger"
+        }
+      ]
+    },
+    {
+      "taskId": "bdf1a85f-aa31-49ee-8f71-de004d5338d4",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0rq03wzmbk8iu5btcuv",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+          "use": "performed"
+        },
+        {
+          "appId": "cmrqex4wg0009v8w0kvco6gha",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscox441mtimbk89jxao5pl",
+        "cmqscof1j1ly2mbk8prrtenxf",
+        "cmqscof2i1ly4mbk8tr6uatym"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Confirm every reserve transaction is retained with its effective date so point-in-time reserve positions can be rebuilt",
+        "Confirm history is held at accident year and line of business granularity for triangle construction",
+        "Confirm reserve changes are distinguishable from paid transactions in the extract used for development factors",
+        "Confirm claim reopenings and exposure additions are visible as discrete events rather than net movements",
+        "Reconcile the history extract totals to the claims ledger balance before releasing it to actuarial"
+      ],
+      "testing": [
+        {
+          "system": "Enterprise data warehouse/lakehouse",
+          "location": "Reserve development history table",
+          "checkType": "presence",
+          "expected": "Reserve history is retained per transaction with effective date, accident year, and line of business"
+        },
+        {
+          "system": "Enterprise data warehouse/lakehouse",
+          "location": "Reserve development history table",
+          "checkType": "absence",
+          "expected": "No gap exists between the history extract total and the claims ledger reserve balance"
+        }
+      ]
+    },
+    {
+      "taskId": "1a1fdb82-9eca-4457-a74a-981304f3641b",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "cmrqex4wg0009v8w0kvco6gha",
+          "use": "performed"
+        },
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscoyfg1mvwmbk8wam9ujac",
+        "cmqscp0431mz2mbk8c0gkfukx",
+        "cmqscofkb1lz2mbk8bf6had6v"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Identify the treaty or facultative certificate in force at the loss date, not at the report date",
+        "Apply the correct cession basis: quota share percentage, surplus lines ceded, or excess layer attachment and limit",
+        "Confirm whether ALAE is shared pro rata or sits net under the treaty terms before including it in the ceded calculation",
+        "Compute the ceded share on paid and outstanding separately so recoverables and reserves can be booked correctly",
+        "Cap the ceded amount at the layer limit and push the balance to the next layer or to net retention"
+      ],
+      "testing": [
+        {
+          "system": "Microsoft Excel",
+          "location": "Ceded share calculation worksheet",
+          "checkType": "presence",
+          "expected": "Calculation cites treaty/certificate number, attachment point, limit, and cession basis"
+        },
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Ceded financials",
+          "checkType": "absence",
+          "expected": "No ceded amount exceeds the layer limit on the applicable treaty"
+        }
+      ]
+    },
+    {
+      "taskId": "ac7102a9-9074-41b8-a0a5-c71fe47db473",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscp0431mz2mbk8c0gkfukx",
+        "cmqscp0321mz0mbk8zlahkj7t",
+        "cmqscofkb1lz2mbk8bf6had6v"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Read the notification window from the specific treaty wording rather than applying a single house default",
+        "Diary the notice due date and a separate diary for the acknowledgement due date",
+        "Set the notice diary to fire before the deadline with enough lead time to assemble the loss advice",
+        "Confirm facultative placements carry their own certificate-specific diary distinct from treaty diaries",
+        "Escalate any diary that passes without acknowledgement, since a lapsed notice can void the recovery"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Diary/Activities on ceded claims",
+          "checkType": "absence",
+          "expected": "No ceded claim is without an open notification or acknowledgement diary before its treaty deadline"
+        }
+      ]
+    },
+    {
+      "taskId": "21843b45-1e57-4e74-9c2f-f48b84ce0b85",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03t2mbk8h6wx6ilk",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0rn03s7mbk85nkvof8n",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofkb1lz2mbk8bf6had6v",
+        "cmqscp0431mz2mbk8c0gkfukx",
+        "cmqscoyge1mvymbk8ij70e6hr"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Record the reinsurer position verbatim with the treaty clause they rely on, before forming a company view",
+        "Confirm the disputed amount is quantified as paid, outstanding, and ALAE components",
+        "Route the escalation to the reinsurance function with the loss advice, treaty reference, and correspondence trail attached",
+        "Keep the ceded recoverable booked until formally denied, and flag it for collectability review rather than writing it off unilaterally",
+        "Diary the escalation for response and record the resolution or commutation outcome on the claim"
+      ],
+      "testing": [
+        {
+          "system": "claim file/document repository",
+          "location": "Reinsurance correspondence folder",
+          "checkType": "presence",
+          "expected": "Disputed positions carry a dated escalation record naming the treaty clause and disputed amount"
+        }
+      ]
+    },
+    {
+      "taskId": "8e4085a6-cad5-4fbe-8c7f-c994b4c96f34",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0rq03wzmbk8iu5btcuv",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+          "use": "performed"
+        },
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscp0431mz2mbk8c0gkfukx",
+        "cmqscp0321mz0mbk8zlahkj7t",
+        "cmqscofml1lz6mbk8ukgwn4aq"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Test total incurred including ALAE against each attachment point, since expense inclusion changes which claims qualify",
+        "Test against the treaty in force at loss date and against any facultative certificate on the risk",
+        "Include claims trending toward attachment, not only those already through it, so notice is not late",
+        "Flag identified claims on the claim record so the ceded workflow and the handler both see it",
+        "Confirm no claim on the flagged list is already coded net-only in error"
+      ],
+      "testing": [
+        {
+          "system": "Enterprise data warehouse/lakehouse",
+          "location": "Retention breach report",
+          "checkType": "presence",
+          "expected": "Every claim with incurred above an attachment point is flagged for ceded notification"
+        },
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Claim ceded indicator",
+          "checkType": "absence",
+          "expected": "No claim above attachment is coded as net-retained only"
+        }
+      ]
+    },
+    {
+      "taskId": "39ffe907-baed-46d4-8b94-ec0428337998",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofkb1lz2mbk8bf6had6v",
+        "cmqscp0431mz2mbk8c0gkfukx",
+        "cmqscp0321mz0mbk8zlahkj7t"
+      ],
+      "regs": [
+        {
+          "regId": "cmrc5o8yn0asnv8806xjmxrr1",
+          "rel": "GOVERNS"
+        }
+      ],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Issue the loss notice within the treaty-specified window measured from the date the trigger was met",
+        "Include claim number, insured, loss date, cause, coverage, gross incurred, ceded share, and reserve basis in the advice",
+        "Send facultative notices to the certificate contact rather than the treaty broker distribution list",
+        "Attach the loss advice and the send confirmation to the claim file",
+        "Log the notice date against the deadline so a late-notice exception is visible on the report"
+      ],
+      "testing": [
+        {
+          "system": "claim file/document repository",
+          "location": "Reinsurance loss advice",
+          "checkType": "presence",
+          "expected": "A loss advice document and send confirmation are filed for each notified claim"
+        },
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Ceded notification log",
+          "checkType": "absence",
+          "expected": "No ceded claim shows a notice date later than its treaty deadline"
+        }
+      ]
+    },
+    {
+      "taskId": "286c817a-8e8d-41db-b51b-f19d289e2131",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+          "use": "performed"
+        },
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofd61lyombk8ef0uqvus",
+        "cmqscofkb1lz2mbk8bf6had6v",
+        "cmqscolym1maambk8ej4zsej2"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "File all reinsurer correspondence under the claim, not in personal mailboxes or shared drives",
+        "Log each reinsurer acknowledgement with reinsurer name, reference number, and date received",
+        "Chase acknowledgements not received within the diary window and record the chase",
+        "Keep the correspondence file current for every layer and participant, not only the lead reinsurer",
+        "Confirm the file is retained per the records retention schedule so it is available at treaty audit"
+      ],
+      "testing": [
+        {
+          "system": "claim file/document repository",
+          "location": "Reinsurance correspondence folder",
+          "checkType": "presence",
+          "expected": "Each notified claim holds reinsurer acknowledgements logged with reference number and date"
+        },
+        {
+          "system": "claim file/document repository",
+          "location": "Reinsurance correspondence folder",
+          "checkType": "absence",
+          "expected": "No notified claim is missing correspondence for a participating layer or reinsurer"
+        }
+      ]
+    },
+    {
+      "taskId": "5300738e-23cd-400e-9356-898bd1af7ab2",
+      "roles": [
+        {
+          "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscol561m8wmbk8rrhp9138",
+        "cmqscpc8m1nlambk8jq73b416",
+        "cmqscpc341nl0mbk8240ckwi2",
+        "cmqscoeyg1lxwmbk8mmibs52t"
+      ],
+      "regs": [
+        {
+          "regId": "cmrc5o8yn0asnv8806xjmxrr1",
+          "rel": "GOVERNS"
+        }
+      ],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Extract ceded-loss notification records and the ceded recoverable balance from the claims ledger for the same cut-off date",
+        "Match on claim number and treaty reference, and list notified-but-not-booked and booked-but-not-notified items separately",
+        "Age unmatched items and assign an owner and clearance date to each",
+        "Confirm ceded paid and ceded outstanding are reconciled separately, not only in total",
+        "Obtain the reviewer sign-off on the reconciliation before the close is certified"
+      ],
+      "testing": [
+        {
+          "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "location": "Ceded recoverable reconciliation",
+          "checkType": "presence",
+          "expected": "A signed-off quarterly reconciliation exists with aged reconciling items and named owners"
+        },
+        {
+          "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "location": "Ceded recoverable reconciliation",
+          "checkType": "absence",
+          "expected": "No unexplained variance remains between notified ceded losses and the ledger ceded balance"
+        }
+      ]
+    },
+    {
+      "taskId": "e630116c-5be5-4ff2-a67e-cd4108944a4e",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03t2mbk8h6wx6ilk",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofkb1lz2mbk8bf6had6v",
+        "cmqscofd61lyombk8ef0uqvus",
+        "cmqscof2i1ly4mbk8tr6uatym"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Acknowledge the reinsurer query within the treaty-specified response window and diary the full response",
+        "Answer from the claim record: current reserve split, paid to date, liability assessment, and litigation posture",
+        "Redact or withhold privileged defense material unless the treaty access-to-records clause requires disclosure",
+        "Confirm figures quoted to the reinsurer match the ceded financials booked in the claims system on the same date",
+        "File the query and the response together on the claim so the audit trail is complete"
+      ],
+      "testing": [
+        {
+          "system": "claim file/document repository",
+          "location": "Reinsurance correspondence folder",
+          "checkType": "presence",
+          "expected": "Each reinsurer query has a filed dated response within the treaty response window"
+        }
+      ]
+    },
+    {
+      "taskId": "f580c2f6-2326-43e9-a2b1-1bc2d8ee8e1e",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofla1lz4mbk85sg21l6z",
+        "cmqscozrb1myembk85ilmptjr",
+        "cmqscol481m8umbk8ipeerr6e",
+        "cmqscof2i1ly4mbk8tr6uatym"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Build the ALAE accrual from the litigation plan budget and expected expert spend, not a flat percentage of indemnity",
+        "Post the accrual to the ALAE reserve cost type so it is never absorbed into the indemnity reserve",
+        "Cover the full expected life of the matter: discovery, experts, mediation, and trial where suit is filed",
+        "Re-base the accrual when the litigation plan or trial date changes materially",
+        "Confirm the accrual feeds the correct GL expense reserve account for the line and accident year"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Financials > ALAE reserve",
+          "checkType": "presence",
+          "expected": "Litigated claims carry a non-zero ALAE reserve traceable to a litigation plan budget"
+        },
+        {
+          "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "location": "Loss adjustment expense reserve account",
+          "checkType": "absence",
+          "expected": "No ALAE accrual is posted to an indemnity reserve account"
+        }
+      ]
+    },
+    {
+      "taskId": "ddc44e9b-5f31-4a74-9cbc-f584d70aac8b",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "cmrqex4wg0009v8w0kvco6gha",
+          "use": "performed"
+        },
+        {
+          "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscpczw1nmmmbk86b0euc5m",
+        "cmqscp0201myymbk8as302qmc",
+        "cmqscox441mtimbk89jxao5pl"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Compute the ALAE-to-incurred-loss ratio by claim type, line of business, and accident year for the period",
+        "Compare against the prior period and the rolling twelve-month baseline, not a single point in time",
+        "Split legal, expert, IA, and surveillance spend so the driver of any movement is identifiable",
+        "Normalise for claim volume and litigation rate before concluding the ratio has deteriorated",
+        "Document the explanation for every segment moving beyond the variance threshold"
+      ],
+      "testing": [
+        {
+          "system": "Microsoft Excel",
+          "location": "LAE ratio trend workbook",
+          "checkType": "presence",
+          "expected": "Trend analysis shows ALAE ratio by claim type with prior-period comparison and variance commentary"
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjc0o0vnskfgzux7tqxfy",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0rn03s7mbk85nkvof8n",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscp0b31mzgmbk8b2rocjpq",
+        "cmqscpbkr1nk2mbk86xspu93l",
+        "cmqscpbiu1njymbk8m9em8gnk",
+        "cmqscol7f1m90mbk8uqz22zfo"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Confirm the invoice has passed line-item review before the payment approval step, so approval is not the first review",
+        "Compare the invoice amount against the approver authority band and route upward where it is breached",
+        "Confirm dual approval is applied where the payment exceeds the finance dual-approval threshold",
+        "Confirm the approver is not the person who requested or coded the invoice",
+        "Confirm the ALAE reserve has sufficient balance, or increase it, before releasing the payment"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "ALAE payment approval history",
+          "checkType": "absence",
+          "expected": "No ALAE payment is approved by the same user who entered or coded the invoice"
+        },
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "ALAE payment approval history",
+          "checkType": "presence",
+          "expected": "Payments above the dual-approval threshold carry two distinct approver records"
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fkmg01h2kkfgza6oacbuo",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscol561m8wmbk8rrhp9138",
+        "cmqscpcbz1nlgmbk8fbb654i9",
+        "cmqscofd61lyombk8ef0uqvus"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Confirm no vendor invoice is outstanding or in dispute before closing ALAE tracking",
+        "Release the residual ALAE reserve to zero rather than leaving a stranded balance on a closed claim",
+        "Confirm the final ALAE total on the claim equals the sum of posted expense payments",
+        "Record the closure date and the closing handler on the ALAE tracking record",
+        "Confirm the claim cannot accept further expense payments without a formal reopen"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Financials > ALAE reserve on closed claims",
+          "checkType": "absence",
+          "expected": "No closed claim carries a residual open ALAE reserve balance"
+        },
+        {
+          "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "location": "Accounts payable open items",
+          "checkType": "absence",
+          "expected": "No unpaid vendor invoice remains against a claim with ALAE tracking closed"
+        }
+      ]
+    },
+    {
+      "taskId": "fa839cfb-623e-4774-94a2-8888bb9d6f2b",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "cmqsck0z103z2mbk8u1zgiax3",
+          "use": "performed"
+        },
+        {
+          "appId": "cmqsck0z203zjmbk8y2uum9fk",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscokw91m8embk8xu2l9fit",
+        "cmqscofe51lyqmbk8piz66zqb",
+        "cmqscpcf51nlkmbk8x7chlx90"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Code each invoice line to the correct ALAE category: defense counsel fees, expert fees, court costs, IA fees, or surveillance",
+        "Split invoices covering multiple claims by claim number rather than posting the whole amount to one file",
+        "Confirm defense counsel invoices are coded ALAE, and staff-counsel or general handling time is not miscoded as ALAE",
+        "Confirm the coded accident year and line of business match the claim, so expense triangles stay clean",
+        "Attach the invoice PDF to the claim and reference the document ID on the expense transaction"
+      ],
+      "testing": [
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Financials > Expense transactions",
+          "checkType": "absence",
+          "expected": "No expense transaction is coded to a generic or unallocated ALAE bucket"
+        },
+        {
+          "system": "OpenText Document Mgmt",
+          "location": "Claim invoice folder",
+          "checkType": "presence",
+          "expected": "Every posted ALAE transaction has the source invoice attached and referenced"
+        }
+      ]
+    },
+    {
+      "taskId": "9cd965ca-6672-4a7f-a169-7cafa808e963",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0rn03s7mbk85nkvof8n",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+          "use": "performed"
+        },
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscp0201myymbk8as302qmc",
+        "cmqscpczw1nmmmbk86b0euc5m",
+        "cmqscofgd1lyumbk8z1awrlqb"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Compute ALAE as a percentage of incurred indemnity per claim and rank against the peer band for that claim type",
+        "Flag claims where ALAE exceeds the defined ratio threshold or exceeds the litigation plan budget",
+        "Exclude claims where high ALAE is justified by a defense verdict strategy or a coverage action, with the reason recorded",
+        "Route flagged claims to the claims manager with the expense breakdown by vendor",
+        "Confirm each flagged claim gets a documented expense-control action or an accepted justification"
+      ],
+      "testing": [
+        {
+          "system": "Enterprise data warehouse/lakehouse",
+          "location": "ALAE outlier report",
+          "checkType": "presence",
+          "expected": "Claims exceeding the ALAE ratio threshold appear on the management review list with vendor breakdown"
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjc9v0vrlkfgzbivq0lfz",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+          "use": "performed"
+        },
+        {
+          "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofor1lzambk85rukogzk",
+        "cmqscokx71m8gmbk8fk7wyeay",
+        "cmqscp0ey1mzombk8star6eqx",
+        "cmqscpc591nl4mbk85ap9kj7n"
+      ],
+      "regs": [
+        {
+          "regId": "cmrc4ull305r5v8f89sjbcxu6",
+          "rel": "GOVERNS"
+        }
+      ],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Confirm the approval is present and current before releasing the payment to the disbursement run",
+        "Confirm payee name and remittance bank details match the vendor master record, and reject any in-flight bank change",
+        "Confirm the payment posts to the ALAE expense account and reduces the ALAE reserve, not the indemnity reserve",
+        "Confirm the invoice number is carried on the payment so duplicate-invoice controls can fire",
+        "Confirm the payment effective date sits in the open accounting period"
+      ],
+      "testing": [
+        {
+          "system": "payment/subrogation system",
+          "location": "Disbursement register",
+          "checkType": "absence",
+          "expected": "No ALAE payment is released to a payee whose bank details differ from the vendor master"
+        },
+        {
+          "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "location": "Loss adjustment expense account",
+          "checkType": "presence",
+          "expected": "Posted ALAE payments carry claim number, invoice number, and ALAE cost type"
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fkmop1h7xkfgzmpde418r",
+      "roles": [
+        {
+          "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+          "use": "performed"
+        },
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscol561m8wmbk8rrhp9138",
+        "cmqscpc8m1nlambk8jq73b416",
+        "cmqscpc341nl0mbk8240ckwi2",
+        "cmqscpcbz1nlgmbk8fbb654i9"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Compare total ALAE paid against the cumulative ALAE accrued for each closing claim",
+        "Explain variances above the materiality threshold by cause: budget overrun, unbudgeted expert, or over-accrual",
+        "Release over-accruals and true up under-accruals in the same period rather than carrying them forward",
+        "Confirm no accrual remains after the claim is closed and the reconciliation is signed",
+        "Feed systematic variance patterns back into the ALAE accrual basis for future claims"
+      ],
+      "testing": [
+        {
+          "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "location": "ALAE accrual reconciliation",
+          "checkType": "presence",
+          "expected": "Closed claims show a reconciliation of actual ALAE to booked accrual with variance explanations"
+        },
+        {
+          "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "location": "ALAE accrual account",
+          "checkType": "absence",
+          "expected": "No ALAE accrual balance remains against a closed and reconciled claim"
+        }
+      ]
+    },
+    {
+      "taskId": "99cf800f-129e-4882-80ea-bb1a33b19ad2",
+      "roles": [
+        {
+          "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+          "use": "performed"
+        },
+        {
+          "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscpcuo1nmcmbk8fud42lel",
+        "cmqscol9y1m94mbk8dw2r46xo",
+        "cmqscolbw1m98mbk8c5ue7pgc",
+        "cmqscpczw1nmmmbk86b0euc5m"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Produce the ALAE report by claim, line of business, accident year, and cost category for the closing period",
+        "Reconcile the report total to the general ledger loss adjustment expense balance before issuing it",
+        "Confirm ALAE is reported separately from ULAE so statutory schedules are not misstated",
+        "Deliver the report by the close-calendar workday deadline, not after the books are certified",
+        "Include variance commentary against prior period and plan for every material segment"
+      ],
+      "testing": [
+        {
+          "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "location": "Close package > ALAE report",
+          "checkType": "presence",
+          "expected": "ALAE report is issued by the close-calendar deadline and ties to the GL LAE balance"
+        },
+        {
+          "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "location": "Close package > ALAE report",
+          "checkType": "absence",
+          "expected": "No ULAE amounts are included within reported ALAE figures"
+        }
+      ]
+    },
+    {
+      "taskId": "3cf732c4-eb37-49ef-8cd4-30fb4f478b99",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscokw91m8embk8xu2l9fit",
+        "cmqscpbkr1nk2mbk86xspu93l",
+        "cmqscofe51lyqmbk8piz66zqb",
+        "cmqscozph1myambk8999mwsj4"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Check billed rates against the panel counsel or vendor fee schedule and reject off-schedule rates",
+        "Check for block billing, duplicate time entries, and administrative or clerical time billed at professional rates",
+        "Confirm the work billed was authorised in the litigation plan or by a documented expert engagement",
+        "Confirm the invoice is not a duplicate of a previously paid invoice number for the same claim",
+        "Record the adjustment reason and the reduced amount on any invoice that is short-paid"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Invoice review log",
+          "checkType": "presence",
+          "expected": "Each vendor invoice shows a documented review outcome with any reductions and reasons"
+        },
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Invoice review log",
+          "checkType": "absence",
+          "expected": "No invoice is approved at a rate above the contracted fee schedule without a recorded exception"
+        }
+      ]
+    },
+    {
+      "taskId": "4e73dc93-bd46-43ef-afad-b519e3378423",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "cmqsck0z103z2mbk8u1zgiax3",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscozkh1my0mbk8uzg517r4",
+        "cmqscpcf51nlkmbk8x7chlx90",
+        "cmqscofgd1lyumbk8z1awrlqb"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Record every expense commitment on the claim at the point of engagement, not only when the invoice arrives",
+        "Track legal, expert, independent adjuster, surveillance, and court cost spend as separate categories",
+        "Keep running ALAE incurred (paid plus outstanding commitments) visible on the claim summary",
+        "Confirm expenses on multi-claimant losses are allocated to the correct exposure",
+        "Reconcile tracked ALAE against posted expense transactions at each file review"
+      ],
+      "testing": [
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Financials > Expense summary",
+          "checkType": "presence",
+          "expected": "Claim shows ALAE incurred by category with paid and outstanding components"
+        }
+      ]
+    },
+    {
+      "taskId": "5ecabc71-d423-4949-97e9-f99ddd1e9fc0",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofpr1lzcmbk8j92av5r7",
+        "cmqscp0ey1mzombk8star6eqx",
+        "cmqscofd61lyombk8ef0uqvus"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Ask the claimant and counsel to identify Medicaid, ERISA plan, hospital, and workers compensation liens in writing",
+        "Request the itemised lien statement from each asserting party rather than accepting a headline figure",
+        "Test ERISA plan assertions against the plan document language for a valid reimbursement right",
+        "Negotiate statutory reductions available in the jurisdiction, such as pro-rata attorney fee sharing, before agreeing the payoff",
+        "Record each lien with holder, asserted amount, agreed amount, and status on the claim before settlement is authorised"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Claim > Liens register",
+          "checkType": "presence",
+          "expected": "Every asserted non-Medicare lien is recorded with holder, asserted amount, and resolution status"
+        },
+        {
+          "system": "payment/subrogation system",
+          "location": "Settlement disbursement",
+          "checkType": "absence",
+          "expected": "No settlement is disbursed while a recorded statutory lien remains unresolved"
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fi6u70cbrkfgzcn1wcapz",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofpr1lzcmbk8j92av5r7",
+        "cmqscofd61lyombk8ef0uqvus",
+        "cmqscpcf51nlkmbk8x7chlx90"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Record the final agreed payoff for each lien holder separately, not a single aggregate deduction",
+        "Attach the written lien resolution letter or reduction agreement supporting each figure",
+        "Confirm the recorded amounts reconcile to the settlement distribution sheet before disbursement",
+        "Confirm the payee named on each lien amount matches the lien holder of record",
+        "Confirm the record is complete before the payment request is submitted, since post-disbursement correction is not possible"
+      ],
+      "testing": [
+        {
+          "system": "claim file/document repository",
+          "location": "Lien resolution documents",
+          "checkType": "presence",
+          "expected": "Each recorded lien amount has a supporting resolution letter attached"
+        },
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Settlement distribution sheet",
+          "checkType": "absence",
+          "expected": "No lien amount on the distribution sheet lacks a documented resolution figure"
+        }
+      ]
+    },
+    {
+      "taskId": "2615c22f-f018-45a0-8416-70ee4d9f4c13",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03t2mbk8h6wx6ilk",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "cmqsck0z103z2mbk8u1zgiax3",
+          "use": "performed"
+        },
+        {
+          "appId": "cmrqex5xf0021v8w0yodqycdf",
+          "use": "performed"
+        },
+        {
+          "appId": "cmrqex4wg0009v8w0kvco6gha",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofpr1lzcmbk8j92av5r7",
+        "cmqscofd61lyombk8ef0uqvus",
+        "cmqscp0671mz6mbk84gimolja"
+      ],
+      "regs": [
+        {
+          "regId": "cmrc5m0xy07tzv880draylnby",
+          "rel": "GOVERNS"
+        }
+      ],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Confirm Medicare entitlement status and whether entitlement is reasonably expected within thirty months",
+        "Confirm the settlement includes future medical for the injury, since a past-medicals-only release changes the analysis",
+        "Obtain an allocation report projecting injury-related future Medicare-covered treatment and prescription costs",
+        "Test the settlement against the review thresholds to decide whether CMS submission is appropriate or a non-submit approach applies",
+        "Document the determination and its basis on the claim even where no set-aside is required, so the decision is evidenced"
+      ],
+      "testing": [
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Claim > MSP determination",
+          "checkType": "presence",
+          "expected": "A documented set-aside determination exists on every injury settlement involving a Medicare-entitled or soon-entitled claimant"
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl7hg1r61kfgzlkgzlzse",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofd61lyombk8ef0uqvus",
+        "cmqscozkh1my0mbk8uzg517r4",
+        "cmqscofla1lz4mbk85sg21l6z"
+      ],
+      "regs": [
+        {
+          "regId": "cmrc5m0xy07tzv880draylnby",
+          "rel": "GOVERNS"
+        }
+      ],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Capture claimant date of birth, SSN or HICN/MBI, and disability status at intake to enable the beneficiary query",
+        "Run the beneficiary query for every bodily-injury claimant, not only those over sixty-five",
+        "Flag claimants on Social Security Disability or with end-stage renal disease as potential beneficiaries",
+        "Re-run the query before settlement, since entitlement can begin after the loss date",
+        "Set the Medicare indicator on the claim record so downstream lien and reporting steps are triggered"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Claim > Claimant Medicare indicator",
+          "checkType": "presence",
+          "expected": "Every bodily-injury claimant has a completed beneficiary query result recorded"
+        },
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Claimant record",
+          "checkType": "absence",
+          "expected": "No bodily-injury claimant is missing the identifiers needed to run the query"
+        }
+      ]
+    },
+    {
+      "taskId": "20ea8201-9363-443b-a344-3253feb02663",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03t2mbk8h6wx6ilk",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofqs1lzembk8ob2xuevz",
+        "cmqscofpr1lzcmbk8j92av5r7",
+        "cmqscofd61lyombk8ef0uqvus"
+      ],
+      "regs": [
+        {
+          "regId": "cmrc5m0xy07tzv880draylnby",
+          "rel": "GOVERNS"
+        }
+      ],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Review the conditional payment listing line by line and identify charges unrelated to the compensable injury",
+        "Submit a dispute for unrelated charges with supporting medical records before requesting a reduction",
+        "Apply the available procurement cost reduction where settlement is less than the lien plus fees",
+        "Obtain the reduction or final demand in writing from CMS or the lien resolution vendor, never verbally",
+        "Confirm the agreed reduced figure is recorded on the claim and reflected in the settlement distribution"
+      ],
+      "testing": [
+        {
+          "system": "claim file/document repository",
+          "location": "Medicare correspondence",
+          "checkType": "presence",
+          "expected": "A written CMS or vendor confirmation supports the reduced lien figure used at settlement"
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjrxn13dfkfgz9lstwgcl",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofd61lyombk8ef0uqvus",
+        "cmqscozkh1my0mbk8uzg517r4",
+        "cmqscpcf51nlkmbk8x7chlx90"
+      ],
+      "regs": [
+        {
+          "regId": "cmrc5m0xy07tzv880draylnby",
+          "rel": "GOVERNS"
+        }
+      ],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Report the claim to the Benefits Coordination and Recovery Center to open the recovery case before requesting the letter",
+        "Confirm the reported injury description and ICD codes are accurate, since they determine which charges appear",
+        "Diary the response window and chase where the conditional payment letter is not received",
+        "Confirm the letter received covers the correct claimant, date of incident, and case identifier",
+        "File the letter on the claim and record its case ID for use in later dispute and final demand steps"
+      ],
+      "testing": [
+        {
+          "system": "claim file/document repository",
+          "location": "Medicare correspondence",
+          "checkType": "presence",
+          "expected": "A conditional payment letter with CMS case ID is filed on every Medicare-flagged claim"
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fi7470cgukfgz5u8vwozk",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscp0fy1mzqmbk8964vc9iz",
+        "cmqscofpr1lzcmbk8j92av5r7",
+        "cmqscp0ey1mzombk8star6eqx"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Obtain a signed release or satisfaction from every lien holder recorded on the claim",
+        "Confirm each release names the correct claimant, date of loss, and settled amount",
+        "Confirm the release is unconditional, or that any condition (such as receipt of funds) is tracked to completion",
+        "Hold the disbursement until all releases are received rather than paying against an expected release",
+        "File the executed releases on the claim and mark each lien record satisfied"
+      ],
+      "testing": [
+        {
+          "system": "claim file/document repository",
+          "location": "Executed releases",
+          "checkType": "presence",
+          "expected": "A signed release exists for every lien recorded against the claim"
+        },
+        {
+          "system": "payment/subrogation system",
+          "location": "Settlement disbursement",
+          "checkType": "absence",
+          "expected": "No disbursement is released while a lien record remains in unsatisfied status"
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl7qi1rajkfgz7ulqfq3u",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofd61lyombk8ef0uqvus",
+        "cmqscpcjw1nlsmbk8rm9clavs",
+        "cmqscozkh1my0mbk8uzg517r4"
+      ],
+      "regs": [
+        {
+          "regId": "cmrc5m0xy07tzv880draylnby",
+          "rel": "GOVERNS"
+        }
+      ],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Confirm the responsible reporting entity identifier and file submission profile are correct before submitting",
+        "Include claimant identifiers, date of incident, ICD diagnosis codes, and ongoing responsibility for medicals status",
+        "Submit within the reporting quarter window rather than holding records to the next cycle",
+        "Review the response file and correct rejected or errored records before the window closes",
+        "Confirm the registration acknowledgement is recorded against the claim"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Section 111 submission log",
+          "checkType": "presence",
+          "expected": "Each reportable claimant has a submission record with an accepted response"
+        },
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Section 111 response file",
+          "checkType": "absence",
+          "expected": "No errored or rejected record remains uncorrected past the reporting window"
+        }
+      ]
+    },
+    {
+      "taskId": "ad99e1ef-703e-4b42-aa83-8d08d92c8c07",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03t2mbk8h6wx6ilk",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscp0fy1mzqmbk8964vc9iz",
+        "cmqscofpr1lzcmbk8j92av5r7",
+        "cmqscofqs1lzembk8ob2xuevz",
+        "cmqscp0ey1mzombk8star6eqx"
+      ],
+      "regs": [
+        {
+          "regId": "cmrc5m0xy07tzv880draylnby",
+          "rel": "GOVERNS"
+        }
+      ],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Confirm the final demand amount from CMS has been received and is not still a conditional or interim figure",
+        "Confirm any required set-aside is funded and its administration method is documented in the settlement agreement",
+        "Confirm Section 111 reporting obligations for the settlement are queued for the correct reporting quarter",
+        "Confirm the settlement release contains the MSP acknowledgement and hold-harmless language",
+        "Confirm all Medicare and lien amounts are cleared before the claimant net payment is released"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Claim > MSP compliance checklist",
+          "checkType": "presence",
+          "expected": "Final demand satisfied, set-aside funded where required, and Section 111 reporting queued before settlement closure"
+        },
+        {
+          "system": "payment/subrogation system",
+          "location": "Settlement disbursement",
+          "checkType": "absence",
+          "expected": "No claimant net payment is released before Medicare obligations are marked cleared"
+        }
+      ]
+    },
+    {
+      "taskId": "454b3e3b-3a99-446c-a7c7-dfe0d012c818",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+          "use": "performed"
+        },
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscolym1maambk8ej4zsej2",
+        "cmqscofd61lyombk8ef0uqvus",
+        "cmqscpc431nl2mbk8qwlixbgk"
+      ],
+      "regs": [
+        {
+          "regId": "cmrc5m0xy07tzv880draylnby",
+          "rel": "GOVERNS"
+        }
+      ],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Archive the beneficiary query result, conditional payment letter, dispute correspondence, final demand, and proof of payment together",
+        "Archive the set-aside allocation report and funding evidence where a set-aside was established",
+        "Archive Section 111 submission and response files against the claim",
+        "Apply the retention period required for MSP records rather than the shorter general claim retention",
+        "Confirm the archive is retrievable by claim number and CMS case ID for audit"
+      ],
+      "testing": [
+        {
+          "system": "claim file/document repository",
+          "location": "Medicare compliance archive",
+          "checkType": "presence",
+          "expected": "Each Medicare-flagged claim holds query, letters, final demand, payment proof, and Section 111 files under the MSP retention class"
+        },
+        {
+          "system": "claim file/document repository",
+          "location": "Medicare compliance archive",
+          "checkType": "absence",
+          "expected": "No Medicare compliance record is purged before the MSP retention period expires"
+        }
+      ]
+    },
+    {
+      "taskId": "28a07785-ed3f-49e9-a86b-c6a870731808",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscpcjw1nlsmbk8rm9clavs",
+        "cmqscofd61lyombk8ef0uqvus",
+        "cmqscpc431nl2mbk8qwlixbgk"
+      ],
+      "regs": [
+        {
+          "regId": "cmrc5m0xy07tzv880draylnby",
+          "rel": "GOVERNS"
+        }
+      ],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Extract all reportable events for the quarter: ongoing responsibility for medicals assumed, terminated, and total payment obligation reached",
+        "Confirm claim-level data is complete before file creation, since missing identifiers cause whole-record rejection",
+        "Submit within the assigned reporting window and retain the submission timestamp",
+        "Review the response file, correct errors, and resubmit within the same window",
+        "Reconcile submitted event counts against the source claim system to prove completeness"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Mandatory insurer reporting log",
+          "checkType": "presence",
+          "expected": "Quarterly submission is filed within the assigned window with a retained acceptance response"
+        },
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Reportable events extract",
+          "checkType": "absence",
+          "expected": "No reportable settlement event is omitted from the quarterly submission"
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjs8613irkfgzb1yfdoy8",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "cmrqex4wg0009v8w0kvco6gha",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofd61lyombk8ef0uqvus",
+        "cmqscpcf51nlkmbk8x7chlx90",
+        "cmqscp0671mz6mbk84gimolja"
+      ],
+      "regs": [
+        {
+          "regId": "cmrc5m0xy07tzv880draylnby",
+          "rel": "GOVERNS"
+        }
+      ],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Reconcile each charge on the conditional payment letter against the treatment records for the compensable injury",
+        "Identify charges for unrelated conditions, pre-existing treatment, or dates outside the injury period",
+        "Confirm the letter total footings and that no charge is listed twice",
+        "Confirm the figure being used is the final demand, not a superseded conditional payment summary",
+        "Record the verified amount and the disputed amount separately on the claim before settlement authority is sought"
+      ],
+      "testing": [
+        {
+          "system": "Microsoft Excel",
+          "location": "Lien verification worksheet",
+          "checkType": "presence",
+          "expected": "A line-by-line reconciliation of the conditional payment letter to treatment records is filed"
+        },
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Claim > Liens register",
+          "checkType": "absence",
+          "expected": "No Medicare lien amount is recorded without a verified supporting itemisation"
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fisyl0mp2kfgz139gis9y",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+          "use": "performed"
+        },
+        {
+          "appId": "cmrqex4wg0009v8w0kvco6gha",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscokva1m8cmbk8usznjkvz",
+        "cmqscpbo41nk8mbk8m23mehom",
+        "cmqscpczw1nmmmbk86b0euc5m"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Compare deductibles applied on settled claims against deductibles actually recovered or netted from payment",
+        "Segment shortfalls by cause: not applied at settlement, applied but never billed, billed but uncollected, or waived without approval",
+        "Quantify the shortfall by line of business, program, and handler for the period",
+        "Test large-deductible and self-insured retention programs separately, since collection mechanics differ",
+        "Document the root cause per segment and route to the owning process for correction"
+      ],
+      "testing": [
+        {
+          "system": "Enterprise data warehouse/lakehouse",
+          "location": "Deductible shortfall analysis",
+          "checkType": "presence",
+          "expected": "Shortfall analysis exists with amounts segmented by root-cause category and line of business"
+        }
+      ]
+    },
+    {
+      "taskId": "89e96438-b956-4ab3-8d85-f6f56d5a15ea",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0rn03s7mbk85nkvof8n",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "cmrqex4wg0009v8w0kvco6gha",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofjb1lz0mbk80oj495hj",
+        "cmqscozsa1mygmbk811yx9w8j",
+        "cmqscp0201myymbk8as302qmc",
+        "cmqscozue1mykmbk80pz6lh9b"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Draw a statistically valid sample covering both closed and open claims across every handling unit",
+        "Score each file against the leakage taxonomy: over-reserving, overpayment, missed deductible, missed subrogation, missed lien recovery, and unnecessary expense",
+        "Quantify the dollar leakage per finding rather than recording a pass or fail only",
+        "Confirm reviewers are calibrated so the same file would score consistently across auditors",
+        "Aggregate results into a leakage rate by unit and by leakage category for the period"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Leakage audit results",
+          "checkType": "presence",
+          "expected": "Audit results record a quantified leakage amount and category for each sampled file"
+        },
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Audit sample",
+          "checkType": "absence",
+          "expected": "No handling unit is excluded from the period leakage sample"
+        }
+      ]
+    },
+    {
+      "taskId": "27fb2249-3c48-4abf-baba-d7d6a7cd5c81",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0rn03s7mbk85nkvof8n",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "cmqsck0z103z2mbk8u1zgiax3",
+          "use": "performed"
+        },
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscp0ey1mzombk8star6eqx",
+        "cmqscokx71m8gmbk8fk7wyeay",
+        "cmqscofd61lyombk8ef0uqvus"
+      ],
+      "regs": [
+        {
+          "regId": "cmrc5u1260j4jv8803b37paot",
+          "rel": "GOVERNS"
+        },
+        {
+          "regId": "cmrc4ull305r5v8f89sjbcxu6",
+          "rel": "GOVERNS"
+        }
+      ],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Test for payee bank details shared across unrelated claimants or vendors",
+        "Test for payments to addresses or accounts changed shortly before disbursement",
+        "Test for repeat payees appearing across multiple unrelated claims and handlers",
+        "Test for payments just below an approval authority threshold, and for the same invoice paid twice",
+        "Record each signal on the claim and refer confirmed indicators to the fraud unit rather than resolving them in the payment queue"
+      ],
+      "testing": [
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Payment fraud signal log",
+          "checkType": "presence",
+          "expected": "Each flagged claim records the specific signal detected and the referral or clearance decision"
+        },
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Disbursement queue",
+          "checkType": "absence",
+          "expected": "No payment is released on a claim with an open unresolved fraud signal"
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fit6y0mtnkfgz4f21f3ob",
+      "roles": [
+        {
+          "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+          "use": "performed"
+        },
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscokva1m8cmbk8usznjkvz",
+        "cmqscpbjt1nk0mbk886o0x3fb",
+        "cmqscpblr1nk4mbk8zh0ipfpe",
+        "cmqscpbo41nk8mbk8m23mehom"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Generate the deductible receivable as soon as the claim payment triggering it is posted",
+        "Confirm every settled claim with a deductible has a corresponding receivable raised, and list exceptions",
+        "Issue the invoice within the billing SLA and confirm it reached the correct insured billing contact",
+        "Run dunning per schedule on unpaid receivables rather than waiting for the next aging review",
+        "Escalate receivables past the aging threshold to collections with the claim and policy reference attached"
+      ],
+      "testing": [
+        {
+          "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "location": "Deductible receivables aging",
+          "checkType": "absence",
+          "expected": "No settled deductible claim is without a raised receivable past the billing SLA"
+        },
+        {
+          "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "location": "Deductible receivables aging",
+          "checkType": "presence",
+          "expected": "Overdue receivables show dunning activity per the published schedule"
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fit3p0msekfgzti6kdkhi",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0rn03s7mbk85nkvof8n",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "cmrqex4wg0009v8w0kvco6gha",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscofjb1lz0mbk80oj495hj",
+        "cmqscp0201myymbk8as302qmc",
+        "cmqscpbvk1nkmmbk883fr5ld0",
+        "cmqscozue1mykmbk80pz6lh9b"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Select the re-audit sample from files handled after the remediation or coaching date, not before it",
+        "Score against the same leakage taxonomy used in the original audit so results are comparable",
+        "Compare the handler leakage rate and dollar leakage against the original audit baseline",
+        "Where no improvement is evident, escalate to a formal performance action rather than scheduling another coaching cycle",
+        "Record the re-audit outcome against the original finding so it can be closed or kept open"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Re-audit results",
+          "checkType": "presence",
+          "expected": "Re-audit records show post-remediation sample dates and a comparison to the baseline leakage rate"
+        }
+      ]
+    },
+    {
+      "taskId": "b22e797b-5364-4641-bc0f-0a703fe1a521",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0rn03s7mbk85nkvof8n",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "cmrqex4wg0009v8w0kvco6gha",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscpcjw1nlsmbk8rm9clavs",
+        "cmqscpcn91nlymbk8vcjk3krt",
+        "cmqscp0b31mzgmbk8b2rocjpq",
+        "cmqscp0201myymbk8as302qmc"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Group findings by leakage category and rank by dollar impact before recommending anything",
+        "Propose a specific control for each material category: system edit, authority change, mandatory field, or approval step",
+        "Prefer preventive system controls over training-only actions where the leakage is recurring",
+        "State the expected annual leakage reduction and the implementation owner for each recommendation",
+        "Confirm each recommendation is raised as a tracked action item rather than left in the report narrative"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Leakage recommendations register",
+          "checkType": "presence",
+          "expected": "Each material leakage category has a recommended control with named owner and expected benefit"
+        }
+      ]
+    },
+    {
+      "taskId": "b1aedb73-dd79-40b4-9f74-b805dc3b6d41",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0rn03s7mbk85nkvof8n",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscp0201myymbk8as302qmc",
+        "cmqscpbtm1nkimbk8tkxgo18y",
+        "cmqscpczw1nmmmbk86b0euc5m"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Report leakage rate and dollar leakage by unit, handler cohort, and leakage category for the period",
+        "Show the trend against prior periods so the direction of travel is visible, not just the point result",
+        "Name the top contributing causes and the claims that drive the largest single amounts",
+        "Deliver the report to claims management and quality assurance within the reporting calendar deadline",
+        "Confirm management responses to findings are captured within the response window"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Leakage reporting pack",
+          "checkType": "presence",
+          "expected": "Period leakage report is distributed on schedule with trend, category breakdown, and management responses"
+        }
+      ]
+    },
+    {
+      "taskId": "f29eaba3-a80b-4a2e-b2bc-d24f89040077",
+      "roles": [
+        {
+          "roleId": "cmqsck0rn03s7mbk85nkvof8n",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscp0b31mzgmbk8b2rocjpq",
+        "cmqscofqs1lzembk8ob2xuevz",
+        "cmqscol7f1m90mbk8uqz22zfo",
+        "cmqscpcl11nlumbk8wk2yfz1c"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Extract all payments in the period with amount, requester, approver, and authority band",
+        "Match every payment above a band threshold to a recorded approval dated before the payment release",
+        "Test for approvals granted after the payment date, which indicate a bypassed control",
+        "Test for requester and approver being the same user, or approvers acting outside their assigned authority band",
+        "Test for payments split into tranches that individually stay under the band but together exceed it, and report exceptions with claim number, amount, and user to claims leadership"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Payment approval extract",
+          "checkType": "absence",
+          "expected": "No payment above the authority band was released without a prior recorded approval"
+        },
+        {
+          "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "location": "Payment approval extract",
+          "checkType": "absence",
+          "expected": "No approver appears on a payment exceeding their assigned authority band"
+        }
+      ]
+    },
+    {
+      "taskId": "af130170-938b-432f-9ac7-f60030172ead",
+      "roles": [
+        {
+          "roleId": "cmqsck0rn03s7mbk85nkvof8n",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscpbvk1nkmmbk883fr5ld0",
+        "cmqscpcn91nlymbk8vcjk3krt",
+        "cmqscpbsm1nkgmbk8a0rlx0no",
+        "cmqscpcbz1nlgmbk8fbb654i9"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Table the open leakage action register with owner, due date, and current status for every item",
+        "Review overdue and repeatedly re-baselined actions explicitly rather than accepting a rolled-forward date",
+        "Require evidence of effectiveness before an action is marked closed, not just confirmation of completion",
+        "Record decisions, owners, and revised due dates in the forum minutes",
+        "Escalate actions overdue beyond the tolerance to claims leadership"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Controls forum minutes",
+          "checkType": "presence",
+          "expected": "Minutes record the action register review with decisions, owners, and revised due dates"
+        },
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Leakage action register",
+          "checkType": "absence",
+          "expected": "No leakage action is closed without attached evidence of effectiveness"
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fiswg0mo5kfgzun1fkpu6",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "cmqsck0rn03s7mbk85nkvof8n",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+          "use": "performed"
+        },
+        {
+          "appId": "cmrqex4wg0009v8w0kvco6gha",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscpbvk1nkmmbk883fr5ld0",
+        "cmqscpbsm1nkgmbk8a0rlx0no",
+        "cmqscpcn91nlymbk8vcjk3krt"
+      ],
+      "regs": [],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Raise every leakage finding as a discrete tracked action with a single named owner and a due date",
+        "Keep the source finding, quantified leakage amount, and the agreed control linked to the action",
+        "Update status at the agreed cadence rather than only ahead of the forum",
+        "Flag actions past due and record the reason and revised date",
+        "Close actions only against evidence, and reopen where a re-audit shows the leakage persists"
+      ],
+      "testing": [
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Leakage action register",
+          "checkType": "presence",
+          "expected": "Every leakage finding has a tracked action with owner, due date, and current status"
+        },
+        {
+          "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "location": "Leakage action register",
+          "checkType": "absence",
+          "expected": "No action sits in open status past its due date without a recorded reason"
+        }
+      ]
+    },
+    {
+      "taskId": "ce435aa2-90e7-4a30-af84-32d45e76ea5b",
+      "roles": [
+        {
+          "roleId": "cmqsck0ro03sombk8str25d9l",
+          "rel": "Owner"
+        },
+        {
+          "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+          "rel": "Participant"
+        },
+        {
+          "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+          "rel": "Participant"
+        }
+      ],
+      "apps": [
+        {
+          "appId": "cmqsck0z103z2mbk8u1zgiax3",
+          "use": "performed"
+        },
+        {
+          "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+          "use": "performed"
+        }
+      ],
+      "standards": [
+        "cmqscokx71m8gmbk8fk7wyeay",
+        "cmqscofor1lzambk85rukogzk",
+        "cmqscp0ey1mzombk8star6eqx",
+        "cmqscpcjw1nlsmbk8rm9clavs"
+      ],
+      "regs": [
+        {
+          "regId": "cmrc4ull305r5v8f89sjbcxu6",
+          "rel": "GOVERNS"
+        }
+      ],
+      "checklistGeneric": [
+        "Confirm the claim is in scope for the control before proceeding",
+        "Record the action and its date/time stamp in the claim file",
+        "Confirm the handler acted within delegated authority"
+      ],
+      "checklistSpecific": [
+        "Run the duplicate check on the pending disbursement batch before release, not after the file is transmitted",
+        "Test for the same claim, payee, and amount appearing more than once in the batch",
+        "Test for the same vendor invoice number already paid on this or another claim",
+        "Test for the same payee bank account receiving multiple payments in the batch and confirm each is legitimate",
+        "Hold and investigate every suspected duplicate rather than releasing and recovering afterwards, and record the validation result and released batch total before authorising transmission"
+      ],
+      "testing": [
+        {
+          "system": "Guidewire ClaimCenter",
+          "location": "Disbursement batch pre-release check",
+          "checkType": "presence",
+          "expected": "A duplicate-control validation result is recorded for each disbursement batch before release"
+        },
+        {
+          "system": "payment/subrogation system",
+          "location": "Disbursement register",
+          "checkType": "absence",
+          "expected": "No two released payments share claim number, payee, amount, and invoice number"
+        }
+      ]
+    }
+  ]
+}
