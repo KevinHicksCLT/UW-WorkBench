@@ -79,6 +79,11 @@ async function main() {
     select: { id: true, displayValue: true },
     orderBy: { sortOrder: 'asc' },
   });
+  // Two value streams can own an identically-named L3 area (Corporate Functions has
+  // "Operational Resilience" under both Corporate Operations and Risk, Compliance &
+  // Audit). Slugging by area name alone made the second dump overwrite the first and
+  // silently drop a whole area, so disambiguate with the value stream on collision.
+  const usedSlugs = new Set<string>();
   for (const vs of streams) {
     const areas = await prisma.processNode.findMany({
       where: { parentId: vs.id },
@@ -116,7 +121,9 @@ async function main() {
           deliverable: t.nodeDeliverables[0]?.deliverable ?? null,
         }))
         .sort((a, b) => a.subOrder - b.subOrder || a.task.localeCompare(b.task));
-      const s = slug(area.displayValue);
+      let s = slug(area.displayValue);
+      if (usedSlugs.has(s)) s = `${s}-${slug(vs.displayValue)}`;
+      usedSlugs.add(s);
       writeFileSync(
         `scripts/output/enrich-tasks-${s}.json`,
         JSON.stringify({ area: area.displayValue, areaId: area.id, tasks: shaped }, null, 2),
