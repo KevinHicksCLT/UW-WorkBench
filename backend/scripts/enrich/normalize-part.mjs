@@ -64,6 +64,26 @@ for (const t of tasks) {
 }
 
 writeFileSync(partPath, JSON.stringify(tasks, null, 2));
+
+// Shape is not the same thing as depth. The loader happily writes a task that
+// has an Owner and no Participant, so a thin authoring pass looks clean all the
+// way to the DB — Talent Acquisition shipped 49 of 86 tasks that way. Report the
+// counts the spec actually cares about so a re-author happens before the load.
+const noOwner = tasks.filter((t) => !(t.roles ?? []).some((r) => r.rel === 'Owner')).length;
+const thin = tasks.filter((t) => (t.roles ?? []).length < 2).length;
+const owners = {};
+for (const t of tasks) {
+  const o = (t.roles ?? []).find((r) => r.rel === 'Owner');
+  if (o) owners[o.roleId] = (owners[o.roleId] ?? 0) + 1;
+}
+const topOwner = Math.max(0, ...Object.values(owners));
+
 console.log(
   `${slug}: tasks=${tasks.length} regShape=${stat.regShape} appShape=${stat.appShape} droppedUnknownIds=${stat.dropped}`,
 );
+if (noOwner) console.warn(`  WARN ${noOwner} task(s) have no Owner`);
+if (thin) console.warn(`  WARN ${thin} task(s) have <2 roles (Owner with no Participant)`);
+if (tasks.length && topOwner / tasks.length > 0.9)
+  console.warn(
+    `  WARN one Owner covers ${topOwner}/${tasks.length} tasks — check this is genuinely accurate`,
+  );
