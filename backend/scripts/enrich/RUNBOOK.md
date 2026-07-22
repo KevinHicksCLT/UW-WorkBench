@@ -190,6 +190,18 @@ npx tsx --env-file=.env scripts/enrich/remove-empty-templates.ts --domain "Core 
 6. **Role reconcile deletes** existing `NodeRole` not in the authored set (desired-state). Correct for auto-generated bloat; if a domain has human-validated `NodeRole.validationStatus='CONFIRMED'`, preserve those first.
 7. **Agents drop generator scripts** into `backend/scripts/` (`gen-*.mjs`, `build-*.js`). Sweep before commit: `git status --porcelain backend/scripts/ | grep -iE '\\.(mjs|cjs|py|js)$'` and delete the strays (keep only `scripts/enrich/*`).
 8. **Every commit runs husky** (prettier + eslint + typecheck). Never `--no-verify`. `scripts/**` is lint-exempt but typecheck still covers `.ts`.
+9. **Link arrays come back in the wrong shape.** Authors emit `regs` (sometimes `apps`) as bare id strings instead of `{regId, rel}` / `{appId, use}`. `load-enrichment` reads `.regId` off a string, gets `undefined`, and SKIPs the row — the load looks clean while quietly dropping links. Always run `node scripts/enrich/normalize-part.mjs <slug> <vs-catalog-slug>` before `build-and-load`, and treat any `SKIP reg undefined` in a dry-run as this bug, not as bad data.
+10. **A killed agent has often already written its file.** An agent that dies to a session/spend limit during its self-validation step still leaves a complete, valid part file. Check `tasks.length` against the seed before re-running it — two Corporate Functions areas were fully authored despite reporting failure.
+11. **Same-named L3 areas across value streams.** Corporate Functions has "Operational Resilience" under both Corporate Operations and Risk, Compliance & Audit. `dump-domain.ts` disambiguates the second one's slug with the value stream; do not assume `slug(area)` is unique.
+
+---
+
+## 6a. Facts for Corporate Functions
+
+- Domain L1 node: `displayValue = 'Corporate Functions'` — **3,878 tasks across 47 L3 areas / 6 value streams** (Finance & Investments 10 areas/1,032 tasks · Human Resources & Talent 9/858 · Legal & Corporate Governance 9/744 · Risk, Compliance & Audit 12/837 · Program Management Office 5/401 · Corporate Operations 2/106).
+- `--std-depts`: `Finance & Accounting, Compliance & Risk Management, Human Resources, Legal & Governance, PMO & Agile Delivery, Operations & Customer Service, Data & Analytics, Information Security`.
+- The domain catalog is ~465KB (797 standards, 1767 regs) — too big for an authoring agent to read alongside its area file. Run `node scripts/enrich/split-catalog.mjs` after the dump and point each agent at `enrich-catalog-<vs-slug>.json` instead.
+- Baseline before enrichment: 4.52 roles / 3.76 apps (both bloated and cross-domain — GL close tasks carried Guidewire ClaimCenter), 6.18 checklist, 0.9 custom steps, and `zero_text` on **all** 3,878 tasks.
 
 ---
 
