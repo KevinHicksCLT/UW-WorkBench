@@ -15,13 +15,35 @@ import { prisma } from '../../src/db/prisma.js';
 
 const PACK_DIR = path.resolve(process.cwd(), 'data/compliance-plans');
 
+/**
+ * A specific step. `by` / `actions` / `done` compose the structured procedure
+ * value the plan editor and ProcedureValue renderer expect:
+ *   By the <role>:\n<atomic action>\n…\nDone when <condition>
+ * `value` is the escape hatch for a plain one-liner.
+ */
 type Step = {
   step: string;
+  by?: string;
+  actions?: string[];
+  done?: string;
   value?: string;
   role?: string;
   app?: string;
   deliverable?: string;
 };
+
+/** Compose the newline-joined procedure the UI parses back into cells. */
+function procedureValue(s: Step): string | null {
+  const lines = [
+    s.by ? `By the ${s.by}:` : '',
+    ...(s.actions ?? []),
+    s.done ? (/^(done|pass) when\b/i.test(s.done) ? s.done : `Done when ${s.done}`) : '',
+  ]
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (!lines.length) return s.value ?? null;
+  return lines.join('\n');
+}
 type GenericAnswer = { value?: string; role?: string; app?: string; deliverable?: string };
 type ItemPlan = {
   itemCode: string;
@@ -163,7 +185,7 @@ async function main() {
             complianceItemId: item.id,
             customKey: s.step,
             kind,
-            value: s.value ?? null,
+            value: procedureValue(s),
             sortOrder,
             ...refs(s, `${plan.itemCode}/${kind} step ${sortOrder + 1}`),
           },
