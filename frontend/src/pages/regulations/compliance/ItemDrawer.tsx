@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { useApi } from '../../../lib/useApi';
 import { withCompany } from '../../../lib/portfolio';
 import { DrawerShell, ErrorMessage, LoadingState } from '../../../components/ui';
+import { valueText, type Plan } from '../../work-library/shared';
 import { type ItemDetail } from './shared';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -21,14 +22,79 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 /** Bordered section card — keeps the drawer's zones visually separate. */
-function Zone({ title, children }: { title: string; children: React.ReactNode }) {
+function Zone({
+  title,
+  action,
+  children,
+}: {
+  title: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <section className="mb-4 rounded-lg border border-[#eaeaea] bg-white overflow-hidden">
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-[#525252] px-3 py-2 bg-[#fafafa] border-b border-[#eaeaea]">
-        {title}
-      </h3>
+      <div className="flex items-center justify-between gap-2 px-3 py-2 bg-[#fafafa] border-b border-[#eaeaea]">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-[#525252]">{title}</h3>
+        {action}
+      </div>
       <div className="space-y-3 p-3">{children}</div>
     </section>
+  );
+}
+
+/** Read-only rendering of one Work Library plan block (checklist or testing). */
+function PlanReadOnly({ plan, kind }: { plan: Plan; kind: 'CHECKLIST' | 'TEST' }) {
+  const sections = plan.sections.filter((s) => s.kind === kind);
+  const custom = plan.customRows.filter((r) =>
+    kind === 'TEST' ? r.kind === 'TEST' : r.kind !== 'TEST',
+  );
+  if (sections.length === 0 && custom.length === 0)
+    return (
+      <p className="text-[12px] text-[#a3a3a3]">
+        No {kind === 'TEST' ? 'testing' : 'checklist'} pattern assigned yet.
+      </p>
+    );
+  let n = 0;
+  return (
+    <div>
+      {sections.map((s) => (
+        <div key={s.id}>
+          <div className="text-[10.5px] font-semibold uppercase tracking-wide text-[#a3a3a3] mb-1">
+            {s.name}
+          </div>
+          <ul className="divide-y divide-[#f5f5f5] mb-2">
+            {s.keys
+              .filter((k) => !k.answer?.suppressed)
+              .map((k) => (
+                <li key={k.id} className="flex items-baseline gap-2 py-1">
+                  <span className="w-5 shrink-0 text-right text-[11px] text-[#a3a3a3] tabular-nums">
+                    {++n}
+                  </span>
+                  <span className="min-w-0 flex-1 text-[13px] text-[#171717]">{k.key}</span>
+                  <span className="min-w-0 max-w-[45%] text-right text-[12.5px] text-[#525252]">
+                    {valueText(k.answer) || <span className="text-[#d4d4d4]">—</span>}
+                  </span>
+                </li>
+              ))}
+          </ul>
+        </div>
+      ))}
+      {custom.length > 0 && (
+        <ul className="divide-y divide-[#f5f5f5]">
+          {custom.map((r) => (
+            <li key={r.id} className="flex items-baseline gap-2 py-1">
+              <span className="w-5 shrink-0 text-right text-[11px] text-[#a3a3a3] tabular-nums">
+                {++n}
+              </span>
+              <span className="min-w-0 flex-1 text-[13px] text-[#171717]">{r.customKey}</span>
+              <span className="min-w-0 max-w-[45%] text-right text-[12.5px] text-[#525252]">
+                {valueText(r) || <span className="text-[#d4d4d4]">—</span>}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
@@ -52,6 +118,9 @@ export function ItemDrawer({
   // the toggle reveals the full jurisdiction list.
   const [showAllCitations, setShowAllCitations] = useState(false);
   const CITATION_PREVIEW = 3;
+  // The item's Work Library checklist/testing plan, shown read-only below the
+  // citations; editing happens on the Work Library page itself.
+  const { data: plan } = useApi<Plan>(`/work-library/plan/compliance/${itemId}`);
 
   return (
     // Fixed wrapper gives the DrawerShell's absolute positioning a
@@ -124,6 +193,35 @@ export function ItemDrawer({
                     ? 'Show less'
                     : `Show all ${item.citations.length.toLocaleString()} jurisdictions`}
                 </button>
+              )}
+            </Zone>
+
+            <Zone
+              title="Checklist & testing plan"
+              action={
+                <Link
+                  className="text-[11px] font-medium text-[#2563eb] hover:underline whitespace-nowrap"
+                  to={`/work-library?type=compliance&id=${item.id}`}
+                >
+                  Edit in Work Library →
+                </Link>
+              }
+            >
+              {!plan ? (
+                <LoadingState baseClassName="text-[12px] text-[#a3a3a3]" message="Loading plan…" />
+              ) : plan.assignedTemplateIds.length === 0 && plan.customRows.length === 0 ? (
+                <p className="text-[12px] text-[#a3a3a3]">
+                  No checklist or testing plan yet — set one up in the Work Library.
+                </p>
+              ) : (
+                <>
+                  <Field label="Checklist">
+                    <PlanReadOnly plan={plan} kind="CHECKLIST" />
+                  </Field>
+                  <Field label="Testing">
+                    <PlanReadOnly plan={plan} kind="TEST" />
+                  </Field>
+                </>
               )}
             </Zone>
           </>

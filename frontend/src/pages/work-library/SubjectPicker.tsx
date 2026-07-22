@@ -41,6 +41,8 @@ export function SubjectPicker({
 }) {
   const [q, setQ] = useState('');
   const [debouncedQ, setDebouncedQ] = useState('');
+  // Per-group collapse for the compliance picker (keyed by group label).
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQ(q), 250);
     return () => clearTimeout(t);
@@ -48,6 +50,7 @@ export function SubjectPicker({
   useEffect(() => {
     setQ('');
     setDebouncedQ('');
+    setCollapsedGroups(new Set());
   }, [type]);
 
   const facetQuery = new URLSearchParams({ type });
@@ -61,6 +64,9 @@ export function SubjectPicker({
   const facets = facetsData?.facets ?? {};
 
   const query = new URLSearchParams({ type, q: debouncedQ });
+  // The compliance register is a bounded list — load it whole; the groups
+  // below collapse per regulation so the full set stays navigable.
+  if (type === 'compliance') query.set('take', '5000');
   if (missingOnly && type === 'task') query.set('missing', 'test');
   if (type === 'task') {
     if (filters.vs) query.set('vs', filters.vs);
@@ -276,30 +282,67 @@ export function SubjectPicker({
           message="No matches — adjust the search or filters."
         />
       )}
-      {sortedGroups.map(([label, items]) => (
-        <div key={label || '·'}>
-          {label && (
-            <div className="px-1.5 pt-1.5 pb-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-[#a3a3a3]">
-              {label}
-            </div>
-          )}
-          {items.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setParam({ id: s.id })}
-              className={
-                'block w-full text-left rounded-md px-2 py-1.5 mb-0.5 text-[12px] leading-snug ' +
-                (selectedId === s.id
-                  ? 'bg-[#eaf2fd] text-[#1d4ed8] font-medium'
-                  : 'text-[#525252] hover:bg-[#fafafa]')
-              }
-            >
-              {s.name}
-              {s.path && <span className="block text-[10px] text-[#a3a3a3]">{s.path}</span>}
-            </button>
-          ))}
-        </div>
-      ))}
+      {sortedGroups.map(([label, items]) => {
+        const isCollapsed = collapsedGroups.has(label);
+        return (
+          <div key={label || '·'}>
+            {label &&
+              (type === 'compliance' ? (
+                // Prominent, collapsible regulation header — the register is
+                // loaded whole, so folding a regulation keeps the list short.
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCollapsedGroups((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(label)) next.delete(label);
+                      else next.add(label);
+                      return next;
+                    })
+                  }
+                  className="w-full flex items-center gap-1.5 rounded-md bg-[#f0f1f3] px-2 py-1.5 mt-1.5 mb-0.5 text-left hover:bg-[#e8eaee]"
+                >
+                  <span
+                    className={
+                      'text-[9px] text-[#6b7785] transition-transform ' +
+                      (isCollapsed ? '-rotate-90' : '')
+                    }
+                  >
+                    ▾
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-[11px] font-bold text-[#374151]">
+                    {label}
+                  </span>
+                  <span className="text-[10px] text-[#8a94a0] tabular-nums">{items.length}</span>
+                </button>
+              ) : (
+                <div className="px-1.5 pt-1.5 pb-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-[#a3a3a3]">
+                  {label}
+                </div>
+              ))}
+            {!(type === 'compliance' && isCollapsed) &&
+              items.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => setParam({ id: s.id })}
+                  className={
+                    'block w-full text-left rounded-md px-2 py-1.5 mb-0.5 text-[12px] leading-snug ' +
+                    (selectedId === s.id
+                      ? 'bg-[#eaf2fd] text-[#1d4ed8] font-medium'
+                      : 'text-[#525252] hover:bg-[#fafafa]')
+                  }
+                >
+                  {s.name}
+                  {/* Compliance rows sit under their regulation header — repeating
+                      the path per row is noise. */}
+                  {s.path && type !== 'compliance' && (
+                    <span className="block text-[10px] text-[#a3a3a3]">{s.path}</span>
+                  )}
+                </button>
+              ))}
+          </div>
+        );
+      })}
     </div>
   );
 }

@@ -394,7 +394,10 @@ export function registerTemplateRoutes(router: Router): void {
       if (type === 'compliance') {
         // Compliance items in execution order (itemCode = REG-###-C## — the
         // C-sequence is the order the steps take place). Jurisdiction filter
-        // walks through the parent regulation's L3 source rows.
+        // walks through the parent regulation's L3 source rows. The register
+        // is a bounded 4,089-row set of slim rows, so the picker loads it in
+        // FULL (grouped + collapsible client-side) — no truncated "first 50".
+        const takeAll = Math.min(Number(req.query.take) || 5000, 5000);
         const regulationId = str('regulationId');
         const complianceJur = str('jurisdictionId');
         const where = {
@@ -417,7 +420,7 @@ export function registerTemplateRoutes(router: Router): void {
           prisma.complianceItem.findMany({
             where,
             orderBy: { itemCode: 'asc' },
-            take,
+            take: takeAll,
             select: {
               id: true,
               itemCode: true,
