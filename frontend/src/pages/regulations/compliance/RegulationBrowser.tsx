@@ -19,7 +19,7 @@ import {
   StatusPill,
 } from '../../../components/ui';
 import { catLabel, flagLabel } from '../Regulations';
-import { ConfidenceBadge, type ItemRow, type RegulationRow, type VariantRow } from './shared';
+import type { ItemRow, RegulationRow, VariantRow } from './shared';
 
 /** "PRODUCT_FILING, LICENSING" → "Product filing, Licensing". */
 const categoryLabels = (raw: string) =>
@@ -87,7 +87,6 @@ function RegulationDetailPanel({
             <th className="py-1 pr-3 font-medium">What must be done</th>
             <th className="py-1 pr-3 font-medium">Owner</th>
             <th className="py-1 pr-3 font-medium">Frequency</th>
-            <th className="py-1 pr-3 font-medium">Confidence</th>
           </tr>
         </thead>
         <tbody>
@@ -101,9 +100,6 @@ function RegulationDetailPanel({
               <td className="py-1.5 pr-3">{it.name}</td>
               <td className="py-1.5 pr-3 whitespace-nowrap">{it.ownerTeam}</td>
               <td className="py-1.5 pr-3 whitespace-nowrap">{it.frequency}</td>
-              <td className="py-1.5 pr-3">
-                <ConfidenceBadge confidence={it.confidence} />
-              </td>
             </tr>
           ))}
         </tbody>
@@ -225,7 +221,6 @@ export function RegulationBrowser({
               <th className="px-3 py-2 font-medium">Category</th>
               <th className="px-3 py-2 font-medium">Owner</th>
               <th className="px-3 py-2 font-medium text-right">Items</th>
-              <th className="px-3 py-2 font-medium text-right">Source rows</th>
               <th className="px-3 py-2 font-medium">Frequency</th>
             </tr>
           </thead>
@@ -269,14 +264,11 @@ export function RegulationBrowser({
                   <td className="px-3 py-2 max-w-[220px]">{categoryLabels(r.category)}</td>
                   <td className="px-3 py-2">{r.ownerTeam}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{r.itemCount}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">
-                    {r.requirementRowCount.toLocaleString()}
-                  </td>
                   <td className="px-3 py-2 whitespace-nowrap">{r.frequency}</td>
                 </tr>
                 {expanded === r.id && (
                   <tr>
-                    <td colSpan={7} className="bg-[#fafafa]">
+                    <td colSpan={6} className="bg-[#fafafa]">
                       <RegulationDetailPanel
                         regulationId={r.id}
                         companyId={companyId}
