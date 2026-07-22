@@ -116,8 +116,14 @@ async function main() {
         continue;
       }
 
+      // Authored packs occasionally drop a section; treat a missing block as
+      // empty rather than killing the whole run, and say which item it was.
+      if (!plan.templates?.length) errors.push(`${plan.itemCode}: no templates in pack`);
+      if (!plan.checklist?.length) errors.push(`${plan.itemCode}: no checklist steps in pack`);
+      if (!plan.testing?.length) errors.push(`${plan.itemCode}: no testing steps in pack`);
+
       // 1 — template assignments (exact set)
-      const tpl = plan.templates.map((n) => {
+      const tpl = (plan.templates ?? []).map((n) => {
         const t = templateByName.get(n.toLowerCase());
         if (!t) errors.push(`${plan.itemCode}: unknown template "${n}"`);
         return t;
@@ -139,7 +145,7 @@ async function main() {
       const keyByText = new Map<string, string>();
       for (const t of tpl.filter(Boolean))
         for (const k of t!.keys) keyByText.set(k.key.toLowerCase(), k.id);
-      for (const [keyText, ans] of Object.entries(plan.generic)) {
+      for (const [keyText, ans] of Object.entries(plan.generic ?? {})) {
         const keyId = keyByText.get(keyText.toLowerCase());
         if (!keyId) {
           errors.push(`${plan.itemCode}: no assigned template key "${keyText}"`);
@@ -175,23 +181,23 @@ async function main() {
         where: { complianceItemId: item.id, templateKeyId: null },
       });
       const rows = [
-        ...plan.checklist.map((s, i) => ({ s, kind: 'CHECKLIST', sortOrder: i })),
-        ...plan.testing.map((s, i) => ({ s, kind: 'TEST', sortOrder: i })),
+        ...(plan.checklist ?? []).map((s, i) => ({ s, kind: 'CHECKLIST', sortOrder: i })),
+        ...(plan.testing ?? []).map((s, i) => ({ s, kind: 'TEST', sortOrder: i })),
       ];
-      for (const { s, kind, sortOrder } of rows) {
-        await prisma.complianceItemTemplateAnswer.create({
-          data: {
-            companyId: item.companyId,
-            complianceItemId: item.id,
-            customKey: s.step,
-            kind,
-            value: procedureValue(s),
-            sortOrder,
-            ...refs(s, `${plan.itemCode}/${kind} step ${sortOrder + 1}`),
-          },
-        });
-        stepsDone++;
-      }
+      // One round-trip per item rather than per step — the register is ~4k
+      // items × 25 steps, so per-row inserts dominate the runtime otherwise.
+      await prisma.complianceItemTemplateAnswer.createMany({
+        data: rows.map(({ s, kind, sortOrder }) => ({
+          companyId: item.companyId,
+          complianceItemId: item.id,
+          customKey: s.step,
+          kind,
+          value: procedureValue(s),
+          sortOrder,
+          ...refs(s, `${plan.itemCode}/${kind} step ${sortOrder + 1}`),
+        })),
+      });
+      stepsDone += rows.length;
       itemsDone++;
     }
   }
