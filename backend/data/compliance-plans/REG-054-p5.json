@@ -1,0 +1,1529 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-054-C33",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "value": "Owns the standing BMA/NAIC examination readiness file for the Bermuda insurer and its US-licensed affiliates; escalates unresolved gaps to the Head of Compliance"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - Bermuda Insurance Code of Conduct (August 2022) s.6 (Risk Management, investment and ALM) re-read against the BMA website version at each quarterly refresh, alongside the NAIC Market Conduct Examination Standard Data Request in force for the US affiliates"
+        },
+        "In-scope processes": {
+          "value": "Sales and suitability, policy issue, premium billing, claims adjudication, complaint handling, producer appointment, and the investment/ALM control cycle - i.e. every process a BMA onsite review or a US market conduct exam issues a data request against"
+        },
+        "In-scope systems": {
+          "app": "compliance evidence repository",
+          "value": "Exam readiness library (indexed by Code s.6 clause and NAIC SDR section), fed by extracts from the Policy Administration Platform, Claims Platform and the complaint register"
+        },
+        "Compliance procedure documented": {
+          "value": "Examination Readiness Procedure - section index, per-section owner, quarterly refresh cadence, privilege review gate, snapshot-and-hash step, and the 10-business-day exam data-call turnaround standard"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and noted by the Risk & Compliance Committee; re-approved annually and on any BMA Code amendment or NAIC SDR revision"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Continuous obligation with event-driven deadlines: BMA onsite review data requests are typically due 10 business days from the engagement letter; US exam SDR responses per the exam call letter date; MCAS by the NAIC state due dates"
+        },
+        "Deadline reminders configured": {
+          "value": "GRC calendar tasks at the 15th of the month following each quarter-end for every exam-file section owner, plus same-day task creation when an exam call letter or BMA engagement letter is logged"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Quarterly hashed exam-file snapshots, section owner attestations and prior exam responses retained 7 years from the exam close, per the Bermuda statutory record retention standard"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any exam-file section stale beyond one quarter, or any data request missed at its due date, is raised as a compliance exception with root cause, owner and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs the quarterly exam-readiness attestation and every remediation closing a stale or incomplete exam-file section"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All exam-file sections in the readiness index for the quarter, plus every regulator data request (BMA engagement letters, US exam call letters, MCAS calls) received in the period"
+        },
+        "Pass/fail thresholds": {
+          "value": "Every index section must carry a refresh date inside the last quarter and a named owner; any missing section, any section refreshed more than 90 days ago, or any data request answered after its due date is a fail. More than two fails moves the conclusion to ineffective"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous; the test runs quarterly over the full index and 100% of data requests received in the quarter"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not own or maintain any exam-file section being tested"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly exam-readiness test workpaper (index extract, staleness analysis, sampled section re-performance, data-request timeliness recompute) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "The exam file itself is the deliverable: section index, source extracts with run dates, board-approved investment and ALM policy, complaint register and claims samples, producible to a BMA reviewer or a US examiner within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct Compliance is the single point of contact for BMA supervisory correspondence and US examiner data calls; General Counsel clears anything privileged or containing an admission before release"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Rebuild the exam-file index from the current Code and exam data requests",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Open the Insurance Code of Conduct (August 2022) on the BMA website and list every clause in s.5 (Corporate Governance) and s.6 (Risk Management, including investment and ALM) that a reviewer can demand evidence for.",
+            "Open the NAIC Market Conduct Examination Standard Data Request and add its sections - company operations, complaint handling, marketing and sales, producer licensing, policyholder service, underwriting and rating, claims - as index rows for the US-licensed affiliates.",
+            "For each index row record: section id, the clause or SDR reference, the evidence artifact expected, the source system, the named section owner and the refresh cadence.",
+            "Publish the index as the Examination Readiness Index in the compliance evidence repository and circulate it to every named owner for acceptance."
+          ],
+          "done": "every Code clause and SDR section has an index row with an artifact, a source system, a named owner and a cadence."
+        },
+        {
+          "step": "Refresh the complaint register extract behind the complaint-handling section",
+          "by": "Complaints Manager",
+          "role": "Complaints Manager",
+          "app": "workflow/case management tool",
+          "actions": [
+            "In the complaint case management tool run the standing report Complaint Register - Exam Extract for the quarter, filtered to all entities and all jurisdictions.",
+            "Include for each complaint: complaint id, receipt date, source (policyholder, regulator, BMA, US state DOI), line of business, reason code, resolution date, resolution outcome and days-to-close.",
+            "Reconcile the row count to the regulator-sourced complaints logged separately by Consumer Affairs and resolve any difference before publishing.",
+            "Save the extract as complaint-register-<yyyy-qq>.xlsx into the exam-file section and stamp the run date and the runner name on the cover tab."
+          ],
+          "done": "the quarter's complaint register extract is filed, reconciled to regulator-sourced complaints, and carries a run date."
+        },
+        {
+          "step": "Refresh the claims-handling timeliness population",
+          "by": "Claims Quality Assurance / Training Manager",
+          "role": "Claims Quality Assurance / Training Manager",
+          "app": "Claims Platform",
+          "actions": [
+            "Run the claims extract for the quarter with: claim number, notification date, acknowledgement date, first substantive contact date, decision date, payment date, denial reason code and reopen flag.",
+            "Compute days from notification to acknowledgement and notification to decision on the extract and include the calculated columns - examiners test the arithmetic, not the narrative.",
+            "Pull the current claims handling procedure and the denial letter templates from the document management repository and attach them alongside the population.",
+            "Hand the pack to Market Conduct Compliance and file it under the claims section of the exam index."
+          ],
+          "done": "the claims section holds a dated population with computed timeliness columns plus the current procedure and denial templates."
+        },
+        {
+          "step": "Refresh producer licensing and appointment evidence",
+          "by": "Producer Licensing Coordinator",
+          "role": "Producer Licensing Coordinator",
+          "app": "NIPR (Producer Licensing)",
+          "actions": [
+            "In NIPR Gateway run the Producer Database reconciliation report for every writing company and state and export the active appointment list.",
+            "For the Bermuda entity, export the intermediary register showing each broker's BMA registration status and the date it was last verified.",
+            "Match the appointment list to the commission payments extract from the billing/commission platform and list any producer paid while unappointed or unlicensed.",
+            "File the reconciliation, the exception list and the remediation status under the producer licensing section of the exam index."
+          ],
+          "done": "the producer section holds a current NIPR reconciliation, the Bermuda intermediary register and a resolved unlicensed-payment exception list."
+        },
+        {
+          "step": "Refresh the marketing and sales material approval evidence",
+          "by": "Marketing Compliance Analyst",
+          "role": "Marketing Compliance Analyst",
+          "app": "document management repository",
+          "actions": [
+            "Export the advertising approval log for the quarter: material id, title, channel, product, approver, approval date, expiry date and the states or jurisdictions it was released in.",
+            "Attach the approved PDF of every piece still in circulation, keyed to its log row.",
+            "List any material found in market with no approval row and raise it to the Market Conduct / Consumer Compliance Manager the same week.",
+            "File the log and the material set under the marketing and sales section of the exam index."
+          ],
+          "done": "every in-market piece has an approval row and an attached approved copy, or sits on a raised exception list."
+        },
+        {
+          "step": "Refresh the investment and ALM evidence demanded by Code s.6",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "app": "BlackRock Aladdin",
+          "actions": [
+            "Obtain from the Corporate Secretary the board-approved investment policy statement and ALM framework with the approving board minute reference and approval date.",
+            "Export from the investment system the current limit monitoring report showing asset class, counterparty, duration and currency limits with actual versus limit and any breach and its cure date.",
+            "Export the asset-liability matching position: duration of assets versus duration of liabilities by fund, cash-flow matching gaps by bucket, and the last date the matching was rerun.",
+            "Attach the Chief Investment Officer's quarterly certification that investments were held within the approved policy and file the pack under the s.6 investment and ALM section."
+          ],
+          "done": "the s.6 section holds the board-approved policy with its minute reference, a limit monitoring report with breach cure dates, and a dated matching position."
+        },
+        {
+          "step": "Refresh underwriting, rating and policy-issue evidence",
+          "by": "Underwriting Quality / Audit Manager",
+          "role": "Underwriting Quality / Audit Manager",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Extract the quarter's issued, declined and non-renewed policy population with effective date, state or jurisdiction, product, rating tier and premium.",
+            "Attach the underwriting guidelines and the rating rules version that was live on each effective date so an examiner can rerate a sample.",
+            "Attach copies of the declination and non-renewal notice templates with their required notice periods stated on the face.",
+            "File the population, guidelines and templates under the underwriting and rating section of the exam index."
+          ],
+          "done": "the underwriting section holds the issued/declined/non-renewed population with the version-dated guidelines and notice templates needed to rerate it."
+        },
+        {
+          "step": "Archive the MCAS submissions and their supporting workings",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "For each state MCAS line of business filed this cycle, download the submitted MCAS data file and the confirmation from the NAIC MCAS application.",
+            "Attach the source query, the run date and the reconciliation that ties MCAS counts back to the policy and claims populations.",
+            "Record the submission date against the state due date (generally 30 April for the prior calendar year in most states) and flag any late filing.",
+            "File the submission, confirmation, workings and reconciliation under the MCAS section of the exam index."
+          ],
+          "done": "every MCAS filing in the cycle has its submitted file, confirmation, reconciliation and a submission-versus-due-date comparison on file."
+        },
+        {
+          "step": "Refresh the policyholder disclosure and notice inventory",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "document management repository",
+          "actions": [
+            "List every disclosure and notice the insurer is required to give - application disclosures, free-look notice, privacy notice under PIPA, claims decision notices, cancellation and non-renewal notices.",
+            "For each, record the governing citation, the current version number, the effective date of that version and the system that issues it.",
+            "Pull one issued specimen per notice type from the policy administration output archive and attach it as proof the version in the library is the version actually mailed.",
+            "File the inventory and specimens under the policyholder service section of the exam index."
+          ],
+          "done": "every required notice has a citation, a current version, an issuing system and a matching issued specimen."
+        },
+        {
+          "step": "Assign owners and cadences and load them as recurring GRC tasks",
+          "by": "Governance Analyst",
+          "role": "Governance Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Create one recurring task per exam-index section, assigned to the named owner, due the 15th of the month following each quarter-end.",
+            "Configure the task to require an attached artifact and a refresh date before it can be closed - a comment alone must not close it.",
+            "Set escalation to the Head of Compliance when a task is 10 days overdue.",
+            "Publish a readiness dashboard showing each section as current, ageing or stale."
+          ],
+          "done": "every index section has a recurring, artifact-gated GRC task with an owner, a due date and an escalation rule."
+        },
+        {
+          "step": "Run the privilege and personal-data review before anything is exam-ready",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Review each new exam-file artifact for legally privileged content, litigation strategy and reserve commentary and mark those items privileged rather than deleting them.",
+            "Confirm with the Privacy Officer that personal information in the extracts is limited to what a regulator can lawfully be given under PIPA and that direct identifiers are pseudonymised where the request does not require them.",
+            "Record on the index row whether the section is releasable as-is, releasable after redaction, or privileged and to be withheld with a stated basis.",
+            "Sign the release classification for the quarter."
+          ],
+          "done": "every section carries a signed release classification and any personal data in it is justified against the request."
+        },
+        {
+          "step": "Freeze and hash the quarterly exam-file snapshot",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Create the folder exam-readiness-<entity>-<yyyy-qq> in the compliance evidence repository and copy every current section artifact into it.",
+            "Generate a manifest listing file name, section id, source system, run date and SHA-256 hash for each artifact.",
+            "Set the folder to read-only and apply the 7-year retention label counted from exam close.",
+            "Circulate the manifest to the section owners as the record of what was frozen."
+          ],
+          "done": "a read-only, hashed, retention-labelled snapshot exists for the quarter with a circulated manifest."
+        },
+        {
+          "step": "Run a mock data call against the frozen snapshot",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Pick 12 questions verbatim from the last BMA engagement letter and the NAIC SDR - including at least one investment/ALM question and one claims timeliness question.",
+            "Issue them to the section owners as a timed drill with the real 10-business-day exam clock running.",
+            "Score each response on completeness, whether the artifact came from the frozen snapshot, and elapsed days.",
+            "Write up which sections could not answer inside the clock and convert each into a remediation action with an owner and a date."
+          ],
+          "done": "the drill is scored, the elapsed days recorded, and every section that missed the 10-day clock has an owned remediation action."
+        },
+        {
+          "step": "Maintain the examination logistics and contact pack",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Keep a one-page pack listing the BMA supervisory contact, each US state exam contact used in the last cycle, and the insurer's named exam coordinator and deputy.",
+            "Record the secure transfer method agreed with each regulator for producing files, and the maximum file size and format each accepts.",
+            "List the interview roster - who speaks to claims, underwriting, investments, complaints - with a named backup for each.",
+            "Review the pack every quarter and after any leaver in a named role."
+          ],
+          "done": "a current pack names the regulator contacts, the transfer method, the coordinator and an interview roster with backups."
+        },
+        {
+          "step": "Attest the quarter's readiness and report it to the committee",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "board portal",
+          "actions": [
+            "Review the readiness dashboard, the staleness list and the mock data call results for the quarter.",
+            "Sign the quarterly examination readiness attestation stating which sections are current, which are stale, and the remediation dates for the stale ones.",
+            "Table the attestation and the open remediation list at the Risk & Compliance Committee through the board portal.",
+            "File the signed attestation and the committee minute reference into the frozen snapshot folder."
+          ],
+          "done": "a signed quarterly attestation with a stale-section remediation list is tabled at committee and filed with the snapshot."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of exam-file sections and regulator data requests",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Export every row of the Examination Readiness Index with section id, owner, cadence, last refresh date and last artifact attached.",
+            "Export every regulator data request logged in the quarter - BMA engagement letters, US exam call letters, MCAS calls - with receipt date and stated due date.",
+            "Reconcile the index row count to the Code clause list and the NAIC SDR section list and record any clause with no index row as a completeness gap before sampling."
+          ],
+          "done": "the section and data-request populations are extracted, reconciled to the Code and SDR, and signed as complete."
+        },
+        {
+          "step": "Reconcile the index to the frozen snapshot manifest",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Match every index row to a manifest entry in the quarter's frozen snapshot on section id.",
+            "Recompute the SHA-256 hash of 10 manifest files and compare to the recorded hash to confirm the snapshot was not altered after freeze.",
+            "List index rows with no manifest entry, and manifest entries with no index row, as automatic exceptions."
+          ],
+          "done": "every index row ties to a hash-verified manifest entry or is listed as an exception."
+        },
+        {
+          "step": "Draw and document the section sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of the sections a regulator actually requested in the quarter and 100% of the s.6 investment and ALM sections.",
+            "Take 15 further sections by seeded random selection from the remaining index, minimum 25 sections overall.",
+            "Record the seed, population size, selection date and the sampling rationale in the workpaper so the draw can be reproduced."
+          ],
+          "done": "a reproducible sample is drawn covering all requested sections and all s.6 investment and ALM sections."
+        },
+        {
+          "step": "Re-perform the artifact refresh for each sampled section",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "For each sampled section, rerun the stated source extract in the named source system for the same period without looking at the filed artifact first.",
+            "Compare row counts and key totals to the filed artifact and record any difference in absolute and percentage terms.",
+            "Treat a filed artifact that cannot be reproduced from its stated source as an exception, including where the numbers agree but the source is undocumented.",
+            "Capture the rerun output and the comparison into the workpaper."
+          ],
+          "done": "each sampled section has an independent rerun, a numeric comparison and a captured output."
+        },
+        {
+          "step": "Re-perform the investment and ALM evidence against the board record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Open the board minute referenced on the s.6 index row and confirm the investment policy and ALM framework version filed is the version the board approved and on the date stated.",
+            "Re-read the limit monitoring report and independently confirm each recorded breach has a cure date and evidence the position was cured.",
+            "Confirm the asset and liability duration figures on the filed matching position agree to the investment system as at the same date.",
+            "Any policy version with no traceable board approval is a governance breach, not a documentation gap."
+          ],
+          "done": "the filed investment/ALM policy traces to a dated board approval and the limits and matching figures reconcile to source."
+        },
+        {
+          "step": "Recompute the staleness and data-request timeliness maths",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For every index row recompute days between the last refresh date and the quarter-end and compare to the 90-day threshold.",
+            "For every regulator data request recompute elapsed business days from receipt date to response date and compare to the stated due date and the 10-business-day internal standard.",
+            "List every section over 90 days and every request answered after its due date as a fail, with the computed day counts shown.",
+            "Compare the failure count to the two-fail threshold that moves the conclusion to ineffective."
+          ],
+          "done": "staleness and turnaround day counts are recomputed for the whole population and measured against the stated thresholds."
+        },
+        {
+          "step": "Trace regulator responses to what was actually sent",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "For each data request in the quarter, retrieve the transmittal - secure transfer receipt or regulator portal confirmation - showing the date and the file list sent.",
+            "Match each file sent back to a manifest entry in the frozen snapshot to prove the released version is the controlled version.",
+            "Confirm every released file carries the signed release classification from the privilege review and that no privileged item was released.",
+            "Flag any file sent that has no manifest entry as an uncontrolled release."
+          ],
+          "done": "every released file ties to a manifest entry and a signed release classification, with uncontrolled releases flagged."
+        },
+        {
+          "step": "Test the producer and complaint sections against their source registers",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "NIPR (Producer Licensing)",
+          "actions": [
+            "Select 20 producers from the filed appointment list and confirm each shows an active appointment in NIPR for the state and company on the date commission was paid.",
+            "Select 20 complaints from the filed register and trace each to the case record, confirming receipt date, resolution date and outcome agree.",
+            "Confirm every regulator-sourced complaint in the period appears in the filed register.",
+            "Record any producer paid while unappointed as a reportable breach rather than a test exception."
+          ],
+          "done": "sampled producers and complaints reconcile to NIPR and the case system, and any unappointed payment is escalated as a breach."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one GRC issue per exception carrying the section id, what was stale or unreproducible, and the exam exposure it creates.",
+            "Assign a root cause from a fixed list - owner vacancy, source system change, extract not documented, request logged late - and an accountable owner.",
+            "Set a remediation date inside the next refresh cycle and mark the section for mandatory retest.",
+            "Escalate any uncontrolled release or unappointed-producer payment to the Head of Compliance within one business day."
+          ],
+          "done": "every exception carries an issue, a root cause, an owner, a remediation date and a retest flag."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the section failure rate and the data-request timeliness rate and compare both to the stated thresholds.",
+            "Write the conclusion - effective, effective with exceptions, or ineffective - citing the workpaper references behind it.",
+            "Confirm the signing reviewer owns none of the tested exam-file sections and have them sign the workpaper.",
+            "Report the conclusion and open breaches to the Risk & Compliance Committee at its next sitting and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states the conclusion, both computed rates and the committee reporting date, and is filed in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-054-C34",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Compliance Manager",
+          "value": "Owns the regulator finding remediation log and the agreed-date commitments given to the BMA; escalates slippage to the Chief Risk Officer"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - Bermuda Insurance Sector Operational Cyber Risk Management Code of Conduct (2020), governance and three-lines-of-defence provisions, read together with the 14-day notification requirement, verified against the BMA published Code at each finding intake"
+        },
+        "In-scope processes": {
+          "value": "Findings raised by the BMA onsite review, by US market conduct or financial examiners, by external audit and by Internal Audit against the cyber three-lines-of-defence model - intake, root cause, action plan, evidence, closure and regulator confirmation"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Regulator Findings module holding the finding, the agreed date, the action plan, the evidence links and the closure approval"
+        },
+        "Compliance procedure documented": {
+          "value": "Regulatory Finding Remediation Procedure - 5-business-day intake, root-cause analysis, first-line owner and second-line challenge, evidence standard, third-line closure validation, and the 14-day update commitment to the BMA"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Risk Officer and the Head of Compliance; reviewed annually and after every BMA onsite review"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Event-driven per finding: response to the BMA within the date stated in the engagement or findings letter, progress updates within 14 days of the initial notification and at each 14-day interval where the Cyber Code requires it, and the individually agreed remediation date per finding"
+        },
+        "Deadline reminders configured": {
+          "value": "GRC reminders at 30, 14 and 5 days before each agreed remediation date, plus a 14-day recurring update task on every open BMA-raised cyber finding until closure"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Findings letter, action plan, evidence pack, closure validation memo and the regulator confirmation retained 7 years from closure"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any finding closed without third-line validation, any date extension not agreed with the regulator in writing, and any missed 14-day update is logged as an exception with disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Audit Executive",
+          "value": "Third-line validation and sign-off is mandatory before any regulator-raised finding moves to Closed"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All regulator and external-audit findings open at any point in the period, plus all findings closed in the period, across the BMA cyber review, US exams and external audit management letters"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on two things - a finding closed without third-line validation evidence, and a date extension taken without written regulator agreement. Any missed 14-day update or any closure evidence that does not demonstrate the control now operates is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven per finding; the test runs quarterly over all findings open or closed in the quarter, with 100% coverage of BMA-raised findings"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have authored the action plan or performed the remediation on any tested finding"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly finding-remediation test workpaper (population extract, ageing analysis, closure re-performance, extension trace) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per-finding pack - findings letter, dated action plan, root cause, evidence of the control operating post-fix, third-line validation memo - producible to the BMA on request within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Compliance drafts the response to the BMA; the Chief Risk Officer approves commitments and dates; General Counsel clears any wording that concedes a breach before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Log the regulator findings letter within five business days of receipt",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "On receipt of the BMA findings or engagement letter, create one GRC record per finding - never one record for the whole letter.",
+            "Copy onto each record the regulator's own wording of the finding, the Code clause cited (Cyber Code governance or three-lines-of-defence provision), the regulator's rating and the date stated for response.",
+            "Attach the signed PDF of the letter and record the receipt date and the receiving channel.",
+            "Notify the Chief Risk Officer, the Chief Info Security Officer and the Chief Audit Executive the same day with the finding list and the response deadline."
+          ],
+          "done": "each finding in the letter has its own GRC record with the regulator's wording, the cited clause, the response date and the letter attached."
+        },
+        {
+          "step": "Assign the first-line owner and the three-lines role for each finding",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "For each finding name the first-line accountable executive who owns the process, not the person who will do the work.",
+            "Name the second-line challenger from Operational Risk or Compliance, and confirm the third-line validator from Internal Audit.",
+            "Reject any assignment where the same individual would sit in two of the three lines - that itself breaches the Cyber Code governance model.",
+            "Record all three names and the assignment date on the GRC record."
+          ],
+          "done": "every finding names a distinct first-line owner, second-line challenger and third-line validator with an assignment date."
+        },
+        {
+          "step": "Run root-cause analysis before any action plan is written",
+          "by": "Operational Risk Manager",
+          "role": "Operational Risk Manager",
+          "actions": [
+            "Convene the first-line owner and the control operator and work the finding back to cause using five-whys, documenting each why on the record.",
+            "Classify the cause: control not designed, control designed but not operating, ownership gap across the three lines, tooling gap, or capacity gap.",
+            "State explicitly whether the cause is isolated to the cited process or systemic across other processes, and list the other processes if systemic.",
+            "Have the second-line challenger sign that the stated cause explains the finding - a cause of 'human error' is rejected and sent back."
+          ],
+          "done": "each finding carries a signed root cause with a classification and a stated systemic-or-isolated scope."
+        },
+        {
+          "step": "Write the action plan with dated, evidenced milestones",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Break each finding into milestones - control redesign, procedure update, tooling change, training, and a post-implementation operating period.",
+            "Give every milestone an owner, a due date and the specific artifact that will evidence it (for example: revised procedure with version and approval date, SIEM rule id, LMS completion report).",
+            "Set the finding's agreed remediation date at the end of the post-implementation operating period, not at the date the fix is deployed.",
+            "Have the first-line accountable executive accept the plan and dates in writing on the record."
+          ],
+          "done": "every finding has milestones with owners, dates and named evidence artifacts, accepted in writing by the first-line executive."
+        },
+        {
+          "step": "Agree the plan and dates with the regulator in writing",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Draft the response letter to the BMA restating each finding, the accepted cause, the plan and the proposed remediation date.",
+            "Have General Counsel clear any wording that concedes a regulatory breach before the letter leaves.",
+            "Send the response by the date stated in the findings letter and record the send date and channel on each GRC record.",
+            "Log the regulator's acknowledgement or any pushback on dates against the affected findings."
+          ],
+          "done": "a counsel-cleared response is sent by the stated date and the regulator's acknowledgement is logged against each finding."
+        },
+        {
+          "step": "Set the 14-day update cadence on cyber findings",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "For every finding raised under the Cyber Code, create a recurring 14-day update task starting 14 days from the initial notification date.",
+            "Configure the task to require a progress statement, the milestone status and any change to the agreed date before it can be closed.",
+            "Route each 14-day update through the Chief Info Security Officer for factual accuracy before it is issued to the BMA.",
+            "Log the issue date of every update so the interval between updates can later be recomputed."
+          ],
+          "done": "every cyber finding has a 14-day recurring update task with a logged issue date for each update."
+        },
+        {
+          "step": "Deliver the technical remediation and capture the artifact",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Raise the change records that implement the fix and link every change number back to the GRC finding record.",
+            "Capture the concrete artifact named in the milestone - the new SIEM correlation rule and its id, the access recertification campaign result, the revised architecture diagram - not a status comment.",
+            "Have the control operator confirm in writing that the control is now live and who runs it day to day.",
+            "Attach the artifacts to the milestone and mark it delivered with the delivery date."
+          ],
+          "done": "each technical milestone carries linked change records, the named artifact and a written confirmation the control is live."
+        },
+        {
+          "step": "Update procedures, role descriptions and training behind the fix",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "learning management system",
+          "actions": [
+            "Revise the affected procedure, increment the version number and route it for approval by the accountable executive; record the approval date.",
+            "Update the role descriptions where the finding was a three-lines ownership gap so the first, second and third-line duties are written down.",
+            "Assign targeted training in the LMS to the affected population and set a completion deadline inside the remediation window.",
+            "Export the LMS completion report at the deadline and attach it to the milestone with the completion percentage."
+          ],
+          "done": "the procedure is versioned and approved, role duties are written down, and an LMS completion report is attached."
+        },
+        {
+          "step": "Run the post-implementation operating period before claiming closure",
+          "by": "Operational Risk Manager",
+          "role": "Operational Risk Manager",
+          "actions": [
+            "Define the operating period long enough to produce at least three occurrences of the control - for a monthly control that is three months.",
+            "Collect the control's own output for each occurrence with dates and operator names.",
+            "Confirm no repeat of the finding condition arose during the period, and record any recurrence as a plan failure rather than a footnote.",
+            "Write the operating-period summary onto the finding record."
+          ],
+          "done": "at least three dated occurrences of the remediated control are evidenced with no recurrence of the finding condition."
+        },
+        {
+          "step": "Manage any date change as a formal, regulator-agreed extension",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Where an agreed date will be missed, raise the extension request at least 14 days before the date, never after it.",
+            "State on the request the reason, the revised date, the interim risk mitigation in place and the compensating control.",
+            "Obtain Chief Risk Officer approval and then written BMA agreement, and record both against the finding.",
+            "Where the regulator has not agreed in writing, keep the original date live and report the finding as overdue."
+          ],
+          "done": "every date change carries a pre-date request, CRO approval and written regulator agreement, or the original date stands and the finding shows overdue."
+        },
+        {
+          "step": "Assemble the closure evidence pack to a fixed standard",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Build the pack: findings letter, signed root cause, accepted action plan, each milestone artifact, the operating-period evidence, and the regulator correspondence trail.",
+            "Add a one-page closure statement mapping each element of the regulator's wording to the specific evidence that answers it.",
+            "Reject the pack where any milestone is evidenced only by a status comment or a screenshot with no date.",
+            "File the pack in the compliance evidence repository under the finding id and link it from the GRC record."
+          ],
+          "done": "a complete, dated closure pack exists that maps the regulator's wording line by line to evidence."
+        },
+        {
+          "step": "Obtain third-line validation of the closure",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "AuditBoard",
+          "actions": [
+            "Have Internal Audit re-perform the remediated control independently rather than reading the pack - reperform an access review, retest the SIEM rule, sample the new procedure in use.",
+            "Compare the re-performance result to the regulator's original wording and state whether the finding is fully or partially addressed.",
+            "Issue a validation memo with the conclusion, the evidence inspected and the date, or return the finding to the owner with what is still missing.",
+            "Only a validation memo with a full conclusion may move the finding to Closed in the GRC platform."
+          ],
+          "done": "a dated third-line validation memo based on independent re-performance supports every closure."
+        },
+        {
+          "step": "Confirm closure with the regulator and record the acceptance",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Send the BMA the closure statement and the validation memo reference for each finding closed in the period.",
+            "Record the regulator's acceptance, silence or challenge against the finding record with the date.",
+            "Where the regulator challenges the closure, reopen the finding at its original rating and restart the 14-day update cadence.",
+            "Keep the finding in a Closed-pending-regulator state until acceptance or the agreed response window passes."
+          ],
+          "done": "every closure has been notified to the regulator and its acceptance, silence or challenge is recorded with a date."
+        },
+        {
+          "step": "Report the finding portfolio to the board risk committee",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "board portal",
+          "actions": [
+            "Produce a monthly view: open findings by regulator, by rating, by age band, overdue count, extensions taken and closures validated.",
+            "Name every finding past its agreed date with the owner and the reason, at individual finding level - no aggregate percentages alone.",
+            "Table the view at the board risk committee through the board portal and record the minute reference on each overdue finding.",
+            "Escalate any finding overdue by more than 30 days to the full board."
+          ],
+          "done": "a monthly finding portfolio naming every overdue finding is tabled at committee with a recorded minute reference."
+        },
+        {
+          "step": "Sweep for systemic causes across the finding population",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "actions": [
+            "Each quarter group the period's findings by root-cause classification and by the process they touched.",
+            "Where three or more findings share a cause, raise a thematic risk issue rather than closing them individually as isolated.",
+            "Apply the fix from any finding marked systemic to the other processes listed in its root cause and evidence that extension.",
+            "Report the thematic issues into the risk appetite review so the pattern reaches the board."
+          ],
+          "done": "recurring causes are grouped into thematic issues, extended to the other affected processes, and reported into the risk appetite review."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of findings open or closed in the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Export every GRC finding record with source (BMA, US exam, external audit, internal audit), receipt date, rating, agreed date, current status and closure date.",
+            "Reconcile the export to the underlying regulator letters received in the period - one record per finding wording, not per letter - and resolve gaps before sampling.",
+            "Confirm no finding was deleted or merged during the quarter by comparing to the prior quarter's export."
+          ],
+          "done": "the finding population reconciles to the source letters and to the prior quarter export, with no unexplained disappearances."
+        },
+        {
+          "step": "Reconcile every closed finding to a third-line validation memo",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each finding closed in the quarter to a validation memo with a date on or before the closure date.",
+            "Confirm the memo concludes fully addressed rather than partially addressed.",
+            "List any closure with no memo, a memo dated after closure, or a partial conclusion as an automatic zero-tolerance fail."
+          ],
+          "done": "every closure ties to a pre-dated, fully-concluding validation memo or is recorded as a zero-tolerance fail."
+        },
+        {
+          "step": "Draw the sample and document the method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of BMA-raised findings and 100% of findings closed in the quarter.",
+            "Take 10 further findings by seeded random selection from the remaining open population, minimum 20 findings overall.",
+            "Record the seed, the population size and the selection date so the sample can be redrawn."
+          ],
+          "done": "a reproducible sample covering all BMA-raised and all closed findings is documented."
+        },
+        {
+          "step": "Re-perform the remediated control for the sampled findings",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Splunk SIEM",
+          "actions": [
+            "For technical findings, execute the control yourself - run the SIEM rule the fix introduced and inspect the alerts it generated in the operating period, or pull the access recertification campaign result directly from the IAM platform.",
+            "For procedural findings, sample three live cases processed after the fix date and check the revised procedure step was actually performed and evidenced.",
+            "Reach a conclusion before reading the closure pack, then compare - a match on outcome but a different evidence basis is still recorded.",
+            "Capture the re-performance output with its run date into the workpaper."
+          ],
+          "done": "each sampled finding has an independent control re-performance with captured output and a stated conclusion."
+        },
+        {
+          "step": "Trace the three-lines separation on each sampled finding",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Read the assigned first-line owner, second-line challenger and third-line validator on each sampled record.",
+            "Confirm no individual appears in two lines and that the validator sits outside the remediation delivery chain.",
+            "Confirm the second-line challenge is evidenced by a signed root-cause acceptance and not by a blank approval field.",
+            "Record any overlap as a Cyber Code governance breach, not a documentation exception."
+          ],
+          "done": "each sampled finding shows three distinct, evidenced lines, or the overlap is escalated as a governance breach."
+        },
+        {
+          "step": "Recompute the 14-day update intervals and the agreed-date ageing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For every cyber finding, list the issue dates of the updates sent and recompute the gap between the initial notification and the first update, and between each subsequent update.",
+            "Flag any interval exceeding 14 days, showing the computed day count.",
+            "Recompute days between receipt date and agreed date, and between agreed date and actual closure date, for the whole population.",
+            "Reconcile the overdue count you compute to the overdue count reported to the board risk committee for the same month."
+          ],
+          "done": "update intervals and ageing are recomputed and the computed overdue count reconciles to what the board was told."
+        },
+        {
+          "step": "Trace every date extension to a pre-dated regulator agreement",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "List every finding whose agreed date changed during the period, with the original and revised dates.",
+            "Retrieve the extension request and confirm it was raised at least 14 days before the original date.",
+            "Retrieve the Chief Risk Officer approval and the written BMA agreement and confirm both pre-date the original date.",
+            "Any silent date change in the GRC record with no regulator agreement is a zero-tolerance fail."
+          ],
+          "done": "every date change traces to a pre-dated request, CRO approval and written regulator agreement, or is a zero-tolerance fail."
+        },
+        {
+          "step": "Test the closure evidence against the regulator's own wording",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Read the regulator's wording of each sampled finding and the one-page closure statement side by side.",
+            "Confirm every element of the wording maps to a dated artifact and that no element is answered only by a status comment.",
+            "Confirm the operating-period evidence shows at least three dated occurrences of the control with no recurrence.",
+            "Treat a closure evidenced only by the fix deployment, with no operating period, as a fail."
+          ],
+          "done": "each sampled closure maps every element of the regulator's wording to dated evidence including an operating period."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception naming the finding id, the failed requirement and the regulatory exposure it creates.",
+            "Assign a root cause - validation skipped, extension not agreed, update cadence lapsed, evidence standard not met - and an owner.",
+            "Set a remediation date and reopen any finding closed without valid validation at its original rating.",
+            "Carry every open exception into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date, and invalid closures are reopened."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the on-time closure rate, the validated-closure rate and the 14-day update compliance rate.",
+            "Write the conclusion - effective, effective with exceptions, or ineffective - against the zero-tolerance thresholds for unvalidated closures and unagreed extensions.",
+            "Have the signing reviewer, who authored no action plan and performed no remediation in the sample, sign the workpaper.",
+            "Report to the board risk committee at its next sitting and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states the three computed rates, the conclusion and the committee reporting date, and is filed."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-054-C35",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Business Continuity Manager",
+          "value": "Owns the business continuity and disaster recovery plan set for the Bermuda insurer and its outsourced service providers; reports into the Operational Risk Manager and the Risk Committee"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - Bermuda Insurance Code of Conduct (August 2022) s.6/s.8 (business continuity) and the business conduct and integrity provisions requiring fair treatment of policyholders to survive disruption, checked against the BMA published Code at each annual review"
+        },
+        "In-scope processes": {
+          "value": "The important business services whose loss harms policyholders - claims notification and payment, policyholder contact and complaints, premium collection, policy issue and endorsement, reinsurance recoveries and treasury settlement - end to end including outsourced legs"
+        },
+        "In-scope systems": {
+          "app": "Claims Platform",
+          "value": "Claims Platform, Policy Administration Platform, Guidewire BillingCenter, the contact centre and the payment gateway, each mapped in the CMDB to the important business service it supports"
+        },
+        "Compliance procedure documented": {
+          "value": "Business Continuity and Disaster Recovery Policy plus per-service continuity plans and per-system DR runbooks - covering business impact analysis, RTO/RPO, impact tolerances, invocation authority, workaround procedures and policyholder communications"
+        },
+        "Compliance procedure approved": {
+          "value": "Board-approved annually; per-service plans approved by the service owner and the Operational Risk Manager, with off-cycle re-approval on any material change to a service, supplier or system"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual review cycle with a fixed board approval slot; each plan must show a review date inside 12 months, and an out-of-cycle review within 30 days of a material change, a supplier exit or a failed continuity test"
+        },
+        "Deadline reminders configured": {
+          "value": "GRC tasks to each plan owner at 90, 60 and 30 days before the plan's 12-month review anniversary, plus an automatic task on any CMDB change that alters a mapped critical system"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Approved plan versions, business impact analyses, board approval minutes and change records retained 7 years, with every superseded version kept so the plan in force on any past date can be shown"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Plans past their 12-month review date, services with no plan, and RTOs that cannot be met by the documented recovery capability are logged as exceptions with owner and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Operational Risk Manager",
+          "value": "Signs off closure of every plan gap and every RTO shortfall, and confirms the compensating arrangement in the interim"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every important business service on the register and every system mapped to one - the full plan and runbook inventory, not a sample of it"
+        },
+        "Pass/fail thresholds": {
+          "value": "100% of important business services must have an approved plan reviewed inside 12 months with a stated RTO, RPO and impact tolerance, a named invocation authority and a policyholder communication step. Any service with no plan, or any plan whose RTO exceeds its impact tolerance, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is an annual review; the verification test runs annually ahead of the board approval slot, with a半-year interim check that no plan has aged past 12 months"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not own, author or approve any plan being tested"
+        },
+        "Evidence location for test results": {
+          "value": "Annual BCP/DR plan assurance workpaper (service register, plan inventory, currency analysis, RTO-versus-tolerance recompute, dependency trace) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Service register with impact tolerances, the approved plan set with board approval dates, the dependency map and the latest test results - producible to a BMA reviewer within 5 business days as the Code s.6/s.8 continuity evidence"
+        },
+        "Regulator response path": {
+          "value": "Operational Risk fronts BMA continuity questions with the Business Continuity Manager; the Chief Risk Officer approves any statement about recovery capability before it is given to the Authority"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Confirm the register of important business services",
+          "by": "Operational Resilience Lead",
+          "role": "Operational Resilience Lead",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Take last year's service register and test each entry against the BMA Operational Resilience and Outsourcing Guidance Notes definition - would its disruption cause intolerable harm to policyholders or to the stability of the market.",
+            "Add services introduced in the year from the change and new-product pipeline; retire services genuinely discontinued, recording who confirmed the discontinuation.",
+            "For each service record the accountable executive, the customer outcome it delivers, the products and jurisdictions it serves and whether it is delivered in-house or outsourced.",
+            "Have the Chief Risk Officer approve the register before any plan work starts against it."
+          ],
+          "done": "a CRO-approved service register lists every important business service with an accountable executive and a delivery model."
+        },
+        {
+          "step": "Refresh the business impact analysis for each service",
+          "by": "Business Continuity Analyst",
+          "role": "Business Continuity Analyst",
+          "actions": [
+            "Interview each service owner and record the harm profile over time - what happens to policyholders at 4 hours, 24 hours, 3 days and 5 days of outage.",
+            "Quantify the harm in the terms the Code cares about: unpaid claims count and value per day, unanswered policyholder contacts per day, premium not collected, and any regulatory reporting missed.",
+            "Set or reconfirm the maximum tolerable outage and the maximum tolerable data loss for the service and state the basis for each.",
+            "Have the service owner sign the BIA - an unsigned BIA cannot support a plan."
+          ],
+          "done": "each service has a signed BIA quantifying policyholder harm over time with a stated maximum tolerable outage and data loss."
+        },
+        {
+          "step": "Set the impact tolerance and derive RTO and RPO from it",
+          "by": "Operational Resilience Lead",
+          "role": "Operational Resilience Lead",
+          "actions": [
+            "Set the impact tolerance for each service as the maximum period of disruption the firm can absorb before intolerable policyholder harm, stated as a time plus a volume qualifier.",
+            "Derive the technology RTO for each supporting system so the sum of detection, decision, recovery and catch-up sits inside the tolerance - never set RTO equal to the tolerance.",
+            "Derive the RPO from the maximum tolerable data loss and record which system's replication or backup arrangement delivers it.",
+            "Have the Chief Risk Officer approve tolerances and the Head of IT accept the derived RTOs and RPOs as achievable or state the shortfall."
+          ],
+          "done": "every service has an approved impact tolerance with derived RTOs and RPOs accepted by IT or a stated shortfall."
+        },
+        {
+          "step": "Map each service end to end including its outsourced legs",
+          "by": "Business Continuity Analyst",
+          "role": "Business Continuity Analyst",
+          "app": "CMDB",
+          "actions": [
+            "In the CMDB trace each service to its applications, infrastructure, data stores, network paths and identity dependencies and export the map.",
+            "Add the people dependency - which teams and which locations must be available - and the minimum headcount to run the service degraded.",
+            "Add every third party in the chain with the contract reference and the recovery commitment written into it, taken from the contract lifecycle management repository.",
+            "Mark single points of failure explicitly, including any single supplier, single site or single cloud region, and route each to the Third-Party Risk Manager."
+          ],
+          "done": "each service has an end-to-end map covering systems, people, sites and suppliers with single points of failure marked."
+        },
+        {
+          "step": "Write the continuity plan for each service",
+          "by": "Business Continuity Manager",
+          "role": "Business Continuity Manager",
+          "app": "document management repository",
+          "actions": [
+            "Write the plan against a fixed template: trigger conditions, invocation authority by name and deputy, first-hour actions, manual workaround, degraded-service acceptance criteria, and return-to-normal steps.",
+            "Write the manual workaround so it is actually executable without the failed system - for claims that means the offline claim intake form, the payment authority limits and the manual payment instruction route to Treasury.",
+            "State the policyholder communication step: who drafts, who approves, which channels, and the holding statement text to be used within the first two hours.",
+            "Include the regulator notification trigger cross-referencing the BMA incident reporting obligation so a continuity invocation cannot silently skip it."
+          ],
+          "done": "each service has a plan with named invocation authority, an executable manual workaround, a policyholder communication step and a regulator notification trigger."
+        },
+        {
+          "step": "Write the technical DR runbooks for each mapped system",
+          "by": "Disaster Recovery Manager",
+          "role": "Disaster Recovery Manager",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "For each system produce a runbook giving the failover sequence in order, the exact commands or console steps, the expected duration of each step and the checkpoint that proves it worked.",
+            "Record the recovery site or region, the data replication mechanism, the last verified backup restore date and where the restore evidence is filed.",
+            "State the dependency start order across systems - identity and network before applications - so a runbook cannot be executed in isolation and fail.",
+            "Have the platform owner and a second engineer who did not write it walk the runbook and sign it as followable."
+          ],
+          "done": "each mapped system has a step-timed runbook with checkpoints, dependency ordering and a two-person followability sign-off."
+        },
+        {
+          "step": "Bind supplier recovery commitments to the plans",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "For each supplier in a critical chain, extract from the contract the recovery time commitment, the test participation clause, the exit assistance period and the notification duty on their own incidents.",
+            "Compare the contractual recovery time to the RTO the plan assumes and list every gap where the contract is weaker than the plan.",
+            "Obtain the supplier's own continuity test results for the last 12 months and attach them to the plan; where none exist, record it as a gap.",
+            "Route contract gaps to Procurement for renegotiation at the next renewal and record an interim mitigation for each."
+          ],
+          "done": "every critical supplier has its contractual recovery commitment compared to the plan RTO, with gaps routed and mitigated."
+        },
+        {
+          "step": "Reconcile the plan set to the service register",
+          "by": "Business Continuity Analyst",
+          "role": "Business Continuity Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Match every register entry to a plan record and every plan record to a register entry.",
+            "List services with no plan, plans with no service, and plans whose stated scope no longer matches the register description.",
+            "Give each mismatch an owner and a date and hold the annual approval until services with no plan are cleared.",
+            "Publish the reconciliation as the coverage statement supporting the board approval."
+          ],
+          "done": "the plan set reconciles one-to-one with the service register and the coverage statement is published."
+        },
+        {
+          "step": "Check every plan for currency and material change",
+          "by": "Business Continuity Manager",
+          "role": "Business Continuity Manager",
+          "actions": [
+            "Run the plan inventory and compute days since last review for each; anything over 365 days is out of compliance with the annual review obligation.",
+            "Cross-check the year's material changes - system migrations, supplier changes, site moves, new products, entity restructures - against the plans that should have been revised.",
+            "Where a material change happened with no plan revision, revise it now and record the lag in days as an exception.",
+            "Confirm named individuals in every plan are still employed and still in the role, using the current HR org extract."
+          ],
+          "done": "no plan is over 365 days old, every material change has a matching revision, and all named individuals are verified current."
+        },
+        {
+          "step": "Brief and rehearse the invocation authorities",
+          "by": "Business Continuity Manager",
+          "role": "Business Continuity Manager",
+          "app": "Microsoft Teams / Email",
+          "actions": [
+            "Run a tabletop with the named invocation authorities and their deputies against one severe-but-plausible scenario per service group.",
+            "Test that each authority can state, without reading, their own trigger threshold, who they call first and what they may authorise without further approval.",
+            "Test the out-of-hours call tree live and record who answered, who did not, and the elapsed minutes to a quorum.",
+            "Update the plan with anything the tabletop showed was wrong and record the update date."
+          ],
+          "done": "each invocation authority has rehearsed their trigger and authority, the call tree is timed, and plan corrections are dated."
+        },
+        {
+          "step": "Route the plan set for service-owner and risk approval",
+          "by": "Operational Risk Manager",
+          "role": "Operational Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Send each plan to its service owner for approval with the BIA, the map and the supplier gap list attached.",
+            "Challenge in second line any plan whose workaround depends on the failed system, whose RTO exceeds the impact tolerance, or whose supplier commitment is weaker than the assumption.",
+            "Record the second-line challenge and the resolution on the plan record - an approval with no challenge note is returned.",
+            "Compile the approved set with the coverage statement and the open gap list for the board."
+          ],
+          "done": "every plan carries a service-owner approval and a recorded second-line challenge with its resolution."
+        },
+        {
+          "step": "Obtain board approval of the policy and the plan set",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "board portal",
+          "actions": [
+            "Table the Business Continuity and Disaster Recovery Policy, the service register with impact tolerances, the coverage statement and the open gap list at the board through the board portal.",
+            "Record the approval in the minutes naming the policy version approved and the date it takes effect.",
+            "Record every gap the board accepted with the accepted residual risk and the date the board expects it closed.",
+            "Publish the minute reference back onto the policy record so a BMA reviewer can trace approval without asking."
+          ],
+          "done": "the board minute names the approved policy version and the date, and every accepted gap has a board-set closure date."
+        },
+        {
+          "step": "Publish the plan set and prove it is reachable during an outage",
+          "by": "IT Service Delivery Manager",
+          "role": "IT Service Delivery Manager",
+          "app": "document management repository",
+          "actions": [
+            "Publish the approved plans and runbooks to the document repository and lock prior versions as read-only superseded copies.",
+            "Place an offline copy - printed pack and an out-of-band encrypted store independent of the primary identity platform - at each recovery location.",
+            "Test retrieval of the offline copy without corporate network or single sign-on and record who tested it and when.",
+            "Confirm the contact details in the offline copy match the current call tree."
+          ],
+          "done": "the current plan set is published, prior versions are locked, and offline retrieval without SSO has been tested and recorded."
+        },
+        {
+          "step": "Feed test and incident lessons back into the plans",
+          "by": "Operational Resilience Analyst",
+          "role": "Operational Resilience Analyst",
+          "actions": [
+            "Take the findings from the year's resilience and DR tests and from every real invocation or near miss.",
+            "For each finding decide whether it changes a trigger, a workaround, an RTO, a dependency or a contact and edit the affected plan section directly.",
+            "Where a finding shows an RTO cannot be met, record the shortfall against the impact tolerance and raise it as an exception rather than quietly relaxing the tolerance.",
+            "Log the plan version increment and the finding reference on each change so the lineage is traceable."
+          ],
+          "done": "every test and incident finding is either reflected in a versioned plan change or raised as an RTO shortfall exception."
+        },
+        {
+          "step": "Retain the approved versions for the retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the approved policy, the plan set, the BIAs, the service register and the board minute reference under the annual cycle folder.",
+            "Apply the 7-year retention label and confirm superseded versions are retained, not overwritten, so the plan in force on any past date is retrievable.",
+            "Confirm the repository index makes the set searchable by service name, system name and approval date.",
+            "Circulate the retention confirmation to the Business Continuity Manager and the Operational Risk Manager."
+          ],
+          "done": "the annual plan set including superseded versions is filed, retention-labelled and searchable by service and system."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of services, plans and runbooks",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Export the approved service register with accountable executive, impact tolerance and delivery model.",
+            "Export the plan inventory with version, approval date, approver, last review date and linked service, and the runbook inventory with system, RTO, RPO and last review date.",
+            "Reconcile the register to the plan inventory and to the CMDB list of systems flagged critical, and record every unmatched row before sampling."
+          ],
+          "done": "the service, plan and runbook populations are extracted, three-way reconciled and signed as complete."
+        },
+        {
+          "step": "Reconcile plan coverage to the board-approved register",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Open the board minute for the annual approval and confirm the register version approved matches the register used to build the plan set.",
+            "Confirm every service on the approved register has an approved plan whose approval date is on or before the board date.",
+            "List any service with no plan, or a plan approved after the board date, as an automatic fail against the 100% coverage threshold."
+          ],
+          "done": "coverage is confirmed against the board-approved register version, with gaps recorded as fails."
+        },
+        {
+          "step": "Draw the plan sample and document the method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of plans for services whose impact tolerance is 24 hours or less and 100% of services with an outsourced critical leg.",
+            "Take 8 further plans by seeded random selection from the remainder, minimum 15 plans overall.",
+            "Record the seed, the population size, the selection date and the sampling rationale for reproducibility."
+          ],
+          "done": "a reproducible sample covering all short-tolerance and outsourced services is documented."
+        },
+        {
+          "step": "Recompute plan currency against the 12-month obligation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute days between last review date and the test date for every plan and runbook in the population, not just the sample.",
+            "Flag every item over 365 days with the computed day count and the responsible owner.",
+            "Cross-check the year's material change log - migrations, supplier changes, site moves - against plan revision dates and flag revisions that lag the change by more than 30 days.",
+            "Reconcile the count you compute to the currency figure reported to the board."
+          ],
+          "done": "currency is recomputed for the full population and the computed overdue count reconciles to what the board was told."
+        },
+        {
+          "step": "Re-perform the RTO-versus-impact-tolerance arithmetic",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled service, add the documented detection, decision, recovery and catch-up times from the plan and the runbooks in the dependency chain.",
+            "Compare the total to the approved impact tolerance and record the headroom or the overrun in hours.",
+            "Compare each system RPO to the maximum tolerable data loss in the BIA and record any shortfall.",
+            "Any service whose summed recovery exceeds its tolerance is a fail regardless of what the plan asserts."
+          ],
+          "done": "recovery totals are recomputed against tolerances and every overrun or RPO shortfall is recorded in hours."
+        },
+        {
+          "step": "Trace the dependency map to the CMDB and the contracts",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "CMDB",
+          "actions": [
+            "For each sampled service, pull the current CMDB relationships independently and compare to the map in the plan.",
+            "List systems live in the CMDB but absent from the plan map, and mapped systems that no longer exist.",
+            "For each critical supplier open the contract in the contract lifecycle management repository and compare the contractual recovery commitment to the RTO the plan relies on.",
+            "Record any plan relying on a supplier commitment weaker than its own RTO as an exception with the two figures shown."
+          ],
+          "done": "each sampled map is reconciled to the live CMDB and every supplier commitment is compared to the relied-upon RTO."
+        },
+        {
+          "step": "Test plan executability rather than plan existence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "document management repository",
+          "actions": [
+            "For each sampled plan, check the manual workaround does not depend on the system it is meant to replace - a claims workaround that requires the claims platform is a fail.",
+            "Check the invocation authority and deputy are named individuals who appear as current employees in the HR extract, in role.",
+            "Check the policyholder communication step names a drafter, an approver, the channels and a holding statement, and that the regulator notification trigger is present.",
+            "Retrieve the plan from the offline store without corporate SSO and record whether retrieval succeeded and how long it took."
+          ],
+          "done": "each sampled plan is proven executable - independent workaround, current named authorities, communication and notification steps, offline retrievable."
+        },
+        {
+          "step": "Interview service owners to test whether the plan is known",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Ask five sampled service owners, without notice and without the document, to state their impact tolerance, their invocation trigger and their first three actions.",
+            "Compare each answer to the approved plan and record differences verbatim.",
+            "Ask each owner when they last exercised the plan and cross-check the date to the test records.",
+            "Record a plan the owner cannot describe as an exception - an approved plan nobody can execute does not meet the Code."
+          ],
+          "done": "five owner interviews are documented with answers compared verbatim to the approved plans."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception naming the service, the failed criterion and the policyholder harm it exposes.",
+            "Assign a root cause - service not registered, review cycle missed, change not reflected, RTO unachievable, supplier gap - and an owner.",
+            "Set a remediation date and, for any RTO exceeding its tolerance, record the interim compensating arrangement approved by the Operational Risk Manager.",
+            "Carry every open exception into next year's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date and, for RTO overruns, an approved interim arrangement."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute plan coverage, plan currency and the count of services whose recovery exceeds tolerance.",
+            "Write the conclusion - effective, effective with exceptions, or ineffective - against the 100% coverage and 12-month currency thresholds.",
+            "Have the signing reviewer, who owns and approves none of the tested plans, sign the workpaper.",
+            "Report to the board risk committee ahead of the annual policy approval and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states coverage, currency, tolerance overruns and the conclusion, reported ahead of board approval."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-054-C36",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Operational Resilience Lead",
+          "value": "Owns the annual severe-but-plausible scenario testing programme and the impact tolerance remain-within assessment; the Disaster Recovery Manager owns technical failover execution within it"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - BMA Operational Resilience and Outsourcing Guidance Notes (2025), scenario testing expectations, read with Insurance Code of Conduct (August 2022) s.6/s.8; verified against the BMA published guidance when the annual test plan is set"
+        },
+        "In-scope processes": {
+          "value": "Scenario design, test execution and remediation for each important business service - claims payment, policyholder contact, premium collection, policy issue, treasury settlement - including cyber, third-party failure, data corruption and site-loss scenarios"
+        },
+        "In-scope systems": {
+          "app": "Claims Platform",
+          "value": "Production and recovery instances of the Claims Platform, Policy Administration Platform, Guidewire BillingCenter, Genesys Cloud contact centre and the payment gateway, plus the CMDB record used to scope each test"
+        },
+        "Compliance procedure documented": {
+          "value": "Resilience Scenario Testing Standard - annual test plan, scenario severity criteria, execution rules including live-failover requirements, measurement of time-to-recover against impact tolerance, and mandatory remediation tracking"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Risk Officer and noted by the board risk committee alongside the annual test plan; revised on any change to BMA resilience guidance"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "At least one severe-but-plausible scenario test per important business service each calendar year, technical DR failover at least annually per critical system, with the results pack tabled at the board risk committee within 60 days of the test"
+        },
+        "Deadline reminders configured": {
+          "value": "Test calendar entries with owner tasks at 60, 30 and 10 days before each scheduled test, and an escalation task if any service reaches 1 October with no completed test that year"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Scenario design pack, timed execution log, screenshots and system evidence, measured recovery times, findings and remediation closure evidence retained 7 years"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Services untested in the calendar year, tests aborted before completion, and tests where the service could not be recovered within its impact tolerance are logged as exceptions with owner and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "Signs off every vulnerability identified by a test and its remediation closure, and accepts any residual inability to remain within tolerance"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All important business services on the approved register and all critical systems mapped to them, against the calendar-year test schedule"
+        },
+        "Pass/fail thresholds": {
+          "value": "Every important business service must have at least one completed severe-but-plausible test in the calendar year with a measured recovery time inside its impact tolerance. An untested service, an aborted test not rescheduled within 30 days, or a measured recovery exceeding tolerance with no accepted remediation plan is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual per service; the verification test runs annually after the test calendar closes, with a mid-year check that the schedule is on track"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have designed, executed or signed off any scenario test being examined"
+        },
+        "Evidence location for test results": {
+          "value": "Annual resilience testing assurance workpaper (test schedule, per-test evidence review, recovery-time recompute against tolerance, remediation ageing) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per-test pack - scenario design and severity rationale, timed execution log, measured recovery versus impact tolerance, vulnerabilities found and the remediation plan - producible to the BMA within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "The Operational Resilience Lead answers BMA questions on scenario design and results; the Chief Risk Officer approves any statement that the firm can remain within tolerance before it goes to the Authority"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Set the annual scenario testing plan against the service register",
+          "by": "Operational Resilience Lead",
+          "role": "Operational Resilience Lead",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Take the board-approved important business service register and schedule at least one severe-but-plausible test per service inside the calendar year.",
+            "Spread scenario types across the plan so cyber ransomware, critical third-party failure, data corruption and site or region loss are each exercised at least once.",
+            "For each scheduled test name the test lead, the executing teams, the target date, the systems in scope and whether it is live failover, simulation or tabletop - and require live failover at least annually for each critical system.",
+            "Table the plan with the Chief Risk Officer for approval and load every test as a dated GRC task with 60/30/10-day reminders."
+          ],
+          "done": "an approved calendar-year plan covers every service, spreads scenario types, and exists as dated GRC tasks with owners."
+        },
+        {
+          "step": "Design the scenario to a defensible severe-but-plausible standard",
+          "by": "Operational Resilience Analyst",
+          "role": "Operational Resilience Analyst",
+          "actions": [
+            "Write the scenario narrative with a start time, the failure event, and the sequence of consequences over the first 72 hours.",
+            "Justify severity in writing against real precedent - a peer ransomware outage, a named cloud region failure, a supplier insolvency - so the BMA can see it is plausible and not a soft test.",
+            "State explicitly what is assumed unavailable, including the fallback people, sites and systems the plan normally relies on, so the test cannot be passed by using them.",
+            "Have the service owner and the Chief Risk Officer approve the scenario before execution; a scenario the owner designed alone is rejected."
+          ],
+          "done": "the scenario has a timed narrative, a written severity justification against precedent, stated unavailable fallbacks and dual approval."
+        },
+        {
+          "step": "Agree the measurement basis and success criteria before the test",
+          "by": "Operational Resilience Lead",
+          "role": "Operational Resilience Lead",
+          "actions": [
+            "Define the clock: start at scenario declaration, stop when the service delivers its customer outcome at the agreed minimum viable volume, not when the system comes up.",
+            "Set the minimum viable service level in business units - claims payments per hour, calls answered per hour, policies issued per day.",
+            "Write the pass criterion as recovery within the approved impact tolerance and list the specific data points that will be captured to prove it.",
+            "Name the independent observer who will timestamp events and confirm they sit outside the executing teams."
+          ],
+          "done": "the clock definition, minimum viable service level, pass criterion and independent observer are agreed and documented pre-test."
+        },
+        {
+          "step": "Prepare the test environment and safety controls",
+          "by": "Disaster Recovery Manager",
+          "role": "Disaster Recovery Manager",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Raise the change record for the test window with the rollback plan, the abort criteria and the named person authorised to abort.",
+            "Confirm current backups exist and have been restore-verified before any live failover is attempted, and record the verification date.",
+            "Notify the contact centre, claims and underwriting leadership of the window and agree the customer-impact ceiling that triggers an abort.",
+            "Freeze unrelated changes across the in-scope systems for the window."
+          ],
+          "done": "an approved change record with rollback, abort criteria, verified backups and a change freeze is in place before execution."
+        },
+        {
+          "step": "Execute the technical failover and timestamp every step",
+          "by": "Disaster Recovery Engineer",
+          "role": "Disaster Recovery Engineer",
+          "app": "Terraform Cloud",
+          "actions": [
+            "Execute the runbook failover sequence for each in-scope system in the documented dependency order - identity and network, then data, then applications.",
+            "Timestamp each runbook step start and finish in the execution log and record any step that had to be improvised because the runbook was wrong.",
+            "Capture the checkpoint evidence the runbook specifies - health check output, replication lag at cutover, record counts on the recovered database.",
+            "Do not silently fix runbook defects mid-test; log them as findings and continue so the true recovery time is measured."
+          ],
+          "done": "a timestamped execution log covers every runbook step with checkpoint evidence and every improvisation logged as a finding."
+        },
+        {
+          "step": "Prove the business service actually works after failover",
+          "by": "IT Service Delivery Manager",
+          "role": "IT Service Delivery Manager",
+          "app": "Claims Platform",
+          "actions": [
+            "Have the business teams process real end-to-end transactions on the recovered instance - register a claim, authorise a payment, issue a policy, take a policyholder call.",
+            "Record the transaction identifiers created during the test so they can later be traced by an auditor.",
+            "Measure throughput against the minimum viable service level and record when that level was first sustained for a full measurement interval.",
+            "Test the integrations too - payment gateway, reinsurance feed, document generation - because a recovered core with dead integrations is not a recovered service."
+          ],
+          "done": "real end-to-end transactions with recorded identifiers were processed at the minimum viable level, integrations included."
+        },
+        {
+          "step": "Exercise the communications and decision-making layers",
+          "by": "Business Continuity Manager",
+          "role": "Business Continuity Manager",
+          "app": "Microsoft Teams / Email",
+          "actions": [
+            "Run the real invocation call, with the named authority declaring invocation, and timestamp the declaration.",
+            "Have the policyholder holding statement drafted and approved for real against the two-hour standard, and record the elapsed minutes.",
+            "Exercise the regulator notification decision - whether the event would meet the BMA reporting threshold and who would notify within the required window - and record the decision and its timing.",
+            "Record who was reachable out of hours and the minutes to quorum."
+          ],
+          "done": "invocation, policyholder communication and the regulator notification decision were all exercised with recorded elapsed times."
+        },
+        {
+          "step": "Measure recovery against the impact tolerance and state the verdict",
+          "by": "Operational Resilience Lead",
+          "role": "Operational Resilience Lead",
+          "actions": [
+            "Compute elapsed time from scenario declaration to sustained minimum viable service from the timestamped log.",
+            "Compare it to the approved impact tolerance and state remained within tolerance or breached tolerance, with the figure in hours and minutes.",
+            "Compute the data position at cutover against the RPO using replication lag or the restore point actually used.",
+            "Where tolerance was breached, state the binding constraint - the specific step that consumed the time - rather than a general conclusion."
+          ],
+          "done": "a computed recovery time and data-loss position are compared to tolerance and RPO with a stated verdict and binding constraint."
+        },
+        {
+          "step": "Return to production and verify data integrity",
+          "by": "Disaster Recovery Engineer",
+          "role": "Disaster Recovery Engineer",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Execute the failback sequence and timestamp it, since failback failure is itself a resilience exposure.",
+            "Reconcile record counts and financial totals between the recovered instance and production for the test window and clear any difference.",
+            "Confirm every transaction created during the test is either present in production or deliberately backed out, with the disposition recorded per transaction identifier.",
+            "Close the change record with the actual duration and the outcome."
+          ],
+          "done": "failback is timestamped, counts and totals reconcile, and every test transaction has a recorded disposition."
+        },
+        {
+          "step": "Run the structured debrief within five business days",
+          "by": "Operational Resilience Analyst",
+          "role": "Operational Resilience Analyst",
+          "actions": [
+            "Convene the executing teams, the service owner and the independent observer while detail is fresh.",
+            "Walk the timeline step by step and identify every delay of more than 15 minutes against plan and its cause.",
+            "Separate findings into runbook defects, capability gaps, dependency surprises, decision delays and communication failures.",
+            "Write each finding with the evidence timestamp that supports it - findings without a timestamp reference are sent back."
+          ],
+          "done": "a debrief held within five business days produced timestamp-referenced findings in named categories."
+        },
+        {
+          "step": "Convert findings into a tracked remediation plan",
+          "by": "Operational Risk Manager",
+          "role": "Operational Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one GRC action per finding with the service, the finding category, the owner and a due date proportionate to severity - tolerance breaches inside 90 days.",
+            "State the specific artifact that will evidence closure - the corrected runbook version, the added capacity, the renegotiated supplier clause.",
+            "Link each action back to the test record and to the affected continuity plan so the plan gets updated too.",
+            "Report the action set to the Chief Risk Officer for sign-off before the test is marked complete."
+          ],
+          "done": "every finding has a dated, owned GRC action with a named closure artifact, signed off by the CRO."
+        },
+        {
+          "step": "Update the plans, runbooks and tolerances the test disproved",
+          "by": "Business Continuity Manager",
+          "role": "Business Continuity Manager",
+          "app": "document management repository",
+          "actions": [
+            "Correct every runbook step the test showed was wrong, increment the version and record the test reference as the reason for change.",
+            "Update the continuity plan where the workaround, contact list or decision authority failed in practice.",
+            "Where recovery cannot be brought inside the tolerance, do not relax the tolerance - record the shortfall for CRO acceptance and board visibility.",
+            "Republish the corrected documents and refresh the offline copies at the recovery sites."
+          ],
+          "done": "runbooks and plans are corrected and versioned against the test reference, and any tolerance shortfall is escalated not relaxed."
+        },
+        {
+          "step": "Assemble the regulator-ready test pack",
+          "by": "Operational Resilience Analyst",
+          "role": "Operational Resilience Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compile: scenario design and severity justification, pre-test approvals, timestamped execution log, business transaction evidence, measured recovery versus tolerance, findings and the remediation plan.",
+            "Add a one-page summary a BMA reviewer can read alone, stating the service, the scenario, the tolerance, the measured recovery and the verdict.",
+            "File the pack in the compliance evidence repository under service and test date with the 7-year retention label.",
+            "Index it so it is retrievable by service name, scenario type and calendar year."
+          ],
+          "done": "a filed, retention-labelled test pack exists per test with a standalone one-page summary and is retrievable by service and year."
+        },
+        {
+          "step": "Report results and tolerance breaches to the board risk committee",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "board portal",
+          "actions": [
+            "Table within 60 days of each test the scenario, the measured recovery, the tolerance and the verdict for every service tested.",
+            "Name every service that breached its tolerance individually with the binding constraint and the remediation date.",
+            "Present the year-to-date schedule status so the board can see which services remain untested and whether the calendar-year obligation is at risk.",
+            "Record the minute reference on each test record and on any accepted residual shortfall."
+          ],
+          "done": "each test is reported to the committee within 60 days with named breaches, schedule status and a recorded minute reference."
+        },
+        {
+          "step": "Close the calendar year against full service coverage",
+          "by": "Operational Resilience Lead",
+          "role": "Operational Resilience Lead",
+          "actions": [
+            "In December reconcile completed tests to the service register and list any service with no completed test that year.",
+            "For each untested service either schedule and complete a test before year end or raise a formal exception with the CRO stating why and when it will be done.",
+            "Produce the annual resilience testing statement summarising services tested, scenario coverage by type, tolerance breaches and open remediation.",
+            "Carry every open remediation action into the following year's plan as a mandatory retest scenario."
+          ],
+          "done": "the year closes with a reconciled coverage statement, a formal exception for any untested service and open actions carried forward as retests."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of scheduled and completed tests",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Export the approved annual test plan with service, scenario type, target date, test lead and execution mode.",
+            "Export every completed test record with actual date, measured recovery time, tolerance, verdict and findings count.",
+            "Reconcile completed tests to the board-approved service register and list every service with no completed test in the calendar year before sampling."
+          ],
+          "done": "the planned and completed test populations are extracted, reconciled to the service register and signed as complete."
+        },
+        {
+          "step": "Reconcile the test record to independent execution evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "For every completed test, retrieve the change record for the test window and confirm the change dates and duration match the test record.",
+            "Confirm the change record shows the failover actually executed rather than being cancelled or reduced to a tabletop.",
+            "List any completed test with no matching change record, or a change record showing a shorter or different activity, as an automatic exception."
+          ],
+          "done": "every claimed test ties to a change record whose dates and activity corroborate it, or is recorded as an exception."
+        },
+        {
+          "step": "Draw the test sample and document the method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of tests that reported a tolerance breach and 100% of tests for services with a tolerance of 24 hours or less.",
+            "Take 6 further tests by seeded random selection from the remainder, minimum 12 tests overall.",
+            "Record the seed, population size, selection date and rationale so the draw can be reproduced."
+          ],
+          "done": "a reproducible sample covering all breaches and all short-tolerance services is documented."
+        },
+        {
+          "step": "Challenge scenario severity independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Read each sampled scenario narrative and the written severity justification without reading the result first.",
+            "Check the scenario declared the normal fallbacks unavailable - a test that permitted the usual workaround is not severe but plausible.",
+            "Compare the scenario to the firm's own incident history and to the named external precedent cited and record where it is materially softer.",
+            "Record any scenario approved by the service owner alone, with no independent approval, as a design-control exception."
+          ],
+          "done": "each sampled scenario has an independent severity challenge recorded against its stated precedent and fallback assumptions."
+        },
+        {
+          "step": "Recompute the recovery time from the raw timestamps",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take the timestamped execution log and recompute elapsed time from scenario declaration to sustained minimum viable service.",
+            "Confirm the stop point used was the business outcome at the agreed volume and not system availability - a clock stopped at system-up is a fail.",
+            "Compare your figure to the reported recovery time and to the approved impact tolerance and record any difference in minutes.",
+            "Recompute the data-loss position from the recorded replication lag or restore point against the RPO."
+          ],
+          "done": "recovery time and data loss are independently recomputed from raw timestamps and compared to tolerance and RPO."
+        },
+        {
+          "step": "Trace the business transactions created during the test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Claims Platform",
+          "actions": [
+            "Take the transaction identifiers recorded in the test pack and look each one up in the production system.",
+            "Confirm each is either present with a correct final state or deliberately backed out with a recorded disposition.",
+            "Confirm the recorded throughput reconciles to the transaction count in the systems over the measured interval.",
+            "Record any test whose evidence is screenshots only, with no traceable transaction identifiers, as an evidence-quality exception."
+          ],
+          "done": "every recorded test transaction is traced in production with a correct state or disposition, and throughput reconciles."
+        },
+        {
+          "step": "Test whether the runbooks were corrected after the test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "document management repository",
+          "actions": [
+            "For each sampled test, list the runbook defects logged as findings during execution.",
+            "Open the current runbook version and confirm each defect is corrected and the version increment cites the test reference.",
+            "Compare the runbook revision date to the test date and flag any correction lagging by more than 60 days.",
+            "Record a finding closed with no visible document change as an unsupported closure."
+          ],
+          "done": "every logged runbook defect traces to a corrected, version-incremented runbook citing the test, within 60 days."
+        },
+        {
+          "step": "Age the remediation actions and test closure evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Export all remediation actions raised from resilience tests with due date, status and closure date.",
+            "Recompute days open for each and flag every tolerance-breach action open beyond the 90-day standard.",
+            "For 10 closed actions, inspect the named closure artifact and confirm it demonstrates the capability changed, not that a meeting was held.",
+            "Confirm any residual inability to remain within tolerance carries a documented CRO acceptance and a board minute reference."
+          ],
+          "done": "remediation ageing is recomputed, closure artifacts are inspected, and residual shortfalls carry CRO acceptance and board visibility."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception naming the service, the test, the failed criterion and the resilience exposure.",
+            "Assign a root cause - service not scheduled, test softened, clock misdefined, evidence not traceable, remediation stalled - and an owner.",
+            "Set a remediation date and require a re-test of the affected service where the test itself was invalid.",
+            "Escalate any service untested in the calendar year to the Chief Risk Officer within one business day."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date, and invalid tests are scheduled for re-test."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute service test coverage for the calendar year, the count of tolerance breaches and the remediation on-time closure rate.",
+            "Write the conclusion - effective, effective with exceptions, or ineffective - against the one-test-per-service and within-tolerance thresholds.",
+            "Have the signing reviewer, who designed, executed and signed off none of the sampled tests, sign the workpaper.",
+            "Report to the board risk committee and file the workpaper in the compliance evidence repository as BMA-producible resilience assurance."
+          ],
+          "done": "a signed workpaper states coverage, breach count, closure rate and the conclusion, and is reported and filed."
+        }
+      ]
+    }
+  ]
+}

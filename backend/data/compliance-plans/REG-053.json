@@ -1,0 +1,2310 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-053-C01",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Privacy Officer",
+          "value": "Privacy Office owns the California notice-at-collection inventory and the annual Civ. Code 1798.140(d) 'business' threshold analysis; escalation to the Data Protection Officer"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Civ. Code 1798.100/.110/.115 read with 1798.140(d) and the GLBA carve-out at 1798.145(e), cross-read against CPPA regulations 11 CCR 7011 (privacy policy), 7012 (notice at collection) and 7013 (notice of right to opt out); the CPI-adjusted revenue threshold is re-pulled from the CPPA site each January"
+        },
+        "In-scope processes": {
+          "value": "Every California collection point: meridian.com quote and application flows, mobile app onboarding, agent/producer intake screens, contact-centre inbound calls, Marketo landing pages and lead forms, employee and job-applicant onboarding — plus the annual written business-threshold analysis"
+        },
+        "In-scope systems": {
+          "app": "Customer Self-Service Portal",
+          "value": "Notice surfaces on the quote/application forms and account pages; companion surfaces are the Marketo landing pages, the Genesys IVR disclosure script and the HRIS applicant portal"
+        },
+        "Compliance procedure documented": {
+          "value": "CCPA/CPRA Notice Governance Procedure — collection-point register, notice text placed at or before the point of collection per 11 CCR 7012(e), 12-month privacy-policy refresh cycle, and the threshold-analysis method (revenue / 100,000-consumer count / 50%-of-revenue test)"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Data Protection Officer with Privacy Counsel concurrence; re-approved every January before the annual privacy-policy refresh and re-opened on any CPPA rulemaking package taking effect"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Privacy policy must be updated at least every 12 months and carry a visible last-updated date (11 CCR 7011(e)); a new California collection point must carry its notice before first live collection and any notice text correction lands no later than 15 business days after detection; threshold analysis re-run each January on prior-calendar-year revenue"
+        },
+        "Deadline reminders configured": {
+          "value": "GRC calendar tasks at T-60/T-30/T-7 against the privacy-policy 12-month anniversary, plus an automatic privacy review task raised by the release change gate whenever a story adds or alters a California data-capture field"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Dated PDF and full-page captures of every notice-at-collection version and privacy-policy version, the collection-point register, and the signed threshold analysis, retained 7 years in the compliance evidence repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "A live California collection point found without a conforming notice is logged as a privacy exception carrying the collection point, first-collection date, days exposed, records collected and the remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Privacy Counsel",
+          "value": "Counsel signs every notice text version and every remediation of a collection point that ran without a notice, including the decision whether the exposure needs consumer re-notice"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All California-facing collection points live at any time in the test year — web and mobile forms, IVR flows, agent intake screens, marketing landing pages, HR applicant forms — plus every published version of the online privacy policy and the current threshold analysis"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on notice at collection: any live California collection point that captured PI without a notice at or before capture is a fail; a privacy policy older than 12 months is a fail; a missing or stale threshold analysis is a fail; one or more fails escalates to the Data Protection Officer within 5 business days"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven at each new collection point with an annual threshold and policy refresh; the test runs annually across the full collection-point inventory and quarterly across collection points added or changed in that quarter"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Manager",
+          "value": "Reviewer must not have drafted, approved or deployed any notice in the sample"
+        },
+        "Evidence location for test results": {
+          "value": "Annual notice-coverage workpaper (collection-point inventory, dated capture set, re-performance notes, exception schedule) filed in the compliance evidence repository under CCPA / Notice at Collection / <year>"
+        },
+        "Regulator-ready documentation": {
+          "value": "Notice version history with effective dates, the collection-point register and the signed threshold analysis, packaged for a CPPA Enforcement Division inquiry or California AG letter and producible within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "Privacy Counsel owns all CPPA and California Attorney General correspondence; the Data Protection Officer approves any factual assertion about notice coverage before it is sent, and no notice is silently back-dated"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Pull the prior-year figures the business-threshold test runs on",
+          "by": "Financial Analyst",
+          "role": "Financial Analyst",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "In the general ledger run the statutory revenue report for the prior calendar year at consolidated group level and note gross annual revenues before any deduction.",
+            "Ask the Chief Financial Officer's reporting team to confirm which legal entities roll into the CCPA control group so affiliates sharing the Meridian brand are counted.",
+            "Split out any revenue line attributable to advertising, lead sales or data monetisation and give the total to the Privacy Office for the 50%-of-revenue limb.",
+            "Send the signed revenue extract to the Privacy Officer with the extraction date and the report id."
+          ],
+          "done": "prior-year gross revenue, the control-group entity list and the data-monetisation revenue line are delivered in writing to the Privacy Office."
+        },
+        {
+          "step": "Count California consumers and households whose PI was bought, sold or shared",
+          "by": "Data Governance Lead",
+          "role": "Data Governance Lead",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Query the customer, prospect and web-analytics marts for distinct California residents and households with PI processed in the prior calendar year, keying on state of residence and IP geolocation.",
+            "Separately count records that were bought, sold or shared — third-party lead purchases, co-marketing feeds and advertising-pixel audiences handed to ad platforms.",
+            "Deduplicate against the MDM golden record so one household is not counted once per policy or quote.",
+            "Save the counting SQL, run date and row counts to the shared privacy workspace so the number is reproducible."
+          ],
+          "done": "a reproducible count of California consumers/households, with a separate bought-sold-shared subtotal, is filed with the query that produced it."
+        },
+        {
+          "step": "Run and write the 1798.140(d) 'business' threshold analysis",
+          "by": "Privacy Counsel",
+          "role": "Privacy Counsel",
+          "actions": [
+            "Open the CPPA website and read the current CPI-adjusted gross-revenue threshold for the applicable year (statutory base 25,000,000 USD as adjusted).",
+            "Test each limb in turn on the memo: (a) gross revenue against the adjusted threshold, (b) 100,000 or more California consumers or households bought, sold or shared, (c) 50% or more of annual revenue from selling or sharing PI.",
+            "Record for each limb the tested value, the source document and PASS/FAIL, and state the overall conclusion on whether Meridian is a 'business'.",
+            "Add the GLBA analysis under 1798.145(e): state that GLBA-regulated non-public personal information is exempt but that the entity-level obligations still bite on non-GLBA data.",
+            "Sign and date the memo and file it as CCPA-Threshold-Analysis-<year> in the compliance evidence repository."
+          ],
+          "done": "a signed, dated threshold memo states a tested value, a source and a pass/fail for each of the three limbs plus the GLBA carve-out conclusion."
+        },
+        {
+          "step": "Refresh the register of California collection points",
+          "by": "Data Privacy Steward",
+          "role": "Data Privacy Steward",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "Walk each channel with its owner — Digital Channel Manager for web and app, Marketing Manager for landing pages, Contact Center Ops Manager for IVR and agent screens, HR Business Partner for applicant and employee forms.",
+            "Add a register row per collection point: URL or screen id, owning team, PI categories captured, purpose, whether sensitive PI is captured, and whether the data flows to an ad platform.",
+            "Cross-check against the tag manager inventory and the API gateway route list so background collection (pixels, SDKs, chat widgets) is registered, not just visible forms.",
+            "Retire rows for collection points decommissioned in the year, keeping the retirement date."
+          ],
+          "done": "the register has one row per live California collection point with PI categories, purpose and downstream ad-platform flag, reconciled to the tag inventory."
+        },
+        {
+          "step": "Map each collection point's fields to the statutory PI categories",
+          "by": "Data Governance Lead",
+          "role": "Data Governance Lead",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "For each register row list the captured fields and map them to the 1798.140(v) categories (identifiers, commercial information, internet activity, geolocation, inferences, and so on).",
+            "Flag sensitive PI under 1798.140(ae) — driver's licence number, precise geolocation, health data, racial or ethnic origin — because it drives the Limit-Use link.",
+            "Set a retention period per category with the Records Manager and record it, since 11 CCR 7012 requires the retention period or the criteria in the notice.",
+            "Publish the mapping back onto each register row so the notice writer works from data, not memory."
+          ],
+          "done": "every collection point carries a field-to-category map, a sensitive-PI flag and a stated retention period."
+        },
+        {
+          "step": "Draft the notice-at-collection text for each collection point",
+          "by": "Privacy Officer",
+          "role": "Privacy Officer",
+          "actions": [
+            "For each register row draft notice text containing: the categories of PI collected, the purpose of each category, the retention period or criteria, whether the category is sold or shared, and a link to the full privacy policy.",
+            "Where the collection point sells or shares PI, add the Notice of Right to Opt Out and the 'Do Not Sell or Share My Personal Information' link per 11 CCR 7013.",
+            "Where sensitive PI is captured for a non-exempt purpose, add the 'Limit the Use of My Sensitive Personal Information' link per 1798.121.",
+            "Keep the wording at a plain-language reading level and produce the Spanish version where the collection point is offered in Spanish.",
+            "Hand the drafts to Privacy Counsel with the register row and the field map attached."
+          ],
+          "done": "each collection point has draft notice text covering categories, purposes, retention, sale/share status and the required links, in every language the point is offered in."
+        },
+        {
+          "step": "Get Privacy Counsel to clear the notice text and the placement",
+          "by": "Privacy Counsel",
+          "role": "Privacy Counsel",
+          "actions": [
+            "Read each draft against 11 CCR 7012 and confirm the notice appears at or before the moment of collection, not after submission.",
+            "Reject any design that hides the notice behind a scroll, a hover or a post-submit confirmation page.",
+            "Confirm the sale/share statement matches what the ad-platform flag on the register row actually says, and challenge any mismatch with the Digital Marketing Specialist.",
+            "Stamp each approved version with a version number, approval date and counsel name, and return the rejected ones with the specific defect."
+          ],
+          "done": "every notice version is either counsel-approved with a version stamp or returned with a named defect and a rework date."
+        },
+        {
+          "step": "Deploy the notice on the web and mobile collection points",
+          "by": "Digital Channel Manager",
+          "role": "Digital Channel Manager",
+          "app": "Customer Self-Service Portal",
+          "actions": [
+            "Place the approved notice text above the first PI field on each quote, application and account form, and on the app onboarding screen before the first field renders.",
+            "Add the 'Do Not Sell or Share My Personal Information' and 'Limit the Use of My Sensitive Personal Information' links to the site footer on every California-served page.",
+            "Confirm the notice renders on mobile viewport and with a screen reader, and that the privacy-policy link resolves to the current version.",
+            "Take a dated full-page capture of every deployed surface and send it to the Records Manager as evidence."
+          ],
+          "done": "the approved notice renders at or above the first PI field on every web and app collection point, with footer links live and dated captures filed."
+        },
+        {
+          "step": "Deploy the oral notice in the contact centre and on agent intake screens",
+          "by": "Contact Center Ops Manager",
+          "role": "Contact Center Ops Manager",
+          "app": "Genesys Cloud (Contact Center)",
+          "actions": [
+            "Load the approved oral notice into the IVR prompt set so it plays before the first prompt that captures PI, and into the agent desktop script above the data-capture panel.",
+            "Add the alternative-format offer required by 11 CCR 7012(g) for telephone collection — direct the caller to the URL where the written notice sits.",
+            "Update the agent knowledge article with the exact wording and add it to the call-quality scorecard as a scored behaviour.",
+            "Export the prompt configuration and the script version as dated evidence."
+          ],
+          "done": "the IVR plays the notice before the first PI capture, the agent script shows it above the capture panel, and both are scored in call QA."
+        },
+        {
+          "step": "Refresh the online privacy policy on its 12-month cycle",
+          "by": "Privacy Officer",
+          "role": "Privacy Officer",
+          "actions": [
+            "Rebuild the privacy policy from the register: categories collected, sources, business and commercial purposes, third parties disclosed to, retention, sale/share disclosure and the consumer rights list with how to exercise each.",
+            "State the two request channels (toll-free number and web form) and the verification process, and add the metrics disclosure block if the 10,000,000-consumer threshold in 11 CCR 7102 is met.",
+            "Set the last-updated date on the page to the publication date and archive the superseded version with its own effective-date range.",
+            "Publish, then confirm the footer link on every California-served page and the app resolve to the new version."
+          ],
+          "done": "a rebuilt privacy policy is live with a current last-updated date, the prior version archived with its date range, and every footer link resolving to it."
+        },
+        {
+          "step": "Deliver the notice at collection to employees and job applicants",
+          "by": "HR Business Partner",
+          "role": "HR Business Partner",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Attach the HR-specific notice at collection to the job-application form so it renders before the applicant enters any field, and to the new-hire onboarding task list as a required acknowledgement.",
+            "Cover the HR-specific categories: identifiers, background-check results, benefits and dependant data, and any sensitive PI such as immigration status.",
+            "Record the acknowledgement date per applicant and per employee in the HRIS so it can be produced per person.",
+            "Send the annual re-issue to the existing California workforce and reconcile the acknowledgement list to active headcount."
+          ],
+          "done": "every California applicant sees the notice before entering data and every California employee has a dated acknowledgement on file."
+        },
+        {
+          "step": "Wire the notice check into the release and campaign change gates",
+          "by": "Marketing Compliance Analyst",
+          "role": "Marketing Compliance Analyst",
+          "app": "marketing automation platform",
+          "actions": [
+            "Add a mandatory 'new or changed California data capture?' question to the release checklist and to the campaign brief template.",
+            "Where the answer is yes, block launch until the Privacy Office adds the register row and the approved notice is attached to the landing page template.",
+            "Audit the live landing-page templates monthly for forms published without the notice block and pull any that fail.",
+            "Report gate breaches to the Privacy Officer with the campaign id and the launch date."
+          ],
+          "done": "no release or campaign that adds a California capture field can launch without a register row and an attached approved notice."
+        },
+        {
+          "step": "Capture and file dated evidence of every notice surface",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Collect the full-page captures, IVR prompt exports, HRIS acknowledgement extracts and privacy-policy archives into a single dated evidence bundle per quarter.",
+            "Index each artefact by collection point, notice version number, effective-from and effective-to date.",
+            "Apply the 7-year retention label so the evidence outlives the collection point it documents.",
+            "Confirm the index returns a result when searched by URL, by notice version and by date."
+          ],
+          "done": "a quarterly evidence bundle exists, indexed by collection point and notice version, under a 7-year retention label."
+        },
+        {
+          "step": "Log and drive out notice exceptions",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise an issue for every collection point found live without a conforming notice, recording the first-collection date, the days exposed and the count of records collected in that window.",
+            "Assign a root cause (register row never created, release bypassed the gate, notice text stale after a field change, vendor tag added outside change control) and an owner.",
+            "Set the remediation date at no later than 15 business days from detection and track it to closure.",
+            "Refer any exposure involving sensitive PI or ad-platform sharing to Privacy Counsel for a re-notice decision."
+          ],
+          "done": "every notice gap has an issue with days exposed, records affected, root cause, owner and a remediation date inside 15 business days."
+        },
+        {
+          "step": "Attest the annual notice and threshold position",
+          "by": "Data Protection Officer",
+          "role": "Data Protection Officer",
+          "actions": [
+            "Review the signed threshold memo, the collection-point register, the notice version history and the open exception list in one sitting.",
+            "Sign the annual attestation that every live California collection point carried a conforming notice at or before collection and the privacy policy was refreshed inside 12 months, listing any exception by name.",
+            "Table the attestation and the exception list at the Privacy Governance Committee and record the minute reference.",
+            "File the signed attestation with the year's evidence bundle."
+          ],
+          "done": "a signed annual attestation naming every exception exists, tabled at the Privacy Governance Committee with a minute reference."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of California collection points that were live in the year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "Export the collection-point register with effective-from and effective-to dates for the test year.",
+            "Independently crawl meridian.com and the mobile app for forms containing PI fields, and pull the tag manager container export and the API gateway route list for background collectors.",
+            "Add the Marketo landing-page inventory and the HRIS application form list so marketing and HR capture points are in the same population.",
+            "Merge and deduplicate into one population file with a source column showing where each row was discovered."
+          ],
+          "done": "a single deduplicated population of California collection points exists with the discovery source recorded for each row."
+        },
+        {
+          "step": "Reconcile the population to the register and prove the register is complete",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each crawled or tag-derived collection point to a register row on URL or screen id.",
+            "List every collection point found in the crawl but absent from the register — these are completeness failures, not documentation gaps.",
+            "List register rows with no live surface and confirm each has a retirement date.",
+            "Ask the Data Privacy Steward to explain each unmatched row in writing and attach the reply."
+          ],
+          "done": "every discovered collection point is either matched to a register row or listed as a completeness exception with a written explanation."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of collection points capturing sensitive PI and 100% of those flagged as feeding an advertising platform.",
+            "Take 25 further rows at random from the remainder using a recorded seed, with a floor of 40 rows in total.",
+            "Record population size, seed, selection date and the strata definitions in the workpaper so the sample can be redrawn.",
+            "Include every privacy-policy version published in the year as a separate 100% stratum."
+          ],
+          "done": "the sample is drawn, reproducible from the recorded seed, and covers all sensitive-PI and ad-sharing collection points."
+        },
+        {
+          "step": "Re-perform the notice-at-collection test on each sampled surface",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Customer Self-Service Portal",
+          "actions": [
+            "Open each sampled form in a clean browser session with a California IP and record whether the notice is visible before the first PI field, without scrolling past a capture field.",
+            "For IVR rows, place a test call and time-stamp whether the notice plays before the first PI prompt.",
+            "Score placement independently first, then compare to the register's claimed placement; a notice appearing only after submit is a fail.",
+            "Capture a dated screenshot or call recording reference into the workpaper for every sampled row."
+          ],
+          "done": "each sampled surface has an independent placement verdict backed by a dated capture or call recording."
+        },
+        {
+          "step": "Test the notice content against the statutory content list",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "For each sampled notice tick off: PI categories, purpose per category, retention period or criteria, sale/share statement, privacy-policy link, and the opt-out and Limit-Use links where required.",
+            "Compare the listed categories to the actual form fields and to the field-to-category map — an unlisted field is a content failure.",
+            "Confirm the sale/share statement agrees with the ad-platform tags actually firing on the page, checked in the browser network panel.",
+            "Log each missing element by element name rather than as a general 'notice deficient' finding."
+          ],
+          "done": "every sampled notice has an element-by-element content score and any missing element is named."
+        },
+        {
+          "step": "Trace the privacy-policy version history and the 12-month refresh",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Pull every archived privacy-policy version with its effective-from and effective-to date.",
+            "Compute the gap between consecutive last-updated dates and flag any interval exceeding 12 months.",
+            "Check each version carries a visible last-updated date on the page as published, using the archived capture, not a re-rendered copy.",
+            "Confirm the version live on any given sampled collection date is the one the notice link resolved to."
+          ],
+          "done": "the version chain is unbroken, no refresh interval exceeds 12 months, and each version shows its own last-updated date."
+        },
+        {
+          "step": "Recompute the business-threshold maths independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Re-pull prior-year gross revenue from the general ledger yourself and compare to the figure used in the threshold memo.",
+            "Re-run the California consumer/household count from the warehouse using the steward's saved SQL and compare row counts.",
+            "Re-read the CPI-adjusted revenue threshold published by the CPPA for the relevant year and confirm the memo used that figure, not the unadjusted 25,000,000 USD base.",
+            "Recompute the 50%-of-revenue limb from the data-monetisation revenue line and confirm the stated conclusion follows from the three limbs."
+          ],
+          "done": "each threshold limb is independently recomputed and agrees with the memo, or the difference is quantified as an exception."
+        },
+        {
+          "step": "Verify the opt-out and Limit-Use links function from the sampled pages",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Click the 'Do Not Sell or Share My Personal Information' link from each sampled page and confirm it lands on a working request mechanism, not a general contact page.",
+            "Do the same for 'Limit the Use of My Sensitive Personal Information' on every sensitive-PI collection point.",
+            "Send a Global Privacy Control signal from the browser and confirm the page treats it as an opt-out request per 11 CCR 7025.",
+            "Record the destination URL, the response and the test timestamp for each link."
+          ],
+          "done": "every required link resolves to a working request mechanism and the GPC signal is honoured, with timestamps recorded."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception carrying the collection point, the defect type (placement, content, register completeness, policy staleness, threshold maths) and the exposure window.",
+            "Assign a root cause and a named owner from the channel that owns the surface, not from the Privacy Office by default.",
+            "Set remediation dates and mark any exception involving sensitive PI or ad-platform sharing for Privacy Counsel review of consumer re-notice.",
+            "Carry every open exception into the next quarterly run as a mandatory retest row."
+          ],
+          "done": "every exception carries a defect type, exposure window, root cause, owner, remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Compute the notice-coverage rate and the content-completeness rate and compare both to the zero-tolerance placement threshold.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — citing the workpaper references behind it.",
+            "Have the independent reviewer, who drafted or deployed no sampled notice, sign the workpaper.",
+            "Report the conclusion and open exceptions to the Privacy Governance Committee at its next sitting and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states a conclusion, the coverage rate and the committee reporting date, filed in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-053-C02",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Data Privacy Steward",
+          "value": "Privacy Ops runs the DSAR queue end to end and maintains the register of non-GLBA PI categories that keeps requests in scope; escalation to the Privacy Officer on any request approaching day 40"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Civ. Code 1798.105 (deletion), 1798.120/.135 (opt-out of sale and sharing) and the GLBA carve-out at 1798.145(e), read with CPPA regulations 11 CCR 7020-7022 (request handling), 7021 (timelines) and 7026 (opt-out); the GLBA scoping line is re-read whenever a new non-insurance data source is onboarded"
+        },
+        "In-scope processes": {
+          "value": "Intake, verification, fulfilment and closure of know/access, delete, correct, opt-out of sale-or-share and limit-sensitive-PI requests from California residents — restricted to non-GLBA populations: web visitors, unconverted prospects, marketing contacts, employees, job applicants and B2B contacts"
+        },
+        "In-scope systems": {
+          "app": "workflow/case management tool",
+          "value": "DSAR case queue holding intake channel, verification outcome, SLA clock and fulfilment artefacts; upstream feeds are the web request form, the toll-free line and the privacy inbox"
+        },
+        "Compliance procedure documented": {
+          "value": "Data Subject Rights Procedure — two intake channels, 10-business-day confirmation of receipt, identity verification tiers, GLBA vs non-GLBA scoping decision, downstream system fan-out list, 45-calendar-day response with one documented 45-day extension"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Privacy Officer with Privacy Counsel concurrence; reviewed twice yearly and re-opened whenever a new non-GLBA data source (a marketing platform, an HR system, a chat widget) joins the fan-out list"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Confirmation of receipt within 10 business days; substantive response within 45 calendar days of receipt; one extension of up to a further 45 days, notified to the consumer inside the first 45 days; opt-out of sale or sharing actioned no later than 15 business days from receipt"
+        },
+        "Deadline reminders configured": {
+          "value": "Case-tool SLA timers firing at day 5 (confirmation not sent), day 20 (fulfilment not started), day 35 (extension decision due) and day 42 (response not drafted), each paging the Data Privacy Steward and, at day 42, the Privacy Officer"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "DSAR log plus per-case artefacts — intake record, verification evidence, scoping decision, systems searched, response letter and delivery proof — retained 24 months minimum under 11 CCR 7101 and 7 years by internal policy"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any case answered after day 45 without a documented extension notice, or any opt-out not effected within 15 business days, is logged as a breach exception with the day count, the consumer reference and the remediation action"
+        },
+        "Remediation sign-off captured": {
+          "role": "Privacy Officer",
+          "value": "The Privacy Officer signs every denied request, every extension beyond the first, and every late-response remediation before the case is closed"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All California data-subject rights requests received in the test period across every channel — web form, toll-free line, privacy inbox, agent-logged and postal — reconciled to the case tool and the telephony records"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any substantive response later than 45 calendar days without an extension notice sent inside the first 45 days is a fail; any opt-out effected later than 15 business days is a fail; any case closed without a recorded verification outcome is a fail; the test target is a 100% on-time rate, and any fail rate above zero reports to the Privacy Governance Committee"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "The obligation runs continuously per request, so the test runs monthly on all cases closed in the month, with a quarterly deep-dive over 100% of denied and extended cases"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Analyst",
+          "value": "Reviewer must not have handled, verified or closed any case in the sample"
+        },
+        "Evidence location for test results": {
+          "value": "Monthly DSAR SLA workpaper (case extract, day-count recomputation, verification re-performance, exception schedule) in the compliance evidence repository under CCPA / DSAR Testing / <year>-<month>"
+        },
+        "Regulator-ready documentation": {
+          "value": "DSAR log export showing receipt date, confirmation date, verification outcome, response date and day count per case, plus the response letters, producible to the CPPA within 10 business days of an inquiry"
+        },
+        "Regulator response path": {
+          "value": "Consumer Affairs handles the complaint route through the California AG and CPPA complaint portals; Privacy Counsel clears every response and any admission of a missed statutory deadline"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Keep both statutory intake channels live and instrumented",
+          "by": "Contact Center Ops Manager",
+          "role": "Contact Center Ops Manager",
+          "app": "Genesys Cloud (Contact Center)",
+          "actions": [
+            "Confirm the toll-free privacy line answers, routes to the privacy queue and logs an interaction id on every call, and test it from an outside line at the start of each month.",
+            "Confirm the web privacy request form on meridian.com submits, returns a reference number and creates a case, testing an end-to-end submission monthly.",
+            "Publish both channels in the privacy policy and in the notice at collection, with the number and the URL stated verbatim.",
+            "Set an alert so a channel outage longer than one business hour raises a P2 incident to the Privacy Officer."
+          ],
+          "done": "both the toll-free line and the web form are proven working by a dated monthly end-to-end test, with outages alerting the Privacy Officer."
+        },
+        {
+          "step": "Log every incoming request into the case tool the day it arrives",
+          "by": "Data Privacy Steward",
+          "role": "Data Privacy Steward",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Sweep the four intake surfaces daily — web form queue, telephony privacy queue, privacy@ inbox and postal scans — and create a case for each request.",
+            "Stamp the receipt date as the calendar date the request first arrived at any channel, not the date it reached Privacy Ops.",
+            "Record request type (know/access, delete, correct, opt-out of sale-or-share, limit sensitive PI), channel, claimed identity and any authorised-agent indication.",
+            "Start the 45-calendar-day clock and the 10-business-day confirmation clock on the case from that receipt date."
+          ],
+          "done": "every request has a case with the true first-touch receipt date and both SLA clocks running."
+        },
+        {
+          "step": "Send the confirmation of receipt inside 10 business days",
+          "by": "Consumer Affairs Analyst",
+          "role": "Consumer Affairs Analyst",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Issue the templated acknowledgement within 10 business days of receipt, stating how the request will be processed and the expected response date.",
+            "Send it by the same medium the consumer used unless they asked otherwise, and attach the sent copy to the case.",
+            "Where the consumer used the toll-free line and left no written address, record the call-back confirmation and the agent id.",
+            "Escalate to the Data Privacy Steward any case still unconfirmed on business day 8."
+          ],
+          "done": "a dated confirmation of receipt is attached to every case within 10 business days, or the case is escalated before day 10."
+        },
+        {
+          "step": "Verify the requester to the tier the request demands",
+          "by": "Data Protection Specialist",
+          "role": "Data Protection Specialist",
+          "actions": [
+            "Apply the verification tier: two data points for a categories-only request, three for specific pieces of PI, plus a signed declaration under penalty of perjury for specific pieces per 11 CCR 7062.",
+            "Match the offered data points against the customer master and the marketing contact record — never against data the requester supplied in the same request.",
+            "For authorised agents, obtain the written permission, verify the agent, and verify the consumer directly unless a power of attorney is produced.",
+            "Record the verification outcome, the data points matched and the decision date on the case; where verification fails, send the denial explaining what was insufficient."
+          ],
+          "done": "every case carries a recorded verification tier, the matched data points and a dated verify/deny decision."
+        },
+        {
+          "step": "Decide the GLBA versus non-GLBA scope of the request",
+          "by": "Privacy Counsel",
+          "role": "Privacy Counsel",
+          "actions": [
+            "Determine which populations the requester sits in: policyholder or claimant (GLBA non-public personal information, exempt under 1798.145(e)) versus web visitor, unconverted prospect, marketing contact, employee, applicant or B2B contact.",
+            "Where the requester spans both, scope the request to the non-GLBA records only and say so plainly in the response rather than refusing outright.",
+            "Cite the exemption limb relied on and the population evidence on the case, so the call can be re-read later.",
+            "Refer any novel population — a new data broker feed, an embedded-insurance partner list — to the register maintenance step before answering."
+          ],
+          "done": "each case records which populations are in scope, which are GLBA-exempt, and the citation behind the split."
+        },
+        {
+          "step": "Maintain the register of non-GLBA PI categories that keeps requests in scope",
+          "by": "Data Governance Lead",
+          "role": "Data Governance Lead",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "Hold one register row per non-GLBA population — web visitors, prospects, marketing contacts, employees, job applicants, B2B contacts — with its PI categories, source systems, processing purposes and retention.",
+            "Name for each row the systems that must be searched on a request: the CRM, the marketing automation platform, the web analytics store, the HRIS, the recruiting system and the chat transcript store.",
+            "Re-run a quarterly reconciliation against the data catalog so a newly onboarded source cannot sit outside the register.",
+            "Publish the register to the DSAR runbook so fulfilment works from it rather than from tribal knowledge."
+          ],
+          "done": "the register lists every non-GLBA population with its PI categories and the exact systems to search, reconciled quarterly to the data catalog."
+        },
+        {
+          "step": "Fan the verified request out to every system on the register",
+          "by": "Data Steward",
+          "role": "Data Steward",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Run the standard search identifiers — email, phone, cookie or device id, employee id — against each system named on the register rows in scope.",
+            "Record per system: searched by whom, on what date, with what identifier, and the record count returned, including nil returns.",
+            "Task system owners who cannot be searched centrally with a written return by a stated date at least 10 calendar days before the response deadline.",
+            "Attach every system return to the case so the response can be rebuilt from evidence."
+          ],
+          "done": "every in-scope system has a dated, identified search return attached to the case, nil returns included."
+        },
+        {
+          "step": "Assemble the access or correction response package",
+          "by": "Data Privacy Steward",
+          "role": "Data Privacy Steward",
+          "actions": [
+            "For an access request, build the disclosure covering the 12-month lookback (or longer where the consumer asks and the data supports it): categories collected, sources, purposes, third parties disclosed to and the specific pieces where verified to that tier.",
+            "Redact other individuals' PI and withhold the categories 11 CCR 7024(d) prohibits disclosing — Social Security number, driver's licence, financial account number, precise geolocation, account passwords and security answers.",
+            "For a correction request, apply the correction at the system of record first, then push it through the downstream systems and note each one.",
+            "Deliver in a portable, readily usable format through a secure channel and record the delivery method and date."
+          ],
+          "done": "the response package is complete, correctly redacted, delivered securely and its delivery date is recorded on the case."
+        },
+        {
+          "step": "Execute deletion requests across the register systems",
+          "by": "Data Privacy Steward",
+          "role": "Data Privacy Steward",
+          "app": "CRM (Salesforce/Dynamics)",
+          "actions": [
+            "Choose the method per system — permanent erasure, de-identification or aggregation — and record which was used and why.",
+            "Name every retention exception relied on under 1798.105(d) (completing the transaction, security incident detection, legal obligation, internal uses reasonably aligned with expectations) with the record set it covers.",
+            "Suppress rather than re-collect: add the identifier to the marketing suppression list so the next campaign import cannot resurrect the record.",
+            "Confirm and record the deletion count per system and attach the confirmations to the case."
+          ],
+          "done": "each deletion has a per-system method, a counted confirmation, a named exception for anything retained and a suppression entry."
+        },
+        {
+          "step": "Action opt-out of sale or sharing within 15 business days",
+          "by": "Digital Marketing Specialist",
+          "role": "Digital Marketing Specialist",
+          "app": "marketing automation platform",
+          "actions": [
+            "Set the opt-out flag on the consumer record and push it to every advertising and analytics destination on the sharing list within 15 business days of receipt.",
+            "Send the downstream notification to third parties that received the PI in the 90 days before the request, as 11 CCR 7026(f)(2) requires, and log the acknowledgements.",
+            "Honour Global Privacy Control signals as valid opt-outs without asking the consumer to confirm.",
+            "Record the effective date of each destination suppression on the case."
+          ],
+          "done": "the opt-out is live at every sharing destination within 15 business days, with 90-day downstream notifications logged."
+        },
+        {
+          "step": "Take the 45-day extension deliberately, in writing, inside the first window",
+          "by": "Privacy Officer",
+          "role": "Privacy Officer",
+          "actions": [
+            "Review every case still open at day 30 and decide whether an extension is genuinely needed, recording the reason (volume, complexity, number of systems).",
+            "Where extending, send the consumer written notice inside the original 45 calendar days stating the reason and the new response date, capped at a further 45 days.",
+            "Reset the case SLA to the extended date and mark the case as extended so it lands in the quarterly deep-dive.",
+            "Refuse extensions raised after day 45 and treat those cases as late, not extended."
+          ],
+          "done": "every extended case has a written extension notice sent inside the first 45 days with a reason and a capped new date."
+        },
+        {
+          "step": "Close the case with the response, the reasoning and the appeal route",
+          "by": "Data Privacy Steward",
+          "role": "Data Privacy Steward",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Send the substantive response by day 45 (or the notified extended date) covering what was found, what was done and what was withheld.",
+            "For any denial or partial denial state the basis — verification failure, GLBA exemption, a 1798.105(d) retention exception — and the citation.",
+            "Give the consumer the route to challenge: the privacy team contact and the CPPA complaint path.",
+            "Stamp the response date on the case and attach the sent copy and any delivery receipt."
+          ],
+          "done": "each case closes with a dated, delivered response, a cited basis for anything withheld and the challenge route stated."
+        },
+        {
+          "step": "Report the DSAR metrics and keep the SLA dashboard honest",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Power BI",
+          "actions": [
+            "Publish a monthly dashboard of requests received, complied with in whole or part, denied, and the median days to respond, split by request type as 11 CCR 7102 frames it.",
+            "Reconcile the dashboard count to the case-tool extract and the telephony privacy-queue count before publishing.",
+            "Feed the annual figures into the privacy-policy metrics disclosure where the 10,000,000-consumer threshold applies.",
+            "Send the dashboard to the Privacy Officer and the Privacy Governance Committee each month."
+          ],
+          "done": "a reconciled monthly metrics dashboard is published with counts by request type and median response days."
+        },
+        {
+          "step": "Log SLA breaches and drive the root cause out",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise an issue for every case answered after day 45 without a valid extension notice and every opt-out effected after 15 business days.",
+            "Record the day count, the request type, the stage that consumed the time and a root cause (intake lag, verification stall, a system owner missing the internal return date).",
+            "Assign the owner to the function that caused the delay and set a remediation date.",
+            "Track repeat root causes across months and raise a control change where the same cause appears twice."
+          ],
+          "done": "every late case and late opt-out has an issue with a day count, a stage-level root cause, an owner and a remediation date."
+        },
+        {
+          "step": "Retain the DSAR log and case evidence for the statutory period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Archive each closed case with its intake record, verification evidence, scoping decision, system search returns, response letter and delivery proof.",
+            "Apply the 24-month minimum retention required by 11 CCR 7101 and the 7-year internal label, whichever is longer.",
+            "Confirm the archive is searchable by consumer reference, request type, receipt date and response date.",
+            "Prove restoration once a quarter by retrieving three closed cases at random and checking every artefact opens."
+          ],
+          "done": "closed cases are archived complete, retention-labelled and proven retrievable by a quarterly restoration test."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of California rights requests received in the period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Extract every DSAR case with receipt date inside the period, with channel, request type, confirmation date, verification outcome, extension flag and response date.",
+            "Pull independent channel records: the telephony privacy-queue interaction log, the web form submission log, the privacy inbox message list and the postal scan register.",
+            "Merge the channel records against the case extract to find requests that never became cases.",
+            "Freeze the population file with a row count and an extraction timestamp before any sampling."
+          ],
+          "done": "a frozen population exists combining case records and raw channel logs, with an extraction timestamp."
+        },
+        {
+          "step": "Reconcile the case tool to the raw intake channels",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each web submission, privacy-queue call and privacy inbox message to a case on reference number, phone number or email.",
+            "List unmatched intake events and require Privacy Ops to explain each in writing — an unlogged request is an intake control failure.",
+            "Compare the case receipt date to the raw channel timestamp and flag any case whose receipt date was set later than first touch.",
+            "Quantify the total unlogged and back-dated count in the workpaper."
+          ],
+          "done": "every raw intake event is matched to a case or explained, and back-dated receipt dates are quantified."
+        },
+        {
+          "step": "Draw a documented, reproducible sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of denied requests, 100% of extended requests and 100% of opt-out requests.",
+            "Take 30 further cases at random across the remaining request types using a recorded seed.",
+            "Record population size, strata sizes, seed and selection date so the sample can be redrawn identically.",
+            "Add any case flagged in the prior month's exceptions as a mandatory retest row."
+          ],
+          "done": "the sample covers all denials, extensions and opt-outs, plus a seeded random tail, and is reproducible."
+        },
+        {
+          "step": "Recompute every statutory day count from the raw timestamps",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Recompute confirmation days as business days from raw channel timestamp to confirmation send, and fail anything above 10.",
+            "Recompute response days as calendar days from raw receipt to response delivery, and fail anything above 45 without a valid extension.",
+            "For extended cases, check the extension notice date falls inside the first 45 days and that the extended date is no more than 45 further days.",
+            "For opt-outs, recompute business days from receipt to the destination suppression effective date and fail anything above 15."
+          ],
+          "done": "every sampled case has independently recomputed day counts against the 10, 45, 45 and 15-day tests."
+        },
+        {
+          "step": "Re-perform the identity verification decision",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Read the verification evidence on each sampled case and decide the tier yourself before reading the recorded outcome.",
+            "Check specific-pieces requests carry three matched data points plus the signed declaration under penalty of perjury.",
+            "Confirm the matching used pre-existing record data, not data the requester supplied in the same message.",
+            "Flag any case fulfilled with a weaker verification than the request type demands as an over-disclosure exception, and any denial on thin grounds as an under-service exception."
+          ],
+          "done": "each sampled case has an independent verification verdict and any over-disclosure or under-service is flagged."
+        },
+        {
+          "step": "Trace the fulfilment back to the register of non-GLBA systems",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "Pull the register rows applicable to each sampled requester's populations and list the systems that should have been searched.",
+            "Compare that list to the search returns actually attached to the case and name every system with no return.",
+            "Open two returns per case and confirm the identifier searched matches the requester's identifiers.",
+            "Treat a missing system return as an incomplete response, not a filing gap."
+          ],
+          "done": "each sampled case shows a search return for every register system in scope, or the missing system is named as an exception."
+        },
+        {
+          "step": "Test the GLBA scoping calls independently",
+          "by": "Privacy Counsel",
+          "role": "Privacy Counsel",
+          "actions": [
+            "For each sampled case read the recorded population evidence and re-decide whether the data was GLBA non-public personal information or non-GLBA.",
+            "Challenge any blanket GLBA refusal where the requester also existed as a web visitor, marketing contact or job applicant.",
+            "Confirm the response letter told the consumer which categories were out of scope and why, rather than refusing without explanation.",
+            "Record agreement or disagreement per case with the citation you relied on."
+          ],
+          "done": "every sampled scoping call is independently re-decided and any blanket refusal is challenged in writing."
+        },
+        {
+          "step": "Verify the deletion and opt-out actually took effect downstream",
+          "by": "Data Protection Specialist",
+          "role": "Data Protection Specialist",
+          "app": "CRM (Salesforce/Dynamics)",
+          "actions": [
+            "For sampled deletions, search the CRM, marketing platform and warehouse for the identifiers 30 days after closure and confirm no live record returned outside a named retention exception.",
+            "Confirm the identifier sits on the marketing suppression list so a later import cannot reintroduce it.",
+            "For sampled opt-outs, confirm the suppression flag reached each advertising destination and that the 90-day downstream notification acknowledgements are on file.",
+            "Record any resurrection with the system, the date it reappeared and the import that caused it."
+          ],
+          "done": "no sampled deleted or opted-out identifier is live downstream without a named exception, and any resurrection is traced to its import."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception carrying the case reference, the failed test (10-day, 45-day, 15-day, verification, completeness, downstream effect) and the day count or record count.",
+            "Assign a stage-level root cause and a named owner in the function that consumed the time.",
+            "Set a remediation date and, for any late statutory response, require Privacy Counsel to decide whether the consumer needs a corrective communication.",
+            "Carry open exceptions into the next monthly run as mandatory retest rows."
+          ],
+          "done": "every exception has a failed-test label, a measured overrun, a root cause, an owner and a remediation date."
+        },
+        {
+          "step": "Conclude, sign independently and report the SLA position",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Compute the on-time rate for each of the 10-business-day, 45-calendar-day and 15-business-day tests and compare to the 100% target.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — with the workpaper references behind each rate.",
+            "Have the independent reviewer, who handled no sampled case, sign the workpaper.",
+            "Report the rates, breach count and open exceptions to the Privacy Governance Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states the three on-time rates, a conclusion and the committee reporting date."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-053-C03",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Data Governance Lead",
+          "value": "Data Governance owns the CCPA processing register — purpose, business purpose, retention and disclosure per PI category — and the deadline ledger that proves every verifiable access request closed inside 45 calendar days; Privacy Office consumes both"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Civ. Code 1798.100 (collection, purpose limitation and retention disclosure), 1798.110 (right to know categories and specific pieces) and 1798.115 (disclosure and sale/share categories), read with 1798.130 response timing and 11 CCR 7021 (45 days from receipt, one 45-day extension) and 7002 (purposes reasonably necessary and proportionate)"
+        },
+        "In-scope processes": {
+          "value": "Data inventory and processing-register maintenance across every California-facing PI store, plus the day-count ledger covering all verifiable access requests from receipt to substantive response"
+        },
+        "In-scope systems": {
+          "app": "data catalog/quality tool",
+          "value": "Processing register and lineage held in the data catalog over the CRM, marketing platform, policy administration, HRIS, warehouse and web analytics stores; the deadline ledger is a linked register with per-request day counts"
+        },
+        "Compliance procedure documented": {
+          "value": "Processing Register and Response Timing Procedure — register attributes per PI category, the reasonably-necessary-and-proportionate purpose test, retention schedule linkage, disclosure and sale/share mapping, and the receipt-to-response day-count method"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Data Protection Officer at the Data Governance Council; reviewed quarterly and re-approved on any new source system, new processing purpose or CPPA regulation change"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Register attestation refreshed quarterly and fully re-baselined annually; every verifiable access request tracked from receipt date with a hard 45-calendar-day response, a documented extension of up to a further 45 days notified inside the first window, and the 10-business-day confirmation logged alongside"
+        },
+        "Deadline reminders configured": {
+          "value": "Ledger alerts at day 30 (extension decision), day 40 (response draft due) and day 44 (breach imminent) routed to the record owner and the Privacy Officer, plus quarterly register-attestation tasks issued to each system owner 30 days before the attestation date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Versioned register snapshots with attestation signatures, lineage exports and the deadline ledger with per-request day counts, retained 7 years in the compliance evidence repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "A PI store found outside the register, a processing purpose with no recorded business purpose, or an access request breaching 45 days without a notified extension is logged with the store or request reference, the exposure and a remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Data Protection Officer",
+          "value": "The DPO signs each quarterly register attestation and every remediation closing an unregistered PI store or a breached 45-day response"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All registered PI stores and processing purposes as at the test date, reconciled to the system inventory, plus every verifiable access request with a receipt date in the test quarter"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero unregistered PI stores; zero register rows lacking purpose, business purpose, retention or disclosure mapping; zero access responses beyond 45 calendar days without an extension notice inside the first window; any single breach reports to the Data Governance Council and the DPO"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "The obligation is continuous, so completeness testing of the register runs quarterly against the system inventory and the day-count recomputation runs monthly over that month's closed access requests"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not own, maintain or attest any register row or handle any tested access request"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly register completeness workpaper and monthly day-count workpaper (population, reconciliation, sample, re-performance, exceptions) in the compliance evidence repository under CCPA / Processing Register / <year>-Q<n>"
+        },
+        "Regulator-ready documentation": {
+          "value": "Register export by PI category showing sources, purposes, retention and disclosure recipients, plus the deadline ledger with per-request day counts, assembled as a CPPA right-to-know inquiry response inside 10 business days"
+        },
+        "Regulator response path": {
+          "value": "Privacy Counsel owns the CPPA response; the Data Governance Lead supplies the register extract and the DPO confirms it matches the attested version before release"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Rebuild the inventory of systems that hold California personal information",
+          "by": "Data Architect",
+          "role": "Data Architect",
+          "app": "CMDB",
+          "actions": [
+            "Export every application from the configuration management database with a data-classification tag of Confidential or Restricted and an owner.",
+            "Add the shadow surfaces the CMDB misses: SaaS marketing tools, chat widgets, survey platforms, analytics SDKs and file shares holding extracts.",
+            "Confirm with each application owner in writing whether the system holds California resident PI and which populations it covers.",
+            "Hand the confirmed list to the Data Governance Lead as the candidate register scope with an as-at date."
+          ],
+          "done": "a dated, owner-confirmed inventory of every system holding California PI exists, including SaaS and shadow surfaces."
+        },
+        {
+          "step": "Profile each store down to field level and tag the PI categories",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Run the classification scanner across each in-scope schema and produce a column-level report of detected PI patterns (email, phone, SSN, licence number, geolocation, health markers).",
+            "Map each detected column to a 1798.140(v) category and flag sensitive PI under 1798.140(ae).",
+            "Review false positives with the system owner and record accepted classifications on the column.",
+            "Report unclassified columns holding free text so they are triaged rather than silently ignored."
+          ],
+          "done": "every in-scope schema has column-level PI classification with sensitive-PI flags and no untriaged free-text column."
+        },
+        {
+          "step": "Record the collection purpose and the business purpose for each category",
+          "by": "Data Governance Lead",
+          "role": "Data Governance Lead",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "For each PI category in each store, write the purpose of collection in plain terms and map it to a named business purpose from 1798.140(e) such as auditing, security, debugging, servicing accounts or quality assurance.",
+            "Apply the 11 CCR 7002 test — is the purpose reasonably necessary and proportionate to what a consumer would expect at that collection point — and record the reasoning, not just a yes.",
+            "Flag any secondary use that a consumer would not expect and route it to the assessment item before it continues.",
+            "Have the system owner countersign the purpose statement for their store."
+          ],
+          "done": "every category-store pair carries a stated purpose, a named business purpose, a proportionality reasoning line and an owner countersignature."
+        },
+        {
+          "step": "Attach the retention period and the deletion trigger to each register row",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "actions": [
+            "Map each register row to the corporate retention schedule and record the retention period or, where no fixed period applies, the criteria used to set it.",
+            "Where insurance regulation drives a longer hold, cite it so the CCPA disclosure can explain the longer period honestly.",
+            "Record the deletion trigger — policy termination plus n years, contact inactivity, applicant rejection plus n months — and the job or process that fires it.",
+            "Escalate any row with no retention basis to the DPO rather than defaulting to indefinite."
+          ],
+          "done": "no register row lacks a retention period or stated criteria, a deletion trigger and the process that executes it."
+        },
+        {
+          "step": "Map the disclosure, sale and sharing recipients per category",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "For each register row list every recipient: service providers, contractors, third parties, advertising platforms and affiliates, with the contract reference.",
+            "Classify each flow as a business-purpose disclosure, a sale, or a sharing for cross-context behavioural advertising, and record which limb of 1798.140 you relied on.",
+            "Confirm the flow list against the outbound integration inventory on the API gateway and the file-transfer job list so undocumented feeds surface.",
+            "Publish the recipient map into the register row so the right-to-know response can be built from it directly."
+          ],
+          "done": "each register row shows named recipients, a sale/share/disclosure classification and a contract reference, reconciled to outbound integrations."
+        },
+        {
+          "step": "Record lineage from collection point through to every downstream store",
+          "by": "Data Modeler",
+          "role": "Data Modeler",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "Capture the pipeline lineage from each collection point through the warehouse into every mart and extract that carries the PI category.",
+            "Record the transformation stage at which data is pseudonymised or aggregated, since that changes what must be disclosed.",
+            "Link each lineage node to the register row so a right-to-know search knows every stop the data made.",
+            "Refresh lineage on every pipeline release rather than on an annual cycle."
+          ],
+          "done": "lineage from collection point to final store is captured per PI category and refreshed on pipeline release."
+        },
+        {
+          "step": "Publish the register and hold the quarterly owner attestation",
+          "by": "Data Governance Lead",
+          "role": "Data Governance Lead",
+          "app": "Microsoft 365 / SharePoint",
+          "actions": [
+            "Issue each system owner their register rows 30 days before the attestation date with the fields they must confirm.",
+            "Require the owner to confirm or correct purposes, categories, retention and recipients, and to declare any new processing added in the quarter.",
+            "Chase non-responders at day 15 and day 25 and escalate day-30 non-response to the DPO.",
+            "Snapshot and version the attested register with the attestation date and the signing owner per row."
+          ],
+          "done": "a versioned register snapshot exists with a dated per-row owner attestation and all non-responders escalated."
+        },
+        {
+          "step": "Open the deadline ledger entry the moment an access request is verified",
+          "by": "Data Privacy Steward",
+          "role": "Data Privacy Steward",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Create a ledger row per verifiable access request holding: consumer reference, receipt date, confirmation-sent date, verification date, target response date at receipt plus 45 calendar days.",
+            "Set the 12-month lookback window on the row, extending it where the consumer asks and the data supports a longer period.",
+            "List the register rows in scope for the request so fulfilment works from the register, not from search guesses.",
+            "Link the ledger row to the case so the day count and the fulfilment evidence stay together."
+          ],
+          "done": "every verifiable access request has a ledger row with receipt date, computed 45-day target and the in-scope register rows named."
+        },
+        {
+          "step": "Assemble the right-to-know disclosure from the register, not from ad hoc queries",
+          "by": "Data Steward",
+          "role": "Data Steward",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Pull the categories collected, the sources, the business and commercial purposes and the recipient categories straight from the register rows named on the ledger row.",
+            "Run the specific-pieces extraction across the lineage nodes for those rows using the consumer's identifiers, recording the count returned per node.",
+            "Apply the 11 CCR 7024(d) withholding list and note each withheld element by name on the ledger row.",
+            "Attach the assembled disclosure to the ledger row with the extraction date."
+          ],
+          "done": "the disclosure is built from named register rows and lineage nodes, with withheld elements named and the extraction dated."
+        },
+        {
+          "step": "Run the day-30 extension decision on every open ledger row",
+          "by": "Privacy Officer",
+          "role": "Privacy Officer",
+          "actions": [
+            "Review every ledger row still open at day 30 against the fulfilment progress recorded per register row.",
+            "Where an extension is required, send written notice to the consumer inside the original 45 calendar days stating the reason and the new date, capped at 45 further days.",
+            "Update the ledger row with the extension date, the reason code and the notice evidence.",
+            "Where no extension is justified, escalate the blocking system owner in writing the same day."
+          ],
+          "done": "every row open at day 30 has either a notified extension inside the first 45 days or a written escalation of the blocker."
+        },
+        {
+          "step": "Close the ledger row when the response is delivered and count the days",
+          "by": "Data Privacy Steward",
+          "role": "Data Privacy Steward",
+          "actions": [
+            "Record the response delivery date and the delivery method on the ledger row.",
+            "Compute the elapsed calendar days from receipt to delivery and store the number on the row rather than a pass flag alone.",
+            "Mark any row over 45 days without a notified extension as BREACH and raise the exception the same day.",
+            "Attach the delivered response and the delivery receipt to the row before closing it."
+          ],
+          "done": "every closed row carries a stored elapsed-day count, the delivered response and a BREACH marker where the 45 days ran out."
+        },
+        {
+          "step": "Publish the register-to-request reconciliation each month",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "Power BI",
+          "actions": [
+            "Report the count of open and closed ledger rows, the elapsed-day distribution, the extension rate and the breach count for the month.",
+            "Report register health alongside: rows attested, rows overdue for attestation, unregistered stores found and purposes flagged as disproportionate.",
+            "Reconcile the ledger count to the DSAR case count so a request cannot be fulfilled without a ledger row.",
+            "Circulate to the DPO, the Privacy Officer and the Data Governance Council."
+          ],
+          "done": "a monthly report ties ledger day counts and register health together and reconciles to the DSAR case count."
+        },
+        {
+          "step": "Log register and timing exceptions with a disposition",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise an issue for every unregistered PI store, every register row missing purpose, retention or recipients, and every breached 45-day response.",
+            "Record the exposure — records held, consumers affected, days over deadline — and the root cause.",
+            "Assign the owner to the system owner or the fulfilment function that caused it, with a remediation date inside 30 days.",
+            "Suspend new processing on any store that remains unregistered past its remediation date until the register row is complete."
+          ],
+          "done": "every register gap and timing breach has an issue with quantified exposure, root cause, owner and a 30-day remediation date."
+        },
+        {
+          "step": "Feed the register into the notice and vendor controls so it is actually used",
+          "by": "Privacy Officer",
+          "role": "Privacy Officer",
+          "actions": [
+            "Regenerate the privacy-policy category, purpose, retention and recipient sections from the attested register rather than editing prose by hand.",
+            "Send the recipient map to Procurement so every named recipient can be tied back to a contract with the required CCPA clauses.",
+            "Send the sensitive-PI rows to the assessment owner so high-risk processing is picked up.",
+            "Record in the register which downstream artefact consumed each row and when."
+          ],
+          "done": "the privacy policy, the vendor contract list and the assessment backlog are all regenerated from the attested register with dates recorded."
+        },
+        {
+          "step": "Version, retain and prove retrievability of register snapshots and the ledger",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File each quarterly register snapshot with its attestation signatures and each monthly ledger extract with the day counts.",
+            "Apply the 7-year retention label and record the as-at date on every artefact.",
+            "Confirm the archive answers a query by PI category, by system and by consumer reference.",
+            "Restore three artefacts at random each quarter and confirm they open with signatures intact."
+          ],
+          "done": "register snapshots and ledger extracts are retained 7 years, indexed by category and system, and proven retrievable quarterly."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of systems and processing purposes claimed to be registered",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "Export the attested register as at the quarter end with every row, its owner, attestation date and completeness fields.",
+            "Independently pull the CMDB application list, the SaaS spend list from Procurement and the outbound integration list from the API gateway.",
+            "Combine into a candidate population of PI-bearing systems with the discovery source per row.",
+            "Freeze the population with a row count and timestamp before sampling."
+          ],
+          "done": "a frozen candidate population of PI-bearing systems exists with discovery sources independent of the register."
+        },
+        {
+          "step": "Reconcile the candidate population to the register and prove completeness",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each candidate system to a register row and list every unmatched system holding California PI.",
+            "For each unmatched system, obtain the owner's written confirmation of what PI it holds and how long it has been live.",
+            "List register rows referring to decommissioned systems and confirm each has a retirement date.",
+            "Quantify unregistered stores and the estimated record volume behind them."
+          ],
+          "done": "unregistered PI stores are named and quantified, and stale register rows are reconciled to retirement dates."
+        },
+        {
+          "step": "Draw the register and request samples with a recorded method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of register rows carrying sensitive PI and 100% flagged as sale or sharing.",
+            "Take 25 further register rows at random from the remainder with a recorded seed.",
+            "Take 100% of access requests marked BREACH or extended, plus 25 random closed requests from the quarter.",
+            "Record population sizes, strata, seed and selection date so both samples can be redrawn."
+          ],
+          "done": "both samples are drawn, stratified on sensitive and sale/share rows and on breached and extended requests, and are reproducible."
+        },
+        {
+          "step": "Re-perform the field-level classification on sampled stores",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Run an independent column profile over each sampled store and compare the detected PI columns to the register's category list.",
+            "Query five columns per store directly and eyeball the values to confirm the classification is right, not just plausible.",
+            "Flag any store where sensitive PI is present but not flagged, since that changes the notice and the Limit-Use obligation.",
+            "Record undetected categories per store as completeness exceptions."
+          ],
+          "done": "each sampled store has an independent classification result and every undetected or misflagged category is recorded."
+        },
+        {
+          "step": "Challenge the purpose and proportionality reasoning",
+          "by": "Privacy Counsel",
+          "role": "Privacy Counsel",
+          "actions": [
+            "Read the stated collection purpose and business purpose for each sampled row against the notice at collection given to the consumer at that point.",
+            "Apply the 11 CCR 7002 reasonably-necessary-and-proportionate test yourself and record agreement or a specific objection.",
+            "Reject rows whose business purpose is a bare statutory quotation with no link to what the data is actually used for.",
+            "Refer any purpose not disclosed in the notice to the notice owner as a disclosure gap."
+          ],
+          "done": "each sampled purpose is independently tested for proportionality and any undisclosed purpose is referred as a disclosure gap."
+        },
+        {
+          "step": "Trace the recipient map to real contracts and real outbound feeds",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "For each sampled row, take the named recipients and locate the executed contract in the CLM repository.",
+            "Compare the register's sale/share/disclosure classification to the contract's data-use restrictions and to the outbound feed configuration.",
+            "Query the API gateway and file-transfer job logs for outbound destinations that carry PI but are absent from the recipient map.",
+            "List every undocumented outbound flow with its destination and volume."
+          ],
+          "done": "each sampled recipient traces to an executed contract and any undocumented outbound PI flow is named with its volume."
+        },
+        {
+          "step": "Recompute the 45-day maths on every sampled access request",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Recompute elapsed calendar days from the raw intake timestamp to the response delivery timestamp for each sampled request.",
+            "Compare to the elapsed count stored on the ledger row and investigate any difference greater than one day.",
+            "For extended requests, confirm the extension notice date falls inside the first 45 days and the extended target is no more than 45 further days.",
+            "Recompute the 10-business-day confirmation count alongside and flag any request missing a confirmation entirely."
+          ],
+          "done": "every sampled request has an independently recomputed elapsed-day count reconciled to the ledger, with extension validity confirmed."
+        },
+        {
+          "step": "Re-perform a right-to-know disclosure from the register and compare",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Take five sampled requests and rebuild the disclosure yourself from the register rows and lineage nodes in scope on the receipt date.",
+            "Compare your category list, source list, purpose list and recipient list to the disclosure actually sent to the consumer.",
+            "Confirm each withheld element is on the 11 CCR 7024(d) list and was named as withheld rather than silently dropped.",
+            "Record every category present in your rebuild but absent from the sent response as an under-disclosure exception."
+          ],
+          "done": "five disclosures are independently rebuilt and every under-disclosed category or improperly withheld element is recorded."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception typed as register completeness, classification, purpose, recipient mapping, timing breach or under-disclosure.",
+            "Quantify the exposure — records, consumers, days over deadline, undocumented feed volume — on the issue.",
+            "Assign a root cause and a named owner in the system or fulfilment function responsible, with a remediation date inside 30 days.",
+            "Carry every open exception into the next quarter as a mandatory retest row and block the register attestation for that row until closed."
+          ],
+          "done": "every exception is typed, quantified, owned, dated and blocks the affected register row's next attestation until closed."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report to the Council",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compute the register completeness rate, the attestation rate and the 45-day on-time rate and compare each to the zero-breach threshold.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — citing the workpaper references behind each rate.",
+            "Have the independent reviewer, who owns and attests no sampled register row, sign the workpaper.",
+            "Report to the Data Governance Council and the DPO and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states completeness, attestation and on-time rates, a conclusion, and the Council reporting date."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-053-C04",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Contracts Manager",
+          "value": "Procurement and Legal jointly own the CCPA data-processing terms in every vendor contract and the downstream opt-out notification that stops a consumer's PI being sold or shared within 15 business days; Privacy Counsel owns the clause language"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Civ. Code 1798.100(d) contract requirements and 1798.120/1798.135 opt-out of sale and sharing, read with 11 CCR 7025 (opt-out preference signals such as Global Privacy Control), 7026 (15 business days and the 90-day downstream notification) and 7051-7053 (service provider, contractor and third-party contract terms); 1798.140(ae) and 1798.121 drive the sensitive-PI limb"
+        },
+        "In-scope processes": {
+          "value": "Vendor onboarding, renewal and change-of-scope for every supplier that receives California PI — ad platforms, lead vendors, analytics providers, TPAs, print-and-mail houses, cloud hosts, background-check firms — plus the opt-out fan-out that halts sale and sharing per consumer"
+        },
+        "In-scope systems": {
+          "app": "Icertis CLM (Contracts)",
+          "value": "Contract records with the CCPA data-processing addendum clause set and the sale/share classification tag; the opt-out fan-out runs through the marketing automation platform and the advertising destination connectors"
+        },
+        "Compliance procedure documented": {
+          "value": "Vendor Data Terms and Opt-Out Fan-Out Procedure — classify each recipient as service provider, contractor or third party, attach the matching clause set, tag the sale/share status, and execute the per-consumer opt-out to every destination inside 15 business days"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the General Counsel's office with the Chief Procurement authority; the clause set is re-approved by Privacy Counsel on every CPPA regulation change and reviewed annually"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "No California PI may be released to a new vendor before the executed addendum; opt-out of sale or sharing must take effect at every destination no later than 15 business days from receipt; third parties that received the PI in the preceding 90 days must be notified of the opt-out; contract clause refresh within 90 days of a regulation change"
+        },
+        "Deadline reminders configured": {
+          "value": "CLM alerts at T-120/T-60/T-30 to contract expiry for the clause refresh, a procurement gate that blocks purchase-order release without an executed addendum, and opt-out queue timers at business day 5, 10 and 13 escalating to the Privacy Officer"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Executed addenda with signature certificates, the vendor classification worksheet, destination suppression confirmations and the 90-day downstream notification acknowledgements, retained 7 years past contract termination"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "PI released to a vendor without executed terms, a missing clause on an executed contract, or an opt-out not effective at a destination within 15 business days is logged with the vendor, the destination, the consumer count and a remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Privacy Counsel",
+          "value": "Counsel signs every deviation from the standard clause set, every vendor classified as a third party rather than a service provider, and every remediation of a late opt-out"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All active vendors receiving California PI in the period per the contract register and the outbound integration list, plus every opt-out of sale-or-share request received in the quarter including Global Privacy Control signals"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero vendors receiving California PI without an executed addendum containing the mandatory clauses; zero opt-outs effective later than 15 business days at any destination; any single failure of either kind escalates to the General Counsel and the Privacy Officer"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "The contract obligation is per vendor, so it is tested at every onboarding and renewal and swept quarterly across the active vendor base; the opt-out limb is tested monthly over that month's opt-out volume"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Third-Party Risk Manager",
+          "value": "Reviewer must not have negotiated, approved or executed any contract in the sample, nor operated the opt-out fan-out"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly vendor-clause workpaper and monthly opt-out timing workpaper (population, reconciliation, clause checklist, destination re-performance, exceptions) in the compliance evidence repository under CCPA / Vendor Terms / <year>-Q<n>"
+        },
+        "Regulator-ready documentation": {
+          "value": "Vendor register showing classification, executed addendum reference and sale/share tag, plus opt-out timing evidence per destination, producible to the CPPA within 10 business days of an inquiry into selling or sharing"
+        },
+        "Regulator response path": {
+          "value": "Privacy Counsel leads the CPPA or California AG response and clears any statement about vendor classification; the Contracts Manager supplies the executed documents and the Digital Marketing Specialist supplies destination suppression proof"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Screen every new or renewing supplier for California PI exposure",
+          "by": "Procurement Specialist",
+          "role": "Procurement Specialist",
+          "app": "Coupa / SAP Ariba (Procurement)",
+          "actions": [
+            "Add the mandatory intake question set to the sourcing request: does the supplier receive, access or generate California resident PI, which categories, and by what transfer mechanism.",
+            "Where the answer is yes, attach the data-flow description — direction, frequency, volume, identifiers — and route the request to Privacy and Third-Party Risk before any award.",
+            "Block purchase-order release in the procurement workflow until the privacy review is stamped complete.",
+            "Record the screening outcome and reviewer on the sourcing record so a later audit can see who cleared it."
+          ],
+          "done": "no supplier receiving California PI passes to award without a completed screening record and a privacy review stamp."
+        },
+        {
+          "step": "Classify the recipient as service provider, contractor or third party",
+          "by": "Privacy Counsel",
+          "role": "Privacy Counsel",
+          "actions": [
+            "Read the data-flow description and decide the role: service provider (processes for a business purpose under written contract), contractor (same, with the certification), or third party (everything else, including ad platforms taking data for cross-context behavioural advertising).",
+            "Test the service-provider claim against 11 CCR 7051 — no retention, use or disclosure outside the contract, no combining with other sources beyond the permitted cases.",
+            "Where the flow is for cross-context behavioural advertising, classify it as sharing and mark it for the opt-out fan-out list.",
+            "Write the classification, its reasoning and the citation onto the vendor record; do not let commercial preference decide the label."
+          ],
+          "done": "each vendor carries a documented service provider, contractor or third-party classification with a cited reasoning line."
+        },
+        {
+          "step": "Attach the matching clause set to the contract",
+          "by": "Contract Administrator",
+          "role": "Contract Administrator",
+          "app": "Icertis CLM (Contracts)",
+          "actions": [
+            "Select the CCPA addendum variant that matches the classification and attach it to the agreement in the CLM template engine.",
+            "Confirm the mandatory clauses are present and unedited: specified limited purposes, prohibition on selling or sharing the PI, prohibition on retaining, using or disclosing outside the contract, prohibition on combining with other personal information, the compliance certification, the right to audit and remediate, and the obligation to notify if the vendor can no longer meet its obligations.",
+            "For contractors, confirm the express certification that the contractor understands and will comply with the restrictions.",
+            "Add the flow-down obligation to subcontractors and the deletion-on-instruction clause that the deletion process depends on."
+          ],
+          "done": "the executed draft carries the correct addendum variant with every mandatory clause present and unedited."
+        },
+        {
+          "step": "Clear any redline against the clause set with Privacy Counsel",
+          "by": "Privacy Counsel",
+          "role": "Privacy Counsel",
+          "actions": [
+            "Read every supplier redline against the statutory clause list and reject deletions of the sell/share prohibition, the combination prohibition or the audit right outright.",
+            "Where wording changes are acceptable, record why the amended text still satisfies 1798.100(d) and 11 CCR 7051.",
+            "Escalate any supplier refusing the certification to the General Counsel with a recommendation to reclassify as a third party or walk away.",
+            "Stamp the approved deviation on the contract record with the counsel name and date."
+          ],
+          "done": "no clause deviation reaches signature without a counsel-stamped rationale, and refusals are escalated rather than absorbed."
+        },
+        {
+          "step": "Execute the agreement and record the evidence",
+          "by": "Contracts Manager",
+          "role": "Contracts Manager",
+          "app": "DocuSign",
+          "actions": [
+            "Send the agreement with the addendum for signature and capture the completion certificate showing both signatories and timestamps.",
+            "File the executed set in the CLM with the effective date, the classification tag, the sale/share tag and the renewal date.",
+            "Release the procurement gate only after the executed document is filed, never on a promise of signature.",
+            "Notify the requesting business owner in writing that data transfer may now begin, with the date."
+          ],
+          "done": "an executed addendum with a signature certificate is filed and the data transfer authorisation date is recorded."
+        },
+        {
+          "step": "Turn the executed terms into technical restrictions on the actual feed",
+          "by": "Integration Engineer",
+          "role": "Integration Engineer",
+          "app": "API gateway (Apigee/Kong/Azure API Management)",
+          "actions": [
+            "Configure the outbound feed to carry only the fields named in the contract's permitted purpose, dropping everything else at the gateway.",
+            "Apply the destination allow-list so the feed cannot be repointed without a change record referencing the contract.",
+            "Enable per-consumer suppression on the feed so an opt-out flag can stop an individual's record without stopping the whole integration.",
+            "Record the field list, destination and suppression capability on the vendor record."
+          ],
+          "done": "the live feed carries only contracted fields, sits on an allow-listed destination and supports per-consumer suppression."
+        },
+        {
+          "step": "Maintain the definitive list of sale and sharing destinations",
+          "by": "Digital Marketing Specialist",
+          "role": "Digital Marketing Specialist",
+          "app": "marketing automation platform",
+          "actions": [
+            "List every destination that receives California PI for advertising or monetisation: ad platform audience uploads, pixel and SDK integrations, lead-exchange partners and data co-ops.",
+            "Tie each destination to its vendor contract record and its sale-or-share classification.",
+            "Compare the list to the tag manager container and the audience sync configuration monthly so a destination cannot be added quietly.",
+            "Publish the list as the fan-out target set used by the opt-out process."
+          ],
+          "done": "a monthly-reconciled destination list exists, each row tied to a contract record and a sale/share classification."
+        },
+        {
+          "step": "Capture opt-out requests from every channel including preference signals",
+          "by": "Data Protection Specialist",
+          "role": "Data Protection Specialist",
+          "app": "Customer Self-Service Portal",
+          "actions": [
+            "Accept opt-outs from the 'Do Not Sell or Share My Personal Information' link, the toll-free line, the privacy inbox and authorised agents.",
+            "Treat a Global Privacy Control browser signal as a valid opt-out under 11 CCR 7025 without asking the consumer to confirm and without requiring verification.",
+            "Stamp the receipt date and the channel on the opt-out record and start the 15-business-day clock immediately.",
+            "Link the opt-out record to the known consumer profile where the signal can be tied to an identified individual, and to the browser identifier where it cannot."
+          ],
+          "done": "opt-outs from every channel, including GPC signals, create a dated record with the 15-business-day clock running."
+        },
+        {
+          "step": "Fan the opt-out out to every destination inside 15 business days",
+          "by": "Digital Marketing Specialist",
+          "role": "Digital Marketing Specialist",
+          "app": "marketing automation platform",
+          "actions": [
+            "Set the sale/share suppression flag on the consumer record and push it to each destination on the published list through its own suppression mechanism.",
+            "Record the destination-level effective date and the confirmation reference returned by each platform.",
+            "Chase any destination without a confirmation by business day 10 and escalate to the Privacy Officer at business day 13.",
+            "Stop new audience syncs containing the identifier until every destination confirms."
+          ],
+          "done": "each destination has a recorded suppression effective date and confirmation inside 15 business days, or an escalation exists."
+        },
+        {
+          "step": "Notify third parties that received the PI in the preceding 90 days",
+          "by": "Vendor Manager",
+          "role": "Vendor Manager",
+          "actions": [
+            "Query the transfer logs for third parties that received the consumer's PI in the 90 days before the opt-out request date.",
+            "Send each the templated opt-out notification instructing them to stop selling or sharing that consumer's PI, per 11 CCR 7026(f)(2).",
+            "Log the notification date, recipient contact and any acknowledgement returned on the opt-out record.",
+            "Escalate non-acknowledging third parties to Contracts as a contract-performance issue with the clause reference."
+          ],
+          "done": "every third party that received the PI in the prior 90 days has a logged opt-out notification and an acknowledgement or an escalation."
+        },
+        {
+          "step": "Confirm the opt-out back to the consumer and hold the state",
+          "by": "Consumer Affairs Analyst",
+          "role": "Consumer Affairs Analyst",
+          "actions": [
+            "Send the consumer written confirmation that selling and sharing has stopped, with the effective date.",
+            "Set the record so no re-opt-in prompt is shown for at least 12 months, as 1798.135(c) requires.",
+            "Add the identifier to the permanent sale/share suppression list so a later data import cannot clear the flag.",
+            "Attach the confirmation to the opt-out record before closing it."
+          ],
+          "done": "the consumer holds a dated confirmation, the 12-month no-reprompt rule is set and the identifier sits on the permanent suppression list."
+        },
+        {
+          "step": "Sweep the active vendor base for clause and classification drift",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "Each quarter export all active vendors tagged as receiving California PI and check each has an executed addendum on the current clause version.",
+            "Re-test the classification against how the data is actually used now, not how it was described at onboarding — a service provider that started building its own audiences is a third party.",
+            "Raise a contract change request for every vendor on a superseded clause version, with a 90-day close date.",
+            "Report the drift count and the reclassification count to the Privacy Officer."
+          ],
+          "done": "every active PI-receiving vendor is confirmed on the current clause version or carries a dated change request."
+        },
+        {
+          "step": "Exercise the audit and deletion rights the clauses grant",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "actions": [
+            "Run the annual vendor assurance cycle: request the CCPA compliance certification, the deletion capability description and any SOC 2 or ISO report covering the PI environment.",
+            "For the highest-risk vendors, exercise the contractual audit right with an on-site or evidence-based review of retention, use and onward disclosure.",
+            "Test the deletion-on-instruction clause by issuing a live deletion instruction and requiring written confirmation with a record count.",
+            "File the assurance pack against the vendor record and raise findings as third-party risk issues."
+          ],
+          "done": "each high-risk vendor has a dated assurance pack including a tested deletion confirmation with a record count."
+        },
+        {
+          "step": "Log vendor and opt-out exceptions with disposition",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise an issue for every vendor found receiving California PI without executed terms, every missing mandatory clause, and every opt-out not effective at a destination inside 15 business days.",
+            "Record exposure: consumers affected, destinations still receiving, days over the 15-business-day limit and the volume transferred without terms.",
+            "Assign the owner to Procurement, Contracts or Marketing Operations depending on the failure point, with a remediation date.",
+            "Require the feed to be suspended where a vendor has no executed terms, rather than remediating while data keeps flowing."
+          ],
+          "done": "every failure has an issue with quantified exposure, an owner, a remediation date and, for unterminated flows, a suspension."
+        },
+        {
+          "step": "Retain the contract and opt-out evidence for the full period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Archive executed addenda with signature certificates, classification worksheets, destination suppression confirmations and 90-day notification acknowledgements.",
+            "Apply the retention label of 7 years past contract termination and index by vendor, destination and consumer reference.",
+            "Confirm an opt-out record can be retrieved end to end — request, destination confirmations, downstream notifications, consumer confirmation.",
+            "Restore three vendor packs and three opt-out packs at random each quarter to prove retrievability."
+          ],
+          "done": "vendor and opt-out evidence is archived, indexed and proven retrievable end to end by a quarterly restoration test."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of vendors actually receiving California PI",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "Export from the CLM every active vendor tagged as receiving California PI, with classification, addendum reference and clause version.",
+            "Independently pull the outbound integration list from the API gateway, the file-transfer job list, the tag manager container and the accounts-payable vendor spend list.",
+            "Merge into one population showing every supplier with a live PI path and its discovery source.",
+            "Freeze the population with a row count and timestamp before sampling."
+          ],
+          "done": "a frozen vendor population exists built from integration and spend evidence, not from the contract register alone."
+        },
+        {
+          "step": "Reconcile live data flows to executed contracts",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each live outbound PI flow to an executed addendum with an effective date earlier than the flow's first transfer date.",
+            "List flows with no addendum, with an addendum executed after the transfers began, or on a superseded clause version.",
+            "Quantify the record volume transferred outside executed terms from the integration logs.",
+            "Require Contracts to explain each unmatched flow in writing and attach the reply."
+          ],
+          "done": "every live PI flow ties to a pre-dated executed addendum or is listed with the volume transferred outside terms."
+        },
+        {
+          "step": "Draw the vendor and opt-out samples with a recorded method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of vendors classified as third parties and 100% of advertising and lead-exchange destinations.",
+            "Take 25 further vendors at random from the service-provider and contractor population using a recorded seed.",
+            "Take 100% of opt-outs arriving by Global Privacy Control signal plus 30 random opt-outs from other channels in the quarter.",
+            "Record population sizes, strata, seed and selection date so both samples can be redrawn."
+          ],
+          "done": "both samples are stratified on third parties, ad destinations and GPC opt-outs, and are reproducible from the recorded seed."
+        },
+        {
+          "step": "Re-perform the clause-by-clause check on each sampled contract",
+          "by": "Privacy Counsel",
+          "role": "Privacy Counsel",
+          "app": "Icertis CLM (Contracts)",
+          "actions": [
+            "Open the executed addendum and tick each mandatory element: limited specified purposes, no selling or sharing, no retention or use outside the contract, no combining with other PI, the compliance certification, the audit and remediation right, and the notify-on-inability obligation.",
+            "Compare the executed text to the approved template and list every edit with its effect.",
+            "Confirm any deviation carries a dated counsel approval that pre-dates execution.",
+            "Record a missing mandatory clause as a fail, not a documentation observation."
+          ],
+          "done": "each sampled contract has a clause-by-clause result and every deviation traces to a pre-dated counsel approval."
+        },
+        {
+          "step": "Challenge the service-provider classification against actual data use",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "For each sampled service provider, read the actual field list transferred and the vendor's own product description of what it does with the data.",
+            "Test the 11 CCR 7051 conditions: does the vendor combine the PI with other sources, build its own audiences, or retain beyond the engagement.",
+            "Reclassify as a third party any vendor whose real behaviour is sale or sharing, regardless of the contract label.",
+            "Record the evidence behind each reclassification and refer it to Contracts and to the notice owner."
+          ],
+          "done": "each sampled classification is independently re-tested against real data use and every mislabelled vendor is reclassified with evidence."
+        },
+        {
+          "step": "Recompute the 15-business-day opt-out clock",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each sampled opt-out, recompute business days from the raw channel timestamp to the earliest and latest destination suppression effective dates, excluding weekends and California state holidays.",
+            "Compare the recomputed count to the value stored on the opt-out record and investigate any difference.",
+            "Fail any destination whose effective date exceeds 15 business days from receipt, even where other destinations were on time.",
+            "Record the worst-case destination per opt-out as the case-level result."
+          ],
+          "done": "every sampled opt-out has an independently recomputed worst-case destination day count against the 15-business-day limit."
+        },
+        {
+          "step": "Prove the suppression actually reached each destination",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "marketing automation platform",
+          "actions": [
+            "For each sampled opt-out, open each destination's audience or suppression view and confirm the identifier is present in the suppression set and absent from active audiences.",
+            "Re-check 30 days after the effective date to confirm no re-import reintroduced the identifier.",
+            "For GPC opt-outs tied only to a browser identifier, confirm the pixel and SDK stop firing sale/share events for that identifier in the network trace.",
+            "Record the destination, view, timestamp and result for each check."
+          ],
+          "done": "every sampled opt-out is confirmed suppressed at each destination at the effective date and again 30 days later."
+        },
+        {
+          "step": "Trace the 90-day downstream notifications",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled opt-out, query the transfer logs for third parties that received the PI in the 90 days before the request date.",
+            "Match each to a logged opt-out notification with a send date and, where returned, an acknowledgement.",
+            "List recipients with no notification and quantify how recently they received the PI.",
+            "Confirm non-acknowledging third parties were escalated to Contracts with the clause reference."
+          ],
+          "done": "every third party that received the PI in the prior 90 days is matched to a logged notification or listed as an exception."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception typed as missing terms, missing clause, misclassification, late opt-out, failed suppression or missing downstream notification.",
+            "Quantify exposure — consumers, destinations, records transferred, days over the 15-business-day limit — on the issue.",
+            "Assign a root cause and a named owner in Procurement, Contracts or Marketing Operations and set a remediation date.",
+            "Require immediate feed suspension for any vendor without executed terms and carry all open exceptions into the next run as retest rows."
+          ],
+          "done": "every exception is typed, quantified, owned and dated, with feeds suspended where terms are absent."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Compute the executed-terms coverage rate, the clause-completeness rate and the 15-business-day on-time rate against the zero-failure thresholds.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — with the workpaper references behind each rate.",
+            "Have the independent reviewer, who negotiated no sampled contract and ran no fan-out, sign the workpaper.",
+            "Report to the General Counsel, the Privacy Officer and the Vendor Risk Committee, and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states the coverage, clause and on-time rates, a conclusion and the committee reporting date."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-053-C05",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Privacy Officer",
+          "value": "Privacy Office owns the per-initiative risk assessment gate for high-risk processing, including the documented identity-verification method used before any consumer request is actioned; the Data Protection Officer approves the residual-risk decision"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Civ. Code 1798.130 request-handling requirements read with CPPA regulations 11 CCR 7020 (methods for submitting requests), 7021 (timing) and 7022 (responding to deletion), together with the verification rules at 11 CCR 7060-7063 and the risk-assessment obligations for significant-risk processing at 11 CCR 7150-7157"
+        },
+        "In-scope processes": {
+          "value": "Any initiative that introduces or materially changes high-risk processing of California PI — automated decision-making in underwriting or claims triage, profiling for behavioural advertising, sensitive-PI use, telematics or precise geolocation, biometric identity checks — plus the design and periodic re-assessment of the consumer identity-verification method itself"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Assessment records with the risk register linkage and the DPO decision; initiative intake arrives from the delivery backlog and models are referenced in the model governance repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Privacy Risk Assessment Procedure — screening questionnaire at initiative intake, the significant-risk trigger list, the benefits-versus-risks-to-consumers analysis, safeguards, residual risk decision, and the verification-tier design standard (two data points, three plus a signed declaration for specific pieces)"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Data Protection Officer and endorsed by the Enterprise Risk Committee; re-approved annually and immediately on any CPPA risk-assessment or automated decision-making rulemaking taking effect"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Screening completed within 5 business days of initiative intake; the full assessment completed and approved before the initiative's design freeze and always before any California PI is processed in production; every approved assessment reviewed at least every 3 years or on material change; the verification method re-assessed annually"
+        },
+        "Deadline reminders configured": {
+          "value": "Delivery-tool gate that blocks the design-freeze transition without an approved assessment id, GRC tasks at T-30/T-10 to the design-freeze date, and a 3-year re-assessment task raised automatically on each approved assessment"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Screening questionnaire, the completed assessment with the benefits-and-risks analysis, safeguard list, DPO approval and any conditions, retained 7 years past decommissioning of the processing it covers"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "High-risk processing found live without an approved assessment, or a request actioned outside the documented verification tier, is logged with the initiative or case reference, the consumers affected and a remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Data Protection Officer",
+          "value": "The DPO signs every residual-risk acceptance, every condition attached to an approval and every remediation of processing that went live without an assessment"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All initiatives that reached design freeze or production in the period per the delivery backlog, plus all live models and processing activities carrying a significant-risk flag, plus every consumer request verified in the quarter"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero high-risk processing activities live without an approved assessment dated before first production processing; zero requests actioned at a weaker verification tier than the request type requires; any single instance escalates to the DPO and the Enterprise Risk Committee"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "The obligation is per initiative, so it is tested at every design-freeze gate and swept quarterly across initiatives that went live in the quarter; verification-tier testing runs quarterly over that quarter's verified requests"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have authored, reviewed or approved any assessment in the sample, nor verified any sampled request"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly assessment-gate workpaper (initiative population, gate reconciliation, assessment re-performance, verification sample, exceptions) in the compliance evidence repository under CCPA / Risk Assessments / <year>-Q<n>"
+        },
+        "Regulator-ready documentation": {
+          "value": "Assessment register with initiative, processing description, risk conclusion, safeguards and approval date, plus the written verification procedure and verification outcome logs, in the abridged form a CPPA submission would take, producible within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "Privacy Counsel owns any CPPA request for risk assessments and decides what is submitted versus withheld as privileged; the DPO certifies the completeness of the assessment register before release"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Screen every initiative at intake for high-risk processing",
+          "by": "Business Analyst",
+          "role": "Business Analyst",
+          "app": "Jira",
+          "actions": [
+            "Attach the privacy screening questionnaire to the initiative epic as a mandatory field set at intake, covering PI categories, populations, new data sources, automated decisions and advertising use.",
+            "Ask the initiative sponsor directly whether the change touches sensitive PI, precise geolocation, biometrics, telematics or profiling, and record the answers verbatim.",
+            "Submit the completed screening to the Privacy Office within 5 business days of intake.",
+            "Link the screening record id to the epic so the delivery gate can read it later."
+          ],
+          "done": "every initiative epic carries a completed screening questionnaire linked by id within 5 business days of intake."
+        },
+        {
+          "step": "Triage the screening against the significant-risk trigger list",
+          "by": "Data Protection Specialist",
+          "role": "Data Protection Specialist",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Apply the trigger list: selling or sharing PI, processing sensitive PI, automated decision-making with a significant effect on the consumer, profiling in a workplace or public place, and training an automated decision system on personal information.",
+            "Where any trigger fires, open a full assessment record and set the required-by date to the initiative's design-freeze date.",
+            "Where no trigger fires, record a documented no-assessment decision with the reason rather than closing silently.",
+            "Notify the initiative's Project Manager of the outcome and the assessment id the same day."
+          ],
+          "done": "each screening ends in either an opened assessment tied to the design-freeze date or a written no-assessment decision with a reason."
+        },
+        {
+          "step": "Describe the processing precisely enough to assess it",
+          "by": "Privacy Officer",
+          "role": "Privacy Officer",
+          "actions": [
+            "Write the processing description: purpose, PI and sensitive-PI categories, consumer populations, sources, volumes, retention, recipients and the operational context.",
+            "Name the technology involved — model, vendor tool, tracking pixel, device — and where in the customer journey it operates.",
+            "Pull the corresponding processing-register rows so the description agrees with the recorded purposes rather than restating the business case.",
+            "Have the initiative's product owner confirm the description matches what will actually be built."
+          ],
+          "done": "a processing description exists that names purpose, categories, populations, volumes, recipients and the technology, confirmed by the product owner."
+        },
+        {
+          "step": "Weigh benefits against risks to consumers and write the conclusion",
+          "by": "Privacy Counsel",
+          "role": "Privacy Counsel",
+          "actions": [
+            "Set out the benefits to Meridian, to the consumer and to the public, and the negative impacts on consumer privacy, as 11 CCR 7152 frames the analysis.",
+            "Name the specific harms in play — unfair denial of coverage or claim, discriminatory pricing effects, economic loss, loss of control over sensitive PI, physical or reputational harm.",
+            "State whether the risks to consumers outweigh the benefits, and say so plainly where they do rather than softening it.",
+            "Record the reasoning, not just a rating, so the conclusion can be re-read by a regulator."
+          ],
+          "done": "a written benefits-versus-risks analysis names specific consumer harms and states a plain conclusion with its reasoning."
+        },
+        {
+          "step": "Assess automated decision-making and model behaviour where present",
+          "by": "AI Governance Analyst",
+          "role": "AI Governance Analyst",
+          "app": "model governance repository",
+          "actions": [
+            "Pull the model card, the training-data description and the feature list from the model governance repository for any model in scope.",
+            "Assess whether the decision has a significant effect on the consumer — coverage eligibility, pricing, claim acceptance, employment — which triggers pre-use notice and opt-out obligations.",
+            "Review disparate-impact testing results with the Model Risk Manager and record whether protected-class proxies are present in the feature set.",
+            "Define the human-review path and the explanation the consumer will receive on request, and record both."
+          ],
+          "done": "each in-scope model has a recorded significance determination, disparate-impact result, human-review path and consumer explanation."
+        },
+        {
+          "step": "Design the safeguards that reduce the identified risks",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "actions": [
+            "For each named harm, specify the safeguard: field minimisation, pseudonymisation, access restriction, retention shortening, opt-out availability, human review, or dropping the processing.",
+            "Name the owner and the delivery date for each safeguard and tie it to a delivery backlog item so it is built, not promised.",
+            "Confirm access controls with the IAM team so the new data set is not inherited by every existing role.",
+            "Record the residual risk after safeguards, separately from the inherent risk."
+          ],
+          "done": "every named harm has an owned, dated safeguard tied to a backlog item, with inherent and residual risk recorded separately."
+        },
+        {
+          "step": "Write the identity-verification method into the assessment",
+          "by": "Data Protection Specialist",
+          "role": "Data Protection Specialist",
+          "actions": [
+            "Document the verification tiers: two matching data points for a categories-only request, three plus a signed declaration under penalty of perjury for specific pieces of PI, and the authorised-agent route with written permission.",
+            "Name the data points that may be used for matching and forbid matching against data supplied inside the request itself.",
+            "State that no additional PI is collected for verification beyond what is necessary, and that verification data is deleted as soon as practicable after use.",
+            "Define what happens when verification fails: the denial wording, the invitation to re-submit, and the record kept."
+          ],
+          "done": "the written verification procedure states the tiers, permitted matching data, the no-extra-collection rule and the failure path."
+        },
+        {
+          "step": "Assess the verification method itself as a processing activity",
+          "by": "Privacy Officer",
+          "role": "Privacy Officer",
+          "actions": [
+            "Treat verification as its own high-risk processing where it collects identity documents or biometric checks, and run the benefits-and-risks analysis on it.",
+            "Balance the risk of unauthorised disclosure from weak verification against the risk of over-collection from heavy verification, and record where the line was set.",
+            "Set the retention for verification artefacts and the deletion job that enforces it.",
+            "Re-run this assessment annually or whenever a new verification vendor or method is introduced."
+          ],
+          "done": "the verification method has its own risk analysis with a stated balance point, an artefact retention rule and an annual re-assessment date."
+        },
+        {
+          "step": "Instrument the verification decision so every outcome is logged",
+          "by": "IAM Engineer",
+          "role": "IAM Engineer",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Add mandatory fields to the case form: tier applied, data points matched, declaration received, verifier id and verification date.",
+            "Block case progression to fulfilment until the verification fields are populated, so a request cannot be answered unverified.",
+            "Log verification failures with the reason code and the follow-up sent to the consumer.",
+            "Expose the verification outcome fields to reporting so the tier mix can be monitored."
+          ],
+          "done": "fulfilment is technically blocked until verification fields are complete, and every outcome including failures is logged with a reason."
+        },
+        {
+          "step": "Route the assessment through review and DPO approval",
+          "by": "Data Protection Officer",
+          "role": "Data Protection Officer",
+          "actions": [
+            "Review the processing description, the benefits-and-risks analysis, the safeguards and the residual-risk statement in one package.",
+            "Approve, approve with conditions, or reject; where conditions are set, name each condition, its owner and its date.",
+            "Refuse approval where a stated harm has no safeguard, rather than accepting residual risk by default.",
+            "Stamp the approval with the DPO name and date and release the assessment id to the delivery gate."
+          ],
+          "done": "the assessment carries a dated DPO decision with any conditions named, owned and dated, and a released assessment id."
+        },
+        {
+          "step": "Enforce the gate at design freeze and again before production",
+          "by": "Project Manager",
+          "role": "Project Manager",
+          "app": "PPM tool (Clarity/Planview/Jira Align)",
+          "actions": [
+            "Configure the design-freeze transition to require an approved assessment id on the initiative record.",
+            "Re-check at the production release gate that the built solution still matches the assessed processing description, and re-open the assessment where scope moved.",
+            "Hold the release where any approval condition is still open past its date, and record the hold decision.",
+            "Report gate holds and overrides weekly to the Privacy Officer."
+          ],
+          "done": "no initiative passes design freeze or production release without an approved, scope-matched assessment and closed conditions."
+        },
+        {
+          "step": "Track approval conditions and safeguards to completion",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Open a tracked action per approval condition and per safeguard with the owner and due date from the assessment.",
+            "Verify completion with evidence — a configuration screenshot, an access-control export, a retention job schedule — not with an owner's assertion.",
+            "Escalate any condition overdue by 30 days to the DPO with a recommendation to suspend the processing.",
+            "Close the assessment only when every condition has evidenced completion."
+          ],
+          "done": "every condition and safeguard is evidenced complete or escalated at 30 days overdue, and assessments close only on evidence."
+        },
+        {
+          "step": "Re-assess on material change and on the three-year cycle",
+          "by": "Privacy Officer",
+          "role": "Privacy Officer",
+          "actions": [
+            "Raise a re-assessment when the processing adds a PI category, a new population, a new recipient, a new model version or a new purpose.",
+            "Run the calendar re-assessment at least every three years for every live approved assessment, refreshing volumes and harms rather than re-signing the old text.",
+            "Retire assessments for decommissioned processing with a decommission date and confirmation the data was deleted or de-identified.",
+            "Report the re-assessment backlog monthly to the DPO."
+          ],
+          "done": "every live assessment is inside its three-year cycle or has a raised re-assessment, and retired ones carry a decommission date."
+        },
+        {
+          "step": "Log assessment and verification exceptions",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise an issue for every high-risk processing activity found live without an approved assessment, and for every request actioned below the required verification tier.",
+            "Record the exposure: consumers processed without assessment, records disclosed on weak verification, and the days the gap ran.",
+            "Assign a root cause — screening skipped at intake, scope grew after approval, gate overridden, verification field bypassed — and an owner.",
+            "Require the processing to be paused where consumer harm is credible, rather than remediating in flight."
+          ],
+          "done": "every gate and verification failure has an issue with quantified exposure, a root cause, an owner and a pause decision where harm is credible."
+        },
+        {
+          "step": "Retain the assessment record in the form a regulator may demand",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the screening, the full assessment, the safeguard evidence, the DPO approval and the condition closures as one indexed pack per initiative.",
+            "Maintain the abridged assessment register — initiative, processing purpose, categories, risk conclusion, approval date — in the form a CPPA submission takes.",
+            "Apply the retention label of 7 years past decommissioning of the processing.",
+            "Restore three assessment packs at random each quarter and confirm every artefact opens and the approval signature is intact."
+          ],
+          "done": "each initiative has one indexed assessment pack under a 7-year label, with a maintained abridged register and quarterly restoration proof."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of initiatives and live high-risk processing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "PPM tool (Clarity/Planview/Jira Align)",
+          "actions": [
+            "Export every initiative that passed design freeze or went to production in the period, with dates and sponsor.",
+            "Independently pull the model inventory from the model governance repository, the processing register rows flagged sensitive or sale/share, and the tag manager list of new advertising trackers.",
+            "Merge into one population of processing activities that should have been assessed, showing the discovery source per row.",
+            "Freeze the population with a row count and timestamp before sampling."
+          ],
+          "done": "a frozen population of assessable processing activities exists, built from delivery, model and register sources independently."
+        },
+        {
+          "step": "Reconcile the population to screenings and approved assessments",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each population row to a screening record and, where a trigger fired, to an approved assessment.",
+            "Check the assessment approval date pre-dates the first production processing date taken from the release log.",
+            "List rows with no screening, with a screening but no assessment despite a trigger, or with an assessment approved after go-live.",
+            "Require the Privacy Office to explain each unmatched row in writing and attach the reply."
+          ],
+          "done": "every processing activity ties to a screening and, where triggered, to an assessment approved before go-live, or is listed as an exception."
+        },
+        {
+          "step": "Draw the assessment and verification samples with a recorded method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of assessments covering automated decision-making with a significant effect and 100% covering sensitive PI.",
+            "Take 15 further approved assessments at random from the remainder using a recorded seed.",
+            "Take 40 verified consumer requests from the quarter, stratified to include every specific-pieces request and every authorised-agent request.",
+            "Record population sizes, strata, seed and selection date so both samples can be redrawn."
+          ],
+          "done": "both samples are stratified on automated decisions, sensitive PI, specific-pieces and agent requests, and are reproducible."
+        },
+        {
+          "step": "Re-perform the risk analysis on each sampled assessment",
+          "by": "Privacy Counsel",
+          "role": "Privacy Counsel",
+          "actions": [
+            "Read the processing description and form your own view of the consumer harms before reading the recorded analysis.",
+            "Compare your harm list to the assessment's and record any harm the assessment omitted, particularly discriminatory pricing and unfair denial effects.",
+            "Test whether the stated conclusion actually follows from the analysis or was written to reach a permissive answer.",
+            "Confirm the assessment names safeguards for every harm it identified and flag any harm left unsafeguarded."
+          ],
+          "done": "each sampled assessment has an independent harm list, a follows-from-the-analysis verdict and any unsafeguarded harm named."
+        },
+        {
+          "step": "Test that assessed scope matches what was actually built",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "Compare the assessed PI categories, populations and recipients to the live configuration: the field list in the data store, the audience destinations and the model feature list.",
+            "Flag every category, population, feature or recipient present in production but absent from the assessment as scope drift.",
+            "Check whether scope drift triggered a re-assessment, and when.",
+            "Quantify the consumers processed under the drifted scope from the production volumes."
+          ],
+          "done": "each sampled assessment is compared field by field to production and all scope drift is quantified by consumers affected."
+        },
+        {
+          "step": "Verify safeguards and approval conditions were actually implemented",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "IAM platform (SailPoint/Okta/Azure AD)",
+          "actions": [
+            "For each safeguard, pull the implementing evidence — access group membership export, retention job schedule, masking configuration, opt-out toggle — and test it directly.",
+            "Confirm access to the new data set is limited to the roles named in the assessment and list any role that inherited access outside it.",
+            "Confirm every approval condition is closed with evidence and note conditions closed on assertion alone.",
+            "Record safeguards that exist on paper but not in the configuration as control failures."
+          ],
+          "done": "every sampled safeguard and condition is directly tested in the live configuration and paper-only controls are recorded as failures."
+        },
+        {
+          "step": "Re-perform the identity verification on sampled requests",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "workflow/case management tool",
+          "actions": [
+            "For each sampled request, read the request type and decide the required tier yourself before opening the verification record.",
+            "Confirm the recorded data points were matched against pre-existing records and that specific-pieces requests carry three points plus the signed declaration.",
+            "Confirm no PI was collected for verification beyond the documented list, and that verification artefacts were deleted per the stated retention.",
+            "Record any request fulfilled below the required tier as an over-disclosure exception with the records disclosed."
+          ],
+          "done": "each sampled request has an independent tier verdict and any over-disclosure is quantified by records released."
+        },
+        {
+          "step": "Test the gate controls by attempting to bypass them",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Jira",
+          "actions": [
+            "In a test initiative, attempt the design-freeze transition without an assessment id and confirm the transition is refused.",
+            "In a test case, attempt to move to fulfilment with the verification fields blank and confirm progression is blocked.",
+            "Pull the override log for both gates and list every production override with its approver and reason.",
+            "Confirm each override carries a DPO or Privacy Officer approval rather than a delivery-side approval."
+          ],
+          "done": "both gates are proven to block by direct test, and every production override is listed with an approver and a reason."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception typed as missing screening, missing assessment, late approval, scope drift, unimplemented safeguard, gate override or verification shortfall.",
+            "Quantify exposure — consumers processed unassessed, records disclosed on weak verification, days the gap ran.",
+            "Assign a root cause and a named owner in the delivery or privacy function responsible, with a remediation date.",
+            "Recommend suspension of any processing running unassessed where the harm analysis suggests credible consumer impact."
+          ],
+          "done": "every exception is typed, quantified, owned and dated, with suspension recommended where consumer harm is credible."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compute the assessment coverage rate, the pre-go-live approval rate, the safeguard implementation rate and the verification-tier compliance rate.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — citing the workpaper references behind each rate.",
+            "Have the independent reviewer, who authored and approved no sampled assessment, sign the workpaper.",
+            "Report to the DPO and the Enterprise Risk Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states the four rates, a conclusion and the Enterprise Risk Committee reporting date."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-053-C06",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Chief Info Security Officer",
+          "value": "The CISO owns incident detection, containment and the breach notification decision jointly with the Privacy Officer; Privacy Ops owns the downstream deletion directives issued to service providers and contractors after a consumer deletion"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Civ. Code 1798.105 and CPPA regulation 11 CCR 7022(b)(3)-(4) for the obligation to instruct service providers, contractors and third parties to delete, read with Civ. Code 1798.82 (notification in the most expedient time possible and without unreasonable delay, content requirements and the sample-notice filing with the California Attorney General above 500 residents) and 1798.150 for the unencrypted-and-unredacted exposure limb"
+        },
+        "In-scope processes": {
+          "value": "Security incident triage through to consumer and regulator notification for any incident touching California resident PI, plus the deletion-directive fan-out to every service provider, contractor and third party that received PI for a consumer whose deletion request was executed"
+        },
+        "In-scope systems": {
+          "app": "SIEM/SOAR",
+          "value": "Detection and case management for incidents, with the security ticketing system holding the incident record; deletion directives are issued and tracked from the DSAR case with confirmations filed against the vendor record"
+        },
+        "Compliance procedure documented": {
+          "value": "Privacy Incident and Downstream Deletion Procedure — severity model, the 'was PI unencrypted and unredacted' determination, the notification decision matrix by jurisdiction, notice content template, AG sample-notice filing, and the deletion-directive template with the confirmation chase cycle"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved jointly by the CISO and the General Counsel, endorsed at the Enterprise Risk Committee; tabletop-tested at least annually and re-approved after every tabletop or live incident review"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Consumer notice in the most expedient time possible and without unreasonable delay, with an internal target of 30 calendar days from confirmation of the breach; a sample copy of the notice filed with the California Attorney General when more than 500 California residents are notified, filed on or before the consumer send date; deletion directives issued to service providers and contractors within 5 business days of executing the deletion, with confirmations back inside 30 calendar days"
+        },
+        "Deadline reminders configured": {
+          "value": "SOAR playbook timers at hour 24 (scoping due), day 5 (notification decision due), day 20 (notice drafted and approved) and day 28 (send or explain), plus deletion-directive chasers at day 10, day 20 and day 28 escalating to the Vendor Manager and the Privacy Officer"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Incident record with the detection and confirmation timestamps, the scoping analysis and affected-resident count, the notification decision memo, the sent notices with the mailing or email evidence, the AG submission receipt, and the deletion directives with per-vendor confirmations, retained 7 years"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "A notification sent beyond the internal 30-day target without a documented law-enforcement delay, an AG sample notice not filed above the 500-resident threshold, or a deletion directive not issued or not confirmed, is logged with the incident or case reference, the residents affected and a remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Privacy Counsel",
+          "value": "Counsel signs the notification decision including every decision not to notify, the notice text, the AG filing, and any remediation of a late notice or an unconfirmed deletion directive"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All security and privacy incidents raised in the period with any California PI exposure indicator, plus all executed consumer deletion requests in the period with their downstream directive records"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any notifiable incident with consumer notice beyond 30 calendar days from confirmation without a documented law-enforcement delay is a fail; any incident above 500 California residents without an AG sample-notice filing is a fail; any executed deletion with no directive issued to a recipient service provider or contractor is a fail; a single fail escalates to the CISO, the General Counsel and the Audit Committee"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "The obligation is event-driven, so the test runs monthly over that month's incidents and executed deletions, with a full re-performance after every incident classified as notifiable and an annual tabletop assessed as a control test"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not sit in the incident response chain and must not have handled any sampled deletion case"
+        },
+        "Evidence location for test results": {
+          "value": "Monthly incident and deletion-directive workpaper (incident population, day-count recomputation, notice content check, directive tracing, exceptions) in the compliance evidence repository under CCPA / Incident and Deletion / <year>-<month>"
+        },
+        "Regulator-ready documentation": {
+          "value": "Incident chronology with detection, confirmation, scoping and notification timestamps, the notice as sent, the California AG submission receipt, and the deletion-directive register with vendor confirmations, producible to the AG or the CPPA within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Privacy Counsel and the General Counsel own the California Attorney General and CPPA channel and any law-enforcement liaison; the CISO supplies the technical chronology and no factual statement leaves without counsel clearance"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Detect and raise the incident with a hard timestamp",
+          "by": "SOC Analyst",
+          "role": "SOC Analyst",
+          "app": "Splunk SIEM",
+          "actions": [
+            "Triage the alert against the detection rules for PI exfiltration, mass export, unauthorised database access and misdirected bulk mail.",
+            "Raise the incident ticket immediately with the detection timestamp taken from the source log, not from the analyst's shift time.",
+            "Set the initial severity from the data-classification of the affected store and page the Incident Response Lead for anything touching Restricted data.",
+            "Attach the triggering log excerpt and the affected host or account list to the ticket."
+          ],
+          "done": "an incident ticket exists with a source-log detection timestamp, initial severity and the triggering evidence attached."
+        },
+        {
+          "step": "Contain the incident and preserve the evidence",
+          "by": "Incident Response Lead",
+          "role": "Incident Response Lead",
+          "app": "CrowdStrike Falcon",
+          "actions": [
+            "Isolate affected endpoints, revoke compromised sessions and credentials with the IAM team, and block the exfiltration path at the gateway.",
+            "Take forensic images and preserve logs before any rebuild, and record the chain of custody with times and handlers.",
+            "Open the incident bridge and record decisions with timestamps so the chronology writes itself.",
+            "Notify the CISO and the Privacy Officer within one hour of confirming Restricted data involvement."
+          ],
+          "done": "the incident is contained, evidence is preserved under a recorded chain of custody, and the CISO and Privacy Officer were notified within one hour."
+        },
+        {
+          "step": "Scope exactly which California residents and which data elements were exposed",
+          "by": "Incident Responder Digital Forensics Analyst",
+          "role": "Incident Responder Digital Forensics Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Reconstruct the accessed or exfiltrated record set from the query logs, file access logs and egress captures rather than estimating from table size.",
+            "Join the record set to the customer master to produce a deduplicated list of affected individuals with state of residence.",
+            "List the data elements per individual, flagging Social Security number, driver's licence or California ID number, financial account number, medical information and health insurance information, since those drive both notification and the credit-monitoring offer.",
+            "State for each element whether it was encrypted and whether the key was also compromised, because that determines whether 1798.82 and 1798.150 bite.",
+            "Deliver the affected-resident count and the element matrix to Privacy Counsel with the reconstruction method documented."
+          ],
+          "done": "a deduplicated affected-resident list exists with per-element exposure and an encryption determination, with the method documented."
+        },
+        {
+          "step": "Make and record the notification decision",
+          "by": "Privacy Counsel",
+          "role": "Privacy Counsel",
+          "actions": [
+            "Apply the Civ. Code 1798.82 test: was unencrypted and unredacted personal information of a California resident acquired, or reasonably believed acquired, by an unauthorised person.",
+            "Where the encryption safe harbour is claimed, record the algorithm, key management and the evidence the key was not compromised.",
+            "Decide notification per jurisdiction where residents span states, and record the decision, the reasoning and the decision date in a signed memo.",
+            "Where law enforcement requests a delay, obtain it in writing with the requesting agency, officer and expected duration, and diarise the re-test date."
+          ],
+          "done": "a signed, dated decision memo states notify or not-notify per jurisdiction with the statutory test applied and any law-enforcement delay documented."
+        },
+        {
+          "step": "Draft the consumer notice to the statutory content list",
+          "by": "Communications Specialist",
+          "role": "Communications Specialist",
+          "actions": [
+            "Build the notice on the required headings — What Happened, What Information Was Involved, What We Are Doing, What You Can Do, For More Information — in plain language at 10-point type or larger.",
+            "Include the name and contact details of the reporting entity, the types of PI involved, the date or date range of the breach, and the toll-free numbers and addresses of the three major credit reporting agencies.",
+            "Where Social Security, driver's licence or California ID numbers were involved, include the offer of identity theft prevention and mitigation services at no cost for at least 12 months with instructions to take it up.",
+            "Have Privacy Counsel approve the text and the delivery method before anything is printed or queued."
+          ],
+          "done": "an approved notice exists carrying every statutory element, with the 12-month monitoring offer where identifier types require it."
+        },
+        {
+          "step": "Deliver the notice and prove delivery",
+          "by": "Consumer Affairs Manager",
+          "role": "Consumer Affairs Manager",
+          "app": "CRM (Salesforce/Dynamics)",
+          "actions": [
+            "Send by written notice to the last known postal address, or by electronic notice only where the consumer consented to electronic communication under the federal E-SIGN standard.",
+            "Where the cost would exceed 250,000 dollars, the affected class exceeds 500,000 people, or contact details are insufficient, use substitute notice — email where available, a conspicuous website posting for at least 30 days, and notification to major statewide media — and record which limb was relied on.",
+            "Reconcile the send file back to the affected-resident list and chase every undeliverable through address-append before writing it off.",
+            "Stand up the dedicated response line and the FAQ before the notices land, and brief the contact centre with the approved holding statement."
+          ],
+          "done": "the send file reconciles to the affected-resident list, undeliverables are chased, and the response line is live before delivery."
+        },
+        {
+          "step": "File the sample notice with the California Attorney General above 500 residents",
+          "by": "Privacy Counsel",
+          "role": "Privacy Counsel",
+          "actions": [
+            "Where more than 500 California residents are notified in a single breach, open the Attorney General's data breach reporting form at oag.ca.gov and submit a sample copy of the notice with the identifying information redacted.",
+            "Complete the submission fields: organisation name and type, breach date range, discovery date, notification date, number of Californians notified and data types involved.",
+            "Capture the submission confirmation and the public listing reference and file both against the incident record.",
+            "Submit on or before the date the consumer notices go out, never after."
+          ],
+          "done": "the AG sample-notice submission is completed with a captured confirmation reference, dated on or before the consumer send date."
+        },
+        {
+          "step": "Notify the affected business partners and the insurance regulator where required",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Where the compromised data belongs to a group client, broker or reinsurer, issue the contractual breach notice inside the period the contract specifies and log the send.",
+            "Assess whether the California Department of Insurance or any other domiciliary regulator requires notification under the insurer's licensing conditions and record the assessment either way.",
+            "Where Meridian was acting as a service provider to another business, notify that business immediately so it can run its own notification duty.",
+            "Track every partner notification with recipient, date, method and acknowledgement."
+          ],
+          "done": "every contractual and regulatory partner notification is assessed, sent where required, and logged with an acknowledgement."
+        },
+        {
+          "step": "Issue deletion directives to service providers and contractors after a consumer deletion",
+          "by": "Data Privacy Steward",
+          "role": "Data Privacy Steward",
+          "app": "workflow/case management tool",
+          "actions": [
+            "On executing a consumer deletion, pull from the recipient map every service provider and contractor that received that consumer's PI.",
+            "Send each the templated deletion directive within 5 business days, naming the consumer identifiers, the deletion date and the required confirmation, per 11 CCR 7022(b)(3).",
+            "Where the PI was sold or shared, additionally notify every third party that received it, unless a statutory impossibility or disproportionate-effort exception applies — and record the exception with its reasoning.",
+            "Log each directive on the DSAR case with recipient, send date, method and the response due date."
+          ],
+          "done": "every recipient of the consumer's PI has a dated deletion directive on the case within 5 business days, with any exception reasoned."
+        },
+        {
+          "step": "Chase and record the downstream deletion confirmations",
+          "by": "Vendor Manager",
+          "role": "Vendor Manager",
+          "actions": [
+            "Track each outstanding directive and chase at day 10 and day 20 against a 30-calendar-day confirmation target.",
+            "Require the confirmation to state the systems purged, the record count and the deletion or de-identification method, not a bare acknowledgement.",
+            "Escalate non-responders to the contract owner as a breach of the deletion-on-instruction clause and record the escalation.",
+            "File each confirmation against both the DSAR case and the vendor record."
+          ],
+          "done": "each directive has a substantive confirmation with systems, counts and method, or a logged escalation under the contract clause."
+        },
+        {
+          "step": "Tell the consumer what happened to their downstream data",
+          "by": "Consumer Affairs Analyst",
+          "role": "Consumer Affairs Analyst",
+          "actions": [
+            "In the deletion response, state that service providers and contractors were instructed to delete and name the categories of recipient involved.",
+            "Where an exception prevented a directive or a recipient could not delete, tell the consumer which category and why, citing the exception relied on.",
+            "Offer the consumer the route to challenge the outcome and record any challenge received.",
+            "Attach the response to the case with the delivery evidence."
+          ],
+          "done": "the consumer response states the downstream directive outcome, names any exception relied on and gives a challenge route."
+        },
+        {
+          "step": "Run the post-incident review and fix the cause",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "app": "ITSM/security ticketing system",
+          "actions": [
+            "Hold the review within 15 business days of closure with the incident chronology, the notification timeline and the scoping method on the table.",
+            "Identify the control that failed — detection gap, excessive access, unencrypted store, missing egress control — and raise a remediation action with an owner and a date.",
+            "Assess whether the same control gap exists in adjacent systems and extend the remediation there.",
+            "Report the incident, the notification timeline and the remediation plan to the Enterprise Risk Committee."
+          ],
+          "done": "a post-incident review is held within 15 business days with owned, dated remediation actions extended to adjacent systems."
+        },
+        {
+          "step": "Exercise the plan on a tabletop at least annually",
+          "by": "Business Continuity Manager",
+          "role": "Business Continuity Manager",
+          "actions": [
+            "Run a scenario involving unencrypted California PI at a service provider, forcing both the notification decision and the downstream directive path.",
+            "Time-stamp each decision in the exercise and compare to the 30-day notice target and the 5-business-day directive target.",
+            "Record every plan defect surfaced — an unreachable contact, an unclear decision owner, a missing template — as an action with an owner.",
+            "Update the procedure and re-approve it with the CISO and General Counsel after the exercise."
+          ],
+          "done": "an annual tabletop is run against timed targets with every plan defect actioned and the procedure re-approved."
+        },
+        {
+          "step": "Log incident and directive exceptions",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise an issue for every notice sent beyond the 30-day target without a documented delay, every missing AG filing above 500 residents, and every deletion directive not issued or not confirmed.",
+            "Record the exposure — residents affected, days late, recipients unconfirmed — and the root cause.",
+            "Assign the owner to the function that caused the delay: detection, scoping, legal decision, print and mail, or vendor management.",
+            "Carry unresolved items into the next monthly test as mandatory retest rows."
+          ],
+          "done": "every timing and directive failure has an issue with exposure, root cause, an owner and a retest commitment."
+        },
+        {
+          "step": "Retain the incident and directive record for the full period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Archive the incident chronology, scoping analysis, decision memo, approved notice, send file and delivery evidence, AG submission receipt and post-incident review as one indexed pack.",
+            "Archive the deletion directives with their confirmations against both the DSAR case and the vendor record.",
+            "Apply the 7-year retention label and index by incident reference, resident count and consumer reference.",
+            "Restore one incident pack and three directive sets each quarter to prove retrievability."
+          ],
+          "done": "incident and directive evidence is archived complete, indexed and proven retrievable by a quarterly restoration test."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of incidents and executed deletions",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM/security ticketing system",
+          "actions": [
+            "Export every security and privacy incident raised in the period with severity, affected data classification and closure status.",
+            "Independently pull SIEM alerts tagged for data exfiltration or mass export, the DLP alert log and the misdirected-mail complaint log so incidents never ticketed surface.",
+            "Export every executed consumer deletion in the period from the DSAR case tool with its recipient map.",
+            "Freeze both populations with row counts and timestamps before sampling."
+          ],
+          "done": "frozen incident and deletion populations exist, with incidents cross-built from SIEM, DLP and complaint sources."
+        },
+        {
+          "step": "Reconcile alerts to incident tickets and deletions to directive records",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each exfiltration, DLP and misdirected-mail alert to an incident ticket and list unticketed alerts as detection-control failures.",
+            "Match each executed deletion to a directive record for every recipient on its recipient map.",
+            "List deletions with no directive, or with directives to fewer recipients than the map holds.",
+            "Require Security Operations and Privacy Ops to explain each unmatched row in writing and attach the replies."
+          ],
+          "done": "every alert ties to a ticket and every deletion ties to a complete directive set, or the gap is listed with a written explanation."
+        },
+        {
+          "step": "Draw the samples with a documented, reproducible method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of incidents classified as notifiable and 100% of incidents involving Social Security, driver's licence or financial account numbers.",
+            "Take 20 further incidents at random from the remainder using a recorded seed.",
+            "Take 100% of deletions where PI had been sold or shared, plus 25 random executed deletions.",
+            "Record population sizes, strata, seed and selection date so both samples can be redrawn."
+          ],
+          "done": "both samples are stratified on notifiable incidents, high-risk identifiers and sold-or-shared deletions, and are reproducible."
+        },
+        {
+          "step": "Recompute the notification clock from the raw timestamps",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each sampled incident recompute calendar days from the source-log detection timestamp to the confirmation timestamp, and from confirmation to the consumer notice send date.",
+            "Compare to the 30-day internal target and to the 'most expedient time possible and without unreasonable delay' standard, and challenge any long gap between containment and decision.",
+            "Where a law-enforcement delay is claimed, confirm the written request names the agency and officer and that notice followed promptly once the hold lifted.",
+            "Recompute the deletion-directive clock as business days from deletion execution to directive send against the 5-business-day target."
+          ],
+          "done": "every sampled incident and deletion has independently recomputed day counts against the 30-day and 5-business-day targets."
+        },
+        {
+          "step": "Re-perform the notifiability determination",
+          "by": "Privacy Counsel",
+          "role": "Privacy Counsel",
+          "actions": [
+            "Read the scoping analysis and apply the 1798.82 test yourself before reading the decision memo.",
+            "Where an encryption safe harbour was claimed, test the algorithm, key custody and the evidence the key was uncompromised, and reject bare assertions of encryption at rest.",
+            "Where a not-notifiable decision was reached, challenge whether 'reasonably believed acquired' was applied honestly against the log evidence.",
+            "Record agreement or disagreement per incident with the reasoning."
+          ],
+          "done": "each sampled decision is independently re-determined and every encryption safe-harbour claim is tested against key evidence."
+        },
+        {
+          "step": "Re-perform the affected-resident scoping on a sub-sample",
+          "by": "Data Protection Specialist",
+          "role": "Data Protection Specialist",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "For three sampled incidents, rebuild the affected record set from the raw access and egress logs without reference to the responder's output.",
+            "Deduplicate to individuals and compare your California resident count to the count used for the notification and the AG threshold.",
+            "Compare the per-element exposure matrix and flag any element the original scoping missed, particularly identifiers that trigger the credit-monitoring offer.",
+            "Quantify any undercount as residents who should have been notified but were not."
+          ],
+          "done": "three incidents have independently rebuilt resident counts and element matrices, with any undercount quantified in residents."
+        },
+        {
+          "step": "Check the notice content and the AG filing",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Score each sampled notice against the statutory elements: entity name and contact, types of PI, breach date or range, description of the incident, credit agency contacts, and the 12-month identity-theft services offer where required.",
+            "Confirm the required headings are present and the type size and plain-language standard are met on the printed sample.",
+            "For every incident above 500 California residents, locate the AG submission confirmation and confirm its date is on or before the consumer send date.",
+            "Confirm the sample notice filed matches the notice actually sent, not an earlier draft."
+          ],
+          "done": "each sampled notice is scored element by element and every above-threshold incident shows a matching, timely AG filing."
+        },
+        {
+          "step": "Trace deletion directives to substantive vendor confirmations",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "For each sampled deletion, list the recipients from the recipient map and match each to a sent directive with a date.",
+            "Open each confirmation and check it names the systems purged, the record count and the method, rejecting bare acknowledgements.",
+            "For sold or shared PI, confirm third parties were notified or that a documented impossibility or disproportionate-effort exception was recorded with reasoning.",
+            "Confirm non-responding vendors were escalated against the contractual deletion clause."
+          ],
+          "done": "every recipient traces to a dated directive and a substantive confirmation, an exception with reasoning, or a logged contract escalation."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception typed as detection gap, scoping undercount, late notice, deficient notice content, missing AG filing, missing directive or unconfirmed deletion.",
+            "Quantify exposure — residents affected or unnotified, days late, recipients unconfirmed.",
+            "Assign a root cause and a named owner in Security Operations, Privacy Ops, Legal or Vendor Management, with a remediation date.",
+            "Refer any undercount that left residents unnotified to Privacy Counsel for a supplemental notification decision within 5 business days."
+          ],
+          "done": "every exception is typed, quantified, owned and dated, with undercounts referred for a supplemental notification decision."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compute the on-time notification rate, the notice content completeness rate, the AG filing rate and the directive issue-and-confirm rate.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — citing the workpaper references behind each rate.",
+            "Have the independent reviewer, who sits outside the incident response chain, sign the workpaper.",
+            "Report to the CISO, the General Counsel and the Audit Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states the four rates, a conclusion and the Audit Committee reporting date."
+        }
+      ]
+    }
+  ]
+}

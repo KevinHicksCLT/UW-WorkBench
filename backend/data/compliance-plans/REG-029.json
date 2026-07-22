@@ -1523,6 +1523,1147 @@
           "done": "a signed workpaper with a stated conclusion, breach count, premium exposure and committee reporting date exists in the repository."
         }
       ]
+    },
+    {
+      "itemCode": "REG-029-C05",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Configuration Engineer",
+          "value": "Builds and releases the approved health rate tables, plan configurations and rating factors into policy administration, the rating engine, billing and the exchange rate submission, exactly as approved by each state"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - 45 CFR 156.80(d) (the rate charged must be the plan-adjusted index rate developed for the single risk pool), 45 CFR 147.102 (permitted rating factors, tobacco limited to 1.5 to 1, single age curve), 45 CFR 156.286 where applicable, and the Alaska Division of Insurance approval letter terms for the representative filing"
+        },
+        "In-scope processes": {
+          "value": "Approved rate table load, plan and benefit configuration, rating factor configuration, member-facing document generation, exchange rate template submission, billing rate synchronisation and post-implementation validation for individual and small group medical"
+        },
+        "In-scope systems": {
+          "app": "Policy Administration Platform",
+          "value": "Policy administration plan and rate configuration, the rating engine that prices quotes and renewals, the billing rate load, and the exchange rates table submission - all fed from the single approved rate version"
+        },
+        "Compliance procedure documented": {
+          "value": "Approved Rate Implementation Procedure - approved-source rate load, configuration build, cell-level tie-out to the approved rate table, regression testing of in-force renewals, member document refresh, downstream synchronisation and post-release validation of live premiums"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of IT and the Chief Product Officer with Compliance concurrence; reviewed each plan year before the configuration freeze that precedes open enrollment"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per filing: configuration must be built, tied out and regression tested before the configuration freeze ahead of the November 1 open enrollment start, and no later than the state earliest-use date for any off-cycle approval"
+        },
+        "Deadline reminders configured": {
+          "value": "Release plan milestone alerts - approved rates received, build complete, tie-out signed, regression passed, change advisory board approved, production release - each with an owner and a T-3 business day reminder"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Change record with the approval reference and SERFF tracking number, the cell-level tie-out sheet, regression results, change advisory board approval and the post-release validation quotes, retained for the plan year plus 7 years"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any configured rate cell that differs from the approved rate table, any prohibited rating factor found in configuration, or any release without a signed tie-out is logged as an exception with member and premium impact"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs off any remediation where a member was quoted, enrolled or billed at a rate that differs from the approved rate table"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every rate version activated in policy administration for the plan year by state and plan id, joined to the approved rate tables in SERFF and to issued premiums on new business and renewals"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on any priced premium that differs from the approved rate table beyond a documented rounding convention; any prohibited rating factor in configuration is a fail; more than one configuration defect reaching production escalates to the Head of IT"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per filing; the test runs on each production release of approved rates and again on live premiums in the first two weeks of the enrollment window"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "QA Analyst",
+          "value": "Tester must not have built or loaded any sampled rate configuration"
+        },
+        "Evidence location for test results": {
+          "value": "Rate implementation test workpaper (tie-out sheet, regression pack, live premium recomputation, defect log) in the compliance evidence repository under the plan year and release"
+        },
+        "Regulator-ready documentation": {
+          "value": "Change record linking the SERFF tracking number and approval letter to the activated rate version, with the cell-level tie-out, producible for an Alaska market conduct rating examination within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Rating accuracy questions from a market conduct examiner are answered by the Regulatory Affairs Manager using the tie-out sheet; Regulatory Counsel clears any admission of a mispriced policy and directs member remediation"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Raise the implementation change record from the approved filing, not the draft",
+          "by": "Change Coordinator",
+          "role": "Change Coordinator",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Open a change record per state and plan year quoting the SERFF tracking number, the disposition date and the approved effective date.",
+            "Attach the approval letter and the approved rate table downloaded from the SERFF Rate/Rule Schedule, and mark them the only permitted build source.",
+            "Record explicitly that pre-approval drafts and pricing model outputs must not be used to build configuration.",
+            "Name the builder, the tie-out reviewer and the release approver, and confirm they are three different people."
+          ],
+          "done": "the change record carries the SERFF tracking number, the approved rate table as source, and three separate named owners."
+        },
+        {
+          "step": "Prepare the rate load file from the approved rate table",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Transform the approved rate table into the load format keyed on plan id, rating area, age and tobacco status, without re-deriving any value from the pricing model.",
+            "Preserve the approved rounding and the number of decimal places stated in the actuarial memorandum.",
+            "Run a row count and checksum against the approved table and record both on the change record.",
+            "Have the Product / Filing Actuary confirm in writing that the load file is a faithful transformation of the approved table."
+          ],
+          "done": "the load file matches the approved table by row count and checksum, confirmed in writing by the filing actuary."
+        },
+        {
+          "step": "Configure the plan and benefit definitions for the plan year",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Create or amend each plan record with the 14-character HIOS plan id, metal level, exchange status, service area by county and network id exactly as filed.",
+            "Configure cost-sharing to the approved plan design: deductible, coinsurance, copays by service category, out-of-pocket maximum and drug tier structure.",
+            "Set the plan effective date and, for terminating plans, the termination date and the mapped replacement plan id.",
+            "Have the Insurance Product Manager confirm the configured design against the filed plan documents before rates are attached."
+          ],
+          "done": "every plan is configured with filed identifiers, service area, network and cost-sharing, confirmed against the filed plan documents."
+        },
+        {
+          "step": "Configure the rating factors and prove only permitted factors exist",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Earnix Rating & Pricing",
+          "actions": [
+            "Load the applicable age curve, the geographic rating area factors and the tobacco factor, and configure the family tiering rule the state requires.",
+            "Confirm the tobacco factor never exceeds 1.5 to 1 and that it is applied only where the state permits it.",
+            "Export the full list of rating variables the engine can use for these products and confirm none varies by health status, gender, occupation, duration or claims experience.",
+            "File the variable export on the change record as the evidence that no prohibited factor exists in configuration."
+          ],
+          "done": "rating factors are loaded and a variable export proves no prohibited rating factor is configured."
+        },
+        {
+          "step": "Tie the configured rates back to the approved rate table cell by cell",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Extract the configured rate table from the system and compare it to the approved SERFF rate table for 100 percent of cells by plan id, rating area, age and tobacco status.",
+            "List every difference with its magnitude and cause - transformation error, rounding convention, missing rating area, missing age.",
+            "Clear every difference to zero, accepting only a rounding convention that is documented in the certified actuarial memorandum.",
+            "Sign the tie-out sheet and attach it to the change record - the release cannot proceed without it."
+          ],
+          "done": "a signed tie-out sheet shows zero unexplained differences between configured and approved rates for every cell."
+        },
+        {
+          "step": "Unit test the premium calculation against actuarial benchmark quotes",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "actions": [
+            "Ask the Product / Filing Actuary for benchmark premiums for at least 20 scenarios spanning metal levels, rating areas, ages 0, 21, 45, 64, tobacco and non-tobacco, and family compositions.",
+            "Run the same scenarios through the configured rating engine and compare premium to the cent.",
+            "Test the family tiering rule explicitly, including the dependent age cap the state applies.",
+            "Log every difference as a defect against the change record and retest after fix rather than accepting an explanation."
+          ],
+          "done": "all benchmark scenarios price to the cent against actuarial benchmarks, with defects retested after fix."
+        },
+        {
+          "step": "Regression test in-force renewals and the prior plan year",
+          "by": "Test Lead",
+          "role": "Test Lead",
+          "actions": [
+            "Select a representative in-force population by state, plan and family composition and re-rate them on the renewal date.",
+            "Confirm prior plan year policies still price on the prior approved rate version until their renewal date - the new rates must not leak backwards.",
+            "Confirm mapped members on terminating plans renew onto the crosswalked replacement plan at that plan's approved rate.",
+            "Compare the renewal premium change distribution to the filed average rate change and investigate any material divergence with Pricing."
+          ],
+          "done": "in-force renewals price on the correct version, crosswalks work, and the renewal change distribution reconciles to the filed average."
+        },
+        {
+          "step": "Set the effective dating so no rate can be used before its approved date",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Set each rate version effective date to the approved effective date and the earliest-use date recorded on the release gate.",
+            "Test a quote dated one day before the earliest-use date and confirm the engine refuses or selects the prior approved version.",
+            "Confirm back-dated transactions cannot pull a future rate version.",
+            "Record the effective dating test evidence on the change record."
+          ],
+          "done": "rate versions are date-bounded and a pre-date quote test proves the new rates cannot be used early."
+        },
+        {
+          "step": "Refresh member-facing rate and benefit documents",
+          "by": "Product Analyst",
+          "role": "Product Analyst",
+          "app": "document management repository",
+          "actions": [
+            "Regenerate the summary of benefits and coverage for each plan from the approved plan design and confirm the cost-sharing values match configuration.",
+            "Update rate quote illustrations, enrollment kits and the plan comparison content used by the contact center and brokers.",
+            "Have Marketing Compliance review the member-facing material against the filed plan design before publication.",
+            "Withdraw superseded documents from circulation so an old rate sheet cannot be quoted from."
+          ],
+          "done": "member-facing documents match the approved design and configuration, are compliance reviewed, and superseded versions are withdrawn."
+        },
+        {
+          "step": "Synchronise billing, enrollment interfaces and the exchange rate submission",
+          "by": "Integration Engineer",
+          "role": "Integration Engineer",
+          "actions": [
+            "Confirm the billing platform draws premium from the same approved rate version rather than a separately maintained table.",
+            "Confirm the enrollment transaction interface carries the correct plan id and premium to the exchange and to group administrators.",
+            "Submit or confirm the plan year rates table to the exchange and reconcile the submitted rates to the approved rate table for every plan and area.",
+            "Record the submission confirmation and reconciliation on the change record."
+          ],
+          "done": "billing, enrollment interfaces and the exchange rates submission all reconcile to the same approved rate version."
+        },
+        {
+          "step": "Run the pre-release compliance review of the build",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Check the change record holds the approval letter, the signed tie-out, the rating variable export, the benchmark test results and the regression results.",
+            "Confirm the release covers only states whose gates are released, and that no state still blocked is included in the deployment scope.",
+            "Confirm the builder did not also sign the tie-out or approve the release.",
+            "Record a compliance concurrence or a hold with named blockers."
+          ],
+          "done": "compliance concurrence is recorded, or the release is held with named blockers, before the change board sits."
+        },
+        {
+          "step": "Take the change advisory board decision and deploy",
+          "by": "Release Coordinator",
+          "role": "Release Coordinator",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Present the change record with the tie-out, test evidence, compliance concurrence, deployment plan and back-out plan.",
+            "Obtain the board decision and record the approved deployment window.",
+            "Deploy to production, capturing the deployed version numbers and the deployment timestamp.",
+            "Execute the smoke test immediately after deployment: three control quotes per state against expected premiums."
+          ],
+          "done": "the deployment is board-approved, executed in the approved window, and smoke tested against expected premiums."
+        },
+        {
+          "step": "Validate live premiums in the first days of the enrollment window",
+          "by": "Production Support Analyst",
+          "role": "Production Support Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Extract the first 200 issued policies per state and recompute each premium from the approved rate table using the member age, rating area and tobacco status.",
+            "Investigate every mismatch immediately, identifying whether it is a configuration defect, a data defect or a member data entry issue.",
+            "Report the daily mismatch count to Compliance and the Insurance Product Manager for the first two weeks.",
+            "Escalate any systematic mismatch to the Head of IT and the Head of Compliance the same day."
+          ],
+          "done": "live issued premiums are recomputed against the approved table daily for two weeks with mismatches escalated same day."
+        },
+        {
+          "step": "Correct defects and remediate affected members",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "For each confirmed rating defect, quantify the affected policies, the premium overcharge or undercharge and the period involved.",
+            "Fix the configuration through a new change record with a fresh tie-out rather than a direct production edit.",
+            "Agree the member remediation with Regulatory Counsel: rerate, refund with interest where the state requires it, and member notification wording.",
+            "Notify the state where the state's rating rules or its approval terms require disclosure of the correction."
+          ],
+          "done": "every rating defect has a quantified member impact, a controlled fix and a counsel-agreed remediation and notification decision."
+        },
+        {
+          "step": "Close and archive the implementation record",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the change record with the SERFF tracking number, approval letter, signed tie-out, rating variable export, test and regression evidence, board approval and post-release validation results.",
+            "Apply the plan-year-plus-7-years retention label and index by state, plan id and SERFF tracking number.",
+            "Link the archived record to the release gate record and the filing archive so a market conduct examiner can walk filing to premium in one path."
+          ],
+          "done": "the implementation record is archived under retention and linked to the gate record and the filing archive."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of activated rate versions and issued premiums",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Extract every rate version activated for the plan year by state and plan id with its activation timestamp and change record reference.",
+            "Extract issued new business and renewal policies for the plan year with member age, rating area, tobacco status and billed premium.",
+            "Reconcile the activated version list to the release gate register and the SERFF approved filings, listing any version with no approval reference."
+          ],
+          "done": "every activated rate version reconciles to an approved filing and a gate, and the issued policy extract is complete."
+        },
+        {
+          "step": "Re-perform the cell-level tie-out from SERFF rather than from the tie-out sheet",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Download the approved rate table attachment from the SERFF Rate/Rule Schedule for each sampled state.",
+            "Extract the configured rate table from policy administration for the same state and plan ids.",
+            "Compare 100 percent of cells for at least two rating areas per state and quantify every difference.",
+            "Accept a rounding difference only where the convention is documented in the certified memorandum; treat all others as fails."
+          ],
+          "done": "configured rates re-tie to the SERFF approved table for the tested areas with every difference quantified and dispositioned."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100 percent of states with a post-release rating defect and 100 percent of states released on a modified approval.",
+            "Take a seeded random selection of 12 further state and plan combinations, minimum total 25.",
+            "Record the seed, population size and draw date, and include Alaska in the sample as the representative jurisdiction."
+          ],
+          "done": "the sample is reproducible, covers defect and modified-approval states, and includes Alaska."
+        },
+        {
+          "step": "Recompute billed premiums for issued policies",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Select 25 issued policies per sampled state across metal levels, ages and rating areas.",
+            "Recompute each premium from the approved plan-adjusted index rate, the age curve, the geographic factor, the tobacco factor and the family tiering rule.",
+            "Compare to the premium actually billed and quantify any difference in dollars and as a percentage.",
+            "Trace any difference to a configuration defect, a member data error or an approval scope issue."
+          ],
+          "done": "each sampled policy premium is independently recomputed and every difference is traced to a named cause."
+        },
+        {
+          "step": "Test that no prohibited rating factor is configured or applied",
+          "by": "Actuary",
+          "role": "Actuary",
+          "app": "Earnix Rating & Pricing",
+          "actions": [
+            "Obtain the rating variable export for the products and inspect every variable the engine can consume.",
+            "Confirm no variable represents health status, gender, occupation, duration or prior claims, including through a proxy such as an underwriting score.",
+            "Recompute the tobacco factor from issued policies as the ratio of tobacco to non-tobacco premium at identical age and area, and confirm it stays within 1.5 to 1.",
+            "Confirm tobacco rating is switched off in states that prohibit it."
+          ],
+          "done": "no prohibited or proxy rating factor is configured, and the observed tobacco ratio is inside the federal limit in every state."
+        },
+        {
+          "step": "Test the effective dating and version selection controls",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Run quotes dated one day before and one day after the earliest-use date for each sampled state and record which version the engine selects.",
+            "Re-rate a prior plan year in-force policy at a date before its renewal and confirm it holds the prior approved version.",
+            "Attempt a back-dated transaction that would pull the new version and confirm it is refused.",
+            "Capture screenshots and timestamps into the workpaper."
+          ],
+          "done": "version selection is proven correct on both sides of the earliest-use date and back-dating cannot pull a future version."
+        },
+        {
+          "step": "Verify segregation of duties across build, tie-out and release",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "For each sampled change record confirm the builder, the tie-out signer and the release approver are three different named people.",
+            "Confirm the change advisory board approval and the compliance concurrence pre-date the deployment timestamp.",
+            "Confirm no production rate edit was made outside a change record by comparing configuration audit logs to the change list.",
+            "Flag any emergency change that skipped the tie-out even where the rates proved correct."
+          ],
+          "done": "duties are proven segregated, approvals pre-date deployment, and no out-of-process production rate edit exists."
+        },
+        {
+          "step": "Verify downstream reconciliation to billing and the exchange",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the premium held in billing for 25 sampled policies to the premium calculated in policy administration.",
+            "Compare the rates submitted to the exchange for each sampled plan and rating area to the approved rate table.",
+            "Confirm the enrollment transaction interface carried the correct plan id and premium for the sampled policies.",
+            "Any downstream value that differs from the approved table is a fail regardless of what the source system holds."
+          ],
+          "done": "billing, exchange rates and enrollment transactions all reconcile to the approved rate table for the sample."
+        },
+        {
+          "step": "Log defects and member impact with root cause, owner and remediation",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per defect with state, plan id, affected policy count, premium impact and the period involved.",
+            "Assign a root cause - transformation error, missing rating area, wrong age curve, stale configuration, prohibited factor, downstream table drift - and an owner.",
+            "Record the remediation decision agreed with Regulatory Counsel including refund or rerate and any state notification.",
+            "Carry every open defect into the next release test as a mandatory retest row."
+          ],
+          "done": "every defect has an issue, a quantified member impact, a root cause, an owner and a counsel-agreed remediation."
+        },
+        {
+          "step": "Conclude, sign and report the implementation test",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Report the number of cells tied out, policies recomputed and defects found against the zero-tolerance premium accuracy threshold.",
+            "Write the conclusion - effective, effective with exceptions, or ineffective - citing the tie-out re-performance and the premium recomputation.",
+            "Have the independent tester, who built none of the sampled configuration, sign the workpaper.",
+            "Report to the Compliance Committee and the Head of IT and file the workpaper under the plan year and release."
+          ],
+          "done": "a signed workpaper with a stated conclusion, defect count and premium impact exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-029-C06",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Filing Specialist",
+          "value": "Owns the objection and interrogatory queue for every open health rate filing - intake, tasking, response assembly and submission inside the response date the state sets on the objection letter"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - the response due date stated on each SERFF objection letter, the state health rate filing instructions that set the standard response window (commonly 10 to 15 business days), Alaska AS 21.06.250 and the Division of Insurance rate filing instructions, and 45 CFR 154.215 where a revised Rate Filing Justification must be resubmitted after a rate change"
+        },
+        "In-scope processes": {
+          "value": "Objection letter intake and triage, actuarial and legal analysis, amendment of the URRT, memorandum and rate tables where the objection forces a change, response submission in SERFF, and disposition of every objection round for individual and small group medical"
+        },
+        "In-scope systems": {
+          "app": "Regulatory Filing Portal (SERFF)",
+          "value": "SERFF Objection Letters and Response to Objection Letter for state correspondence, with the federal justification refreshed in the CMS rate review modules whenever the rates move, all tracked in the objection log"
+        },
+        "Compliance procedure documented": {
+          "value": "Rate Filing Objection Response Procedure - same-day intake, per-item tasking with owners, actuarial re-run rules, amendment versus response decision, legal and actuarial clearance, submission and clock management including tolling and extension requests"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Regulatory Affairs Manager and the Chief Actuary; reviewed each plan year and after any state changes its standard response window"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Event-driven: every objection carries the state's stated response due date; the internal target is 3 business days earlier, and any revised rates must reach the state before its final rate lock date and before the CMS deadline for revised justifications"
+        },
+        "Deadline reminders configured": {
+          "value": "Objection log alerts on receipt, at half the response window, at T-3 business days and on the due date, addressed to the assigned owner, the Regulatory Filing Specialist and the Regulatory Affairs Manager"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Objection letter, per-item response assignments, actuarial support for each answer, amended templates and rate tables, the submitted response and the state acknowledgement, retained for the plan year plus 7 years"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "A response filed after the state due date, an objection item answered without the support it asked for, or a rate change made in response without a refreshed federal justification is logged as an exception with owner and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Regulatory Affairs Manager",
+          "value": "Signs off every late response, every extension request and every objection closed by withdrawing or amending the filing"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every objection letter and interrogatory received on a plan year health rate filing across all states, joined to the response submitted and the state's subsequent action"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on a response submitted after the state due date without a granted extension, and on an objection item left unanswered; any rate change made without a corrected and recertified package is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven; the test runs monthly through the review season over objections received that month and once at cycle close over the full objection population"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have drafted or submitted any sampled objection response"
+        },
+        "Evidence location for test results": {
+          "value": "Objection response timeliness and completeness workpaper (SERFF correspondence export, due date recomputation, item-by-item completeness check) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per-filing objection log showing each item, its due date, its response date and its disposition, producible to the Alaska Division of Insurance or a market conduct examiner within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "The Regulatory Filing Specialist answers routine objections; the Regulatory Affairs Manager handles escalations, hearing notices and negotiated rate discussions with Regulatory Counsel clearing anything that concedes a filing defect"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Detect and intake every objection the day it lands",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Check the SERFF workspace each business morning for new items on the Objection Letters tab of every open health rate filing, and check the filing contact mailbox for objections sent outside SERFF.",
+            "Download the objection letter and record on the objection log: state, SERFF tracking number, objection date, the state's stated response due date and the reviewer's name.",
+            "Confirm the due date basis - calendar or business days - from the letter or the state instructions rather than assuming.",
+            "Acknowledge receipt to the state reviewer the same day where the state expects an acknowledgement."
+          ],
+          "done": "every objection is logged the day it is received with its stated due date and day-count basis recorded."
+        },
+        {
+          "step": "Split the objection into individually owned items",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Number each question, request and directive in the letter as a separate log item - a single letter routinely contains actuarial, legal and product items.",
+            "Classify each item: data or exhibit request, actuarial assumption challenge, rate level directive, plan design or benefit question, form or disclosure question, or administrative correction.",
+            "Assign an owner per item - Product / Filing Actuary, Pricing Actuary, Insurance Product Manager, Regulatory Counsel or Product Filing Specialist.",
+            "Set each item's internal due date at 3 business days before the state due date and publish the assignment list."
+          ],
+          "done": "every item in the letter is numbered, classified, owned and dated 3 business days ahead of the state due date."
+        },
+        {
+          "step": "Set the response strategy and confirm the effect on the clock",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "actions": [
+            "Decide per item whether the answer is an explanation with supporting exhibit, an amendment to the filed material, or a challenge to the reviewer's premise.",
+            "Establish from the state instructions whether the objection tolls or restarts the state review period and record the revised deemer date on the release gate.",
+            "Where the response cannot be complete by the due date, request an extension in writing before the due date and record the state's answer - never let a due date pass silently.",
+            "Brief the Insurance Product Manager on any risk to the requested effective date."
+          ],
+          "done": "each item has a response strategy, the review clock effect is recorded on the gate, and any extension is requested before the due date."
+        },
+        {
+          "step": "Re-run the actuarial analysis behind challenged assumptions",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "For each challenged assumption - trend, morbidity, risk adjustment projection, administrative expense load, profit and risk margin, credibility - re-derive the value from source data and document the derivation.",
+            "Where the reviewer proposes an alternative assumption, quantify its effect on the index rate, the plan-adjusted index rates and the average rate change, and state the actuarial basis for accepting or rejecting it.",
+            "Prepare the exhibit the objection asks for in the format requested, not in the format that is convenient.",
+            "Record whether the answer leaves the filed rates unchanged or forces a rate amendment."
+          ],
+          "done": "every challenged assumption has a re-derivation, a quantified effect and a stated conclusion on whether rates change."
+        },
+        {
+          "step": "Produce the additional data and exhibits the state asked for",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Extract exactly the data requested - claim distributions, large claim listings, enrollment by rating area, historical loss ratios, risk score movement - at the requested granularity and period.",
+            "Reconcile each new exhibit to the figures already filed in the URRT so the state does not receive two inconsistent numbers.",
+            "Redact or mark confidential only where the state's rules permit, and note the basis on the exhibit.",
+            "Hand the exhibits to the item owner with the query definitions attached."
+          ],
+          "done": "each requested exhibit exists at the requested granularity and reconciles to the figures already filed."
+        },
+        {
+          "step": "Take Regulatory Counsel's view on legal and directive items",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Review any item that asserts non-compliance, directs a rate change, or raises a form, disclosure or unfair discrimination question.",
+            "Read the statutory or regulatory basis the reviewer cites and confirm whether it says what the objection says it says.",
+            "Draft or approve the wording of any answer that concedes, disputes or reserves a position, and clear the wording before it is submitted.",
+            "Advise whether a directed rate reduction is within the state's authority and what the consequences of declining would be."
+          ],
+          "done": "every legal or directive item carries a counsel-cleared answer and a documented view of the state's authority."
+        },
+        {
+          "step": "Amend the templates, memorandum and rate tables where rates move",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "actions": [
+            "Where the response changes any rate, produce a new package version: updated URRT Worksheets 1 and 2, updated memorandum sections, updated rate tables and updated actuarial value runs if plan designs moved.",
+            "Re-run the member-month-weighted average rate change and re-test it against the 15 percent subject-to-review threshold - a reduction can move a product out of scope and an increase can move it in.",
+            "Re-run the reconciliation between the URRT, the rate tables and the memorandum and clear every difference to zero.",
+            "Route the new version through peer review and a fresh certification - an amended rate cannot ride on the prior certification."
+          ],
+          "done": "any rate change produces a new peer-reviewed, recertified package version with a refreshed threshold test and clean reconciliation."
+        },
+        {
+          "step": "Assemble the response document item by item",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Build the response letter restating each objection item verbatim with the answer directly beneath it, so no item can be lost.",
+            "Name the attachment that supports each answer and confirm every named attachment is actually attached.",
+            "State plainly for each item whether the filed material has changed, and list the changed documents with their new version numbers.",
+            "Have the item owners confirm their own answers in writing before submission."
+          ],
+          "done": "the response addresses every numbered item, names its support, and is confirmed by each item owner."
+        },
+        {
+          "step": "Clear the response through actuarial and compliance review",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Read the response for actuarial soundness and consistency with the certified memorandum before it leaves.",
+            "Confirm no answer contradicts a certified statement in the original filing; where it does, require the filing to be amended rather than the answer softened.",
+            "Confirm any recertification required by a rate change has been signed.",
+            "Record the clearance with a date on the objection log."
+          ],
+          "done": "the response is cleared by the Chief Actuary with no contradiction of any certified statement."
+        },
+        {
+          "step": "Submit the response in SERFF before the state due date",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Open the filing, select the objection letter and use Respond to Objection Letter, entering the response text and attaching the response document and every supporting exhibit.",
+            "Where documents were amended, replace them on the correct schedule item - Rate/Rule Schedule for rate tables, Supporting Documentation for the URRT and memorandum - rather than only attaching them to the response.",
+            "Submit and capture the submission confirmation, the timestamp and the updated filing status.",
+            "Record the submission date against the state due date on the objection log and confirm the gap is not negative."
+          ],
+          "done": "the response and amended documents are submitted on the correct schedules before the due date, with the confirmation captured."
+        },
+        {
+          "step": "Refresh the federal justification when the rates change",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "actions": [
+            "Where the objection response changes rates, resubmit the revised Rate Filing Justification through the federal rate review channel so the state and CMS hold the same rates.",
+            "Confirm the revised subject-to-review flag and, where a product has newly crossed the threshold, prepare the Part II written description that did not previously exist.",
+            "Where a product falls below the threshold after a reduction, record that the Part II obligation no longer applies rather than silently dropping the document.",
+            "Record the federal submission confirmation on the objection log item."
+          ],
+          "done": "any rate change is mirrored in the federal justification with the subject-to-review status refreshed and evidenced."
+        },
+        {
+          "step": "Handle rate directives, hearings and public comment",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "actions": [
+            "Where the state directs a rate reduction, model the reduced rates with Pricing and quantify the effect on the projected loss ratio and the medical loss ratio position.",
+            "Present accept, negotiate or withdraw to the Chief Actuary and the Chief Product Officer with the financial effect and the market consequence of each.",
+            "Where the state holds a hearing or opens public comment, prepare the company submission with Regulatory Counsel and track the comment deadline.",
+            "Record the decision, its owner and its date on the objection log."
+          ],
+          "done": "every rate directive has a modelled financial effect and a written, owned accept, negotiate or withdraw decision."
+        },
+        {
+          "step": "Track repeat objection rounds to closure",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Open a new numbered round on the objection log for each subsequent objection letter and repeat intake, tasking and dating rather than appending to the previous round.",
+            "Compare the new letter to the previous response and identify items the state considers unresolved - those get a different, better answer, not a restatement.",
+            "Watch for the filing status moving to Pending Industry Response and clear it within the stated window every time.",
+            "Escalate to the Regulatory Affairs Manager any filing reaching a third round or any item the state repeats twice."
+          ],
+          "done": "each objection round is separately logged and dated, repeated items are answered differently, and third rounds are escalated."
+        },
+        {
+          "step": "Close each objection item with its disposition",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Record per item: answered and accepted, answered and repeated, forced a rate change, forced a plan design change, or withdrawn by the state.",
+            "Record the filing outcome the objection led to - approval, approval as modified, disapproval or withdrawal - and the date.",
+            "Update the release gate with any changed deemer date, changed effective date or changed approval scope.",
+            "Confirm no objection item on the log remains open once the filing is disposed."
+          ],
+          "done": "every objection item carries a disposition and the filing outcome, with the release gate updated to match."
+        },
+        {
+          "step": "Feed the objection themes back into the next cycle",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Analyse the objection log by state and by theme - trend support, morbidity justification, expense allocation, actuarial value documentation, exhibit format.",
+            "Identify the three themes generating the most objection items across states and name the package change that removes each.",
+            "Update the package preparation checklist and the state-specific exhibit list before the next cycle opens.",
+            "Present the analysis to the rate cycle post-mortem and record the agreed changes with owners."
+          ],
+          "done": "the top objection themes are identified with named package changes owned and scheduled before the next cycle."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of objections received in the cycle",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Export the correspondence history for every plan year health rate filing and list every objection letter with its date, stated due date and round number.",
+            "Reconcile the SERFF export to the internal objection log and investigate every objection present in SERFF but absent from the log.",
+            "Add objections received outside SERFF from the filing contact mailbox so out-of-channel items are in scope.",
+            "Sign the population as complete with the export date recorded."
+          ],
+          "done": "the objection population reconciles SERFF correspondence to the internal log with out-of-channel items included."
+        },
+        {
+          "step": "Recompute every response due date and test timeliness",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Recompute each due date from the objection date using the state's stated window and its calendar or business day basis, and compare to the logged due date.",
+            "Compare the SERFF response submission timestamp to the recomputed due date for every objection in the population, not just the sample.",
+            "List every late response and check whether an extension was requested in writing before the due date and granted.",
+            "Quantify lateness in business days and identify whether the effective date was put at risk."
+          ],
+          "done": "every response is measured against a recomputed due date and late responses are quantified with their extension status."
+        },
+        {
+          "step": "Draw and document the sample for content testing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100 percent of objections that forced a rate change and 100 percent of filings reaching a third objection round.",
+            "Take 100 percent of late responses and a seeded random selection of 15 further objections, minimum total 30.",
+            "Record the seed, the population size and the draw date, and include Alaska objections in the sample."
+          ],
+          "done": "the sample is reproducible and covers all rate-changing, third-round and late objections."
+        },
+        {
+          "step": "Test item-by-item completeness of each sampled response",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Number the items in the original objection letter independently and match each to an answer in the submitted response.",
+            "Confirm every named supporting attachment exists in SERFF on the response or the correct schedule item.",
+            "Flag any item answered by cross-reference to a previous response without restating the answer.",
+            "Treat an unanswered or deflected item as a fail even where the state later approved the filing."
+          ],
+          "done": "every objection item in the sample maps to a substantive answer with its supporting attachment present in SERFF."
+        },
+        {
+          "step": "Re-perform the actuarial support behind a challenged assumption",
+          "by": "Actuary",
+          "role": "Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Pick the most material actuarial item in each sampled objection and re-derive the assumption from source data independently of the response exhibit.",
+            "Compare the re-derivation to the figure given to the state and quantify any difference.",
+            "Confirm the answer is consistent with the certified memorandum and with the answers given to other states on the same product.",
+            "Flag any state given a different figure for the same assumption without a documented state-specific reason."
+          ],
+          "done": "material actuarial answers are independently re-derived and cross-state consistency is confirmed or flagged."
+        },
+        {
+          "step": "Test that rate changes drove a recertified package and a refreshed federal justification",
+          "by": "Actuary",
+          "role": "Actuary",
+          "actions": [
+            "For every objection that changed rates, confirm a new package version exists with a fresh peer review and a dated certification after the change.",
+            "Confirm the URRT, memorandum and rate tables were replaced on the correct SERFF schedule items rather than only attached to the response.",
+            "Recompute the member-month-weighted average rate change on the revised rates and confirm the subject-to-review flag was refreshed.",
+            "Confirm the revised Rate Filing Justification was lodged federally with a captured confirmation."
+          ],
+          "done": "every rate-changing objection has a recertified package, replaced schedule documents and an evidenced federal resubmission."
+        },
+        {
+          "step": "Verify counsel clearance on directive and compliance-assertion items",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Identify every sampled item asserting non-compliance or directing a rate change and confirm a dated counsel clearance exists before submission.",
+            "Read the answer for any admission, concession or reserved position and confirm it matches the cleared wording.",
+            "Confirm the statutory basis cited by the reviewer was actually checked rather than accepted.",
+            "Flag any conceding answer sent without clearance as a fail regardless of outcome."
+          ],
+          "done": "every directive or compliance-assertion item carries a dated counsel clearance matching the wording submitted."
+        },
+        {
+          "step": "Test the clock effect on the release gate",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled objection confirm the tolling or restart effect on the state review period was recorded on the release gate the same week.",
+            "Recompute the revised deemer or review period date and compare it to the date on the gate record.",
+            "Confirm no gate was released on a deemer date that the objection had tolled.",
+            "Treat a gate released on a stale deemer date as a breach, not an exception."
+          ],
+          "done": "every objection's clock effect is reflected on the gate and no gate opened on a tolled deemer date."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with state, SERFF tracking number, objection round, item number and the defect found.",
+            "Assign a root cause - objection not detected, item not tasked, owner missed the internal date, exhibit not produced, rate change not recertified, clock effect not recorded - and an owner.",
+            "Set a remediation date and, where a response was late enough to threaten the effective date, record the effect on the launch.",
+            "Carry open exceptions into the next monthly test as mandatory retest rows."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the objection response test",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Report objections received, responses on time, average days used against the window, and unanswered items against the zero-tolerance threshold.",
+            "Write the conclusion - effective, effective with exceptions, or ineffective - citing the due date recomputation and the item completeness check.",
+            "Have the independent reviewer, who drafted none of the sampled responses, sign the workpaper.",
+            "Report to the Compliance Committee and the Regulatory Affairs Manager and file the workpaper under the plan year."
+          ],
+          "done": "a signed workpaper with a stated conclusion, timeliness statistics and unanswered item count exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-029-C07",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Records Manager",
+          "value": "Owns the health rate filing archive - the as-filed package, every objection round, the approval or disposition letter and the as-approved rate tables - for all 51 jurisdictions and every plan year"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - the NAIC Record Retention Model Regulation minimum retention read with each state's own record retention rule for rate filings, 45 CFR 154.230 (public disclosure and website posting of the rate increase justification), 45 CFR 158.502 (medical loss ratio record retention), and the Alaska Division of Insurance record retention requirement applicable to filed rates"
+        },
+        "In-scope processes": {
+          "value": "Continuous capture and retention of health rate filing records - filed packages, SERFF correspondence, objection rounds, dispositions, approval letters, as-approved rate tables and federal justification submissions - through to controlled destruction at the end of the retention period"
+        },
+        "In-scope systems": {
+          "app": "compliance evidence repository",
+          "value": "The evidence repository holding the exported SERFF filing record and the federal justification artefacts, indexed to the release gate record and the policy administration change record"
+        },
+        "Compliance procedure documented": {
+          "value": "Health Rate Filing Records Procedure - defined record set per filing, SERFF export at disposition, indexing keys, retention labelling, immutability, access and confidentiality controls, completeness reconciliation, retrieval testing and end-of-retention disposition"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and the General Counsel; reviewed annually against the state retention schedule and after any state record retention rule change"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Continuous: the record set must be archived within 10 business days of each filing disposition, the completeness reconciliation runs quarterly, and the retention clock starts at the later of disposition and the date the rates are withdrawn from use"
+        },
+        "Deadline reminders configured": {
+          "value": "Archive task raised automatically on every SERFF disposition with a 10-business-day due date, a quarterly reconciliation reminder to the Records Manager, and an annual review reminder before the plan year cycle opens"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "As-filed package, all objection letters and responses, the disposition and approval letters, as-approved rate tables, the federal justification confirmations and the public posting evidence, retained for the plan year plus 7 years from withdrawal of the rates - exceeding the NAIC model minimum and the medical loss ratio 7-year requirement"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any disposed filing with no archived record set after 10 business days, any missing approval letter, and any record destroyed before its retention date are logged as exceptions with owner and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs off every gap remediation and every early or emergency destruction decision, with General Counsel confirming no legal hold applies"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every health rate filing disposed in the plan year across the 51 jurisdictions, plus a look-back sample of filings from the two prior plan years to test retention over time"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on a missing approval or disposition letter, a missing as-approved rate table, or a record destroyed before its retention date; more than 2 percent of filings with an incomplete record set escalates to the Head of Compliance"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous; completeness reconciliation runs quarterly and the full retention and retrieval test runs annually after the rate cycle closes"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have archived or indexed any sampled filing record"
+        },
+        "Evidence location for test results": {
+          "value": "Annual rate filing records test workpaper (SERFF-to-archive reconciliation, completeness matrix, retrieval drill timings, destruction log review) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "The complete filing record for any state and plan year - as-filed package, objection rounds, approval letter and as-approved rate tables - retrievable by SERFF tracking number and producible to the Alaska Division of Insurance or a market conduct examiner within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Records requests in an examination or rate inquiry are fulfilled by the Records Manager through the Regulatory Affairs Manager; General Counsel applies a legal hold that suspends destruction before any record is produced"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Define the record set that must exist for every rate filing",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "actions": [
+            "Publish the mandatory record list: as-filed package version, rate tables as filed, all objection letters and responses by round, the disposition and approval letter, as-approved rate tables, the filing fee receipt, the federal justification confirmation and the public posting evidence.",
+            "Map each record to its source - SERFF, the federal rate review channel, the company website - and name the person responsible for capturing it.",
+            "Set the retention rule as the later of plan year plus 7 years and 7 years from the date the rates were withdrawn from use.",
+            "Publish the list to the Regulatory Filing Specialist and Compliance so archiving is not a matter of judgement."
+          ],
+          "done": "a published mandatory record list names every required artefact, its source and its capture owner."
+        },
+        {
+          "step": "Trigger the archive task automatically on every disposition",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Configure the filing tracker so a SERFF disposition raises an archive task with a 10-business-day due date and a named owner.",
+            "Include withdrawn and disapproved filings - a disapproval is as much a record as an approval and is exactly what an examiner asks for.",
+            "Record the disposition type, date and reviewer on the task so the archive index is populated from source.",
+            "Report open archive tasks weekly to the Records Manager."
+          ],
+          "done": "every disposition, including withdrawals and disapprovals, raises a dated, owned archive task."
+        },
+        {
+          "step": "Export the complete filing record from SERFF",
+          "by": "Document Management Specialist",
+          "role": "Document Management Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Open the disposed filing and export the Filing at a Glance summary showing the tracking number, company, state, TOI, submission date, status and disposition date.",
+            "Download every attachment from the Rate/Rule Schedule and Supporting Documentation schedules at the final version, and every item on the Objection Letters and Filing Correspondence tabs.",
+            "Download the disposition report and the state approval letter as separate files rather than relying on the summary export.",
+            "Verify the downloaded file count against the SERFF schedule item count before closing the export."
+          ],
+          "done": "the SERFF export holds every schedule attachment, all correspondence and the disposition letter, with counts verified."
+        },
+        {
+          "step": "Capture the federal and public-facing artefacts",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Capture the federal Rate Filing Justification submission confirmations for the plan year, including any resubmission after an objection changed rates.",
+            "Capture the URRT file as submitted, in its native format, so the arithmetic can be re-run years later rather than only read.",
+            "Where the increase was subject to review, capture the Part II written description as published and the dated screenshot of the company website posting required by 45 CFR 154.230.",
+            "Attach these to the same filing record so the state and federal halves of the obligation live together."
+          ],
+          "done": "the federal confirmations, the native URRT and the dated public posting evidence sit in the same filing record."
+        },
+        {
+          "step": "Preserve the as-filed and as-approved versions separately",
+          "by": "Document Management Specialist",
+          "role": "Document Management Specialist",
+          "app": "document management repository",
+          "actions": [
+            "Store the as-filed package version and the as-approved version as distinct, labelled records - never overwrite the as-filed version with the approved one.",
+            "Where the disposition was Approved as Modified, store the modification the state required and the resulting rate tables alongside the original.",
+            "Record the version lineage: original submission, each amendment, and the final approved version with dates.",
+            "Confirm the version actually implemented in policy administration is identifiable from the archive without asking anyone."
+          ],
+          "done": "as-filed, amended and as-approved versions all survive as distinct records with a dated lineage."
+        },
+        {
+          "step": "Index the record so it can be found under examination pressure",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Index each filing record by SERFF tracking number, state, plan year, market, HIOS issuer id, legal entity, plan id and disposition date.",
+            "Cross-link the record to the filing determination row, the release gate record and the policy administration change record so filing-to-premium can be walked in one path.",
+            "Test the index by searching for one filing under each key and confirming it returns.",
+            "Reject any record whose plan ids or tracking number were not captured - an unindexed record is functionally lost."
+          ],
+          "done": "every record is retrievable under each index key and is cross-linked to its determination, gate and change records."
+        },
+        {
+          "step": "Apply the retention label and set the clock correctly",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Apply the retention label computed as the later of plan year plus 7 years and 7 years from the withdrawal of the rates from use.",
+            "Where a state's own retention rule exceeds that period, apply the longer state period and note the state rule on the record.",
+            "Record the withdrawal date when the plan year rates stop being used so the clock has a real start rather than a guess.",
+            "Confirm the label is visible on the record and drives the disposition schedule automatically."
+          ],
+          "done": "each record carries a computed retention label reflecting the longer of the internal and state periods, with a real clock start."
+        },
+        {
+          "step": "Lock the record against alteration",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "actions": [
+            "Set the archived record to read-only on filing so no attachment can be replaced after archiving.",
+            "Confirm the repository keeps an audit trail of every access, download and attempted change, with user and timestamp.",
+            "Confirm deletion rights are restricted to a named records role and cannot be exercised by the filing team.",
+            "Test immutability by attempting to replace an attachment as a normal user and recording the refusal."
+          ],
+          "done": "archived records are read-only, access-audited, and a tested refusal proves attachments cannot be replaced."
+        },
+        {
+          "step": "Apply confidentiality and access controls",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Mark records containing material the state accepted as trade secret or confidential, and record the state's basis for that treatment.",
+            "Restrict access to the filing, actuarial, compliance and legal groups, and log any access outside them.",
+            "Confirm the publicly posted Part II text is stored separately and is not restricted, since it is public by design.",
+            "Review the access list annually and remove leavers and role changers."
+          ],
+          "done": "confidential material is marked and access-restricted, public material is separately accessible, and access is reviewed annually."
+        },
+        {
+          "step": "Reconcile SERFF to the archive every quarter",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Export every filing disposed in the quarter from SERFF by state and tracking number.",
+            "Match each to an archived record and produce a completeness matrix marking each mandatory artefact present or missing.",
+            "Chase every gap to the named capture owner with a 5-business-day fix window.",
+            "Report the completeness percentage by state to the Records Manager and Compliance."
+          ],
+          "done": "a quarterly completeness matrix covers every disposed filing with gaps chased to a named owner and a fix date."
+        },
+        {
+          "step": "Run a retrieval drill against a realistic examination request",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "actions": [
+            "Simulate a market conduct request: produce the complete record for three filings across three states and two plan years.",
+            "Time the retrieval and confirm the full set is assembled inside the 5-business-day commitment.",
+            "Record what was missing or slow, and fix the index or the capture process rather than the individual record only.",
+            "Repeat the drill annually and after any repository migration."
+          ],
+          "done": "a timed retrieval drill produces complete records inside 5 business days, with process fixes recorded for any gap."
+        },
+        {
+          "step": "Support legal holds and suspend destruction where they apply",
+          "by": "Legal Counsel",
+          "role": "Legal Counsel",
+          "actions": [
+            "Maintain the list of matters that place a hold on rate filing records - examinations, rate litigation, member complaints and regulator inquiries.",
+            "Apply the hold flag in the repository to every affected filing record and confirm the disposition schedule is suspended for them.",
+            "Notify the Records Manager on hold release and confirm the retention clock resumes rather than restarts.",
+            "Test that a held record cannot be destroyed by attempting a disposition and recording the refusal."
+          ],
+          "done": "held records carry a hold flag, are excluded from disposition, and the exclusion is proven by a tested refusal."
+        },
+        {
+          "step": "Dispose of records only at the end of the retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "actions": [
+            "Run the disposition report of records reaching their retention date and confirm none carries a legal hold.",
+            "Obtain Compliance and Legal approval before any destruction and record both approvals against the batch.",
+            "Execute destruction and record the certificate of destruction listing the records, the date and the approver.",
+            "Never destroy a record whose plan year rates are still in use anywhere, even where the date has passed."
+          ],
+          "done": "destruction happens only on schedule, with hold checks, dual approval and a certificate of destruction on file."
+        },
+        {
+          "step": "Review the retention schedule against state requirements annually",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Re-read each state's record retention rule for rate filings and compare it to the applied retention period, state by state.",
+            "Extend the internal period wherever a state now requires longer and re-label affected records.",
+            "Confirm the federal medical loss ratio retention requirement is still met by the applied period.",
+            "Record the review, its date and any changes made, and have the Head of Compliance sign it."
+          ],
+          "done": "an annual, signed review confirms the applied retention meets every state rule and the federal requirement."
+        },
+        {
+          "step": "Report records completeness into the compliance dashboard",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Publish quarterly completeness percentage by state, open archive tasks past due, retrieval drill results and hold counts.",
+            "Escalate any state below the completeness threshold to the Head of Compliance with a named remediation owner.",
+            "Present the annual position to the Compliance Committee alongside the rate cycle results.",
+            "File the reporting pack as evidence that the retention control operated across the year."
+          ],
+          "done": "a quarterly and annual completeness position is published, escalated where short, and filed as control evidence."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of disposed filings and their archived records",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Export from SERFF every health rate filing disposed in the plan year across the 51 jurisdictions, with tracking number, state, disposition type and date.",
+            "Extract the archived record list from the evidence repository for the same period.",
+            "Reconcile the two lists and identify filings with no archived record and archived records with no SERFF filing.",
+            "Add a look-back set of filings from the two prior plan years to test retention over time."
+          ],
+          "done": "the SERFF disposed list reconciles to the archive with unmatched items on both sides identified."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100 percent of disapproved and withdrawn filings, which are the records most often missed.",
+            "Take 100 percent of filings with multiple objection rounds or an Approved as Modified disposition.",
+            "Take a seeded random selection of 15 further filings plus 5 from the look-back years, minimum total 30.",
+            "Record the seed, population size and draw date, and include Alaska in the sample."
+          ],
+          "done": "the sample is reproducible, covers disapproved, withdrawn and modified filings, and reaches back two plan years."
+        },
+        {
+          "step": "Test each sampled record against the mandatory record list",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Work the mandatory record list item by item for each sampled filing and mark each artefact present or missing.",
+            "Confirm the as-filed and as-approved versions both exist as distinct records with a dated lineage.",
+            "Confirm every objection round has both the letter and the response, not just the response.",
+            "Treat a missing approval or disposition letter or a missing as-approved rate table as a fail."
+          ],
+          "done": "each sampled filing has a completed artefact matrix and every missing mandatory item is recorded as a fail."
+        },
+        {
+          "step": "Re-download from SERFF and compare to the archived copy",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "For each sampled filing re-download the final rate table and the disposition letter directly from SERFF.",
+            "Compare file names, page counts and content to the archived copies.",
+            "Confirm the archived rate table is the approved version and not an earlier submitted draft.",
+            "Any archived copy that differs from the SERFF record is a fail - the archive must be the regulator's version."
+          ],
+          "done": "archived rate tables and disposition letters match the current SERFF record for every sampled filing."
+        },
+        {
+          "step": "Test the federal and public posting artefacts",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled subject-to-review product confirm the archived record holds the federal justification confirmation and the native URRT file.",
+            "Confirm the Part II written description as published and the dated evidence of the company website posting required by 45 CFR 154.230 are archived.",
+            "Confirm any post-objection resubmission of the justification is archived as a separate confirmation rather than replacing the first.",
+            "Flag any subject-to-review product with no posting evidence as a disclosure failure, not a records gap."
+          ],
+          "done": "every sampled subject-to-review product has archived federal confirmations, the native URRT and dated posting evidence."
+        },
+        {
+          "step": "Recompute the retention date and test the label",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Recompute each sampled record's retention date as the later of plan year plus 7 years and 7 years from the recorded withdrawal date of the rates.",
+            "Compare to the label applied and to the state's own retention rule for that jurisdiction.",
+            "Flag any record whose clock started at submission rather than at withdrawal, which shortens retention silently.",
+            "Confirm records in the look-back sample are still present and still labelled."
+          ],
+          "done": "retention dates are independently recomputed, labels agree, and look-back records are still present and labelled."
+        },
+        {
+          "step": "Test immutability, access control and the audit trail",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Attempt to replace an attachment and to delete a record as a standard filing-team user and record the refusals.",
+            "Pull the access log for three sampled records and confirm every access is attributable to a named user with a timestamp.",
+            "Confirm deletion rights sit only with the named records role and that the filing team cannot exercise them.",
+            "Confirm confidential-marked records are restricted and that public Part II text is not."
+          ],
+          "done": "immutability and deletion restrictions are proven by tested refusals and the access log is complete and attributable."
+        },
+        {
+          "step": "Run an independent retrieval drill and time it",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Request the complete record for three filings across three states and two plan years without warning the records team of the selection.",
+            "Time the assembly and compare it to the 5-business-day regulator commitment.",
+            "Check each retrieved set for completeness against the mandatory record list rather than accepting what is handed over.",
+            "Record what was missing or slow and trace it to an index key that was never captured."
+          ],
+          "done": "an unannounced retrieval produces complete record sets inside 5 business days or the shortfall is traced to a named cause."
+        },
+        {
+          "step": "Review the destruction log and the legal hold register",
+          "by": "Legal Counsel",
+          "role": "Legal Counsel",
+          "actions": [
+            "Read the destruction log for the year and confirm every batch carries Compliance and Legal approval and a certificate of destruction.",
+            "Recompute the retention date for a sample of destroyed records and confirm none was destroyed early.",
+            "Cross-check the destroyed list against the legal hold register and against open examinations and complaints.",
+            "Treat any record destroyed early or under hold as a reportable breach requiring notification to the Head of Compliance."
+          ],
+          "done": "no record was destroyed early or under hold, and every destruction batch carries dual approval and a certificate."
+        },
+        {
+          "step": "Conclude, sign and report the records retention test",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Report the completeness percentage by state against the 2 percent incomplete escalation threshold and the retrieval drill timings.",
+            "Write the conclusion - effective, effective with exceptions, or ineffective - citing the artefact matrix, the SERFF re-download comparison and the destruction log review.",
+            "Have the independent reviewer, who archived none of the sampled records, sign the workpaper.",
+            "Report to the Compliance Committee and the General Counsel and file the workpaper under the plan year."
+          ],
+          "done": "a signed workpaper with a stated conclusion, completeness percentage and retrieval timings exists in the repository."
+        }
+      ]
     }
   ]
 }

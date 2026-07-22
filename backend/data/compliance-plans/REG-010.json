@@ -1,0 +1,2329 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-010-C01",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Valuation Actuary",
+          "value": "Valuation Actuary owns the quarterly nonforfeiture and reserve calculation for Group Life; the Appointed Actuary owns the year-end sufficiency conclusion that sits on top of it"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Alabama Standard Nonforfeiture Law for Life Insurance (Ala. Code Tit. 27 Ch. 15, NAIC Model #808 as adopted, filed with ALDOI) read with the Standard Valuation Law (Model #820) and the current NAIC Valuation Manual (VM-20, VM-A, VM-C, VM-M); the Arizona, California and Connecticut nonforfeiture statutes are re-read each January for amendments to the nonforfeiture interest rate basis and the operative CSO mortality table"
+        },
+        "In-scope processes": {
+          "value": "Quarterly and year-end statutory valuation of Group Life certificates and group permanent/paid-up business: in-force extract, nonforfeiture basis assignment by issue year, adjusted-premium minimum cash surrender value calculation, CRVM/VM-20 reserve calculation, and the cash-value floor test held reserve = max(calculated reserve, cash surrender value)"
+        },
+        "In-scope systems": {
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "value": "Valuation models run in the actuarial modeling platform against the certificate-level in-force extract from the Policy Administration Platform; results posted to Exhibit 5 through Statutory Reporting (NAIC)"
+        },
+        "Compliance procedure documented": {
+          "value": "Group Life Nonforfeiture & Statutory Reserve Valuation Procedure — extract cut-off, issue-year cohorting to the 1980/2001/2017 CSO nonforfeiture basis, nonforfeiture interest rate derivation (125% of the calendar-year valuation interest rate rounded to the nearest 0.25%), adjusted premium and expense allowance formula, CSV floor test, deficiency reserve test and the Exhibit 5 tie-out"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Actuary and the Model Risk Committee; re-approved every January when the calendar-year valuation and nonforfeiture interest rates reset and when any CSO or Valuation Manual amendment takes effect"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Quarterly reserves locked by working day 8 after quarter end to feed the May 15, August 15 and November 15 quarterly statements; the year-end nonforfeiture run must be final before the March 1 annual statement and the Appointed Actuary's opinion are signed"
+        },
+        "Deadline reminders configured": {
+          "value": "Valuation calendar tasks fire at WD-5 (extract freeze), WD+2 (model run complete), WD+6 (CSV floor test signed) and WD+8 (Exhibit 5 tie-out) each quarter, plus a January 5 reminder to reset the calendar-year nonforfeiture and valuation interest rates"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Valuation workpapers — frozen extract hash, cohort table, rate worksheet, adjusted-premium calculation, CSV floor test, roll-forward and Exhibit 5 tie-out — retained for the life of the block plus 7 years to cover the statutory examination reach-back"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any certificate whose guaranteed cash value or held reserve falls below the statutory minimum nonforfeiture value is logged as a valuation exception with the deficiency amount, affected certificate count, states involved and the reserve strengthening or policyholder value true-up applied"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Actuary",
+          "value": "Chief Actuary signs off every reserve strengthening, change in valuation basis and nonforfeiture deficiency remediation before the numbers leave Actuarial"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All Group Life certificates with a guaranteed nonforfeiture value in the quarter-end valuation in-force file, by issue year, plan code, writing company NAIC co-code and situs state, plus deposit-type contracts reported in Exhibit 7 and certificates surrendered or lapsed during the quarter"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on the floor — any certificate where held reserve is below the statutory minimum cash surrender value is a fail regardless of size; independently recalculated minimum nonforfeiture values must agree with the model within $1 per certificate and 0.1% by plan code; any Exhibit 5 tie-out difference over $50,000 must be named and explained"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is quarterly with an annual hard close; the recalculation test runs quarterly on a seeded sample and expands to a full-population floor test plus 100% cohort-basis review at year end before the actuarial opinion is signed"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Model Risk Manager",
+          "value": "Reviewer must not have built, parameterised or run the Group Life valuation model for the period under test"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly nonforfeiture recalculation workpaper (population extract, seeded sample, first-principles adjusted-premium recalculation, floor-test query output, exceptions) filed in the compliance evidence repository under Valuation / REG-010 / <valuation date>"
+        },
+        "Regulator-ready documentation": {
+          "value": "Nonforfeiture basis summary by issue-year cohort, a worked adjusted-premium example per plan code, the CSV floor test result and the Exhibit 5 tie-out, producible for an ALDOI financial examiner or an NAIC Financial Analysis Handbook Level 1 request within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "Statutory Reporting logs the request; the Valuation Actuary drafts the calculation response, the Appointed Actuary approves it, and Regulatory Counsel clears any response that concedes a nonforfeiture shortfall before it goes to ALDOI or a non-domiciliary department"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Cut and lock the certificate-level valuation in-force extract",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Ask the Policy Admin Ops Lead to freeze policy-administration postings for the valuation date and confirm the freeze time in writing before extracting.",
+            "Run the valuation extract for all Group Life certificates carrying guaranteed values: certificate number, master policy number, plan code, issue date, issue age, sex/composite indicator, face amount, mode and gross premium, paid-to date, situs state, writing company NAIC co-code, current guaranteed cash value and outstanding policy loan.",
+            "Record the extract row count, total face amount and a file hash on the valuation control sheet and store the extract read-only in the enterprise data warehouse under the valuation date.",
+            "Reject and re-cut the extract if issue dates or paid-to dates contain nulls — a null issue date silently mis-assigns the governing nonforfeiture mortality table."
+          ],
+          "done": "a frozen, hashed certificate-level extract exists for the valuation date with recorded control totals and no null issue or paid-to dates."
+        },
+        {
+          "step": "Cohort the in-force by the nonforfeiture standard that governs each issue year",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Split the extract into issue-year cohorts and assign each its governing nonforfeiture mortality table: 1980 CSO for pre-2009 issues, 2001 CSO for 2009-2019 issues and 2017 CSO for issues on or after 1 January 2020, with the smoker/non-smoker or composite variant as filed.",
+            "Record for each cohort the sex-distinct versus unisex basis, age last birthday versus age nearest birthday, and any state — Alabama, Arizona, California or Connecticut — that mandates a different table than the domiciliary standard.",
+            "Cross-check every cohort assignment against the approved form filing held by the Product Filing Specialist so the valuation basis matches the basis certified in that form's actuarial memorandum.",
+            "Write the cohort table (issue-year range, plan code, table, age basis, interest rate) onto the valuation control sheet and have the Chief Actuary initial it before any model run."
+          ],
+          "done": "every certificate sits in an issue-year cohort with a named mortality table and age basis that matches its approved filing."
+        },
+        {
+          "step": "Derive and freeze the calendar-year nonforfeiture and valuation interest rates",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Take the calendar-year statutory valuation interest rate for each plan type and guarantee duration from the Standard Valuation Law dynamic formula using the published Moody's Corporate Bond Yield Average Monthly Average Corporates for the reference period.",
+            "Compute the nonforfeiture interest rate as 125% of that valuation interest rate rounded to the nearest 0.25% and show the arithmetic step by step on the rate worksheet rather than pasting the answer.",
+            "Confirm the result against the NAIC's published calendar-year valuation and nonforfeiture interest rate table and document any difference before it is used.",
+            "Freeze the rates for the calendar year, date and initial the worksheet, and circulate it to the Reserving Actuary and the Product / Filing Actuary so pricing, filing and valuation all run on the same basis."
+          ],
+          "done": "the calendar-year valuation and nonforfeiture interest rates are derived, agreed to the published NAIC table and frozen on a dated worksheet."
+        },
+        {
+          "step": "Load the frozen basis and in-force into the valuation model",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Open the production Group Life valuation run in the actuarial modeling platform and point the model point file at the frozen extract path and hash.",
+            "Load the CSO table set, the frozen nonforfeiture and valuation interest rates and the plan-level product parameters, then confirm the model version tag matches the version approved in the model governance repository.",
+            "Run the model's reconciliation report and check that model point count and total face amount tie exactly to the extract control totals recorded on the control sheet.",
+            "Stop and escalate to the Model Risk Manager if the model version, table set or rate file differs from the approved configuration instead of overriding it inside the run."
+          ],
+          "done": "the run is configured on the approved model version and frozen basis, with model point counts and face amounts tied to the extract control totals."
+        },
+        {
+          "step": "Compute minimum cash surrender values by the adjusted premium method",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Run the nonforfeiture routine to produce, per certificate and duration, the present value of future guaranteed benefits less the present value of future adjusted premiums on the cohort's nonforfeiture mortality and interest basis.",
+            "Confirm the expense allowance inside the adjusted premium follows the statutory formula — the 1.25% of the amount of insurance component, the per-thousand component and the permitted first-year nonforfeiture net level premium component — and print those components separately rather than as one netted figure.",
+            "Extract the minimum paid-up nonforfeiture benefit and the extended term insurance amount and period alongside the cash values so the default nonforfeiture option can be tested.",
+            "Export the per-certificate minimum value table to the enterprise data warehouse keyed on certificate number and duration.",
+            "Hand the Chief Actuary a worked example per plan code showing PV benefits, PV adjusted premiums, expense allowance components and the resulting minimum value."
+          ],
+          "done": "per-certificate minimum cash surrender, paid-up and extended term values exist for every duration, with a component-level worked example per plan code."
+        },
+        {
+          "step": "Compare modelled minimums to the guaranteed values printed on the contract",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Pull the Table of Guaranteed Values held against each plan code in the policy administration system and in the approved form held by the Product Filing Specialist.",
+            "Join the modelled statutory minimum to the printed guaranteed value at each duration and compute printed minus statutory minimum per certificate per duration.",
+            "List every row where the printed guaranteed value is below the statutory minimum — these are contract-level nonforfeiture deficiencies, not rounding, and go straight to the exception log the same day.",
+            "Summarise the comparison by plan code and issue-year cohort with row count and worst-case deficiency and send it to the Valuation Actuary and the Product / Filing Actuary."
+          ],
+          "done": "every plan code has a duration-by-duration comparison of printed guarantees to statutory minimums with all shortfalls listed and escalated."
+        },
+        {
+          "step": "Compute the CRVM / Valuation Manual reserve on the same in-force",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Run the statutory reserve calculation per cohort — Commissioners Reserve Valuation Method on the applicable CSO table and calendar-year valuation interest rate for pre-Valuation-Manual issues, and the VM-20 net premium reserve with deterministic and stochastic reserves for issues subject to principle-based reserving.",
+            "Run the VM-20 stochastic and deterministic exclusion tests where they are claimed and print the test results and margins, because a failed exclusion test changes the reserve basis for the whole cohort.",
+            "Produce the reserve split by Exhibit 5 line — life insurance, annuities, supplementary contracts with life contingencies, accidental death benefit, disability active lives and disabled lives.",
+            "Export per-certificate reserves on the same certificate key as the nonforfeiture output so the two can be joined without a fuzzy match."
+          ],
+          "done": "per-certificate statutory reserves exist on the nonforfeiture key, split by Exhibit 5 line, with exclusion test results printed."
+        },
+        {
+          "step": "Apply the cash-value floor test",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Join reserves to cash surrender values on certificate number and duration and compute calculated reserve minus cash surrender value for every certificate.",
+            "Set the held reserve to the greater of the calculated reserve and the cash surrender value and total the uplift separately so the floor effect is visible instead of buried in the aggregate.",
+            "List every certificate where the floor bites by more than 5% of the calculated reserve and investigate whether the driver is a mis-assigned nonforfeiture basis rather than a genuine floor.",
+            "Record the total floor uplift by plan code and Exhibit 5 line on the valuation control sheet and report it to the Appointed Actuary before the numbers are released."
+          ],
+          "done": "held reserve is at least the cash surrender value for every certificate and the floor uplift is quantified by plan code and Exhibit 5 line."
+        },
+        {
+          "step": "Test for and compute deficiency reserves",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "For each plan code compare the gross premium actually charged to the valuation net premium on the minimum reserve basis at every duration.",
+            "Where the gross premium is lower, compute the deficiency reserve as the present value of the future premium shortfall on the valuation basis, applying X-factors only where anticipated mortality experience supports them under the Valuation Manual.",
+            "Document each X-factor with its experience study reference, the credibility measure used and the study date, and have the Chief Actuary approve the factor set.",
+            "Add the deficiency reserve into the Exhibit 5 total and disclose it as a separate line on the valuation control sheet."
+          ],
+          "done": "every plan code has a documented gross-versus-net premium test and any deficiency reserve is computed, X-factor supported and separately disclosed."
+        },
+        {
+          "step": "Run the reserve roll-forward and analysis of change",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Build the roll-forward: opening reserve, plus new issues, plus tabular interest and net premiums, less tabular cost, death and surrender releases, plus or minus floor and deficiency movement, equals closing reserve.",
+            "Reconcile the closing figure to the model output to the cent and attribute any residual to a named driver — never to a line called 'other'.",
+            "Compare movement in guaranteed cash values quarter on quarter by plan code and flag any plan where values moved without a matching in-force or duration change.",
+            "Send the roll-forward with a one-page commentary on the three largest drivers to the Valuation Actuary and the Statutory Reporting Manager."
+          ],
+          "done": "the roll-forward reconciles to the model closing reserve with every movement attributed to a named driver."
+        },
+        {
+          "step": "Tie reserve totals to Exhibit 5 and the general ledger",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Load the reserve totals into the annual statement software and populate Exhibit 5 by valuation standard, the Exhibit 5 interrogatories and Exhibit 7 for deposit-type contracts.",
+            "Reconcile the Exhibit 5 total to Page 3 Line 1 (Aggregate reserve for life contracts) and to the reserve control accounts in the general ledger, and post any true-up journal with the Controller before the ledger closes.",
+            "Run the annual statement software cross-checks and clear every Exhibit 5 fatal and warning edit, recording the resolution against each edit number.",
+            "Sign a tie-out sheet showing model total, Exhibit 5 total and ledger balance side by side with each reconciling item named."
+          ],
+          "done": "Exhibit 5, Page 3 Line 1 and the ledger reserve balance agree, all statement validation edits are cleared and the tie-out is signed."
+        },
+        {
+          "step": "Document any change in the basis of valuation",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Identify every cohort whose mortality table, interest rate, valuation method or reserving approach changed since the prior year end.",
+            "Compute the reserve on both the old and the new basis for that cohort and record the difference, which is the figure reported in the change-in-valuation-basis disclosure of the annual statement.",
+            "Write the rationale — statutory amendment, Valuation Manual change, correction of an error, or voluntary strengthening — and cite the governing provision by section.",
+            "Route the change to the Chief Actuary for written approval before it is reflected, since an unapproved basis change is itself an exception."
+          ],
+          "done": "every basis change is quantified on old and new bases, carries a cited rationale and has dated Chief Actuary approval."
+        },
+        {
+          "step": "Close model change control and version the run",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "model governance repository",
+          "actions": [
+            "Compare the model version used for the run against the approved version register and confirm every code or assumption change since the last run carries an approved change ticket.",
+            "Confirm the validation report covering the nonforfeiture routine is current and that every high-rated validation finding is closed or has a documented compensating control.",
+            "Attach the run log, input hashes, parameter file and output control totals to the model governance record for the valuation date.",
+            "Capture the ASOP 56 model-governance attestation from the model owner that the model is fit for the nonforfeiture and reserving purpose it was used for."
+          ],
+          "done": "the run is versioned in the model governance repository with approved change tickets, a current validation report and a model-owner attestation."
+        },
+        {
+          "step": "Peer review the valuation workpapers before release",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Read the cohort table, rate worksheet, worked adjusted-premium examples, floor test and roll-forward as one set rather than signing the summary alone.",
+            "Re-derive one adjusted premium and one minimum cash surrender value by hand for the largest plan code and compare the result to the model output.",
+            "Challenge in writing any plan code whose floor uplift, deficiency reserve or basis change moved materially against the prior quarter and require a written answer before sign-off.",
+            "Sign and date the valuation control sheet — this is the gate that releases the numbers to Statutory Reporting."
+          ],
+          "done": "the Chief Actuary has hand-derived at least one value, cleared every challenge and signed the dated valuation control sheet."
+        },
+        {
+          "step": "File the valuation workpaper pack for the retention period",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Assemble the pack: frozen extract hash, cohort table, rate worksheet, model run log and version tag, per-certificate minimum value and reserve extracts, floor test, deficiency test, roll-forward, Exhibit 5 tie-out and signed control sheet.",
+            "File it under Valuation / REG-010 / <valuation date> and apply the life-of-block-plus-7-years retention label so it survives block runoff.",
+            "Confirm the pack is indexed and retrievable by valuation date, writing company NAIC co-code, plan code and situs state so an examiner request can be served without rebuilding the run.",
+            "Notify the Appointed Actuary and the Statutory Reporting Manager that the pack is filed and give them the repository reference."
+          ],
+          "done": "the complete workpaper pack is filed, retention-labelled and retrievable by valuation date, company, plan code and state."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of certificates carrying guaranteed nonforfeiture values",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "enterprise data warehouse",
+          "actions": [
+            "Extract every Group Life certificate in the quarter-end valuation file with a non-zero guaranteed cash value, plus the deposit-type contracts reported in Exhibit 7, split by writing company NAIC co-code, plan code, issue-year cohort and situs state.",
+            "Reconcile the extract row count and total face amount to the valuation control sheet totals and to Exhibit 5 by valuation standard, and resolve every difference before drawing a sample.",
+            "Add certificates that terminated during the quarter by surrender, lapse or death so the population cannot be trimmed to the surviving in-force only.",
+            "Sign the population as complete, recording extract date, row count and the reconciling items cleared."
+          ],
+          "done": "the population is reconciled to Exhibit 5 and the valuation control sheet, includes in-quarter terminations and is signed as complete."
+        },
+        {
+          "step": "Reconcile the valuation extract to the policy administration system of record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Re-run an independent count and face-amount query against the Policy Administration Platform as at the valuation date and compare it to the frozen extract hash and control totals.",
+            "Test that the posting freeze held by searching for transactions posted into the valuation-date period after the extract timestamp.",
+            "Walk issue date, issue age, sex indicator, face amount and paid-to date for 25 certificates from the policy admin screens to the extract fields.",
+            "Treat any difference in issue date or issue age as a high-severity finding — both change the governing CSO table and the adjusted premium."
+          ],
+          "done": "the frozen extract agrees to an independently run source query and a 25-certificate field walk shows no unexplained differences."
+        },
+        {
+          "step": "Draw and document a reproducible recalculation sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of plan codes where the cash-value floor bit or a deficiency reserve was held, and 100% of cohorts with a change in valuation basis this period.",
+            "Draw 40 certificates at random with a recorded seed, stratified so every issue-year cohort and CSO table in force is represented at least twice.",
+            "Record population size, seed, stratification and selection date in the workpaper so the sample can be redrawn identically by a third party.",
+            "Add every certificate on the prior quarter's exception list as a mandatory retest row."
+          ],
+          "done": "the sample is seeded, reproducible, covers every CSO cohort and carries all prior-period exceptions as retest rows."
+        },
+        {
+          "step": "Independently recalculate the minimum nonforfeiture value for each sampled certificate",
+          "by": "Actuary",
+          "role": "Actuary",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Build a standalone recalculation workbook that takes issue date, issue age, sex basis, face amount and gross premium and applies the governing CSO table plus a nonforfeiture interest rate derived independently as 125% of the calendar-year valuation interest rate rounded to the nearest 0.25%.",
+            "Compute the present value of future guaranteed benefits, the present value of future adjusted premiums and the statutory expense allowance from first principles, importing no intermediate value from the actuarial modeling platform.",
+            "Compare the recalculated minimum cash surrender value, paid-up value and extended term period to the model output and record the difference in dollars and percent.",
+            "Flag any certificate differing by more than $1, and any plan code differing by more than 0.1% in aggregate, as an exception.",
+            "Save the workbook with live formulas rather than pasted values so the independent reviewer can trace every cell."
+          ],
+          "done": "each sampled certificate has a first-principles recalculation in a live-formula workbook with the difference to the model quantified."
+        },
+        {
+          "step": "Verify each cohort's nonforfeiture basis against the approved form filing",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "For each sampled certificate open the approved filing in SERFF Filing Access by writing company NAIC co-code, state and form number and read the actuarial memorandum's stated nonforfeiture basis.",
+            "Compare the filed mortality table, interest rate, age basis and nonforfeiture method to the cohort assignment actually used in the valuation.",
+            "Check the state-specific approvals where Alabama, Arizona, California or Connecticut required a variation from the domiciliary basis and confirm the valuation honoured that variation.",
+            "Record any mismatch as a filed-versus-valued basis exception and capture the SERFF tracking number and disposition date as evidence."
+          ],
+          "done": "every sampled cohort's valuation basis matches its approved filing, with SERFF tracking numbers captured in the workpaper."
+        },
+        {
+          "step": "Re-perform the cash-value floor test across the whole population",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Run an independent query joining the per-certificate reserve extract to the per-certificate cash surrender value extract and count every row where held reserve is less than cash surrender value.",
+            "Confirm the count is zero; any row returned is a reportable statutory breach rather than a test exception and is escalated to the Appointed Actuary the same day.",
+            "Recompute the total floor uplift from the query and agree it to the figure recorded on the valuation control sheet.",
+            "Check that terminated certificates were not excluded by the join in a way that hides a pre-surrender deficiency."
+          ],
+          "done": "the independent query returns zero certificates with reserve below cash surrender value and the floor uplift agrees to the control sheet."
+        },
+        {
+          "step": "Trace printed contract guarantees to the statutory minimum for the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "document management repository",
+          "actions": [
+            "Pull the issued certificate or master group contract for each sampled certificate and read the Table of Guaranteed Values exactly as printed.",
+            "Compare the printed value at durations 5, 10 and 20 to the independently recalculated statutory minimum for the same duration.",
+            "Confirm the printed default nonforfeiture option and the deferral language match the statute, including the insurer's right to defer payment of cash surrender values for up to six months after request.",
+            "Log any printed guarantee below the statutory minimum as a policyholder-impacting exception with an estimated affected certificate count and dollar impact."
+          ],
+          "done": "printed guarantees at three tested durations meet or exceed the recalculated statutory minimum, or the shortfall is logged with an impact estimate."
+        },
+        {
+          "step": "Recompute the interest-rate derivation and the roll-forward arithmetic",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently derive the calendar-year statutory valuation interest rate from the published Moody's Corporate Bond Yield Average and confirm the company's rate worksheet reproduces it.",
+            "Recompute the nonforfeiture rate as 125% of that rate rounded to the nearest 0.25% and compare it to the rate actually loaded into the model parameter file.",
+            "Re-add the reserve roll-forward line by line and confirm opening plus movements equals the closing Exhibit 5 total to the cent.",
+            "Confirm the Exhibit 5 total agrees to Page 3 Line 1 and to the general ledger reserve control account balance."
+          ],
+          "done": "the independently derived rates match the model parameters and the roll-forward foots to Exhibit 5, Page 3 Line 1 and the ledger."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception recording certificate or plan code, states affected, dollar deficiency and whether policyholder values are impacted.",
+            "Assign a root cause from the fixed list — wrong CSO table for the issue year, stale interest rate, extract field defect, model version drift, filed-versus-valued basis mismatch — and name an owner in Actuarial.",
+            "Set a remediation date inside the current quarter and, where a policyholder value was understated, open a value true-up and customer notification workstream with Regulatory Counsel.",
+            "Carry every open item into the next quarter's test as a mandatory retest row and report anything policyholder-impacting to the Appointed Actuary immediately."
+          ],
+          "done": "every exception has an issue, a fixed-list root cause, an Actuarial owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the recalculation test",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "actions": [
+            "Compute the exception rate over the sample and compare results to the stated thresholds — zero floor breaches, $1 per certificate and 0.1% aggregate recalculation tolerance.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with the workpaper reference behind each element tested.",
+            "Have the independent reviewer, who built and ran none of the valuation models for the period, sign and date the workpaper.",
+            "Report the conclusion and any open statutory breach to the Chief Actuary and to the Audit Committee at its next sitting, then file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and committee reporting date is filed in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-010-C02",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Appointed Actuary",
+          "value": "The Appointed Actuary personally signs the Statement of Actuarial Opinion covering Group Life reserves and nonforfeiture minimums; the appointment is held by board resolution and cannot be delegated"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Alabama Standard Nonforfeiture Law (Ala. Code Tit. 27 Ch. 15) for the minimum-value floor the opinion asserts, plus the Standard Valuation Law and VM-30 (Actuarial Opinion and Memorandum Requirements) of the current NAIC Valuation Manual for the opinion wording; each non-domiciliary state's minimum aggregate reserve requirement is re-read against the current Arizona, California and Connecticut nonforfeiture statutes before the scope paragraph is finalised"
+        },
+        "In-scope processes": {
+          "value": "Annual preparation, peer review and signature of the Statement of Actuarial Opinion, the supporting Actuarial Memorandum and the Regulatory Asset Adequacy Issues Summary for the Group Life and group permanent reserves reported in Exhibit 5 and the deposit-type contracts in Exhibit 7"
+        },
+        "In-scope systems": {
+          "app": "Statutory Reporting (NAIC)",
+          "value": "Opinion text is attached to the annual statement in the statutory reporting software; the memorandum, reliance letters and peer review are held in the compliance evidence repository with restricted access"
+        },
+        "Compliance procedure documented": {
+          "value": "Appointed Actuary Opinion & Memorandum Procedure — appointment and qualification check, scope definition, reliance letter collection, nonforfeiture minimum-value assertion evidence, VM-30 prescribed wording selection, peer review, board notification and signature control"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Board Audit Committee on appointment of the Appointed Actuary and re-approved annually in the December committee cycle, together with any VM-30 wording change published in the new Valuation Manual edition"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Opinion signed and attached to the annual statement by March 1; the Actuarial Memorandum and the Regulatory Asset Adequacy Issues Summary completed by March 15; the VM-31 PBR Actuarial Report for principle-based cohorts by April 1"
+        },
+        "Deadline reminders configured": {
+          "value": "Opinion calendar alerts at December 1 (appointment and qualification confirmed), January 15 (reliance letters requested), February 10 (draft opinion to peer reviewer), February 24 (board notification) and March 10 (memorandum and RAAIS final)"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Signed opinion, actuarial memorandum, RAAIS, all reliance letters, the peer review report and the board appointment resolution retained 7 years from the statement date and available at every financial condition examination"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any qualified, adverse or inconclusive opinion, any late memorandum, and any reserve or nonforfeiture deficiency identified during opinion preparation is logged with the amount, the states affected and the strengthening booked before signature"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Actuary",
+          "value": "Chief Actuary signs off any reserve strengthening or wording qualification arising from the opinion work before the Appointed Actuary signs"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The signed opinion, its memorandum and RAAIS for the statement year, every reliance letter cited in the opinion, the reserve amounts named in the scope paragraph, and the Exhibit 5 and Exhibit 7 balances they claim to cover"
+        },
+        "Pass/fail thresholds": {
+          "value": "Binary on form and content — an opinion missing a required VM-30 paragraph, a reliance letter, the qualification documentation or a scope amount that does not tie to Exhibit 5 is a fail; the reserve amount opined on must tie to Page 3 Line 1 exactly, with no tolerance"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; the test runs once per statement year on the signed opinion before it is filed, with an interim readiness review each October on the prior-year opinion structure"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Chief Audit Executive",
+          "value": "Reviewer must be outside the Actuarial function and must not have prepared, drafted or peer reviewed the opinion or memorandum"
+        },
+        "Evidence location for test results": {
+          "value": "Annual actuarial opinion review workpaper (opinion checklist against VM-30 paragraph by paragraph, reliance letter register, scope tie-out to Exhibit 5, peer review evidence) in the compliance evidence repository under Actuarial Opinion / REG-010"
+        },
+        "Regulator-ready documentation": {
+          "value": "Signed opinion, memorandum, RAAIS, reliance letters and board appointment resolution assembled as a single examination pack producible to an ALDOI examiner or a non-domiciliary department within 5 business days, with the memorandum marked confidential per VM-30"
+        },
+        "Regulator response path": {
+          "value": "The Appointed Actuary answers questions on the opinion personally; Regulatory Counsel handles any confidentiality assertion over the memorandum and clears any correspondence that discusses a reserve or nonforfeiture inadequacy before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Confirm the Appointed Actuary appointment is current and recorded by the board",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "board portal",
+          "actions": [
+            "Pull the board or board-committee resolution appointing the Appointed Actuary and confirm it names the individual, the effective date and the writing companies covered.",
+            "Where the appointment changed during the year, confirm the notification to the domiciliary commissioner was made within the required period and hold the acknowledgement.",
+            "Check the resolution has not lapsed and covers the statement year being opined on, not just the current calendar year.",
+            "File the resolution reference into the opinion evidence pack and send it to the Appointed Actuary and the Chief Actuary by December 1."
+          ],
+          "done": "a current board resolution naming the Appointed Actuary and the covered companies is in the opinion evidence pack, with any change-of-actuary notification acknowledged."
+        },
+        {
+          "step": "Document the Appointed Actuary's qualification to sign",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Record membership of the American Academy of Actuaries and the specific basic-education, experience and continuing-education requirements met under the U.S. Qualification Standards for a life statement of actuarial opinion.",
+            "Log continuing education hours for the year, split into relevant technical, professionalism and bias topics, with the activity names and dates.",
+            "Confirm no disciplinary matter or conflict of interest affects the appointment and record the confirmation in writing.",
+            "File the qualification statement in the opinion evidence pack, since an examiner will ask for it before reading the opinion itself."
+          ],
+          "done": "a dated qualification statement with continuing education detail and a conflict declaration is filed in the opinion evidence pack."
+        },
+        {
+          "step": "Fix the scope of the opinion and the amounts it will cover",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "List in the scope table every reserve and related actuarial item to be opined on: Exhibit 5 aggregate reserve for life contracts by valuation standard, Exhibit 5 interrogatories, Exhibit 7 deposit-type contracts, claim reserves in Exhibit 8 and any liability held under a reinsurance treaty.",
+            "Take the amounts directly from the statutory reporting software rather than from an actuarial summary so the scope table cannot drift from the filed statement.",
+            "Mark each scope line as covered by asset adequacy analysis or excluded, and state the reason for any exclusion.",
+            "Circulate the scope table to the Statutory Reporting Manager and the Controller for confirmation that no reserve line has been left out."
+          ],
+          "done": "the scope table lists every actuarial liability with amounts taken from the filed statement and each line marked as tested or excluded with a reason."
+        },
+        {
+          "step": "Collect the data reliance statement from the responsible company officer",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Send the reliance request to the officer responsible for policy administration data naming the exact extracts relied on, their as-of date and their record counts.",
+            "Require the officer's signed statement that the in-force and claim data supplied is substantially accurate and complete for the purpose of the actuarial opinion, in the form VM-30 contemplates.",
+            "Attach the extract hash and control totals from the valuation control sheet to the reliance letter so the letter is tied to identifiable data.",
+            "Chase and escalate to the Chief Financial Officer if the signed letter is not back by January 31 — the opinion cannot cite an unsigned reliance."
+          ],
+          "done": "a signed, dated officer reliance statement naming the specific data extracts and their control totals is held in the evidence pack."
+        },
+        {
+          "step": "Collect the asset and investment reliance statements",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "app": "BlackRock Aladdin",
+          "actions": [
+            "Request from Investment Operations the year-end asset listing supporting the Group Life reserves: book value, market value, NAIC designation, maturity, cash-flow characteristics and any embedded options.",
+            "Reconcile the listing to Schedule D and Schedule DA totals in the annual statement and clear differences with the Investment Operations Manager.",
+            "Obtain the Chief Investment Officer's signed reliance statement covering asset data accuracy and the reinvestment and disinvestment strategy assumed in the analysis.",
+            "File the listing, the reconciliation and the signed reliance in the opinion evidence pack."
+          ],
+          "done": "asset data is reconciled to Schedule D and covered by a signed investment reliance statement in the evidence pack."
+        },
+        {
+          "step": "Assemble the evidence that reserves meet the nonforfeiture minimum floor",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Take the cash-value floor test output from the quarterly valuation and confirm no certificate holds a reserve below its statutory minimum cash surrender value at the statement date.",
+            "Produce the summary by plan code and issue-year cohort showing the governing CSO table, the nonforfeiture interest rate and the aggregate floor uplift, so the opinion's minimum-value assertion has a named source.",
+            "Note any nonforfeiture deficiency found during the year, the strengthening booked and the date it was booked.",
+            "Hand the pack to the Appointed Actuary with a cover note stating explicitly that the Standard Nonforfeiture Law minimum is met at the statement date."
+          ],
+          "done": "the Appointed Actuary holds a dated pack evidencing that every certificate's reserve meets or exceeds its statutory minimum nonforfeiture value."
+        },
+        {
+          "step": "Test the minimum aggregate reserve requirement for every state of filing",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Build a state grid of the 51 jurisdictions the statement is filed in and record each state's minimum reserve and nonforfeiture standard where it differs from the Alabama domiciliary standard.",
+            "Recompute aggregate reserves on each differing state's minimum standard and compare to the reserve actually held.",
+            "Where a state's minimum exceeds the held reserve, quantify the additional reserve required and escalate it to the Chief Actuary before the opinion is drafted, because the opinion asserts sufficiency in every state of filing.",
+            "Record the grid and its conclusion as a named exhibit in the actuarial memorandum."
+          ],
+          "done": "a 51-jurisdiction grid shows the held reserve is at least each state's minimum standard, with any shortfall quantified and escalated."
+        },
+        {
+          "step": "Draft the opinion using the prescribed wording for the applicable opinion type",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Start from the current VM-30 prescribed language and build the identification, scope, reliance and opinion paragraphs in the required order rather than editing last year's file.",
+            "State in the opinion paragraph that the reserves and related actuarial items make good and sufficient provision, are computed in accordance with commonly accepted actuarial standards and meet the requirements of the laws of every state in which the statement is filed — including the minimum nonforfeiture values required by the Standard Nonforfeiture Law.",
+            "Select the opinion type (unqualified, qualified, adverse or inconclusive) and, if anything other than unqualified, write the specific reason and the amount involved into the opinion text.",
+            "Insert the reliance paragraphs naming each person relied on, their title and the subject of the reliance, matching the letters collected.",
+            "Check every amount quoted in the opinion against the scope table and the filed statement page and line."
+          ],
+          "done": "a complete draft opinion exists with identification, scope, reliance and opinion paragraphs in the prescribed order and every amount tied to the filed statement."
+        },
+        {
+          "step": "Draft the supporting actuarial memorandum",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Build the memorandum sections VM-30 requires: description of the business covered, reserve methods and bases by cohort, assumptions and their support, the asset adequacy analysis approach, results, sensitivity tests and the actuary's conclusions.",
+            "Include the nonforfeiture exhibit — CSO table by issue-year cohort, nonforfeiture interest rate derivation and the cash-value floor result — so a reviewing actuary can follow the minimum-value assertion without a second request.",
+            "Cross-reference every number in the memorandum to a workpaper in the compliance evidence repository by reference id.",
+            "Mark the memorandum confidential on every page consistent with the Valuation Manual's confidentiality provisions and restrict repository access to the Actuarial function, the Chief Financial Officer and Regulatory Counsel."
+          ],
+          "done": "the memorandum covers every VM-30 required section, cross-references its workpapers and is marked and access-restricted as confidential."
+        },
+        {
+          "step": "Prepare the Regulatory Asset Adequacy Issues Summary",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Summarise the material issues from the asset adequacy analysis: scenarios producing negative results, the reserve or additional actuarial reserve held in response, and the changes in assumptions or methods from the prior year.",
+            "Compare the current year's asset adequacy conclusion to the prior year's and explain any movement in the additional reserve held.",
+            "State the extent to which the Appointed Actuary relied on other experts and on company data.",
+            "Have the Chief Actuary review the summary, then set it for delivery to the domiciliary commissioner by March 15."
+          ],
+          "done": "the RAAIS is drafted, reviewed and scheduled for delivery to the domiciliary commissioner by March 15."
+        },
+        {
+          "step": "Obtain an independent peer review of the opinion and memorandum",
+          "by": "Actuary",
+          "role": "Actuary",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Give the reviewing actuary the draft opinion, the memorandum, the scope table, the nonforfeiture floor pack and the reliance letters as a complete set.",
+            "Require the reviewer to check the opinion type against the evidence, verify the amounts tie to the filed statement, and challenge any assumption whose support is a prior-year study without a recency check.",
+            "Log every review comment with the drafter's response and the resulting change to the text.",
+            "Require the reviewer's written statement that the review is complete and the comments are cleared before signature."
+          ],
+          "done": "a documented peer review with every comment cleared and a written completion statement is held in the evidence pack."
+        },
+        {
+          "step": "Clear the opinion and memorandum through Regulatory Counsel",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Read the opinion wording against the current statutory and Valuation Manual requirements for the domiciliary state and confirm the required assertions are present and unmodified.",
+            "Confirm the confidentiality treatment claimed over the memorandum is available in each state that may request it and record where it is not.",
+            "Where the opinion is anything other than unqualified, agree the disclosure wording and the notification approach to the domiciliary commissioner.",
+            "Record counsel clearance with a date on the opinion routing sheet."
+          ],
+          "done": "counsel has cleared the opinion wording and the confidentiality position with a dated entry on the routing sheet."
+        },
+        {
+          "step": "Report the opinion outcome to the Board Audit Committee",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "app": "board portal",
+          "actions": [
+            "Table the opinion type, the scope amounts, the nonforfeiture floor conclusion, the asset adequacy result and any additional reserve held at the February Audit Committee.",
+            "Disclose every issue that could have qualified the opinion and the action taken to resolve it before signature.",
+            "Record the committee's acknowledgement in the minutes and load the paper into the board portal for the record.",
+            "Escalate immediately to the Chief Financial Officer and the committee chair if a qualification or adverse opinion is in prospect rather than waiting for the meeting."
+          ],
+          "done": "the Audit Committee has been given the opinion type, scope amounts and issues, and its acknowledgement is minuted."
+        },
+        {
+          "step": "Sign the opinion and attach it to the annual statement",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Sign and date the opinion in the Appointed Actuary's own name with title, employer, address and the date of signature, and record the qualification statement reference.",
+            "Attach the signed opinion to the annual statement in the statutory reporting software as the Statement of Actuarial Opinion for each writing company covered.",
+            "Re-check that the reserve amounts printed in the opinion equal the filed Exhibit 5 total and Page 3 Line 1 after any late statement change — a late journal entry after signature invalidates the opinion.",
+            "Confirm the signature date is on or before March 1 and freeze the opinion file against further edits."
+          ],
+          "done": "a signed, dated opinion is attached to each company's annual statement, ties to Page 3 Line 1 and is frozen against edits by March 1."
+        },
+        {
+          "step": "File the opinion evidence pack and set the retention",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Assemble the pack: board resolution, qualification statement, scope table, reliance letters, nonforfeiture floor pack, state minimum grid, memorandum, RAAIS, peer review, counsel clearance, committee minute reference and signed opinion.",
+            "File it under Actuarial Opinion / REG-010 / <statement year> with a 7-year retention label and restricted access for the memorandum and RAAIS.",
+            "Confirm the pack is retrievable by statement year and writing company NAIC co-code so an examination request can be served without reassembly.",
+            "Notify Regulatory Reporting that the signed opinion is available for the state filing step."
+          ],
+          "done": "the complete opinion evidence pack is filed, access-restricted, retention-labelled and retrievable by year and company."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Assemble the population of opinions, memoranda and reliances for the statement year",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "compliance evidence repository",
+          "actions": [
+            "List every writing company that filed an annual statement for the year and confirm one signed Statement of Actuarial Opinion exists for each.",
+            "List each opinion's memorandum, RAAIS and every reliance letter cited in its reliance paragraphs.",
+            "Reconcile the company list to the statutory reporting software filing register so no company with a filed statement is missing an opinion.",
+            "Record the population with dates of signature and the opinion type for each company."
+          ],
+          "done": "every filed statement has a matched signed opinion, memorandum, RAAIS and reliance set, reconciled to the filing register."
+        },
+        {
+          "step": "Check the opinion against the prescribed wording paragraph by paragraph",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Take the current VM-30 prescribed opinion language and tick off the identification, scope, reliance and opinion paragraphs one at a time against the signed text.",
+            "Confirm the opinion states that reserves meet the requirements of the laws of every state in which the statement is filed and that minimum nonforfeiture values are provided for.",
+            "Confirm the opinion type matches the evidence — an unqualified opinion sitting over an unresolved reserve shortfall is a fail, not a wording issue.",
+            "Record any missing or modified required paragraph as an exception with the exact text quoted."
+          ],
+          "done": "every required paragraph is present and unmodified, or the deviation is quoted and logged as an exception."
+        },
+        {
+          "step": "Tie the scope amounts in the opinion to the filed annual statement",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Open the filed annual statement and read Exhibit 5 by valuation standard, Exhibit 7 and Page 3 Line 1 for each company.",
+            "Compare each figure to the corresponding amount in the opinion scope table and in the memorandum, with zero tolerance for difference.",
+            "Check the statement version compared is the one actually filed, including any amendment filed after March 1.",
+            "Investigate any post-signature journal entry affecting reserves and confirm whether the opinion was re-signed."
+          ],
+          "done": "every scope amount agrees exactly to the filed statement and any post-signature reserve movement is identified and resolved."
+        },
+        {
+          "step": "Verify the appointment and qualification of the signing actuary",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Read the board resolution and confirm the signatory is the appointed individual for the statement year and for each company opined on.",
+            "Read the qualification statement and confirm the continuing education hours and topic split satisfy the U.S. Qualification Standards for this type of opinion.",
+            "Where the appointment changed in the year, confirm the notification to the domiciliary commissioner and hold the acknowledgement.",
+            "Treat a signature by an individual with no current appointment as a critical finding reportable to the Audit Committee immediately."
+          ],
+          "done": "the signatory is the board-appointed actuary for every company opined on, with documented qualification and any change notified."
+        },
+        {
+          "step": "Re-perform the nonforfeiture minimum-value assertion on a sample",
+          "by": "Actuary",
+          "role": "Actuary",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Draw 30 certificates at random with a recorded seed across the plan codes named in the memorandum's nonforfeiture exhibit, weighted to the largest issue-year cohorts.",
+            "Recalculate each certificate's statutory minimum cash surrender value from first principles on its governing CSO table and nonforfeiture interest rate.",
+            "Compare the recalculated minimum to the reserve actually held at the statement date and confirm the reserve is not lower.",
+            "Report any certificate failing the floor directly to the Chief Actuary and the Audit Committee chair, since it contradicts a signed opinion."
+          ],
+          "done": "30 recalculated certificates confirm the reserve held is at least the statutory minimum, or any failure is escalated as contradicting the opinion."
+        },
+        {
+          "step": "Test the reliance letters actually support the reliances claimed",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each reliance paragraph in the opinion to a signed letter from the named individual with the stated title.",
+            "Check each letter names the specific data or analysis relied on, the as-of date and the control totals or extract identifiers rather than giving a generic assurance.",
+            "Confirm every letter is dated on or before the opinion signature date.",
+            "Trace one data reliance letter's control totals to the valuation control sheet and to the policy administration extract that fed the valuation."
+          ],
+          "done": "every claimed reliance has a specific, pre-dated, signed letter and one traced letter agrees to the valuation extract control totals."
+        },
+        {
+          "step": "Test the memorandum and RAAIS for completeness and timing",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Check the memorandum contains every VM-30 required section, including the description of business, reserve bases, assumptions and their support, and the actuary's conclusions.",
+            "Confirm the memorandum was completed by March 15 and the RAAIS delivered to the domiciliary commissioner by March 15, using the repository timestamps and the delivery acknowledgement.",
+            "Sample five numbers in the memorandum and trace each to the referenced workpaper in the evidence repository.",
+            "Confirm the confidentiality marking and repository access restriction are in place on both documents."
+          ],
+          "done": "the memorandum is complete, timely, traceable on a five-number sample and correctly access-restricted, with the RAAIS delivery acknowledged."
+        },
+        {
+          "step": "Verify the peer review was genuinely independent and its comments cleared",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the reviewing actuary did not prepare the memorandum, run the valuation models or author the nonforfeiture exhibit.",
+            "Read the comment log and check every comment has a drafter response and, where a change was agreed, a corresponding change in the final text.",
+            "Confirm the reviewer's completion statement is dated before the opinion signature date.",
+            "Flag any review that consists only of a sign-off sheet with no comments as an ineffective control."
+          ],
+          "done": "the peer review is independent, dated before signature, and every comment traces to a response and a text change."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception naming the company, the opinion element affected and whether it changes the opinion type or the filed reserve.",
+            "Assign a root cause from the fixed list — missing reliance, stale wording carried from the prior year, scope amount drift after a late journal, qualification documentation gap, unresolved nonforfeiture shortfall — and an owner in Actuarial or Statutory Reporting.",
+            "Set a remediation date before the next statement cycle and, where the filed opinion is affected, agree with Regulatory Counsel whether an amended filing or a notification to the domiciliary commissioner is required.",
+            "Carry every open item into next year's opinion readiness review as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a fixed-list root cause, an owner, a remediation date and a decision on whether the regulator must be notified."
+        },
+        {
+          "step": "Conclude, sign and report the opinion review",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compare the results to the stated thresholds — every required paragraph present, every reliance supported, scope amounts tying exactly to the filed statement, zero nonforfeiture floor failures.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with the workpaper reference behind each element tested.",
+            "Have the reviewer, who is outside Actuarial and had no part in drafting or peer reviewing the opinion, sign and date the workpaper.",
+            "Report the conclusion to the Board Audit Committee at its next sitting and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and committee reporting date is filed in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-010-C03",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Regulatory Reporting Manager owns delivery of the signed actuarial opinion with the annual statement to the NAIC and all 51 jurisdictions; the Appointed Actuary owns only the content of the opinion being filed"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Alabama's Standard Nonforfeiture Law and Standard Valuation Law filing requirements as administered by ALDOI, plus the current NAIC Annual Statement Instructions (Life, Accident & Health) and the per-jurisdiction NAIC State Filing Checklist, which is re-read each January because states change between electronic-only and electronic-plus-hard-copy for the actuarial opinion"
+        },
+        "In-scope processes": {
+          "value": "Annual statement assembly and filing for each writing company: jurat page execution, attachment of the Statement of Actuarial Opinion, NAIC Financial Data Repository submission, per-state filing to all 51 jurisdictions, filing fee payment and receipt capture"
+        },
+        "In-scope systems": {
+          "app": "Statutory Reporting (NAIC)",
+          "value": "Annual statement software produces the filing package and the NAIC transmission; per-state filing status, confirmations and fee receipts are tracked in the Internal Regulatory System"
+        },
+        "Compliance procedure documented": {
+          "value": "Annual Statement & Actuarial Opinion Filing Procedure — jurat execution, opinion attachment control, state-by-state checklist build, NAIC electronic submission, hard-copy states, fee payment, confirmation capture and the 51-jurisdiction completeness reconciliation"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Financial Officer and reviewed each January against the newly published NAIC Annual Statement Instructions and the refreshed state filing checklists"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual statement and Statement of Actuarial Opinion due March 1 to the NAIC and every state of licensure; risk-based capital filing March 1; supplemental filings April 1; the actuarial memorandum and RAAIS held ready for the domiciliary commissioner from March 15"
+        },
+        "Deadline reminders configured": {
+          "value": "Filing calendar alerts at February 1 (state checklist refresh complete), February 20 (jurat signatures obtained), February 26 (NAIC submission dry run), March 1 (submission cut-off) and March 8 (all 51 confirmations captured)"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Filed statement PDF per company, the attached signed opinion, the NAIC submission confirmation, per-state confirmations or postal proof of delivery, and fee receipts, retained 7 years from the filing date"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any jurisdiction filed after March 1, any state where the opinion was omitted from the package, and any rejected or resubmitted filing is logged with the state, the days late, the cause and the penalty or fine assessed"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Financial Officer",
+          "value": "Chief Financial Officer signs off any late or amended annual statement filing and any correspondence to a commissioner explaining a missed or defective filing"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every writing company × jurisdiction filing obligation for the statement year — the full 51-jurisdiction grid per company — plus each amended filing made after the original submission"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any jurisdiction with no filing confirmation on or before March 1, or any filing package that omits the signed actuarial opinion, is a fail; the opinion attached must be the signed version, and a draft or unsigned attachment counts as an omission"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual with a hard March 1 date; the test runs once in March over the complete 51-jurisdiction grid for every company, with a November readiness check of the state checklist refresh"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Officer",
+          "value": "Reviewer must not have prepared, transmitted or confirmed any of the filings being tested"
+        },
+        "Evidence location for test results": {
+          "value": "Annual filing completeness workpaper (51-jurisdiction grid per company with confirmation reference, timestamp and opinion-attachment check) in the compliance evidence repository under Regulatory Reporting / REG-010"
+        },
+        "Regulator-ready documentation": {
+          "value": "Filing confirmation register showing, per company and jurisdiction, the submission timestamp, confirmation reference and the opinion attachment identifier — producible to any department that queries receipt within 2 business days"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Reporting answers filing-receipt and completeness queries directly from the confirmation register; anything questioning the content of the opinion is routed to the Appointed Actuary, and any late-filing penalty notice goes to Regulatory Counsel and the Chief Financial Officer"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Refresh the per-jurisdiction filing requirements before the season opens",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Download the current NAIC State Filing Checklist for Life, Accident & Health for the statement year and read the column for each of the 51 jurisdictions covering the annual statement, the actuarial opinion and the supplements.",
+            "Record per jurisdiction: electronic-only versus electronic-plus-hard-copy, whether the actuarial opinion must be filed in original signed form, the filing fee amount and payment channel, and any state-specific form or cover letter.",
+            "Compare the new checklist to the prior year's grid and highlight every change so a state that moved from electronic to hard copy is not missed.",
+            "Load the refreshed grid into the Internal Regulatory System as the filing plan and have the Regulatory Reporting Manager approve it by February 1."
+          ],
+          "done": "an approved 51-jurisdiction filing grid for the statement year exists with channel, fee, opinion format and changes-from-prior-year flagged."
+        },
+        {
+          "step": "Confirm the annual statement is final and the reserves are locked",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Confirm the general ledger is closed for the statement year and no further journal entries affecting Exhibit 5, Exhibit 7 or Page 3 Line 1 will be posted.",
+            "Run the annual statement software's full validation suite and clear every fatal and warning cross-check, recording the resolution against each edit number.",
+            "Reconcile Exhibit 5 and Exhibit 7 totals to the Appointed Actuary's scope table and obtain written confirmation from the Appointed Actuary that the figures match the opinion.",
+            "Freeze the statement version and record the version identifier that will be filed."
+          ],
+          "done": "the statement is validated, frozen and confirmed by the Appointed Actuary to match the amounts in the opinion."
+        },
+        {
+          "step": "Attach the signed Statement of Actuarial Opinion to each company's package",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Retrieve the signed opinion PDF from the compliance evidence repository and check the signature, date and the writing company name on its face before attaching it.",
+            "Attach it in the annual statement software as the Statement of Actuarial Opinion for the correct company and statement year.",
+            "Open the assembled package and read the attachment back to confirm it is the signed version, not a draft, and that all pages are present and legible.",
+            "Record the attachment file name and hash against the company row in the filing grid."
+          ],
+          "done": "each company's package carries the correct signed opinion, verified page by page, with its file hash recorded in the filing grid."
+        },
+        {
+          "step": "Execute and notarise the jurat page",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "actions": [
+            "Route the jurat page for the required officer signatures — typically the president, the secretary and the treasurer or their equivalents — for each writing company.",
+            "Have the signatures notarised where the jurisdiction or the statement instructions require it and check the notary block is complete and dated.",
+            "Verify the officer names and titles on the jurat match the current officer register held for the company.",
+            "Return the executed jurat to Regulatory Reporting and file the original in the corporate records."
+          ],
+          "done": "an executed, correctly notarised jurat page with officers matching the register exists for every writing company."
+        },
+        {
+          "step": "Submit the annual statement filing to the NAIC",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Generate the NAIC electronic filing files for each writing company and run a dry-run submission by February 26 to surface format rejections while there is still time.",
+            "Submit the annual statement, the attached actuarial opinion and the required supplements to the NAIC Financial Data Repository under the company's NAIC co-code and group code.",
+            "Capture the NAIC submission confirmation, including the timestamp and confirmation reference, and paste it against the company row in the filing grid.",
+            "Resolve any NAIC validation rejection the same day and re-submit; a rejected submission is not a filing."
+          ],
+          "done": "each company has an accepted NAIC submission with a captured timestamp and confirmation reference, and no open rejections."
+        },
+        {
+          "step": "File to each domiciliary and non-domiciliary state per its channel",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For electronic-only jurisdictions confirm the NAIC submission satisfies the state and record the state's reliance on the NAIC filing in the grid.",
+            "For jurisdictions requiring a direct submission, upload the package to that department's portal or send the required hard copy with an original signed opinion, using tracked delivery.",
+            "Send the Alabama Department of Insurance filing first as the domiciliary state and confirm receipt before working through the remaining 50 jurisdictions.",
+            "Record the submission date, channel, reference number and tracking number against every jurisdiction row.",
+            "Escalate to the Regulatory Reporting Manager any jurisdiction whose portal is unavailable, so an alternative channel can be used before March 1."
+          ],
+          "done": "all 51 jurisdictions show a recorded submission with date, channel and reference, with the domiciliary filing confirmed first."
+        },
+        {
+          "step": "Pay the filing fees and capture receipts",
+          "by": "Finance Operations Analyst",
+          "role": "Finance Operations Analyst",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Take the fee schedule per jurisdiction from the filing grid and raise the payments through the required channel, whether a state portal, an EFT to the department or a cheque with the hard-copy filing.",
+            "Match each payment to the jurisdiction row and record the payment reference and the cleared date.",
+            "Chase any payment that has not cleared within 10 business days, since an unpaid fee can leave a filing recorded as incomplete.",
+            "Reconcile total fees paid to the fee schedule and post the accrual reversal with the Controller."
+          ],
+          "done": "every jurisdiction's filing fee is paid, referenced against its grid row and reconciled to the fee schedule."
+        },
+        {
+          "step": "Capture and file every filing confirmation",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Collect the NAIC confirmation, each state portal acknowledgement, each email receipt and each delivery tracking proof for hard-copy states.",
+            "File them in the compliance evidence repository under Regulatory Reporting / REG-010 / <statement year> / <company> / <jurisdiction>.",
+            "Update the filing grid status to Confirmed only when a confirmation artefact exists — a sent-items email is not a confirmation.",
+            "Chase any jurisdiction still unconfirmed at March 8 by telephoning the department's financial analysis contact and logging the call."
+          ],
+          "done": "every jurisdiction row carries a filed confirmation artefact, with unconfirmed states chased and the calls logged."
+        },
+        {
+          "step": "Run the 51-jurisdiction completeness reconciliation",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Compare the licensed-jurisdiction list for each writing company, taken from the licence register, to the filing grid so no state of licensure is missing a row.",
+            "Confirm every row shows submission date on or before March 1, a confirmation reference and an opinion attachment identifier.",
+            "List any gap and treat it as a live filing failure requiring same-day action rather than a reporting note.",
+            "Sign the reconciliation and circulate it to the Chief Financial Officer and the Compliance Officer."
+          ],
+          "done": "a signed reconciliation shows every licensed jurisdiction filed on time with a confirmation and an opinion attachment."
+        },
+        {
+          "step": "Hold the memorandum and RAAIS ready for the domiciliary commissioner",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Confirm with the Appointed Actuary that the actuarial memorandum is complete by March 15 and the Regulatory Asset Adequacy Issues Summary has been delivered to ALDOI.",
+            "Record the RAAIS delivery date, channel and acknowledgement in the filing grid alongside the opinion row.",
+            "Keep the memorandum access-restricted and ready to produce on request without a rebuild, with the confidentiality marking intact.",
+            "Diarise the VM-31 PBR Actuarial Report for April 1 where principle-based cohorts are in force."
+          ],
+          "done": "the memorandum is complete and access-restricted, the RAAIS delivery is acknowledged and recorded, and the April 1 PBR report is diarised."
+        },
+        {
+          "step": "Handle rejections, resubmissions and amended filings",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log every rejection or department request for correction with the jurisdiction, the reason given and the date received.",
+            "Rework the package, obtain any re-signature the change requires — a change to a reserve amount requires the Appointed Actuary to re-sign the opinion — and resubmit through the same channel.",
+            "Record the amended filing as a new grid row rather than overwriting the original, so the original and amended timeline is visible to an examiner.",
+            "Notify the Chief Financial Officer of any amendment that changes a filed reserve amount."
+          ],
+          "done": "every rejection or amendment is logged, reworked with any required re-signature, resubmitted and recorded as a distinct grid row."
+        },
+        {
+          "step": "Track and answer state financial-analysis follow-ups on the filing",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Log every department query about the filing — missing supplement, unreadable attachment, mismatch between the opinion and Exhibit 5 — with the date received and the department's stated due date.",
+            "Route content questions on reserves or nonforfeiture values to the Appointed Actuary and keep the drafting and clock-tracking with Regulatory Reporting.",
+            "Answer within the department's stated period, defaulting to 30 days where none is stated, and capture the response and the department's closure.",
+            "Escalate any query alleging a deficient filing to Regulatory Counsel before responding."
+          ],
+          "done": "every department query is logged with its due date, answered within the period and closed with the department's acknowledgement captured."
+        },
+        {
+          "step": "Report filing completion to the Chief Financial Officer and the Audit Committee",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "board portal",
+          "actions": [
+            "Prepare a one-page filing status report showing companies filed, jurisdictions confirmed, any late filing with its days late, and any penalty assessed.",
+            "Table it at the March management meeting and at the next Audit Committee, with the signed completeness reconciliation attached.",
+            "Record the acknowledgement in the minutes and load the paper into the board portal.",
+            "Raise any repeat late jurisdiction as a control deficiency requiring a named remediation owner."
+          ],
+          "done": "filing completion, lateness and penalties are reported and minuted, with repeat lateness raised as a control deficiency."
+        },
+        {
+          "step": "Close the filing season and update the grid for next year",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Record for each jurisdiction what actually worked — channel used, portal quirks, contact names, lead time needed — as a note on the grid row.",
+            "Flag jurisdictions whose requirements changed mid-season so the February checklist refresh starts from the correct baseline.",
+            "Diarise the next statement year's milestones in the filing calendar with the same alert points.",
+            "Archive the completed grid as the statement year's filing record."
+          ],
+          "done": "the completed grid is archived with per-jurisdiction operating notes and next year's milestones are diarised."
+        },
+        {
+          "step": "File the filing evidence pack and set the retention",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Assemble per company: filed statement PDF, attached signed opinion, executed jurat, NAIC confirmation, all 51 jurisdiction confirmations, fee receipts, amendment records and the signed completeness reconciliation.",
+            "File it under Regulatory Reporting / REG-010 / <statement year> with a 7-year retention label from the filing date.",
+            "Confirm the pack is retrievable by statement year, writing company NAIC co-code and jurisdiction, which is how an examiner will ask for it.",
+            "Notify the Statutory Reporting Manager and the Appointed Actuary that the season's evidence is closed and filed."
+          ],
+          "done": "the per-company filing evidence pack is filed, retention-labelled and retrievable by year, company and jurisdiction."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of company × jurisdiction filing obligations",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Extract the licence register for every writing company and list each jurisdiction in which it is licensed for the statement year.",
+            "Cross the list with the statement year to produce the complete obligation grid and count the expected filings.",
+            "Reconcile the licence register to the NAIC company profile and to the premium tax filings so a jurisdiction with premium but no filing obligation row is caught.",
+            "Sign the population as complete with the extract date and the expected filing count."
+          ],
+          "done": "the obligation grid is built from the licence register, reconciled to premium tax filings and signed as complete."
+        },
+        {
+          "step": "Reconcile the obligation grid to actual confirmations",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Match every obligation row to a confirmation artefact in the evidence repository — NAIC confirmation, state portal acknowledgement or delivery proof.",
+            "List rows with no artefact, with a sent-items email only, or with a confirmation dated after March 1 as automatic exceptions.",
+            "Confirm the confirmation names the same writing company and statement year as the obligation row.",
+            "Quantify total unmatched rows before any sampling begins."
+          ],
+          "done": "every obligation row is matched to a dated confirmation artefact or listed as an exception."
+        },
+        {
+          "step": "Draw and document a reproducible jurisdiction sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of hard-copy and non-standard-channel jurisdictions and 100% of jurisdictions that changed requirements this season.",
+            "Draw 20 further jurisdictions at random with a recorded seed across the remaining rows, covering every writing company at least twice.",
+            "Record the population size, seed and selection date so the sample can be redrawn identically.",
+            "Add every jurisdiction that filed late in the prior year as a mandatory retest row."
+          ],
+          "done": "the sample is seeded, reproducible, covers all non-standard channels and includes prior-year late jurisdictions."
+        },
+        {
+          "step": "Open each sampled filing package and verify the opinion attachment",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Retrieve the actual package filed for each sampled jurisdiction rather than the master package held internally.",
+            "Open the Statement of Actuarial Opinion attachment and confirm it is signed, dated on or before March 1, names the correct writing company and is complete and legible.",
+            "Compare the attachment hash to the hash recorded on the filing grid row.",
+            "Treat an unsigned, draft or missing opinion as an omission and therefore a fail, not a documentation issue."
+          ],
+          "done": "every sampled package contains the correct signed opinion, hash-matched to the filing grid record."
+        },
+        {
+          "step": "Re-perform the timeliness computation against the March 1 deadline",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Read the submission timestamp from each sampled confirmation in the department's own time zone, not the company's.",
+            "Compute days late as submission date minus March 1 and record zero or a positive number for every row.",
+            "Check whether the jurisdiction operates a different statutory due date and, where it does, recompute against that date and record the source.",
+            "List any positive day count as an exception and quantify any penalty assessed or expected."
+          ],
+          "done": "timeliness is recomputed per sampled jurisdiction against the correct statutory date, with days late and penalties quantified."
+        },
+        {
+          "step": "Verify the opinion filed matches the opinion signed by the Appointed Actuary",
+          "by": "Actuary",
+          "role": "Actuary",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Retrieve the master signed opinion from the Actuarial evidence pack and compare it page for page with the version filed in each sampled jurisdiction.",
+            "Compare the reserve amounts stated in the opinion to Exhibit 5 and Page 3 Line 1 in the filed statement for that company.",
+            "Confirm the minimum nonforfeiture value assertion appears in the filed text and was not truncated by the packaging process.",
+            "Log any version difference as a critical exception, since different states holding different opinion texts is itself a reportable condition."
+          ],
+          "done": "the filed opinion is identical to the signed master in every sampled jurisdiction and its amounts tie to the filed statement."
+        },
+        {
+          "step": "Test the jurat execution and fee payment on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Check the jurat page in each sampled filing carries the required officer signatures, correct titles per the officer register and a complete notary block where required.",
+            "Trace the filing fee for each sampled jurisdiction to a payment record and a cleared date in the general ledger.",
+            "Confirm the fee amount matches the state's published schedule for the statement year.",
+            "Flag any unpaid or short-paid fee, which can leave the filing recorded by the department as incomplete."
+          ],
+          "done": "every sampled filing has a properly executed jurat and a cleared fee payment matching the published schedule."
+        },
+        {
+          "step": "Test the memorandum and RAAIS delivery to the domiciliary commissioner",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm from the repository timestamp that the actuarial memorandum was complete by March 15 for every writing company.",
+            "Trace the RAAIS delivery to ALDOI to an acknowledgement, with the delivery date and channel recorded.",
+            "Confirm the memorandum's confidentiality marking and access restriction survived the delivery and the repository filing.",
+            "Where a principle-based cohort is in force, confirm the VM-31 PBR Actuarial Report was delivered by April 1."
+          ],
+          "done": "memorandum completion, RAAIS delivery and any VM-31 report are evidenced against their March 15 and April 1 dates."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception naming the company, the jurisdiction, what was missed and whether the department has raised it.",
+            "Assign a root cause from the fixed list — stale state checklist, portal failure not escalated, opinion attached unsigned, fee unpaid, late statement close — and an owner in Regulatory Reporting.",
+            "Set a remediation date and, for any late or defective filing, agree with Regulatory Counsel whether a proactive letter to the commissioner is required.",
+            "Carry every open item into the next filing season's readiness check as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a fixed-list root cause, an owner, a remediation date and a decision on regulator notification."
+        },
+        {
+          "step": "Conclude, sign and report the filing completeness test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate over the obligation grid against the zero-tolerance threshold for missed jurisdictions and omitted opinions.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with the workpaper reference behind each element tested.",
+            "Have the independent reviewer, who prepared or transmitted none of the filings, sign and date the workpaper.",
+            "Report the conclusion, any late jurisdiction and any penalty to the Chief Financial Officer and the Audit Committee, and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and committee reporting date is filed in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-010-C04",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "ALM / Asset-Liability Actuary",
+          "value": "ALM / Asset-Liability Actuary owns the asset adequacy and cash-flow testing work and its documentation; the Appointed Actuary owns the adequacy conclusion drawn from it"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — the asset adequacy requirement in VM-30 Section 3 of the current NAIC Valuation Manual, read with the Alabama Standard Valuation Law and the Standard Nonforfeiture Law minimum-value floor that constrains the liability cash flows being tested, and with ASOP No. 7 (cash flow testing), ASOP No. 22 (asset adequacy opinions) and ASOP No. 56 (modeling)"
+        },
+        "In-scope processes": {
+          "value": "Annual asset adequacy analysis for the Group Life and group permanent block: asset segmentation, liability model point build, deterministic New York 7 scenario testing, stochastic scenario testing, dynamic lapse and cash-surrender-election modelling, additional actuarial reserve determination and the AAT report"
+        },
+        "In-scope systems": {
+          "app": "FIS Prophet",
+          "value": "Cash-flow projection models run in FIS Prophet against asset cash flows sourced from BlackRock Aladdin and the Group Life liability model points; every run is versioned in the model governance repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Asset Adequacy & Cash Flow Testing Procedure — segment definition, asset and liability data sourcing and reconciliation, scenario set construction, dynamic lapse and surrender-election formulas anchored to guaranteed nonforfeiture values, run controls, results interpretation and additional reserve determination"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Appointed Actuary and the Model Risk Committee each September before the testing cycle opens, with any assumption change since the prior year approved individually"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Testing on the September 30 preliminary in-force must be complete by December 15; the year-end roll-forward and final results must be signed by February 15 so the opinion can be signed March 1 and the memorandum and RAAIS completed by March 15"
+        },
+        "Deadline reminders configured": {
+          "value": "AAT calendar alerts at September 1 (assumptions approved), October 15 (asset and liability data reconciled), December 15 (preliminary results), February 5 (year-end roll-forward complete) and February 15 (results signed by the Appointed Actuary)"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "AAT report, scenario definitions and generator seeds, asset and liability reconciliations, assumption support studies, model version tags, run logs and sensitivity results retained 7 years from the statement date, matching the memorandum's retention"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any scenario producing negative ending surplus, any segment failing adequacy, any unsupported assumption and any additional actuarial reserve booked is logged with the amount, the driver scenario and the action taken before the opinion is signed"
+        },
+        "Remediation sign-off captured": {
+          "role": "Appointed Actuary",
+          "value": "Appointed Actuary signs off every additional actuarial reserve, assumption change and remediation arising from the testing before the results are used in the opinion"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every asset segment and liability block supporting Group Life reserves: the asset cash flows tested, the liability model points and their mapping to the valuation in-force, the full deterministic and stochastic scenario set, and the assumption set with its supporting experience studies"
+        },
+        "Pass/fail thresholds": {
+          "value": "Liability and asset model point totals must reconcile to Exhibit 5 reserves and Schedule D book values within 0.5%; no scenario may end in negative surplus without an additional actuarial reserve recorded for it; every material assumption must have a study dated within three years or a documented rationale for its age"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; the test runs once per cycle on the December preliminary results with a confirmatory pass over the February year-end roll-forward before the opinion is signed"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Model Risk Manager",
+          "value": "Reviewer must not have built the cash-flow model, set the assumptions or run the scenarios for the cycle under test"
+        },
+        "Evidence location for test results": {
+          "value": "Annual AAT review workpaper (segment reconciliation, scenario re-run evidence, assumption support review, additional reserve recomputation, exceptions) in the compliance evidence repository under Asset Adequacy / REG-010 / <statement year>"
+        },
+        "Regulator-ready documentation": {
+          "value": "AAT report with segment definitions, scenario descriptions, results tables, sensitivity analysis and the additional reserve rationale, producible to an ALDOI examiner or a Financial Analysis Handbook Level 2 request within 10 business days and consistent with the RAAIS already delivered"
+        },
+        "Regulator response path": {
+          "value": "The Appointed Actuary answers asset adequacy questions; the ALM / Asset-Liability Actuary supplies the run evidence; Regulatory Counsel maintains the confidentiality position over the report and clears any response conceding an adequacy shortfall"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Define the asset segments supporting the Group Life liabilities",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "app": "BlackRock Aladdin",
+          "actions": [
+            "Agree with the Chief Investment Officer which investment segment backs the Group Life and group permanent reserves and record the segment identifier used in the investment system.",
+            "Confirm the segment's assets are formally allocated in the accounting records rather than notionally assigned, and document the allocation method where assets are shared.",
+            "Record the segmentation basis — book value matched to reserve, or a stated allocation percentage — and the date it was last reviewed.",
+            "Have the Appointed Actuary approve the segment definition before any modelling starts, since re-segmenting mid-cycle invalidates comparability."
+          ],
+          "done": "the backing asset segment is defined, formally allocated, documented and approved by the Appointed Actuary."
+        },
+        {
+          "step": "Source and reconcile the asset data and its cash flows",
+          "by": "Investment Analyst",
+          "role": "Investment Analyst",
+          "app": "BlackRock Aladdin",
+          "actions": [
+            "Extract from the investment system, for every holding in the segment: CUSIP, book and market value, NAIC designation, coupon, maturity, call and put features, prepayment characteristics and amortisation schedule.",
+            "Reconcile the extract's total book value to Schedule D Part 1 and Schedule DA for the segment and clear differences with Investment Operations before use.",
+            "Generate the projected asset cash flows on the base scenario and check they reproduce the current book yield within a stated tolerance.",
+            "File the extract, the Schedule D reconciliation and the cash-flow generation log in the AAT evidence pack."
+          ],
+          "done": "segment asset data is extracted, reconciled to Schedule D and Schedule DA, and its base-scenario cash flows reproduce the book yield."
+        },
+        {
+          "step": "Build and reconcile the liability model points",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Compress the Group Life valuation in-force into liability model points grouped by plan code, issue-year cohort, issue age band, sex basis and guaranteed cash value level.",
+            "Reconcile model point face amount, statutory reserve and guaranteed cash value totals back to the valuation output and to Exhibit 5, requiring agreement within 0.5% on each measure.",
+            "Run a seriatim-versus-compressed comparison on one plan code to prove the compression does not distort the guaranteed cash value profile that drives surrender behaviour.",
+            "Record the reconciliation and the compression test in the AAT evidence pack and have the Valuation Actuary confirm it."
+          ],
+          "done": "liability model points reconcile to Exhibit 5 within 0.5% on face, reserve and cash value, with a documented compression test."
+        },
+        {
+          "step": "Set and support the assumption basis",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "app": "compliance evidence repository",
+          "actions": [
+            "List every assumption used — mortality, base lapse, dynamic lapse, premium persistency, expense, expense inflation, reinvestment strategy, disinvestment order, default costs and spread — and name the study or source behind each.",
+            "Check each supporting experience study is dated within three years and, where it is older, write the rationale for continuing to rely on it.",
+            "State the margin for adverse deviation applied to each assumption and how it was set, rather than describing the assumption as best estimate with no margin discussion.",
+            "Route the assumption set with its support to the Appointed Actuary for approval before the September cycle opens."
+          ],
+          "done": "every assumption has a named, dated source, a stated margin and Appointed Actuary approval before the cycle opens."
+        },
+        {
+          "step": "Model the surrender and cash-value election behaviour the nonforfeiture guarantees create",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "app": "FIS Prophet",
+          "actions": [
+            "Build the dynamic lapse formula so surrender rates respond to the gap between the guaranteed cash surrender value available under the Standard Nonforfeiture Law and prevailing market alternatives in the scenario.",
+            "Model the nonforfeiture options a certificate holder can actually elect — cash surrender, reduced paid-up and extended term insurance — and the value payable under each, not cash surrender alone.",
+            "Reflect the insurer's statutory right to defer payment of cash surrender values for up to six months and state whether the deferral is assumed to be exercised.",
+            "Run a sensitivity doubling the dynamic lapse response and record the effect on ending surplus, since disintermediation against guaranteed values is the central risk this block carries.",
+            "Document the formulas, their parameters and the sensitivity in the AAT report."
+          ],
+          "done": "surrender modelling responds to the guaranteed nonforfeiture values, covers all elective options and carries a documented double-response sensitivity."
+        },
+        {
+          "step": "Construct the deterministic scenario set",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "app": "Bloomberg Terminal",
+          "actions": [
+            "Build the seven prescribed deterministic interest rate scenarios — level, uniformly increasing, increasing then popping down, pop-up then level, uniformly decreasing, decreasing then popping up, and pop-down then level — from the statement-date Treasury curve.",
+            "Source the starting curve and credit spreads from the market data terminal on the valuation date and record the exact quotes used.",
+            "Add any company-specific scenario the prior year's results or the current risk profile call for, and explain why it was added.",
+            "File the scenario definitions and starting curve in the AAT evidence pack so an examiner can reproduce them."
+          ],
+          "done": "the seven prescribed scenarios plus any added scenario are defined from a recorded statement-date curve and filed."
+        },
+        {
+          "step": "Generate and validate the stochastic scenario set",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Generate the stochastic economic scenarios using the prescribed generator and record the version, parameters, seed and number of paths.",
+            "Run the calibration checks on the generated set and confirm the distribution meets the prescribed calibration criteria at the tested percentiles.",
+            "Confirm the scenario count is sufficient for the tail measure being used and document the convergence test that supports it.",
+            "File the seed and generator configuration so the identical set can be regenerated on request."
+          ],
+          "done": "the stochastic set is generated with a recorded seed, passes calibration checks and has a documented convergence test."
+        },
+        {
+          "step": "Run the projections and control the run",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "FIS Prophet",
+          "actions": [
+            "Confirm the model version tag matches the version approved in the model governance repository and that the asset and liability input files match the reconciled extracts by hash.",
+            "Run the deterministic set first and check the level scenario reproduces the prior-year roll-forward within the stated tolerance before launching the stochastic run.",
+            "Capture the run log, run duration, error and warning messages, and confirm no model point dropped between input and output.",
+            "Export results by scenario: ending surplus, the year it first turns negative if it does, and the present value of accumulated deficiency."
+          ],
+          "done": "runs complete on the approved model version with hash-matched inputs, no dropped model points and per-scenario results exported."
+        },
+        {
+          "step": "Interpret the results and identify failing scenarios",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Rank scenarios by ending surplus and list every scenario ending in deficiency, with the first year of deficiency and the driver.",
+            "Separate deficiencies driven by interest rate movement from those driven by surrender behaviour against guaranteed cash values, because the two call for different responses.",
+            "Compare the pattern to the prior year and explain every material change in conclusion.",
+            "Record the adequacy conclusion per segment in writing before any additional reserve is computed, so the reserve is a response to a documented conclusion rather than a plug."
+          ],
+          "done": "failing scenarios are listed with first-deficiency year and driver, and a written per-segment adequacy conclusion exists."
+        },
+        {
+          "step": "Determine and book any additional actuarial reserve",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Compute the additional actuarial reserve on the stated basis — commonly the greatest present value of accumulated deficiency across the tested scenarios — and show the calculation.",
+            "Confirm the resulting total reserve still satisfies the Standard Nonforfeiture Law cash-value floor at certificate level, since an aggregate additional reserve does not cure a seriatim floor failure.",
+            "Instruct the Statutory Reporting Manager to book the reserve to the correct Exhibit 5 line and confirm it flows to Page 3 Line 1.",
+            "Document the rationale, the scenario it responds to and the release conditions in the AAT report and the memorandum."
+          ],
+          "done": "any additional actuarial reserve is computed, shown, booked to Exhibit 5 and documented with its rationale and release conditions."
+        },
+        {
+          "step": "Run and document the required sensitivities",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "app": "FIS Prophet",
+          "actions": [
+            "Run sensitivities on mortality, base and dynamic lapse, expense inflation, reinvestment spread and default cost, one factor at a time, and record the ending surplus movement for each.",
+            "Run a combined adverse sensitivity and record whether the block remains adequate under it.",
+            "Identify the two assumptions the result is most sensitive to and state what monitoring is in place for them during the year.",
+            "Present the sensitivity table in the AAT report next to the base results rather than in an appendix."
+          ],
+          "done": "single-factor and combined sensitivities are run and tabled, with the two dominant assumptions named and their monitoring stated."
+        },
+        {
+          "step": "Roll the September testing forward to the year-end position",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Compare the December 31 in-force, reserves and asset segment to the September 30 basis on which the testing was run and quantify each change.",
+            "Assess whether any change — a large new group, a block transfer, a market move, a reinvestment strategy change — invalidates the September conclusion, and re-run rather than reason around it if it does.",
+            "Document the roll-forward test and its conclusion and have the Appointed Actuary sign it by February 15.",
+            "Update the additional actuarial reserve for the year-end position where the roll-forward shows it is required."
+          ],
+          "done": "the September conclusion is tested against the December 31 position, signed by the Appointed Actuary, with the reserve updated where needed."
+        },
+        {
+          "step": "Write the asset adequacy testing report",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "actions": [
+            "Write the report to stand alone for a reviewing actuary: segment definition, asset and liability data and reconciliations, assumptions and their support and margins, scenario definitions, results, sensitivities, roll-forward and conclusion.",
+            "Include the nonforfeiture linkage explicitly — how guaranteed cash surrender values enter the liability cash flows and drive the dynamic lapse response.",
+            "Cross-reference every table to its underlying workpaper by reference id so a request for support does not trigger a rebuild.",
+            "Mark the report confidential consistent with the memorandum and restrict repository access accordingly."
+          ],
+          "done": "a self-contained, cross-referenced, confidentiality-marked AAT report exists covering data, assumptions, scenarios, results and conclusion."
+        },
+        {
+          "step": "Close model governance on the testing cycle",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "model governance repository",
+          "actions": [
+            "Confirm the cash-flow model version used is the approved version and that every change since the last cycle carries an approved change ticket and test evidence.",
+            "Confirm the model validation covering the asset and liability projection engines is current and that high-rated findings are closed or compensated.",
+            "Attach run logs, input hashes, scenario seeds and result exports to the model governance record for the cycle.",
+            "Record the ASOP 56 attestation from the model owner covering fitness for the asset adequacy purpose."
+          ],
+          "done": "the cycle is versioned in model governance with approved changes, a current validation, attached run evidence and a model-owner attestation."
+        },
+        {
+          "step": "File the AAT evidence pack and set the retention",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Assemble the pack: segment definition, asset extract and Schedule D reconciliation, liability model points and compression test, assumption set with studies, scenario definitions and seeds, run logs, results, sensitivities, roll-forward, additional reserve calculation and the signed AAT report.",
+            "File it under Asset Adequacy / REG-010 / <statement year> with a 7-year retention label and restricted access.",
+            "Confirm the pack is retrievable by statement year, segment and writing company NAIC co-code.",
+            "Notify the Appointed Actuary and the Statutory Reporting Manager that the pack supporting the opinion and the RAAIS is filed."
+          ],
+          "done": "the complete AAT evidence pack is filed, access-restricted, retention-labelled and retrievable by year, segment and company."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of segments, model points and scenarios tested",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "List every asset segment supporting Group Life reserves and confirm each appears in the AAT report with a stated conclusion.",
+            "List the liability model point files, the deterministic scenario set and the stochastic scenario set with its seed and path count.",
+            "Reconcile the segments listed to the investment system's segment register and the reserves covered to Exhibit 5, so no reserve is left untested.",
+            "Sign the population as complete with the reconciling items cleared."
+          ],
+          "done": "every segment and reserve in Exhibit 5 is covered by a tested segment with a stated conclusion, signed as complete."
+        },
+        {
+          "step": "Reconcile asset and liability inputs back to the systems of record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "BlackRock Aladdin",
+          "actions": [
+            "Re-run an independent book value total for the segment from the investment system and compare it to the asset file used in the model and to Schedule D Part 1.",
+            "Compare liability model point totals for face amount, statutory reserve and guaranteed cash value to the valuation output and Exhibit 5, testing against the 0.5% threshold.",
+            "Confirm the file hashes recorded in the run log match the reconciled extracts actually filed in the evidence pack.",
+            "Treat any difference above threshold, or any hash mismatch, as an exception before proceeding to result testing."
+          ],
+          "done": "asset and liability inputs agree to Schedule D and Exhibit 5 within 0.5% and the run-log hashes match the filed extracts."
+        },
+        {
+          "step": "Draw and document a reproducible sample of assumptions and scenarios",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of assumptions the sensitivity table shows the result is most sensitive to, and 100% of scenarios that ended in deficiency.",
+            "Draw 10 further assumptions and 5 further scenarios at random with a recorded seed.",
+            "Record the population size, seed and selection date so the sample can be redrawn identically.",
+            "Add every assumption flagged in the prior year's review as a mandatory retest row."
+          ],
+          "done": "the sample is seeded and reproducible and covers all dominant assumptions and all deficiency scenarios."
+        },
+        {
+          "step": "Test the support behind each sampled assumption",
+          "by": "Actuary",
+          "role": "Actuary",
+          "actions": [
+            "Open the experience study cited for each sampled assumption and check its date, exposure period, credibility measure and whether it covers the Group Life block rather than a different line.",
+            "Compare the assumption actually loaded into the model parameter file to the value the study supports and record any difference.",
+            "Check the stated margin for adverse deviation exists in the parameter file, not only in the narrative.",
+            "Treat an assumption supported only by a prior-year assumption document, with no underlying study, as unsupported."
+          ],
+          "done": "each sampled assumption traces to a dated, relevant study whose supported value and margin match the model parameter file."
+        },
+        {
+          "step": "Re-perform the dynamic lapse and nonforfeiture-option modelling",
+          "by": "Actuary",
+          "role": "Actuary",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Take the dynamic lapse formula from the model and recompute the surrender rate independently at three scenario points — level rates, sharply rising rates and sharply falling rates.",
+            "Confirm the formula reacts to the guaranteed cash surrender value available under the Standard Nonforfeiture Law and not only to a credited-rate differential.",
+            "Confirm reduced paid-up and extended term elections are modelled with the correct values from the nonforfeiture output rather than approximated as cash surrender.",
+            "Recompute the six-month deferral assumption's effect and confirm the report states whether deferral is assumed to be exercised."
+          ],
+          "done": "the recomputed dynamic lapse matches the model at three scenario points and all nonforfeiture elections are modelled with their correct values."
+        },
+        {
+          "step": "Re-run a sampled scenario and compare to the recorded result",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "FIS Prophet",
+          "actions": [
+            "Restore the archived model version, input files and scenario definition for one deterministic and one stochastic path from the model governance record.",
+            "Re-run the projection and compare ending surplus, first year of deficiency and present value of accumulated deficiency to the recorded results.",
+            "Investigate any difference beyond floating-point tolerance as evidence that the archived configuration does not reproduce the reported result.",
+            "Record the re-run log and comparison in the workpaper as the reproducibility evidence an examiner will ask for."
+          ],
+          "done": "an archived re-run reproduces the recorded scenario results within tolerance, with the run log filed as reproducibility evidence."
+        },
+        {
+          "step": "Recompute the additional actuarial reserve and check the nonforfeiture floor still holds",
+          "by": "Actuary",
+          "role": "Actuary",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Recompute the additional actuarial reserve on the stated basis from the exported scenario results and compare it to the amount booked.",
+            "Trace the booked amount to the Exhibit 5 line and to Page 3 Line 1 in the filed statement.",
+            "Re-run the certificate-level cash-value floor test on the year-end position to confirm the aggregate additional reserve did not mask a seriatim shortfall against the statutory minimum nonforfeiture value.",
+            "Log any difference between recomputed and booked amounts, and any seriatim floor failure, as separate exceptions."
+          ],
+          "done": "the additional reserve recomputes to the booked amount, ties to Exhibit 5 and no seriatim nonforfeiture floor failure exists."
+        },
+        {
+          "step": "Test the roll-forward from the testing date to the statement date",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the September 30 in-force, reserve and asset segment used in testing to the December 31 filed position and quantify the change independently.",
+            "Assess whether any change exceeded the company's own re-run trigger and, if it did, confirm a re-run actually happened.",
+            "Confirm the roll-forward conclusion is signed by the Appointed Actuary and dated on or before February 15.",
+            "Check the market movement between the testing date and the statement date was considered explicitly, not assumed immaterial."
+          ],
+          "done": "the roll-forward is independently quantified, re-run triggers were honoured and the signed conclusion pre-dates February 15."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception naming the segment, the assumption or scenario affected and whether it changes the adequacy conclusion or the additional reserve.",
+            "Assign a root cause from the fixed list — stale experience study, model version drift, input reconciliation break, dynamic lapse formula not tied to guaranteed values, roll-forward trigger ignored — and an owner in Actuarial or ALM.",
+            "Set a remediation date before the next testing cycle opens in September and, where the adequacy conclusion is affected, notify the Appointed Actuary the same day.",
+            "Carry every open item into next cycle's assumption approval as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a fixed-list root cause, an owner, a remediation date and, where relevant, same-day notification to the Appointed Actuary."
+        },
+        {
+          "step": "Conclude, sign and report the asset adequacy review",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "actions": [
+            "Compare results to the stated thresholds — 0.5% input reconciliation, every deficiency scenario reserved, every material assumption supported by a study within three years.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with the workpaper reference behind each element tested.",
+            "Have the independent reviewer, who built no part of the model and set none of the assumptions, sign and date the workpaper.",
+            "Report the conclusion to the Appointed Actuary, the Chief Risk Officer and the Audit Committee, and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and reporting date is filed in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-010-C05",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Data Quality Manager",
+          "value": "Data Quality Manager owns the quarterly reserve-to-policy-admin reconciliation and its exception clearance; the Valuation Actuary is the receiving customer and signs the data acceptance"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — the data adequacy expectation behind the officer reliance statement in VM-30, read with the Alabama Standard Nonforfeiture Law, because issue date, issue age, sex basis, plan code and face amount are the very fields that determine the governing CSO table and the statutory minimum cash surrender value; the NAIC Annual Statement Instructions for Exhibit 5 set the classifications the reconciliation must support"
+        },
+        "In-scope processes": {
+          "value": "Quarterly reconciliation of the Group Life valuation in-force extract to the Policy Administration Platform system of record: record count and face amount tie, nonforfeiture-critical field completeness and validity, in-force movement reconciliation, cash value and policy loan tie to the general ledger, and exception clearance before the valuation model runs"
+        },
+        "In-scope systems": {
+          "app": "Policy Administration Platform",
+          "value": "Source of record is the Policy Administration Platform; the extract lands in Snowflake Data Cloud through the pipeline orchestrator, and reconciliation rules run in the data quality tool before the actuarial modeling platform consumes it"
+        },
+        "Compliance procedure documented": {
+          "value": "Valuation Data Reconciliation Procedure — extract specification and freeze, control totals, the nonforfeiture-critical field rule set, movement reconciliation, ledger tie for cash values and loans, exception severity model and the data acceptance sign-off gate"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Data Officer and the Chief Actuary jointly; the field rule set is re-approved whenever a policy administration release changes a nonforfeiture-relevant field or a new plan code is launched"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Reconciliation must be complete and accepted by working day 3 after each quarter end so the valuation model can run by WD+2 of the valuation timetable, ahead of the May 15, August 15, November 15 quarterly statements and the March 1 annual statement"
+        },
+        "Deadline reminders configured": {
+          "value": "Pipeline and calendar alerts at WD-1 (extract specification confirmed), WD+1 (extract landed and control totals published), WD+2 (critical exceptions cleared) and WD+3 (data acceptance signed), with an automatic escalation to the Chief Data Officer if acceptance is not signed"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Reconciliation report, control totals, rule-set results, exception register with dispositions and the signed data acceptance retained 7 years from the valuation date and produced at financial condition examinations alongside the valuation workpapers"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "data catalog/quality tool",
+          "value": "Every failed rule is logged with severity, affected certificate count, the field in question and the disposition — corrected at source, corrected by documented valuation adjustment, or accepted with a quantified reserve impact and an owner"
+        },
+        "Remediation sign-off captured": {
+          "role": "Valuation Actuary",
+          "value": "Valuation Actuary signs the data acceptance and any decision to proceed with an open exception, recording the quantified reserve impact accepted"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The full quarter-end Group Life valuation extract row by row, the policy administration in-force at the same cut-off, all in-quarter movements (issues, reinstatements, deaths, surrenders, lapses, maturities, conversions) and the cash value and policy loan balances in the general ledger"
+        },
+        "Pass/fail thresholds": {
+          "value": "Record count must tie exactly; face amount and statutory reserve must tie within 0.1%; zero tolerance on null or invalid issue date, issue age, sex basis, plan code and face amount, because each one changes the governing nonforfeiture basis; unexplained movement variance above $250,000 fails"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is quarterly; the test runs each quarter against that quarter's reconciliation, with a deeper field-level walk at year end before the annual statement extract is accepted"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Data Governance Lead",
+          "value": "Reviewer must not have built the extract, written the reconciliation rules or dispositioned the exceptions for the quarter under test"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly valuation data reconciliation test workpaper (control totals, rule results, sampled record walk, movement recomputation, exception disposition review) in the compliance evidence repository under Data Quality / REG-010 / <valuation date>"
+        },
+        "Regulator-ready documentation": {
+          "value": "Reconciliation report showing source-to-extract control totals, the nonforfeiture-critical field rule results and the signed data acceptance, producible to an examiner testing the reliability of data underlying the actuarial opinion within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "The Data Quality Manager supplies reconciliation evidence; the Valuation Actuary explains any accepted exception and its reserve impact; Regulatory Counsel clears any response conceding that data defects affected reported reserves or policyholder values"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Confirm the extract specification against the current policy admin release",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Read the release notes for every policy administration release deployed since the last valuation and list any change to fields the nonforfeiture calculation depends on — issue date, issue age basis, sex indicator, plan code, face amount, paid-to date, guaranteed cash value and policy loan.",
+            "Confirm with the Policy Admin Ops Lead whether any plan code was added, retired or remapped in the quarter and how historic certificates were treated.",
+            "Update the extract specification and its field mapping document, and have the Valuation Actuary confirm the mapping still delivers what the model expects.",
+            "Publish the specification version that will govern this quarter's extract."
+          ],
+          "done": "the extract specification is versioned for the quarter and reflects every policy admin change touching a nonforfeiture-relevant field."
+        },
+        {
+          "step": "Run the extract under the posting freeze and publish control totals",
+          "by": "Data Engineer",
+          "role": "Data Engineer",
+          "app": "Data pipeline orchestrator (Airflow/Dagster/Prefect)",
+          "actions": [
+            "Trigger the valuation extract job only after the Policy Admin Ops Lead confirms the posting freeze for the valuation date, and record the freeze time in the job parameters.",
+            "Land the extract in Snowflake Data Cloud in a valuation-date partition marked read-only and compute the file hash.",
+            "Publish control totals — record count, total face amount, total guaranteed cash value, total policy loan balance — to the reconciliation dashboard the same day.",
+            "Fail the job rather than land a partial file if the row count deviates from the prior quarter by more than 5% without a known driver."
+          ],
+          "done": "a hashed, read-only extract is landed for the valuation date with published control totals and no partial-load condition."
+        },
+        {
+          "step": "Tie record count and face amount to the system of record",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Run an independent count and sum query directly against the policy administration replica as at the valuation date, using the same in-force definition as the extract.",
+            "Compare record count (must tie exactly) and total face amount (must tie within 0.1%) and list every difference with its certificate numbers.",
+            "Classify each difference — timing, in-force definition, status code mapping, genuine omission — and resolve rather than net them off against each other.",
+            "Record the tie-out on the reconciliation report with the queries used pasted in full."
+          ],
+          "done": "record count ties exactly and face amount ties within 0.1%, with every difference identified and classified rather than netted."
+        },
+        {
+          "step": "Run the nonforfeiture-critical field rule set",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "Execute the completeness rules: issue date, issue age, sex or composite indicator, plan code and face amount must be populated on every row, with zero tolerance.",
+            "Execute the validity rules: issue date not in the future and not before the plan's launch date, issue age within the plan's issue age range, sex indicator in the permitted value list, plan code present in the product reference data, face amount above the plan minimum.",
+            "Execute the consistency rules: issue age must agree with issue date and date of birth on the certificate's age basis, and paid-to date must not pre-date the issue date.",
+            "Route every failure into the exception register with severity Critical for the fields that determine the governing CSO table and the adjusted premium."
+          ],
+          "done": "completeness, validity and consistency rules have run over every row with failures registered and severity-rated."
+        },
+        {
+          "step": "Reconcile the guaranteed cash value field to the product's value table",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Join each certificate's stored guaranteed cash value to the plan's Table of Guaranteed Values at the certificate's duration and compare.",
+            "List every certificate where the stored value differs from the table value by more than $1, since a stored-value defect flows straight into the statutory floor test.",
+            "Distinguish genuine defects from legitimate differences caused by policy loans, partial surrenders or paid-up additions and document the distinction rule.",
+            "Send the difference list to the Valuation Actuary and the Policy Administration Analyst the same day."
+          ],
+          "done": "every stored guaranteed cash value is compared to the product value table with differences listed and their cause classified."
+        },
+        {
+          "step": "Reconcile the in-force movement quarter on quarter",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Build the movement: opening certificate count and face amount, plus new issues and reinstatements, less deaths, surrenders, lapses, maturities and conversions, equals closing.",
+            "Tie the movement counts to the policy administration transaction history for the quarter rather than to a status-code snapshot difference.",
+            "Investigate every unexplained variance above $250,000 of face amount and name the driver — a status change without a transaction usually means a data fix was applied directly to the database.",
+            "Record the movement table on the reconciliation report with each variance named."
+          ],
+          "done": "the movement reconciles from opening to closing against transaction history with every variance above $250,000 named."
+        },
+        {
+          "step": "Test for duplicate, orphan and out-of-scope certificates",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Search for duplicate certificate numbers within a master policy and duplicate person-plus-plan combinations that indicate a double load.",
+            "Search for certificates with no valid master policy, no writing company NAIC co-code or no situs state — these cannot be assigned a jurisdiction's nonforfeiture standard.",
+            "Search for certificates whose situs state is outside the 51 jurisdictions the company is licensed in and escalate them to Compliance rather than dropping them.",
+            "Register every hit as an exception with its certificate numbers rather than filtering it out of the extract."
+          ],
+          "done": "duplicates, orphans and out-of-jurisdiction certificates are identified, registered and escalated rather than silently filtered."
+        },
+        {
+          "step": "Tie cash value payments and policy loans to the general ledger",
+          "by": "Accountant",
+          "role": "Accountant",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Sum the cash surrender payments recorded in policy administration for the quarter and compare to the surrender benefit expense accounts in the general ledger.",
+            "Compare the extract's total policy loan balance to the policy loan asset account and to Schedule B or the equivalent statement line.",
+            "Investigate suspense and unapplied cash for surrender payments that were processed but not disbursed, since an unpaid surrender is a policyholder-value issue, not just a reconciliation break.",
+            "Record the tie and any reconciling item on the reconciliation report and clear it with the Controller before the ledger closes."
+          ],
+          "done": "surrender payments and policy loan balances tie to the ledger, with suspense items identified and cleared with the Controller."
+        },
+        {
+          "step": "Disposition every exception with severity and impact",
+          "by": "Data Quality Manager",
+          "role": "Data Quality Manager",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "Work the exception register top down by severity, taking every Critical exception affecting the nonforfeiture basis fields first.",
+            "For each exception set the disposition: corrected at source in policy administration, corrected by a documented valuation adjustment, or accepted for this quarter with a quantified reserve impact.",
+            "Quantify the reserve and cash-value impact of every accepted exception rather than describing it as immaterial, and name the accepting owner.",
+            "Refuse to close any Critical exception by acceptance without the Valuation Actuary's written agreement."
+          ],
+          "done": "every exception carries a disposition, a quantified impact where accepted, and written Valuation Actuary agreement on Critical items."
+        },
+        {
+          "step": "Push permanent fixes back into the policy administration system",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Raise a data correction ticket per source defect with the certificate numbers, the field, the correct value and its supporting document.",
+            "Apply the correction through the system's maintenance transaction so the change is audited, never by a direct database update.",
+            "Confirm the correction re-flows to the next extract and closes the corresponding rule failure.",
+            "Where the defect is systemic — a broken interface, a bad conversion, a defective release — raise a change request rather than repeating the manual fix each quarter."
+          ],
+          "done": "source defects are corrected through audited transactions and systemic causes have a raised change request, not a recurring manual fix."
+        },
+        {
+          "step": "Produce the quarterly reconciliation report",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "BI/reporting platform",
+          "actions": [
+            "Assemble the report: extract specification version and hash, control totals and source tie-out, rule set results by severity, guaranteed cash value comparison, movement reconciliation, ledger tie and the exception register with dispositions.",
+            "Show quarter-on-quarter trend on exception counts by rule so a deteriorating field is visible before it becomes a valuation problem.",
+            "State plainly which exceptions remain open and their quantified reserve impact, on the front page rather than in an appendix.",
+            "Circulate to the Valuation Actuary, the Chief Data Officer and the Statutory Reporting Manager on WD+2."
+          ],
+          "done": "the reconciliation report is issued on WD+2 with tie-outs, rule results, trends and open exceptions with quantified impact on the front page."
+        },
+        {
+          "step": "Obtain the Valuation Actuary's data acceptance",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Read the reconciliation report and challenge every open Critical exception before signing anything.",
+            "Sign the data acceptance stating the extract is fit for the nonforfeiture and reserve calculation, listing each accepted exception and its quantified impact.",
+            "Where acceptance is refused, hold the valuation run and escalate to the Chief Actuary and the Chief Data Officer the same day rather than running on known-bad data.",
+            "File the signed acceptance with the valuation control sheet so the two documents travel together."
+          ],
+          "done": "a signed data acceptance listing every accepted exception and its impact is filed with the valuation control sheet, or the run is held."
+        },
+        {
+          "step": "Feed the accepted extract into the valuation model",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Point the model run at the accepted extract by hash, not by folder path, so a later re-landed file cannot be picked up silently.",
+            "Re-check model point count and face amount against the published control totals before the run is allowed to proceed.",
+            "Record the extract hash, the reconciliation report reference and the data acceptance reference in the model run log.",
+            "Stop the run and return to the Data Quality Manager if the model's own input validation raises a record the reconciliation did not."
+          ],
+          "done": "the model run is bound to the accepted extract by hash with the reconciliation and acceptance references recorded in the run log."
+        },
+        {
+          "step": "Track recurring data defects to a root-cause fix",
+          "by": "Data Governance Lead",
+          "role": "Data Governance Lead",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "Compare this quarter's exception register to the prior three quarters and list every rule failing repeatedly on the same field or plan code.",
+            "Assign each recurring defect a named data steward and a root-cause fix — interface repair, conversion clean-up, screen validation, reference data correction — with a target quarter.",
+            "Report recurring defects and their fix status to the Data Governance forum each quarter with the reserve impact attached.",
+            "Escalate any defect open for more than three quarters to the Chief Data Officer and the Chief Actuary."
+          ],
+          "done": "every recurring defect has a named steward, a root-cause fix with a target quarter, and escalation after three quarters open."
+        },
+        {
+          "step": "File the reconciliation evidence pack and set the retention",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Assemble the pack: extract specification version, extract hash, source tie-out queries and results, rule set output, guaranteed cash value comparison, movement reconciliation, ledger tie, exception register with dispositions and the signed data acceptance.",
+            "File it under Data Quality / REG-010 / <valuation date> with a 7-year retention label.",
+            "Confirm the pack is retrievable by valuation date, writing company NAIC co-code and plan code so it can be produced alongside the valuation workpapers at an examination.",
+            "Notify the Valuation Actuary and the Statutory Reporting Manager of the repository reference."
+          ],
+          "done": "the reconciliation evidence pack is filed, retention-labelled and retrievable alongside the valuation workpapers."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of records subject to reconciliation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Take the full quarter-end valuation extract from its read-only partition and record its row count, total face amount and hash.",
+            "Take the in-quarter movement transactions — issues, reinstatements, deaths, surrenders, lapses, maturities, conversions — from the policy administration transaction history.",
+            "Confirm the extract partition is the one the model actually consumed by matching the hash in the model run log.",
+            "Sign the population as complete with the extract date, row count and hash recorded."
+          ],
+          "done": "the tested population is the hash-matched extract the model consumed, together with the quarter's movement transactions."
+        },
+        {
+          "step": "Independently reconcile the extract to the policy administration system of record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Write and run an independent in-force query against the policy administration replica as at the valuation date rather than re-running the company's own script.",
+            "Compare record count, face amount, guaranteed cash value total and policy loan total to the published control totals.",
+            "Investigate any difference the company's reconciliation did not report — an unreported difference is a control failure regardless of size.",
+            "Test that the posting freeze held by looking for transactions posted into the valuation period after the extract timestamp."
+          ],
+          "done": "an independently written query reproduces the control totals and no unreported difference or post-freeze posting exists."
+        },
+        {
+          "step": "Draw and document a reproducible record sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of certificates carrying a Critical exception and 100% of certificates involved in the movement variances named on the report.",
+            "Draw 40 certificates at random with a recorded seed, stratified across plan codes, issue-year cohorts and situs states.",
+            "Record population size, seed, stratification and selection date so the sample can be redrawn identically.",
+            "Add every certificate on the prior quarter's exception list as a mandatory retest row."
+          ],
+          "done": "the sample is seeded, reproducible, stratified and includes all Critical exceptions and prior-quarter items."
+        },
+        {
+          "step": "Walk each sampled record field by field from the source screen",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Open each sampled certificate in the policy administration system and read issue date, date of birth, issue age, sex indicator, plan code, face amount, paid-to date, guaranteed cash value and policy loan from the screen.",
+            "Compare each field to the extract row and record any difference with a screenshot.",
+            "Where the source screen and the underlying document disagree, open the issued certificate in the document repository and treat the document as the arbiter.",
+            "Treat any difference in issue date, issue age, sex basis or plan code as a Critical finding, since each changes the governing CSO table or the adjusted premium."
+          ],
+          "done": "each sampled record is walked field by field from the source screen with differences evidenced and Critical fields flagged."
+        },
+        {
+          "step": "Re-run the nonforfeiture-critical rule set independently",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "Re-execute the completeness, validity and consistency rules against the same extract partition using an independently held rule definition.",
+            "Compare the failure counts by rule to the counts on the company's reconciliation report and investigate any difference.",
+            "Test that a rule cannot pass a row it should fail by injecting three deliberately defective rows — a null issue date, an out-of-range issue age and an unknown plan code — into a test copy.",
+            "Record the rule coverage: any nonforfeiture-critical field with no rule attached is itself a finding."
+          ],
+          "done": "independently re-run rules reproduce the reported failure counts, catch injected defects and cover every nonforfeiture-critical field."
+        },
+        {
+          "step": "Recompute the in-force movement and the ledger tie",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Rebuild the movement from opening to closing independently from the transaction history and compare each line to the company's movement table.",
+            "Recompute total cash surrender payments for the quarter and compare to the surrender benefit accounts in the general ledger.",
+            "Compare the extract's policy loan total to the policy loan asset balance and to the statement schedule.",
+            "Check suspense and unapplied cash for surrender payments processed but never disbursed and quantify the policyholder exposure."
+          ],
+          "done": "the movement rebuilds independently, surrender payments and loans tie to the ledger, and undisbursed surrenders are quantified."
+        },
+        {
+          "step": "Test the disposition of every open and accepted exception",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take the exception register and check each entry has a severity, a disposition and, where accepted, a quantified reserve and cash-value impact.",
+            "Confirm every Critical acceptance carries the Valuation Actuary's written agreement dated before the model run.",
+            "Recompute the impact of two accepted exceptions independently and compare to the figure recorded.",
+            "Treat 'immaterial' with no number behind it as an unsupported disposition and log it as an exception."
+          ],
+          "done": "every exception disposition is complete, Critical acceptances are pre-dated and signed, and two recomputed impacts agree."
+        },
+        {
+          "step": "Confirm the model consumed the accepted extract and nothing else",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Read the model run log and compare the input file hash to the hash on the accepted extract and on the signed data acceptance.",
+            "Confirm the run started after the data acceptance was signed, not before.",
+            "Compare model point counts and face amount in the run's reconciliation report to the published control totals.",
+            "Treat any run on an unaccepted or re-landed extract as a control failure reportable to the Chief Actuary."
+          ],
+          "done": "the model run is proven to have consumed the hash-matched accepted extract, after acceptance, with counts agreeing to control totals."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per test exception naming the certificate or rule, the field affected and whether reserves or policyholder values are impacted.",
+            "Assign a root cause from the fixed list — interface defect, conversion residue, missing screen validation, reference data gap, direct database update, freeze not honoured — and a named data steward.",
+            "Set a remediation date inside the next quarter and escalate anything affecting the governing nonforfeiture basis to the Valuation Actuary the same day.",
+            "Carry every open item into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a fixed-list root cause, a named steward, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the reconciliation test",
+          "by": "Data Governance Lead",
+          "role": "Data Governance Lead",
+          "actions": [
+            "Compare results to the stated thresholds — exact record count tie, 0.1% face and reserve tolerance, zero nulls or invalids in the nonforfeiture-critical fields, $250,000 movement variance limit.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with the workpaper reference behind each element tested.",
+            "Have the independent reviewer, who built neither the extract nor the rules and dispositioned no exception, sign and date the workpaper.",
+            "Report the conclusion and any open Critical exception to the Chief Data Officer, the Chief Actuary and the Data Governance forum, and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and reporting date is filed in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-010-C06",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Appointed Actuary",
+          "value": "Appointed Actuary owns the technical content of every response on Group Life reserves and nonforfeiture values; the Regulatory Reporting Manager owns intake, the response clock and transmission"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — the inquiry is answered against the Standard Nonforfeiture Law of the asking jurisdiction (Alabama for domiciliary matters, Arizona, California or Connecticut where a non-domiciliary analyst asks) as it read on the date under review, plus the Standard Valuation Law, the Valuation Manual edition in force for that statement year, and the department's own authority to demand information"
+        },
+        "In-scope processes": {
+          "value": "Event-driven handling of every regulator contact touching Group Life valuation or nonforfeiture values: NAIC Financial Analysis Handbook Level 1 and Level 2 analyst letters, domiciliary financial analyst interrogatories, financial condition examination information requests, and non-domiciliary department queries following annual statement review"
+        },
+        "In-scope systems": {
+          "app": "Internal Regulatory System",
+          "value": "Every inquiry, clock, owner, draft and transmission is tracked in the Internal Regulatory System; supporting calculations come from the archived valuation workpapers and are re-run in the actuarial modeling platform where a recomputation is demanded"
+        },
+        "Compliance procedure documented": {
+          "value": "Regulator Valuation Inquiry Response Procedure — intake and authority check, classification and clock start, evidence assembly from archived workpapers, as-of-date reconstruction rule, confidentiality assertion, counsel and Appointed Actuary approval, transmission channel and correspondence file closure"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Financial Officer and Regulatory Counsel; reviewed after every financial condition examination cycle and whenever a department changes its inquiry channel or response window"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "The department's own stated due date governs; where none is stated, respond within 30 calendar days of receipt, and within 10 business days for an examination information request during fieldwork, with an interim holding response inside 5 business days if the full answer will be late"
+        },
+        "Deadline reminders configured": {
+          "value": "Per-inquiry alerts at receipt+1 day (acknowledgement sent), at 50% and 80% of the elapsed window, at due date minus 3 business days (counsel and Appointed Actuary review complete) and on the due date itself, escalating to the Chief Financial Officer if unanswered"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "The correspondence file — inbound letter, acknowledgement, working notes, supporting calculations, confidentiality assertion, approvals, the response as sent and the department's closure — retained 7 years from closure and produced at the next examination"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any inquiry answered after its due date, any response later corrected, and any inquiry that identifies a genuine reserve or nonforfeiture defect is logged with the jurisdiction, the days late or the defect amount, and the remediation"
+        },
+        "Remediation sign-off captured": {
+          "role": "Regulatory Counsel",
+          "value": "Regulatory Counsel signs off every corrected response and every submission that concedes a reserve or nonforfeiture deficiency to a department"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every regulator inquiry touching valuation or nonforfeiture received in the period, from every jurisdiction and channel — department letter, analyst email, examination information request and telephone request subsequently confirmed in writing"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on lateness — any response sent after the department's due date without an agreed extension in writing is a fail; every factual assertion in a response must trace to an archived workpaper, and a response containing an unsupported number is a fail even if it was timely"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven; the test runs quarterly over all inquiries received or closed in the quarter, and 100% of examination information requests are tested at the close of each examination"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Officer",
+          "value": "Reviewer must not have drafted, approved or transmitted any of the responses being tested"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly regulator inquiry test workpaper (inquiry register, clock recomputation, traceability sample, approval evidence) in the compliance evidence repository under Regulatory Inquiries / REG-010 / <quarter>"
+        },
+        "Regulator-ready documentation": {
+          "value": "A per-inquiry correspondence file with the inbound request, the response as sent, the supporting calculation extract and the department's closure, producible on request within 2 business days and indexed by jurisdiction and inquiry date"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Reporting acknowledges and controls the clock; the Appointed Actuary owns and approves the technical answer; Regulatory Counsel clears confidentiality assertions over the actuarial memorandum and any admission of deficiency before transmission"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Take in the inquiry and open a correspondence file the day it arrives",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Log the inquiry the day it is received with jurisdiction, department contact name and title, channel, receipt date, statement year or valuation date referenced and the department's stated due date.",
+            "Attach the inbound letter, email or examination request exactly as received, including its attachments, without reformatting.",
+            "Where the request arrived by telephone, write a file note of what was asked and ask the department to confirm the request in writing before work starts.",
+            "Open the correspondence file under the jurisdiction and inquiry date so every later artefact lands in one place."
+          ],
+          "done": "the inquiry is logged with jurisdiction, contact, receipt date and stated due date, and the original request is attached unaltered."
+        },
+        {
+          "step": "Confirm the requester's authority and the scope of what is being asked",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Confirm the sender is acting for a department with authority over the writing company in that jurisdiction, and check the company's licence status there.",
+            "Identify the authority relied on — routine financial analysis, examination authority, or a specific statutory demand — and record it on the file.",
+            "Mark any part of the request that reaches beyond that authority, in particular a demand for the actuarial memorandum from a jurisdiction where confidentiality protection is uncertain.",
+            "Give the Regulatory Reporting Manager a written scope note stating what will be answered, what will be answered under a confidentiality assertion, and what will be queried back."
+          ],
+          "done": "the requester's authority is confirmed and a written scope note records what will be answered, protected or queried."
+        },
+        {
+          "step": "Classify the inquiry and start the response clock",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Classify as Level 1 analyst question, Level 2 analyst interrogatory, examination information request, or non-domiciliary statement query, since each carries a different turnaround expectation.",
+            "Set the due date to the department's stated date, or receipt plus 30 calendar days where none is stated, or receipt plus 10 business days for an examination request during fieldwork.",
+            "Configure the alerts at receipt+1 day, 50% and 80% elapsed, due minus 3 business days and the due date.",
+            "Name the responsible Actuarial owner and the Regulatory Reporting coordinator on the file the same day."
+          ],
+          "done": "the inquiry is classified, its due date and alerts are set, and an Actuarial owner and coordinator are named."
+        },
+        {
+          "step": "Acknowledge receipt to the department",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Microsoft Teams / Email",
+          "actions": [
+            "Send a written acknowledgement within one business day naming the company, the NAIC co-code, the inquiry reference and the date the response will be delivered.",
+            "Ask the department to clarify anything ambiguous now rather than after the work is done — in particular the exact valuation date, the plan codes and the states in scope.",
+            "Name a single company contact for the inquiry so the department is not fielding parallel answers from Actuarial and Finance.",
+            "File the acknowledgement in the correspondence file."
+          ],
+          "done": "a written acknowledgement naming the contact and the delivery date is sent within one business day and filed."
+        },
+        {
+          "step": "Retrieve the archived valuation evidence for the period under review",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Pull the workpaper pack for the exact valuation date referenced: frozen extract hash, cohort table, rate worksheet, adjusted-premium worked examples, cash-value floor test, roll-forward and Exhibit 5 tie-out.",
+            "Pull the matching data reconciliation pack and the signed data acceptance for the same date.",
+            "Pull the actuarial opinion, memorandum, RAAIS and AAT report for the statement year the inquiry concerns.",
+            "Check every pulled document is the version actually filed or signed and note the repository reference of each on the working note."
+          ],
+          "done": "the archived valuation, reconciliation and opinion evidence for the referenced date is retrieved and version-checked with references recorded."
+        },
+        {
+          "step": "Answer as of the date under review, not as of today",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Establish the mortality table, nonforfeiture interest rate, valuation interest rate and Valuation Manual edition that governed on the date the inquiry concerns, and state them explicitly in the working note.",
+            "Reject any temptation to answer using the current basis — a nonforfeiture question about a 2015 issue is answered on the 2001 CSO basis then in force.",
+            "Where the basis has since changed, note the change and its date separately so the department sees the timeline rather than an apparent inconsistency.",
+            "Have the Chief Actuary confirm the as-of basis before any numbers are drafted."
+          ],
+          "done": "the governing mortality table, interest rates and Valuation Manual edition as at the date under review are established and confirmed by the Chief Actuary."
+        },
+        {
+          "step": "Reproduce the calculation the department is questioning",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Restore the archived model version and input files by hash and re-run the specific certificates, plan codes or aggregates the department named.",
+            "Compare the re-run output to the originally reported figures and explain any difference before it is offered to the department.",
+            "Where the question is a minimum nonforfeiture value, produce a certificate-level worked calculation showing present value of guaranteed benefits, present value of adjusted premiums and the expense allowance components.",
+            "Save the re-run log, the restored input hashes and the worked calculation into the correspondence file as the support behind every number that will be sent."
+          ],
+          "done": "the questioned calculation is reproduced from archived inputs, differences are explained and a worked certificate-level example is on file."
+        },
+        {
+          "step": "Draft the response so each answer sits under the department's own question",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Restate each numbered question from the department verbatim and put the answer directly beneath it, so nothing asked can be missed.",
+            "Give the number, the basis it was computed on and the workpaper reference for every figure quoted, rather than a narrative assurance.",
+            "Where the honest answer is that a defect exists, state it plainly with the amount, the affected certificate count, the states involved and the remediation already under way.",
+            "List the enclosures by name and mark which ones are provided under a confidentiality assertion.",
+            "Keep every claim inside what the archived evidence supports — nothing in the letter may rest on recollection."
+          ],
+          "done": "a question-by-question draft exists in which every figure carries its basis and a workpaper reference, with enclosures listed."
+        },
+        {
+          "step": "Assert confidentiality over the memorandum and other protected material",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "app": "iManage (Legal Docs)",
+          "actions": [
+            "Identify every enclosure attracting confidential treatment — the actuarial memorandum, the RAAIS, the AAT report and any underlying experience study.",
+            "Prepare the confidentiality assertion letter citing the provision relied on in that jurisdiction and confirm the protection is actually available there.",
+            "Mark each protected page and record in the file which documents were released, to whom and under what protection.",
+            "Where a jurisdiction will not honour the protection, agree with the Appointed Actuary and the Chief Financial Officer what is released before anything is sent."
+          ],
+          "done": "protected enclosures are identified, marked, covered by a jurisdiction-specific assertion, and any unprotectable release is agreed in advance."
+        },
+        {
+          "step": "Review the draft for accuracy and legal exposure",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Read the draft against the underlying workpapers and check every quoted number to its source, not to the summary that quoted it.",
+            "Challenge any sentence that concedes more than the evidence supports, and any that hedges a fact the evidence establishes.",
+            "Confirm the response answers every numbered question, including any the drafter judged already covered elsewhere.",
+            "Record the review comments and their resolution on the file before it goes to counsel."
+          ],
+          "done": "every quoted number is traced to source, every question is answered and review comments are resolved on the file."
+        },
+        {
+          "step": "Obtain counsel clearance and the Appointed Actuary's approval to send",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Route the final draft with all enclosures to Regulatory Counsel and capture written clearance, in particular for any admission of a nonforfeiture or reserve deficiency.",
+            "Have the Chief Financial Officer approve any response that changes a filed reserve amount or foreshadows an amended annual statement.",
+            "Sign the response personally where it expresses an actuarial conclusion, since the department is relying on the Appointed Actuary's professional statement.",
+            "Record both approvals with dates on the file before transmission."
+          ],
+          "done": "written counsel clearance and the Appointed Actuary's signed approval are on file, with CFO approval where a filed reserve is affected."
+        },
+        {
+          "step": "Transmit through the department's own channel and capture proof",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Send through the channel the department specified — its secure portal, the examination request system, or the named analyst's address — never a different channel because it is more convenient.",
+            "Capture the transmission timestamp, the portal reference or delivery receipt and the exact enclosure list as sent.",
+            "Compare the transmission timestamp to the due date and record days early or late on the file.",
+            "Send an interim holding response inside 5 business days of realising a full answer will be late, and ask for an extension in writing rather than letting the date pass."
+          ],
+          "done": "the response is sent through the specified channel with proof of delivery captured and the timeliness recorded on the file."
+        },
+        {
+          "step": "Work the follow-ups and any examination information request list",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Log each follow-up question as a child item of the original inquiry with its own owner and due date rather than reopening the parent.",
+            "For a financial condition examination, keep the examiners' information request list as a live register with per-item status, owner and delivery date, and reconcile it to the examiners' own list weekly.",
+            "Hold a standing weekly call with the examiner-in-charge during fieldwork and minute what was requested and what was delivered.",
+            "Escalate to the Chief Financial Officer any request the company cannot meet in the time given, before the date rather than after."
+          ],
+          "done": "every follow-up and examination request item has its own owner, due date and delivery record, reconciled weekly to the examiners' list."
+        },
+        {
+          "step": "Close the inquiry and record what it revealed",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Obtain the department's closure or no-further-questions confirmation and file it; an inquiry with no closure stays open on the register.",
+            "Where the inquiry exposed a genuine defect in reserves, nonforfeiture values or documentation, raise a tracker issue with the amount, owner and remediation date and link it to the correspondence file.",
+            "Record what the department actually asked about so recurring themes across jurisdictions are visible — repeated questions on the same topic usually mean the filed disclosure is unclear.",
+            "Report closed inquiries, open items and themes to the Chief Financial Officer monthly and to the Audit Committee quarterly."
+          ],
+          "done": "the inquiry is closed with department confirmation, any defect is tracked to an owner, and themes are reported to management."
+        },
+        {
+          "step": "File the correspondence file and set the retention",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Assemble the file: inbound request, acknowledgement, scope note, retrieved workpaper references, re-run logs and worked calculations, draft and final response, confidentiality assertion, approvals, transmission proof, follow-ups and closure.",
+            "File it under Regulatory Inquiries / REG-010 / <jurisdiction> / <inquiry date> with a 7-year retention label from closure.",
+            "Confirm the file is retrievable by jurisdiction, statement year and inquiry date, which is how the next examination will ask for it.",
+            "Notify the Appointed Actuary and the Regulatory Reporting Manager of the repository reference."
+          ],
+          "done": "the complete correspondence file is filed, retention-labelled and retrievable by jurisdiction, statement year and inquiry date."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of valuation-related regulator inquiries for the period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Extract every inquiry logged in the quarter with jurisdiction, receipt date, classification, owner, due date and status.",
+            "Search the Appointed Actuary's, Chief Actuary's and Regulatory Reporting Manager's mailboxes and the examination portal for department correspondence that never reached the register — an unlogged inquiry is the most likely place a deadline was missed.",
+            "Add every open examination information request item as a population row in its own right.",
+            "Sign the population as complete with the sources searched and the unlogged items found."
+          ],
+          "done": "the population covers the register plus a mailbox and portal sweep, with any unlogged inquiry identified and counted."
+        },
+        {
+          "step": "Reconcile the register to the departments' own records where available",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For the domiciliary state and the two largest non-domiciliary states, compare the register to the correspondence held in the examination file and to any department acknowledgement list.",
+            "Confirm each inquiry's receipt date on the register matches the date on the inbound document rather than the date it was logged.",
+            "List every inquiry whose logged receipt date is later than the document date and quantify the clock time lost.",
+            "Treat a systematic lag between document date and logged date as a control finding, not an administrative note."
+          ],
+          "done": "register receipt dates are reconciled to inbound document dates with any logging lag quantified."
+        },
+        {
+          "step": "Draw and document a reproducible inquiry sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of inquiries answered late, 100% of inquiries that conceded a defect, and 100% of examination information request items delivered after their agreed date.",
+            "Draw 10 further inquiries at random with a recorded seed across jurisdictions and classifications.",
+            "Record population size, seed and selection date so the sample can be redrawn identically.",
+            "Add every inquiry flagged in the prior quarter's test as a mandatory retest row."
+          ],
+          "done": "the sample is seeded, reproducible and includes all late, defect-conceding and prior-flagged inquiries."
+        },
+        {
+          "step": "Recompute the response clock for each sampled inquiry",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Read the department's stated due date from the inbound document itself and recompute the deadline independently — stated date, or receipt plus 30 calendar days, or receipt plus 10 business days for examination fieldwork.",
+            "Compare the recomputed deadline to the transmission timestamp on the proof of delivery and compute days early or late.",
+            "Where an extension is claimed, confirm it was granted in writing by the department before the original date passed; a verbal or after-the-fact extension does not count.",
+            "Record every positive day count as an exception regardless of whether the department complained."
+          ],
+          "done": "each sampled inquiry has an independently recomputed deadline compared to the delivery proof, with any lateness quantified."
+        },
+        {
+          "step": "Trace every number in the sampled responses to archived evidence",
+          "by": "Actuary",
+          "role": "Actuary",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Take each figure quoted in the response as sent and follow its workpaper reference into the archived valuation, reconciliation or AAT pack.",
+            "Confirm the figure in the workpaper matches the figure in the letter exactly and that the workpaper is the version in force at the date under review.",
+            "Flag any figure with no reference, or a reference to a document created after the response was sent, as an unsupported assertion.",
+            "Recompute one nonforfeiture value quoted in the sample from first principles to confirm the answer given to the department was correct."
+          ],
+          "done": "every quoted figure traces to a pre-existing archived workpaper and one recomputed nonforfeiture value confirms the answer given."
+        },
+        {
+          "step": "Test that the answer was given on the basis in force at the date under review",
+          "by": "Actuary",
+          "role": "Actuary",
+          "actions": [
+            "For each sampled inquiry, read the working note's statement of the governing mortality table, nonforfeiture interest rate and Valuation Manual edition.",
+            "Independently confirm those were the standards in force on the valuation date the department asked about, using the issue-year cohort rules.",
+            "Flag any response that used the current basis to answer a historic question, since it misrepresents the position to the department.",
+            "Confirm any subsequent change in basis was disclosed in the response with its effective date."
+          ],
+          "done": "each sampled response is confirmed to use the standards in force at the date under review, with later basis changes disclosed."
+        },
+        {
+          "step": "Verify approvals, confidentiality assertions and the transmission channel",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm each sampled response carries dated Regulatory Counsel clearance and the Appointed Actuary's approval before the transmission timestamp.",
+            "Where a filed reserve amount was affected, confirm the Chief Financial Officer's approval is also on file.",
+            "Check the confidentiality assertion cites the provision available in the receiving jurisdiction and that protected enclosures were marked.",
+            "Confirm the response went through the channel the department specified and that the delivery proof names the correct recipient."
+          ],
+          "done": "every sampled response has pre-dated approvals, a jurisdiction-correct confidentiality assertion and proof of delivery on the specified channel."
+        },
+        {
+          "step": "Test that defects surfaced by inquiries were tracked and remediated",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "For every sampled inquiry that identified a reserve, nonforfeiture or documentation defect, confirm a tracker issue exists with the amount, owner and remediation date.",
+            "Trace one remediation through to completion evidence — a booked reserve strengthening, a corrected policyholder value or an amended filing.",
+            "Confirm the department's closure was obtained after the remediation, not before it.",
+            "Flag any defect closed on the inquiry file with no corresponding tracker issue as a control failure."
+          ],
+          "done": "every defect surfaced by an inquiry has a tracker issue and one traced remediation is evidenced through to completion."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per test exception naming the jurisdiction, the inquiry, what failed and whether the department is aware.",
+            "Assign a root cause from the fixed list — inquiry never logged, clock set from the logging date, answer given on the current rather than the historic basis, unsupported figure quoted, approval obtained after transmission, wrong channel used — and a named owner.",
+            "Set a remediation date inside the next quarter and, where a response was materially wrong, agree with Regulatory Counsel whether a corrected submission is required.",
+            "Carry every open item into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a fixed-list root cause, an owner, a remediation date and a decision on whether to correct the response."
+        },
+        {
+          "step": "Conclude, sign and report the inquiry-handling test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compare results to the stated thresholds — zero responses after the department's due date without a written extension, and zero unsupported figures in a response.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with the workpaper reference behind each element tested.",
+            "Have the independent reviewer, who drafted, approved and transmitted none of the sampled responses, sign and date the workpaper.",
+            "Report the conclusion, any late response and any corrected submission to the Chief Financial Officer and the Audit Committee, and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and committee reporting date is filed in the evidence repository."
+        }
+      ]
+    }
+  ]
+}

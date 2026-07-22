@@ -1,0 +1,389 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-052-C01",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Chief Info Security Officer",
+          "value": "CISO is the Section 4.A designated person for the written information security program; drafting delegated to the Security GRC Analyst, board reporting under Section 4.F retained by the CISO"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Section 4.A to 4.H of NAIC Model 668 read in each adopting state's own enacted text, not the model; representative jurisdiction Alaska (Alaska Division of Insurance), with Connecticut, Delaware and District of Columbia adoptions re-read at each annual refresh for wording deltas across the 44 adopting jurisdictions"
+        },
+        "In-scope processes": {
+          "value": "Every process handling nonpublic information as Model 668 Section 3 defines it — underwriting, policy administration, claims, billing, contact centre, actuarial and the IT/security processes supporting them, for all writing companies licensed in the 44 adopting jurisdictions"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "WISP document set, its Section 4 element-to-safeguard mapping and the annual review task live in the GRC platform; the underlying system list is the CMDB nonpublic-information tag"
+        },
+        "Compliance procedure documented": {
+          "value": "Information Security Program Document (WISP) structured to Section 4.D(2)(a)-(h) risk domains and Section 4.D(3)(a)-(k) safeguards, with a jurisdiction annex recording state-by-state deltas"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Info Security Officer and adopted by resolution of the Board Audit and Risk Committee; re-approved annually and on any material change to the risk assessment or to an enacting state's text"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual program review closes by 31 January so the Section 4.F written board report is tabled at the Q1 committee meeting and can feed the 15 April certification of compliance"
+        },
+        "Deadline reminders configured": {
+          "value": "GRC review task opens 1 November with reminders at 60/30/14 days to the 31 January close; a second task fires automatically whenever the regulatory feed records a new or amended Model 668 adoption"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Every approved WISP version, its redline, the risk-assessment input and the board minute retained 5 years per the Section 4.J record-keeping requirement, in the compliance evidence repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any Section 4 element with no mapped safeguard, any safeguard with no current evidence, and any missed annual review is raised as a program gap with owner, root cause and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Info Security Officer",
+          "value": "CISO signs each closed program gap; Regulatory Counsel countersigns any gap whose closure changes the wording of the annual certification of compliance"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All Section 4.D(2)(a)-(h) risk domains and Section 4.D(3)(a)-(k) safeguards, the jurisdiction annex rows for all 44 adopting states, and every WISP version in force during the year"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on coverage — any Section 4 element with no mapped safeguard, any mapped safeguard whose evidence is older than 12 months, or a year with no Section 4.F board report is a fail; 2 or more fails downgrades the annual conclusion to ineffective"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is an annual program review; the test runs each February over the just-closed review, with an interim mapping check within 60 days of any new state adoption or amendment"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Auditor must not have drafted, edited or approved any WISP section or jurisdiction annex row under test"
+        },
+        "Evidence location for test results": {
+          "value": "Annual WISP compliance workpaper (element-to-safeguard matrix, sampled evidence, jurisdiction annex re-read notes, gap list, conclusion) in the compliance evidence repository under Model 668 / Program"
+        },
+        "Regulator-ready documentation": {
+          "value": "Current WISP, element-to-safeguard matrix, latest risk assessment and the Section 4.F board minute, producible to a state market conduct or financial examiner within 5 business days of an NAIC-coordinated exam request"
+        },
+        "Regulator response path": {
+          "value": "Head of Compliance owns the examiner interface and the state Division of Insurance correspondence log; Regulatory Counsel clears any written statement about program gaps before it leaves the company"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Refresh the enacted-text baseline for every adopting jurisdiction",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Open the Internal Regulatory System, filter Regulation = REG-052 and list the 44 jurisdictions recorded as having adopted NAIC Model 668.",
+            "For each jurisdiction pull the enacted statute or regulation text and the Division of Insurance bulletin implementing it (representative: Alaska, administered by the Alaska Division of Insurance).",
+            "Compare the enacted Section 4 wording to the model and record every delta — omitted certification requirement, altered employee/revenue/asset exemption thresholds, extra encryption or training language.",
+            "Ask the Compliance Analyst for any bulletins issued since the last refresh and attach them to the jurisdiction row.",
+            "Save each dated text capture as <state>-668-text-<yyyy-mm-dd>.pdf into the REG-052 evidence folder."
+          ],
+          "done": "each of the 44 jurisdiction rows carries a dated enacted-text capture and a written delta note against the model."
+        },
+        {
+          "step": "Rebuild the nonpublic-information system and data inventory the program must cover",
+          "by": "Data Steward",
+          "role": "Data Steward",
+          "app": "CMDB",
+          "actions": [
+            "In the CMDB run the report of configuration items tagged Data Classification = Nonpublic Information and export application, owner, hosting model and data residency.",
+            "Reconcile the export to the policy administration, claims and billing application owners' confirmations that their systems store consumer name plus SSN, driver licence, account number, biometric or health data.",
+            "Add third-party hosted systems from the vendor register so provider-held nonpublic information is inside the program scope.",
+            "Flag every system with no named business owner and chase the owner from the application portfolio manager before the inventory is frozen.",
+            "Publish the frozen inventory as the WISP scope appendix with a version date."
+          ],
+          "done": "a dated, owner-complete inventory of every system holding nonpublic information is published as the WISP scope appendix."
+        },
+        {
+          "step": "Map each Section 4.D(2) risk domain to a named safeguard",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "In the GRC platform open the REG-052 authority document and create one requirement row per Section 4.D(2) subparagraph (a) through (h): employee training and management, information systems including network and software design, classification and disposal, physical security, detection and response to attacks and system failures.",
+            "Attach to each row the control id from the control library that actually operates against it, plus the control owner's name.",
+            "Where no control exists, create the row with status Gap rather than mapping a近 approximate control.",
+            "Record for each row the evidence artefact name and where it is produced (SIEM report, access review export, training completion report)."
+          ],
+          "done": "every Section 4.D(2)(a)-(h) subparagraph has either a mapped control with a named owner and evidence artefact, or an open Gap row."
+        },
+        {
+          "step": "Map each Section 4.D(3) safeguard to an operating control and owner",
+          "by": "IT Security Manager",
+          "role": "IT Security Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Create one requirement row per Section 4.D(3) subparagraph (a) through (k): access controls, data and personnel and device identification and management, physical access restriction, encryption of nonpublic information in transit over external networks and at rest on laptops and portable media, secure development practices, modification of systems as changes occur, multi-factor authentication for any individual accessing the information system, regular testing and monitoring, audit trails, protection against environmental destruction, secure disposal procedures.",
+            "For each, name the operating system of record — Okta for MFA, SailPoint for access certification, CyberArk for privileged access, Splunk for audit trails, the endpoint encryption console for at-rest encryption.",
+            "Hand each row to the control owner named in the CMDB and get written acceptance of ownership in the GRC platform.",
+            "List any safeguard the company meets by a reasonably equivalent compensating control and write the equivalence argument on the row — the model permits equivalence for MFA only where the CISO approves it in writing."
+          ],
+          "done": "all eleven Section 4.D(3) safeguards carry a named system of record, an accepted owner, and a written CISO approval for any equivalence claim."
+        },
+        {
+          "step": "Document the designated responsible person and the program governance structure",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Write the Section 4.A designation into the WISP: name the CISO as the employee responsible for the program, and name any affiliate or outside vendor performing parts of it with the retained-oversight statement Section 4.A requires.",
+            "Record the reporting line to the Board Audit and Risk Committee and the standing agenda slot in which the Section 4.F written report is tabled.",
+            "List the program's decision rights: who approves risk acceptances, who approves the WISP, who signs the annual certification.",
+            "Have the Corporate Secretary confirm the committee charter language actually references the information security program so the governance claim is provable."
+          ],
+          "done": "the WISP names the designated responsible person, any delegate, the board committee and the decision rights, and the committee charter corroborates it."
+        },
+        {
+          "step": "Write the encryption and secure-disposal sections against the data inventory",
+          "by": "Security Engineer",
+          "role": "Security Engineer",
+          "actions": [
+            "For each system in the scope appendix, record the transit protection (TLS 1.2 or higher on external connections, SFTP for file transfer) and the at-rest mechanism (database TDE, storage-level encryption, full-disk encryption on laptops and portable media).",
+            "Write the exception list: any external transfer of nonpublic information that is not encrypted, with a compensating control and a dated remediation commitment.",
+            "Draft the secure-disposal procedure required by Section 4.D(3)(k): retention trigger, media sanitisation standard for drives and tapes, certificate of destruction from the disposal vendor, and the disposal record kept per asset tag.",
+            "Get the Records Manager to confirm the disposal triggers match the records retention schedule so nothing is destroyed inside a litigation hold."
+          ],
+          "done": "every in-scope system shows a transit and at-rest protection or a dated exception, and the disposal procedure names a sanitisation standard and a destruction record."
+        },
+        {
+          "step": "Write the Section 4.E cybersecurity awareness training section",
+          "by": "Learning & Development Specialist",
+          "role": "Learning & Development Specialist",
+          "app": "learning management system",
+          "actions": [
+            "In the learning management system confirm the annual Information Security Awareness curriculum is assigned to all employees and contractors with network access, with a 30-day completion window from hire or assignment.",
+            "Add the role-based modules Section 4.E expects for higher-risk populations: claims and contact centre handling of nonpublic information, developers on secure coding, privileged administrators.",
+            "Set the phishing simulation cadence and the mandatory remedial module for repeat failures.",
+            "Agree with the Chief Info Security Officer the completion threshold reported to the board (working standard: 98 percent of assigned population by year end) and write it into the WISP training section."
+          ],
+          "done": "the WISP training section states the curriculum, the population, the completion window and the reported threshold, and the LMS assignments match it."
+        },
+        {
+          "step": "Write the Section 4.G third-party service provider oversight section",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Cross-reference the WISP to the Third-Party Security Risk Procedure so the program shows due diligence in selection and a requirement that providers implement appropriate administrative, technical and physical safeguards.",
+            "State the contractual minimum: security schedule, breach notification to the company without unreasonable delay and in no event later than 72 hours, audit or SOC 2 Type II reporting rights, and return or destruction of nonpublic information at exit.",
+            "Name the vendor tiering rule that decides which providers get an onsite or evidence-based assessment.",
+            "Have the Vendor Manager confirm the vendor register field list can actually report the tier, the last assessment date and the notification clause status."
+          ],
+          "done": "the WISP third-party section states the diligence, contract minimums and tiering rule, and the vendor register can report against all three."
+        },
+        {
+          "step": "Cross-reference the Section 4.I incident response plan and its seven required elements",
+          "by": "Incident Response Lead",
+          "role": "Incident Response Lead",
+          "actions": [
+            "Confirm the incident response plan document addresses each Section 4.I element: the internal process for responding, the goals of the plan, definition of roles, responsibilities and levels of decision-making authority, external and internal communications and information sharing, requirements for remediating identified weaknesses, documentation and reporting of cybersecurity events and response activities, and evaluation and revision of the plan after an event.",
+            "Write the element-by-element cross-reference table into the WISP with the IRP section number against each.",
+            "Raise a gap row for any element the IRP only implies rather than states.",
+            "Confirm the IRP version referenced in the WISP is the version published in the incident response runbook space."
+          ],
+          "done": "the WISP carries a seven-element cross-reference table pointing at named IRP sections, with gaps raised where an element is only implied."
+        },
+        {
+          "step": "Record the state-specific deltas in the jurisdiction annex",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Build one annex row per adopting jurisdiction: statutory cite, effective date, whether an annual certification is required and by what date, the exemption thresholds as that state enacted them, the event notification deadline and the notification channel.",
+            "Mark the states that diverge from the model — those omitting the certification, those with different employee-count or revenue exemptions, and those deeming compliance with another framework sufficient.",
+            "Confirm from the licence register which writing company is domiciled where, because the domiciliary state drives the certification and primary notification duty.",
+            "Ask Regulatory Counsel to initial each divergent row."
+          ],
+          "done": "the annex holds a cite, certification duty, exemption thresholds, notification deadline and channel for all 44 jurisdictions, with counsel initials on divergent rows."
+        },
+        {
+          "step": "Route the drafted program for legal review",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Read the WISP against the enacted text captures and confirm each Section 4 obligation is addressed in words a regulator would accept, not by implication.",
+            "Strike any claim the company cannot evidence — the certification later rests on this wording.",
+            "Confirm the exemption position: the company does not rely on the fewer-than-25-employee, under-5-million-revenue or under-10-million-asset exemptions, and record that conclusion in writing.",
+            "Return the marked draft to the Security GRC Analyst with a dated review memo."
+          ],
+          "done": "a dated counsel review memo exists and every unsupportable claim has been removed from the draft."
+        },
+        {
+          "step": "Version, approve and publish the WISP",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "Microsoft 365 / SharePoint",
+          "actions": [
+            "Increment the document version, attach the redline against the prior version and the counsel review memo.",
+            "Obtain the Chief Info Security Officer electronic approval and record the approval date in the document control table.",
+            "Publish the approved PDF to the policy library on SharePoint, retire the prior version to the archive folder and update every link that points at the old version.",
+            "Announce the publication to control owners with the list of changed obligations affecting them."
+          ],
+          "done": "the approved version is published with a document control table showing version, approver, approval date and superseded version."
+        },
+        {
+          "step": "Table the Section 4.F written report to the board committee",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "app": "board portal",
+          "actions": [
+            "Write the annual report Section 4.F requires: overall status of the program, material matters relating to the program, risk assessment results, risk management and control decisions, third-party service provider arrangements, results of testing, cybersecurity events and management's responses, and recommendations for changes to the program.",
+            "Upload the report to the board portal against the Q1 Audit and Risk Committee agenda item at least 5 business days before the meeting.",
+            "Present it and record the committee's questions and any direction given.",
+            "Ask the Corporate Secretary to minute the tabling and the adoption resolution, and to file the minute reference back on the GRC program record."
+          ],
+          "done": "the written report is tabled at the committee, and the minute records the tabling date and adoption resolution."
+        },
+        {
+          "step": "Open, own and drive the program gaps",
+          "by": "Controls Analyst",
+          "role": "Controls Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Convert every Gap row from the Section 4.D(2) and 4.D(3) mapping into a GRC issue with the statutory subparagraph, the affected systems and the consumer-harm impact stated.",
+            "Assign an owner from the control library and a remediation date no later than the next 15 April certification date.",
+            "Where remediation cannot land before the certification, record it as an area requiring material improvement with the documented remediation plan the certification requires.",
+            "Report open gaps monthly to the Chief Info Security Officer with days-open ageing."
+          ],
+          "done": "every gap is an owned, dated GRC issue and any gap surviving to 15 April is documented as a material improvement area with a remediation plan."
+        },
+        {
+          "step": "File the program evidence set for the five-year retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move the approved WISP, redline, jurisdiction annex, scope appendix, counsel memo and board minute into the compliance evidence repository under REG-052 / Program / <year>.",
+            "Apply the 5-year retention label required by the Section 4.J record-keeping provision, measured from the year of the certification the program supports.",
+            "Confirm the repository index makes the record searchable by jurisdiction, WISP version and approval date.",
+            "Run a retrieval test — pull the prior year's version by search alone and time it against the 5-business-day examiner commitment."
+          ],
+          "done": "the full program evidence set is filed, labelled for 5-year retention and retrievable by jurisdiction and version within 5 business days."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of Section 4 elements and jurisdictions",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Export from the GRC platform every REG-052 requirement row: Section 4.D(2)(a)-(h), Section 4.D(3)(a)-(k), plus the 4.A, 4.E, 4.F, 4.G and 4.I obligations.",
+            "Export the jurisdiction annex rows and confirm the count reconciles to the 44 adopting jurisdictions recorded in the Internal Regulatory System.",
+            "Add every WISP version in force during the year from the SharePoint document control table.",
+            "Sign the population as complete and record the extraction date and record counts in the workpaper."
+          ],
+          "done": "the population reconciles to the authority document and the jurisdiction register, and is signed as complete with counts."
+        },
+        {
+          "step": "Reconcile the WISP version in force to the GRC record and the board minute",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the version cited in the Section 4.F board report to the version published in the policy library on the report date.",
+            "Confirm the approval date in the document control table pre-dates the board tabling and falls inside the 12 months since the prior approval.",
+            "Check the retired version was archived rather than deleted and that its redline is retrievable.",
+            "Any version cited but not published, or an approval gap longer than 12 months, is an automatic exception."
+          ],
+          "done": "the cited, published and board-reported WISP versions agree and the approval cycle is inside 12 months, or the difference is an exception."
+        },
+        {
+          "step": "Draw and document the safeguard sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100 percent of the eleven Section 4.D(3)(a)-(k) safeguards — the statute names them, so none may be sampled out.",
+            "Take a seeded random sample of 12 of the Section 4.D(2) control mappings and 10 jurisdiction annex rows weighted to states of domicile.",
+            "Record the seed, population size, selection date and the tool used so the sample is reproducible.",
+            "File the sample list in the workpaper before any testing starts."
+          ],
+          "done": "the sample covers all eleven named safeguards plus a reproducible seeded selection of mappings and annex rows."
+        },
+        {
+          "step": "Re-perform the element-to-safeguard mapping independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Read each sampled statutory subparagraph in the enacted Alaska text and write your own view of what control would satisfy it, before opening the mapping.",
+            "Compare to the recorded control id and owner; a control that only partly addresses the subparagraph is an exception, not a pass with a note.",
+            "Test the equivalence arguments: any MFA equivalence claim must carry a written CISO approval dated before the period under test.",
+            "Screenshot the GRC requirement row and the enacted text passage into the workpaper."
+          ],
+          "done": "each sampled element carries an independent re-performance note, a captured statutory passage and a pass or exception call."
+        },
+        {
+          "step": "Trace the sampled safeguards to operating evidence",
+          "by": "Controls Analyst",
+          "role": "Controls Analyst",
+          "actions": [
+            "For each of the eleven safeguards pull the named evidence artefact for a date inside the period: MFA coverage export, access certification completion report, encryption console compliance report, audit-trail retention setting, disposal certificates.",
+            "Check the artefact date is inside the last 12 months and that it covers the population named in the WISP scope appendix, not a subset.",
+            "Confirm the named control owner in the GRC row is the person who produced or attested the artefact.",
+            "Where evidence covers only part of the estate, quantify the uncovered percentage rather than recording it as satisfied."
+          ],
+          "done": "every named safeguard has in-period evidence covering the full documented scope, or the shortfall is quantified."
+        },
+        {
+          "step": "Re-read the enacted text behind the sampled jurisdiction annex rows",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For each sampled state, open the current enacted text in the Internal Regulatory System and compare the certification duty, certification date, exemption thresholds and event-notification deadline to the annex row.",
+            "Confirm the annex records the correct domiciliary state for each writing company against the licence register.",
+            "Check whether any sampled state has amended its statute or issued a bulletin since the annex was refreshed and treat a stale row as an exception.",
+            "Capture the statutory passage relied on into the workpaper with its retrieval date."
+          ],
+          "done": "each sampled annex row matches the current enacted text, or the difference is recorded as an exception with the statutory passage attached."
+        },
+        {
+          "step": "Recompute the review-cycle and reporting date maths",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute the interval between the last two WISP approvals and confirm it is 12 months or less.",
+            "Confirm the Section 4.F written board report was delivered at least once in the calendar year and that its date precedes the 15 April certification for the same year.",
+            "Confirm the GRC review task actually opened on 1 November and that the 60/30/14-day reminders fired, using the task audit history.",
+            "Confirm any new-adoption trigger fired within 60 days of the adoption date recorded in the regulatory feed."
+          ],
+          "done": "the annual cycle, board report timing and reminder firing all reconcile to the documented schedule, with any slippage quantified in days."
+        },
+        {
+          "step": "Test retention, labelling and retrievability of the program record",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Search the compliance evidence repository for REG-052 / Program and confirm each of the last five years holds an approved WISP, board minute and jurisdiction annex.",
+            "Verify the 5-year retention label is applied and that no in-scope item is on an auto-purge schedule shorter than that.",
+            "Attempt a cold retrieval of a randomly chosen prior year by search alone and time it.",
+            "Record any year with a missing artefact as an exception against the Section 4.J record-keeping requirement."
+          ],
+          "done": "five years of program records exist, carry the retention label and retrieve within the 5-business-day examiner commitment."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one GRC issue per exception stating the statutory subparagraph, the affected jurisdiction or system, and the consumer or regulatory impact.",
+            "Assign a root cause from the standard list (mapping never built, control owner vacated, evidence not produced, annex not refreshed after amendment) and a named owner.",
+            "Set a remediation date ahead of the next 15 April certification and flag any exception that would qualify the certification wording for Regulatory Counsel.",
+            "Carry every open exception into next year's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and a retest commitment, with certification-affecting items flagged to counsel."
+        },
+        {
+          "step": "Conclude, sign and report the annual program test",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the coverage rate — Section 4 elements with a mapped, owned, currently evidenced safeguard over total elements — and compare to the zero-unmapped threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) citing the workpaper references behind it.",
+            "Have the independent reviewer, who authored no WISP section, sign the workpaper.",
+            "Report the conclusion and open exceptions to the Board Audit and Risk Committee alongside the Section 4.F report, and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with coverage rate, stated conclusion and a committee reporting date is filed in the evidence repository."
+        }
+      ]
+    }
+  ]
+}

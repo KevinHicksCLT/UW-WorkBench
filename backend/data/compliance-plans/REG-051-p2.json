@@ -1,0 +1,1190 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-051-C09",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Configuration Engineer",
+          "value": "Owns the MA utilization-management and coverage-decision system configuration; escalates rule interpretation to the Compliance Manager and the UM Committee physician chair"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - 42 CFR 422.138 (prior authorization, 90-day continuity, honoring approved authorizations), 42 CFR 422.137(d) (UM committee annual policy review), 42 CFR 422.568/422.572 (14 calendar days standard service, 60 days payment, 72 hours expedited) and 42 CFR 422.503(b)(4)(vi) read on eCFR at the start of each configuration change"
+        },
+        "In-scope processes": {
+          "value": "Part C organization determinations, prior-authorization intake and adjudication, extensions, and the automated generation and timing of the Notice of Denial of Medical Coverage - for every MA contract/PBP the plan operates"
+        },
+        "In-scope systems": {
+          "app": "workflow/case management tool",
+          "value": "UM case workflow (clock start/stop, due-date engine, expedited routing, notice triggers), the claims platform for payment determinations, and the e-PA API endpoint"
+        },
+        "Compliance procedure documented": {
+          "value": "MA Coverage-Decision Timing and Notice Configuration Standard - defines clock-start events, the 14/60/72 day counts, extension conditions, notice content fields and the mandatory Compliance pre-deployment gate"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Compliance Officer and the UM Committee physician chair; re-approved at each annual UM criteria review under 422.137(d) and on any CMS Part C rulemaking or HPMS memo affecting timeframes"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per change - configuration must be live before the plan-year effective date (January 1) for any benefit or criteria change, and within 30 days of a CMS HPMS memo that changes a timeframe"
+        },
+        "Deadline reminders configured": {
+          "value": "Release calendar alerts at T-60/T-30/T-10 business days to the January 1 plan-year start, plus a daily at-risk queue alert firing at 70% of each case's elapsed 14-day or 72-hour clock"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Configuration specification, rule-to-parameter mapping, test evidence, CAB record and deployment log retained 10 years from the end of the contract year per 42 CFR 422.504(d)"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "value": "Any timeframe miss traced to a configuration defect is raised as a P1 compliance incident with root cause, affected-case count and CMS self-disclosure assessment"
+        },
+        "Remediation sign-off captured": {
+          "role": "Compliance Manager",
+          "value": "Compliance Manager signs off every configuration change touching a regulatory clock or notice field, and every defect remediation, before production release"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All UM configuration releases deployed in the contract year, plus every organization determination and prior-authorization case decided in the tested quarter across all MA contracts"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on clock configuration - any case where the system-computed due date differs from the regulation-computed due date is a fail; any notice missing a required CMS-10003 content field is a fail; one fail escalates to the Compliance Officer and triggers a 100% re-run"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per change; configuration testing runs at every release with an annual full re-performance across all timeframe rules before the plan year opens"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Auditor must not have written, approved or deployed any sampled configuration change"
+        },
+        "Evidence location for test results": {
+          "value": "Configuration verification workpaper (rule register, parameter extract, test-case results, case re-performance notes, exceptions) in the compliance evidence repository under the contract number and release id"
+        },
+        "Regulator-ready documentation": {
+          "value": "Rule-to-parameter register, dated production parameter extract, notice templates and timeliness case listing, producible for a CMS program audit universe request (ODAG) within the 15 business days CMS allows"
+        },
+        "Regulator response path": {
+          "value": "Compliance Officer owns the CMS Account Manager and program-audit response; configuration defects causing untimely determinations are reported through the CMS self-disclosure channel after General Counsel review"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Build the rule register from the current Part C regulatory text",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Open eCFR Title 42 Part 422 and read 422.568, 422.572, 422.138 and 422.137(d) in full; copy each timing and content sentence into a rule register row.",
+            "Record on each row the rule id, the clock-start event (date the request is received by the plan or its delegate), the day count and its unit (14 calendar days standard service, 60 calendar days payment, 72 hours expedited, 14-day extension), and the required notice.",
+            "Add a row for each HPMS memo issued since the last release that changes a timeframe, citing the memo date and number.",
+            "Send the register to the Compliance Manager and the UM Committee physician chair for confirmation that no rule is missing.",
+            "File the signed register in the compliance evidence repository under the release id."
+          ],
+          "done": "every in-scope timing and notice rule has a register row with a citation, clock-start event and day count, confirmed by Compliance."
+        },
+        {
+          "step": "Confirm the coverage-criteria source of truth with the UM Committee",
+          "by": "Medical Claims Reviewer",
+          "role": "Medical Claims Reviewer",
+          "actions": [
+            "Ask the UM Committee secretary for the current approved criteria set and the minutes of the annual 422.137(d) review that adopted it.",
+            "For each service category, record whether the decision is driven by an NCD, an LCD, a Medicare manual instruction, or internal criteria permitted only where Medicare criteria are absent.",
+            "List every internal criterion the configuration will enforce and attach the publicly posted summary of evidence the UM Committee approved for it.",
+            "Hand the confirmed criteria map to the Business Systems Analyst as the input to the configuration specification."
+          ],
+          "done": "each configured service category names its governing NCD, LCD, manual instruction or UM-Committee-approved internal criterion."
+        },
+        {
+          "step": "Write the configuration specification that turns each rule into a system parameter",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "app": "requirements repository",
+          "actions": [
+            "Create one specification row per rule register row: rule id, target system, screen or table, parameter name, current value, target value.",
+            "Specify the due-date formula explicitly - due timestamp = receipt timestamp + 14 calendar days for standard service requests, + 60 calendar days for payment requests, + 72 hours for expedited, with no exclusion of weekends or holidays.",
+            "Specify the extension rule: up to 14 additional calendar days only where the enrollee requests it or the plan justifies a need for additional information in the enrollee's interest, and only with the written extension notice generated on the same day.",
+            "Specify the notice trigger: the denial notice must be generated and dispatched no later than the due timestamp, not on the next batch run.",
+            "Circulate the specification to the Configuration Engineer and the Compliance Manager for written agreement before any build."
+          ],
+          "done": "every rule maps to a named system parameter with a current and target value, agreed in writing by Configuration and Compliance."
+        },
+        {
+          "step": "Raise the change record and take it through change control",
+          "by": "Change Coordinator",
+          "role": "Change Coordinator",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Open a normal change record and set Category = Regulatory, linking the rule register and the configuration specification as attachments.",
+            "Enter the regulatory driver (42 CFR 422.138 / 422.568) in the justification field so the change cannot be reclassified as discretionary.",
+            "Add the Compliance Manager as a mandatory approver and the UM Committee physician chair as a consulted approver on the approval plan.",
+            "Book the implementation window against the release calendar so the change lands before the January 1 plan-year start.",
+            "Record the back-out plan: restore the prior parameter set from the pre-change extract."
+          ],
+          "done": "an approved change record exists naming the regulatory driver, with Compliance as a required approver and a booked pre-January-1 window."
+        },
+        {
+          "step": "Configure clock start, due-date calculation and clock stops in the UM workflow",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "workflow/case management tool",
+          "actions": [
+            "In the UM case workflow open Admin then Business Rules then Turnaround Times and set the receipt timestamp to the earliest of fax, portal, phone or e-PA arrival, including requests received by delegated entities.",
+            "Set the standard service request SLA to 14 calendar days and the payment request SLA to 60 calendar days on the calendar-day clock, not the business-day clock.",
+            "Disable any pause on the clock for internal information requests - the regulation does not stop the clock while the plan gathers records.",
+            "Set the clock stop to the timestamp the notice is transmitted to the enrollee and the provider, not the decision timestamp.",
+            "Save the rule version with the change record number in the version comment."
+          ],
+          "done": "the due-date engine computes 14/60 calendar-day due timestamps from the earliest receipt event with no unauthorised clock pauses."
+        },
+        {
+          "step": "Configure expedited detection and the 72-hour path",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Add an intake field capturing whether the enrollee or any physician requested expedited handling, and whether a physician indicated that the standard timeframe could seriously jeopardise life, health or function.",
+            "Configure the rule that a physician-supported expedited request must be auto-granted and routed to the 72-hour queue without a reviewer decision step.",
+            "Configure the downgrade path: where an expedited request is denied expedited status, the case reverts to the 14-calendar-day clock measured from the original receipt timestamp and fires the oral notice task plus a written follow-up within 3 calendar days.",
+            "Set the 72-hour queue to page the on-call Medical Claims Reviewer at 48 hours elapsed.",
+            "Ask the Medical / Nurse Case Manager to confirm the routing matches clinical operating hours including weekends."
+          ],
+          "done": "physician-supported expedited requests route automatically to a 72-hour clock and downgrades revert to the original receipt-based 14-day clock."
+        },
+        {
+          "step": "Configure the extension logic and its mandatory notice",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Add a structured Extension Reason field with only the permitted values - enrollee requested, or additional information in the enrollee's interest - and block free text as a reason.",
+            "Cap the extension at 14 calendar days and prevent a second extension on the same case at the rule level, not by training.",
+            "Wire the extension action to generate the written extension notice on the same calendar day, stating the reason and the enrollee's right to file an expedited grievance.",
+            "Configure a report of every extended case with reason and notice dispatch date for the Compliance Analyst's weekly review."
+          ],
+          "done": "extensions are limited to one 14-day period with a coded reason and a same-day written notice generated by the system."
+        },
+        {
+          "step": "Configure the denial notice template and its required content fields",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "document management repository",
+          "actions": [
+            "Load the current CMS Notice of Denial of Medical Coverage or Payment (CMS-10003-NDMCP) template from the CMS Medicare Advantage notices page and version it in the document repository.",
+            "Map each merge field: enrollee name and member id, item or service denied, the specific reason in the enrollee's own language and at the required reading level, the exact coverage rule or criterion relied on, and the appeal rights and reconsideration deadline.",
+            "Configure the rule that a notice cannot be released with an empty reason or criterion field, and that the criterion text is pulled from the UM-Committee-approved criteria record rather than typed.",
+            "Configure alternate-format and translation triggers from the enrollee's recorded language and accessibility preference.",
+            "Have the Compliance Manager review a rendered specimen of each notice variant before the template is promoted."
+          ],
+          "done": "the notice template renders every required CMS-10003 field from system data and cannot be released with a blank reason or criterion."
+        },
+        {
+          "step": "Configure honoring of approved prior authorizations and the 90-day transition rule",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Claims Platform",
+          "actions": [
+            "Configure the authorization record so an approval remains valid for the full course of treatment as approved, and cannot be shortened or re-reviewed mid-course by a criteria update.",
+            "Configure the 90-day transition rule under 422.138: for an enrollee new to the plan and undergoing an active course of treatment, suppress prior-authorization edits on that treatment for 90 days from enrolment.",
+            "Wire the claims platform to accept the authorization number and pay the claim without re-adjudicating medical necessity where a valid approval exists.",
+            "Ask the Medical Claims Reviewer to supply the list of active-treatment service categories the transition rule must cover.",
+            "Configure a daily exception report of claims denied despite a valid authorization on file."
+          ],
+          "done": "approved authorizations pay through for the approved course and new enrollees in active treatment are exempted from prior authorization for 90 days."
+        },
+        {
+          "step": "Configure the electronic prior authorization interface and its decision payload",
+          "by": "Integration Engineer",
+          "role": "Integration Engineer",
+          "app": "API gateway (Apigee/Kong/Azure API Management)",
+          "actions": [
+            "Publish the prior-authorization API endpoint on the gateway and register the provider client credentials with the Broker Support Specialist supporting network providers.",
+            "Map the inbound request to the same receipt timestamp used by the fax and portal channels so the clock is channel-neutral.",
+            "Map the outbound payload to carry the decision, the decision date, the authorization number, and for denials the specific reason - the same reason string that prints on the CMS-10003.",
+            "Run a contract test against the provider sandbox and record the request and response pairs.",
+            "Set gateway alerting on endpoint failures so a broken interface cannot silently stop the clock."
+          ],
+          "done": "the e-PA endpoint is live, timestamps requests on the same clock as other channels, and returns decision, date and denial reason."
+        },
+        {
+          "step": "Build and run the regulatory test cases in the pre-production environment",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "app": "Azure DevOps",
+          "actions": [
+            "Write one test case per rule register row, each with an input receipt timestamp and the hand-computed expected due timestamp.",
+            "Include boundary cases: request received 23:58 on the last day of February in a leap year, a weekend receipt, a federal-holiday receipt, an expedited request downgraded on day 2, and an extension applied on day 13.",
+            "Execute the suite in pre-production and capture the system-computed due timestamp against the expected value for each case.",
+            "Log every mismatch as a defect linked to the change record and re-test after the fix - do not accept a mismatch as a rounding difference.",
+            "Export the test results to the release evidence pack."
+          ],
+          "done": "every rule register row has an executed test case with the system due timestamp matching the hand-computed value, with zero open defects."
+        },
+        {
+          "step": "Run user acceptance with clinical and compliance reviewers",
+          "by": "Medical Claims Reviewer",
+          "role": "Medical Claims Reviewer",
+          "actions": [
+            "Work five real anonymised cases end to end in pre-production: standard approval, standard denial, expedited denial, extension, and a new enrollee inside the 90-day transition window.",
+            "Read each rendered notice as an enrollee would and confirm the denial reason names the specific NCD, LCD or approved internal criterion.",
+            "Confirm the case screen shows the due timestamp, the elapsed clock and the notice dispatch timestamp on one view for the reviewer.",
+            "Record acceptance or rejection per scenario with the tester name and date, and route the pack to the Compliance Manager for the pre-deployment gate."
+          ],
+          "done": "all five scenarios are accepted in writing by a clinical reviewer and the notices name a specific coverage criterion."
+        },
+        {
+          "step": "Take the Compliance pre-deployment gate and release to production",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Review the rule register, the test results and the UAT acceptances against the change record and approve or reject the gate task in writing.",
+            "Reject the release where any rule register row has no passing test case rather than accepting a post-release fix commitment.",
+            "On approval, have the Release Coordinator deploy in the booked window and take a dated post-deployment parameter extract from production.",
+            "Diff the production extract against the target values in the specification and attach the diff to the change record."
+          ],
+          "done": "the release is deployed with a Compliance approval on the record and a production parameter extract that diffs clean against the specification."
+        },
+        {
+          "step": "Stand up the at-risk case monitoring that proves the configuration keeps working",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Power BI",
+          "actions": [
+            "Build a daily dashboard of open determinations by contract showing elapsed clock as a percentage of the applicable 14-day, 60-day or 72-hour limit.",
+            "Set the alert to fire to the UM operations supervisor at 70% elapsed and to the Compliance Manager at 90% elapsed.",
+            "Add a panel counting notices dispatched after the due timestamp and notices released with a blank criterion field, both of which should read zero.",
+            "Agree with the Market Conduct / Consumer Compliance Manager that these panels feed the monthly compliance committee pack."
+          ],
+          "done": "a daily dashboard reports elapsed-clock percentage and late or incomplete notices, with alerts routed at 70% and 90% elapsed."
+        },
+        {
+          "step": "Retain the configuration evidence package for the CMS retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the rule register, specification, change record export, test results, UAT acceptances, Compliance gate approval and the production parameter extract as one package under the contract number and release id.",
+            "Apply the 10-year retention label required by 42 CFR 422.504(d), measured from the end of the contract year in which the configuration was in force.",
+            "Confirm the package is indexed and retrievable by contract number, release id and rule citation so a CMS audit request can be answered without a rebuild.",
+            "Record the package location on the change record before it is closed."
+          ],
+          "done": "the evidence package is filed under the contract and release, labelled for 10-year retention and retrievable by rule citation."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of configuration changes and decided cases",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Extract every UM and claims configuration release deployed in the contract year from the change record system, filtered to Category = Regulatory plus any change touching a turnaround-time or notice table.",
+            "Extract every organization determination and prior-authorization case decided in the tested quarter with receipt timestamp, request type, expedited flag, decision timestamp, notice dispatch timestamp and contract/PBP.",
+            "Add cases decided by delegated entities from the delegate's monthly case file so delegated volume cannot be excluded.",
+            "Sign the extract as complete and record the extraction date and query used."
+          ],
+          "done": "both populations are extracted, include delegated cases, and are signed as complete with the query recorded."
+        },
+        {
+          "step": "Reconcile the case population to the source of record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Reconcile the case count by contract to the ODAG universe the plan would file with CMS for the same period and explain every difference.",
+            "Reconcile the configuration release list to the deployment log from the release pipeline and list releases present in one and not the other.",
+            "Confirm each release in the population has an approved change record with a named regulatory driver.",
+            "Resolve every unexplained difference before drawing a sample."
+          ],
+          "done": "case counts tie to the ODAG universe and release counts tie to the deployment log, with all differences explained."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of configuration releases that changed a turnaround-time parameter or a notice template.",
+            "Take a seeded random sample of 60 decided cases stratified as 20 standard service, 20 payment, 10 expedited and 10 extended cases.",
+            "Add every case where the notice dispatch timestamp is within 24 hours of the due timestamp as a targeted stratum.",
+            "Record the seed, population sizes, strata and selection date in the workpaper so the sample can be re-drawn."
+          ],
+          "done": "the sample is reproducible, covers all timing-parameter releases, and is stratified across request types."
+        },
+        {
+          "step": "Re-perform the due-date computation independently of the system",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each sampled case, take the receipt timestamp from the earliest channel record - fax cover sheet, portal log, call recording metadata or e-PA gateway log - not the field the workflow displays.",
+            "Compute the due timestamp by hand: receipt + 14 calendar days for standard service, + 60 calendar days for payment, + 72 hours for expedited, counting weekends and holidays.",
+            "Compare to the system due timestamp and treat any difference, in either direction, as an exception.",
+            "Where an extension was applied, confirm one extension only, a coded permitted reason, and the extension notice dated the same day as the extension.",
+            "Record the hand computation in the workpaper so it can be re-checked."
+          ],
+          "done": "every sampled case has a hand-computed due timestamp reconciled to the system value, with differences logged."
+        },
+        {
+          "step": "Trace the production parameters back to the rule register",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Pull a live parameter extract from the production UM workflow turnaround-time and notice-trigger tables on the audit date.",
+            "Compare each parameter value to the rule register target value and to the eCFR text of 422.568, 422.572 and 422.138 as read on the audit date.",
+            "Confirm no clock-pause option is enabled for internal information gathering and no business-day calendar is applied to a calendar-day rule.",
+            "Screenshot the parameter screens into the workpaper as the evidence of the tested configuration."
+          ],
+          "done": "the live production parameters match the rule register and the current regulatory text, with screens captured."
+        },
+        {
+          "step": "Inspect the notices produced for the sampled denials",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "document management repository",
+          "actions": [
+            "Retrieve the issued notice PDF for every sampled denial from the document repository by case id.",
+            "Check each CMS-10003 required element is present and populated: item or service denied, the specific denial reason, the exact coverage rule or criterion, appeal rights and the reconsideration deadline.",
+            "Confirm the criterion named on the notice matches the criterion recorded on the case and that it is an NCD, LCD, manual instruction or a UM-Committee-approved internal criterion.",
+            "Flag any notice with a generic reason such as not medically necessary and no cited criterion as a content failure."
+          ],
+          "done": "every sampled denial notice carries all required content elements and a specific, traceable coverage criterion."
+        },
+        {
+          "step": "Re-perform the continuity and honoring rules on live data",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Claims Platform",
+          "actions": [
+            "Select 15 enrollees who joined the plan in the quarter with an active course of treatment identified from prior-plan claim history.",
+            "Confirm no prior-authorization denial was issued on that treatment within 90 days of the enrolment date.",
+            "Select 15 claims carrying a valid authorization number and confirm each paid without a medical-necessity re-adjudication.",
+            "Review the daily exception report of claims denied despite a valid authorization and test that each listed case was corrected and the enrollee held harmless."
+          ],
+          "done": "no in-transition enrollee was denied within 90 days and no authorized claim was re-adjudicated for medical necessity without correction."
+        },
+        {
+          "step": "Test the change-control and gate evidence behind each sampled release",
+          "by": "Controls Analyst",
+          "role": "Controls Analyst",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "For each sampled release open the change record and confirm the Compliance Manager approval is recorded and dated before the implementation timestamp.",
+            "Confirm the attached test results cover every rule register row for that release with a passing result.",
+            "Confirm the post-deployment production extract was taken and diffs clean against the specification target values.",
+            "Treat an implementation timestamp earlier than the Compliance approval timestamp as a control failure regardless of outcome."
+          ],
+          "done": "every sampled release shows a dated pre-implementation Compliance approval, full test coverage and a clean post-deployment diff."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception recording the case id or release id, the rule citation breached, the affected-enrollee count and the compliance impact.",
+            "Assign a root cause from a fixed list - wrong day-count unit, business-day calendar applied, clock pause enabled, notice batch delay, missing criterion mapping, gate bypassed - with a named owner.",
+            "Set a remediation date and, where enrollees received an untimely or defective notice, open a CMS self-disclosure assessment with the General Counsel.",
+            "Carry every open issue into the next release test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, a coded root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "AuditBoard",
+          "actions": [
+            "Compute the timeliness exception rate and the notice-content exception rate and compare each to the zero-tolerance threshold.",
+            "Write the conclusion - effective, effective with exceptions, or ineffective - naming the evidence references behind it.",
+            "Have the independent reviewer, who authored, approved or deployed none of the sampled configuration, sign the workpaper.",
+            "Report the conclusion and any open self-disclosure assessment to the Compliance Committee at its next sitting and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states the exception rates, a conclusion and the Compliance Committee reporting date, filed in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-051-C10",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Compliance Manager",
+          "value": "Owns the annual Medicare Parts C and D compliance and FWA curriculum, the agent/broker training and testing programme, and the coverage-rules training for clinical and service staff"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - 42 CFR 422.503(b)(4)(vi)(B) and (C) (training as a required compliance-program element), 42 CFR 422.101(a),(b) (basic Part A/B benefits consistent with NCDs and LCDs), 42 CFR 422.2274(c),(e) (annual agent/broker training and testing), re-read on eCFR before the curriculum is refreshed each June"
+        },
+        "In-scope processes": {
+          "value": "Annual training for all employees, temporary workers, volunteers, the board and governing body, and first-tier, downstream and related entities touching MA; plus annual training and testing of every agent and broker selling MA products"
+        },
+        "In-scope systems": {
+          "app": "learning management system",
+          "value": "LMS course catalogue, enrolment rules, completion and score records, attestations; feeds from HRIS for the employee roster and from the producer management system for the agent roster"
+        },
+        "Compliance procedure documented": {
+          "value": "MA Compliance Training Standard - curriculum content per audience, 90-day-from-hire and annual cadence, 85% pass mark for agents, escalation of non-completion, and evidence retention"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Compliance Officer and noted by the Compliance Committee; content re-approved annually against the CMS Medicare Learning Network Parts C and D general compliance and FWA material and any new HPMS guidance"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual - all audiences complete by December 31 of the contract year; agents and brokers must complete and pass before the October 1 marketing start for the following plan year; new hires and newly appointed agents within 90 days of hire or appointment"
+        },
+        "Deadline reminders configured": {
+          "value": "LMS auto-reminders at 30, 14, 7 and 1 day before due date, escalation to the line manager at due date plus 1 and to the Compliance Manager at due date plus 7; agent reminders keyed to the October 1 marketing start"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Course content versions, rosters, completion dates, scores, attestations and FDR training attestations retained 10 years from the end of the contract year per 42 CFR 422.504(d)"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Non-completion past the escalation window is logged as a compliance exception with the individual, audience group, days overdue and the disciplinary or suspension action taken"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Head of Compliance signs the annual training completion certification and every decision to allow an uncompleted individual to remain in an MA-facing role"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All individuals required to train in the contract year - active employees, board members, temporary staff, and every agent or broker with an active MA appointment - reconciled to HRIS and the producer roster"
+        },
+        "Pass/fail thresholds": {
+          "value": "100% completion required for employees and board; agents must score at least 85% on the annual test before selling; any individual selling or making coverage decisions without a current completion is a fail and one such case escalates to the Compliance Officer"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; the completeness test runs annually in January over the closed contract year, with a quarterly interim check on new hires and newly appointed agents"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Auditor must sit outside Compliance training delivery and must not have authored or administered the curriculum"
+        },
+        "Evidence location for test results": {
+          "value": "Annual training completeness workpaper (roster reconciliation, completion extract, sampled certificates, agent score listing, exceptions) in the compliance evidence repository under the contract year"
+        },
+        "Regulator-ready documentation": {
+          "value": "Curriculum version with content mapped to 422.503(b)(4)(vi), the completion roster with dates and scores, and FDR attestations - producible for a CMS program audit compliance-program effectiveness request within 15 business days"
+        },
+        "Regulator response path": {
+          "value": "Compliance Officer responds to the CMS Account Manager; agent training or testing failures that led to a misrepresented enrolment are reported through the CMS complaint and marketing misrepresentation channel after General Counsel review"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Refresh the curriculum against current CMS content and this year's rule changes",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Download the current CMS Medicare Learning Network Medicare Parts C and D General Compliance and Fraud, Waste and Abuse training material and note its version date.",
+            "Read the year's HPMS memos and the annual Rate Announcement and Final Rule for changes affecting basic benefits under 422.101, marketing under 422.2274 and prior authorization under 422.138.",
+            "List each change and decide which audience must be told - all staff, clinical reviewers, contact centre, agents and brokers, or the board.",
+            "Hand the change list to the Instructional Designer with the source citation for every point that must appear in a module.",
+            "File the version-dated source material in the compliance evidence repository as the basis for this year's curriculum."
+          ],
+          "done": "the year's curriculum change list exists with a source citation per point and an assigned audience."
+        },
+        {
+          "step": "Map every required training element to a module and a learning objective",
+          "by": "Instructional Designer",
+          "role": "Instructional Designer",
+          "app": "requirements repository",
+          "actions": [
+            "Build a coverage matrix with one row per required element: written standards of conduct, the compliance officer and committee, effective lines of communication, monitoring and auditing, disciplinary enforcement, prompt response to detected offences, and FWA identification and reporting.",
+            "Add rows for the coverage-rules content - basic Part A and B benefits, the role of NCDs and LCDs, and that internal criteria may only be used where Medicare criteria are absent.",
+            "Assign each row to a named module and write the learning objective and the assessment question that proves it.",
+            "Review the matrix with the Compliance Manager and close any row with no module.",
+            "Version the matrix as the audit trail linking the regulation to the delivered content."
+          ],
+          "done": "every required element maps to a named module, a learning objective and at least one assessment question."
+        },
+        {
+          "step": "Build the audience rules and the mandatory roster",
+          "by": "People Analytics / HR Operations Manager",
+          "role": "People Analytics / HR Operations Manager",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Extract from HRIS all active employees, contingent workers and interns with a cost centre or job family touching Medicare Advantage operations, plus the full board and governing body list from the Corporate Secretary.",
+            "Tag each person with an audience group: all-staff, clinical reviewer, contact centre, claims, sales oversight, board.",
+            "Set the hire-date rule so anyone hired mid-year is enrolled automatically with a due date 90 days from hire.",
+            "Send the roster to the Compliance Manager for confirmation that no MA-facing function is missing.",
+            "Schedule the roster feed to refresh into the LMS nightly so leavers and joiners flow through without manual work."
+          ],
+          "done": "a nightly HRIS-fed roster covers every MA-facing worker and the board, tagged by audience with hire-date-driven due dates."
+        },
+        {
+          "step": "Build the agent and broker roster from the producer systems",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "agency/producer management system",
+          "actions": [
+            "Extract every agent and broker with an active MA appointment for the coming plan year, including downstream agents contracted through field marketing organisations.",
+            "Reconcile the extract to state appointment records in NIPR so no appointed agent is missing from the training roster.",
+            "Flag agents whose appointment starts after October 1 so their due date is set to before their first permitted selling activity.",
+            "Send the FMO contacts the list of their downstream agents with the completion deadline and the attestation format required back.",
+            "Load the reconciled roster into the LMS as the agent audience group."
+          ],
+          "done": "the agent roster reconciles to NIPR appointments, includes downstream FMO agents, and is loaded with pre-selling due dates."
+        },
+        {
+          "step": "Build the assessment and set the pass mark",
+          "by": "Instructional Designer",
+          "role": "Instructional Designer",
+          "app": "learning management system",
+          "actions": [
+            "Write at least one scored question per learning objective in the coverage matrix, drawing scenarios from real MA situations such as an enrollee denied a Part B drug or an agent asked to cross-sell at an educational event.",
+            "Set the agent and broker assessment pass mark at 85% and cap attempts at three before manager escalation.",
+            "Randomise the question order and draw from a pool so repeat attempts are not the same paper.",
+            "Have the Compliance Manager review the answer key for regulatory accuracy before publication."
+          ],
+          "done": "the assessment covers every learning objective, uses a randomised pool, and enforces the 85% pass mark for agents."
+        },
+        {
+          "step": "Publish the courses and switch on the enrolment rules",
+          "by": "Learning Development Manager",
+          "role": "Learning Development Manager",
+          "app": "learning management system",
+          "actions": [
+            "Publish each module with its version number and effective date, and retire the prior year's version so it cannot be completed for credit.",
+            "Configure automatic enrolment from the audience tags and set the annual due date to December 31, with the agent group due before October 1.",
+            "Configure completion to require both the module and a passing assessment score, not just page turns.",
+            "Attach the standards of conduct acknowledgement as a required attestation step inside the all-staff course.",
+            "Run a pilot enrolment for ten users across audiences and confirm the enrolments, reminders and completion records behave as configured."
+          ],
+          "done": "courses are published by version with automatic audience enrolment, dated deadlines and completion gated on a passing score."
+        },
+        {
+          "step": "Deliver targeted coverage-rules training to clinical and service staff",
+          "by": "Trainer",
+          "role": "Trainer",
+          "actions": [
+            "Run instructor-led sessions for clinical reviewers and contact centre staff covering which basic Part A and B benefits must always be covered, how to find the governing NCD or LCD, and the rule that internal criteria apply only where Medicare criteria are silent.",
+            "Walk through three worked denials showing the citation that must appear on the notice and the enrollee-language reason.",
+            "Capture attendance by employee id in the session record and upload it to the LMS as completion evidence.",
+            "Collect the questions raised and send the recurring ones to the Compliance Manager as candidate content changes for next year."
+          ],
+          "done": "clinical and contact centre staff have attended a recorded session on Medicare coverage criteria, with attendance loaded into the LMS."
+        },
+        {
+          "step": "Deliver and evidence the agent and broker annual training and test",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "learning management system",
+          "actions": [
+            "Release the agent course covering MA rules, marketing and communication requirements, permitted and prohibited activities at sales and educational events, scope-of-appointment and enrolment integrity.",
+            "Track completion and score by National Producer Number and require the certificate before the appointment is released for the plan year.",
+            "For agents trained by an FMO under an approved alternative, obtain the FMO's attestation naming the curriculum, date and score and file it against the NPN.",
+            "Block selling access in the agent portal for any NPN without a passing score as of October 1.",
+            "Report weekly agent completion to the Head of Distribution through the marketing-season readiness call."
+          ],
+          "done": "every appointed agent has a passing score or an FMO attestation on file against their NPN before selling begins."
+        },
+        {
+          "step": "Obtain training attestations from first-tier, downstream and related entities",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "List every FDR performing MA administrative or health-care functions from the contract repository, including delegated UM, PBM, provider groups accepting risk and outbound call vendors.",
+            "Send each FDR the annual attestation template requiring confirmation that its staff completed compliance and FWA training, the completion percentage and the training date range.",
+            "Set a return deadline of November 30 so shortfalls can be fixed inside the contract year.",
+            "Chase non-returns through the contract owner and escalate a second non-return to the Compliance Manager as a delegation oversight issue.",
+            "File returned attestations against the contract record."
+          ],
+          "done": "a signed annual training attestation is on file for every active MA FDR, with non-returns escalated."
+        },
+        {
+          "step": "Run the completion chase and escalate the overdue",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "learning management system",
+          "actions": [
+            "Pull the weekly completion report by audience group from November 1 and rank managers by outstanding count.",
+            "Send the manager list with named individuals and days remaining, copying the HR Business Partner for each function.",
+            "At due date plus 1, escalate remaining names to the function head; at due date plus 7, escalate to the Compliance Manager for disciplinary action under the enforcement element.",
+            "Record every escalation date and action taken against the individual's record so the enforcement element is evidenced, not assumed."
+          ],
+          "done": "outstanding completions are chased weekly with dated manager, function-head and Compliance escalations recorded."
+        },
+        {
+          "step": "Enforce consequences for non-completion",
+          "by": "HR Business Partner",
+          "role": "HR Business Partner",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Apply the documented consequence for each individual still incomplete after the escalation window - system access restriction for MA case queues, removal from enrolment-facing duties, or a formal performance record entry.",
+            "For agents, instruct the Producer Compliance Manager to suspend the appointment and remove the agent from the plan finder and lead routing until the test is passed.",
+            "Record the action, the date and the approver on the individual record, and notify the Compliance Manager that the enforcement step is complete.",
+            "Do not grant an exception without a written Head of Compliance approval naming the reason and the new deadline."
+          ],
+          "done": "every individual past the escalation window has a recorded, dated consequence or a written Head of Compliance exception."
+        },
+        {
+          "step": "Measure whether the training changed behaviour, not just attendance",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Power BI",
+          "actions": [
+            "Join the completion data to operational outcomes - denial notices lacking a coverage criterion, CTM complaints coded to marketing misrepresentation, and grievances about coverage of basic benefits.",
+            "Compare outcome rates for teams and agents before and after training and list the topics where errors persist.",
+            "Sample ten low-scoring assessment questions and check whether the underlying error also shows in operational data.",
+            "Send the findings to the Instructional Designer as required content changes for the next curriculum cycle."
+          ],
+          "done": "an effectiveness analysis links completion and scores to operational error rates and names the content changes required."
+        },
+        {
+          "step": "Report the annual training result to the Compliance Committee and the board",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "board portal",
+          "actions": [
+            "Prepare the annual training summary: population by audience, completion percentage, agent pass rates, FDR attestation coverage, exceptions and enforcement actions.",
+            "Present it to the Compliance Committee and then to the board or governing body as part of the compliance-program effectiveness report required by 422.503(b)(4)(vi).",
+            "Record the board's receipt and any direction in the minutes, and post the pack to the board portal.",
+            "Sign the annual training certification stating that the required training was delivered to all required audiences in the contract year."
+          ],
+          "done": "the board has received the training effectiveness report, the minutes record it, and the annual certification is signed."
+        },
+        {
+          "step": "Version and archive the delivered content",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Archive the exact course packages, assessment pools, answer keys and the coverage matrix used in the contract year as an immutable version.",
+            "Link the archive to the completion extract so a named individual's completion can be tied to the exact content they saw.",
+            "Apply the 10-year retention label required by 42 CFR 422.504(d) from the end of the contract year.",
+            "Confirm retrieval by contract year, audience group and employee id or NPN."
+          ],
+          "done": "the delivered content version is archived, linked to completion records, labelled for 10-year retention and retrievable by NPN or employee id."
+        },
+        {
+          "step": "Carry forward the improvement actions into next year's cycle",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Open an action for each content gap, audience gap and enforcement gap identified during the year, with an owner and a target date ahead of the June curriculum refresh.",
+            "Link each action to the regulatory element it protects so the Compliance Committee can see coverage rather than a list of tasks.",
+            "Review open actions at the monthly Compliance Committee and close only on evidence, not assertion.",
+            "Feed the closed actions into the next coverage matrix as changed requirements."
+          ],
+          "done": "every identified gap has a tracked action linked to a regulatory element, reviewed monthly and closed on evidence."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the required-to-train population from source systems",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Extract from HRIS every worker employed at any point in the contract year with an MA-facing job family, including leavers, contingent workers and interns.",
+            "Extract the board and governing body membership list from the Corporate Secretary's register for the same period.",
+            "Extract every NPN with an active MA appointment during the plan year from the producer management system.",
+            "Sign the combined population as complete, recording the extraction date and the filters applied."
+          ],
+          "done": "a single signed population covers employees, contingent workers, board members and appointed agents for the whole contract year."
+        },
+        {
+          "step": "Reconcile the training roster to the source of record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the audit population to the LMS enrolment roster and list every person in the population with no enrolment.",
+            "Reconcile the agent roster to NIPR appointment records and list appointed NPNs absent from the LMS.",
+            "Investigate each unenrolled name to establish whether the audience rule, the HRIS feed or a manual exclusion caused the gap.",
+            "Treat every unenrolled MA-facing individual as an exception before any sampling begins."
+          ],
+          "done": "every population member is matched to an LMS enrolment or listed as a roster exception with a cause."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of board members and 100% of clinical reviewers who signed denial notices in the year.",
+            "Take a seeded random sample of 40 employees stratified across audience groups and 40 agents stratified across direct and FMO-contracted channels.",
+            "Add all mid-year hires and mid-year appointments as a targeted stratum to test the 90-day rule.",
+            "Record the seed, strata, population sizes and selection date in the workpaper."
+          ],
+          "done": "the sample is reproducible, covers all board members and denial-signing reviewers, and includes a mid-year joiner stratum."
+        },
+        {
+          "step": "Re-perform completion verification against the LMS record",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "learning management system",
+          "actions": [
+            "For each sampled individual open the transcript and record course version, completion date, score and attempt count.",
+            "Confirm the completion date falls inside the contract year and, for mid-year joiners, within 90 days of hire or appointment date taken from HRIS or the appointment record.",
+            "Confirm the course version completed is the current-year version and not a retired prior-year package.",
+            "Export the transcript screen for each sampled individual into the workpaper."
+          ],
+          "done": "each sampled individual has a captured transcript showing the current-year version completed within the required window."
+        },
+        {
+          "step": "Recompute the agent pass mark and the pre-selling deadline",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Recompute each sampled agent's score from the raw item-level results rather than accepting the LMS pass flag.",
+            "Compare the recomputed score to the 85% threshold and list any agent passed on a lower score or on an unrecorded attempt.",
+            "Compare the passing completion date to the agent's first recorded MA enrolment application date and to the October 1 marketing start.",
+            "Treat any enrolment application submitted by an NPN before its passing completion date as a reportable breach, not a test exception."
+          ],
+          "done": "every sampled agent's score is recomputed against 85% and no sampled enrolment predates the agent's passing completion."
+        },
+        {
+          "step": "Test the content against the regulation, not against last year's deck",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Take the archived current-year course package and the coverage matrix and read them against 42 CFR 422.503(b)(4)(vi) element by element.",
+            "Confirm the coverage-rules module states that basic Part A and B benefits must be provided consistent with NCDs and LCDs and that internal criteria apply only where Medicare criteria are absent.",
+            "Confirm the agent module covers 422.2274 marketing conduct including prohibited activities at educational events and scope-of-appointment rules.",
+            "List any required element with no content as a content exception regardless of completion rates."
+          ],
+          "done": "each required regulatory element is evidenced in the archived content or logged as a content exception."
+        },
+        {
+          "step": "Trace the FDR attestations to active contracts",
+          "by": "Controls Analyst",
+          "role": "Controls Analyst",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "Extract every active MA FDR contract in the year from the contract repository and match each to a returned annual training attestation.",
+            "Check each attestation names the curriculum, the training date range, the completion percentage and an authorised signatory.",
+            "List contracts with no attestation, an attestation covering less than the full staff population, or a signature from an unauthorised person.",
+            "Confirm each listed gap was escalated as a delegation oversight issue during the year rather than only at audit."
+          ],
+          "done": "every active FDR contract has a complete, signed attestation on file or an escalated gap with a dated record."
+        },
+        {
+          "step": "Test that enforcement actually happened",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Pull the list of individuals recorded as incomplete past the escalation window during the year.",
+            "For each, confirm a dated consequence exists - access restriction, removal from MA duties, appointment suspension or a performance record entry - and that it was applied within the documented window.",
+            "Confirm every exception granted carries a written Head of Compliance approval naming the reason and the revised deadline.",
+            "Confirm no individual with an unresolved non-completion made a coverage decision or submitted an enrolment during the incomplete period."
+          ],
+          "done": "every non-completion past escalation has a dated consequence or an approved written exception, with no MA activity during the gap."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception recording the individual or NPN, the exception type, the days overdue and the regulatory element affected.",
+            "Assign a root cause from a fixed list - roster feed gap, audience rule wrong, retired course completed, pass mark bypassed, FDR attestation missing, enforcement not applied - with a named owner.",
+            "Set a remediation date and, where an agent sold without a passing test, open an enrolment-integrity review of that agent's applications for the period.",
+            "Carry every open issue into the next annual test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, a coded root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "AuditBoard",
+          "actions": [
+            "Compute completion percentage by audience, the agent pass rate and the FDR attestation coverage, and compare each to the 100% and 85% thresholds.",
+            "Write the conclusion - effective, effective with exceptions, or ineffective - naming the evidence references behind it.",
+            "Have the independent reviewer, who neither authored nor administered the curriculum, sign the workpaper.",
+            "Report the conclusion to the Compliance Committee and into the board's annual compliance-program effectiveness report, and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states completion and pass rates, a conclusion and the committee and board reporting dates."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-051-C11",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Complaints Manager",
+          "value": "Owns the CMS Complaints Tracking Module queue and the internal grievance log, and hands confirmed clinical themes to the Chronic Care Improvement Program owner for root-cause action"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - 42 CFR 422.152(c) (chronic care improvement program with identification and monitoring mechanisms), 42 CFR 422.101(a),(b) (basic benefits) and 42 CFR 422.564 (grievance procedures, 30-day resolution), re-read on eCFR at each quarterly programme review"
+        },
+        "In-scope processes": {
+          "value": "All MA enrollee complaints and grievances however they arrive - 1-800-MEDICARE via the CMS CTM, plan contact centre, provider offices, agents, state SHIP referrals and written correspondence - through to root-cause action inside the CCIP and quality improvement programme"
+        },
+        "In-scope systems": {
+          "app": "workflow/case management tool",
+          "value": "Grievance case management with CTM case import and resolution export, contact centre disposition coding, and the CCIP registry that identifies enrollees with multiple or severe chronic conditions"
+        },
+        "Compliance procedure documented": {
+          "value": "MA Complaint and Grievance Management Procedure - intake and categorisation rules, the 2-calendar-day immediate-need and 30-calendar-day standard clocks, CTM closure standards, and the monthly root-cause review that feeds the CCIP"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Market Conduct / Consumer Compliance Manager and the Quality Improvement Committee; re-approved annually alongside the CCIP description filed with CMS"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Continuous - CTM immediate-need complaints resolved within 2 calendar days, standard CTM complaints within 30 calendar days, plan grievances within 30 calendar days (14-day extension where justified), expedited grievances within 24 hours; CCIP progress reported to CMS on the annual reporting cycle"
+        },
+        "Deadline reminders configured": {
+          "value": "Case queue alerts at 24 hours elapsed for immediate-need CTM cases, at day 10 and day 20 for standard grievances, and a daily aged-case report to the Complaints Manager for anything past 25 days"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Complaint record, correspondence, resolution letter, CTM closure text and the root-cause action record retained 10 years from the end of the contract year per 42 CFR 422.504(d)"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Missed CTM or grievance deadlines, miscategorised complaints and repeat root causes are logged with the affected enrollee count, the driver and the corrective action owner"
+        },
+        "Remediation sign-off captured": {
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "value": "Signs off every root-cause corrective action arising from a complaint theme and every late CTM closure explanation before it is submitted"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All CTM complaints and internal grievances received in the tested quarter across every MA contract and PBP, plus the CCIP enrollee identification list for the same period"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero missed immediate-need 2-day closures; at least 98% of standard grievances resolved and notified within 30 calendar days; any complaint theme recurring for three consecutive months without an owned corrective action is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous; the test runs quarterly over that quarter's complaint population with a monthly management review of the theme dashboard between tests"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Consumer Affairs Manager",
+          "value": "Reviewer must sit outside the complaint handling team and must not have resolved any sampled case"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly complaint oversight workpaper (population extract, CTM reconciliation, sampled case notes, timeliness recomputation, theme analysis, exceptions) in the compliance evidence repository under the contract number and quarter"
+        },
+        "Regulator-ready documentation": {
+          "value": "CTM case listing with closure dates and text, grievance universe in the CMS program-audit layout, and the CCIP identification and monitoring description - producible for a CMS audit universe request within 15 business days"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager owns CTM correspondence and CMS Account Manager escalations; systemic access-to-care findings go to the Chief Compliance route and, where a basic benefit was wrongly denied, trigger enrollee reprocessing"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Sweep every complaint channel into one queue each business day",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Log in to CMS HPMS and open the Complaints Tracking Module, filter to the plan's contract numbers and status New, and import the day's cases with their CTM case number, receipt date and issue level.",
+            "Pull the contact centre disposition extract for codes flagged as dissatisfaction, access-to-care or coverage-dispute and open a grievance case for each.",
+            "Collect written complaints from the correspondence intake tray and the enrollee portal secure-message queue.",
+            "Ask the Broker Support Specialist for any complaint reaching the plan through an agent or FMO so sales-driven issues are not lost outside the system.",
+            "Confirm the day's imported count matches the CTM screen count before closing the sweep."
+          ],
+          "done": "every channel has been swept for the day and the CTM import count reconciles to the CTM screen."
+        },
+        {
+          "step": "Categorise each case and start the correct clock",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Set the case type: grievance, organization determination request wrongly logged as a complaint, appeal, or enquiry - and reroute misfiled determination and appeal requests to the UM queue the same day.",
+            "Set the CTM issue level to immediate need where the enrollee lacks a life-sustaining medication or urgently needed service, which starts the 2-calendar-day clock.",
+            "Set the standard clock to 30 calendar days from the plan's receipt date, or 24 hours where the enrollee or a physician requests an expedited grievance about a refusal to expedite.",
+            "Record the taxonomy code - access to care, prior authorization, provider network, benefits and coverage, marketing and enrolment, customer service, pharmacy, billing and premiums.",
+            "Record the enrollee's preferred language and any accessibility need so the resolution letter is produced in the right format."
+          ],
+          "done": "every case carries a type, a CTM issue level, a started clock, a taxonomy code and the enrollee's language and format need."
+        },
+        {
+          "step": "Work immediate-need cases inside the 2-calendar-day window",
+          "by": "Senior Contact Center Agent",
+          "role": "Senior Contact Center Agent",
+          "app": "Genesys Cloud (Contact Center)",
+          "actions": [
+            "Call the enrollee within four hours of case creation and establish what care or medication is missing and by when it is needed.",
+            "Arrange the immediate fix directly - a pharmacy override, an out-of-network authorization, transport, or a same-day appointment through the Medical / Nurse Case Manager.",
+            "Confirm with the enrollee that the service or medication was actually received, not merely arranged.",
+            "Record the call times, the fix and the enrollee confirmation in the case, then close the CTM case with resolution text describing the outcome inside 2 calendar days."
+          ],
+          "done": "the enrollee has confirmed receipt of the needed service or drug and the CTM case is closed within 2 calendar days with outcome text."
+        },
+        {
+          "step": "Investigate standard grievances against the source records",
+          "by": "Consumer Affairs Analyst",
+          "role": "Consumer Affairs Analyst",
+          "actions": [
+            "Pull the underlying evidence: the organization determination record and notice, claim history, authorization record, call recordings, and the provider directory entry as it read on the complaint date.",
+            "Where the complaint is about a denied service, check whether it is a basic Part A or B benefit and whether the denial cited an NCD, LCD or an approved internal criterion.",
+            "Where the complaint is about network access, check appointment availability and the directory accuracy for the named provider.",
+            "Where the complaint is about an agent, obtain the scope-of-appointment record and the enrolment application, and refer suspected misrepresentation to the Producer Compliance Manager.",
+            "Write the findings into the case with a reference to each piece of evidence examined."
+          ],
+          "done": "each grievance has documented findings referencing the determination, claim, call or directory evidence examined."
+        },
+        {
+          "step": "Fix the enrollee's position before closing the case",
+          "by": "Complaints Manager",
+          "role": "Complaints Manager",
+          "actions": [
+            "Where a basic benefit was wrongly denied, instruct the UM team to reopen the determination and the claims team to reprocess and pay, and confirm the enrollee is held harmless for any amount already paid.",
+            "Where a directory error caused an out-of-network cost, apply in-network cost-sharing and correct the directory entry with the Provider data owner.",
+            "Where an agent misrepresented benefits, offer the enrollee the CMS enrolment remedy route and log the agent referral.",
+            "Record the remedy, its value and the date the enrollee received it in the case before closure is permitted."
+          ],
+          "done": "no case closes until the recorded remedy has been delivered to the enrollee and dated."
+        },
+        {
+          "step": "Issue the written resolution and close the CTM case",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "app": "document management repository",
+          "actions": [
+            "Generate the resolution letter stating what was investigated, the outcome, the remedy applied, and the enrollee's further rights including appeal rights where a coverage decision is involved.",
+            "Produce the letter in the enrollee's recorded language and format and dispatch it inside the 30-calendar-day clock, or 24 hours for expedited grievances.",
+            "In the CTM, enter closure text that names the resolution and the remedy rather than a generic member educated note, and set the closure date.",
+            "File the letter and the CTM closure screenshot against the case."
+          ],
+          "done": "a specific resolution letter is dispatched within the clock and the CTM case is closed with resolution text naming the remedy."
+        },
+        {
+          "step": "Run the weekly aged-case and clock discipline review",
+          "by": "Complaints Manager",
+          "role": "Complaints Manager",
+          "app": "Power BI",
+          "actions": [
+            "Open the aged-case dashboard and list every case past 20 calendar days, every immediate-need case past 24 hours and every expedited grievance past 12 hours.",
+            "Take each aged case to its handler in the weekly review and record the blocker and the action to close it.",
+            "Where an extension is genuinely justified, confirm the enrollee has been notified in writing of the 14-day extension and the reason.",
+            "Escalate any case that will breach to the Market Conduct / Consumer Compliance Manager the same day, before the breach occurs."
+          ],
+          "done": "every aged case has a named blocker, an action and, where breach is likely, a same-day escalation before the deadline passes."
+        },
+        {
+          "step": "Build the monthly complaint theme analysis",
+          "by": "Data Analyst",
+          "role": "Data Analyst",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Aggregate the month's cases by taxonomy code, contract, PBP, county, provider group and responsible internal function.",
+            "Compute the rate per thousand enrollees per contract and compare to the prior three months and to the same month last year.",
+            "Flag every theme with three consecutive months of increase or a rate above twice the book average.",
+            "Join CTM volumes to the plan's CAHPS and Star Ratings measures for complaints and getting needed care so the quality impact is visible.",
+            "Publish the pack to the Complaints Manager and the Quality Improvement Committee ahead of the monthly review."
+          ],
+          "done": "a monthly theme pack shows rates by contract and taxonomy with flagged persistent themes and the Star measure linkage."
+        },
+        {
+          "step": "Run root-cause analysis on each flagged theme",
+          "by": "Process Improvement Specialist",
+          "role": "Process Improvement Specialist",
+          "actions": [
+            "Take the 20 most recent cases behind each flagged theme and read them end to end rather than relying on codes.",
+            "Trace each to its origin - a criteria configuration, a provider contract gap, a directory data feed, an agent, a letter template or a staffing gap in a queue.",
+            "Write the cause statement with the evidence and quantify the exposed enrollee population, not just the complainants.",
+            "Agree the owning function with that function's manager and record their acceptance in the analysis."
+          ],
+          "done": "each flagged theme has an evidenced cause statement, a quantified exposed population and an accepting owner."
+        },
+        {
+          "step": "Feed clinical themes into the chronic care improvement program",
+          "by": "Medical / Nurse Case Manager",
+          "role": "Medical / Nurse Case Manager",
+          "actions": [
+            "Take the access-to-care and coverage themes affecting enrollees with chronic conditions to the CCIP owner with the case list.",
+            "Check whether the complaining enrollees were identified by the CCIP identification method - claims, encounter, pharmacy and health-risk-assessment criteria for multiple or sufficiently severe chronic conditions.",
+            "Where complainants were not identified, tighten the identification criteria and document the change and its effective date.",
+            "Confirm the CCIP monitoring mechanism now covers the theme - care plan touchpoints, medication reconciliation or specialist follow-up - and record the intervention added."
+          ],
+          "done": "complaint-driven chronic-condition themes are reflected in the CCIP identification criteria and monitoring interventions, with dates recorded."
+        },
+        {
+          "step": "Open, own and drive the corrective actions",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a corrective action per root cause with the owning function, the fix, the target date and the measure that will show it worked.",
+            "Set the success measure as a complaint rate reduction for that taxonomy code over three months, not as completion of a task.",
+            "Review open actions at the monthly Compliance Committee and escalate any action past target to the function head.",
+            "Close an action only after three months of the measure holding, and record the closing data."
+          ],
+          "done": "every root cause has an owned corrective action with a rate-based success measure, closed only on three months of sustained data."
+        },
+        {
+          "step": "Re-contact a sample of closed complainants",
+          "by": "Consumer Affairs Analyst",
+          "role": "Consumer Affairs Analyst",
+          "app": "CRM (Salesforce/Dynamics)",
+          "actions": [
+            "Draw 25 closed cases per month across taxonomy codes and call the enrollee 14 days after closure.",
+            "Ask whether the issue actually stopped, whether the promised remedy arrived, and whether they received the resolution letter in a format they could read.",
+            "Reopen any case where the enrollee says the issue persists and record the reopen reason.",
+            "Report the re-contact results in the monthly theme pack as the closure-quality measure."
+          ],
+          "done": "a monthly re-contact sample is completed with reopens raised where the enrollee reports the issue persisted."
+        },
+        {
+          "step": "Report complaints and remediation to the governing committees",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "board portal",
+          "actions": [
+            "Present the monthly pack to the Quality Improvement Committee and the quarterly summary to the Compliance Committee, covering volumes, timeliness, themes, remedies paid and open corrective actions.",
+            "Name every theme that has run three months without a closed action and ask the committee for a decision, not an update.",
+            "Record committee direction and owners in the minutes and post the pack to the board portal.",
+            "Include the complaint picture in the annual compliance-program effectiveness report to the board."
+          ],
+          "done": "committees have received the volumes, themes and open actions, with minuted decisions on persistent themes."
+        },
+        {
+          "step": "Keep the CTM record and the internal record in agreement",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Weekly, export the CTM case list for the plan's contracts and match case by case to the internal grievance log on CTM case number.",
+            "List CTM cases with no internal case, internal cases wrongly marked closed in CTM, and closure dates that differ between the two.",
+            "Correct the internal record and, where the CTM entry is wrong, submit the correction through the CTM with the supporting note.",
+            "Report the weekly match rate to the Complaints Manager and treat a match rate below 100% as a control failure."
+          ],
+          "done": "the CTM export and the internal log match case for case each week, with differences corrected and reported."
+        },
+        {
+          "step": "Retain the complaint evidence for the CMS retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File per case the intake record, investigation notes, evidence examined, remedy record, resolution letter and CTM closure capture.",
+            "Apply the 10-year retention label required by 42 CFR 422.504(d) from the end of the contract year.",
+            "Index by CTM case number, contract, PBP, taxonomy code and enrollee id so a CMS universe request can be produced without rebuilding cases.",
+            "Confirm a sample of ten cases retrieves complete within one working day."
+          ],
+          "done": "complete case files are retained for 10 years and retrievable by CTM case number and taxonomy within a working day."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the complaint population for the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Extract every grievance and complaint case with a receipt date in the quarter, with CTM case number, channel, taxonomy code, issue level, receipt date, closure date and remedy field.",
+            "Add contact centre dispositions coded as dissatisfaction that never became a case so under-logging is visible.",
+            "Add complaints received by delegated entities from the delegate's monthly report.",
+            "Sign the extract as complete, recording the query and extraction date."
+          ],
+          "done": "the population covers all channels including uncased contact centre dispositions and delegate complaints, signed as complete."
+        },
+        {
+          "step": "Reconcile the population to the CMS Complaints Tracking Module",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Download the CTM case list for the plan's contract numbers for the quarter directly from HPMS rather than using the plan's copy.",
+            "Match case by case on CTM case number and list CTM cases absent from the internal population and internal cases with no CTM counterpart where one was required.",
+            "Compare receipt and closure dates field by field and list every difference.",
+            "Resolve or record every difference before sampling."
+          ],
+          "done": "the internal population reconciles case by case to the HPMS CTM extract with all date differences listed."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of immediate-need CTM cases and 100% of expedited grievances in the quarter.",
+            "Take a seeded random sample of 50 standard cases stratified across taxonomy codes and contracts.",
+            "Add every case closed on day 29 or 30 as a targeted stratum to test date manipulation.",
+            "Record the seed, strata, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is reproducible, covers all immediate-need and expedited cases, and targets late closures."
+        },
+        {
+          "step": "Recompute timeliness from the true receipt date",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each sampled case take the earliest evidence of receipt - the CTM receipt date, the call recording timestamp, the postmark or the portal message timestamp - not the case creation date.",
+            "Compute elapsed calendar days to the resolution letter dispatch date and to the CTM closure date, counting weekends and holidays.",
+            "Compare to the 2-calendar-day, 24-hour and 30-calendar-day limits and list every breach.",
+            "Where a 14-day extension was used, confirm the written extension notice exists and pre-dates day 30, otherwise treat the case as breached at day 30."
+          ],
+          "done": "every sampled case has recomputed elapsed days from true receipt with breaches and unsupported extensions listed."
+        },
+        {
+          "step": "Re-perform the categorisation judgement",
+          "by": "Consumer Affairs Manager",
+          "role": "Consumer Affairs Manager",
+          "actions": [
+            "Read each sampled case narrative without looking at the assigned codes and reach an independent view of case type, issue level and taxonomy code.",
+            "Compare to the recorded values; a grievance recorded where an organization determination or appeal was requested is a fail because it denies the enrollee appeal rights.",
+            "Check immediate-need designation against the facts - a missing life-sustaining medication coded as standard is a fail.",
+            "Record each re-performance with the reasoning so a third party can follow the judgement."
+          ],
+          "done": "every sampled case has an independent categorisation judgement recorded and reconciled to the assigned codes."
+        },
+        {
+          "step": "Trace the remedy to evidence that the enrollee actually received it",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Claims Platform",
+          "actions": [
+            "For each sampled case with a recorded remedy, trace it to source - the reprocessed claim and payment record, the reissued authorization, the corrected cost-share, or the pharmacy fill record.",
+            "Confirm the enrollee was held harmless where they had already paid, checking for a refund transaction.",
+            "Read the resolution letter and confirm it names the outcome and the remedy rather than closing with a generic statement.",
+            "Treat a recorded remedy with no transaction behind it as a fail."
+          ],
+          "done": "every recorded remedy traces to a payment, authorization or fill record and a specific resolution letter."
+        },
+        {
+          "step": "Test the theme analysis and root-cause loop",
+          "by": "Controls Analyst",
+          "role": "Controls Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Recompute the monthly complaint rate per thousand enrollees for the three largest taxonomy codes from the raw population and compare to the published theme pack.",
+            "Identify every theme flagged for three consecutive months and confirm an owned corrective action exists with a rate-based success measure.",
+            "Read the closure evidence for actions closed in the quarter and confirm three months of sustained rate reduction supports the closure.",
+            "List any theme with no action, an unowned action, or a closure without sustaining data."
+          ],
+          "done": "published theme rates reconcile to the raw data and every persistent theme has an owned action with evidenced closure."
+        },
+        {
+          "step": "Test the CCIP identification and monitoring mechanism against complainants",
+          "by": "Medical Claims Reviewer",
+          "role": "Medical Claims Reviewer",
+          "app": "enterprise data warehouse",
+          "actions": [
+            "Take the sampled complainants with a chronic condition diagnosis in claims or encounter data for the quarter.",
+            "Check each against the CCIP identification list and list those with qualifying conditions who were never identified.",
+            "For those identified, confirm the monitoring mechanism produced a recorded touchpoint - care plan, outreach call or medication review - within the programme's stated interval.",
+            "Report unidentified qualifying enrollees as a defect in the 422.152(c) identification method, not as a data issue."
+          ],
+          "done": "qualifying complainants are traced to the CCIP identification list and to a recorded monitoring touchpoint, with gaps reported as programme defects."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception recording the case or CTM number, the breach type, the days over the limit and the enrollee impact.",
+            "Assign a root cause from a fixed list - channel not swept, misclassified case type, wrong issue level, clock started late, remedy not delivered, CTM closure text inadequate, theme not actioned - with a named owner.",
+            "Set a remediation date and, where a basic benefit was wrongly denied, require reprocessing of all similarly affected enrollees, not only the complainant.",
+            "Carry every open issue into the next quarter's test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, a coded root cause, an owner, a remediation date and a population-level fix where a benefit was denied."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "AuditBoard",
+          "actions": [
+            "Compute the immediate-need breach count and the standard 30-day timeliness percentage and compare to the zero and 98% thresholds.",
+            "Write the conclusion - effective, effective with exceptions, or ineffective - naming the evidence references behind it.",
+            "Have the independent reviewer, who resolved none of the sampled cases and sits outside complaint handling, sign the workpaper.",
+            "Report the conclusion to the Quality Improvement Committee and the Compliance Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states the timeliness rates, a conclusion and the committee reporting dates, filed in the evidence repository."
+        }
+      ]
+    }
+  ]
+}

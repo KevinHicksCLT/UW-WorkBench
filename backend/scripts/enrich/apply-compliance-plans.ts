@@ -107,6 +107,13 @@ async function main() {
   for (const file of files) {
     const pack = JSON.parse(await readFile(file, 'utf8')) as Pack;
     for (const plan of pack.items) {
+      // A truncated pack can hold an empty trailing object. Guard hard: with
+      // itemCode undefined, Prisma drops the filter and findFirst returns an
+      // ARBITRARY item — which this loop would then wipe.
+      if (!plan?.itemCode) {
+        errors.push(`${path.basename(file)}: item without itemCode skipped`);
+        continue;
+      }
       const item = await prisma.complianceItem.findFirst({
         where: { itemCode: plan.itemCode },
         select: { id: true, companyId: true },
