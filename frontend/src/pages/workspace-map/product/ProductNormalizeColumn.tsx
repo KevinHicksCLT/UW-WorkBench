@@ -3,7 +3,7 @@ import { api } from '../../../lib/api';
 import { GREEN, AMBER, INDIGO } from '../types';
 import ReviewModal, { REVIEW_STATUS, type ReviewStatusChip } from '../ReviewModal';
 import OverviewCard, { OVERVIEW_TONES } from './OverviewCard';
-import { MATCH_META } from './spine';
+import { MATCH_META, groupCitations } from './spine';
 import type {
   Comparison,
   ComponentRow,
@@ -18,16 +18,6 @@ import type {
 const COL_DIVIDER = '#64748b';
 
 type Decisions = Record<string, ProductDecisionStatus>;
-
-/** A labelled, colour-dotted count so each number says what it counts. */
-function CountKey({ color, n, label }: { color: string; n: number; label: string }) {
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#525252' }}>
-      <span style={{ width: 8, height: 8, borderRadius: 999, background: color, flexShrink: 0 }} />
-      <b style={{ fontWeight: 700, color }}>{n}</b> {label}
-    </span>
-  );
-}
 
 // Middle column of the Products board. Each model component is a collapsible
 // T-chart: one column per compared version, a NORMALIZED column on the right.
@@ -104,11 +94,15 @@ function NormalizedCell({
   detail,
   badge,
   tone,
+  citations,
 }: {
   name: string;
   detail: string;
-  badge: string;
+  /** null hides the chip (an open review already says so in the card footer). */
+  badge: string | null;
   tone: 'same' | 'review';
+  /** Distinct citations across every jurisdiction that carries the concept. */
+  citations: string[];
 }) {
   const review = tone === 'review';
   return (
@@ -128,22 +122,42 @@ function NormalizedCell({
         {name}
       </span>
       <span style={{ fontSize: 10, color: '#525252' }}>{detail}</span>
-      <span
-        style={{
-          alignSelf: 'flex-start',
-          marginTop: 2,
-          padding: '1px 6px',
-          borderRadius: 4,
-          background: review ? AMBER : '#fff',
-          border: `1px solid ${review ? AMBER : '#86efac'}`,
-          color: review ? '#fff' : '#15803d',
-          fontSize: 9,
-          fontWeight: 700,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {badge}
-      </span>
+      {citations.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 1, marginTop: 1 }}>
+          {citations.map((c) => (
+            <span
+              key={c}
+              style={{
+                fontSize: 9.5,
+                color: '#6366f1',
+                fontFamily: 'ui-monospace, monospace',
+                lineHeight: 1.3,
+                wordBreak: 'break-all',
+              }}
+            >
+              {c}
+            </span>
+          ))}
+        </div>
+      )}
+      {badge && (
+        <span
+          style={{
+            alignSelf: 'flex-start',
+            marginTop: 2,
+            padding: '1px 6px',
+            borderRadius: 4,
+            background: review ? AMBER : '#fff',
+            border: `1px solid ${review ? AMBER : '#86efac'}`,
+            color: review ? '#fff' : '#15803d',
+            fontSize: 9,
+            fontWeight: 700,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {badge}
+        </span>
+      )}
     </div>
   );
 }
@@ -329,6 +343,9 @@ function GroupCard({
   // An approved review reads as settled (green); still-open or held stays amber.
   const border = review && !approved ? '#fcd34d' : '#bbf7d0';
   const missing = versions.filter((v) => !group.perVersion[v.id]);
+  // Distinct citations across every jurisdiction that carries this concept —
+  // the normalized element cites all of them, each source listed once.
+  const citations = groupCitations(group);
   const badge =
     group.status === 'COMMON'
       ? `${group.presentIn}→1 · AUTO`
@@ -338,7 +355,7 @@ function GroupCard({
           ? 'APPROVED'
           : decision === 'HELD'
             ? 'HELD'
-            : 'REVIEW';
+            : null;
   return (
     <div
       data-anchor={`nz:${group.component}:${group.key}`}
@@ -404,9 +421,12 @@ function GroupCard({
         </div>
         <NormalizedCell
           name={group.name}
-          detail={`${group.presentIn} source${group.presentIn === 1 ? '' : 's'} · 1 element`}
+          detail={`${citations.length || group.presentIn} source${
+            (citations.length || group.presentIn) === 1 ? '' : 's'
+          } · 1 element`}
           badge={badge}
           tone={review && !approved ? 'review' : 'same'}
+          citations={citations}
         />
       </div>
       {review && (
@@ -498,7 +518,7 @@ function ComponentSection({
           {row.component}
         </span>
         <span style={{ fontSize: 11.5, color: '#525252', fontVariantNumeric: 'tabular-nums' }}>
-          {raw} current →{' '}
+          {raw} element{raw === 1 ? '' : 's'} →{' '}
           <b style={{ fontWeight: 800, color: INDIGO, fontSize: 13 }}>{row.groups.length}</b>
         </span>
       </button>
@@ -541,36 +561,25 @@ export default function ProductNormalizeColumn({
   expandedComponents,
   onToggleComponent,
 }: Props) {
-  // Outstanding review = flagged groups not yet approved (held still counts).
-  const approvedCount = comparison.rows.reduce(
-    (a, r) =>
-      a +
-      r.groups.filter(
-        (g) => (g.status === 'PARTIAL' || g.status === 'UNIQUE') && decisions[g.key] === 'APPROVED',
-      ).length,
+  // Every row lands in exactly ONE of three buckets, so the headline
+  // counts always sum to the row total a reader just saw:
+  // in the model (auto-folds + adopted) + kept as variants (held) + need a decision.
+  const flagged = comparison.rows.flatMap((r) =>
+    r.groups.filter((g) => g.status === 'PARTIAL' || g.status === 'UNIQUE'),
+  );
+  const approvedCount = flagged.filter((g) => decisions[g.key] === 'APPROVED').length;
+  const heldCount = flagged.filter((g) => decisions[g.key] === 'HELD').length;
+  const outstandingReview = Math.max(0, comparison.reviewCount - approvedCount - heldCount);
+  const autoCount = comparison.rows.reduce(
+    (a, r) => a + r.groups.filter((g) => g.status === 'COMMON' || g.status === 'SINGLE').length,
     0,
   );
-  const outstandingReview = Math.max(0, comparison.reviewCount - approvedCount);
-  // Break the normalized total into what it's actually made of, so the numbers
-  // are self-explanatory: common (in every version, auto-fold) + varies/unique
-  // (need a review decision) + already-approved.
-  const commonCount = comparison.rows.reduce(
-    (a, r) => a + r.groups.filter((g) => g.status === 'COMMON').length,
-    0,
-  );
-  const singleCount = comparison.rows.reduce(
-    (a, r) => a + r.groups.filter((g) => g.status === 'SINGLE').length,
-    0,
-  );
-  const settled = commonCount + singleCount + approvedCount;
+  const settled = autoCount + approvedCount;
+  const decided = settled + heldCount;
   return (
     <div style={{ width: 560, flexShrink: 0, alignSelf: 'flex-start' }}>
       <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>
         Normalize
-        <span style={{ fontWeight: 400, fontSize: 12, color: '#a3a3a3' }}>
-          {' '}
-          · {versions.length === 1 ? 'one version → the model' : 'versions → one product model'}
-        </span>
       </div>
       <div
         style={{
@@ -598,31 +607,9 @@ export default function ProductNormalizeColumn({
             whiteSpace: 'nowrap',
           }}
         >
-          <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.rawCount}</b> elements ·{' '}
-          {versions.length} version{versions.length === 1 ? '' : 's'} →{' '}
-          <b style={{ fontWeight: 700, color: INDIGO }}>{comparison.normalizedCount}</b> distinct
+          <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.rawCount}</b> elements across{' '}
+          {versions.length} version{versions.length === 1 ? '' : 's'}
         </span>
-        {versions.length > 1 && (
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 10,
-              border: '1px solid #eaeaea',
-              borderRadius: 999,
-              background: '#fff',
-              boxShadow: '0 1px 3px rgba(0,0,0,.05)',
-              padding: '3px 12px',
-              fontSize: 12,
-              fontVariantNumeric: 'tabular-nums',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <CountKey color={MATCH_META.COMMON.fg} n={commonCount} label="common" />
-            <CountKey color={GREEN} n={settled} label="in model" />
-            <CountKey color={MATCH_META.PARTIAL.fg} n={outstandingReview} label="to review" />
-          </span>
-        )}
       </div>
 
       <OverviewCard
@@ -631,20 +618,23 @@ export default function ProductNormalizeColumn({
         right={`${
           comparison.normalizedCount === 0
             ? 0
-            : Math.round((settled / comparison.normalizedCount) * 100)
-        }%`}
+            : Math.round((decided / comparison.normalizedCount) * 100)
+        }% decided`}
         track="#e0e7ff"
         segments={[
           { value: settled, color: INDIGO },
+          { value: heldCount, color: '#94a3b8' },
           { value: outstandingReview, color: MATCH_META.PARTIAL.fg },
         ]}
       >
         <span style={{ color: INDIGO }}>
-          {settled} settled into the model ·{' '}
+          {settled} elements in the model ·{' '}
           {outstandingReview > 0 ? (
-            <span style={{ color: MATCH_META.PARTIAL.fg }}>{outstandingReview} to review</span>
+            <span style={{ color: MATCH_META.PARTIAL.fg }}>
+              {outstandingReview} elements need a decision
+            </span>
           ) : (
-            <span style={{ color: GREEN }}>nothing left to review</span>
+            <span style={{ color: GREEN }}>every decision made</span>
           )}
         </span>
       </OverviewCard>

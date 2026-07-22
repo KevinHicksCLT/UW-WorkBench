@@ -1,0 +1,4616 @@
+[
+  {
+    "taskId": "cmr2fkn3b1heskfgzu3x11q7t",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkos1o0imbk8o7q2zq9h",
+      "cmqscovni1mqumbk810ngf3nz",
+      "cmqscovgr1mqgmbk8d5ib3lk1"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Case is recorded in the system of record",
+      "Reason code and disposition are set",
+      "Ownership is assigned to a named queue"
+    ],
+    "checklistSpecific": [
+      "Set the case status from Intake to In Resolution on the case record",
+      "Attach the intake notes and any customer documents before advancing",
+      "Confirm the case reassigned to the resolution queue and shows an owner",
+      "Verify the resolution SLA clock started on the stage change"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Case status history",
+        "checkType": "presence",
+        "expected": "Stage change from Intake to In Resolution with timestamp and actor"
+      }
+    ]
+  },
+  {
+    "taskId": "648e855e-52ae-4dbc-9502-c8614232dab2",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovlo1mqqmbk836k6981j",
+      "cmqscplrp1o2imbk8md8zay6h",
+      "cmqscovea1mqcmbk8um82vnx8"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Deflection outcome is recorded on the interaction",
+      "Customer retains a route to a live agent",
+      "Self-service eligibility rules are documented"
+    ],
+    "checklistSpecific": [
+      "Confirm the IVR menu offers the top five routine intents (balance, ID card, address, payment, claim status)",
+      "Send the SMS or chat deep link to the self-service task and confirm delivery",
+      "Record the deflection outcome code on the interaction record",
+      "Check the deflected customer did not re-enter the voice queue within 24 hours",
+      "Confirm the zero-out to agent option still works from every deflection prompt"
+    ],
+    "testing": [
+      {
+        "system": "Genesys Cloud (Contact Center)",
+        "location": "IVR deflection outcome report",
+        "checkType": "presence",
+        "expected": "Deflection outcome code recorded for every deflected contact"
+      },
+      {
+        "system": "Customer Self-Service Portal",
+        "location": "Deep link session log",
+        "checkType": "presence",
+        "expected": "Self-service session started from the deflection link"
+      }
+    ]
+  },
+  {
+    "taskId": "2d98c760-5cb9-4591-9b54-21042efb0ec6",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscovjm1mqmmbk8zena4laq"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5p3xs0c3hv880s50kwfwb",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Identity is verified before any account detail is disclosed",
+      "Authentication result is recorded on the interaction",
+      "Failed attempts are handled per the escalation path"
+    ],
+    "checklistSpecific": [
+      "Ask two knowledge-based questions drawn from the policy record (date of birth plus policy number)",
+      "Send the one-time passcode to the number already on file and confirm the caller enters it",
+      "Set the authentication flag on the interaction to Passed or Failed",
+      "Do not disclose policy, billing or claim detail until the authentication flag reads Passed",
+      "Log a failed-authentication note and offer the written channel instead of continuing"
+    ],
+    "testing": [
+      {
+        "system": "Salesforce FSC",
+        "location": "Interaction authentication field",
+        "checkType": "presence",
+        "expected": "Authentication outcome recorded on every interaction that disclosed account data"
+      },
+      {
+        "system": "Genesys Cloud (Contact Center)",
+        "location": "Interaction notes",
+        "checkType": "absence",
+        "expected": "No account detail disclosed on interactions with a failed authentication flag"
+      }
+    ]
+  },
+  {
+    "taskId": "984b32df-bc12-48ce-873e-b8812e8b16c7",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscplh81o1ymbk8u8i73x3e"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Reason code is selected from the controlled list",
+      "Classification matches the wrap-up disposition",
+      "Complaint indicators are flagged not buried in notes"
+    ],
+    "checklistSpecific": [
+      "Select the contact reason from the picklist: billing, policy, claims inquiry, complaint or general",
+      "Set the sub-reason to the lowest level available rather than stopping at the parent",
+      "Tag the contact as a complaint when the customer expresses dissatisfaction, even if resolved on the call",
+      "Confirm the reason code still matches the outcome at wrap-up and correct it if not"
+    ],
+    "testing": [
+      {
+        "system": "Salesforce FSC",
+        "location": "Case reason and sub-reason fields",
+        "checkType": "presence",
+        "expected": "Both reason and sub-reason populated from the controlled picklist"
+      }
+    ]
+  },
+  {
+    "taskId": "d1610feb-79d9-44c7-b24a-5f2267fd67a6",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl4bq1hltmbk8hv6cs1av",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovmm1mqsmbk8gsj8jgej",
+      "cmqscpl181o14mbk8bom24dzb",
+      "cmqscovgr1mqgmbk8d5ib3lk1"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Work item reaches a named owner not an unmonitored queue",
+      "Intake context travels with the work item",
+      "Assignment time is recorded"
+    ],
+    "checklistSpecific": [
+      "Confirm the work item appears in the assigned agent queue after routing",
+      "Verify intake notes and attachments carried over to the assignment",
+      "Check the routing skill matched the contact reason code, not a default queue",
+      "Reassign the item if it remains unopened past the queue timeout"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Work item assignment log",
+        "checkType": "presence",
+        "expected": "Assigned owner and assignment timestamp on every distributed work item"
+      }
+    ]
+  },
+  {
+    "taskId": "62e70005-7606-4613-97ee-e967c23b629a",
+    "roles": [
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "d6cab624-3791-4efc-ad70-7474898ae8fd",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkkv1o0cmbk8r8mqmd4c",
+      "cmqscovcf1mq8mbk86bcg9d13",
+      "cmqscpkm41o0embk8qoooivgs"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Escalation criteria are applied from the published matrix",
+      "Escalation is recorded with reason and time",
+      "Receiving team acknowledges the handover"
+    ],
+    "checklistSpecific": [
+      "Apply the vulnerable-customer flag on the customer record so future contacts inherit the handling",
+      "Warm-transfer to the specialist queue rather than cold transfer or voicemail",
+      "Record the escalation trigger (bereavement, financial hardship, capacity, safeguarding) on the case",
+      "Notify the duty supervisor through the escalation channel within 15 minutes",
+      "Confirm the specialist accepted the case before ending the contact"
+    ],
+    "testing": [
+      {
+        "system": "Salesforce FSC",
+        "location": "Customer record vulnerability flag",
+        "checkType": "presence",
+        "expected": "Vulnerability indicator set and dated on the customer record"
+      },
+      {
+        "system": "workflow/case management tool",
+        "location": "Escalation audit trail",
+        "checkType": "presence",
+        "expected": "Escalation reason, time raised and time acknowledged recorded"
+      }
+    ]
+  },
+  {
+    "taskId": "a5d653a1-bb3c-4e4a-af0c-1410fc64a80f",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl4bq1hltmbk8hv6cs1av",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkkv1o0cmbk8r8mqmd4c",
+      "cmqscovmm1mqsmbk8gsj8jgej",
+      "cmqscpkos1o0imbk8o7q2zq9h"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Priority flag is applied from defined criteria only",
+      "Expedited SLA is visible on the case",
+      "Flagged cases are visible on the supervisor dashboard"
+    ],
+    "checklistSpecific": [
+      "Set the priority indicator on the case to High with the qualifying reason selected",
+      "Apply the account-value, vulnerable-customer or regulatory-complaint tag as applicable",
+      "Move the interaction into the expedited routing queue rather than leaving it in general",
+      "Confirm the expedited SLA timer applied to the case after the flag was set"
+    ],
+    "testing": [
+      {
+        "system": "Salesforce FSC",
+        "location": "Case priority and priority-reason fields",
+        "checkType": "presence",
+        "expected": "Priority reason populated on every case flagged High"
+      }
+    ]
+  },
+  {
+    "taskId": "477d83c5-25b1-4806-af38-fcdf40915f5c",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscpksp1o0ombk8ubuf84ya"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Every contact produces an interaction record",
+      "Record is saved before the next contact is taken",
+      "Record retention period is applied"
+    ],
+    "checklistSpecific": [
+      "Create the interaction record with channel, reason code, customer identifier and start timestamp",
+      "Confirm the screen-pop linked the call to the correct customer and correct it if mismatched",
+      "Paste the call or chat transcript reference id into the interaction",
+      "Save the interaction before wrap-up time expires so it is not lost"
+    ],
+    "testing": [
+      {
+        "system": "Salesforce FSC",
+        "location": "Interaction records for the day",
+        "checkType": "presence",
+        "expected": "One interaction record per handled contact with channel and reason code populated"
+      },
+      {
+        "system": "Salesforce FSC",
+        "location": "Interaction customer link",
+        "checkType": "absence",
+        "expected": "No interaction records left unlinked to a customer or policy"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhhfb00xpkfgziv5eaf1s",
+    "roles": [
+      {
+        "roleId": "cmqscl4bq1hltmbk8hv6cs1av",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqz5zp6r002j53crocklx4kf",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203znmbk8n0lfz54r",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpm7t1o3embk8t2llzr5n",
+      "cmqscovmm1mqsmbk8gsj8jgej",
+      "cmqscplj51o22mbk8u1npobqo",
+      "cmqscplf41o1umbk8h9az1264"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Real-time dashboard is monitored through the operating day",
+      "Threshold breaches trigger a documented action",
+      "Interval variance is logged"
+    ],
+    "checklistSpecific": [
+      "Watch calls-in-queue, longest-wait and agents-available on the real-time dashboard each interval",
+      "Compare actual interval volume against the published forecast and note the variance percentage",
+      "Raise the alert when service level falls below 80 percent answered in 30 seconds for two consecutive intervals",
+      "Record the intraday action taken (schedule change, offline activity pull-back, overflow) in the real-time log"
+    ],
+    "testing": [
+      {
+        "system": "Genesys Cloud (Contact Center)",
+        "location": "Real-time queue dashboard",
+        "checkType": "presence",
+        "expected": "Interval-level queue and service-level data available for the operating day"
+      },
+      {
+        "system": "BI/reporting platform",
+        "location": "Intraday variance log",
+        "checkType": "presence",
+        "expected": "Forecast versus actual variance recorded per interval"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2ficsq0f3wkfgzs5dunm8x",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscpkos1o0imbk8o7q2zq9h"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Customer leaves the contact with a traceable reference",
+      "Reference is recorded on the case",
+      "Delivery of the reference is confirmed"
+    ],
+    "checklistSpecific": [
+      "Read the case number back to the customer and ask them to repeat it",
+      "Send the case number by email or SMS where the customer has consented to that channel",
+      "Explain how the customer quotes the reference on a call back",
+      "Note in the case that the reference was provided and by which channel"
+    ],
+    "testing": [
+      {
+        "system": "Salesforce FSC",
+        "location": "Case notes",
+        "checkType": "presence",
+        "expected": "Note confirming the case reference was given to the customer"
+      }
+    ]
+  },
+  {
+    "taskId": "3d2f45fd-36e6-493e-92ae-1da1483bf7fc",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovmm1mqsmbk8gsj8jgej",
+      "cmqscovlo1mqqmbk836k6981j",
+      "cmqscplj51o22mbk8u1npobqo"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Contact is answered within the channel service standard",
+      "Channel of origin is captured",
+      "Required opening disclosures are given"
+    ],
+    "checklistSpecific": [
+      "Answer within the greeting standard and state your name and the company",
+      "Confirm the call recording and monitoring disclosure played before the conversation begins",
+      "Take the oldest waiting item in the queue rather than cherry-picking",
+      "Confirm the channel of origin (phone, email, chat, portal, letter) is stamped on the interaction"
+    ],
+    "testing": [
+      {
+        "system": "Genesys Cloud (Contact Center)",
+        "location": "Queue answer-time report",
+        "checkType": "presence",
+        "expected": "Answer time recorded against the service standard for each contact"
+      },
+      {
+        "system": "Genesys Cloud (Contact Center)",
+        "location": "Call recording announcement",
+        "checkType": "presence",
+        "expected": "Recording disclosure played at the start of every recorded call"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fkmsu1h9ukfgzggh1p4ke",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscpkos1o0imbk8o7q2zq9h"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Intake disposition is selected from the controlled list",
+      "Documents received are attached to the case",
+      "Wrap-up is completed before the next contact"
+    ],
+    "checklistSpecific": [
+      "Select the intake disposition code at wrap-up rather than leaving the default",
+      "Record whether the contact was resolved at intake or routed onward",
+      "Attach any documents or images received during the contact to the case",
+      "Confirm the wrap-up saved successfully before going available for the next contact"
+    ],
+    "testing": [
+      {
+        "system": "Salesforce FSC",
+        "location": "Case disposition field",
+        "checkType": "presence",
+        "expected": "Intake disposition populated on every closed intake record"
+      }
+    ]
+  },
+  {
+    "taskId": "65e10fde-dc51-452b-9cee-35df87f2a0fa",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscpktq1o0qmbk8aad2l2km"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Search is performed in the system of record",
+      "Retrieved record matches the authenticated customer",
+      "Search path is noted on the case"
+    ],
+    "checklistSpecific": [
+      "Search by policy number first, then by surname plus date of birth if no match",
+      "Open the policy record and confirm it is in force before quoting any coverage",
+      "Check for open claims and open billing items on the account before answering",
+      "Confirm the record retrieved belongs to the caller who passed authentication",
+      "Note which records were opened in the case so the next agent does not repeat the search"
+    ],
+    "testing": [
+      {
+        "system": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "location": "Policy record status",
+        "checkType": "presence",
+        "expected": "Policy status and effective dates confirmed before coverage is discussed"
+      }
+    ]
+  },
+  {
+    "taskId": "396eddb5-e56f-4485-afc2-9fd9eb8e70fe",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovcf1mq8mbk86bcg9d13",
+      "cmqscovmm1mqsmbk8gsj8jgej",
+      "cmqscovgr1mqgmbk8d5ib3lk1"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Claims contacts reach the claims intake queue",
+      "Loss information captured at first contact is not lost",
+      "Transfer is confirmed not assumed"
+    ],
+    "checklistSpecific": [
+      "Capture loss date, loss location and a short loss description before transferring",
+      "Check whether a claim already exists and quote the claim number if it does",
+      "Warm-transfer to the FNOL queue and introduce the caller to the receiving handler",
+      "Attach the loss notes taken to the interaction record so FNOL does not re-ask",
+      "Confirm the transfer connected before releasing the call"
+    ],
+    "testing": [
+      {
+        "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "location": "FNOL intake queue",
+        "checkType": "presence",
+        "expected": "Transferred contact appears in the FNOL queue with the captured loss notes"
+      }
+    ]
+  },
+  {
+    "taskId": "42dc33ec-8d22-4952-8379-5d964587eb49",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkkv1o0cmbk8r8mqmd4c",
+      "cmqscpkni1o0gmbk8dtpkamis",
+      "cmqscovmm1mqsmbk8gsj8jgej"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Routing follows the published routing matrix",
+      "Research completed is handed over with the case",
+      "Receiving queue accepts the case"
+    ],
+    "checklistSpecific": [
+      "Check the routing matrix for the specialist queue that owns the reason code",
+      "Attach the research already completed so the specialist does not repeat it",
+      "Transfer using the skill-based queue rather than a direct extension",
+      "Tell the customer which team is taking over and the expected response time",
+      "Confirm the receiving queue accepted the case before closing your interaction"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Case routing history",
+        "checkType": "presence",
+        "expected": "Target queue and acceptance timestamp recorded on routed cases"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2ficis0eyjkfgzjqt5gl7l",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovni1mqumbk810ngf3nz",
+      "cmqscovlo1mqqmbk836k6981j",
+      "cmqscovfm1mqembk8jo2ssfsh"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Commitment given matches the published service standard",
+      "Commitment date is recorded on the case",
+      "A follow-up task exists for the commitment"
+    ],
+    "checklistSpecific": [
+      "Quote the published service level for the case type rather than a personal estimate",
+      "State the specific date by which the customer should expect a response",
+      "Record the commitment date on the case in the commitment field",
+      "Set a follow-up task dated on the commitment so it is not missed"
+    ],
+    "testing": [
+      {
+        "system": "Salesforce FSC",
+        "location": "Case commitment date and follow-up task",
+        "checkType": "presence",
+        "expected": "Commitment date populated with a matching open follow-up task"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhhq0012zkfgziyzg5nqb",
+    "roles": [
+      {
+        "roleId": "cmqscl4bq1hltmbk8hv6cs1av",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqz5zp6r002j53crocklx4kf",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203znmbk8n0lfz54r",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpm7t1o3embk8t2llzr5n",
+      "cmqscpm411o36mbk8jcte5zks",
+      "cmqscov9q1mq4mbk8ubdt32c4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Overflow is activated against a defined threshold",
+      "Activation and deactivation are logged",
+      "Receiving teams are notified"
+    ],
+    "checklistSpecific": [
+      "Confirm the queue breached the overflow threshold for the required number of consecutive intervals",
+      "Activate the overflow routing profile in the contact centre platform",
+      "Notify the backup team or outsourced partner that overflow traffic is live",
+      "Record activation and deactivation times and the volume overflowed in the real-time log",
+      "Deactivate overflow once service level recovers rather than leaving it running"
+    ],
+    "testing": [
+      {
+        "system": "Genesys Cloud (Contact Center)",
+        "location": "Routing profile change history",
+        "checkType": "presence",
+        "expected": "Overflow profile activation and deactivation events with timestamps"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fih4n0h4dkfgzyr66do89",
+    "roles": [
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkni1o0gmbk8dtpkamis",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscovgr1mqgmbk8d5ib3lk1"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Answer is sourced from the policy document not memory",
+      "Question is within the published service authority",
+      "Answer given is recorded on the case"
+    ],
+    "checklistSpecific": [
+      "Open the policy form and endorsements on file and read the coverage answer from them",
+      "Confirm the question sits inside the published service authority matrix before answering",
+      "Quote the form number and edition date used to answer the question",
+      "Record the coverage answer verbatim in the case so it can be reviewed",
+      "Refer to underwriting rather than interpreting an ambiguous wording"
+    ],
+    "testing": [
+      {
+        "system": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "location": "Attached policy forms",
+        "checkType": "presence",
+        "expected": "Form number and edition referenced in the case matches the policy record"
+      }
+    ]
+  },
+  {
+    "taskId": "5944efd0-7cf7-4b84-9907-823a5eceffc9",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscovjm1mqmmbk8zena4laq",
+      "cmqscpl4a1o1ambk8c60kuqo6"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5p3xs0c3hv880s50kwfwb",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Authentication is valid for the current session",
+      "Sensitive changes trigger step-up verification",
+      "Verification events are recorded"
+    ],
+    "checklistSpecific": [
+      "Check whether the authentication flag captured at intake is still valid for this session",
+      "Re-authenticate before any change to bank details, beneficiary or mailing address",
+      "Record the second authentication event separately on the case",
+      "Stop the transaction and escalate to a supervisor if verification fails twice"
+    ],
+    "testing": [
+      {
+        "system": "Salesforce FSC",
+        "location": "Case authentication events",
+        "checkType": "presence",
+        "expected": "Step-up authentication event recorded before any sensitive data change"
+      }
+    ]
+  },
+  {
+    "taskId": "eb9bd874-59ba-4a76-a499-cf50fd6ddff4",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscplrp1o2imbk8md8zay6h",
+      "cmqscpkos1o0imbk8o7q2zq9h",
+      "cmqscpld51o1qmbk8crfzo5sd"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Case is closed with a resolution code",
+      "First-contact-resolution flag is set honestly",
+      "No open tasks remain at closure"
+    ],
+    "checklistSpecific": [
+      "Set the case status to Closed-Resolved and select the resolution code that matches what was done",
+      "Tick the first-contact-resolution indicator only when no follow-up or callback is pending",
+      "Confirm no open tasks or child cases remain before closing",
+      "Check the closure timestamp lands inside the service level window for the case type"
+    ],
+    "testing": [
+      {
+        "system": "Salesforce FSC",
+        "location": "Closed case records",
+        "checkType": "presence",
+        "expected": "Resolution code and FCR indicator populated on every closed case"
+      },
+      {
+        "system": "Salesforce FSC",
+        "location": "Closed cases with open tasks",
+        "checkType": "absence",
+        "expected": "No closed cases carrying open child tasks"
+      }
+    ]
+  },
+  {
+    "taskId": "cf9c945c-66e9-4c2e-80a9-3a3c4902b2ac",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovip1mqkmbk85tyfcfym",
+      "cmqscply11o2umbk8fhpf7t6g",
+      "cmqscplrp1o2imbk8md8zay6h"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Resolution is explained in plain language",
+      "Customer understanding is explicitly confirmed",
+      "Outstanding items are checked before closing"
+    ],
+    "checklistSpecific": [
+      "Summarise the resolution in plain language and avoid policy and system jargon",
+      "Ask the customer to confirm the resolution answers their original question",
+      "Offer written confirmation and confirm the delivery address or email on file",
+      "Ask whether anything else is outstanding before ending the contact",
+      "Note the customer confirmation in the case wrap-up"
+    ],
+    "testing": [
+      {
+        "system": "Genesys Cloud (Contact Center)",
+        "location": "Quality-scored interactions",
+        "checkType": "presence",
+        "expected": "Confirmation-of-understanding step scored on sampled interactions"
+      }
+    ]
+  },
+  {
+    "taskId": "7c7a52d6-d439-48b0-bf0a-6f6d973ea1a3",
+    "roles": [
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      },
+      {
+        "appId": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscovgr1mqgmbk8d5ib3lk1"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Routed case is reviewed before work begins",
+      "Mis-routed cases are corrected not worked around",
+      "Scope gaps are documented"
+    ],
+    "checklistSpecific": [
+      "Read the intake notes and compare them against the policy or claim record",
+      "Confirm the reason code assigned at intake still fits the actual request",
+      "Reclassify and re-route the case immediately if it was mis-routed",
+      "Note any scope gaps and the specific clarification needed from the customer"
+    ],
+    "testing": [
+      {
+        "system": "Salesforce FSC",
+        "location": "Case reason-code change history",
+        "checkType": "presence",
+        "expected": "Reclassification recorded with reason where scope differed from intake"
+      }
+    ]
+  },
+  {
+    "taskId": "bfe805ff-d163-4744-b311-f50e4e63d547",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscpksp1o0ombk8ubuf84ya"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Case notes follow the documentation template",
+      "Commitments made are captured with dates",
+      "Correspondence sent is filed on the case"
+    ],
+    "checklistSpecific": [
+      "Record the actions taken, the systems updated and any commitment made with its date",
+      "Reference the transaction or confirmation numbers generated during the contact",
+      "Attach copies of correspondence sent to the customer to the case",
+      "Use the documentation template so the note can be scored against the quality rubric"
+    ],
+    "testing": [
+      {
+        "system": "Salesforce FSC",
+        "location": "Case notes on closed cases",
+        "checkType": "presence",
+        "expected": "Structured case note present with actions, systems updated and commitments"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fihdn0h91kfgzaku5567m",
+    "roles": [
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovcf1mq8mbk86bcg9d13",
+      "cmqscpkni1o0gmbk8dtpkamis",
+      "cmqscpkkv1o0cmbk8r8mqmd4c"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Referral is raised in the case tool not by informal message",
+      "Customer expectation is set on turnaround",
+      "Referral is tracked to answer"
+    ],
+    "checklistSpecific": [
+      "Raise the underwriting referral in the case tool with policy number and the form reference in question",
+      "State the specific coverage question and the customer scenario in the referral",
+      "Set the customer expectation for the referral turnaround before ending the contact",
+      "Track the referral to response and update the customer when the answer arrives",
+      "Record the underwriting answer on the case for future reference"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Underwriting referral records",
+        "checkType": "presence",
+        "expected": "Referral raised with policy number, question and target response date"
+      }
+    ]
+  },
+  {
+    "taskId": "88213973-3afb-4574-933f-796342556539",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkkv1o0cmbk8r8mqmd4c",
+      "cmqscpkni1o0gmbk8dtpkamis",
+      "cmqscpkm41o0embk8qoooivgs"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Authority matrix is checked before escalating",
+      "Escalation carries the work already done",
+      "Acknowledgement is received within the escalation SLA"
+    ],
+    "checklistSpecific": [
+      "Check the authority matrix to confirm the request genuinely exceeds your limit",
+      "Select the escalation reason and the target team on the case",
+      "Hand over the research already completed in the escalation note",
+      "Confirm the receiving team acknowledged within the escalation service level",
+      "Tell the customer who now owns the case and when they will hear back"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Escalation records",
+        "checkType": "presence",
+        "expected": "Escalation reason, target team and acknowledgement time recorded"
+      }
+    ]
+  },
+  {
+    "taskId": "16497e01-ba82-4dbb-ab78-5052e2b662d5",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "092f0b09-236b-4c85-af3a-75d4afd6db8b",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "use": "performed"
+      },
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovdd1mqambk8nf5s8p4j",
+      "cmqscpktq1o0qmbk8aad2l2km",
+      "cmqscovni1mqumbk810ngf3nz"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Requester authority is verified before release",
+      "Documents are generated from the system of record",
+      "Issue and delivery method are logged"
+    ],
+    "checklistSpecific": [
+      "Confirm the requester is a named insured or authorised party before releasing documents",
+      "Regenerate the declaration page or ID card from the policy system rather than sending a stored copy",
+      "Send by the delivery preference on record (portal, secure email or mail) and not an unverified address",
+      "Log the document type issued, the date and the delivery method on the case",
+      "Confirm the document generated shows current policy terms and not a superseded term"
+    ],
+    "testing": [
+      {
+        "system": "document management repository",
+        "location": "Issued document index",
+        "checkType": "presence",
+        "expected": "Issued duplicate document filed against the policy with issue date"
+      }
+    ]
+  },
+  {
+    "taskId": "8f062eec-4a63-4885-b304-d76e67d6b0c4",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "1a08151d-c436-4fd4-a6a5-e954079e1d21",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovdd1mqambk8nf5s8p4j",
+      "cmqscplpi1o2embk8tvck7l1h",
+      "cmqscpl4a1o1ambk8c60kuqo6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Approved template is used",
+      "Letter content is checked before release",
+      "Outbound correspondence is filed"
+    ],
+    "checklistSpecific": [
+      "Select the approved correspondence template for the case type rather than free-typing",
+      "Populate policy number, relevant dates and the agreed resolution into the letter",
+      "Have the letter peer-checked when it states a coverage position or declines a request",
+      "File the outbound letter against both the case and the policy record",
+      "Send within the correspondence service standard for the case type"
+    ],
+    "testing": [
+      {
+        "system": "document management repository",
+        "location": "Outbound correspondence file",
+        "checkType": "presence",
+        "expected": "Copy of issued letter filed against the case and policy"
+      }
+    ]
+  },
+  {
+    "taskId": "84b6b8fa-94f3-417b-834e-9aba47ccb1ab",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "6ae69b92-0421-46dc-85e6-330203bfa938",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103z1mbk8p7dt2uho",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscplql1o2gmbk8c71hou4x",
+      "cmqscovni1mqumbk810ngf3nz",
+      "cmqscpl4a1o1ambk8c60kuqo6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Requester authority to change the policy is verified",
+      "Premium impact is disclosed before commitment",
+      "Change is confirmed in writing"
+    ],
+    "checklistSpecific": [
+      "Confirm the requester is the named insured or an authorised party, not a third party",
+      "Key the endorsement effective date exactly as requested and apply the backdating rules",
+      "Quote the resulting premium or billing change to the customer before committing the transaction",
+      "Issue the endorsement confirmation and the updated billing schedule",
+      "Verify the change is visible on the policy record after the overnight cycle"
+    ],
+    "testing": [
+      {
+        "system": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "location": "Policy transaction history",
+        "checkType": "presence",
+        "expected": "Endorsement transaction with effective date and premium change recorded"
+      },
+      {
+        "system": "Guidewire BillingCenter",
+        "location": "Billing schedule",
+        "checkType": "presence",
+        "expected": "Revised instalment schedule generated after the coverage change"
+      }
+    ]
+  },
+  {
+    "taskId": "1f668e62-8a60-4975-81bf-b7f84498859c",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "6ae69b92-0421-46dc-85e6-330203bfa938",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovni1mqumbk810ngf3nz",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscovjm1mqmmbk8zena4laq"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Change is applied in the system of record",
+      "Confirmation number is captured",
+      "Effective date is agreed with the customer"
+    ],
+    "checklistSpecific": [
+      "Update the address on every policy the customer holds, not only the one discussed",
+      "Re-authenticate before changing payment method or bank details",
+      "Confirm the effective date of the change with the customer before saving",
+      "Read the confirmation number back and record it on the case",
+      "Check no pending transaction on the policy blocks the change"
+    ],
+    "testing": [
+      {
+        "system": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "location": "Customer record change log",
+        "checkType": "presence",
+        "expected": "Service transaction recorded with user, timestamp and confirmation number"
+      }
+    ]
+  },
+  {
+    "taskId": "cd946439-0a8e-4110-8a46-18048e46a07c",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscplrp1o2imbk8md8zay6h"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Status is read from the claims system of record",
+      "Disclosure follows authentication",
+      "Contact is noted in the claim file"
+    ],
+    "checklistSpecific": [
+      "Open the claim in the claims platform and read the current status and last activity date",
+      "Give payment issue date, amount and method only after authentication has passed",
+      "Provide the adjuster name and the published contact route, not a personal mobile number",
+      "Do not give a coverage opinion on an open claim; refer the question to the adjuster",
+      "Add a note to the claim file recording that a status enquiry was handled"
+    ],
+    "testing": [
+      {
+        "system": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "location": "Claim file notes",
+        "checkType": "presence",
+        "expected": "Status-enquiry note added to the claim file for each status call"
+      }
+    ]
+  },
+  {
+    "taskId": "3af899ad-9734-4a55-8417-cd44040a1db3",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103z1mbk8p7dt2uho",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscpktq1o0qmbk8aad2l2km"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Research uses systems of record only",
+      "Knowledge article is consulted before interpreting terms",
+      "Systems checked are recorded"
+    ],
+    "checklistSpecific": [
+      "Check the policy record, the billing ledger and the claim file before giving an answer",
+      "Open the product knowledge article before interpreting policy terms",
+      "Note which systems were checked and what each showed in the case",
+      "Place the customer on hold or offer a callback rather than guessing at an answer"
+    ],
+    "testing": [
+      {
+        "system": "Salesforce FSC",
+        "location": "Case research notes",
+        "checkType": "presence",
+        "expected": "Case note listing systems checked and findings"
+      }
+    ]
+  },
+  {
+    "taskId": "31e096bb-3770-40d7-93dd-7f4921aa4d1e",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl4bq1hltmbk8hv6cs1av",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovni1mqumbk810ngf3nz",
+      "cmqscpkos1o0imbk8o7q2zq9h",
+      "cmqscpm8s1o3gmbk8f9xy59kn"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Callback is agreed with the customer not assumed",
+      "Callback task has a named owner",
+      "Completion is dispositioned"
+    ],
+    "checklistSpecific": [
+      "Agree a specific callback date and time window with the customer",
+      "Create the callback task on the case with an owner assigned, not an unassigned queue",
+      "Confirm the best contact number and the customer time zone",
+      "Confirm the callback was completed and dispositioned on the due date",
+      "Attempt a second contact and leave a message before closing an unreachable callback"
+    ],
+    "testing": [
+      {
+        "system": "Salesforce FSC",
+        "location": "Callback tasks",
+        "checkType": "presence",
+        "expected": "Callback task with owner, due date and completion disposition"
+      },
+      {
+        "system": "Salesforce FSC",
+        "location": "Overdue callback tasks",
+        "checkType": "absence",
+        "expected": "No callback tasks past due date without a contact attempt logged"
+      }
+    ]
+  },
+  {
+    "taskId": "31383d79-1990-4272-a344-d26863db2e90",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "6ae69b92-0421-46dc-85e6-330203bfa938",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      },
+      {
+        "appId": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovdd1mqambk8nf5s8p4j",
+      "cmqscpksp1o0ombk8ubuf84ya",
+      "cmqscovfm1mqembk8jo2ssfsh"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5ozhw0bwbv880yxxntb6u",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Consent is captured with evidence",
+      "Delivery failures fall back to paper",
+      "Preference is synchronised to the system of record"
+    ],
+    "checklistSpecific": [
+      "Record the e-delivery consent with date, channel and the confirmation reference",
+      "Verify the email address with a confirmation link before switching the customer off paper",
+      "Revert the customer to paper delivery when e-delivery bounces twice",
+      "Confirm the preference change is reflected in the policy system and not only in the portal",
+      "Check the consent record is retained for the required retention period"
+    ],
+    "testing": [
+      {
+        "system": "Customer Self-Service Portal",
+        "location": "Delivery preference consent record",
+        "checkType": "presence",
+        "expected": "Consent record with timestamp and verification evidence for every e-delivery customer"
+      },
+      {
+        "system": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "location": "Delivery preference field",
+        "checkType": "presence",
+        "expected": "Policy record preference matches the portal preference"
+      }
+    ]
+  },
+  {
+    "taskId": "17f50801-8b1d-45aa-a600-a4ccf40b9183",
+    "roles": [
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovlo1mqqmbk836k6981j",
+      "cmqscpl891o1gmbk8564fr6p6",
+      "cmqscpm7t1o3embk8t2llzr5n"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Exception queue is worked to a daily cadence",
+      "Failure reason is classified for trending",
+      "Customer is contacted where digital completion is impossible"
+    ],
+    "checklistSpecific": [
+      "Work the digital exception queue oldest-first at the start of each shift",
+      "Determine whether the failure is data, entitlement or integration before resubmitting",
+      "Resubmit the transaction and confirm it completes end to end, not just that it left the queue",
+      "Contact the customer directly where the transaction cannot be completed digitally",
+      "Log the failure reason code so recurring failures can be trended"
+    ],
+    "testing": [
+      {
+        "system": "Customer Self-Service Portal",
+        "location": "Digital exception queue",
+        "checkType": "absence",
+        "expected": "No stuck transactions older than the daily clearance standard"
+      },
+      {
+        "system": "workflow/case management tool",
+        "location": "Exception reason codes",
+        "checkType": "presence",
+        "expected": "Failure reason code recorded on every cleared exception"
+      }
+    ]
+  },
+  {
+    "taskId": "e25a24d2-e8df-42f8-94c0-dff674ba3e55",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "794ef1b6-7724-4ecd-b9ba-2e52ec3fa42b",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      },
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl3d1o18mbk8rk6n5z9p",
+      "cmqscplvs1o2qmbk8g4z1vezi",
+      "cmqscovfm1mqembk8jo2ssfsh"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Content change is approved before publication",
+      "Published version is recorded",
+      "Front-line staff are told what changed"
+    ],
+    "checklistSpecific": [
+      "Draft the FAQ or coverage-summary change and route it for compliance sign-off before publishing",
+      "Publish to staging first and check rendering on both mobile and desktop",
+      "Set the version number and effective date on the content item",
+      "Notify front-line staff of the published change so agent answers match the portal",
+      "Retire the superseded content rather than leaving both versions live"
+    ],
+    "testing": [
+      {
+        "system": "Customer Self-Service Portal",
+        "location": "Content item metadata",
+        "checkType": "presence",
+        "expected": "Version number, effective date and approver recorded on published content"
+      }
+    ]
+  },
+  {
+    "taskId": "f9972018-0f12-4c3d-8bd1-530ae44ce6dc",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "875d0a08-2acb-43d5-b565-d21ed8b17224",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovcf1mq8mbk86bcg9d13",
+      "cmqscpm1y1o32mbk8p8nq98n0",
+      "cmqscpl891o1gmbk8564fr6p6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Defect is raised with reproducible evidence",
+      "Business priority is justified by impact",
+      "Fix is verified in production by the business"
+    ],
+    "checklistSpecific": [
+      "Raise the defect ticket with reproduction steps, screenshots and the affected customer count",
+      "Set the business priority using the customer-impact and call-volume justification",
+      "Attend the defect triage and confirm the agreed fix target date",
+      "Verify the fix in production yourself before agreeing to close the ticket",
+      "Track the manual workaround volume until the fix is deployed"
+    ],
+    "testing": [
+      {
+        "system": "ITSM platform (ServiceNow/Jira)",
+        "location": "Portal defect tickets",
+        "checkType": "presence",
+        "expected": "Reproduction steps and business impact recorded on each raised defect"
+      }
+    ]
+  },
+  {
+    "taskId": "0a7f6eaa-7377-4220-809e-9b8ab3ba5c44",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "875d0a08-2acb-43d5-b565-d21ed8b17224",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkkv1o0cmbk8r8mqmd4c",
+      "cmqscpkm41o0embk8qoooivgs",
+      "cmqscov9q1mq4mbk8ubdt32c4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Systemic failure is distinguished from single-customer issue",
+      "Major incident is raised with impact data",
+      "Customer-facing messaging is published"
+    ],
+    "checklistSpecific": [
+      "Confirm the failure affects multiple customers across multiple sessions before declaring it systemic",
+      "Raise the major incident with start time, affected journeys and estimated customer volume",
+      "Publish the agent holding statement and the portal banner so messaging is consistent",
+      "Join the incident bridge and give the business impact update at each cycle",
+      "Record the contact volume displaced to voice for the post-incident review"
+    ],
+    "testing": [
+      {
+        "system": "ITSM platform (ServiceNow/Jira)",
+        "location": "Major incident record",
+        "checkType": "presence",
+        "expected": "Incident record with start time, affected journeys and business impact statement"
+      }
+    ]
+  },
+  {
+    "taskId": "16c0e742-89fa-4ea6-b54f-58bd106edef3",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl4bq1hltmbk8hv6cs1av",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovea1mqcmbk8um82vnx8",
+      "cmqscpkx81o0wmbk8sved8cuw",
+      "cmqscpkvy1o0umbk859edutzs"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Recommendation is grounded in journey analytics",
+      "Expected benefit is quantified",
+      "Idea is logged with an owner"
+    ],
+    "checklistSpecific": [
+      "Pull the digital journey funnel and identify the step with the highest drop-off",
+      "Size the assisted-contact volume generated by each failing digital step",
+      "Write the enhancement recommendation with the expected deflection benefit stated numerically",
+      "Log the idea in the improvement backlog with a named owner and a review date"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Digital journey funnel report",
+        "checkType": "presence",
+        "expected": "Step-level drop-off data supporting each recommendation"
+      }
+    ]
+  },
+  {
+    "taskId": "23ca4468-8531-449d-a40b-83f122b98cd5",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovlo1mqqmbk836k6981j",
+      "cmqscplo71o2cmbk8dmcsw2k2",
+      "cmqscplrp1o2imbk8md8zay6h"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Escalated session is accepted within the wait standard",
+      "Prior bot context is read before responding",
+      "Session is dispositioned with a bot-failure reason"
+    ],
+    "checklistSpecific": [
+      "Read the bot transcript before your first reply so the customer does not repeat themselves",
+      "Accept the escalated chat within the published wait target",
+      "Authenticate the customer inside the chat session before discussing account detail",
+      "Disposition the session with the reason the bot could not resolve it",
+      "Offer to continue by phone where the issue needs document review"
+    ],
+    "testing": [
+      {
+        "system": "Genesys Cloud (Contact Center)",
+        "location": "Escalated chat sessions",
+        "checkType": "presence",
+        "expected": "Bot transcript attached and bot-failure reason recorded on escalated sessions"
+      }
+    ]
+  },
+  {
+    "taskId": "b5f4baa9-8191-454d-9f1c-82b07c1b2591",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl4bq1hltmbk8hv6cs1av",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl891o1gmbk8564fr6p6",
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscpkz61o10mbk89h2emobr"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Digital failures are matched to assisted contacts",
+      "Failure clusters are identified",
+      "Findings are shared on a regular cadence"
+    ],
+    "checklistSpecific": [
+      "Extract portal error events and match them to contacts received within the following 24 hours",
+      "Rank failing transaction types by the assisted-contact volume they generate",
+      "Confirm whether failures cluster by browser, device type or product",
+      "Share the failing-transaction list with the digital product owner each week"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Digital failure to contact correlation report",
+        "checkType": "presence",
+        "expected": "Weekly report linking portal error events to follow-on assisted contacts"
+      }
+    ]
+  },
+  {
+    "taskId": "7069f3f2-cb63-4b54-939b-2a4f8a98338d",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscovjm1mqmmbk8zena4laq",
+      "cmqscpl4a1o1ambk8c60kuqo6"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5p3xs0c3hv880s50kwfwb",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Step-up verification is enforced on sensitive transactions",
+      "Failed verification events are reviewed",
+      "Controls are documented"
+    ],
+    "checklistSpecific": [
+      "Confirm step-up verification is enforced for beneficiary changes and bank-detail updates",
+      "Check the one-time passcode is not delivered to the channel that was just changed",
+      "Review failed-verification events for patterns indicating account takeover attempts",
+      "Apply the cooling-off hold before any payout following a bank-detail change",
+      "Record the verification method used against each sensitive transaction"
+    ],
+    "testing": [
+      {
+        "system": "Customer Self-Service Portal",
+        "location": "Sensitive transaction audit log",
+        "checkType": "presence",
+        "expected": "Step-up verification event recorded before each beneficiary or bank change"
+      },
+      {
+        "system": "Customer Self-Service Portal",
+        "location": "Bank-change to payout interval",
+        "checkType": "absence",
+        "expected": "No payout released inside the cooling-off window after a bank-detail change"
+      }
+    ]
+  },
+  {
+    "taskId": "2fe18f7c-aa64-424f-9a1a-afce9e2090a3",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl4bq1hltmbk8hv6cs1av",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      },
+      {
+        "appId": "875d0a08-2acb-43d5-b565-d21ed8b17224",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpm1y1o32mbk8p8nq98n0",
+      "cmqscpm321o34mbk8ffxa91dz",
+      "cmqscplf41o1umbk8h9az1264"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Availability is monitored against a contracted target",
+      "Breaches are ticketed",
+      "Service review pack records the outcome"
+    ],
+    "checklistSpecific": [
+      "Check the uptime and authentication success dashboards at the start of each day",
+      "Compare month-to-date availability against the contracted target",
+      "Raise a service ticket when authentication success rate falls below the threshold",
+      "Record any service level breach and the agreed remediation in the service review pack"
+    ],
+    "testing": [
+      {
+        "system": "Customer Self-Service Portal",
+        "location": "Availability and authentication dashboards",
+        "checkType": "presence",
+        "expected": "Daily uptime and authentication success figures recorded against target"
+      }
+    ]
+  },
+  {
+    "taskId": "b4c4e33f-7676-4d1d-89bc-0a5320c90d3c",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl4bq1hltmbk8hv6cs1av",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203znmbk8n0lfz54r",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscplg21o1wmbk8lyl7zs1m",
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscpkz61o10mbk89h2emobr"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Report uses agreed metric definitions",
+      "Comparison against target and prior period is shown",
+      "Pack is issued before the review"
+    ],
+    "checklistSpecific": [
+      "Pull portal transactions completed, abandonment rate and deflection rate for the month",
+      "Compare deflection against target and against the prior month",
+      "Include the top five failing journeys and the assisted-contact volume they caused",
+      "Circulate the pack before the monthly business review, not in the meeting"
+    ],
+    "testing": [
+      {
+        "system": "Power BI",
+        "location": "Monthly digital channel report",
+        "checkType": "presence",
+        "expected": "Report published with completion, abandonment and deflection metrics for the period"
+      }
+    ]
+  },
+  {
+    "taskId": "863c9340-248d-4e69-8d71-3b8dc7606511",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      },
+      {
+        "appId": "875d0a08-2acb-43d5-b565-d21ed8b17224",
+        "use": "performed"
+      }
+    ],
+    "standards": ["cmqscovfm1mqembk8jo2ssfsh", "cmqscpkuv1o0smbk8fgixitde"],
+    "regs": [
+      {
+        "regId": "cmrc4t9sb03oxv8f8n0fdmpob",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc4ta0103pbv8f8wegs22t5",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Review covers the highest-traffic customer journeys",
+      "Non-conformances are logged with owners",
+      "An accessible alternative channel is available meanwhile"
+    ],
+    "checklistSpecific": [
+      "Run the automated accessibility scan across the top customer journeys including login and claims",
+      "Manually test keyboard-only and screen-reader navigation on login, payment and document pages",
+      "Log each non-conformance with severity, affected page and remediation owner",
+      "Confirm an accessible alternative channel is published while defects remain open",
+      "Record the review date and scope so the annual cycle is evidenced"
+    ],
+    "testing": [
+      {
+        "system": "Customer Self-Service Portal",
+        "location": "Accessibility scan results",
+        "checkType": "presence",
+        "expected": "Dated scan report covering the top customer journeys with logged non-conformances"
+      }
+    ]
+  },
+  {
+    "taskId": "37772906-2d85-43c5-b98f-66df2df9ed6f",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqscl4bq1hltmbk8hv6cs1av",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkz61o10mbk89h2emobr",
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscplf41o1umbk8h9az1264"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Metrics are reviewed on a defined cadence",
+      "Threshold breaches produce actions",
+      "Review outcome is recorded"
+    ],
+    "checklistSpecific": [
+      "Review transactions completed, abandonment rate and error events broken down by journey",
+      "Segment utilisation by product line and by customer age band",
+      "Flag any journey where abandonment exceeded the agreed threshold",
+      "Record the review outcome and resulting actions in the channel review log"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Self-service utilisation report",
+        "checkType": "presence",
+        "expected": "Journey-level completion, abandonment and error metrics for the period"
+      }
+    ]
+  },
+  {
+    "taskId": "b549e8f0-245d-4183-a279-1c8eb3bcd686",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex4yp000dv8w0kd5enkye",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscplrp1o2imbk8md8zay6h",
+      "cmqscovni1mqumbk810ngf3nz",
+      "cmqscply11o2umbk8fhpf7t6g"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Customer identity is verified before credential actions",
+      "Enrolment success is confirmed in-session",
+      "Blockers are recorded for trending"
+    ],
+    "checklistSpecific": [
+      "Walk the customer through registration using the policy number and the email address on file",
+      "Trigger the credential reset link rather than reading or setting credentials aloud",
+      "Confirm the customer can log in successfully before ending the contact",
+      "Record the enrolment outcome and any blocker encountered on the case",
+      "Show the customer where to find documents and payments once they are logged in"
+    ],
+    "testing": [
+      {
+        "system": "Customer Self-Service Portal",
+        "location": "Registration events",
+        "checkType": "presence",
+        "expected": "Successful login event recorded for customers onboarded during the contact"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2flbzl1td0kfgzgtwkmumt",
+    "roles": [
+      {
+        "roleId": "cmqsck0rn03rrmbk8pjvncx03",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103yjmbk8y9kyaaxo",
+        "use": "performed"
+      },
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscovjm1mqmmbk8zena4laq"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Caller is verified against the agency contact list",
+      "Agency of record is confirmed before disclosure",
+      "Verification outcome is recorded"
+    ],
+    "checklistSpecific": [
+      "Verify the caller agency code and confirm their name appears on the agency contact list",
+      "Confirm the portal user id belongs to the agency of record for the policy discussed",
+      "Decline to disclose policyholder detail to an agency that is not of record",
+      "Record the verification outcome on the agency service case"
+    ],
+    "testing": [
+      {
+        "system": "agency/producer management system",
+        "location": "Agency contact list",
+        "checkType": "presence",
+        "expected": "Caller name present on the agency contact list at time of disclosure"
+      }
+    ]
+  },
+  {
+    "taskId": "e4ac7bf8-0fc7-4997-8538-5acc9a532743",
+    "roles": [
+      {
+        "roleId": "cmqsck0rn03rrmbk8pjvncx03",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkos1o0imbk8o7q2zq9h",
+      "cmqscovni1mqumbk810ngf3nz",
+      "cmqscpl4a1o1ambk8c60kuqo6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "All request lines are fulfilled before closure",
+      "Closure is confirmed with the requester",
+      "No child tasks remain open"
+    ],
+    "checklistSpecific": [
+      "Confirm every request line on the case has been fulfilled, not just the first one",
+      "Send the closure confirmation to the requesting agency contact",
+      "Set the closure code and write the resolution summary on the case",
+      "Check no child tasks or pending referrals remain open before closing"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Closed agency cases",
+        "checkType": "absence",
+        "expected": "No closed agency cases with open child tasks"
+      }
+    ]
+  },
+  {
+    "taskId": "7ad61bd8-9ab7-49db-92eb-2c7847973083",
+    "roles": [
+      {
+        "roleId": "cmqsck0rn03rrmbk8pjvncx03",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscpksp1o0ombk8ubuf84ya"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Every agency interaction produces a log entry",
+      "Documents issued are referenced",
+      "Entry is completed before the case closes"
+    ],
+    "checklistSpecific": [
+      "Record agency code, contact name and request type on every interaction",
+      "Note the documents issued and the delivery method used",
+      "Reference the endorsement, certificate or loss run number produced",
+      "Complete the log entry before closing the interaction rather than in batch later"
+    ],
+    "testing": [
+      {
+        "system": "agency/producer management system",
+        "location": "Agency service log",
+        "checkType": "presence",
+        "expected": "Log entry with agency code, contact and request type for each interaction"
+      }
+    ]
+  },
+  {
+    "taskId": "4208d3e5-4351-4b93-8ede-c4a944aa9bca",
+    "roles": [
+      {
+        "roleId": "cmqsck0rn03rrmbk8pjvncx03",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovcf1mq8mbk86bcg9d13",
+      "cmqscpkkv1o0cmbk8r8mqmd4c",
+      "cmqscpkm41o0embk8qoooivgs"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Escalation follows the published authority limits",
+      "Agency is told who owns the issue",
+      "Referral is chased against the escalation SLA"
+    ],
+    "checklistSpecific": [
+      "Confirm the issue sits outside service authority before escalating it",
+      "Raise the referral to underwriting or distribution operations with the agency code and affected policy list",
+      "Tell the agency who now owns the issue and the expected response date",
+      "Chase the referral if it is unanswered within the escalation service level",
+      "Record the escalation outcome on the agency service case"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Producer escalation records",
+        "checkType": "presence",
+        "expected": "Escalation with target team, raise time and acknowledgement recorded"
+      }
+    ]
+  },
+  {
+    "taskId": "abb78861-3654-4912-a7d1-70adfd7a7240",
+    "roles": [
+      {
+        "roleId": "cmqsck0rn03rrmbk8pjvncx03",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "6ae69b92-0421-46dc-85e6-330203bfa938",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "use": "performed"
+      },
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpln81o2ambk85ltpa5rm",
+      "cmqscplql1o2gmbk8c71hou4x",
+      "cmqscpl4a1o1ambk8c60kuqo6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Certificate is generated from the policy system",
+      "Requested status is verified against the policy",
+      "Issued document is filed"
+    ],
+    "checklistSpecific": [
+      "Confirm the certificate holder name, address and required wording against the written request",
+      "Check the policy actually grants the additional insured status requested before issuing anything",
+      "Generate the certificate from the policy system using the approved ACORD form",
+      "Send the certificate to the holder and copy the requesting agency the same business day",
+      "File the issued certificate against the policy record"
+    ],
+    "testing": [
+      {
+        "system": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "location": "Issued certificates register",
+        "checkType": "presence",
+        "expected": "Certificate issued and filed with holder details and issue date"
+      },
+      {
+        "system": "document management repository",
+        "location": "Certificates issued without policy support",
+        "checkType": "absence",
+        "expected": "No certificate issued granting status the policy does not provide"
+      }
+    ]
+  },
+  {
+    "taskId": "6c3e8dd3-662b-492f-841a-cce1fc4a56a5",
+    "roles": [
+      {
+        "roleId": "cmqsck0rn03rrmbk8pjvncx03",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "6ae69b92-0421-46dc-85e6-330203bfa938",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103yjmbk8y9kyaaxo",
+        "use": "performed"
+      },
+      {
+        "appId": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovni1mqumbk810ngf3nz",
+      "cmqscplql1o2gmbk8c71hou4x",
+      "cmqscpl4a1o1ambk8c60kuqo6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Requests are worked in date order against the standard",
+      "Mandatory data is validated before work starts",
+      "Fulfilment is logged"
+    ],
+    "checklistSpecific": [
+      "Work the agency request queue in receipt order against the published service standard",
+      "Validate the request carries all mandatory data before starting and query gaps immediately",
+      "Produce the requested item (endorsement, certificate, loss run or policy copy)",
+      "Return the completed item through the agency portal rather than personal email",
+      "Log the fulfilment date and the item reference on the case"
+    ],
+    "testing": [
+      {
+        "system": "Broker & Agent Portal",
+        "location": "Agency request queue",
+        "checkType": "absence",
+        "expected": "No agency requests open beyond the published service standard"
+      }
+    ]
+  },
+  {
+    "taskId": "3291a918-2e84-43fd-aff7-119b39ff5915",
+    "roles": [
+      {
+        "roleId": "cmqsck0rn03rrmbk8pjvncx03",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103yjmbk8y9kyaaxo",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovlo1mqqmbk836k6981j",
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscovni1mqumbk810ngf3nz"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Request is logged on receipt",
+      "Receipt is acknowledged within the standard",
+      "Missing information is requested immediately"
+    ],
+    "checklistSpecific": [
+      "Log the request with agency code, policy number and request type",
+      "Acknowledge receipt to the agency within the service standard",
+      "Confirm mandatory attachments are present and request missing items straight away",
+      "Assign the case to the correct service queue rather than holding it personally"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Agency service cases",
+        "checkType": "presence",
+        "expected": "Case created with agency code, policy number and receipt timestamp"
+      }
+    ]
+  },
+  {
+    "taskId": "956a1ee4-ab3e-40cb-9acc-0f9a94b2ece4",
+    "roles": [
+      {
+        "roleId": "cmqsck0rn03rrmbk8pjvncx03",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscpkx81o0wmbk8sved8cuw"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Reporting uses root-cause codes not free text",
+      "Top drivers are quantified",
+      "Findings reach distribution management"
+    ],
+    "checklistSpecific": [
+      "Group agency cases by root-cause code for the reporting period",
+      "Identify the top agencies and request types driving rework",
+      "Quantify the service-level impact of each recurring issue in cases and days",
+      "Present the findings to distribution management with recommended fixes and owners"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Agency service issue report",
+        "checkType": "presence",
+        "expected": "Period report grouping agency cases by root-cause code"
+      }
+    ]
+  },
+  {
+    "taskId": "5dbd8c23-cc29-4c1b-b6ed-1f666b9b6ee9",
+    "roles": [
+      {
+        "roleId": "cmqsck0rn03rrmbk8pjvncx03",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "ddc77ae8-1803-46a2-8fc3-831dcaae3d41",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z103z1mbk8p7dt2uho",
+        "use": "performed"
+      },
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpk651nzombk8kooykcno",
+      "cmqscpkb21nzumbk8gmuxnsgb",
+      "cmqscpk8t1nzsmbk82bets6eg"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Disputed amount is reconciled to the ledger",
+      "Adjustments are agreed with finance before posting",
+      "Dispute closes within the standard"
+    ],
+    "checklistSpecific": [
+      "Reconcile the disputed amount against the billing ledger and the commission statement",
+      "Identify whether the variance is a rate error, a timing difference or a cancellation chargeback",
+      "Agree the correction with finance before committing any adjustment",
+      "Post the adjustment and confirm it appears on the next statement run",
+      "Close the dispute within five business days or escalate with a reason"
+    ],
+    "testing": [
+      {
+        "system": "Guidewire BillingCenter",
+        "location": "Dispute case ageing",
+        "checkType": "absence",
+        "expected": "No billing dispute open beyond five business days without an escalation record"
+      },
+      {
+        "system": "billing/commission platform",
+        "location": "Commission adjustment records",
+        "checkType": "presence",
+        "expected": "Adjustment posted with approver and supporting reconciliation reference"
+      }
+    ]
+  },
+  {
+    "taskId": "e58e6ad0-1356-4a11-9600-0e32c42eb01d",
+    "roles": [
+      {
+        "roleId": "cmqsck0rn03rrmbk8pjvncx03",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "6ae69b92-0421-46dc-85e6-330203bfa938",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103yjmbk8y9kyaaxo",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovni1mqumbk810ngf3nz",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscplrp1o2imbk8md8zay6h"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Answers come from the policy record",
+      "In-scope actions are completed during the contact",
+      "Resolution is logged on the agency case"
+    ],
+    "checklistSpecific": [
+      "Open the policy and confirm status, effective dates and any pending transactions before answering",
+      "Answer from the policy record and quote the transaction number as evidence",
+      "Complete any in-scope servicing action while the producer is still on the line",
+      "Record the resolution and the transaction reference on the agency service case"
+    ],
+    "testing": [
+      {
+        "system": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "location": "Policy transaction history",
+        "checkType": "presence",
+        "expected": "Transaction reference quoted to the producer exists on the policy"
+      }
+    ]
+  },
+  {
+    "taskId": "d456fe12-95dc-48e0-a9c3-1959d751042c",
+    "roles": [
+      {
+        "roleId": "cmqsck0rn03rrmbk8pjvncx03",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103yjmbk8y9kyaaxo",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovni1mqumbk810ngf3nz",
+      "cmqscovlo1mqqmbk836k6981j",
+      "cmqscpl4a1o1ambk8c60kuqo6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Status is checked in the system before responding",
+      "Outstanding items and owners are stated",
+      "Response is logged against the submission"
+    ],
+    "checklistSpecific": [
+      "Check the submission or quote status in the policy system before responding",
+      "State exactly what is outstanding and which team owns the next action",
+      "Give an expected issuance date rather than an open-ended answer",
+      "Log the status response against the submission record"
+    ],
+    "testing": [
+      {
+        "system": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "location": "Submission status notes",
+        "checkType": "presence",
+        "expected": "Status response logged against the submission with date"
+      }
+    ]
+  },
+  {
+    "taskId": "5f9e9009-0f91-423d-a6f8-87b4edf35fd1",
+    "roles": [
+      {
+        "roleId": "cmqsck0rn03rrmbk8pjvncx03",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "ddc77ae8-1803-46a2-8fc3-831dcaae3d41",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z103z1mbk8p7dt2uho",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkb21nzumbk8gmuxnsgb",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscovni1mqumbk810ngf3nz"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Answer is traced to the commission transaction",
+      "Chargebacks are explained with specifics",
+      "Corrections are routed to finance"
+    ],
+    "checklistSpecific": [
+      "Pull the commission statement for the exact period in question",
+      "Trace each queried policy to its commission transaction and the rate applied",
+      "Explain chargebacks and timing differences using the specific policy numbers",
+      "Raise a correction request to finance where the applied rate is wrong",
+      "Record the explanation given on the agency service case"
+    ],
+    "testing": [
+      {
+        "system": "billing/commission platform",
+        "location": "Commission statement detail",
+        "checkType": "presence",
+        "expected": "Policy-level commission transactions supporting the answer given"
+      }
+    ]
+  },
+  {
+    "taskId": "9cf892c9-69d2-446d-adbc-83debe7bda9f",
+    "roles": [
+      {
+        "roleId": "cmqsck0rn03rrmbk8pjvncx03",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      },
+      {
+        "appId": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscpktq1o0qmbk8aad2l2km",
+      "cmqscovdd1mqambk8nf5s8p4j"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Data-access entitlement is checked before extraction",
+      "Output is scoped to the entitled book",
+      "Delivery uses a secure channel"
+    ],
+    "checklistSpecific": [
+      "Confirm the agency data-access entitlement covers the policies requested",
+      "Filter the extract to the agency of record only",
+      "Exclude policies written through other agencies from the output before sending",
+      "Deliver the extract through the secure agency portal rather than open email",
+      "Record the extract scope and delivery on the agency case"
+    ],
+    "testing": [
+      {
+        "system": "agency/producer management system",
+        "location": "Book-of-business extract log",
+        "checkType": "presence",
+        "expected": "Extract request logged with entitlement check and delivery channel"
+      },
+      {
+        "system": "Broker & Agent Portal",
+        "location": "Extract contents",
+        "checkType": "absence",
+        "expected": "No policies outside the requesting agency of record included in the extract"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2flc8l1tikkfgz9peycpz4",
+    "roles": [
+      {
+        "roleId": "cmqsck0rn03rrmbk8pjvncx03",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "0742a90e-aba9-41cd-b9fc-f164c787f30f",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5lo001fv8w0w3enlnyh",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscpl4a1o1ambk8c60kuqo6",
+      "cmqscovfm1mqembk8jo2ssfsh"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Appointment status is checked in the system of record",
+      "Inactive appointments block disclosure",
+      "Check outcome is recorded"
+    ],
+    "checklistSpecific": [
+      "Check the producer appointment and licence status for the state the policy is written in",
+      "Confirm the appointment is active and not terminated, suspended or lapsed",
+      "Decline disclosure and refer to distribution operations when the appointment is inactive",
+      "Record the appointment verification result and date on the case"
+    ],
+    "testing": [
+      {
+        "system": "NIPR (Producer Licensing)",
+        "location": "Producer licence and appointment status",
+        "checkType": "presence",
+        "expected": "Active appointment for the policy state confirmed before disclosure"
+      }
+    ]
+  },
+  {
+    "taskId": "3588305b-1f21-4f48-a7ee-fb842e805596",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "794ef1b6-7724-4ecd-b9ba-2e52ec3fa42b",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpld51o1qmbk8crfzo5sd",
+      "cmqscpl891o1gmbk8564fr6p6",
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscovea1mqcmbk8um82vnx8"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Analysis is based on the full scored population",
+      "Systemic and individual issues are separated",
+      "Findings produce owned actions"
+    ],
+    "checklistSpecific": [
+      "Aggregate quality scores by rubric category across the quarter, not just the latest month",
+      "Identify categories scoring below target for more than two consecutive months",
+      "Separate individual performance issues from systemic process or system defects",
+      "Feed each systemic defect into the improvement backlog with a named owner"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Quality analysis pack",
+        "checkType": "presence",
+        "expected": "Rubric-category trend analysis for the period with identified systemic themes"
+      }
+    ]
+  },
+  {
+    "taskId": "32e76aa6-cf87-42cc-9ce4-1f0e6ad995fb",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpld51o1qmbk8crfzo5sd",
+      "cmqscpkz61o10mbk89h2emobr",
+      "cmqscpkuv1o0smbk8fgixitde"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Comparison is like-for-like",
+      "Benchmark source and date are recorded",
+      "Gaps drive rubric changes"
+    ],
+    "checklistSpecific": [
+      "Map the internal rubric categories onto the external benchmark framework before comparing",
+      "Compare internal scores against the published industry benchmark for the same channel mix",
+      "Document where internal scoring is materially more lenient than the benchmark",
+      "Record the benchmark source, publication date and the resulting gap list in the quality standard"
+    ],
+    "testing": [
+      {
+        "system": "Confluence",
+        "location": "Quality benchmark record",
+        "checkType": "presence",
+        "expected": "Benchmark source, date and gap list documented alongside the rubric"
+      }
+    ]
+  },
+  {
+    "taskId": "e961d30b-071e-47fd-886b-6eb8372cece9",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "794ef1b6-7724-4ecd-b9ba-2e52ec3fa42b",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovhq1mqimbk88cx6h3rz",
+      "cmqscpld51o1qmbk8crfzo5sd",
+      "cmqscpl4a1o1ambk8c60kuqo6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "All evaluators score the same interaction",
+      "Variance is measured not discussed informally",
+      "Rubric guidance is updated where wording caused variance"
+    ],
+    "checklistSpecific": [
+      "Distribute the same recorded interaction to every evaluator ahead of the session",
+      "Compare scores line by line and record the variance for each rubric item",
+      "Agree the correct score and the reason for every disputed item",
+      "Update the rubric guidance where the wording itself caused the disagreement",
+      "Confirm evaluator variance falls within the calibration tolerance before closing the session"
+    ],
+    "testing": [
+      {
+        "system": "Genesys Cloud (Contact Center)",
+        "location": "Calibration session records",
+        "checkType": "presence",
+        "expected": "Calibration record with per-evaluator scores and agreed score for the sample interaction"
+      }
+    ]
+  },
+  {
+    "taskId": "ab4de7fb-bcfc-43cd-a536-cd9f5fed0d69",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      },
+      {
+        "appId": "cmr2wwb6w03ynuqhrdjajxr30",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovhq1mqimbk88cx6h3rz",
+      "cmqscpld51o1qmbk8crfzo5sd",
+      "cmqscovgr1mqgmbk8d5ib3lk1",
+      "cmqscpl3d1o18mbk8rk6n5z9p"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Rubric items are objectively observable",
+      "Weightings and pass mark are defined",
+      "Standard is versioned and published"
+    ],
+    "checklistSpecific": [
+      "Define rubric items covering greeting, authentication, accuracy, documentation and closure",
+      "Set the weighting and the pass threshold for each rubric section",
+      "Define the auto-fail items such as failed authentication or a missed required disclosure",
+      "Publish the rubric with a version number, effective date and named owner",
+      "Confirm every rubric item can be evidenced from the recording or the case record"
+    ],
+    "testing": [
+      {
+        "system": "document management repository",
+        "location": "Quality monitoring standard",
+        "checkType": "presence",
+        "expected": "Published rubric with version, effective date and weightings"
+      }
+    ]
+  },
+  {
+    "taskId": "bec612f1-f6ee-4499-9352-d4e9a6ae3e1d",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "794ef1b6-7724-4ecd-b9ba-2e52ec3fa42b",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "dabba33d-94fb-4f3a-aa75-016e077055ca",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl6v1o1embk8feyq7ja2",
+      "cmqscpl5q1o1cmbk8lijej5j4",
+      "cmqscply11o2umbk8fhpf7t6g"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Coaching is evidence-based from a scored interaction",
+      "Actions are agreed with dates",
+      "Session is documented in the coaching log"
+    ],
+    "checklistSpecific": [
+      "Play the scored interaction with the representative and agree what was observed",
+      "Give behavioural feedback tied to the specific rubric item rather than the overall score",
+      "Agree two actions with dates and record them in the coaching log",
+      "Book the follow-up review date before the session ends",
+      "Confirm the representative acknowledged the coaching record"
+    ],
+    "testing": [
+      {
+        "system": "learning management system",
+        "location": "Coaching log",
+        "checkType": "presence",
+        "expected": "Coaching record with observation, agreed actions, dates and acknowledgement"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fimby0jmykfgz1bhqqug1",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "b4674dd6-29b2-4b09-92af-41be51459817",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl6v1o1embk8feyq7ja2",
+      "cmqscpkkv1o0cmbk8r8mqmd4c",
+      "cmqscpkm41o0embk8qoooivgs"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Prior coaching is evidenced before escalation",
+      "Escalation carries objective data",
+      "Improvement plan dates are recorded"
+    ],
+    "checklistSpecific": [
+      "Evidence the trend with at least three consecutive scored periods below target",
+      "Confirm coaching actions were documented and followed up before escalating",
+      "Raise the formal performance concern to the operations manager with the evidence pack attached",
+      "Record the escalation and the agreed improvement plan review dates"
+    ],
+    "testing": [
+      {
+        "system": "HRIS (Workday/SuccessFactors)",
+        "location": "Performance case record",
+        "checkType": "presence",
+        "expected": "Formal performance concern logged with supporting quality evidence and review dates"
+      }
+    ]
+  },
+  {
+    "taskId": "cdda1805-fd3c-4e61-9a43-65214c6f1c42",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "794ef1b6-7724-4ecd-b9ba-2e52ec3fa42b",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl6v1o1embk8feyq7ja2",
+      "cmqscpl891o1gmbk8564fr6p6",
+      "cmqscplh81o1ymbk8u8i73x3e"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Themes are derived from failed rubric items",
+      "Themes are ranked by frequency and impact",
+      "Top themes are published for the coaching cycle"
+    ],
+    "checklistSpecific": [
+      "Group failed rubric items into themes covering authentication, resolution accuracy, documentation and tone",
+      "Rank the themes by frequency and by customer impact, not by ease of fixing",
+      "Identify which themes are team-wide and which sit with individuals",
+      "Publish the top three themes for the next coaching cycle so coaching is consistent"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Coaching theme report",
+        "checkType": "presence",
+        "expected": "Ranked theme list derived from failed rubric items for the period"
+      }
+    ]
+  },
+  {
+    "taskId": "4623b2f6-e7de-47e5-b15b-b7813f32744c",
+    "roles": [
+      {
+        "roleId": "794ef1b6-7724-4ecd-b9ba-2e52ec3fa42b",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "dabba33d-94fb-4f3a-aa75-016e077055ca",
+        "use": "performed"
+      },
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscplwr1o2smbk8cadxfrk8",
+      "cmqscovpg1mqymbk8hljxq12l",
+      "cmqscovog1mqwmbk8isau1zhj"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Each quality theme maps to a curriculum module",
+      "Content is refreshed with real examples",
+      "Completion is tracked"
+    ],
+    "checklistSpecific": [
+      "Map every recurring quality theme to a specific module in the curriculum",
+      "Rewrite the module content and refresh the call examples using recent anonymised interactions",
+      "Add the theme to the new-hire nesting checkpoints so it is caught early",
+      "Track completion of the refreshed module in the learning system",
+      "Confirm the next quality cycle shows movement on the targeted theme"
+    ],
+    "testing": [
+      {
+        "system": "learning management system",
+        "location": "Curriculum module versions",
+        "checkType": "presence",
+        "expected": "Updated module with revision date traceable to the quality finding"
+      }
+    ]
+  },
+  {
+    "taskId": "68ce727a-6132-46e7-bef2-aa80089e52ac",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203znmbk8n0lfz54r",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpld51o1qmbk8crfzo5sd",
+      "cmqscpli71o20mbk85rjmtdm0",
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscplg21o1wmbk8lyl7zs1m"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Scorecard uses the agreed rubric and definitions",
+      "Trend against target is shown",
+      "Actions carry owners and dates"
+    ],
+    "checklistSpecific": [
+      "Produce the scorecard with team, individual and rubric-category views",
+      "Show the trend against target for the last six reporting periods",
+      "List the improvement actions with named owners and due dates",
+      "Circulate the pack ahead of the monthly business review rather than presenting cold"
+    ],
+    "testing": [
+      {
+        "system": "Power BI",
+        "location": "Quality scorecard report",
+        "checkType": "presence",
+        "expected": "Published scorecard with team, individual and category views for the period"
+      }
+    ]
+  },
+  {
+    "taskId": "d306ebb4-9c30-4c43-b8d7-ca7bdd815a5a",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl991o1imbk8m9c5xk8x",
+      "cmqscpla71o1kmbk8jlisayp7",
+      "cmqscovhq1mqimbk88cx6h3rz"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Sample covers all channels",
+      "Minimum per-representative volume is met",
+      "Selection method is reproducible"
+    ],
+    "checklistSpecific": [
+      "Draw the monthly sample covering calls, chats and written correspondence",
+      "Ensure at least five interactions per representative are included each month",
+      "Include a proportion of escalated and complaint interactions in the sample",
+      "Record the selection method and date range so the sample can be reproduced"
+    ],
+    "testing": [
+      {
+        "system": "Genesys Cloud (Contact Center)",
+        "location": "Quality sample records",
+        "checkType": "presence",
+        "expected": "Monthly sample with at least five interactions per representative across channels"
+      }
+    ]
+  },
+  {
+    "taskId": "0f84e195-3a7f-4d09-aa78-78537e7c30d1",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpld51o1qmbk8crfzo5sd",
+      "cmqscovhq1mqimbk88cx6h3rz",
+      "cmqscpl4a1o1ambk8c60kuqo6"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Every score carries a written justification",
+      "Auto-fail rules are applied consistently",
+      "Score is released and acknowledged"
+    ],
+    "checklistSpecific": [
+      "Score each rubric item and write a comment justifying the mark given",
+      "Apply the auto-fail rules where authentication or a required disclosure was missed",
+      "Record the score against the representative inside the scoring window",
+      "Release the score to the representative and log their acknowledgement",
+      "Attach the interaction reference so the score can be re-checked"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Quality score records",
+        "checkType": "presence",
+        "expected": "Per-item scores with comments and interaction reference recorded"
+      },
+      {
+        "system": "workflow/case management tool",
+        "location": "Unjustified scores",
+        "checkType": "absence",
+        "expected": "No scored item below target left without a written comment"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fim2o0jhokfgzxamog9vi",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "794ef1b6-7724-4ecd-b9ba-2e52ec3fa42b",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "dabba33d-94fb-4f3a-aa75-016e077055ca",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpld51o1qmbk8crfzo5sd",
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscpl6v1o1embk8feyq7ja2"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Trends are tracked per representative over time",
+      "Coaching effectiveness is measured",
+      "Stalled improvement is escalated"
+    ],
+    "checklistSpecific": [
+      "Plot each representative score across the last six months rather than judging on one month",
+      "Compare pre-coaching and post-coaching scores for the same rubric item",
+      "Flag representatives showing no improvement after two coaching cycles",
+      "Record the trend review outcome in the coaching log"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Representative quality trend report",
+        "checkType": "presence",
+        "expected": "Six-period score trend available per representative"
+      }
+    ]
+  },
+  {
+    "taskId": "9260aafd-27e6-493e-8b36-6af4df04399c",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "794ef1b6-7724-4ecd-b9ba-2e52ec3fa42b",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "2908a095-10bc-4c8b-a423-1e234c745311",
+        "use": "performed"
+      },
+      {
+        "appId": "dabba33d-94fb-4f3a-aa75-016e077055ca",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl3d1o18mbk8rk6n5z9p",
+      "cmqscplvs1o2qmbk8g4z1vezi",
+      "cmqscplz01o2wmbk8uwbmt1v8",
+      "cmqscovgr1mqgmbk8d5ib3lk1"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Change notices trigger a standards review",
+      "Updates are versioned with effective dates",
+      "Superseded versions are withdrawn"
+    ],
+    "checklistSpecific": [
+      "Review the change notice and identify which rubric items and call guides are affected",
+      "Update the call guide wording and republish with a new version number",
+      "Communicate the effective date so scoring does not penalise pre-change behaviour",
+      "Archive the superseded version in the document repository rather than deleting it",
+      "Confirm the learning system reflects the updated guide"
+    ],
+    "testing": [
+      {
+        "system": "document management repository",
+        "location": "Call guide version history",
+        "checkType": "presence",
+        "expected": "New version published with effective date linked to the product or process change"
+      }
+    ]
+  },
+  {
+    "taskId": "89190c05-ebbc-4969-9520-15156d537408",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqscl4bq1hltmbk8hv6cs1av",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscplc61o1ombk8wptz9hx9",
+      "cmqscplb71o1mmbk8j1kh9zit",
+      "cmqscovip1mqkmbk85tyfcfym"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Responses are consolidated into one dataset",
+      "Responses are linked back to the interaction",
+      "Response rate is reported alongside scores"
+    ],
+    "checklistSpecific": [
+      "Consolidate NPS, CSAT and CES responses into a single dataset for the period",
+      "Join each response back to the interaction, the handling agent and the reason code",
+      "Exclude duplicate and test responses before reporting",
+      "Report the response rate alongside the scores so the sample size is visible"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Consolidated survey dataset",
+        "checkType": "presence",
+        "expected": "Period dataset with response linked to interaction, agent and reason code"
+      }
+    ]
+  },
+  {
+    "taskId": "c45e962d-68ec-4584-a2f7-5078869b471b",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl4bq1hltmbk8hv6cs1av",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscple51o1smbk87hh8ihv7",
+      "cmqscplh81o1ymbk8u8i73x3e",
+      "cmqscovip1mqkmbk85tyfcfym",
+      "cmqscpl5q1o1cmbk8lijej5j4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Verbatims are coded to driver categories",
+      "Drivers are ranked by impact",
+      "Findings trace back to a process step"
+    ],
+    "checklistSpecific": [
+      "Code the free-text verbatims into driver categories rather than reading them anecdotally",
+      "Rank detractor drivers by volume and by their effect on the overall score",
+      "Trace each top driver back to the specific process step that failed",
+      "Document the findings with supporting verbatim examples for each driver"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Verbatim driver analysis",
+        "checkType": "presence",
+        "expected": "Coded verbatim categories ranked by volume and score impact"
+      }
+    ]
+  },
+  {
+    "taskId": "4f16e003-99f2-4168-a401-ab778c948aaa",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203znmbk8n0lfz54r",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkz61o10mbk89h2emobr",
+      "cmqscplg21o1wmbk8lyl7zs1m",
+      "cmqscpkuv1o0smbk8fgixitde"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Peer set and metric definitions are stated",
+      "Definitional differences are disclosed",
+      "Gap list is documented"
+    ],
+    "checklistSpecific": [
+      "Select the peer benchmark set and confirm the metrics are defined the same way",
+      "Compare first contact resolution, average handle time, CSAT and NPS against the benchmark",
+      "Note definitional differences that distort the comparison rather than ignoring them",
+      "Document the benchmark source, date and the resulting gap list"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Benchmark comparison pack",
+        "checkType": "presence",
+        "expected": "Benchmark comparison with source, date and metric definitions recorded"
+      }
+    ]
+  },
+  {
+    "taskId": "4b19f8c5-6a0e-479b-8c12-fdc79668ace7",
+    "roles": [
+      {
+        "roleId": "cmqsck0rq03xbmbk8lkvas1x4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl5q1o1cmbk8lijej5j4",
+      "cmqscovip1mqkmbk85tyfcfym",
+      "cmqscpkos1o0imbk8o7q2zq9h"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc4t7v403lrv8f89qx29mkg",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Detractor alerts are worked within the contact standard",
+      "Complaints are logged where the definition is met",
+      "Root causes feed the improvement backlog"
+    ],
+    "checklistSpecific": [
+      "Work the detractor alert queue within the 48-hour contact standard",
+      "Call the customer and acknowledge the specific issue raised in their survey response",
+      "Log a complaint record where the feedback meets the complaint definition",
+      "Record the outcome and whether the customer view changed after the call",
+      "Feed the root cause into the service improvement backlog"
+    ],
+    "testing": [
+      {
+        "system": "Salesforce FSC",
+        "location": "Detractor follow-up records",
+        "checkType": "presence",
+        "expected": "Follow-up contact logged within 48 hours for each detractor alert"
+      },
+      {
+        "system": "Salesforce FSC",
+        "location": "Unworked detractor alerts",
+        "checkType": "absence",
+        "expected": "No detractor alerts older than the contact standard without an attempt logged"
+      }
+    ]
+  },
+  {
+    "taskId": "641c4618-5675-4502-842a-ab3b2d77dd99",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "794ef1b6-7724-4ecd-b9ba-2e52ec3fa42b",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "dabba33d-94fb-4f3a-aa75-016e077055ca",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex4v60007v8w005phxlv9",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkgn1o04mbk81lx1dhwh",
+      "cmqscplvs1o2qmbk8g4z1vezi",
+      "cmqscovpg1mqymbk8hljxq12l"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Updates are published to the knowledge base",
+      "Briefing attendance is recorded",
+      "Understanding is checked afterwards"
+    ],
+    "checklistSpecific": [
+      "Publish the update to the knowledge base with an effective date before briefing staff",
+      "Cover the change in the team huddle and record attendance",
+      "Confirm the knowledge article and the customer portal content say the same thing",
+      "Spot-check agent understanding of the change in the next quality sample"
+    ],
+    "testing": [
+      {
+        "system": "learning management system",
+        "location": "Knowledge article and briefing record",
+        "checkType": "presence",
+        "expected": "Published article with effective date and recorded briefing attendance"
+      }
+    ]
+  },
+  {
+    "taskId": "4651b254-7e90-4d5e-9ff7-9a9475c6bc75",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkx81o0wmbk8sved8cuw",
+      "cmqscovea1mqcmbk8um82vnx8",
+      "cmqscpl181o14mbk8bom24dzb"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Every action has a named owner and due date",
+      "Owner acceptance is recorded",
+      "Actions link to the root-cause finding"
+    ],
+    "checklistSpecific": [
+      "Write each action with a named owner, a due date and a measurable outcome",
+      "Confirm the owner accepted the action before it is logged as assigned",
+      "Link the action to the root-cause finding that generated it",
+      "Review open actions at the weekly service improvement stand-up"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Improvement action register",
+        "checkType": "presence",
+        "expected": "Each action carries owner, due date and linked root-cause finding"
+      }
+    ]
+  },
+  {
+    "taskId": "5e6af3b3-d5b5-4f2d-9f10-f0cfc66ee550",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqscl4bq1hltmbk8hv6cs1av",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t6mbk8h9j8a0bn",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscplc61o1ombk8wptz9hx9",
+      "cmqscovip1mqkmbk85tyfcfym",
+      "cmqscovfm1mqembk8jo2ssfsh"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Survey fires within the defined window",
+      "Fatigue suppression rules are applied",
+      "Dispatch health is monitored"
+    ],
+    "checklistSpecific": [
+      "Confirm the survey trigger fires inside the defined window after contact closure",
+      "Suppress customers already surveyed within the fatigue exclusion period",
+      "Check the survey link renders correctly on mobile before release",
+      "Monitor dispatch volumes and bounce rates daily and fix delivery failures"
+    ],
+    "testing": [
+      {
+        "system": "Genesys Cloud (Contact Center)",
+        "location": "Survey dispatch log",
+        "checkType": "presence",
+        "expected": "Dispatch record within the defined post-contact window for eligible contacts"
+      },
+      {
+        "system": "Salesforce FSC",
+        "location": "Survey suppression list",
+        "checkType": "absence",
+        "expected": "No customers surveyed inside the fatigue exclusion period"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fic9x0etgkfgzf5fubg4y",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovea1mqcmbk8um82vnx8",
+      "cmqscpl071o12mbk8wb255epo",
+      "cmqscpky71o0ymbk8ydd6g39r"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Design starts from a documented root cause",
+      "Process map and SOP text are drafted",
+      "Process owner signs off before build"
+    ],
+    "checklistSpecific": [
+      "Document the root cause and name the specific process step being changed",
+      "Draft the revised process map and the updated standard operating procedure text",
+      "Assess the training, system and customer communication impact of the change",
+      "Obtain process owner sign-off before any build work starts",
+      "Define how the improvement will be measured after go-live"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Change design record",
+        "checkType": "presence",
+        "expected": "Root cause, revised process map and process owner sign-off recorded"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fici10ey3kfgzd4pqpia1",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "794ef1b6-7724-4ecd-b9ba-2e52ec3fa42b",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      },
+      {
+        "appId": "875d0a08-2acb-43d5-b565-d21ed8b17224",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovfm1mqembk8jo2ssfsh",
+      "cmqscplz01o2wmbk8uwbmt1v8",
+      "cmqscpl3d1o18mbk8rk6n5z9p"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Documentation is published before go-live",
+      "Training completion is recorded",
+      "Post-go-live checks are performed"
+    ],
+    "checklistSpecific": [
+      "Confirm the updated SOP and knowledge articles are published before go-live, not after",
+      "Complete agent training and record completion in the learning system",
+      "Deploy the system or routing change inside the agreed release window",
+      "Run a first-day check on volumes, handle time and error events after go-live",
+      "Keep the rollback path available until the first-week check passes"
+    ],
+    "testing": [
+      {
+        "system": "ITSM platform (ServiceNow/Jira)",
+        "location": "Change record",
+        "checkType": "presence",
+        "expected": "Change deployed with linked SOP update and training completion evidence"
+      }
+    ]
+  },
+  {
+    "taskId": "87b3655b-45b8-400d-b807-c60bc4d49ed9",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmqsck0z203zumbk8oyltzaw4",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpl5q1o1cmbk8lijej5j4",
+      "cmqscovea1mqcmbk8um82vnx8",
+      "cmqscplg21o1wmbk8lyl7zs1m"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "VOC themes are attributed to owning process areas",
+      "Forums accept named owners",
+      "Impact is re-measured next period"
+    ],
+    "checklistSpecific": [
+      "Prepare the voice-of-customer pack for the product, underwriting and claims review forums",
+      "Attribute each theme to the owning process area rather than presenting it as service feedback",
+      "Secure a named owner for every theme the forum accepts",
+      "Track whether the forum actions moved the related customer metric in the following period"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Voice-of-customer pack",
+        "checkType": "presence",
+        "expected": "Themes attributed to owning process areas with accepted owners recorded"
+      }
+    ]
+  },
+  {
+    "taskId": "d900b7d2-bf53-47d9-95db-5f72f2ce8bfd",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqscl4bq1hltmbk8hv6cs1av",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "cmrqex5ex0015v8w0q79lqbp3",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpkvy1o0umbk859edutzs",
+      "cmqscpkz61o10mbk89h2emobr",
+      "cmqscplh81o1ymbk8u8i73x3e"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Baseline is defined before the change",
+      "Unintended effects are checked",
+      "Benefit is confirmed or refuted in writing"
+    ],
+    "checklistSpecific": [
+      "Compare the target metric against its pre-change baseline over an equal-length period",
+      "Check for unintended movement in handle time, first contact resolution and repeat-contact rate",
+      "Confirm or refute the benefit in writing at the agreed checkpoint",
+      "Reopen the improvement action where the expected benefit did not materialise"
+    ],
+    "testing": [
+      {
+        "system": "BI/reporting platform",
+        "location": "Post-implementation benefit review",
+        "checkType": "presence",
+        "expected": "Pre and post baseline comparison recorded with a stated conclusion"
+      }
+    ]
+  },
+  {
+    "taskId": "6ef98522-2237-45cb-9c60-5285f8758a19",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03t8mbk88ialx61e",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203znmbk8n0lfz54r",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscplg21o1wmbk8lyl7zs1m",
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscpld51o1qmbk8crfzo5sd"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Pack covers service level, quality and customer metrics",
+      "Variances are explained",
+      "Decisions and actions are minuted"
+    ],
+    "checklistSpecific": [
+      "Build the monthly review pack with service level, quality, CSAT and complaint views",
+      "Lead with the variances against target and the reason for each",
+      "Present the open action list with current status and due dates",
+      "Record decisions and new actions in the review minutes and circulate them"
+    ],
+    "testing": [
+      {
+        "system": "Power BI",
+        "location": "Monthly service review pack",
+        "checkType": "presence",
+        "expected": "Published pack with SLA, quality, CSAT and complaint views for the period"
+      }
+    ]
+  },
+  {
+    "taskId": "1b9e657b-ab46-455c-8f97-031680774905",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqscl4bq1hltmbk8hv6cs1av",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      },
+      {
+        "appId": "b4035d48-e170-4fdc-93c4-3891dcd9c700",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscovea1mqcmbk8um82vnx8",
+      "cmqscpkx81o0wmbk8sved8cuw",
+      "cmqscpkvy1o0umbk859edutzs",
+      "cmqscpkz61o10mbk89h2emobr"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Scoring criteria are explicit",
+      "Effort and dependencies are assessed",
+      "Ranked list is agreed with management"
+    ],
+    "checklistSpecific": [
+      "Score each initiative on customer impact, contact volume and cost-to-serve",
+      "Estimate effort and identify dependencies for each initiative",
+      "Rank the backlog and confirm the top items with operations management",
+      "Publish the ranked list with the scoring rationale visible to owners"
+    ],
+    "testing": [
+      {
+        "system": "workflow/case management tool",
+        "location": "Improvement backlog",
+        "checkType": "presence",
+        "expected": "Initiatives scored on impact, volume and cost with a published ranking"
+      }
+    ]
+  },
+  {
+    "taskId": "697e2fb5-a7f6-4959-9471-9d8c6a05323d",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03t7mbk89t6z5o4k",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03tgmbk85x0ybmgg",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "cmqsck0z203znmbk8n0lfz54r",
+        "use": "performed"
+      },
+      {
+        "appId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscplg21o1wmbk8lyl7zs1m",
+      "cmqscovko1mqombk8e7lb7kdj",
+      "cmqscpkvy1o0umbk859edutzs"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Benefits are reported against what was committed",
+      "Remaining gaps carry plans and dates",
+      "Report reaches leadership before the governance meeting"
+    ],
+    "checklistSpecific": [
+      "Report benefits realised against the benefits committed for each initiative",
+      "Show remaining gap areas with the plan and the date to close each one",
+      "Include the customer metric trend across the reporting period",
+      "Circulate the report to senior leadership ahead of the governance meeting"
+    ],
+    "testing": [
+      {
+        "system": "Power BI",
+        "location": "Improvement outcomes report",
+        "checkType": "presence",
+        "expected": "Committed versus realised benefits reported per initiative with gap plans"
+      }
+    ]
+  }
+]

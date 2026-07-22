@@ -18,7 +18,9 @@ export default defineConfig({
     include: ['@xyflow/react', '@dagrejs/dagre'],
   },
   server: {
-    port: 5173,
+    // PORT lets a second dev instance (e.g. another Claude session's preview)
+    // run beside the default one without editing this file.
+    port: Number(process.env.PORT) || 5173,
     proxy: {
       '/api': {
         // Defaults to the local backend; override with BACKEND_PROXY to point an

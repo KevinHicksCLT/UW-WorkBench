@@ -358,7 +358,6 @@ export default function NormalizeColumn({
 }: Props) {
   const legacyApps = board.apps.filter((a) => a.kind === 'LEGACY');
   const apps = legacyApps.length ? legacyApps : board.apps;
-  const passThrough = board.normalizationEntries.length === 0;
   // The header pill totals the full comparison scope (every picked app);
   // findings no entry covers pass through 1→1 and stay counted.
   const scopeIds = new Set(findings.map((f) => f.id));
@@ -390,25 +389,21 @@ export default function NormalizeColumn({
     <div style={{ width: 560, flexShrink: 0, alignSelf: 'flex-start' }}>
       <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>
         Normalize
-        {!passThrough && (
-          <span style={{ fontWeight: 400, fontSize: 12, color: '#a3a3a3' }}>
-            {' '}
-            · legacy sources → one normalized model
-          </span>
-        )}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
         <span
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 8,
+            justifyContent: 'center',
+            flex: 1,
+            gap: 10,
             border: '1px solid #eaeaea',
             borderRadius: 999,
             background: '#fff',
             boxShadow: '0 1px 3px rgba(0,0,0,.05)',
-            padding: '3px 12px',
-            fontSize: 12,
+            padding: '6px 16px',
+            fontSize: 13,
             color: '#525252',
             fontVariantNumeric: 'tabular-nums',
           }}
@@ -432,45 +427,6 @@ export default function NormalizeColumn({
           )}
         </span>
       </div>
-      {/* SCRUM-222 legend — only meaningful on a multi-application board. */}
-      {!passThrough && apps.length > 1 && (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: 14,
-            marginBottom: 8,
-            fontSize: 10.5,
-            color: '#64748b',
-          }}
-        >
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <span
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 2,
-                background: '#c7d2fe',
-                border: `1px solid ${INDIGO}`,
-              }}
-            />
-            shared across apps — consolidate
-          </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <span
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 2,
-                background: '#e2e8f0',
-                border: '1px solid #94a3b8',
-              }}
-            />
-            single application — migrate as-is
-          </span>
-        </div>
-      )}
-
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {LAYERS.map((layer) => (
           <LayerSection

@@ -1,0 +1,1741 @@
+{
+  "area": "Important Business Service Definition",
+  "tasks": [
+    {
+      "taskId": "31a22a3c-9a3e-4301-a1a8-5548ae430424",
+      "verifier": "Compliance Analyst",
+      "generic": {
+        "Defined scope/population": "Every important business service on the approved register that requires an impact tolerance.",
+        "In-scope period": "The current resilience register version through to the next scheduled annual review.",
+        "Required fields populated and valid": "Each tolerance states a maximum outage duration and a customer volume or value limit.",
+        "Control totals or record counts reconcile": "Tolerance record count equals the important business service count on the register.",
+        "Evidence retained with timestamp/version": "Alignment decisions saved in the GRC resilience register with version and decision date.",
+        "Exceptions logged with disposition": "Tolerances looser than the BCP recovery time objective logged and tightened or justified.",
+        "Test population": "All important business services and their paired BCP recovery time objectives.",
+        "Pass/fail thresholds": "No important business service with a tolerance exceeding its BCP recovery time objective.",
+        "Exception handling path": "Misaligned tolerances escalate to the Compliance Analyst for supervisory expectation review.",
+        "Documented acceptance criteria": "Each tolerance is duration plus severity, harm-tested, and no looser than the BCP objective.",
+        "Evidence location": "Resilience register entries in the GRC platform with rationale files in SharePoint."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract the important business service list from the GRC resilience register",
+          "actor": "Business Analyst",
+          "sop": [
+            "Export the approved important business service list from the GRC resilience register.",
+            "Record the register version and export date as the working baseline.",
+            "Flag any service on the list that has no tolerance recorded against it.",
+            "Done when every register service appears on the working list with its tolerance status."
+          ],
+          "verify": [
+            "Reconcile the exported service count to the approved register version count.",
+            "Pass when the counts reconcile with no service omitted."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Express each tolerance as a duration plus a customer volume or value",
+          "actor": "Business Analyst",
+          "sop": [
+            "State a maximum tolerable outage duration in hours or days for each service.",
+            "State the volume or value of affected customers that the tolerance permits.",
+            "Reject any tolerance expressed only as a qualitative statement.",
+            "Done when every service tolerance carries both a duration and a severity measure."
+          ],
+          "verify": [
+            "Filter the tolerance set for entries missing a duration or a severity measure.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Cross-check each tolerance against the supervisor's stated resilience expectation",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Collect the supervisory resilience expectations that apply to each service type.",
+            "Compare each tolerance against the stated expectation for that service.",
+            "Record where a tolerance sits outside the supervisory expectation and by how much.",
+            "Done when every tolerance has been compared to a supervisory expectation."
+          ],
+          "verify": [
+            "List tolerances that exceed the applicable supervisory expectation.",
+            "Pass when the list is empty or each entry carries a documented justification."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Test each tolerance against the customer-harm scenario",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Run the harm scenario for each service covering payment missed, claim unpaid, or cover unavailable.",
+            "Identify the elapsed time at which intolerable customer harm first arises.",
+            "Tighten the tolerance where harm arises earlier than the proposed duration.",
+            "Done when every tolerance has been tested against its harm scenario and adjusted if needed."
+          ],
+          "verify": [
+            "Compare each tolerance duration to the harm-onset time recorded in the scenario.",
+            "Pass when no tolerance duration exceeds its recorded harm-onset time."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Compare each tolerance to the BCP recovery time objective",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Retrieve the BCP recovery time objective for each important business service.",
+            "Compare the tolerance duration against the recovery time objective for the same service.",
+            "Flag every tolerance that is looser than its recovery time objective.",
+            "Done when every service has a recorded comparison of tolerance to recovery objective."
+          ],
+          "verify": [
+            "List services whose tolerance duration exceeds the BCP recovery time objective.",
+            "Pass when the list is empty."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Resolve flagged misalignments with the service owner",
+          "actor": "Business Analyst",
+          "sop": [
+            "Take each flagged tolerance to the service owner with the comparison evidence.",
+            "Agree either a tightened tolerance or a revised recovery time objective.",
+            "Record the agreed change, its rationale, and the owner who agreed it.",
+            "Done when every flagged tolerance has an agreed and recorded resolution."
+          ],
+          "verify": [
+            "Re-run the tolerance to recovery objective comparison after the changes.",
+            "Pass when no misalignment remains without a recorded resolution."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Record the alignment decision per service in the resilience register",
+          "actor": "Business Analyst",
+          "sop": [
+            "Enter the aligned tolerance against each service in the GRC resilience register.",
+            "Record the harm test result, the recovery objective comparison, and the decision date.",
+            "Save the supporting rationale file to the SharePoint resilience site.",
+            "Done when every service carries an aligned tolerance and a dated decision in the register."
+          ],
+          "verify": [
+            "Open a sample of register entries and check the tolerance, comparison, and decision date.",
+            "Pass when sampled entries are complete and match the agreed tolerances."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "e92b3320-64a4-4027-9f8d-33b2bd7380e8",
+      "verifier": "Business Analyst",
+      "generic": {
+        "Defined scope/population": "Business unit heads owning important business services plus technology and third-party managers.",
+        "In-scope period": "From tolerance approval to the acknowledgement deadline for the current register version.",
+        "Required fields populated and valid": "Each acknowledgement names the recipient, the services covered, and the delivery owner.",
+        "Control totals or record counts reconcile": "Acknowledgement count equals the count of service owners on the register.",
+        "Evidence retained with timestamp/version": "Issued tolerance sets and the published summary retained with version and approval date.",
+        "Exceptions logged with disposition": "Owners who have not acknowledged logged with a chase record and escalation.",
+        "Test population": "All service owners and all technology or third-party managers receiving recovery targets.",
+        "Pass/fail thresholds": "No service owner without a recorded acknowledgement naming a delivery owner.",
+        "Exception handling path": "Missing acknowledgements escalate to the Business Analyst for the resilience committee.",
+        "Documented acceptance criteria": "Each recipient acknowledged the tolerance as binding and named a delivery owner.",
+        "Evidence location": "Acknowledgement log in the GRC platform with the summary published on the SharePoint resilience site."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Build the recipient map from the approved resilience register",
+          "actor": "Business Analyst",
+          "sop": [
+            "List each important business service with its accountable business unit head.",
+            "List the technology and third-party managers supporting each service.",
+            "Record which services each recipient owns so distribution can be tailored.",
+            "Done when every service maps to a business owner and a supporting technology manager."
+          ],
+          "verify": [
+            "Filter the map for services without a business owner or technology manager.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Prepare tailored tolerance sets per business unit head",
+          "actor": "Business Analyst",
+          "sop": [
+            "Extract from the register only the tolerances for the services each head owns.",
+            "Exclude services the recipient does not own so the full register is not circulated.",
+            "State the register version and the approval date on each tailored extract.",
+            "Done when each business unit head has an extract limited to their own services."
+          ],
+          "verify": [
+            "Cross-check each extract against the recipient map for out-of-scope services.",
+            "Pass when no extract contains a service the recipient does not own."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Derive recovery targets for the supporting systems",
+          "actor": "Business Systems Analyst",
+          "sop": [
+            "Translate each service tolerance into recovery targets for the systems that support it.",
+            "Allocate the tolerance across the dependency chain rather than repeating it per system.",
+            "Record the derived target against each system with the service it supports.",
+            "Done when every supporting system has a derived recovery target."
+          ],
+          "verify": [
+            "Check that the summed dependency targets do not exceed the service tolerance.",
+            "Pass when no service has dependency targets exceeding its tolerance."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Issue tolerance sets and recovery targets to recipients",
+          "actor": "Business Analyst",
+          "sop": [
+            "Send each business unit head their tailored tolerance extract.",
+            "Send technology and third-party managers the derived recovery targets for their systems.",
+            "State that the tolerance is a binding target and request a named delivery owner.",
+            "Done when every recipient on the map has been sent their extract or targets."
+          ],
+          "verify": [
+            "Reconcile the send log to the recipient map.",
+            "Pass when every mapped recipient has a recorded send with a timestamp."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Collect acknowledgements naming a delivery owner",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Collect each recipient's acknowledgement that the tolerance is a binding target.",
+            "Record the named delivery owner the recipient assigns for each service or system.",
+            "Reject acknowledgements that do not name a delivery owner.",
+            "Done when each acknowledgement names both the acknowledger and a delivery owner."
+          ],
+          "verify": [
+            "Count acknowledgements with a named delivery owner against the recipient count.",
+            "Pass when every recipient has acknowledged and named a delivery owner."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Publish the tolerance summary to the SharePoint resilience site",
+          "actor": "Business Systems Analyst",
+          "sop": [
+            "Publish the tolerance summary showing service, tolerance, version, and approval date.",
+            "Mark the previous published summary superseded so it cannot be mistaken for current.",
+            "Set read access for service owners, business continuity, and technology leads.",
+            "Done when the current summary is published with its version and approval date visible."
+          ],
+          "verify": [
+            "Open the resilience site and check the published version against the approved register.",
+            "Pass when the published summary matches the approved register version."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Chase and escalate outstanding acknowledgements",
+          "actor": "Business Analyst",
+          "sop": [
+            "List recipients who have not acknowledged by the deadline.",
+            "Chase each recipient and record the chase date and response.",
+            "Escalate persistent non-response to the resilience committee and log the escalation in GRC.",
+            "Done when no recipient remains unacknowledged without a recorded escalation."
+          ],
+          "verify": [
+            "Filter the acknowledgement log for recipients without an acknowledgement or escalation.",
+            "Pass when the filtered list is empty."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "50ad719f-5fbc-44f4-8c6f-27c095d1ce67",
+      "verifier": "Compliance Analyst",
+      "generic": {
+        "Defined scope/population": "All services classified important across every live line of business and customer channel.",
+        "In-scope period": "The current register cycle from candidate inventory to the documented service list.",
+        "Required fields populated and valid": "Each entry holds a customer-outcome definition, owner, customers, channels, volumes, and driver.",
+        "Control totals or record counts reconcile": "Documented service count plus recorded exclusions equals the candidate inventory count.",
+        "Evidence retained with timestamp/version": "Documented service list saved in the GRC register with version and documentation date.",
+        "Exceptions logged with disposition": "Every excluded candidate recorded with the reason it was not documented as a service.",
+        "Test population": "All candidate services from the inventory and all documented important business services.",
+        "Pass/fail thresholds": "No registered service without an accountable owner and a customer-outcome definition.",
+        "Exception handling path": "Definitions written as internal functions return to the Business Analyst for rewrite.",
+        "Documented acceptance criteria": "Each service maps to a regulatory expectation and a customer-harm scenario.",
+        "Evidence location": "Service definitions in the GRC resilience register with drafts on the SharePoint resilience site."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Write each definition as a customer outcome",
+          "actor": "Business Analyst",
+          "sop": [
+            "Express each service as the outcome the customer receives rather than an internal function.",
+            "Rewrite any definition that names a department, system, or process step as the service.",
+            "Confirm the outcome wording is understandable to a customer without internal knowledge.",
+            "Done when every definition states a customer outcome in customer-facing language."
+          ],
+          "verify": [
+            "Review each definition for internal function language rather than an outcome.",
+            "Pass when no definition names a department, system, or process step as the service."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Record customers served, channels, and typical volumes per service",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Record the customer segments each service serves.",
+            "Record the channels through which customers reach the service.",
+            "Record typical transaction or interaction volumes with the period they cover.",
+            "Done when every service carries customers, channels, and a dated volume figure."
+          ],
+          "verify": [
+            "Filter the service list for entries missing customers, channels, or volumes.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Map each service to a regulatory expectation",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Identify the regulatory driver that makes each service subject to resilience oversight.",
+            "Record the specific expectation or rule reference against each service.",
+            "Flag any service that cannot be tied to a regulatory expectation for reclassification.",
+            "Done when every documented service names at least one regulatory expectation."
+          ],
+          "verify": [
+            "Count services with a recorded regulatory reference against the documented service count.",
+            "Pass when every documented service carries a regulatory reference."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Map each service to a customer-harm scenario",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Describe the harm a customer suffers if each service is unavailable.",
+            "Record the harm type covering financial loss, loss of cover, or detriment to vulnerable customers.",
+            "Flag services where no plausible customer harm can be described.",
+            "Done when every documented service has at least one described harm scenario."
+          ],
+          "verify": [
+            "Filter the service list for entries without a described harm scenario.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Assign an accountable owner to each documented service",
+          "actor": "Business Analyst",
+          "sop": [
+            "Assign a named accountable owner to each documented important business service.",
+            "Confirm the owner accepts accountability for resilience of that service.",
+            "Record the owner name, role, and acceptance date in the GRC register.",
+            "Done when every documented service has a named owner who has accepted accountability."
+          ],
+          "verify": [
+            "Filter the register for services without a named owner or an acceptance date.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Reconcile the documented list against the candidate inventory",
+          "actor": "Business Analyst",
+          "sop": [
+            "Compare the documented service list against the candidate inventory entry by entry.",
+            "Record for every candidate not documented the reason it was excluded.",
+            "Identify any documented service that was not on the candidate inventory and trace its origin.",
+            "Done when every candidate is either documented or carries a recorded exclusion reason."
+          ],
+          "verify": [
+            "Sum documented services plus recorded exclusions and compare to the candidate count.",
+            "Pass when the totals reconcile to the candidate inventory count."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Record the documented service list in the GRC resilience register",
+          "actor": "Business Analyst",
+          "sop": [
+            "Enter each documented service with its definition, owner, drivers, and harm scenario.",
+            "Set the register version and the documentation date on the entry set.",
+            "Save the supporting draft and reconciliation to the SharePoint resilience site.",
+            "Done when every documented service is recorded in the register with a version and date."
+          ],
+          "verify": [
+            "Compare the register entry count and content to the documented service list.",
+            "Pass when the register matches the documented list entry for entry."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "daf0875e-659a-4c00-8448-4cd5c7e90f62",
+      "verifier": "Compliance Analyst",
+      "generic": {
+        "Defined scope/population": "Every impact tolerance on the resilience register requiring a documented rationale.",
+        "In-scope period": "The data window used to derive the tolerance timeframes for the current register version.",
+        "Required fields populated and valid": "Each rationale states the data source, the harm point, the severity basis, and assumptions.",
+        "Control totals or record counts reconcile": "Rationale record count equals the impact tolerance count on the register.",
+        "Evidence retained with timestamp/version": "Rationale files saved in SharePoint with the data extract date and register version.",
+        "Exceptions logged with disposition": "Tolerances with incomplete rationale logged with an owner and a completion date.",
+        "Test population": "All recorded impact tolerances and their supporting evidence sources.",
+        "Pass/fail thresholds": "No tolerance record with an empty rationale or a missing evidence source.",
+        "Exception handling path": "Unsupported rationales route to the Compliance Analyst for challenge before approval.",
+        "Documented acceptance criteria": "Each rationale derives the timeframe from evidence and states its limitations and review trigger.",
+        "Evidence location": "Rationale appendix in SharePoint linked from each GRC resilience register tolerance entry."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "List every tolerance requiring a rationale from the GRC register",
+          "actor": "Business Analyst",
+          "sop": [
+            "Export the tolerance set from the GRC resilience register with the register version.",
+            "Mark each tolerance as having a rationale, a partial rationale, or none.",
+            "Record the owner responsible for supplying each missing rationale.",
+            "Done when every tolerance has a rationale status and a named owner."
+          ],
+          "verify": [
+            "Reconcile the rationale worklist count to the register tolerance count.",
+            "Pass when the counts reconcile with no tolerance omitted."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Record the data used to set each timeframe",
+          "actor": "Business Analyst",
+          "sop": [
+            "Identify the data behind each timeframe such as complaint volumes, payment cycles, or claim SLAs.",
+            "Record the source system, the extract date, and the period the data covers.",
+            "Attach or link the extract so the figure can be reproduced.",
+            "Done when every timeframe names its data source and extract date."
+          ],
+          "verify": [
+            "Sample rationales and re-derive the timeframe from the cited extract.",
+            "Pass when the sampled timeframes reproduce from their cited data."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "State the point at which customer harm becomes intolerable",
+          "actor": "Business Analyst",
+          "sop": [
+            "State the elapsed disruption time at which customer harm becomes intolerable.",
+            "Show how the tolerance timeframe was derived from that harm point.",
+            "Record any margin applied between the harm point and the tolerance.",
+            "Done when every rationale states a harm point and its link to the timeframe."
+          ],
+          "verify": [
+            "Compare each tolerance timeframe against the stated harm point.",
+            "Pass when no timeframe is set beyond its stated harm point."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Document the severity dimension and its basis",
+          "actor": "Business Analyst",
+          "sop": [
+            "State the severity dimension used such as proportion of customers or value at risk.",
+            "Record the numeric limit and the data that supports it.",
+            "Explain why that dimension is the right measure for the service.",
+            "Done when every rationale carries a severity dimension, a limit, and a supporting basis."
+          ],
+          "verify": [
+            "Filter rationales for a missing severity dimension, limit, or basis.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Note assumptions, data limitations, and the review trigger",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Record the assumptions the rationale depends on.",
+            "Record the known data limitations and how they could affect the tolerance.",
+            "State the trigger event that would invalidate the rationale and force a review.",
+            "Done when every rationale records assumptions, limitations, and a review trigger."
+          ],
+          "verify": [
+            "Filter rationales missing assumptions, limitations, or a review trigger.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Challenge rationales that the evidence does not support",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Review each rationale against its cited evidence for logical support.",
+            "Raise a challenge where the evidence does not carry the stated conclusion.",
+            "Record the challenge, the response, and any change made to the tolerance.",
+            "Done when every rationale has been reviewed and every challenge has a recorded response."
+          ],
+          "verify": [
+            "List open challenges without a recorded response.",
+            "Pass when the list is empty."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "File the rationale appendix and link it from the register",
+          "actor": "Business Analyst",
+          "sop": [
+            "Compile the rationales into the resilience rationale appendix in SharePoint.",
+            "Set the appendix version and the register version it supports.",
+            "Link the appendix section from each tolerance entry in the GRC register.",
+            "Done when every register tolerance entry links to its rationale in the appendix."
+          ],
+          "verify": [
+            "Follow a sample of register links to the appendix sections.",
+            "Pass when every sampled link resolves to a complete rationale."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "a71ecb58-b081-424a-964e-2c4caa5279fa",
+      "verifier": "Chief Operating Officer",
+      "generic": {
+        "Defined scope/population": "The draft important business services list plus every excluded candidate and its reason.",
+        "In-scope period": "The executive engagement window ahead of the Board approval submission.",
+        "Required fields populated and valid": "Each challenge record names the raiser, the service, the challenge, and the response.",
+        "Control totals or record counts reconcile": "Challenges recorded in the notes equal the challenges raised at the session.",
+        "Evidence retained with timestamp/version": "Session notes retained with attendance, date, and the list version discussed.",
+        "Exceptions logged with disposition": "Every challenge closed as an agreed change or a recorded reason for no change.",
+        "Test population": "All contested services and every challenge raised in the executive session.",
+        "Pass/fail thresholds": "Notes record each challenge, its response, and the confirmed list version.",
+        "Exception handling path": "Unresolved challenges route to the Chief Operating Officer before Board submission.",
+        "Documented acceptance criteria": "Executive and board position on the final list confirmed before formal approval is requested.",
+        "Evidence location": "Session notes in SharePoint linked to the register version in the GRC platform."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Assemble the draft list, criteria, and exclusions for circulation",
+          "actor": "Business Analyst",
+          "sop": [
+            "Compile the draft services list with the inclusion criteria applied to each service.",
+            "Attach the excluded candidate list with the reason recorded for each exclusion.",
+            "Set the list version and the date on the pack cover.",
+            "Done when the pack holds the draft list, the criteria, and the exclusion reasons."
+          ],
+          "verify": [
+            "Check the pack against the classification output for missing services or exclusions.",
+            "Pass when every classified candidate appears as included or excluded in the pack."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Circulate the pack ahead of the executive session",
+          "actor": "Business Analyst",
+          "sop": [
+            "Send the pack to executive attendees with enough lead time to review it.",
+            "State the decision being sought and the questions on which input is needed.",
+            "Record the circulation date and the recipient list in SharePoint.",
+            "Done when every executive attendee has received the pack ahead of the session."
+          ],
+          "verify": [
+            "Reconcile the circulation list to the executive attendee list.",
+            "Pass when every attendee received the pack before the session date."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Walk the committee through the most contested services",
+          "actor": "Business Analyst",
+          "sop": [
+            "Identify the services whose classification was borderline or disputed.",
+            "Present the basis for each classification with the criteria scores behind it.",
+            "Invite challenge on each contested service before moving to the next.",
+            "Done when every contested service has been presented and opened to challenge."
+          ],
+          "verify": [
+            "Compare the services presented against the borderline list from classification.",
+            "Pass when every borderline service was presented to the committee."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Capture each challenge raised with its response",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Record every challenge with the raiser, the service, and the point made.",
+            "Record either the agreed change or the reason no change was made.",
+            "Assign an owner and a date to any challenge needing further work.",
+            "Done when every challenge raised has a recorded response or a follow-up owner."
+          ],
+          "verify": [
+            "Count recorded challenges against the challenges heard in the session.",
+            "Pass when every challenge heard is recorded with a response."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Update the draft list from the agreed changes",
+          "actor": "Business Analyst",
+          "sop": [
+            "Apply each agreed change to the draft services list.",
+            "Increment the list version and record what changed against the previous version.",
+            "Re-check that every added or removed service still satisfies the inclusion criteria.",
+            "Done when the updated list reflects every agreed change with a new version number."
+          ],
+          "verify": [
+            "Compare the updated list to the challenge log for unapplied agreed changes.",
+            "Pass when every agreed change is reflected in the updated list."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the executive position on the final list",
+          "actor": "Chief Operating Officer",
+          "sop": [
+            "Present the updated list version to the executive attendees for confirmation.",
+            "Take an explicit position from each executive on the final list.",
+            "Record any residual disagreement and how it will be handled at Board.",
+            "Done when the executive position on the final list version is recorded."
+          ],
+          "verify": [
+            "Check the notes for a recorded position from each executive attendee.",
+            "Pass when every attendee has a recorded position on the final list."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "File the session notes and link the confirmed list version in GRC",
+          "actor": "Business Analyst",
+          "sop": [
+            "Write the notes covering attendance, challenges, responses, and the confirmed version.",
+            "File the notes in SharePoint with the session date and the list version.",
+            "Link the notes to the register version entry in the GRC platform.",
+            "Done when the filed notes are linked to the confirmed register version in GRC."
+          ],
+          "verify": [
+            "Follow the GRC link and check the notes show challenges, responses, and the version.",
+            "Pass when the link resolves and the notes carry all three elements."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "fa1b1e8c-0283-4acf-a2b7-b30835b34015",
+      "verifier": "Chief Operating Officer",
+      "generic": {
+        "Defined scope/population": "The final important business services list and every associated impact tolerance.",
+        "In-scope period": "From Board paper submission to the recorded approval effective date.",
+        "Required fields populated and valid": "Register carries the approved version, approval date, minute reference, and effective date.",
+        "Control totals or record counts reconcile": "Tolerances approved in the minute equal the tolerance count in the submitted paper.",
+        "Evidence retained with timestamp/version": "Board paper, rationale appendix, and minute extract retained with version and date.",
+        "Exceptions logged with disposition": "Every Board condition logged as a tracked action with an owner and a due date.",
+        "Test population": "All services and tolerances submitted for Board approval.",
+        "Pass/fail thresholds": "Board approval date, minute reference, and approved version recorded in the register.",
+        "Exception handling path": "Minutes approving the paper but not the tolerances return for correction before recording.",
+        "Documented acceptance criteria": "The minute records approval of the list and of each impact tolerance specifically.",
+        "Evidence location": "Board minute extract in SharePoint with the approved version recorded in the GRC register."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Assemble the Board paper with the rationale appendix",
+          "actor": "Business Analyst",
+          "sop": [
+            "Compile the final services list and the tolerance set into the Board paper.",
+            "Attach the rationale appendix supporting each tolerance.",
+            "State explicitly that approval is sought for the list and for each tolerance.",
+            "Done when the paper holds the list, the tolerances, and the rationale appendix."
+          ],
+          "verify": [
+            "Reconcile the paper's service and tolerance counts to the confirmed register version.",
+            "Pass when both counts reconcile to the confirmed version."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Obtain second-line review before submission",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Review the paper for regulatory completeness and consistency with the register.",
+            "Record any correction required and confirm it is made before submission.",
+            "Record the second-line review sign-off with the reviewer name and date.",
+            "Done when the paper carries a dated second-line review sign-off."
+          ],
+          "verify": [
+            "Check the paper for a second-line sign-off and closed review comments.",
+            "Pass when the sign-off is present and no review comment remains open."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Submit the paper to the Board",
+          "actor": "Chief Operating Officer",
+          "sop": [
+            "Submit the paper into the Board pack ahead of the submission deadline.",
+            "Confirm the agenda item states approval of the list and the tolerances.",
+            "Record the submission date and the meeting date in SharePoint.",
+            "Done when the paper is on the Board agenda as an approval item."
+          ],
+          "verify": [
+            "Check the published Board agenda for the item and its approval framing.",
+            "Pass when the item appears as an approval item for the list and tolerances."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the minute records approval of the list and each tolerance",
+          "actor": "Chief Operating Officer",
+          "sop": [
+            "Read the draft minute for the specific approvals granted.",
+            "Confirm it records approval of the services list and of each impact tolerance.",
+            "Request a minute correction where only the paper is recorded as approved.",
+            "Done when the final minute records approval of both the list and the tolerances."
+          ],
+          "verify": [
+            "Check the final minute wording against the approval sought in the paper.",
+            "Pass when the minute records approval of the list and of each tolerance."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the approved version and effective date in the resilience register",
+          "actor": "Business Analyst",
+          "sop": [
+            "Enter the approved register version, approval date, and minute reference in GRC.",
+            "Set the effective date from which the approved list and tolerances apply.",
+            "Mark the previous approved version superseded in the register.",
+            "Done when the register shows the approved version, date, minute reference, and effective date."
+          ],
+          "verify": [
+            "Open the register entry and check all four recorded values against the minute.",
+            "Pass when all four values are present and match the minute."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Log Board conditions and follow-ups as tracked actions",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Extract every condition or requested follow-up from the Board minute.",
+            "Raise a tracked action in the GRC platform for each one.",
+            "Assign an owner and a due date to every action and link it to the register version.",
+            "Done when every Board condition has a tracked action with an owner and due date."
+          ],
+          "verify": [
+            "Reconcile tracked action count to conditions recorded in the minute.",
+            "Pass when the counts reconcile and no action is missing an owner or date."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "File the minute extract with the approved paper",
+          "actor": "Business Analyst",
+          "sop": [
+            "Obtain the approved minute extract for the resilience agenda item.",
+            "File it in SharePoint alongside the submitted paper and rationale appendix.",
+            "Link the filed extract from the approved register version entry in GRC.",
+            "Done when the minute extract is filed and linked from the register."
+          ],
+          "verify": [
+            "Follow the register link and confirm it opens the minute extract.",
+            "Pass when the link resolves and the extract shows the approval date and reference."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "132b463d-4b1e-4674-b34b-3a0bafe7322f",
+      "verifier": "Compliance Analyst",
+      "generic": {
+        "Defined scope/population": "Every register entry covering service definitions, owners, tolerances, and retired services.",
+        "In-scope period": "The twelve months since the last review plus any material change since that date.",
+        "Required fields populated and valid": "Each entry carries a review date, reviewer, validity confirmation, and next review date.",
+        "Control totals or record counts reconcile": "Reviewed entry count plus retirements equals the prior register entry count plus additions.",
+        "Evidence retained with timestamp/version": "Refreshed register saved with the new version, review date, and change log.",
+        "Exceptions logged with disposition": "Entries that could not be reviewed logged with an owner and a completion date.",
+        "Test population": "All register entries plus material change candidates since the last review.",
+        "Pass/fail thresholds": "No register entry with a review date older than twelve months.",
+        "Exception handling path": "Unreviewed entries escalate to the Compliance Analyst before the register version is issued.",
+        "Documented acceptance criteria": "Each definition, owner, and tolerance confirmed valid or re-baselined with a next review date.",
+        "Evidence location": "Refreshed register in the GRC platform with the change log on the SharePoint resilience site."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Open the annual review against the current register version",
+          "actor": "Business Analyst",
+          "sop": [
+            "Export the current approved register version with each entry's last review date.",
+            "Flag every entry whose review date is approaching or beyond twelve months.",
+            "Assign a reviewer to each entry and set the review completion date.",
+            "Done when every register entry has an assigned reviewer and a review due date."
+          ],
+          "verify": [
+            "Reconcile the review worklist count to the register entry count.",
+            "Pass when every register entry appears once on the worklist."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm each service definition, owner, and tolerance is still valid",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Review each service definition against how the service actually operates today.",
+            "Confirm the named owner still holds accountability for the service.",
+            "Confirm the tolerance still reflects the current duration and severity position.",
+            "Done when every entry carries a validity confirmation or a recorded change."
+          ],
+          "verify": [
+            "Filter the worklist for entries without a validity confirmation or change.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Assess material changes since the last review for new candidates",
+          "actor": "Business Analyst",
+          "sop": [
+            "List material changes since the last review such as new products, outsourcing, or acquisitions.",
+            "Assess each change for services that should now be candidates.",
+            "Add new candidates to the inventory and route them through classification.",
+            "Done when every material change has been assessed for new candidate services."
+          ],
+          "verify": [
+            "Compare the change list against product, sourcing, and system change records.",
+            "Pass when no recorded material change is absent from the assessment."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Retire services no longer offered",
+          "actor": "Business Analyst",
+          "sop": [
+            "Identify register services that are no longer offered to customers.",
+            "Record the retirement rationale and the date the service ceased.",
+            "Mark the entry retired in the GRC register rather than deleting it.",
+            "Done when every ceased service is marked retired with a rationale and date."
+          ],
+          "verify": [
+            "Filter retired entries for a missing rationale or retirement date.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Re-baseline tolerances where volumes or channels have shifted",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Compare current volumes, channels, and customer profiles against the tolerance basis.",
+            "Re-derive the tolerance where the shift is material enough to change the harm point.",
+            "Record the re-baselined tolerance with its updated rationale and evidence.",
+            "Done when every materially shifted service has a re-baselined tolerance and rationale."
+          ],
+          "verify": [
+            "Check re-baselined tolerances against the updated rationale evidence.",
+            "Pass when every re-baselined tolerance has supporting updated evidence."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Set the next review date and off-cycle refresh triggers",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Set the next scheduled review date on every active register entry.",
+            "Record the trigger events that force an off-cycle refresh before that date.",
+            "Confirm the triggers are monitored by a named owner.",
+            "Done when every active entry has a next review date and recorded triggers."
+          ],
+          "verify": [
+            "Filter active entries for a missing next review date or trigger set.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Issue the refreshed register version with a change log",
+          "actor": "Business Analyst",
+          "sop": [
+            "Increment the register version and record the review completion date.",
+            "Write the change log listing additions, retirements, and re-baselined tolerances.",
+            "Publish the change log to the SharePoint resilience site with the new version.",
+            "Done when the refreshed version is issued with a published change log."
+          ],
+          "verify": [
+            "Query the refreshed register for entries with a review date older than twelve months.",
+            "Pass when the query returns no such entry."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "57ad32b7-3d53-4cd3-abca-ddb8842a0da9",
+      "verifier": "Compliance Analyst",
+      "generic": {
+        "Defined scope/population": "The approved services, tolerances, and approval dates required by the supervisory return.",
+        "In-scope period": "The reporting period the supervisory return covers up to its submission deadline.",
+        "Required fields populated and valid": "Return carries every prescribed field including service, tolerance, and approval date.",
+        "Control totals or record counts reconcile": "Figures in the return reconcile to the approved register version, not to drafts.",
+        "Evidence retained with timestamp/version": "Submitted return, receipt, and reference number retained with the submission timestamp.",
+        "Exceptions logged with disposition": "Reconciliation differences logged and resolved before the return is signed off.",
+        "Test population": "Every service and tolerance the supervisory return requires to be reported.",
+        "Pass/fail thresholds": "Submission logged with a receipt reference and a next due date recorded.",
+        "Exception handling path": "Unreconciled figures block submission and return to the Business Analyst for correction.",
+        "Documented acceptance criteria": "Second-line reviewed return submitted in the prescribed format by the supervisory deadline.",
+        "Evidence location": "Submission receipt in the GRC regulatory filing inventory with the return filed in SharePoint."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the prescribed return format and deadline",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Obtain the supervisor's prescribed format and field definitions for the resilience return.",
+            "Record the submission deadline and the reporting period the return covers.",
+            "Note any change from the previous return format and its impact on the data.",
+            "Done when the format, field list, and deadline are recorded for this submission."
+          ],
+          "verify": [
+            "Compare the recorded field list against the supervisor's current template.",
+            "Pass when the field list matches the current supervisory template."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Extract the approved register version for the return",
+          "actor": "Business Analyst",
+          "sop": [
+            "Extract services, tolerances, and approval dates from the approved GRC register version.",
+            "Exclude any draft or unapproved entry from the extract.",
+            "Record the register version and the extract timestamp on the working file.",
+            "Done when the extract is taken from the approved version and version-stamped."
+          ],
+          "verify": [
+            "Check the extract version against the Board-approved register version.",
+            "Pass when the extract cites the approved version and no draft entries appear."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Populate the return in the prescribed format",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Map each extract field into the prescribed return field.",
+            "Populate every mandatory field and record why any optional field is left blank.",
+            "Apply the supervisor's stated formats for dates, durations, and volumes.",
+            "Done when every mandatory field in the return is populated."
+          ],
+          "verify": [
+            "Run the format validation for missing or malformed mandatory fields.",
+            "Pass when validation returns no missing or malformed mandatory field."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reconcile every figure in the return to the approved register",
+          "actor": "Business Analyst",
+          "sop": [
+            "Compare each reported service and tolerance back to the approved register entry.",
+            "Investigate and resolve any difference before the return is finalised.",
+            "Record the reconciliation with the register version it was performed against.",
+            "Done when every reported figure ties to an approved register entry."
+          ],
+          "verify": [
+            "Count reconciled return rows against the approved register entry count.",
+            "Pass when the counts reconcile and no unexplained difference remains."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Obtain second-line compliance sign-off before submission",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Present the return, the reconciliation, and the register version to second-line review.",
+            "Record every review comment and confirm it is resolved before sign-off.",
+            "Record the sign-off with the reviewer name and date.",
+            "Done when the return carries a dated second-line sign-off with no open comments."
+          ],
+          "verify": [
+            "Check the sign-off record and the review comment log.",
+            "Pass when the sign-off is present and no comment remains open."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Submit by the deadline and retain the receipt",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Submit the signed return through the supervisor's prescribed channel.",
+            "Capture the submission receipt, the reference number, and the timestamp.",
+            "File the submitted return and the receipt in the SharePoint regulatory folder.",
+            "Done when the return is submitted and the receipt reference is captured."
+          ],
+          "verify": [
+            "Check the submission timestamp against the supervisory deadline.",
+            "Pass when the submission timestamp precedes the deadline and a receipt is held."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Log the submission in the regulatory filing inventory",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Create the filing inventory entry in the GRC platform for this submission.",
+            "Record the receipt reference, the submission date, and the register version reported.",
+            "Set the next due date and the owner responsible for the next return.",
+            "Done when the inventory entry holds the receipt reference and the next due date."
+          ],
+          "verify": [
+            "Open the inventory entry and check the reference, submission date, and next due date.",
+            "Pass when all three are recorded and the next due date is in the future."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fld1l1tx2kfgzxtnrkgnh",
+      "verifier": "Chief Operating Officer",
+      "generic": {
+        "Defined scope/population": "Every important business service definition requiring an accountable executive signature.",
+        "In-scope period": "From routing for signature to the publication deadline for the definition set.",
+        "Required fields populated and valid": "Each sign-off records the signer name, role, date, and the document version signed.",
+        "Control totals or record counts reconcile": "Signed definition count equals the definition count routed for signature.",
+        "Evidence retained with timestamp/version": "Signed definitions retained in SharePoint with version and signature date.",
+        "Exceptions logged with disposition": "Unsigned definitions logged with a chase record and an escalation to the function head.",
+        "Test population": "All service definitions in the final set awaiting executive approval.",
+        "Pass/fail thresholds": "No service definition without a dated executive signature before publication.",
+        "Exception handling path": "Definitions unsigned five working days before publication escalate to the Chief Operating Officer.",
+        "Documented acceptance criteria": "Each executive signed the specific definition and owner assignment, not a summary list.",
+        "Evidence location": "Signed definition set in SharePoint with the sign-off tracker in Confluence."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Map each definition to its accountable executive",
+          "actor": "Business Analyst",
+          "sop": [
+            "List each service definition with the executive accountable for that service.",
+            "Confirm the accountability with the executive's office before routing.",
+            "Record the mapping in the Confluence sign-off tracker.",
+            "Done when every definition maps to one named accountable executive."
+          ],
+          "verify": [
+            "Filter the tracker for definitions without a named accountable executive.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Route each definition individually for signature",
+          "actor": "Business Analyst",
+          "sop": [
+            "Send each executive the specific definitions they own rather than the full set.",
+            "Include the owner assignment and the definition version in each routing.",
+            "State the signature deadline and how to return the signed definition.",
+            "Done when every definition has been routed to its accountable executive."
+          ],
+          "verify": [
+            "Reconcile routed definitions to the tracker mapping.",
+            "Pass when every mapped definition has a recorded routing date."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm each signature is against the specific definition",
+          "actor": "Chief Operating Officer",
+          "sop": [
+            "Check each returned signature names the specific service definition signed.",
+            "Reject signatures given only against a summary list or covering note.",
+            "Confirm the owner assignment on the signed definition matches the register.",
+            "Done when every accepted signature is against a named service definition."
+          ],
+          "verify": [
+            "Sample signed definitions for the service name and owner assignment on the signed page.",
+            "Pass when every sampled signature names the specific definition and owner."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record signer name, role, date, and version against each definition",
+          "actor": "Business Analyst",
+          "sop": [
+            "Record the signer name and role against each signed definition in the tracker.",
+            "Record the signature date and the document version that was signed.",
+            "Reject any signature returned against a superseded version.",
+            "Done when every signed definition carries a name, role, date, and version."
+          ],
+          "verify": [
+            "Filter the tracker for signed rows missing a name, role, date, or version.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Chase definitions still unsigned as the deadline approaches",
+          "actor": "Business Analyst",
+          "sop": [
+            "List definitions still unsigned five working days before publication.",
+            "Chase each accountable executive directly and record the chase date.",
+            "Escalate to the Chief Operating Officer where no signature follows the chase.",
+            "Done when every unsigned definition has a recorded chase and escalation."
+          ],
+          "verify": [
+            "Filter unsigned definitions for a missing chase or escalation record.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "File the signed definition set in SharePoint",
+          "actor": "Business Analyst",
+          "sop": [
+            "File each signed definition in the SharePoint resilience record set.",
+            "Set the version and signature date properties on each filed document.",
+            "Link each filed document from its row in the Confluence tracker.",
+            "Done when every signed definition is filed and linked from the tracker."
+          ],
+          "verify": [
+            "Follow a sample of tracker links to the filed signed definitions.",
+            "Pass when every sampled link resolves to a signed and dated definition."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Confirm the full set is signed before releasing for publication",
+          "actor": "Chief Operating Officer",
+          "sop": [
+            "Review the tracker for any definition still without an accepted signature.",
+            "Decide whether to hold publication or publish a reduced set with the gap recorded.",
+            "Record the release decision and the date it was taken.",
+            "Done when the release decision is recorded against the complete tracker."
+          ],
+          "verify": [
+            "Count signed definitions against the routed definition count.",
+            "Pass when the counts match or the gap carries a recorded release decision."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fld9y1u0ukfgzcik99w17",
+      "verifier": "Business Analyst",
+      "generic": {
+        "Defined scope/population": "The Board-approved important business service definitions due for publication.",
+        "In-scope period": "From the approval effective date to the next approved register version.",
+        "Required fields populated and valid": "Each published definition shows its version, approval date, and accountable owner.",
+        "Control totals or record counts reconcile": "Published definition count equals the Board-approved register entry count.",
+        "Evidence retained with timestamp/version": "Published set retained with version and approval date, prior versions archived.",
+        "Exceptions logged with disposition": "Publication differences from the approved register logged and corrected before notification.",
+        "Test population": "All approved definitions and every previously published version of the set.",
+        "Pass/fail thresholds": "Current approved version published with the approval date and prior versions archived.",
+        "Exception handling path": "Mismatches against the approved register route to the Business Analyst before notification.",
+        "Documented acceptance criteria": "Published set matches the Board-approved register entry by entry with owners notified.",
+        "Evidence location": "Published definitions on the SharePoint resilience site with the archive in Confluence."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Take the Board-approved definition set as the publication baseline",
+          "actor": "Business Analyst",
+          "sop": [
+            "Extract the approved definitions from the register version cited in the Board minute.",
+            "Confirm no unapproved edit has been made since the approval date.",
+            "Record the baseline version and approval date for the publication.",
+            "Done when the publication baseline is fixed to the approved register version."
+          ],
+          "verify": [
+            "Compare the baseline version against the version in the Board minute.",
+            "Pass when the two versions are identical."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Publish the definitions to the SharePoint resilience site",
+          "actor": "Business Analyst",
+          "sop": [
+            "Publish each approved definition to the resilience site with its accountable owner.",
+            "Show the version number and the approval date on the published page.",
+            "Set read access for service owners, business continuity, and technology leads.",
+            "Done when every approved definition is published with version and approval date visible."
+          ],
+          "verify": [
+            "Open the resilience site and count published definitions against the baseline.",
+            "Pass when the published count equals the baseline count."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Archive the previous version and mark it superseded",
+          "actor": "Business Systems Analyst",
+          "sop": [
+            "Move the previous published definition set into the Confluence archive space.",
+            "Mark it superseded with a link forward to the current published version.",
+            "Remove the previous version from any location browsed as the current set.",
+            "Done when no earlier version is reachable without a superseded marking."
+          ],
+          "verify": [
+            "Search the resilience site and Confluence for unmarked earlier versions.",
+            "Pass when only the current version returns as current."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Reconcile the published set to the approved register entry by entry",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Compare each published definition against its GRC register entry.",
+            "Check the definition wording, the accountable owner, and the version on both.",
+            "Correct any difference on the published page before notifying stakeholders.",
+            "Done when every published definition matches its approved register entry."
+          ],
+          "verify": [
+            "List published definitions differing from the register in wording, owner, or version.",
+            "Pass when the list is empty."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Notify service owners, business continuity, and technology leads",
+          "actor": "Business Systems Analyst",
+          "sop": [
+            "Send the publication notice to service owners, business continuity, and technology leads.",
+            "State that the new baseline is live and give the published location and version.",
+            "State what changed from the previous baseline for each audience.",
+            "Done when every audience group has been sent the publication notice."
+          ],
+          "verify": [
+            "Reconcile the notification list to the service owner and dependency lead lists.",
+            "Pass when every service owner and technology lead has a recorded notification."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm stakeholders can reach the published definitions",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Ask a sample of service owners and technology leads to open the published set.",
+            "Record any access failure and raise the permission request needed.",
+            "Re-check access after each permission change.",
+            "Done when every sampled stakeholder can open the published definitions."
+          ],
+          "verify": [
+            "Check outstanding access requests against the resilience site permission list.",
+            "Pass when no stakeholder group is left without read access."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Record the publication against the register version in GRC",
+          "actor": "Business Analyst",
+          "sop": [
+            "Record the publication date and location against the approved register version.",
+            "Link the published location from the register entry.",
+            "Note the archive location of the superseded version on the same entry.",
+            "Done when the register entry records the publication date, location, and archive."
+          ],
+          "verify": [
+            "Follow the register link to the published set and to the archive.",
+            "Pass when both links resolve to the correct versions."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "3150696b-bc0c-49d8-8da0-a2270bd35637",
+      "verifier": "Chief Operating Officer",
+      "generic": {
+        "Defined scope/population": "Every important business service on the register requiring a tolerance threshold.",
+        "In-scope period": "From threshold definition to the effective date recorded against each service.",
+        "Required fields populated and valid": "Each threshold holds a numeric duration, a severity limit, and an effective date.",
+        "Control totals or record counts reconcile": "Threshold record count equals the important business service count on the register.",
+        "Evidence retained with timestamp/version": "Threshold entries stored in the GRC register with effective date and version.",
+        "Exceptions logged with disposition": "Thresholds that cannot be measured from existing data logged with a measurement plan.",
+        "Test population": "All important business services and the operational data supporting their thresholds.",
+        "Pass/fail thresholds": "No important business service without a numeric duration and severity threshold.",
+        "Exception handling path": "Unmeasurable thresholds escalate to the Chief Operating Officer for revision or instrumentation.",
+        "Documented acceptance criteria": "Each threshold is measurable from existing data and carries a breach escalation trigger.",
+        "Evidence location": "Threshold entries in the GRC resilience register with measurability evidence in the BI platform."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Set a maximum tolerable disruption duration per service",
+          "actor": "Business Analyst",
+          "sop": [
+            "Set the maximum tolerable disruption duration in hours or days for each service.",
+            "Base the duration on the harm point established for that service.",
+            "Reject any duration expressed as a range without an upper bound.",
+            "Done when every important business service has a single numeric duration."
+          ],
+          "verify": [
+            "Filter the threshold set for services without a numeric duration.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Define the severity measure and its numeric limit",
+          "actor": "Business Analyst",
+          "sop": [
+            "Choose the severity measure such as customers affected, transactions failed, or value delayed.",
+            "Set a numeric limit for that measure per service.",
+            "Record why that measure is the right one for the service.",
+            "Done when every service carries a severity measure with a numeric limit."
+          ],
+          "verify": [
+            "Filter the threshold set for services without a severity measure or limit.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm each threshold is measurable from existing operational data",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Identify the operational data source that would evidence each threshold in a disruption.",
+            "Build or locate the BI query that returns the duration and severity measure.",
+            "Flag thresholds that cannot be measured from existing data before agreeing them.",
+            "Done when every threshold has a confirmed data source or a raised measurability flag."
+          ],
+          "verify": [
+            "Run the BI query for a sample of thresholds against recent operational data.",
+            "Pass when each sampled query returns the duration and severity measure."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Resolve thresholds that cannot be measured",
+          "actor": "Operations Specialist",
+          "sop": [
+            "List thresholds flagged as not measurable from existing data.",
+            "Agree either a revised measure or an instrumentation change with an owner and date.",
+            "Record the resolution against the threshold in the register.",
+            "Done when every flagged threshold has an agreed and recorded resolution."
+          ],
+          "verify": [
+            "Filter flagged thresholds for entries without a resolution owner and date.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Define the breach escalation trigger and notification path",
+          "actor": "Chief Operating Officer",
+          "sop": [
+            "Define the point during a disruption at which a threshold breach is declared.",
+            "Name who must be notified on breach and the timeframe for that notification.",
+            "Confirm the notification path aligns with the incident management process.",
+            "Done when every threshold carries a breach trigger, a notified party, and a timeframe."
+          ],
+          "verify": [
+            "Filter thresholds for a missing trigger, notified party, or notification timeframe.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Enter each threshold into the GRC resilience register",
+          "actor": "Business Analyst",
+          "sop": [
+            "Enter the duration, severity limit, and breach trigger against each service in GRC.",
+            "Set the effective date from which the threshold applies.",
+            "Link the measurability evidence from the BI platform to the register entry.",
+            "Done when every service carries a complete threshold entry with an effective date."
+          ],
+          "verify": [
+            "Reconcile register threshold entries to the important business service count.",
+            "Pass when every service has one complete threshold entry."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Review the threshold set with the accountable executive",
+          "actor": "Chief Operating Officer",
+          "sop": [
+            "Review the full threshold set for consistency across comparable services.",
+            "Challenge thresholds that look inconsistent with the harm evidence.",
+            "Record acceptance of the threshold set with the review date.",
+            "Done when the threshold set carries a dated executive acceptance."
+          ],
+          "verify": [
+            "Check the register for the recorded acceptance and its date.",
+            "Pass when the acceptance is recorded against the current threshold version."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "8d70c4fb-405c-4137-a95b-594487f19822",
+      "verifier": "Compliance Analyst",
+      "generic": {
+        "Defined scope/population": "Every candidate service on the inventory awaiting an importance classification.",
+        "In-scope period": "The classification cycle for the current candidate inventory version.",
+        "Required fields populated and valid": "Each candidate carries harm scores, market-impact scores, an outcome, and a reason.",
+        "Control totals or record counts reconcile": "Classified candidate count equals the candidate inventory count.",
+        "Evidence retained with timestamp/version": "Scored classification saved in the GRC register with version and classification date.",
+        "Exceptions logged with disposition": "Every not-important outcome recorded with the reason so exclusions can be challenged.",
+        "Test population": "All candidate services on the inventory including borderline cases.",
+        "Pass/fail thresholds": "No candidate service left unclassified or classified without a recorded reason.",
+        "Exception handling path": "Borderline classifications route to the Compliance Analyst as second reviewer.",
+        "Documented acceptance criteria": "Every candidate scored on both criteria sets with the agreed threshold applied.",
+        "Evidence location": "Scored classification sheet in the GRC platform with working papers in SharePoint."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the classification criteria and threshold",
+          "actor": "Business Analyst",
+          "sop": [
+            "Confirm the customer-harm criteria covering financial loss, loss of cover, and vulnerable impact.",
+            "Confirm the market-impact criteria covering volume, market share, concentration, and substitutability.",
+            "Confirm the score threshold that marks a candidate important.",
+            "Done when the criteria sets and the threshold are recorded for this classification cycle."
+          ],
+          "verify": [
+            "Compare the criteria and threshold against the approved classification methodology.",
+            "Pass when both match the approved methodology or the change is documented."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Score each candidate against the customer-harm criteria",
+          "actor": "Business Analyst",
+          "sop": [
+            "Score every candidate for financial loss, loss of cover, and vulnerable-customer impact.",
+            "Record the evidence behind each score rather than a bare number.",
+            "Leave no candidate unscored on any harm criterion.",
+            "Done when every candidate carries a score on each customer-harm criterion."
+          ],
+          "verify": [
+            "Filter the sheet for candidates with a blank customer-harm score.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Score each candidate against the market-impact criteria",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Score every candidate for volume, market share, concentration, and substitutability.",
+            "Use distribution and market data rather than judgement alone where data exists.",
+            "Record the data source behind each market-impact score.",
+            "Done when every candidate carries a score on each market-impact criterion."
+          ],
+          "verify": [
+            "Filter the sheet for candidates with a blank market-impact score.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Apply the threshold to mark each candidate important or not important",
+          "actor": "Business Analyst",
+          "sop": [
+            "Apply the agreed threshold to the combined scores for each candidate.",
+            "Mark each candidate important or not important with no candidate left unresolved.",
+            "Flag candidates falling within the borderline band around the threshold.",
+            "Done when every candidate carries an importance outcome and any borderline flag."
+          ],
+          "verify": [
+            "Count classified candidates against the candidate inventory count.",
+            "Pass when the counts reconcile with no candidate unclassified."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the reason for every not-important outcome",
+          "actor": "Business Analyst",
+          "sop": [
+            "Write the reason each not-important candidate fell below the threshold.",
+            "Reference the specific criteria scores that drove the outcome.",
+            "Record the reason so the exclusion can be challenged later.",
+            "Done when every not-important candidate has a recorded reason."
+          ],
+          "verify": [
+            "Filter not-important candidates for a missing reason.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Second-review the borderline classifications",
+          "actor": "Compliance Analyst",
+          "sop": [
+            "Review every candidate flagged borderline against its scores and evidence.",
+            "Confirm or change the outcome and record the reviewer name and date.",
+            "Escalate any classification the reviewer and preparer cannot agree.",
+            "Done when every borderline candidate has a second-reviewer decision recorded."
+          ],
+          "verify": [
+            "Filter borderline candidates for a missing second-reviewer decision.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Record the classification outcome in the GRC register",
+          "actor": "Business Analyst",
+          "sop": [
+            "Enter each candidate outcome, its scores, and its reason into the GRC register.",
+            "Set the classification version and date on the entry set.",
+            "File the scoring working papers on the SharePoint resilience site.",
+            "Done when every candidate outcome is recorded in the register with a version and date."
+          ],
+          "verify": [
+            "Compare register entries against the scoring sheet outcome by outcome.",
+            "Pass when the register matches the scoring sheet for every candidate."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "c69dc5f3-5ac0-4d51-b84b-02f6f7e740d8",
+      "verifier": "Business Analyst",
+      "generic": {
+        "Defined scope/population": "All customer-facing services across every live line of business and customer journey.",
+        "In-scope period": "The product and process catalogue as at the inventory extract date.",
+        "Required fields populated and valid": "Each candidate carries an owner, a line of business, and a customer channel.",
+        "Control totals or record counts reconcile": "Candidate count plus recorded drops equals the extracted catalogue entry count.",
+        "Evidence retained with timestamp/version": "Candidate inventory saved in SharePoint with the extract date and version.",
+        "Exceptions logged with disposition": "Every dropped internal function recorded with the reason it was not a candidate.",
+        "Test population": "All live lines of business and all customer journeys in the process model.",
+        "Pass/fail thresholds": "No live line of business absent from the candidate inventory.",
+        "Exception handling path": "Gaps raised by business owners route to the Business Analyst for inventory addition.",
+        "Documented acceptance criteria": "Business owners confirmed no customer-facing service they run is missing.",
+        "Evidence location": "Candidate inventory in the SharePoint resilience site with source extracts attached."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract the candidate list from the product catalogue and process model",
+          "actor": "Business Analyst",
+          "sop": [
+            "Extract every product from the catalogue covering all live lines of business.",
+            "Extract the process model entries that deliver those products to customers.",
+            "Record the extract date and source for each row.",
+            "Done when the extract covers every live line of business with a dated source."
+          ],
+          "verify": [
+            "Compare the lines of business in the extract to the live product register.",
+            "Pass when every live line of business appears in the extract."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Add customer journeys as candidate services",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Add the new business, renewal, claims, complaints, and payment journeys as candidates.",
+            "Split a journey where it differs materially by line of business or channel.",
+            "Record the journey stages that make each candidate a distinct customer outcome.",
+            "Done when every customer journey appears as at least one candidate service."
+          ],
+          "verify": [
+            "Check each named journey appears at least once on the candidate list.",
+            "Pass when no named journey is absent from the list."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Cross-check the policy administration system for live product coverage",
+          "actor": "Business Analyst",
+          "sop": [
+            "Query the policy administration system for products with in-force policies.",
+            "Compare that list against the catalogue extract for products not represented.",
+            "Add any in-force product missing from the extract as a candidate.",
+            "Done when every in-force product is represented on the candidate list."
+          ],
+          "verify": [
+            "List in-force products from policy admin absent from the candidate list.",
+            "Pass when the list is empty."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record owner, line of business, and channel per candidate",
+          "actor": "Business Analyst",
+          "sop": [
+            "Record the accountable owner for each candidate service.",
+            "Record the line of business and the customer channels it is delivered through.",
+            "Use warehouse volume data to record indicative volumes per candidate.",
+            "Done when every candidate has an owner, a line of business, and a channel."
+          ],
+          "verify": [
+            "Filter the candidate list for rows missing an owner, line of business, or channel.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Drop internal functions that are not customer-facing outcomes",
+          "actor": "Business Analyst",
+          "sop": [
+            "Identify candidates that describe an internal function rather than a customer outcome.",
+            "Record the reason each is dropped rather than deleting the row.",
+            "Retain the dropped list so the decision can be challenged.",
+            "Done when every dropped candidate carries a recorded reason."
+          ],
+          "verify": [
+            "Sum retained candidates plus dropped rows and compare to the extracted count.",
+            "Pass when the totals reconcile to the extracted count."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm completeness with each business owner",
+          "actor": "Head of Distribution",
+          "sop": [
+            "Send each business owner the candidates recorded for their area.",
+            "Ask each owner to confirm no customer-facing service they run is missing.",
+            "Add any service the owner names and record who raised it.",
+            "Done when every business owner has confirmed completeness for their area."
+          ],
+          "verify": [
+            "Reconcile received confirmations to the business owner list.",
+            "Pass when every business owner has confirmed or has a recorded escalation."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Publish the candidate inventory version to SharePoint",
+          "actor": "Business Analyst",
+          "sop": [
+            "Compile the confirmed candidates and the dropped list into the inventory version.",
+            "Attach the catalogue, warehouse, and policy admin extracts as sources.",
+            "Publish the version to the SharePoint resilience site with the extract date.",
+            "Done when the versioned inventory is published with its source extracts attached."
+          ],
+          "verify": [
+            "Open the published inventory and check the version, date, and attached extracts.",
+            "Pass when all three are present and the line-of-business coverage is complete."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "205ea327-54bc-46be-86c8-c66df435cb56",
+      "verifier": "Business Analyst",
+      "generic": {
+        "Defined scope/population": "The people, process, technology, facility, data, and third-party resources per important service.",
+        "In-scope period": "The current approved register version through to the next resource mapping refresh.",
+        "Required fields populated and valid": "Each dependency records its type, owner, criticality, and CMDB reference where applicable.",
+        "Control totals or record counts reconcile": "Mapped application dependencies reconcile one to one with CMDB configuration items.",
+        "Evidence retained with timestamp/version": "Resource maps saved with version and mapping date in the GRC platform.",
+        "Exceptions logged with disposition": "Dependencies with no CMDB record raised as a gap with an owner and a due date.",
+        "Test population": "All important business services and every dependency in their end-to-end chains.",
+        "Pass/fail thresholds": "No mapped application dependency missing a CMDB configuration item.",
+        "Exception handling path": "CMDB gaps route to the Business Analyst for registration before the map is baselined.",
+        "Documented acceptance criteria": "End-to-end chain mapped with single points of failure and shared resources flagged.",
+        "Evidence location": "Resource maps in the GRC platform with CMDB reconciliation evidence in SharePoint."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Map people, process, technology, facility, data, and third-party dependencies",
+          "actor": "Business Systems Analyst",
+          "sop": [
+            "For each important business service list the dependencies in all six resource categories.",
+            "Record the owner and the criticality of each dependency to the service.",
+            "Leave no resource category unaddressed even where the answer is none.",
+            "Done when every service has dependencies recorded across all six categories."
+          ],
+          "verify": [
+            "Filter the map for services with an unaddressed resource category.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Trace applications end to end from customer entry to settlement",
+          "actor": "Business Systems Analyst",
+          "sop": [
+            "Trace the application chain from the customer entry point through to settlement.",
+            "Include the interfaces and batch jobs that move data between applications.",
+            "Record the sequence so a break can be located to a specific hop.",
+            "Done when every service has an unbroken application chain from entry to settlement."
+          ],
+          "verify": [
+            "Walk each chain for hops with no upstream or downstream connection recorded.",
+            "Pass when every chain runs unbroken from entry point to settlement."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Identify third parties and intra-group providers in the chain",
+          "actor": "Operations Specialist",
+          "sop": [
+            "Identify every third party and intra-group provider in each service chain.",
+            "Record the contract reference and the exit arrangement for each provider.",
+            "Flag providers with no documented exit arrangement.",
+            "Done when every provider in a chain has a contract reference and exit position."
+          ],
+          "verify": [
+            "Filter the provider list for a missing contract reference or exit arrangement.",
+            "Pass when the filtered list is empty or each gap carries an owner."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Flag single points of failure and shared resources",
+          "actor": "Business Systems Analyst",
+          "sop": [
+            "Identify dependencies with no alternative path within the tolerance window.",
+            "Identify resources shared across more than one important business service.",
+            "Flag each on the map with the services it affects.",
+            "Done when every single point of failure and shared resource is flagged."
+          ],
+          "verify": [
+            "Cross-check the shared resource flags against dependency appearances across services.",
+            "Pass when every dependency appearing in more than one service is flagged as shared."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reconcile mapped applications to CMDB configuration items",
+          "actor": "Business Analyst",
+          "sop": [
+            "Look up each mapped application, interface, and batch job in the CMDB.",
+            "Record the configuration item reference against the dependency on the map.",
+            "List every dependency with no matching configuration item.",
+            "Done when every mapped application dependency has a CMDB reference or a gap entry."
+          ],
+          "verify": [
+            "Count dependencies with a CMDB reference against total mapped application dependencies.",
+            "Pass when every mapped application dependency carries a CMDB reference."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Raise CMDB registration gaps with owners and due dates",
+          "actor": "Business Analyst",
+          "sop": [
+            "Raise a gap record for each dependency with no CMDB configuration item.",
+            "Assign an owner and a due date for registering the item.",
+            "Re-reconcile the map after each registration is confirmed.",
+            "Done when every CMDB gap is closed or carries an owner and a due date."
+          ],
+          "verify": [
+            "Filter open CMDB gaps for entries without an owner or due date.",
+            "Pass when the filtered list is empty."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Baseline the resource maps in the GRC platform",
+          "actor": "Business Systems Analyst",
+          "sop": [
+            "Load each completed resource map against its service in the GRC platform.",
+            "Set the map version and the mapping date on each entry.",
+            "File the CMDB reconciliation evidence on the SharePoint resilience site.",
+            "Done when every important business service carries a versioned baselined map."
+          ],
+          "verify": [
+            "Count baselined maps against the important business service count in the register.",
+            "Pass when every service has one baselined and dated resource map."
+          ]
+        }
+      ]
+    }
+  ]
+}

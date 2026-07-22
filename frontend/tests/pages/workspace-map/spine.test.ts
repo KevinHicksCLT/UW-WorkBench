@@ -3,10 +3,13 @@ import {
   buildComparison,
   elementSignature,
   elementsOf,
+  groupCitations,
   lobOptions,
   versionTokensOf,
 } from '../../../src/pages/workspace-map/product/spine';
 import type {
+  ComponentElement,
+  ElementGroup,
   SpineNode,
   SpineTable,
   VersionColumn,
@@ -132,6 +135,50 @@ describe('buildComparison', () => {
     const c = buildComparison([a]);
     expect(c.rows.flatMap((r) => r.groups).every((g) => g.status === 'SINGLE')).toBe(true);
     expect(c.reviewCount).toBe(0);
+  });
+});
+
+describe('groupCitations', () => {
+  const el = (livesIn: string | null): ComponentElement => ({
+    element: 'Availability',
+    description: null,
+    livesIn,
+    format: null,
+  });
+  const group = (perVersion: Record<string, ComponentElement | null>): ElementGroup => ({
+    key: 'k',
+    component: 'Product Taxonomy',
+    name: 'Availability',
+    status: 'COMMON',
+    perVersion,
+    presentIn: Object.values(perVersion).filter(Boolean).length,
+  });
+
+  it('unions distinct citations across all jurisdictions', () => {
+    expect(
+      groupCitations(
+        group({
+          ca: el('PAS B — availability config PPA6-CA'),
+          oh: el('PAS B — availability config PPA6-OH'),
+        }),
+      ),
+    ).toEqual(['PAS B — availability config PPA6-CA', 'PAS B — availability config PPA6-OH']);
+  });
+
+  it('splits ;-joined citations and drops exact repeats (case-insensitive)', () => {
+    expect(
+      groupCitations(
+        group({
+          ca: el('PAS B — availability config; UW rules engine AUTO_NB_ELIG'),
+          oh: el('pas b — availability config'),
+          tx: el(null),
+        }),
+      ),
+    ).toEqual(['PAS B — availability config', 'UW rules engine AUTO_NB_ELIG']);
+  });
+
+  it('returns nothing when no jurisdiction carries a citation', () => {
+    expect(groupCitations(group({ ca: el(null), oh: null }))).toEqual([]);
   });
 });
 

@@ -1,0 +1,4689 @@
+[
+  {
+    "taskId": "cae3f6c7-3721-4abc-bda0-4195fe520998",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscp0k71mzymbk89pvlaay4",
+      "cmqscozkh1my0mbk8uzg517r4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Worklist generated from the current scoring run, not a stale extract",
+      "Every candidate carries a claim number and referral reason",
+      "Worklist published to the queue owner of record"
+    ],
+    "checklistSpecific": [
+      "Sort the candidate queue descending by recovery score and cap the daily routing batch at unit capacity",
+      "Split the worklist into auto-subro (intercompany arbitration eligible) and complex/liability routing lanes",
+      "Drop candidates already carrying an open recovery file so the same claim is not referred twice",
+      "Stamp each row with jurisdiction and statute-of-limitations expiry so short-fuse files route first",
+      "Publish the worklist to the subrogation team queue and confirm the row count matches the scoring output"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Triaged recovery worklist exists in the subrogation system with a routing batch date and non-zero candidate count"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No worklist row references a claim that already has an open recovery file"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjjk30ze3kfgzzdfjihkp",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      },
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozoh1my8mbk8ghggk47n",
+      "cmqscoff31lysmbk835qpkul1",
+      "cmqscofd61lyombk8ef0uqvus"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Identity evidence attached to the claim file",
+      "Source of each identifying fact cited in the file note",
+      "Findings logged within the activity documentation SLA"
+    ],
+    "checklistSpecific": [
+      "Capture the tortfeasor legal name, address, and (for entities) the registered entity name from the incident or police report",
+      "Confirm the adverse carrier name, policy number, and claim number by direct contact or ISO/index match",
+      "Verify the adverse policy was in force on the date of loss and note the limits available",
+      "Record VIN, plate, or property address linking the third party to the loss item",
+      "Flag any additional potentially liable parties (employer, contractor, product manufacturer, premises owner) for separate pursuit"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Adverse party record on the recovery file holds name, address, carrier, and adverse claim number"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No recovery file advances to demand with the adverse party field left as unknown or TBD"
+      }
+    ]
+  },
+  {
+    "taskId": "93fda5b2-6ac2-42db-9fab-1b860ec4689c",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscp0k71mzymbk89pvlaay4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Decision recorded against the candidate before the diary date lapses",
+      "Written rationale stored on the file, not only in email",
+      "Reviewer identity and decision timestamp captured"
+    ],
+    "checklistSpecific": [
+      "Compare net recoverable against the cost-to-pursue threshold and record the pass/fail result",
+      "Confirm adverse party solvency or collectability (carrier-backed, uninsured, judgment-proof) before electing to pursue",
+      "Check remaining statute-of-limitations runway is sufficient to complete demand and arbitration",
+      "Select a close reason code (no liability, below threshold, uncollectible, no coverage) for every non-pursued candidate",
+      "Route pursue decisions above the specialist authority limit to the manager for countersign"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Each triaged candidate carries a pursue or close disposition with a reason code and rationale note"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No candidate is closed without a close reason code"
+      }
+    ]
+  },
+  {
+    "taskId": "80b9ad4f-8859-441b-8d29-77df186234c0",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozf91mxqmbk8uwj62cr4",
+      "cmqscozji1mxymbk8v9j8ouku",
+      "cmqscofan1lykmbk8vmtdn3yk",
+      "cmqscofbl1lymmbk8n1rr7zoi"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Red flag checklist completed on the file",
+      "Referral raised within the SIU service standard",
+      "Referral outcome tracked back to the recovery file"
+    ],
+    "checklistSpecific": [
+      "Run the red flag checklist against the loss facts (staged-loss pattern, prior common parties, repeat repair shop, late reporting)",
+      "Check whether the same adverse party or repair vendor appears across other open recovery files",
+      "Raise the SIU referral within 48 hours of the trigger and capture the SIU reference number on the recovery file",
+      "Suspend the demand and any recovery payment while the SIU review is open",
+      "Record the SIU disposition and resume or close the recovery pursuit accordingly"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "SIU referral reference recorded on the recovery file where any red flag was ticked"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No demand issued on a file with an unresolved open SIU referral"
+      }
+    ]
+  },
+  {
+    "taskId": "c7bc39f0-22a0-48cc-92f5-eabbdfd79588",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscp0201myymbk8as302qmc",
+      "cmqscofic1lyymbk855ay7xj8"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Reporting period stated and consistent with prior runs",
+      "Figures reconcile to the source system extract",
+      "Report distributed to the named recipients"
+    ],
+    "checklistSpecific": [
+      "Report referral rate as recovery referrals divided by paid claims, split by line of business",
+      "Quantify missed-recovery leakage from closed-paid claims that met trigger rules but were never referred",
+      "Break detection out by trigger source (automated rule, adjuster referral, manual file scan) to show which channel misses most",
+      "Show the referral-to-open cycle time and the count of files referred with under 90 days of statute runway",
+      "List the top three missed-recovery patterns with a named owner for each remediation action"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Detection metrics report for the period exists with referral rate, leakage estimate, and named remediation owners"
+      }
+    ]
+  },
+  {
+    "taskId": "2450c25b-ada9-4c82-a66a-10181acd42cf",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0k71mzymbk89pvlaay4",
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscozkh1my0mbk8uzg517r4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Rule run completed for the full population of newly paid claims",
+      "Run date, rule version, and record counts logged",
+      "Exceptions and rule errors routed for manual review"
+    ],
+    "checklistSpecific": [
+      "Confirm the rule set version in force matches the latest approved calibration before triggering the run",
+      "Execute triggers for adverse-vehicle present, third-party property damage, product/premises liability, and no-fault/med-pay lien indicators",
+      "Reconcile the input population count against paid claims closed in the period so no claim is skipped",
+      "Route rule-engine failures and unscored claims to a manual review exception queue rather than dropping them",
+      "Write the candidate output back to the claim record so the adjuster sees the subrogation flag on the file"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Trigger-rule run log for the period shows input population, candidates produced, and rule version"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No newly paid claim in the period is missing a trigger-rule evaluation result"
+      }
+    ]
+  },
+  {
+    "taskId": "545161c6-cc15-4352-82ed-58a6a9084f42",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozoh1my8mbk8ghggk47n",
+      "cmqscp0k71mzymbk89pvlaay4",
+      "cmqscofd61lyombk8ef0uqvus"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Scan covers both open and recently closed files in scope",
+      "Indicator found or not-found recorded on every file scanned",
+      "Scan completed within the review cycle"
+    ],
+    "checklistSpecific": [
+      "Read the loss description and adjuster notes for third-party fault language before relying on structured fields alone",
+      "Check the police or incident report for a cited party and any citation issued to the other driver",
+      "Look for a repair estimate or appraisal naming impact damage consistent with a third-party cause",
+      "Check for lien, med-pay, or workers-compensation offsets creating a separate recovery route",
+      "Record an indicator-found flag with the supporting document reference on each scanned file"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Every file in the scan batch carries a recovery-indicator found/not-found flag with document reference"
+      }
+    ]
+  },
+  {
+    "taskId": "d352e74b-16d8-423c-946a-af22870e39dd",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscp0k71mzymbk89pvlaay4",
+      "cmqscp0671mz6mbk84gimolja"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Score written to every candidate in the batch",
+      "Scoring model version recorded with the run",
+      "Score bands map to a defined routing action"
+    ],
+    "checklistSpecific": [
+      "Compute expected net recovery as paid indemnity plus deductible, times liability probability, less pursuit cost",
+      "Weight the score for adverse-carrier presence, since carrier-backed files collect materially more often than uninsured parties",
+      "Penalise candidates with under 180 days of statute runway or missing loss documentation",
+      "Assign a score band (high/medium/low) that drives auto-refer, manual review, or auto-close routing",
+      "Sample the top and bottom decile against specialist judgement before releasing the batch"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Each scored candidate carries a numeric recovery score, score band, and model version"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No candidate is routed to auto-close from a score band other than low"
+      }
+    ]
+  },
+  {
+    "taskId": "7b3410b7-fdff-4595-bd30-5272a675c436",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscof7a1lyembk8mazp2zkl",
+      "cmqscp0ha1mzsmbk867lin75t",
+      "cmqscofd61lyombk8ef0uqvus"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Coverage position on the file supports the amount paid",
+      "Policy version as of the date of loss retrieved, not the current version",
+      "Verification note added to the recovery file"
+    ],
+    "checklistSpecific": [
+      "Confirm the loss payment was made under a coverage part that carries a transfer-of-rights (subrogation) clause",
+      "Pull the policy form and endorsements in force on the date of loss and attach them to the recovery file",
+      "Check for a waiver of subrogation endorsement or contractual waiver that would extinguish the right",
+      "Confirm no anti-subrogation bar applies (same insurer on both sides, insured-versus-additional-insured)",
+      "Note the deductible amount and any coinsurance so the recoverable includes the insured share"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Date-of-loss policy form with the transfer-of-rights clause is attached to the recovery file"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No recovery file proceeds where a waiver of subrogation endorsement is present"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjjs60ziekfgz8u5rb2v6",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0ha1mzsmbk867lin75t",
+      "cmqscof7a1lyembk8mazp2zkl",
+      "cmqscofd61lyombk8ef0uqvus"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Recovery basis named explicitly on the file",
+      "Supporting document attached for the cited basis",
+      "Basis reviewed before demand is drafted"
+    ],
+    "checklistSpecific": [
+      "Classify the recovery basis as contractual subrogation, equitable subrogation, statutory lien, or contractual indemnity",
+      "Attach the clause, statute citation, or indemnity agreement that establishes the right",
+      "Confirm the insured has assigned or preserved the claim and has not released the tortfeasor",
+      "For statutory liens, record the filing or notice deadline the statute imposes",
+      "Escalate to Legal Counsel where the basis is equitable or the clause language is ambiguous"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Recovery basis field on the file is populated with a supporting clause or statute reference"
+      }
+    ]
+  },
+  {
+    "taskId": "72bfbb33-2ccb-49e7-9339-15c2b813fe5f",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscofic1lyymbk855ay7xj8"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Acknowledgement issued inside the unit service standard",
+      "Acknowledgement recorded on the claim, not only sent by email",
+      "Referring adjuster identified on the record"
+    ],
+    "checklistSpecific": [
+      "Stamp the referral received date/time on the recovery record and start the acknowledgement clock",
+      "Send the acknowledgement back to the referring adjuster with the recovery reference number",
+      "Confirm the referral source (auto-trigger, adjuster, SIU, intercompany) is recorded for detection reporting",
+      "Flag short-fuse referrals with under 90 days of statute runway for same-day specialist attention",
+      "Log the acknowledgement as a claim activity note so cycle-time reporting can measure it"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Acknowledgement activity exists on the claim within the referral SLA with the recovery reference number"
+      }
+    ]
+  },
+  {
+    "taskId": "2a6daa10-6c86-49a1-8394-f6bb67a56509",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozll1my2mbk8t8xqjo3n",
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscoff31lysmbk835qpkul1",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Every exhibit indexed and cross-referenced to the demand schedule",
+      "Package stored in the claim document repository, not a local drive",
+      "Package version and assembly date recorded"
+    ],
+    "checklistSpecific": [
+      "Include the payment ledger print showing indemnity paid, expense paid, and deductible applied",
+      "Attach the repair estimate or appraisal, invoices, and the total-loss valuation where applicable",
+      "Include the police or incident report, scene photographs, and recorded statement transcripts",
+      "Add the proof-of-payment (draft copy or EFT confirmation) evidencing the insurer actually paid the loss",
+      "Redact medical and personal data not required for the recovery before the package leaves the file"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Indexed evidence package attached to the recovery file with a document index listing each exhibit"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No evidence package is released externally containing unredacted personal or medical data"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjrvz13cekfgz7tequjwy",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscp0b31mzgmbk8b2rocjpq"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Named individual owner set, never a shared queue",
+      "Assignment recorded with date and assigning manager",
+      "Owner notified of the new file"
+    ],
+    "checklistSpecific": [
+      "Match the file to a specialist licensed and experienced in the loss jurisdiction and line of business",
+      "Check the specialist authority level covers the expected recoverable before assigning",
+      "Route complex liability, large-loss, or litigated files to a senior specialist rather than the standard queue",
+      "Confirm no conflict where the assignee handled the underlying claim payment",
+      "Notify the assignee and confirm the file appears on their diary within one business day"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Recovery file shows a named specialist owner with an assignment date"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No open recovery file remains assigned only to a team queue"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fij5o0i2mkfgz3g7vwe2l",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscozll1my2mbk8t8xqjo3n",
+      "cmqscoff31lysmbk835qpkul1"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Checklist generated from the loss-type template",
+      "Each line has an owner and a due date",
+      "Checklist stored on the recovery file"
+    ],
+    "checklistSpecific": [
+      "Select the checklist template matching the loss type (auto physical damage, property, liability, product)",
+      "Add mandatory lines for proof of payment, damages proof, liability proof, and policy/coverage proof",
+      "Add jurisdiction-specific lines such as no-fault forms, lien notices, or statutory demand prerequisites",
+      "Set diary dates for each outstanding item ahead of the demand target date",
+      "Mark items obtainable only from third parties (police report, medical records) so lead time is planned"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Evidence checklist on the recovery file has every line assigned an owner and due date"
+      }
+    ]
+  },
+  {
+    "taskId": "7ac1c147-cb18-4717-b672-1cd372a4fdbc",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscofd61lyombk8ef0uqvus"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Calculation tied to system payment records, not manual estimates",
+      "Working shown and stored on the file",
+      "Figure re-checked when further payments post"
+    ],
+    "checklistSpecific": [
+      "Pull total indemnity paid to date from the claim payment ledger as the calculation base",
+      "Add the insured deductible so the demand pursues the full loss, not the net insurer outlay",
+      "Add recoverable allocated loss adjustment expense only where the jurisdiction or contract permits it",
+      "Subtract salvage proceeds already realised so the same value is not demanded twice",
+      "Record the as-of date of the calculation and set a diary to refresh before the demand is issued"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Gross recoverable figure on the recovery file with a calculation note and as-of date"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No gross recoverable includes salvage proceeds already credited to the claim"
+      }
+    ]
+  },
+  {
+    "taskId": "3ea8beb5-8e6c-417f-9b66-a44c29b21ca4",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofkb1lz2mbk8bf6had6v",
+      "cmqscp0431mz2mbk8c0gkfukx",
+      "cmqscp0321mz0mbk8zlahkj7t"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Attachment test run against the treaty in force for the loss year",
+      "Flag recorded on the claim record",
+      "Reinsurance notified per contract terms"
+    ],
+    "checklistSpecific": [
+      "Compare incurred plus expected recovery against the treaty attachment point for the loss occurrence year",
+      "Identify whether the exposure is treaty or facultative and apply the correct notification deadline",
+      "Set the ceded-loss notification flag on the claim so recovery proceeds are shared with reinsurance",
+      "Notify facultative placements within 72 hours of the threshold being crossed",
+      "Record the reinsurance notification reference on the recovery file for later offset reconciliation"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Ceded-loss notification flag and reinsurance reference present on claims above the treaty attachment point"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjrjs1376kfgzkfaybt0z",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscozkh1my0mbk8uzg517r4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "File opened against the correct underlying claim number",
+      "Mandatory fields completed at open",
+      "Open date recorded for cycle-time measurement"
+    ],
+    "checklistSpecific": [
+      "Create the recovery record linked to the parent claim so payments and recoveries reconcile to one claim",
+      "Populate loss date, jurisdiction, recovery basis, adverse party, and expected recoverable at open",
+      "Set the recovery type (subrogation, deductible, salvage, intercompany arbitration) to drive the correct workflow",
+      "Establish the recovery receivable so the balance is visible in ageing reporting from day one",
+      "Confirm no duplicate recovery file exists for the same claim and adverse party"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Recovery file exists linked to the parent claim with recovery type and expected recoverable populated"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No duplicate open recovery file exists for the same claim number and adverse party"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fijge0i94kfgzg8lw1gyl",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscoff31lysmbk835qpkul1",
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscozll1my2mbk8t8xqjo3n"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Request logged with date and issuing authority",
+      "Follow-up diary set for non-receipt",
+      "Report filed to the claim document repository on arrival"
+    ],
+    "checklistSpecific": [
+      "Identify the correct issuing authority and report number from the loss notice before ordering",
+      "Submit the request with the date of loss, location, parties, and any required fee or release form",
+      "Set a follow-up diary at the authority stated turnaround and chase on lapse",
+      "On receipt, check the report names the adverse party and records any citation or fault statement",
+      "Index the report into the evidence package and update the evidence checklist line to received"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Report request logged on the recovery file with issuing authority, request date, and follow-up diary"
+      }
+    ]
+  },
+  {
+    "taskId": "9da57dd4-c981-43eb-a0bc-c02d1dbba533",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      },
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozll1my2mbk8t8xqjo3n",
+      "cmqscouxl1mpgmbk8jthi9znz",
+      "cmqscpje61nycmbk8gtr0c216",
+      "cmqscpjbx1ny8mbk8hwpd3ax4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Preservation obligation identified and recorded",
+      "Custody of each item traceable to a named holder",
+      "Preservation instruction acknowledged by custodians"
+    ],
+    "checklistSpecific": [
+      "Issue the litigation hold notice within 24 hours of identifying potential recovery litigation and track custodian acknowledgements",
+      "Place a do-not-destroy hold on the damaged vehicle, product, or component before salvage disposal proceeds",
+      "Record chain of custody for each physical item: who holds it, where stored, and transfer dates",
+      "Preserve digital evidence (telematics, CCTV, photographs, system logs) before routine retention purges it",
+      "Notify the adverse party or carrier of the preserved evidence and offer a joint inspection before any destructive testing"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Litigation hold notice and custodian acknowledgements recorded for the recovery matter"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No held physical evidence is released to salvage disposal while the hold is open"
+      }
+    ]
+  },
+  {
+    "taskId": "71d7dd96-d3df-4b7d-b43f-ef3923629092",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0ha1mzsmbk867lin75t",
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Controlling date entered as a hard system date, not a note",
+      "Diary ladder set ahead of the deadline",
+      "Date reviewed by a second pair of eyes on high-value files"
+    ],
+    "checklistSpecific": [
+      "Determine the controlling limitation period for the jurisdiction and cause of action (property damage, personal injury, contract, product)",
+      "Enter the statute expiry date in the recovery system as a locked field that blocks silent file closure",
+      "Set escalating diary reminders at 180, 90, 30, and 10 days before expiry",
+      "Apply the shortest applicable period where several parties or jurisdictions are in play, and record each separately",
+      "Check for any shorter contractual or statutory notice deadline (governmental entity notice, no-fault filing) and diary it separately"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Statute-of-limitations expiry date populated on every open recovery file with diary reminders set"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No open recovery file has a statute date in the past without a closure or suit-filed disposition"
+      }
+    ]
+  },
+  {
+    "taskId": "cdd3f546-621f-46c7-8afe-3d1ecd1deb61",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscp0k71mzymbk89pvlaay4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Referral checked against the intake completeness standard",
+      "Gaps returned to the referrer with a due date",
+      "Validation outcome recorded on the referral"
+    ],
+    "checklistSpecific": [
+      "Confirm the claim is paid or reserved so there is an actual outlay to recover",
+      "Check the adverse party details, loss facts, and liability rationale are present rather than blank",
+      "Verify the coverage decision on the underlying claim is final and not under reconsideration",
+      "Reject and return incomplete referrals with a named missing-item list instead of opening a hollow file",
+      "Record the validation result and, where accepted, trigger recovery file opening the same day"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Referral record shows a validation outcome of accepted or returned with a missing-item list"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No recovery file is opened from a referral still marked incomplete"
+      }
+    ]
+  },
+  {
+    "taskId": "a8c55670-1c19-46fa-87a9-a681ffec4402",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscoff31lysmbk835qpkul1",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Apportionment expressed as percentages totalling 100%",
+      "Rule set applied is the venue rule, recorded on the file",
+      "Basis for each percentage evidenced"
+    ],
+    "checklistSpecific": [
+      "Apply the venue rule correctly: pure comparative, modified comparative at the 50 or 51 percent bar, or contributory negligence",
+      "Assign a fault percentage to each identified party including the insured, and total to 100 percent",
+      "Cite the specific fact or evidence exhibit supporting each percentage assigned",
+      "Reduce the demand figure by the insured fault share before the demand is drafted",
+      "Flag files where the modified comparative bar would eliminate recovery entirely for close-out review"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Fault apportionment recorded on the file with percentages per party and the venue rule applied"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No demand amount is issued at 100 percent where insured fault has been assessed above zero"
+      }
+    ]
+  },
+  {
+    "taskId": "a307a7a1-daf9-4e2d-aaaa-dc0987ac10e6",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscp0ha1mzsmbk867lin75t",
+      "cmqscofgd1lyumbk8z1awrlqb"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Each identified defense recorded with an impact assessment",
+      "Legal input sought where a defense could be dispositive",
+      "Assessment refreshed if new facts arrive"
+    ],
+    "checklistSpecific": [
+      "Test contributory or comparative negligence exposure against the venue bar and record the recovery impact",
+      "Check for a waiver of subrogation, exculpatory clause, or contractual limitation in leases, repair, or service contracts",
+      "Check the anti-subrogation rule where the same insurer covers both parties",
+      "Assess the made-whole doctrine and any economic-loss rule limiting recovery in product or construction losses",
+      "Assign a percentage haircut to the expected recoverable for each surviving defense and feed it into the pursue decision"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Defense assessment note on the file listing each identified defense and its recovery impact"
+      }
+    ]
+  },
+  {
+    "taskId": "1995e6eb-5e79-45f4-97a8-565ea004c5cd",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscp0i71mzumbk8c1i5fm4o"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Calculation reproducible from stored inputs",
+      "Figure updated when fault or payments change",
+      "Result compared against the pursue threshold"
+    ],
+    "checklistSpecific": [
+      "Start from the gross recoverable and apply the assessed adverse fault percentage",
+      "Deduct expected pursuit cost: expert fees, filing fees, and any approved contingency fee percentage",
+      "Deduct the insured deductible share owed back on distribution so the insurer net position is clear",
+      "Apply any policy-limit ceiling where the adverse carrier limits cap the collectible amount",
+      "Record the final net recoverable and compare it to the minimum-pursuit threshold with a documented decision"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Net recoverable figure on the file with inputs for fault share, pursuit cost, and limits ceiling"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No file continues in active pursuit with a net recoverable below the documented pursuit threshold"
+      }
+    ]
+  },
+  {
+    "taskId": "306d09ee-a79b-4c82-a0bc-e5e2884e14eb",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Memo stored on the recovery file with author and date",
+      "Recommendation stated explicitly, not implied",
+      "Reviewed at the required authority level"
+    ],
+    "checklistSpecific": [
+      "State the loss facts, duty, breach, and causation chain in a numbered chronology with exhibit references",
+      "Set out the venue negligence rule applied and the fault percentages assigned to each party",
+      "Quantify gross recoverable, net recoverable, and the cost-to-pursue in a single figures table",
+      "List each surviving defense and the estimated haircut it applies to recovery",
+      "Close with an explicit recommendation: pursue direct demand, file arbitration, refer to counsel, or close"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Liability assessment memo attached to the recovery file containing a figures table and an explicit recommendation"
+      }
+    ]
+  },
+  {
+    "taskId": "3fe08f68-bbf9-449d-8bb3-4c307269b56b",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "f50ca763-8eb8-4c11-8f2d-f07c164bc6e9",
+        "use": "performed"
+      },
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofe51lyqmbk8piz66zqb",
+      "cmqscpj8z1ny2mbk8amt8du90",
+      "cmqscpjcw1nyambk8m2bhk138",
+      "cmqscouvr1mpcmbk89tfjqp2u"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Expert selected from the approved panel",
+      "Engagement letter and scope executed before work starts",
+      "Budget approved and tracked against the file"
+    ],
+    "checklistSpecific": [
+      "Confirm the expert discipline matches the loss (fire cause-and-origin, electrical, metallurgy, accident reconstruction)",
+      "Run a conflict check against the adverse party, insured, and manufacturer before instructing",
+      "Issue the engagement letter with a defined scope, deliverable format, deadline, and fee cap",
+      "Instruct the expert to preserve the evidence condition and invite the adverse party to any destructive testing",
+      "Record the expert cost as a pursuit expense so it flows into the net recoverable calculation"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Executed engagement letter with scope and fee cap recorded against the recovery matter"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No expert invoice is approved for an expert outside the approved panel without documented exception"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjwh3157ukfgz5al8kefy",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscoff31lysmbk835qpkul1",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscofd61lyombk8ef0uqvus"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Theory stated in one paragraph on the file",
+      "Each element supported by a named exhibit",
+      "Theory tested against alternative explanations"
+    ],
+    "checklistSpecific": [
+      "State the proximate cause and the mechanism linking the third-party act or defect to the damage claimed",
+      "Tie each causal link to a specific exhibit: expert report, photograph, statement, or maintenance record",
+      "Identify and rebut at least one alternative cause (pre-existing damage, insured maintenance failure, intervening act)",
+      "Confirm the damages claimed are consequences of the cause alleged, not unrelated pre-loss condition",
+      "Have the theory reviewed against the expert findings before it is repeated in the demand letter"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Causation theory note on the recovery file citing supporting exhibits for each causal link"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2finy60kd0kfgzw3wqamvk",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozni1my6mbk8t7hk46jp",
+      "cmqscozll1my2mbk8t8xqjo3n",
+      "cmqscoff31lysmbk835qpkul1"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Inspection completed within the scene inspection standard",
+      "Findings written up the same day",
+      "Photographs linked to the claim file"
+    ],
+    "checklistSpecific": [
+      "Attend within 72 hours for property losses before the scene is cleared or repairs begin",
+      "Photograph overall scene, damage detail, point of impact or origin, and any serial or model plates",
+      "Record measurements, impact direction, and damage pattern consistent with the alleged third-party cause",
+      "Identify and tag components to be retained for expert examination rather than discarded",
+      "Note the adverse party or carrier representative present, or record that a joint-inspection invitation was issued"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Scene inspection report with dated photographs linked to the claim file"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No inspection photographs are stored outside the claim document repository"
+      }
+    ]
+  },
+  {
+    "taskId": "bd08587b-078b-4573-a7e9-5ea7a4ba1f70",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscoff31lysmbk835qpkul1",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscozoh1my8mbk8ghggk47n"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Chain documented party by party on the file",
+      "Evidence reference against each link",
+      "Chain reviewed before demand drafting"
+    ],
+    "checklistSpecific": [
+      "List every party in the chain of responsibility: driver, owner, employer, contractor, sub-contractor, manufacturer, premises owner",
+      "State the duty owed by each party and the specific breach alleged, with the supporting exhibit",
+      "Identify vicarious liability routes (respondeat superior, permissive use, statutory owner liability) that add a solvent defendant",
+      "Check contractual indemnity and additional-insured status flowing between the parties",
+      "Rank the parties by collectability so the demand targets the solvent or insured party first"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Liability chain documented on the file listing each party with duty, breach, and evidence reference"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fio5m0kgmkfgzsfalwc8y",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozll1my2mbk8t8xqjo3n",
+      "cmqscouxl1mpgmbk8jthi9znz",
+      "cmqscoff31lysmbk835qpkul1"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Items uniquely tagged and logged",
+      "Storage location and custodian recorded",
+      "Release only against documented authorisation"
+    ],
+    "checklistSpecific": [
+      "Tag each retained item with claim number, item number, collection date, and collector name",
+      "Move items to secured storage and record the facility, container, and environmental conditions where relevant",
+      "Maintain the chain-of-custody log with every transfer signed by the receiving custodian",
+      "Block salvage sale or vehicle disposal on the claim until the preservation hold is lifted in writing",
+      "Set a retention diary tied to the statute-of-limitations date rather than routine claim retention"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Chain-of-custody log exists for each retained item with current custodian and storage location"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No preserved item is disposed of before the preservation hold is formally released"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjw99154ikfgzw8408sl9",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscoff31lysmbk835qpkul1",
+      "cmqscozmj1my4mbk8gzaf3ihb",
+      "cmqscofd61lyombk8ef0uqvus"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Chronology stored on the file in dated sequence",
+      "Conflicting accounts identified rather than smoothed over",
+      "Sources cited for each fact"
+    ],
+    "checklistSpecific": [
+      "Build a timestamped chronology from first event to loss discovery using statements, reports, and system data",
+      "Take or obtain recorded statements from the insured and any witnesses within the 14-day standard",
+      "Corroborate the chronology against objective data: telematics, CCTV, dispatch logs, weather, maintenance records",
+      "Flag inconsistencies between the insured account and the police report or adverse party version explicitly",
+      "Identify remaining factual gaps and set diary actions to close them before the demand is drafted"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Dated loss chronology on the recovery file citing the source for each entry"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No unresolved factual conflict is left unflagged in the chronology"
+      }
+    ]
+  },
+  {
+    "taskId": "c664a4c8-8d7e-4877-b203-91a63efc5208",
+    "roles": [
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "f50ca763-8eb8-4c11-8f2d-f07c164bc6e9",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscouyj1mpimbk8gg0f4g36",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscofgd1lyumbk8z1awrlqb"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Research output written to the file, not held verbally",
+      "Authorities cited with jurisdiction and currency date",
+      "Conclusion converted into an operational instruction for the specialist"
+    ],
+    "checklistSpecific": [
+      "Confirm the controlling venue and choice-of-law where the loss location, insured domicile, and adverse party differ",
+      "Document the comparative or contributory fault rule and any bar threshold applicable in that venue",
+      "Record the limitation period for each cause of action and any discovery-rule or tolling exception",
+      "Note venue-specific doctrines that affect recovery: made-whole, anti-subrogation, economic-loss rule, statutory lien rights",
+      "Summarise the practical effect in a one-page instruction the specialist can apply to the apportionment"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Venue research note on the file citing the fault rule, limitation period, and applicable doctrines"
+      }
+    ]
+  },
+  {
+    "taskId": "e8002dbc-f37c-4aef-be13-7fbdb04aabee",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0ha1mzsmbk867lin75t",
+      "cmqscof7a1lyembk8mazp2zkl",
+      "cmqscp0671mz6mbk84gimolja"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Both policy basis and statutory basis checked, not just one",
+      "Conclusion recorded before demand issue",
+      "Legal escalation where the basis is contested"
+    ],
+    "checklistSpecific": [
+      "Read the transfer-of-rights clause in the date-of-loss policy and confirm it covers the coverage part paid",
+      "Confirm the statutory recovery route (lien, direct action, no-fault reimbursement) and any notice prerequisites",
+      "Check the insured has not signed a release, waiver, or settlement that extinguishes the claim",
+      "Confirm any assignment or proof-of-loss condition precedent has been satisfied",
+      "Record the validated basis and any conditions to be met before the demand is served"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Recovery rights validation note on the file citing both the policy clause and any statutory basis"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No demand issued where the rights validation is recorded as unresolved"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fl8qu1rrqkfgz7r1sypd8",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscp0671mz6mbk84gimolja"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Closure only after financial balance is zero or written off",
+      "Closure reason and date recorded",
+      "Diary entries cleared on closure"
+    ],
+    "checklistSpecific": [
+      "Confirm the full recovery receipt has posted and the recovery receivable balance is nil",
+      "Confirm the insured deductible reimbursement has been issued or is formally not due",
+      "Confirm reinsurance ceded-recovery offsets and salvage allocations have been notified and booked",
+      "Set the closure reason (recovered in full, partial settlement, written off, no recovery) and record net recovered value",
+      "Release any litigation hold and evidence retention where no further action is pending, then clear diaries"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Closed recovery file shows a closure reason, closure date, and net recovered amount"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No recovery file is closed with an outstanding receivable balance and no write-off approval"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fio7s0kh9kfgzin32hrpp",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofqs1lzembk8ob2xuevz",
+      "cmqscofor1lzambk85rukogzk",
+      "cmqscp0ey1mzombk8star6eqx",
+      "cmqscp0671mz6mbk84gimolja"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Terms confirmed in writing by both sides",
+      "Terms recorded on the recovery file before release execution",
+      "Deviation from standard terms escalated"
+    ],
+    "checklistSpecific": [
+      "Confirm the settlement amount, currency, and whether it is inclusive or exclusive of the insured deductible",
+      "Record the payee name and remittance detail exactly as the paying carrier will issue it, for cash matching",
+      "Agree the due date and, for instalments, the schedule with amounts and default consequences",
+      "Confirm the reference the payer will quote so incoming cash can be identified on receipt",
+      "Escalate any instalment plan beyond the standard term or any discount outside authority for manager approval"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Written payment terms with amount, payee, due date, and remittance reference recorded on the recovery file"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No instalment arrangement is in force without documented manager approval"
+      }
+    ]
+  },
+  {
+    "taskId": "48a605a6-4540-4f05-858c-a346ebab513d",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscozll1my2mbk8t8xqjo3n"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Drafted from the approved demand template",
+      "Every figure traceable to the payment ledger",
+      "Draft reviewed before issue"
+    ],
+    "checklistSpecific": [
+      "Address the letter to the correct adverse carrier claim handler and quote both claim numbers",
+      "State the liability basis in two or three sentences tied to the causation theory, not a generic assertion",
+      "Attach a damages schedule itemising indemnity paid, deductible, and recoverable expense with invoice references",
+      "Attach proof of payment and the liability exhibits listed in the evidence index",
+      "State a specific response deadline and reserve the right to arbitrate or file suit on non-response"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Draft demand letter on the file with an itemised damages schedule and attached proof of payment"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No demand amount in the letter differs from the net recoverable recorded on the file"
+      }
+    ]
+  },
+  {
+    "taskId": "7d3c9e37-b6f5-41b7-ac01-1f748ca61ba7",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofqs1lzembk8ob2xuevz",
+      "cmqscp0b31mzgmbk8b2rocjpq",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Offer logged with date, amount, and source",
+      "Evaluation recorded before response is given",
+      "Authority level confirmed for the recommended action"
+    ],
+    "checklistSpecific": [
+      "Express the offer as a percentage of net recoverable and compare it to the unit acceptance band",
+      "Add the projected cost and cycle time of arbitration or suit to test whether pursuing beats accepting",
+      "Weigh the liability haircut already assessed so a fault-adjusted offer is not rejected as if it were full-value",
+      "Check the offer against the specialist authority limit and route above-limit acceptances to the manager",
+      "Record the accept, counter, or reject decision with the rationale and the counter-amount if applicable"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Offer evaluation note on the file showing offer as a percent of net recoverable and the decision taken"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No offer is accepted above the handling specialist authority limit without recorded manager approval"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2finy70kd4kfgzavdpld3j",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      },
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofpr1lzcmbk8j92av5r7",
+      "cmqscp0fy1mzqmbk8964vc9iz",
+      "cmqscofqs1lzembk8ob2xuevz"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Release executed by an authorised signatory on both sides",
+      "Fully executed copy filed to the document repository",
+      "Release checked against the agreed terms before signature"
+    ],
+    "checklistSpecific": [
+      "Confirm the release names the correct releasor, releasee, claim numbers, and the exact settlement amount",
+      "Confirm the release scope is limited to this loss and does not release unrelated or future claims",
+      "Confirm the insured deductible interest is either carved out or expressly included with the insured on notice",
+      "Obtain signature from a person with authority for the adverse party, and countersign at the correct internal authority level",
+      "File the fully executed release to the claim document repository and record the execution date on the recovery file"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Fully executed release stored on the claim file with execution date and settlement amount matching the file"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No recovery payment is released before the signed release is on file"
+      }
+    ]
+  },
+  {
+    "taskId": "951daf6d-87c2-4194-8544-d2a48f575612",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofor1lzambk85rukogzk",
+      "cmqscp0ey1mzombk8star6eqx",
+      "cmqscp0e01mzmmbk8b49ia6is",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc4ull305r5v8f89sjbcxu6",
+        "rel": "GOVERNS"
+      },
+      {
+        "regId": "cmrc5h7bk026hv880oq8vagwe",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Payee verified before disbursement",
+      "Payment issued within the settlement payment standard",
+      "Disbursement posted against the recovery file"
+    ],
+    "checklistSpecific": [
+      "Confirm the recovery cash has cleared before releasing the deductible reimbursement",
+      "Verify the payee is the named insured or the properly documented assignee, with current remittance details",
+      "Calculate the reimbursement as the deductible share of the amount actually recovered, not the amount demanded",
+      "Complete sanctions and payee screening before the disbursement is released",
+      "Issue within five business days of the settlement agreement and send the insured a reimbursement explanation"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Deductible reimbursement disbursement recorded against the recovery file with payee verification evidence"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No reimbursement is issued before the corresponding recovery receipt has cleared"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi5cd0bobkfgzf49z9dgj",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscp0ha1mzsmbk867lin75t"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Demand issued through a traceable channel",
+      "Issue date recorded and diary set for response",
+      "Copy of the issued package filed"
+    ],
+    "checklistSpecific": [
+      "Send to the adverse carrier claim handler by the agreed channel, or by tracked mail to the tortfeasor where uninsured",
+      "Confirm the full exhibit set transmitted matches the evidence index, with no missing attachment",
+      "Record the issue date and set the response diary at the stated deadline plus a short grace period",
+      "Confirm the demand was served with sufficient time remaining before the statute expiry",
+      "Save the transmitted package and delivery confirmation to the claim document repository"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Demand issue date, delivery confirmation, and transmitted package stored on the recovery file"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No demand is issued with under 30 days remaining to statute expiry without an escalation note"
+      }
+    ]
+  },
+  {
+    "taskId": "237e986f-a1ad-429d-a061-3cf508e47e42",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscp0j61mzwmbk8fqumiajl"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Response logged within the 24-hour activity standard",
+      "Correspondence attached, not just summarised",
+      "Next action diarised on logging"
+    ],
+    "checklistSpecific": [
+      "Classify the response as full acceptance, partial acceptance, denial, counter-offer, or request for information",
+      "Record the counter-position rationale (liability denied, damages disputed, comparative fault asserted) as stated by the adverse party",
+      "Attach the response correspondence to the recovery file and index it in the evidence package",
+      "Log the amount offered where a figure is quoted, so the offer evaluation can run against it",
+      "Set the next-action diary: rebut, negotiate, escalate to arbitration, or close"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Adverse party response logged with classification, amount where quoted, and attached correspondence"
+      }
+    ]
+  },
+  {
+    "taskId": "249af7ef-174c-429d-a4aa-a8ee09ab4534",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofqs1lzembk8ob2xuevz",
+      "cmqscp0b31mzgmbk8b2rocjpq",
+      "cmqscp0841mzambk8yfpw8urr",
+      "cmqscp0671mz6mbk84gimolja"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Authority limit checked before any figure is put forward",
+      "Each exchange logged the same day",
+      "Final agreement confirmed in writing"
+    ],
+    "checklistSpecific": [
+      "Set a walk-away floor from the net recoverable and the cost of arbitration before opening negotiations",
+      "Confirm the specialist authority limit covers the concession range, and obtain manager approval before exceeding it",
+      "Log each offer and counter-offer with date, amount, and the concession rationale",
+      "Concede on fault percentage or expense components only against evidence, not to close the file quickly",
+      "Confirm the agreed figure in writing with the adverse carrier before any release is prepared"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Negotiation log on the file showing each offer, counter-offer, and the final agreed amount"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No settlement is agreed above the handler authority limit without recorded manager approval"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fl8fc1rmjkfgzcc8b8krf",
+    "roles": [
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofor1lzambk85rukogzk",
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Receipt posted to the correct claim and recovery file",
+      "Posting date and reference captured",
+      "Ledger balance reconciles after posting"
+    ],
+    "checklistSpecific": [
+      "Match the incoming remittance to the recovery file using the payment reference agreed in the settlement terms",
+      "Post the receipt as a recovery against the correct coverage and loss component, not as a generic cash credit",
+      "Split the posting across deductible, indemnity, and expense recovery buckets per the allocation formula",
+      "Confirm the recovery receivable balance reduces by the exact amount posted",
+      "Interface the posting to the general ledger and confirm the journal cleared without suspense"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Recovery receipt posted against the recovery file with allocation across deductible, indemnity, and expense"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No recovery receipt remains in a suspense or unapplied cash account after the posting run"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi5ll0brokfgzlfc6bzow",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscofic1lyymbk855ay7xj8"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Response status field maintained on every open demand",
+      "Chase actions diarised, not ad hoc",
+      "Ageing of unanswered demands visible in reporting"
+    ],
+    "checklistSpecific": [
+      "Maintain a demand status of awaiting response, in negotiation, denied, or settled on every issued demand",
+      "Diary a first chase at the response deadline and a second chase 15 days later",
+      "Escalate demands unanswered after two chases to arbitration filing or suit referral rather than letting them age",
+      "Re-check the statute-of-limitations runway on every chase and prioritise short-fuse files",
+      "Report the open-demand ageing bands to the unit manager on the weekly cycle"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Every issued demand carries a current response status and a next-chase diary date"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No demand sits unanswered past two chase cycles without an escalation decision recorded"
+      }
+    ]
+  },
+  {
+    "taskId": "0756ff80-8db9-4d4e-949d-d05af6e4cdd9",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscozll1my2mbk8t8xqjo3n",
+      "cmqscofgd1lyumbk8z1awrlqb"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Package built to the forum evidence rules",
+      "Every exhibit numbered and referenced in the contention text",
+      "Package peer-reviewed before filing"
+    ],
+    "checklistSpecific": [
+      "Write the contention to the forum word or page limit, stating liability theory and damages separately",
+      "Number exhibits in the order cited and confirm the forum accepts each format before upload",
+      "Include proof of payment, damages itemisation, police report, photographs, and the applicable policy pages",
+      "Exclude exhibits the forum bars, such as unsworn expert opinion or attorney argument in the evidence section",
+      "Have a second specialist review the contention against the adverse carrier likely defence before filing"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Arbitration contention package on the file with a numbered exhibit index matching the citations"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No exhibit in the package is missing from the contention exhibit index"
+      }
+    ]
+  },
+  {
+    "taskId": "d52bcabc-814a-4d91-9b0c-e9cff582a205",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "f50ca763-8eb8-4c11-8f2d-f07c164bc6e9",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofgd1lyumbk8z1awrlqb",
+      "cmqscozqc1mycmbk8me2kbata",
+      "cmqscozkh1my0mbk8uzg517r4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Attendance or written submission confirmed against the forum notice",
+      "Outcome recorded on the file the same day",
+      "Preparation completed ahead of the hearing date"
+    ],
+    "checklistSpecific": [
+      "Confirm whether the forum decides on documents alone or requires a hearing appearance, and diary accordingly",
+      "Prepare a one-page hearing note with the liability theory, damages figure, and rebuttals to the counter-contention",
+      "Confirm the settlement authority available before the hearing in case the panel invites resolution",
+      "Attend or file the written submission by the forum deadline and retain the confirmation",
+      "Record the hearing date, panel comments, and any adjournment on the recovery file the same day"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Hearing attendance or written submission confirmation stored on the recovery file"
+      }
+    ]
+  },
+  {
+    "taskId": "5fc73ef8-a490-44f6-bbc5-325a8156f896",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscofgd1lyumbk8z1awrlqb"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Forum and rule set identified before any filing effort",
+      "Eligibility conclusion recorded on the file",
+      "Ineligible matters routed to an alternative recovery path"
+    ],
+    "checklistSpecific": [
+      "Confirm both carriers are signatories to the intercompany agreement for the relevant forum (AAA, Arbitration Forums, or state forum)",
+      "Check the dispute type and amount fall inside the forum jurisdiction and any monetary ceiling",
+      "Confirm no exclusion applies (coverage dispute, bad faith, non-signatory party, matter already in suit)",
+      "Record the filing deadline the forum rules impose and confirm it sits inside the statute-of-limitations runway",
+      "Where ineligible, record the reason and route the file to direct negotiation or suit referral"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Eligibility determination on the file naming the forum, rule set, and filing deadline"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No arbitration filing is prepared for a matter recorded as forum-ineligible"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjhyu0yhqkfgzyb9t33x4",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscofgd1lyumbk8z1awrlqb"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Filing made before the forum deadline",
+      "Filing confirmation retained on the file",
+      "Post-filing diary set for the response window"
+    ],
+    "checklistSpecific": [
+      "Submit the contention and exhibits through the forum portal against the correct adverse carrier member code",
+      "Confirm the damages amount filed matches the net recoverable on the recovery file to the cent",
+      "Retain the forum docket or case number and record it on the recovery file",
+      "Set the diary for the adverse carrier response window and the expected decision date",
+      "Update the recovery file status to arbitration filed so ageing reporting stops treating it as an open demand"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Forum docket number and filing confirmation recorded on the recovery file"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No arbitration is filed after the forum deadline without a documented exception"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fji910ynakfgzxqjwoxoy",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofor1lzambk85rukogzk",
+      "cmqscouvr1mpcmbk89tfjqp2u",
+      "cmqscpjax1ny6mbk8aoszxvjp"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Fee paid before the filing deadline",
+      "Payment evidence attached to the matter",
+      "Cost coded to the correct claim expense category"
+    ],
+    "checklistSpecific": [
+      "Confirm the fee schedule tier applicable to the filed amount before requesting payment",
+      "Raise the payment against the recovery file so the fee is captured as an allocated recovery expense",
+      "Code the fee to claim expense rather than general overhead so net recovery reporting stays accurate",
+      "Retain the fee receipt or forum payment confirmation on the recovery file",
+      "Flag the fee for reclaim in the contention where the forum rules allow fee recovery from the losing party"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Filing fee payment receipt recorded against the recovery file and coded to claim expense"
+      }
+    ]
+  },
+  {
+    "taskId": "522b625f-64bd-4b39-a4d2-4b4a66335cce",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Award recorded within the activity documentation standard",
+      "Award document attached to the file",
+      "Financial follow-up action created from the award"
+    ],
+    "checklistSpecific": [
+      "Record the awarded amount, the fault percentage the panel applied, and the decision date",
+      "Compare the award to the amount filed and log the variance reason for detection and scoring feedback",
+      "Raise the recovery receivable to the awarded figure so collections can pursue the correct balance",
+      "Check whether the forum rules allow a re-hearing or appeal and diary the window before it lapses",
+      "Attach the award document to the recovery file and update file status to awaiting payment"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Arbitration award amount, decision date, and award document recorded on the recovery file"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No award is recorded without a corresponding receivable adjustment"
+      }
+    ]
+  },
+  {
+    "taskId": "5ff02533-b46b-439c-869f-62dbf82adff1",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscofd61lyombk8ef0uqvus"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Notification sent to the carrier of record for the adverse policy",
+      "Send date and channel logged",
+      "Response diary set"
+    ],
+    "checklistSpecific": [
+      "Quote both carrier claim numbers, the insured names, the date of loss, and the amount claimed",
+      "State the liability basis and attach the damages itemisation so the adverse handler can evaluate without chasing",
+      "Send through the intercompany channel the adverse carrier accepts and retain the transmission confirmation",
+      "Set the response diary at the intercompany service standard rather than an arbitrary date",
+      "Record the notification on the recovery file as the trigger event for arbitration filing if unanswered"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Intercompany reimbursement notification with send date and transmission confirmation on the recovery file"
+      }
+    ]
+  },
+  {
+    "taskId": "5aa5d8bd-acb0-462d-b000-1c5baa5007dc",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofgd1lyumbk8z1awrlqb",
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscozkh1my0mbk8uzg517r4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Rebuttal filed within the forum deadline",
+      "Each counter-argument addressed, none skipped",
+      "Rebuttal and exhibits retained on the file"
+    ],
+    "checklistSpecific": [
+      "Read the counter-contention and list every assertion the adverse carrier makes on liability and damages",
+      "Answer each assertion in order with a factual rebuttal and a cited exhibit",
+      "Add only new exhibits the forum permits at rebuttal stage, avoiding a re-filing of the original package",
+      "Re-check the damages figure against the counter-contention challenge and correct any genuine overstatement",
+      "Submit before the forum rebuttal deadline and retain the submission confirmation on the file"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Rebuttal submission confirmation on the file addressing each counter-contention assertion"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No counter-contention assertion is left without a recorded rebuttal position"
+      }
+    ]
+  },
+  {
+    "taskId": "053f34f7-5831-41a9-ab56-a6a6aa23c8f3",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscofd61lyombk8ef0uqvus"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Every figure tied back to a ledger line",
+      "Deductions evidenced, not asserted",
+      "Verification recorded before filing"
+    ],
+    "checklistSpecific": [
+      "Reconcile the claimed amount line by line to the claim payment ledger with no unmatched lines",
+      "Confirm the deductible is claimed once only, either in the demand total or separately, never both",
+      "Deduct salvage proceeds already realised and any prior partial recovery from another party",
+      "Remove any expense not recoverable under the forum rules, such as internal handling cost",
+      "Confirm reinsurance or coinsurance shares are not double-claimed against the same loss component"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Damages reconciliation on the file tying each claimed line to a payment ledger entry"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No claimed amount includes a deductible or salvage figure counted twice"
+      }
+    ]
+  },
+  {
+    "taskId": "91f24477-0459-4444-8b42-dbb4769ea5d7",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscofd61lyombk8ef0uqvus"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Deductible amount taken from the claim record, not assumed",
+      "Inclusion or exclusion stated explicitly in the demand",
+      "Insured informed the deductible is being pursued"
+    ],
+    "checklistSpecific": [
+      "Read the applied deductible from the claim payment record for the specific coverage part paid",
+      "Add the deductible to the demand total so the insured share is pursued alongside the insurer outlay",
+      "State on the demand that the amount includes the insured deductible, so the adverse carrier cannot pay it separately",
+      "Apply the same fault percentage to the deductible portion as to the insurer portion",
+      "Record on the file that the insured has been told their deductible is included in the pursuit"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Demand total on the file explicitly separates the insurer paid amount and the insured deductible"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No demand claims a deductible amount different from the deductible applied on the claim record"
+      }
+    ]
+  },
+  {
+    "taskId": "6562c7b2-d13a-481b-81d0-4d55fe5fbff3",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscofor1lzambk85rukogzk"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Calculation stored with inputs on the recovery file",
+      "Method consistent with the published deductible recovery approach",
+      "Result agreed with finance before disbursement"
+    ],
+    "checklistSpecific": [
+      "Take the deductible actually applied on the claim as the numerator base, not the policy deductible amount",
+      "Compute the share as deductible divided by total loss claimed, applied to the amount actually recovered",
+      "Confirm whether the jurisdiction or company practice reimburses the deductible first or pro rata, and apply consistently",
+      "Deduct the insured proportionate share of pursuit costs only where the published approach allows it",
+      "Record the calculated share, the method used, and the resulting reimbursement figure on the file"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Deductible share calculation on the file showing the deductible base, recovery amount, and method applied"
+      }
+    ]
+  },
+  {
+    "taskId": "0e39ca28-159e-463a-99b1-57eb3d90b98c",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscofor1lzambk85rukogzk"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Partial recovery flagged as such before allocation",
+      "Pro-rata method applied uniformly across files",
+      "Working retained for audit"
+    ],
+    "checklistSpecific": [
+      "Confirm the receipt is a partial settlement and no further instalment is expected before allocating",
+      "Compute the pro-rata factor as amount recovered divided by total claimed, and apply it to the deductible",
+      "Apply the same pro-rata factor to the insurer indemnity share so the split is symmetric",
+      "Check whether the made-whole rule in the venue requires the insured share to be paid ahead of the insurer share",
+      "Recalculate and top up the insured share if a later instalment or supplemental recovery is received"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Pro-rata allocation working on the file showing the recovery factor applied to both insured and insurer shares"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No partial recovery allocates the deductible in full where the venue applies a pro-rata rule"
+      }
+    ]
+  },
+  {
+    "taskId": "765ee608-1c42-4b09-8860-dd7abe0a5ca9",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscofor1lzambk85rukogzk",
+      "cmqscp0671mz6mbk84gimolja"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Closure only after the disbursement has settled",
+      "Closure status visible on the recovery file",
+      "Zero remaining deductible balance confirmed"
+    ],
+    "checklistSpecific": [
+      "Confirm the reimbursement payment has cleared and is not returned, stale-dated, or unpresented",
+      "Set the deductible obligation status to closed with the disbursed amount and date recorded",
+      "Confirm the deductible balance on the recovery file nets to zero after the disbursement posts",
+      "Where no deductible is due, record the not-applicable reason rather than leaving the status blank",
+      "Clear the deductible diary so the file no longer appears on the outstanding-reimbursement report"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Deductible obligation status on the recovery file set to closed with disbursed amount and date"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No closed recovery file carries a non-zero outstanding deductible balance"
+      }
+    ]
+  },
+  {
+    "taskId": "e9dab64c-18b8-484d-ade7-c2122ddf61b3",
+    "roles": [
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofor1lzambk85rukogzk",
+      "cmqscp0ey1mzombk8star6eqx",
+      "cmqscp0e01mzmmbk8b49ia6is"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc4ull305r5v8f89sjbcxu6",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Payee identity and bank detail verified before release",
+      "Payment issued within the settlement payment standard",
+      "Payment posted against the recovery file"
+    ],
+    "checklistSpecific": [
+      "Verify the payee name matches the named insured on the policy and that remittance details were verified out of band",
+      "Complete sanctions and watch-list screening on the payee before the disbursement is released",
+      "Confirm no lien, assignment, or loss-payee interest takes priority over the insured reimbursement",
+      "Issue the payment within five business days of the recovery clearing and record the payment reference",
+      "Post the disbursement against the deductible recovery bucket so allocation reporting stays accurate"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Disbursement record with payee verification and sanctions screening evidence attached to the recovery file"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No disbursement is released to a payee that failed or bypassed sanctions screening"
+      }
+    ]
+  },
+  {
+    "taskId": "984d59a2-099d-478b-9052-57973bd02921",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03skmbk83lzmiyz9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5h7bk026hv880oq8vagwe",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Notification sent through a recorded channel",
+      "Copy retained on the claim file",
+      "Notification wording follows the approved template"
+    ],
+    "checklistSpecific": [
+      "Tell the insured plainly whether the deductible was recovered in full, in part, or not at all",
+      "State the reimbursement amount and expected payment date, or the reason none is due",
+      "Explain the pro-rata basis in plain language where only a partial recovery was achieved",
+      "Confirm the insured remittance details before promising a payment date",
+      "File the notification copy to the claim document repository and log the send date as a claim activity"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Insured notification copy on the claim file stating recovery outcome and reimbursement amount"
+      }
+    ]
+  },
+  {
+    "taskId": "6865d945-a09f-4c6d-8514-7a72264e3210",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      },
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscpjx11nzambk8zugs0g9w",
+      "cmqscofd61lyombk8ef0uqvus",
+      "cmqscozll1my2mbk8t8xqjo3n"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Documents stored in the system of record, not local storage",
+      "Retention period applied per the schedule",
+      "Documents retrievable by claim number"
+    ],
+    "checklistSpecific": [
+      "Retain the deductible calculation working, the recovery receipt, and the disbursement confirmation as one indexed set",
+      "Retain the insured notification copy and any correspondence disputing the amount",
+      "Apply the claims retention period measured from claim closure, not from the payment date",
+      "Confirm every document is indexed against the claim number so a market-conduct examiner can retrieve it",
+      "Suppress routine deletion while any litigation hold on the matter remains open"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Deductible reimbursement document set indexed against the claim number in the document repository"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No reimbursement document is stored only outside the claim document repository"
+      }
+    ]
+  },
+  {
+    "taskId": "be71e6fa-cddd-4f08-a90f-2574af99f46c",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0ha1mzsmbk867lin75t",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [
+      {
+        "regId": "cmrc5h7bk026hv880oq8vagwe",
+        "rel": "GOVERNS"
+      }
+    ],
+    "checklistGeneric": [
+      "Venue rule identified before distribution",
+      "Compliance conclusion recorded on the file",
+      "Legal escalation on contested application"
+    ],
+    "checklistSpecific": [
+      "Determine whether the venue applies the made-whole doctrine and whether the policy validly contracts out of it",
+      "Total the insured uncompensated loss: deductible, uninsured betterment, loss of use, and any excess above limits",
+      "Confirm the recovery covers the insured uncompensated loss before any insurer share is retained",
+      "Where the recovery is insufficient, pay the insured share first and record the insurer shortfall",
+      "Record the made-whole conclusion and the distribution order applied before the disbursement is raised"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Made-whole assessment on the file stating the venue rule and the distribution order applied"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No insurer share is retained ahead of the insured share in a made-whole venue with a partial recovery"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2flkli1xldkfgz9jw0d8m7",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscofic1lyymbk855ay7xj8"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Ageing run on the standard cycle with the run date recorded",
+      "Bands consistent with the published policy",
+      "Totals reconcile to the receivable control account"
+    ],
+    "checklistSpecific": [
+      "Age each open receivable from the demand issue date or award date into 0-30, 31-60, 61-90, 91-180, and 180-plus bands",
+      "Reconcile the ageing total to the recovery receivable balance in the general ledger and explain any variance",
+      "Split the ageing by debtor type (carrier, self-insured, uninsured individual, vendor) since collection profiles differ",
+      "Flag balances past 180 days for the write-off review queue",
+      "Publish the ageing to the unit manager with the top overdue balances named"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Recovery receivable ageing report for the period reconciling to the ledger control balance"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No open receivable is missing from the ageing report"
+      }
+    ]
+  },
+  {
+    "taskId": "8ef00cee-23db-498c-af0a-45ade7d03805",
+    "roles": [
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscofkb1lz2mbk8bf6had6v"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Allocation follows the documented formula, not handler judgement",
+      "Allocation sums exactly to the amount received",
+      "Allocation booked before the file is closed"
+    ],
+    "checklistSpecific": [
+      "Apply the distribution order: insured deductible share, pursuit expense, insurer indemnity, then reinsurance ceded share",
+      "Confirm the salvage proceeds component is allocated separately and not double-counted with indemnity recovery",
+      "Calculate the reinsurance ceded recovery share against the treaty terms for the loss occurrence year",
+      "Confirm the allocation lines total exactly the cash received, with no rounding residue left unallocated",
+      "Book the allocation entries and confirm the general ledger interface cleared without suspense items"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Proceeds allocation on the recovery file with lines for deductible, expense, indemnity, and ceded share"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No allocated total differs from the cash actually received on the recovery file"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2flkri1xnckfgzza5znnvp",
+    "roles": [
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofor1lzambk85rukogzk",
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Receipt applied to a single identified claim and recovery file",
+      "Application date and reference recorded",
+      "Unapplied cash cleared same cycle"
+    ],
+    "checklistSpecific": [
+      "Match the receipt to the recovery file using the remittance reference agreed at settlement, not by amount alone",
+      "Split a bulk carrier remittance across the individual recovery files it covers before applying",
+      "Apply the receipt across the deductible, indemnity, and expense buckets per the allocation formula",
+      "Reduce the recovery receivable by the applied amount and confirm the residual balance is intended",
+      "Clear the item out of unapplied cash the same close cycle rather than leaving it in suspense"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Receipt applied against a named recovery file with bucket-level allocation recorded"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No receipt remains in unapplied cash beyond the current close cycle"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2flkz41xrikfgzoenb7v4r",
+    "roles": [
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscp0841mzambk8yfpw8urr",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Review run on the defined cycle over all aged balances",
+      "Each recommendation supported by evidence of uncollectability",
+      "Approvals obtained at the correct authority level"
+    ],
+    "checklistSpecific": [
+      "Pull all receivables aged beyond 180 days and list the collection actions already attempted on each",
+      "Test collectability evidence: debtor insolvency, no traceable address, statute expired, or carrier denial upheld at arbitration",
+      "Confirm the statute-of-limitations position so no still-enforceable claim is written off prematurely",
+      "Recommend write-off, continued pursuit, or external collections referral for each balance individually",
+      "Route write-offs above the delegated threshold to manager approval before the ledger entry is raised"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Write-off review record listing each aged balance with a recommendation and supporting evidence"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No write-off above the delegated threshold lacks recorded manager approval"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fl6h51qndkfgzcqb4rjdq",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscofd61lyombk8ef0uqvus"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Notices issued on the defined escalation ladder",
+      "Each notice logged against the receivable",
+      "Wording drawn from the approved template"
+    ],
+    "checklistSpecific": [
+      "Trigger the first notice at 30 days past the agreed due date, quoting the settlement reference and balance",
+      "Escalate the notice tone and addressee at 60 and 90 days, moving from handler to carrier recovery manager",
+      "Include the payment reference and remittance instructions on every notice so cash can be matched on receipt",
+      "Use the compliant wording template when dunning an individual debtor rather than a carrier",
+      "Log each notice on the receivable with send date and set the next escalation diary"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Dunning notice history logged against each overdue receivable with send dates"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No overdue receivable past 60 days has zero dunning notices recorded"
+      }
+    ]
+  },
+  {
+    "taskId": "c69f04c5-8175-4edc-9b2f-8288bb3e2f0a",
+    "roles": [
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofkb1lz2mbk8bf6had6v",
+      "cmqscp0431mz2mbk8c0gkfukx",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Notification made per the contract terms and deadline",
+      "Ceded share calculated from the treaty in force for the loss year",
+      "Notification reference recorded on the file"
+    ],
+    "checklistSpecific": [
+      "Identify each treaty and facultative placement attaching to the loss occurrence year",
+      "Calculate the ceded recovery share against the treaty terms, net of any ceded pursuit expense allowance",
+      "Notify the reinsurer within the contract-stated deadline and retain the transmission evidence",
+      "Confirm the ceded recovery offset posts against the correct reinsurance recoverable balance",
+      "Reconcile the notified ceded share to the booked allocation so the two do not diverge at close"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Reinsurance ceded-recovery notification reference recorded on the recovery file with the calculated share"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No recovery on a ceded claim is closed without a ceded-share notification"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhxpj088skfgz6u98h23q",
+    "roles": [
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofor1lzambk85rukogzk",
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Entries posted to the correct accounting period",
+      "Posting reference traceable to the source receipt",
+      "Ledger interface confirmed clean"
+    ],
+    "checklistSpecific": [
+      "Post the recovery against the correct claim, coverage, and loss component so loss ratios reflect it correctly",
+      "Use the recovery transaction type matching the source (subrogation, salvage, deductible, reinsurance) rather than a generic credit",
+      "Confirm the posting falls in the open accounting period and is not back-dated into a closed period",
+      "Verify the paid-loss net of recovery on the claim reduces by exactly the posted amount",
+      "Confirm the general ledger interface accepted the journal with no suspense or rejected lines"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Recovery entries posted with the correct recovery transaction type and a traceable source reference"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No recovery journal remains in the interface error or suspense queue after the posting run"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fl6ri1qsokfgzhkkd2g0v",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscozkh1my0mbk8uzg517r4",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Contact attempts logged with date, channel, and outcome",
+      "Promise-to-pay recorded with a due date",
+      "Escalation triggered when contact fails"
+    ],
+    "checklistSpecific": [
+      "Contact the adverse carrier recovery handler directly on carrier balances rather than relying on written notices alone",
+      "Record every promise to pay with the promised amount and date, and diary the follow-up on that date",
+      "Where an individual debtor cannot pay in full, negotiate an instalment plan inside the approved terms",
+      "Escalate to the carrier recovery manager or to arbitration where the handler is unresponsive after two contacts",
+      "Confirm the statute-of-limitations runway on every contact and refer to suit before it lapses"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Collection contact log on each overdue receivable with channel, outcome, and next action"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No overdue receivable has a promise-to-pay past due without a recorded follow-up"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2flkep1xhgkfgzree3u8im",
+    "roles": [
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofor1lzambk85rukogzk",
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscozkh1my0mbk8uzg517r4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "All incoming recovery cash captured, none left unrecorded",
+      "Identification attempted before parking in suspense",
+      "Unidentified items aged and chased"
+    ],
+    "checklistSpecific": [
+      "Match the remittance advice reference to an open recovery file before applying anything",
+      "For bulk carrier remittances, obtain the schedule breaking the payment down by claim before posting",
+      "Identify short payments against the agreed amount and flag the shortfall rather than closing the balance",
+      "Park genuinely unidentifiable receipts in the suspense account with a chase action to the remitter",
+      "Confirm the receipt currency and any bank charges deducted so the applied amount matches the cash"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Every incoming recovery receipt carries an identification outcome linking it to a recovery file or suspense with a chase"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No unidentified recovery receipt sits in suspense beyond the agreed ageing limit without a chase record"
+      }
+    ]
+  },
+  {
+    "taskId": "7ead3284-f496-4fde-a2ec-ec85d05daf42",
+    "roles": [
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscp0671mz6mbk84gimolja"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Reconciliation performed each close cycle",
+      "Every variance explained and owned",
+      "Reconciliation signed off before close"
+    ],
+    "checklistSpecific": [
+      "Reconcile total recoveries posted in the recovery system to the recovery credits in the claim payment ledger",
+      "Identify timing differences from period-end cut-off separately from genuine posting errors",
+      "Investigate any recovery posted with no matching claim payment, which signals a mis-keyed claim number",
+      "Confirm the recovery receivable movement equals opening balance plus new demands less cash and write-offs",
+      "Record the reconciliation with variance explanations and obtain sign-off before the ledger closes"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Signed recovery reconciliation for the close period with each variance explained"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No unexplained variance remains between recovery system totals and the claim payment ledger"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi5k30br5kfgzoi7o28pa",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscp0i71mzumbk8c1i5fm4o",
+      "cmqscp0671mz6mbk84gimolja"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Referral only after in-house collection steps are exhausted",
+      "Agency selected from the approved vendor list",
+      "Referral and fee terms recorded on the file"
+    ],
+    "checklistSpecific": [
+      "Confirm the in-house dunning ladder and direct contact attempts are exhausted and logged before referring",
+      "Confirm the balance remains within the statute of limitations and is legally enforceable",
+      "Select an approved collections agency and confirm the contingency fee percentage is within approved terms",
+      "Transmit the debt file with the settlement agreement, demand, and proof of loss so the agency can substantiate the debt",
+      "Suspend in-house dunning on referral so the debtor does not receive parallel demands"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Collections referral record on the file naming the approved agency and the agreed contingency fee"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No balance is referred to external collections while in-house dunning remains active"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhy1708dzkfgza995p5kl",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "use": "performed"
+      },
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofnt1lz8mbk8jldiwsv6",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscp0841mzambk8yfpw8urr",
+      "cmqscp0a31mzembk8hmjzblgt"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Reserve movement supported by a documented rationale",
+      "Approval obtained where the change exceeds the threshold",
+      "Movement posted in the correct period"
+    ],
+    "checklistSpecific": [
+      "Release the recovery reserve only for the amount actually recovered, keeping reserve for any remaining pursuit",
+      "Reverse the associated expense reserve for pursuit costs no longer expected to be incurred",
+      "Obtain manager approval where the reserve movement exceeds the 25K change threshold",
+      "Record the rationale linking the reserve movement to the specific recovery receipt or award",
+      "Confirm the resulting net incurred on the claim reflects the recovery and no stale reserve remains"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Reserve reversal posted with a documented rationale referencing the recovery receipt"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No reserve movement above the approval threshold is posted without recorded manager approval"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi5up0bwckfgzbg4ew3bn",
+    "roles": [
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscp0841mzambk8yfpw8urr"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Write-off approved before the entry is posted",
+      "Reason code selected from the standard list",
+      "Posting reflected in the receivable ageing immediately"
+    ],
+    "checklistSpecific": [
+      "Select the write-off reason code (debtor insolvent, untraceable, statute expired, arbitration lost, uneconomic to pursue)",
+      "Attach the supporting evidence for the reason chosen, such as the insolvency notice or the arbitration decision",
+      "Confirm the approval sits at the authority level matching the write-off value before posting",
+      "Post the write-off to the recovery bad-debt account rather than reversing the original recovery credit",
+      "Confirm the receivable ageing drops the balance and the recovery file moves to closed with the write-off reason"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Write-off entry with reason code, supporting evidence, and approval recorded against the recovery file"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No write-off is posted without an approval at the matching authority level"
+      }
+    ]
+  },
+  {
+    "taskId": "57c40829-ab84-47c3-b20e-f487521b1fca",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscofjb1lz0mbk80oj495hj",
+      "cmqscp0k71mzymbk89pvlaay4",
+      "cmqscozsa1mygmbk811yx9w8j"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Sample defined and documented before review begins",
+      "Root cause assigned per case, not per theme only",
+      "Findings converted into named remediation actions"
+    ],
+    "checklistSpecific": [
+      "Sample closed-paid claims that met a subrogation trigger but were never referred, and quantify the paid amount at risk",
+      "Classify each miss by root cause: trigger not fired, adjuster did not refer, statute lapsed, evidence never captured, referral rejected",
+      "Quantify leakage from statute-lapsed files separately, since those are unrecoverable rather than deferred",
+      "Break leakage down by handling team and line of business to show where the loss concentrates",
+      "Assign a named owner and a due date to each top root cause and feed the finding into rule calibration"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Leakage analysis for the period with root-cause classification and quantified paid amount at risk"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi09609e6kfgz4cltkkjm",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0201myymbk8as302qmc",
+      "cmqscofic1lyymbk855ay7xj8",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Targets are the approved current-year targets",
+      "Variance calculated consistently across metrics",
+      "Material variances explained, not just displayed"
+    ],
+    "checklistSpecific": [
+      "Compare recovery rate (recovered divided by recoverable identified) against the approved target by line of business",
+      "Compare average days from referral to recovery against the cycle-time target and prior period",
+      "Compare recovery expense ratio (pursuit cost divided by gross recovered) against target",
+      "Show the variance in both absolute value and percentage so small-base metrics are not overweighted",
+      "Write a one-line driver explanation for every metric more than 10 percent adrift of target"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Benchmark output showing each recovery metric against target with a variance figure"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No metric more than 10 percent adrift of target is left without a driver explanation"
+      }
+    ]
+  },
+  {
+    "taskId": "5e465f4a-2fb8-45cc-aac8-03df9233a693",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0201myymbk8as302qmc",
+      "cmqscpjg41nygmbk8jdkxza4s",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Briefing held on the agreed cadence",
+      "Figures identical to the published scorecard",
+      "Actions and owners minuted"
+    ],
+    "checklistSpecific": [
+      "Open with net recovered value for the period against target and prior year, in one figure",
+      "Show recovery rate, cycle time, and leakage in a three-metric summary before any detail",
+      "Call out the largest single recoveries and the largest write-offs with the reason for each",
+      "Present the improvement plan status with a RAG rating per action and the owner named",
+      "Minute the decisions and any new actions with owners and due dates onto the recovery file record"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Leadership briefing pack and minutes for the period with actions, owners, and due dates recorded"
+      }
+    ]
+  },
+  {
+    "taskId": "f25a45d6-9718-402c-ad76-b4309162afe2",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscp0671mz6mbk84gimolja",
+      "cmqscp0k71mzymbk89pvlaay4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Calibration uses closed-file outcomes, not open estimates",
+      "Old and new rule versions both retained",
+      "Change approved before release to production"
+    ],
+    "checklistSpecific": [
+      "Join closed recovery outcomes back to the original trigger scores to measure precision and recall per rule",
+      "Identify rules producing high false-positive volume and retire or re-weight them rather than leaving them firing",
+      "Add new trigger conditions derived from the leakage root-cause analysis for claims the rules missed",
+      "Back-test the revised rule set against the prior period population before promoting it",
+      "Version the rule set, record the approver, and note the go-live date so scored batches remain traceable"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Calibration record showing per-rule precision and recall, the revised rule version, and the approver"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No revised rule set is promoted to production without a recorded back-test result"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi00s098qkfgzrr10wejc",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0201myymbk8as302qmc",
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscofic1lyymbk855ay7xj8"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Same period definition applied across every metric",
+      "Totals reconcile to the finance recovery figures",
+      "Compiled pack versioned and dated"
+    ],
+    "checklistSpecific": [
+      "Compile gross recovered, net recovered, and pursuit cost by line of business and recovery type",
+      "Compile referral volume, open file counts, and closure counts to show pipeline health, not just cash",
+      "Reconcile total net recovered to the ledger recovery credits before the pack is issued",
+      "Include intercompany arbitration win rate and average award as a percentage of amount filed",
+      "Version and date the pack so month-on-month comparisons use consistent restated figures"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Compiled recovery metrics pack for the period reconciling net recovered to the ledger"
+      }
+    ]
+  },
+  {
+    "taskId": "1dfe66fb-545f-4d2c-b499-f9335df4facd",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscofic1lyymbk855ay7xj8",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Extract parameters recorded so the run is reproducible",
+      "Row counts checked against the source",
+      "Extract stored in the reporting location, not a personal drive"
+    ],
+    "checklistSpecific": [
+      "Run the extract on the standard period cut-off so cycle-time metrics are not distorted by partial months",
+      "Pull recovery amounts, referral and closure dates, statute dates, and pursuit expense as one joined dataset",
+      "Include closed-with-no-recovery files so the recovery rate denominator is complete",
+      "Check the extract row count against the source recovery file count and investigate any shortfall",
+      "Save the extract with the run parameters and timestamp so the compiled metrics can be re-derived"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Recovery metrics extract stored with run parameters, timestamp, and source row-count check"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No metrics extract excludes closed-with-no-recovery files from the population"
+      }
+    ]
+  },
+  {
+    "taskId": "a870424a-02dc-4ac5-8c17-353dc17804cb",
+    "roles": [
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0ro03sombk8str25d9l",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0201myymbk8as302qmc",
+      "cmqscofrp1lzgmbk80gnkvblu",
+      "cmqscp0671mz6mbk84gimolja"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Each recommendation traced to an evidenced finding",
+      "Benefit and effort quantified per recommendation",
+      "Decision captured for every item presented"
+    ],
+    "checklistSpecific": [
+      "Tie every recommendation to a quantified leakage or variance finding rather than general opinion",
+      "State the expected annual recovery uplift and the effort or cost for each recommendation",
+      "Rank the recommendations so leadership sees the highest-value change first",
+      "Name the accountable owner and the system or process to be changed for each item",
+      "Record the approve, defer, or reject decision per item with the date and decision maker"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Recommendation pack with quantified uplift, owner, and a recorded decision per item"
+      }
+    ]
+  },
+  {
+    "taskId": "1dbf202d-d0de-4e51-852e-36cdd596f6f3",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      },
+      {
+        "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscp0j61mzwmbk8fqumiajl",
+      "cmqscofnt1lz8mbk8jldiwsv6",
+      "cmqscofrp1lzgmbk80gnkvblu"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Reporting cadence and cut-off agreed with the recipient",
+      "Figures reconciled to the ledger before issue",
+      "Basis of preparation stated on the submission"
+    ],
+    "checklistSpecific": [
+      "Report gross recovered, recovery expense, and net recovered by accident year and line of business",
+      "Split subrogation, salvage, deductible, and reinsurance recoveries so the development patterns are not mixed",
+      "Include open recovery receivables and expected future recoveries to support reserve credit setting",
+      "Reconcile the reported net recovery to the general ledger recovery credits and note any timing differences",
+      "State the data cut-off date and any restatement of prior periods on the face of the submission"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Actuarial recovery submission for the period split by accident year and recovery type with a stated cut-off date"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No submission is issued before reconciliation to the ledger recovery credits is complete"
+      }
+    ]
+  },
+  {
+    "taskId": "c6ea3896-9568-45cb-9e87-279bf5f883e2",
+    "roles": [
+      {
+        "roleId": "cmqsck0ro03slmbk80hmu7mp9",
+        "rel": "Owner"
+      },
+      {
+        "roleId": "cmqsck0rr03xjmbk8bwg8nkv9",
+        "rel": "Participant"
+      },
+      {
+        "roleId": "cmqsck0rp03v5mbk8cz1pbndt",
+        "rel": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "appId": "f50ca763-8eb8-4c11-8f2d-f07c164bc6e9",
+        "use": "performed"
+      },
+      {
+        "appId": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "use": "performed"
+      }
+    ],
+    "standards": [
+      "cmqscouvr1mpcmbk89tfjqp2u",
+      "cmqscpjf61nyembk8cowemioz",
+      "cmqscpj9z1ny4mbk8yhoo49mc",
+      "cmqscpj8z1ny2mbk8amt8du90"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Scoring uses the contracted SLA metrics, not ad hoc measures",
+      "Score supported by system data rather than opinion",
+      "Results shared with the vendor and retained"
+    ],
+    "checklistSpecific": [
+      "Score salvage vendors on realised value against expected value and days from assignment to sale",
+      "Score collections agencies on gross collected, net after contingency fee, and recovery rate on referred balances",
+      "Score panel legal firms on cycle time, spend against budget, billing-guideline compliance, and outcome value",
+      "Cross-check invoices against the billing guidelines and record disallowed line items in the score",
+      "Publish the scorecard to each vendor with a remediation plan where any SLA metric is missed"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": null,
+        "checkType": "presence",
+        "expected": "Vendor scorecard for the period covering salvage, collections, and legal vendors against contracted SLA metrics"
+      },
+      {
+        "system": null,
+        "location": null,
+        "checkType": "absence",
+        "expected": "No vendor missing an SLA metric is left without a recorded remediation action"
+      }
+    ]
+  }
+]

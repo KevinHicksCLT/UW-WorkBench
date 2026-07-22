@@ -124,7 +124,6 @@ function ElementCard({
 
 export default function ProductComparePanel(props: Props) {
   const {
-    versionLevelName,
     versions,
     comparison,
     matchFilter,
@@ -139,6 +138,15 @@ export default function ProductComparePanel(props: Props) {
   const countBy = (s: MatchStatus) =>
     comparison.rows.reduce((a, r) => a + r.groups.filter((g) => g.status === s).length, 0);
   const filterable: MatchStatus[] = ['COMMON', 'PARTIAL', 'UNIQUE'];
+  // Vocabulary the counts live by: an ELEMENT is one card, specific to its
+  // version; a ROW lines up the semantically-same element across versions.
+  // Users count cards, so the headline counts elements; the chips count rows.
+  const chipLabel: Record<MatchStatus, string> = {
+    COMMON: 'shared by all versions',
+    PARTIAL: 'shared by some',
+    UNIQUE: 'in one version only',
+    SINGLE: '',
+  };
 
   return (
     <div
@@ -150,10 +158,6 @@ export default function ProductComparePanel(props: Props) {
     >
       <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>
         Current
-        <span style={{ fontWeight: 400, fontSize: 12, color: '#a3a3a3' }}>
-          {' '}
-          · the {versionLevelName.toLowerCase()}s as filed
-        </span>
       </div>
 
       {/* Match counters double as filters (multi-version comparisons only) —
@@ -184,8 +188,8 @@ export default function ProductComparePanel(props: Props) {
               whiteSpace: 'nowrap',
             }}
           >
-            <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.normalizedCount}</b>
-            <span style={{ color: '#525252' }}>concepts</span>
+            <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.rawCount}</b>
+            <span style={{ color: '#525252' }}>elements</span>
             {filterable.map((s) => {
               const meta = MATCH_META[s];
               const active = matchFilter === s;
@@ -220,8 +224,7 @@ export default function ProductComparePanel(props: Props) {
                       flexShrink: 0,
                     }}
                   />
-                  <b style={{ fontWeight: 700, color: meta.fg }}>{countBy(s)}</b>{' '}
-                  {meta.label.toLowerCase()}
+                  <b style={{ fontWeight: 700, color: meta.fg }}>{countBy(s)}</b> {chipLabel[s]}
                 </button>
               );
             })}
@@ -306,6 +309,8 @@ export default function ProductComparePanel(props: Props) {
               ? row.groups.filter((g) => g.status === matchFilter)
               : row.groups;
             const common = row.groups.filter((g) => g.status === 'COMMON').length;
+            // Elements = the cards a user can actually count in this band.
+            const rawInRow = row.groups.reduce((a, g) => a + g.presentIn, 0);
             const open = !!expandedComponents[row.component];
             const counts = (
               <div
@@ -313,15 +318,15 @@ export default function ProductComparePanel(props: Props) {
                   fontSize: 10.5,
                   color: '#737373',
                   fontVariantNumeric: 'tabular-nums',
-                  whiteSpace: 'nowrap',
                 }}
               >
-                <b style={{ fontWeight: 700, color: '#525252' }}>{row.groups.length}</b> concerns
+                <b style={{ fontWeight: 700, color: '#525252' }}>{rawInRow}</b>{' '}
+                {rawInRow === 1 ? 'element' : 'elements'}
                 {!single && common > 0 && (
                   <>
                     {' · '}
                     <span style={{ color: MATCH_META.COMMON.fg, fontWeight: 600 }}>
-                      {common} common
+                      {common} shared
                     </span>
                   </>
                 )}
@@ -413,36 +418,50 @@ export default function ProductComparePanel(props: Props) {
                   {counts}
                 </button>
                 <div>
-                  {groups.map((g, gi) => (
-                    <div
-                      key={g.key}
-                      data-anchor={`bf:${row.component}:${g.key}`}
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: `repeat(${versions.length}, ${COL_W}px)`,
-                        alignItems: 'start',
-                        borderTop: gi > 0 ? '1px dashed #f1f1f1' : undefined,
-                        // SCRUM-259: level this concept row with its normalize card.
-                        marginTop: rowPads?.[`${row.component}:${g.key}`] || undefined,
-                      }}
-                    >
-                      {versions.map((v) => (
-                        <div
-                          key={v.id}
-                          style={{ padding: 6, borderLeft: '1px solid #f1f1f1', minWidth: 0 }}
-                        >
-                          {g.perVersion[v.id] ? (
-                            <ElementCard
-                              group={g}
-                              versionId={v.id}
-                              selected={g.key === selectedKey}
-                              onSelect={onSelect}
-                            />
-                          ) : null}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
+                  {groups.map((g, gi) => {
+                    // Connector anchor lives on the RIGHTMOST populated cell,
+                    // not the full-width row: a concept missing from the
+                    // trailing versions would otherwise start its arrow at the
+                    // row's right edge, leaving dead white space between the
+                    // card and the arrow tail.
+                    const lastFilled = versions.reduce(
+                      (acc, v, i) => (g.perVersion[v.id] ? i : acc),
+                      -1,
+                    );
+                    return (
+                      <div
+                        key={g.key}
+                        data-anchor={lastFilled < 0 ? `bf:${row.component}:${g.key}` : undefined}
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: `repeat(${versions.length}, ${COL_W}px)`,
+                          alignItems: 'start',
+                          borderTop: gi > 0 ? '1px dashed #f1f1f1' : undefined,
+                          // SCRUM-259: level this concept row with its normalize card.
+                          marginTop: rowPads?.[`${row.component}:${g.key}`] || undefined,
+                        }}
+                      >
+                        {versions.map((v, i) => (
+                          <div
+                            key={v.id}
+                            data-anchor={
+                              i === lastFilled ? `bf:${row.component}:${g.key}` : undefined
+                            }
+                            style={{ padding: 6, borderLeft: '1px solid #f1f1f1', minWidth: 0 }}
+                          >
+                            {g.perVersion[v.id] ? (
+                              <ElementCard
+                                group={g}
+                                versionId={v.id}
+                                selected={g.key === selectedKey}
+                                onSelect={onSelect}
+                              />
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
                   {groups.length === 0 && (
                     <div
                       style={{

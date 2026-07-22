@@ -1,6 +1,6 @@
 import { GREEN } from '../types';
 import OverviewCard, { OVERVIEW_TONES } from './OverviewCard';
-import { MATCH_META } from './spine';
+import { MATCH_META, groupCitations } from './spine';
 import type {
   Comparison,
   ComponentRow,
@@ -59,10 +59,12 @@ function GreenfieldSlot({
   onToggle: () => void;
 }) {
   const normalized = normalizedGroups(row, decisions);
-  const toReconcile = row.groups.filter(
-    (g) => (g.status === 'PARTIAL' || g.status === 'UNIQUE') && decisions[g.key] !== 'APPROVED',
+  // Still-open decisions only — a group HELD as a version variant is decided
+  // (it stays out of the model), so it no longer counts against this slot.
+  const toDecide = row.groups.filter(
+    (g) => (g.status === 'PARTIAL' || g.status === 'UNIQUE') && !decisions[g.key],
   ).length;
-  const settled = toReconcile === 0;
+  const settled = toDecide === 0;
 
   return (
     <div
@@ -136,7 +138,7 @@ function GreenfieldSlot({
               textOverflow: 'ellipsis',
             }}
           >
-            {settled ? 'reconciled' : `${toReconcile} to reconcile`}
+            {settled ? 'all decided' : `${toDecide} need${toDecide === 1 ? 's' : ''} a decision`}
           </span>
         </span>
         <span
@@ -157,7 +159,11 @@ function GreenfieldSlot({
           style={{
             borderTop: '1px solid #d1fae5',
             background: '#fff',
-            padding: '6px 10px 8px 26px',
+            // Left padding kept small so each row's connector anchor sits close
+            // to the card's left edge — the per-row arrowhead then lands in the
+            // gutter at the border instead of overrunning the element text. The
+            // visual text indent lives on the rows (paddingLeft) below.
+            padding: '6px 10px 8px 10px',
             display: 'flex',
             flexDirection: 'column',
             gap: 5,
@@ -165,13 +171,16 @@ function GreenfieldSlot({
         >
           {normalized.length === 0 ? (
             <span style={{ fontSize: 10.5, color: '#a3a3a3' }}>
-              No normalized elements yet — {toReconcile} awaiting a review decision.
+              Nothing in the model yet — {toDecide} element{toDecide === 1 ? '' : 's'} need a
+              decision.
             </span>
           ) : (
             normalized.map((g) => {
               // Representative element (first version that carries it) → its functionality.
               const el = Object.values(g.perVersion).find((e) => e) ?? null;
               const adopted = g.status !== 'COMMON' && g.status !== 'SINGLE';
+              // All jurisdictions' sources folded into the model, listed once each.
+              const citations = groupCitations(g);
               return (
                 <div
                   key={g.key}
@@ -180,6 +189,9 @@ function GreenfieldSlot({
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 1,
+                    // Text indent lives here (not on the padded body) so the
+                    // connector anchor's left edge stays near the card border.
+                    paddingLeft: 16,
                     marginTop: rowPads?.[`${row.component}:${g.key}`] || undefined,
                   }}
                 >
@@ -188,7 +200,7 @@ function GreenfieldSlot({
                       {g.name}
                     </span>
                     <span style={{ fontSize: 10, color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                      {g.presentIn}→1
+                      from {g.presentIn} version{g.presentIn === 1 ? '' : 's'}
                     </span>
                     {adopted && (
                       <span
@@ -208,6 +220,24 @@ function GreenfieldSlot({
                       {el.description}
                     </span>
                   )}
+                  {citations.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 1, marginTop: 2 }}>
+                      {citations.map((c) => (
+                        <span
+                          key={c}
+                          style={{
+                            fontSize: 9,
+                            color: '#059669',
+                            fontFamily: 'ui-monospace, monospace',
+                            lineHeight: 1.3,
+                            wordBreak: 'break-all',
+                          }}
+                        >
+                          {c}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })
@@ -226,14 +256,13 @@ export default function ProductGreenfieldColumn({
   expandedComponents,
   onToggleComponent,
 }: Props) {
-  // Reconciled = normalized elements actually in the model ÷ total groups.
   const inModel = comparison.rows.reduce((a, r) => a + normalizedGroups(r, decisions).length, 0);
+  // Still-open decisions only — HELD groups are decided out of the model.
   const openDecisions = comparison.rows.reduce(
     (a, r) =>
       a +
-      r.groups.filter(
-        (g) => (g.status === 'PARTIAL' || g.status === 'UNIQUE') && decisions[g.key] !== 'APPROVED',
-      ).length,
+      r.groups.filter((g) => (g.status === 'PARTIAL' || g.status === 'UNIQUE') && !decisions[g.key])
+        .length,
     0,
   );
   // Model composition (the card) — WHAT the target model is made of, not the
@@ -257,7 +286,6 @@ export default function ProductGreenfieldColumn({
     <div style={{ width: 340, flexShrink: 0, alignSelf: 'flex-start' }}>
       <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>
         Greenfield
-        <span style={{ fontWeight: 400, fontSize: 12, color: '#a3a3a3' }}> · the target model</span>
       </div>
       <div
         style={{
@@ -281,16 +309,18 @@ export default function ProductGreenfieldColumn({
             fontSize: 12,
             color: '#525252',
             fontVariantNumeric: 'tabular-nums',
+            whiteSpace: 'nowrap',
           }}
         >
-          <b style={{ fontWeight: 700, color: GREEN }}>{inModel}</b> in model
+          <b style={{ fontWeight: 700, color: GREEN }}>{inModel}</b> elements in the model
           {openDecisions > 0 ? (
             <>
               {' · '}
-              <b style={{ fontWeight: 700, color: MATCH_META.PARTIAL.fg }}>{openDecisions}</b> open
+              <b style={{ fontWeight: 700, color: MATCH_META.PARTIAL.fg }}>{openDecisions}</b>{' '}
+              elements need a decision
             </>
           ) : (
-            <span style={{ color: GREEN }}>· reconciled</span>
+            <span style={{ color: GREEN }}>· all decided</span>
           )}
         </span>
       </div>
@@ -305,7 +335,7 @@ export default function ProductGreenfieldColumn({
         ]}
       >
         <span style={{ color: GREEN }}>
-          {autoIn} fold in automatically ·{' '}
+          {autoIn} added automatically ·{' '}
           <span style={{ color: '#4f46e5' }}>{adoptedIn} adopted by decision</span>
         </span>
       </OverviewCard>

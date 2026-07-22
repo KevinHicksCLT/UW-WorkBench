@@ -517,7 +517,10 @@ export default function ProductBoard({
               padding: 24,
               display: 'flex',
               alignItems: 'flex-start',
-              gap: 120,
+              // Column gutter — wide enough for the connector count pills, but
+              // tightened so the current→normalize arrows span the gap instead
+              // of leaving a broad band of dead white space between the cards.
+              gap: 92,
             }}
           >
             <FlowEdges edges={edges} />
