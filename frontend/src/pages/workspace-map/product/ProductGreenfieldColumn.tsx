@@ -309,6 +309,7 @@ export default function ProductGreenfieldColumn({
             fontSize: 12,
             color: '#525252',
             fontVariantNumeric: 'tabular-nums',
+            whiteSpace: 'nowrap',
           }}
         >
           <b style={{ fontWeight: 700, color: GREEN }}>{inModel}</b> elements in the model

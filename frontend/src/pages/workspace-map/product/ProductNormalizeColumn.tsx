@@ -98,7 +98,8 @@ function NormalizedCell({
 }: {
   name: string;
   detail: string;
-  badge: string;
+  /** null hides the chip (an open review already says so in the card footer). */
+  badge: string | null;
   tone: 'same' | 'review';
   /** Distinct citations across every jurisdiction that carries the concept. */
   citations: string[];
@@ -139,22 +140,24 @@ function NormalizedCell({
           ))}
         </div>
       )}
-      <span
-        style={{
-          alignSelf: 'flex-start',
-          marginTop: 2,
-          padding: '1px 6px',
-          borderRadius: 4,
-          background: review ? AMBER : '#fff',
-          border: `1px solid ${review ? AMBER : '#86efac'}`,
-          color: review ? '#fff' : '#15803d',
-          fontSize: 9,
-          fontWeight: 700,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {badge}
-      </span>
+      {badge && (
+        <span
+          style={{
+            alignSelf: 'flex-start',
+            marginTop: 2,
+            padding: '1px 6px',
+            borderRadius: 4,
+            background: review ? AMBER : '#fff',
+            border: `1px solid ${review ? AMBER : '#86efac'}`,
+            color: review ? '#fff' : '#15803d',
+            fontSize: 9,
+            fontWeight: 700,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {badge}
+        </span>
+      )}
     </div>
   );
 }
@@ -352,7 +355,7 @@ function GroupCard({
           ? 'APPROVED'
           : decision === 'HELD'
             ? 'HELD'
-            : 'REVIEW';
+            : null;
   return (
     <div
       data-anchor={`nz:${group.component}:${group.key}`}
@@ -516,8 +519,7 @@ function ComponentSection({
         </span>
         <span style={{ fontSize: 11.5, color: '#525252', fontVariantNumeric: 'tabular-nums' }}>
           {raw} element{raw === 1 ? '' : 's'} →{' '}
-          <b style={{ fontWeight: 800, color: INDIGO, fontSize: 13 }}>{row.groups.length}</b> row
-          {row.groups.length === 1 ? '' : 's'}
+          <b style={{ fontWeight: 800, color: INDIGO, fontSize: 13 }}>{row.groups.length}</b>
         </span>
       </button>
       {open && (
@@ -606,8 +608,7 @@ export default function ProductNormalizeColumn({
           }}
         >
           <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.rawCount}</b> elements across{' '}
-          {versions.length} version{versions.length === 1 ? '' : 's'} →{' '}
-          <b style={{ fontWeight: 700, color: INDIGO }}>{comparison.normalizedCount}</b> rows
+          {versions.length} version{versions.length === 1 ? '' : 's'}
         </span>
       </div>
 
