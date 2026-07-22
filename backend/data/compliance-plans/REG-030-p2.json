@@ -1,0 +1,392 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-030-C09",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Head of IT",
+          "value": "Owns the configured price fluctuation reserve (kakaku hendo junbikin) engine under Insurance Business Act Art. 115; business owner is the Controller, actuarial sign-off from the Valuation Actuary"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - Insurance Business Act Art. 115 and Ordinance for Enforcement Art. 65-2 re-read on the e-Gov Law Search text at each change request, and the per-asset-class accumulation rate table cross-checked to the current FSA notification before the build is promoted"
+        },
+        "In-scope processes": {
+          "value": "Change intake to release for the Japan statutory ledger reserve engine: monthly investment valuation feed, per-asset-class price fluctuation reserve accumulation, statutory ceiling test, drawdown authorisation block, and the reserve schedule that feeds the Art. 110 business report"
+        },
+        "In-scope systems": {
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "value": "Japan statutory company code: price fluctuation reserve accounts, the effective-dated accumulation rate table and the drawdown posting block, fed by the investment accounting extract"
+        },
+        "Compliance procedure documented": {
+          "value": "Price Fluctuation Reserve Configuration Standard - rate table maintenance and effective dating, ceiling test parameters, drawdown authorisation block, regression pack contents, four-eyes promotion rule; version-controlled in the document management repository"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved jointly by the Controller and Head of IT; re-approved on every Ordinance for Enforcement or FSA notification amendment to the Art. 115 rates and at minimum before each 31 March business-year-end close"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per change - configuration must be live and regression-passed before the 31 March business-year-end valuation run, because the resulting reserve balance feeds the business report submitted to the FSA within three months of business-year end (end of June)"
+        },
+        "Deadline reminders configured": {
+          "value": "ITSM change calendar freezes reserve-engine releases from 15 March to 30 April; automated reminders at 31 January (design freeze), 28 February (UAT sign-off) and 15 March (production promotion) to the Change Coordinator and Controller"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Change record, before/after rate table extract, UAT evidence, four-eyes approval and post-implementation recomputation retained 10 years from the business year of the change, matching the Companies Act accounting-record retention period"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "value": "Any reserve-rule change promoted without regression evidence or four-eyes approval is raised as a P2 change incident with root cause, back-out record, recomputed reserve impact and Controller notification"
+        },
+        "Remediation sign-off captured": {
+          "role": "Controller",
+          "value": "Signs off every rate table or drawdown-logic correction and confirms the affected month-end reserve calculation was re-run and re-posted to the Japan statutory ledger"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every change record in the business year that touched the Art. 115 rate table, accumulation logic, ceiling test or drawdown block, plus all 12 monthly reserve calculation runs and the 31 March year-end run for the Japan statutory ledger"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on a rate table value that differs from Ordinance for Enforcement Art. 65-2, and on any reserve drawdown posted without documented Controller authorisation; independent recomputation must agree to the ledger within JPY 1 per asset class"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per change, so 100% of reserve-engine changes are tested at release, with a full independent recomputation of the reserve at the 31 March business-year-end close"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Must not have raised, specified, configured, approved or UAT-signed any change in the sample"
+        },
+        "Evidence location for test results": {
+          "value": "Configuration test workpaper (change register extract, rate table diff, recomputation model, UAT screenshots, exception list) filed in the compliance evidence repository under FY<year> / Art.115 price fluctuation reserve"
+        },
+        "Regulator-ready documentation": {
+          "value": "Change register extract, dated rate table versions and the year-end recomputation assembled as an FSA on-site inspection pack deliverable within five business days of a document request"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Affairs Manager fronts FSA and Local Finance Bureau questions on the reserve calculation; the Controller supplies ledger evidence and the General Counsel clears any statement conceding a misstated reserve before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Open a change record for the reserve-engine change and capture its trigger",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "In the ITSM platform raise a Normal Change under the category Finance Systems / Statutory Reserving and set the CI to the Japan statutory ledger reserve engine.",
+            "Record the trigger in the Reason field: an Ordinance for Enforcement Art. 65-2 rate amendment, a new asset class from Investment Operations, a chart-of-accounts change, or a defect found at close.",
+            "Ask the Controller for the target business year and the first valuation run that must use the new logic, and enter it as the Required-by date.",
+            "Attach the source document (FSA notification PDF, Investment Operations asset-class request, or the close defect ticket) to the change record."
+          ],
+          "done": "the change record exists with trigger, source document, target valuation run and a Required-by date ahead of the 31 March close."
+        },
+        {
+          "step": "Re-read Art. 115 and Ordinance Art. 65-2 and extract the rules to be configured",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Open the current consolidated text of the Insurance Business Act Art. 115 and the Ordinance for Enforcement Art. 65-2 on e-Gov Law Search and save both as dated PDFs.",
+            "Write out on the requirements sheet: which assets are price-variable and in scope (domestic shares, bonds, foreign-currency-denominated assets, real estate held for investment), the accumulation rate applicable to each class, and the statutory ceiling for the reserve.",
+            "Write out the drawdown rule - the reserve may be released only to absorb realised losses on price-variable assets above the prescribed threshold, and only with the prescribed approval.",
+            "Have the Regulatory Counsel confirm in writing that the extracted rules match the current text before any build starts."
+          ],
+          "done": "a dated requirements sheet quotes the Art. 115 / Art. 65-2 rules, with counsel confirmation attached to the change record."
+        },
+        {
+          "step": "Confirm the in-scope asset classes and the valuation feed with Investment Operations",
+          "by": "Investment Operations Manager",
+          "role": "Investment Operations Manager",
+          "app": "BlackRock Aladdin",
+          "actions": [
+            "Extract the Japan entity holdings by asset class and instrument type as at the last month-end from the investment book of record.",
+            "Map every instrument type to one of the Art. 65-2 reserve classes, or to an explicit out-of-scope reason (for example loans and deposits, which are not price-variable).",
+            "Hand the Business Systems Analyst the mapping table plus the daily interface field list (instrument id, asset class, book value, market value, currency, entity).",
+            "Flag any instrument type with no mapping to the Valuation Actuary rather than defaulting it to zero."
+          ],
+          "done": "every Japan-entity instrument type is mapped to an Art. 65-2 reserve class or an out-of-scope reason, signed by Investment Operations."
+        },
+        {
+          "step": "Write the configuration specification for the accumulation, ceiling and drawdown logic",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "actions": [
+            "Specify the accumulation calculation per class: base amount (book value of in-scope assets at business-year end), rate applied, rounding rule and the journal to be posted.",
+            "Specify the effective-dating rule so a rate change applies from the business year the FSA notification takes effect and never retroactively restates a closed year.",
+            "Specify the ceiling test: when accumulated reserve reaches the statutory maximum for a class, further accumulation stops and the engine writes a ceiling-reached flag.",
+            "Specify the drawdown path: release entries are blocked unless a realised-loss reference and a Controller authorisation id are present on the posting.",
+            "Circulate the specification to the Valuation Actuary and Controller for written approval before development."
+          ],
+          "done": "an approved specification covers accumulation, effective dating, ceiling and blocked drawdown, with named approvers and dates."
+        },
+        {
+          "step": "Build the effective-dated accumulation rate table in the statutory ledger",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "In the Japan statutory company code open the reserve configuration area and create a new version of the price fluctuation reserve rate table with a valid-from date.",
+            "Enter one row per Art. 65-2 asset class with the rate, the base-amount definition and the ledger account for accumulation expense and reserve balance.",
+            "Leave the prior version intact and closed-dated so a prior business year can be re-run exactly as it was reported.",
+            "Export the before and after table to CSV and attach both to the change record as the configuration diff."
+          ],
+          "done": "the new rate table version exists with a valid-from date, the prior version is preserved, and a before/after diff is attached to the change."
+        },
+        {
+          "step": "Configure the accumulation calculation and its posting rules",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Point the calculation at the Investment Operations valuation feed and restrict it to the Japan statutory entity and the in-scope asset classes only.",
+            "Set the posting rule to debit the price fluctuation reserve provision expense and credit the reserve liability account, with the business year and asset class in the document text.",
+            "Configure the run to abort with an error rather than post partial results if any in-scope instrument has no asset-class mapping.",
+            "Run the calculation in the configuration client on a copy of last month-end data and check the per-class output against a hand calculation."
+          ],
+          "done": "the calculation posts per class to the correct accounts, aborts on unmapped instruments, and matches a hand calculation in the configuration client."
+        },
+        {
+          "step": "Configure the statutory ceiling test and its alerting",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Enter the statutory maximum accumulation per asset class from the requirements sheet into the ceiling parameter table with the same valid-from date as the rate table.",
+            "Configure the engine to cap accumulation at the ceiling, post only the capped amount, and raise a ceiling-reached message on the run log.",
+            "Configure an email alert on the ceiling-reached message to the Controller and the Valuation Actuary so the accumulation stop is a decision, not a surprise at close.",
+            "Test the cap by seeding an asset-class balance at 99% of the ceiling in the test client and confirming the posted amount is limited."
+          ],
+          "done": "the ceiling caps the posting, logs the event and alerts Finance, proven by a seeded test in the test client."
+        },
+        {
+          "step": "Configure the drawdown authorisation block",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Make the reserve liability account non-postable by ordinary journal entry so a release cannot be booked by a general ledger user.",
+            "Create the release transaction requiring three mandatory fields: realised-loss reference (instrument and amount), the Art. 115 basis text, and the Controller authorisation id.",
+            "Configure a validation that rejects a release exceeding the realised losses recorded for the business year on price-variable assets.",
+            "Attempt an unauthorised release in the test client and confirm it is rejected, then attach the rejection screenshot to the change record."
+          ],
+          "done": "releases are impossible without a realised-loss reference and Controller authorisation, evidenced by a rejected test attempt."
+        },
+        {
+          "step": "Schedule the run so the timing rule is enforced by the calendar, not by memory",
+          "by": "Production Support Analyst",
+          "role": "Production Support Analyst",
+          "app": "Data pipeline orchestrator (Airflow/Dagster/Prefect)",
+          "actions": [
+            "Create the scheduled job for the price fluctuation reserve calculation with a dependency on the completed investment valuation load and the closed sub-ledger.",
+            "Set the business-year-end instance to run after the 31 March valuation is final and before the statutory close task in the close checklist.",
+            "Configure failure alerting to the Controller and the on-call finance systems queue with a two-hour response target during close.",
+            "Record the job name, schedule and dependencies on the change record so the close team can see them."
+          ],
+          "done": "the reserve job is scheduled with upstream dependencies, a year-end instance and alerting, and is documented on the change record."
+        },
+        {
+          "step": "Build and run the regression pack against the prior business year",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "app": "Azure DevOps",
+          "actions": [
+            "Load the prior business-year valuation data into the test client and run the reserve engine on the prior-year configuration version.",
+            "Confirm the output reproduces the reserve balance actually reported in the prior business report to the yen.",
+            "Re-run the same data on the new configuration version and record the difference by asset class, with the driver of each difference explained.",
+            "Add negative cases to the pack: unmapped instrument, ceiling reached, release without authorisation, and a rate table with a missing valid-from date.",
+            "Publish the test results with pass/fail per case to the change record."
+          ],
+          "done": "the prior year reproduces to the yen, every new-version difference has a named driver, and all negative cases fail as designed."
+        },
+        {
+          "step": "Run UAT with Finance and Actuarial on the new logic",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Execute the UAT script on the test client: full run, per-class output, ledger posting, ceiling case and blocked release.",
+            "Independently recompute the reserve for two asset classes in a spreadsheet from the raw holdings and compare to the engine output.",
+            "Confirm the run log shows the rate table version and valid-from date actually used.",
+            "Sign the UAT record with name and date, or return the change to development with the specific defect."
+          ],
+          "done": "UAT is signed by Actuarial and Finance with an independent recomputation attached for at least two asset classes."
+        },
+        {
+          "step": "Reconcile the engine output to the statutory disclosure schedule",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "financial reporting repository",
+          "actions": [
+            "Map each engine output line to its cell in the business report reserve schedule and the Art. 111 disclosure document reserve table.",
+            "Run the report from test data and confirm the reserve balance, the movement and the prior-year comparative all populate without manual override.",
+            "Where a manual override is unavoidable, record it as a known limitation with an owner and a target date to remove it.",
+            "Sign the mapping sheet and file it with the change record."
+          ],
+          "done": "every reserve figure in the business report and disclosure schedules is populated from the engine, with any override logged and owned."
+        },
+        {
+          "step": "Take the change through CAB approval and promote it with four eyes",
+          "by": "Change Coordinator",
+          "role": "Change Coordinator",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Present the change at CAB with the regression results, UAT sign-off, back-out plan and the close-calendar impact.",
+            "Confirm the promotion date sits outside the 15 March to 30 April freeze, or carry a documented freeze exemption approved by the Controller.",
+            "Have a second engineer, not the builder, execute the transport into production and record both names on the change record.",
+            "Attach the production configuration extract taken immediately after promotion."
+          ],
+          "done": "CAB approval, freeze compliance, two named engineers and a post-promotion configuration extract are all on the change record."
+        },
+        {
+          "step": "Verify the first production run after promotion",
+          "by": "Production Support Analyst",
+          "role": "Production Support Analyst",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Run the reserve calculation for the first month-end after promotion and pull the run log, the per-class output and the posted journal.",
+            "Compare the per-class amounts to the Valuation Actuary's independent expectation and clear any difference before the ledger is closed.",
+            "Confirm the run log names the expected rate table version and that no ceiling or unmapped-instrument error was suppressed.",
+            "Send the post-implementation verification note to the Controller and close the change record."
+          ],
+          "done": "the first production run reconciles to the actuarial expectation and the change record is closed with a verification note."
+        },
+        {
+          "step": "File the configuration evidence pack for the retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Assemble the change record, dated statute captures, requirements sheet, rate table diff, regression and UAT results, CAB approval and post-implementation note into one pack.",
+            "File it under FY<business year> / Art.115 price fluctuation reserve and apply the 10-year retention label.",
+            "Confirm the pack is indexed and retrievable by business year, change number and asset class.",
+            "Notify the Controller and Head of IT that the pack is available for FSA inspection requests."
+          ],
+          "done": "a single indexed evidence pack per change exists under a 10-year retention label and is retrievable by business year."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of reserve-engine changes and calculation runs for the business year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Extract every change record for the Japan statutory ledger reserve engine CI with a completion date inside the business year, including emergency and standard changes.",
+            "Extract all monthly and year-end reserve calculation run logs from the scheduler for the same period.",
+            "Record the population counts, extract date and filter criteria on the workpaper cover sheet and have the extractor sign it as complete."
+          ],
+          "done": "the change and run populations are extracted, counted and signed as complete by the extractor."
+        },
+        {
+          "step": "Reconcile the change population to what actually reached production",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Azure DevOps",
+          "actions": [
+            "Pull the production transport/deployment log for the reserve engine objects over the same period.",
+            "Match each deployment to a change record on transport id and date, listing any deployment with no change record as an unauthorised change.",
+            "Match each change record to a deployment, listing approved-but-not-deployed changes so the tested population is not overstated.",
+            "Resolve every difference with the Change Coordinator before drawing the sample."
+          ],
+          "done": "the change register and deployment log agree item for item, with any unmatched deployment raised as an unauthorised change."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of changes that altered the rate table, the ceiling parameters or the drawdown block.",
+            "Take 10 further changes selected at random with a recorded seed from the remaining population, and the 31 March year-end run plus two random month-end runs.",
+            "Record the seed, population size, selection date and rationale in the workpaper so the sample can be re-drawn identically."
+          ],
+          "done": "the sample is reproducible, covers all rate/ceiling/drawdown changes and includes the year-end run."
+        },
+        {
+          "step": "Re-perform the rate table verification against the Ordinance",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Read Ordinance for Enforcement Art. 65-2 as it stood at each sampled change date and write down the required rate and base for every asset class without looking at the configuration.",
+            "Export the production rate table version effective at that date and compare it line by line to the independently derived list.",
+            "Treat any difference in rate, base definition or valid-from date as an exception, including a right rate carrying the wrong effective date.",
+            "Capture the statute text and the table export into the workpaper."
+          ],
+          "done": "each sampled configuration is independently compared to the Ordinance text, with both sources captured."
+        },
+        {
+          "step": "Independently recompute the year-end reserve from raw holdings",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Obtain the 31 March holdings extract directly from Investment Operations rather than from the finance systems team.",
+            "Classify holdings into Art. 65-2 asset classes using the mapping table and recompute the accumulation for each class in a standalone model.",
+            "Compare the recomputed reserve to the posted balance per class and investigate any difference above JPY 1.",
+            "Confirm the population of holdings used by the engine equals the population in the investment book of record - a missing instrument is an exception even if the maths is right."
+          ],
+          "done": "the recomputed reserve agrees with the ledger within JPY 1 per class on a complete holdings population, or a variance is documented."
+        },
+        {
+          "step": "Test the ceiling and drawdown controls by attempted violation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "In a production-mirrored test client, attempt a reserve release with no realised-loss reference and confirm it is rejected.",
+            "Attempt a release exceeding the recorded realised losses on price-variable assets and confirm the validation blocks it.",
+            "List every actual release posted in the business year and confirm each carries a realised-loss reference, an Art. 115 basis note and a Controller authorisation id.",
+            "Confirm the ceiling flag fired for any class at its statutory maximum and that accumulation stopped at the cap."
+          ],
+          "done": "the blocking controls reject both violation attempts and every actual release carries a loss reference and authorisation."
+        },
+        {
+          "step": "Trace approvals and prove segregation of duties on each sampled change",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "IAM platform (SailPoint/Okta/Azure AD)",
+          "actions": [
+            "For each sampled change confirm the specification approval, UAT sign-off and CAB approval all pre-date the production promotion timestamp.",
+            "Compare the builder and the promoter user ids and treat a match as a segregation-of-duties failure.",
+            "Pull the entitlement report for the production reserve configuration transaction and list every user who can edit the rate table.",
+            "Confirm each such user is a named Configuration Engineer with current access recertification, and refer anyone else to Access Management."
+          ],
+          "done": "approvals pre-date promotion, builder and promoter differ, and the production edit entitlement list contains only recertified engineers."
+        },
+        {
+          "step": "Trace the reserve balance from the engine to the statutory report",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "financial reporting repository",
+          "actions": [
+            "Take the year-end reserve balance from the engine output and follow it to the general ledger trial balance line.",
+            "Follow the trial balance line to the reserve schedule in the business report submitted to the FSA and to the Art. 111 disclosure document reserve table.",
+            "Confirm no manual journal or spreadsheet adjustment changed the figure between the engine and the report; open any adjustment and read its support.",
+            "Capture each step of the trace with a screenshot and the report page reference."
+          ],
+          "done": "the engine figure, ledger balance and filed reserve schedule agree, with any intervening adjustment supported."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception recording the change number or run date, the control that failed and the yen impact on the reported reserve.",
+            "Assign a root cause from a fixed list - stale rate table, missing asset-class mapping, bypassed approval, unscheduled run, specification error - and name an accountable owner.",
+            "Set a remediation date and, where the reported reserve was misstated, open an assessment with Regulatory Counsel on whether a correction to the FSA is required.",
+            "Carry every open issue into the next test cycle as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance thresholds for rate accuracy and unauthorised release.",
+            "Write the conclusion - effective, effective with exceptions, or ineffective - naming the evidence behind it.",
+            "Have the independent reviewer, who took no part in specifying, building, approving or running the sampled changes, sign the workpaper.",
+            "Report the conclusion and any reserve misstatement to the Audit Committee at its next sitting and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with exception rate, stated conclusion and a committee reporting date is filed in the repository."
+        }
+      ]
+    }
+  ]
+}

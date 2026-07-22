@@ -1,0 +1,1563 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-021-C17",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Operational Risk Manager",
+          "value": "Operational Risk owns the ICT business continuity policy under DORA Art. 11(1)-(2); Business Continuity Manager authors the plans, Chief Info Security Officer countersigns the ICT content, management body approves under Art. 5(2)"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - Regulation (EU) 2022/2554 Arts. 11(1)-(2), 11(6), 12 and 14 read against the EUR-Lex consolidated text, plus Commission Delegated Regulation (EU) 2024/1774 Arts. 24-26 (ICT business continuity policy, response and recovery plans, testing) and Art. 3(22) for the critical-or-important-function definition; re-read at each annual policy review and on any ESA guidance update"
+        },
+        "In-scope processes": {
+          "value": "Every process supporting a critical or important function of the EU insurance undertaking and its EEA branches - policy administration, claims payment, premium collection, distribution portals, actuarial valuation and regulatory reporting - plus the ICT services underpinning them, including those delivered by intragroup and external ICT third-party providers"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Business continuity module holds the CIF inventory, impact tolerances, RTO/RPO per function and the linked plan set; CMDB supplies the ICT asset dependency mapping and the document management repository holds the approved plan PDFs"
+        },
+        "Compliance procedure documented": {
+          "value": "ICT Business Continuity Policy plus the subordinate ICT Response and Recovery Plan set, Backup and Restoration Standard (Art. 12), Crisis Communication Plan (Art. 14) and third-party Exit Strategy templates (Art. 28(8)), each naming scenario, RTO, RPO, invocation authority and recovery sequence"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the management body (Board Risk Committee then full Board) under DORA Art. 5(2) at least annually; interim changes above the materiality threshold approved by the Chief Risk Officer and ratified at the next Board sitting"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual policy review closes before the Board Risk Committee November sitting so the approved plan set is live from 1 January; plan refresh is also triggered within 30 calendar days of any major ICT-related incident, material outsourcing change or resilience-test failure"
+        },
+        "Deadline reminders configured": {
+          "value": "GRC workflow raises review tasks at T-90, T-45 and T-15 days to the Board Risk Committee papers deadline, and an event-driven task on any incident classified major or any CIF added to the register of information"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Approved plan versions, CIF inventory snapshots, RTO/RPO derivation workings, Board minutes and distribution acknowledgements retained 10 years from supersession to cover the supervisory record-keeping expectation and Solvency II documentation retention"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "A CIF with no current plan, a missing or unjustified RTO/RPO, or an unapproved plan version is raised as an operational-resilience issue with root cause, owner, due date and Chief Risk Officer visibility"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "Chief Risk Officer signs off closure of every plan-coverage gap and every RTO/RPO breach accepted as a temporary risk, with the acceptance expiry date recorded"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All critical or important functions recorded in the CIF inventory for the EU entity in the review year, each with its supporting ICT assets, third-party dependencies and linked continuity plan"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on coverage - any CIF without an approved, in-date continuity and recovery plan is a fail; RTO/RPO documented but not evidenced by a test result is a fail; more than two fails or any fail on a payment-related CIF escalates to the Board Risk Committee"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is an annual policy review under Art. 6(5)/Art. 11; independent test runs annually ahead of Board approval, with a targeted retest within 60 days of any major ICT-related incident that invoked a plan"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Internal Audit reviewer must not sit in Operational Risk, IT Operations or Business Continuity and must have authored none of the sampled plans"
+        },
+        "Evidence location for test results": {
+          "value": "Annual ICT business continuity assurance workpaper - CIF population extract, plan-coverage reconciliation, RTO/RPO re-derivation, exception log - filed in the compliance evidence repository under DORA Art. 11"
+        },
+        "Regulator-ready documentation": {
+          "value": "Plan set, CIF inventory, impact tolerance rationale, last test results and Board approval minutes assembled as a supervisory pack deliverable to the national competent authority within 10 business days of request"
+        },
+        "Regulator response path": {
+          "value": "Compliance coordinates the response to the national competent authority (and EIOPA where the request is ESA-led); General Counsel clears any statement acknowledging an uncovered critical function before it leaves the firm"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Fix the DORA entity scope and proportionality position",
+          "by": "Operational Risk Manager",
+          "role": "Operational Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "List every EU-authorised insurance and reinsurance undertaking, EEA branch and intermediary in the group and record each one's LEI and its national competent authority.",
+            "For each entity decide whether the simplified ICT risk management framework under DORA Art. 16 applies (small and non-interconnected undertakings) or the full Art. 5-15 framework; record the headcount, balance-sheet and gross-premium figures the call rests on.",
+            "Ask the Regulatory Reporting Manager for the latest Solvency II entity list so no in-scope legal entity is missed.",
+            "Open a scoping record in the GRC business continuity module for each in-scope entity and attach the scoping memo."
+          ],
+          "done": "every EU legal entity has a recorded DORA scoping decision, an LEI, a named competent authority and an attached rationale."
+        },
+        {
+          "step": "Rebuild the critical or important function inventory against the Art. 3(22) definition",
+          "by": "Operational Resilience Lead",
+          "role": "Operational Resilience Lead",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Take the business service catalogue from the Operations Manager and test each service against DORA Art. 3(22): would disruption materially impair financial performance, or the soundness or continuity of the authorised services and activities.",
+            "Retain as CIFs at minimum claims settlement and payment, premium collection, policy issuance, customer contact handling, actuarial reserving, investment settlement and regulatory reporting; record a written reason for anything excluded.",
+            "Have the Chief Operating Officer and Chief Risk Officer challenge and confirm the list in a documented workshop before it is frozen.",
+            "Load the confirmed list into the GRC CIF register with function owner, entity, LEI and the confirmation date."
+          ],
+          "done": "the CIF register holds a dated, Chief Risk Officer-confirmed entry per function with an Art. 3(22) rationale, including exclusions."
+        },
+        {
+          "step": "Set impact tolerance, RTO and RPO for each critical or important function",
+          "by": "Business Continuity Manager",
+          "role": "Business Continuity Manager",
+          "actions": [
+            "Run a business impact analysis per CIF with the function owner: quantify loss per hour of outage, policyholder detriment, regulatory reporting breach points and the maximum tolerable period of disruption.",
+            "Convert the maximum tolerable period into a recovery time objective and set a recovery point objective from the acceptable data-loss window, in hours, per CIF.",
+            "Cross-check the RTO against externally driven deadlines the Regulatory Reporting Manager supplies - Solvency II QRT submission dates, claims payment service standards, direct debit collection cycles.",
+            "Record the RTO, RPO, tolerance figure and the workings in the GRC CIF record; anything left blank blocks plan approval."
+          ],
+          "done": "every CIF carries a quantified impact tolerance, an RTO and an RPO in hours with the business impact analysis attached."
+        },
+        {
+          "step": "Map each function to its ICT assets, data and third-party dependencies",
+          "by": "Enterprise Architect",
+          "role": "Enterprise Architect",
+          "app": "CMDB",
+          "actions": [
+            "In the CMDB open each CIF's business service and walk the downstream relationships to applications, databases, middleware, network segments and hosting locations.",
+            "Tag every configuration item that supports a CIF with the CIF identifier so the dependency is queryable rather than described in prose.",
+            "Take the ICT third-party provider list from the Third-Party Risk Manager and attach the provider, contract reference and service to each supporting configuration item.",
+            "Flag single points of failure - one data centre, one provider, one specialist engineer - and hand the list to the Business Continuity Manager for scenario design."
+          ],
+          "done": "each CIF resolves in the CMDB to a tagged asset chain with named third-party providers and a documented single-point-of-failure list."
+        },
+        {
+          "step": "Update the ICT business continuity policy to Art. 11 and RTS 2024/1774",
+          "by": "Business Continuity Manager",
+          "role": "Business Continuity Manager",
+          "app": "document management repository",
+          "actions": [
+            "Open the current ICT Business Continuity Policy and redline it clause by clause against DORA Art. 11(1)-(2) and Commission Delegated Regulation (EU) 2024/1774 Arts. 24-26.",
+            "Ensure the policy states the objectives, the CIF scope, the governance and invocation authority, the link to the ICT risk management framework and the requirement to keep the plans separate from and independent of the primary ICT infrastructure.",
+            "Add the Art. 11(6) obligation to record all activities before, during and after a disruption in a way that reconstructs the timeline.",
+            "Circulate the redline to the Chief Info Security Officer and Compliance Officer for comment and log every comment and its disposition in the review sheet.",
+            "Save the clean version as a new numbered release in the document management repository with the DORA article mapping table appended."
+          ],
+          "done": "a redlined-to-clean policy release exists with an article-by-article mapping to Art. 11 and RTS 2024/1774 Arts. 24-26 and disposed reviewer comments."
+        },
+        {
+          "step": "Write the ICT response and recovery plans per scenario",
+          "by": "Disaster Recovery Manager",
+          "role": "Disaster Recovery Manager",
+          "actions": [
+            "Build a plan per severe-but-plausible scenario: data-centre loss, ransomware encryption of policy and claims data, cloud region failure, loss of the core policy administration provider, and loss of a critical payment interface.",
+            "For each scenario write the invocation trigger, the invocation authority by name and deputy, the recovery sequence by system, and the manual workaround the business runs while ICT recovers.",
+            "State the recovery sequence in the order the CIFs need it - payments and claims before reporting - and reference the RTO figure on each step.",
+            "Name the resources required per step: engineers on the call tree, standby infrastructure, provider hotline numbers and contract reference for the recovery commitment.",
+            "Hand each draft to the function owner for confirmation that the workaround is actually operable at the stated volumes."
+          ],
+          "done": "each severe-but-plausible scenario has an owned plan with invocation trigger, named authority, RTO-sequenced recovery steps and a business-confirmed workaround."
+        },
+        {
+          "step": "Set the backup and restoration arrangements required by Art. 12",
+          "by": "Disaster Recovery Engineer",
+          "role": "Disaster Recovery Engineer",
+          "actions": [
+            "Define per CIF data set the backup scope, frequency and retention consistent with the RPO, and record the backup method in the backup standard.",
+            "Confirm backups are physically and logically segregated from the source system, with at least one immutable or offline copy that ransomware cannot reach from the production identity domain.",
+            "Specify the restoration and recovery procedures, including the use of an isolated restoration environment so restores never overwrite production during verification.",
+            "Set the periodic restore-test cadence and record who performs it and where the result is filed.",
+            "Have the Chief Info Security Officer confirm the segregation design in writing before the standard is published."
+          ],
+          "done": "a published backup and restoration standard states scope, frequency, retention, segregation, immutable copy and restore-test cadence for each CIF data set."
+        },
+        {
+          "step": "Build the crisis management and communication plan required by Art. 14",
+          "by": "Incident Response Lead",
+          "role": "Incident Response Lead",
+          "actions": [
+            "Write the crisis communication plan naming the person accountable for disclosure to clients, financial counterparts and the public, and the deputy.",
+            "Draft holding statements for policyholders, brokers and distributors covering an outage, a data compromise and a payment delay, and get them pre-cleared by General Counsel and the Communications Specialist.",
+            "Set the internal escalation ladder with time triggers from detection to crisis-team convening and to management-body notification.",
+            "Add the Art. 11(10) route for informing clients without undue delay where a major ICT-related incident has or may have an impact on their financial interests, and name the channel used for each client segment.",
+            "Store the call tree and the statements outside the primary ICT estate so they survive the outage they cover."
+          ],
+          "done": "a crisis communication plan exists with a named accountable person, pre-cleared statements, time-triggered escalation and an out-of-band copy."
+        },
+        {
+          "step": "Attach exit strategies and alternative solutions for the ICT providers behind each CIF",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "For every ICT third-party service supporting a CIF, open the contract in the CLM repository and read the termination, transition assistance and data return clauses.",
+            "Write the DORA Art. 28(8) exit strategy: trigger events, the alternative provider or in-house option, the data extraction format and volume, the transition duration estimate and the cost owner.",
+            "Confirm the exit can be executed without disrupting the CIF and without breaching the RTO, and state the assumption that supports that claim.",
+            "Where no viable alternative exists, log a concentration risk issue for the Chief Risk Officer rather than writing an aspirational exit plan.",
+            "Link the exit strategy document to the contract record and to the CIF record in the GRC platform."
+          ],
+          "done": "every CIF-supporting ICT contract has a linked exit strategy naming the alternative, the data extraction route and the transition duration, or a logged concentration risk."
+        },
+        {
+          "step": "Wire the plan set into the ICT risk management framework",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Create a control record in the GRC platform for each Art. 11, 12 and 14 requirement and link it to the policy clause and the evidence artefact that satisfies it.",
+            "Map the continuity controls to the ICT risk register entries for availability, integrity and third-party concentration so risk owners see the mitigations.",
+            "Set control testing frequency and the responsible tester on each record so the annual assurance run has a defined scope.",
+            "Run the module's completeness report and clear any control with no linked evidence before publishing."
+          ],
+          "done": "every Art. 11/12/14 requirement has a GRC control record linked to policy clause, evidence and a named tester, with no unlinked controls."
+        },
+        {
+          "step": "Take the plan set to the management body for approval under Art. 5(2)",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "board portal",
+          "actions": [
+            "Prepare the Board Risk Committee paper: CIF list with RTO/RPO, changes since last approval, open gaps with owners and dates, last test results and the residual risk statement.",
+            "Load the paper and the policy release to the board portal ahead of the papers deadline and record the distribution date.",
+            "At the sitting capture the decision, any conditions attached and the review period the management body sets.",
+            "Minute the approval with the exact policy version number so the approved artefact is unambiguous.",
+            "Publish the approved version and notify the Chief Risk Officer, Chief Info Security Officer and function owners."
+          ],
+          "done": "board minutes record approval of a named policy version with conditions and the next review date, and the approved version is published."
+        },
+        {
+          "step": "Assign plan roles and train the people who will execute them",
+          "by": "Business Continuity Analyst",
+          "role": "Business Continuity Analyst",
+          "app": "learning management system",
+          "actions": [
+            "Extract every named role from the plans - invocation authority, recovery leads, communications lead, provider liaison - and confirm a current post-holder and a deputy for each.",
+            "Assign the ICT continuity awareness module in the learning management system to all named post-holders with a 30-day completion deadline.",
+            "Run a walkthrough session per plan with the named team so they have read their own steps before an event, and record attendance.",
+            "Chase non-completions weekly and escalate anyone still outstanding after 45 days to their function owner."
+          ],
+          "done": "every named plan role has a current holder and deputy with recorded training completion and walkthrough attendance."
+        },
+        {
+          "step": "Publish, version-control and distribute the plans so they survive the outage",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "document management repository",
+          "actions": [
+            "Publish each plan with a version number, effective date, owner and approval reference on the cover page.",
+            "Retire the superseded versions to a read-only archive so no team can invoke a stale plan.",
+            "Produce an offline copy set - printed or on encrypted removable media held at the alternate site - because the repository itself may be unavailable during invocation.",
+            "Record the distribution list and collect acknowledgements from each recipient."
+          ],
+          "done": "the current plan set is published, superseded versions archived read-only, an offline copy exists at the alternate site and acknowledgements are recorded."
+        },
+        {
+          "step": "Arm the annual and event-driven review triggers",
+          "by": "Operational Risk Manager",
+          "role": "Operational Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Create the annual review task in the GRC platform dated to close before the Board Risk Committee papers deadline, with T-90, T-45 and T-15 reminders.",
+            "Add event triggers that open a review task automatically on: any incident classified major under Delegated Regulation (EU) 2024/1772, any new or terminated CIF-supporting ICT contract, any failed resilience test, and any supervisory instruction.",
+            "Name the reviewer and approver on each trigger so an unassigned task cannot sit idle.",
+            "Report open review tasks past due in the monthly operational risk pack."
+          ],
+          "done": "an annual review task with reminders plus four named event triggers exist in the GRC platform with assigned reviewers."
+        },
+        {
+          "step": "Assemble and retain the supervisory evidence pack",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File in the compliance evidence repository under DORA Art. 11: the approved policy version, the CIF register extract, business impact analyses, plan set, backup standard, exit strategies, training records and board minutes.",
+            "Apply a 10-year-from-supersession retention label so the record outlives the plan version.",
+            "Index the pack by legal entity, LEI and CIF so a competent authority request can be answered by query rather than by search.",
+            "Run a retrieval test - pull the full pack for one entity and time it - and record the elapsed time against the 10-business-day commitment."
+          ],
+          "done": "a retention-labelled, entity-indexed evidence pack exists and a timed retrieval test proves the 10-business-day commitment."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of critical or important functions for the review year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Extract the CIF register from the GRC business continuity module for every in-scope EU entity, with function name, entity LEI, owner, RTO, RPO and linked plan reference.",
+            "Add any function flagged as supporting a critical or important function in the DORA register of information so the two records cannot diverge unnoticed.",
+            "Reconcile the extract to the business service catalogue held by the Operations Manager and resolve every difference before sampling.",
+            "Sign the population as complete with the extract date, record count and the query used."
+          ],
+          "done": "the CIF population is reconciled to the service catalogue and the register of information, and signed as complete with a reproducible query."
+        },
+        {
+          "step": "Reconcile every function to an approved, in-date plan",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each population row to a published plan version in the document management repository on CIF identifier.",
+            "Check the plan's approval reference traces to a board or Board Risk Committee minute and that the approval date is inside the last 12 months.",
+            "List any CIF with no plan, a draft-status plan, or an approval older than 12 months as an automatic exception with no judgement applied.",
+            "Confirm the superseded versions are archived read-only so an invocation cannot pick up a stale plan."
+          ],
+          "done": "every CIF is matched to an approved plan version dated within 12 months, or listed as an exception."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of CIFs involving policyholder payments, claims settlement or regulatory reporting.",
+            "Take 10 further CIFs by seeded random selection from the remainder, for a minimum of 15 sampled functions.",
+            "Record the seed, population size, selection date and the inclusion rule in the workpaper so the sample can be re-drawn identically.",
+            "Note any CIF added to the register after the extract date and treat it as a subsequent-events item."
+          ],
+          "done": "a reproducible sample is drawn covering all payment, claims and reporting functions plus a seeded random remainder."
+        },
+        {
+          "step": "Re-derive the RTO and RPO for each sampled function",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Read the business impact analysis behind each sampled CIF and re-derive the maximum tolerable period of disruption from the stated loss-per-hour and detriment figures without first reading the recorded RTO.",
+            "Compare your derived RTO and RPO to the recorded values; any difference greater than 25% or any value with no supporting analysis is an exception.",
+            "Check the RTO against the externally fixed deadlines - Solvency II QRT dates, direct debit collection cycles, claims payment service standards - and flag any RTO that would still breach an external deadline.",
+            "Attach the recomputation sheet to the workpaper."
+          ],
+          "done": "each sampled CIF has an independent RTO/RPO re-derivation with differences and unsupported values logged."
+        },
+        {
+          "step": "Trace the dependency mapping into the CMDB and the third-party register",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "CMDB",
+          "actions": [
+            "In the CMDB query the configuration items tagged to each sampled CIF and compare the returned asset chain to the plan's stated recovery sequence.",
+            "Confirm every ICT third-party provider named in the asset chain appears in the register of information with a contract reference.",
+            "Identify any asset in the recovery sequence that is absent from the CMDB, and any tagged asset absent from the plan - both are exceptions.",
+            "Capture the CMDB dependency view into the workpaper for each sampled CIF."
+          ],
+          "done": "the CMDB asset chain, the plan recovery sequence and the third-party register agree for each sampled CIF or the difference is logged."
+        },
+        {
+          "step": "Test the backup and restoration arrangements against Art. 12",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled CIF data set read the backup job configuration and compare the actual backup frequency to the RPO on the CIF record.",
+            "Verify at least one copy is logically segregated or immutable and cannot be deleted from the production identity domain, by inspecting the retention-lock or offline-media evidence.",
+            "Obtain the most recent restore-test result and confirm the restore ran into an isolated environment, completed within the RTO and validated data integrity.",
+            "Where no restore test exists in the last 12 months, record a fail regardless of the backup configuration quality."
+          ],
+          "done": "backup frequency reconciles to the RPO, an immutable or segregated copy is evidenced and a restore test within 12 months met the RTO."
+        },
+        {
+          "step": "Verify the exit strategies behind sampled third-party dependencies",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "Pull the exit strategy for each ICT provider supporting a sampled CIF and read it against DORA Art. 28(8).",
+            "Confirm the contract clauses in the CLM repository actually grant the transition assistance, data return format and notice period the exit strategy assumes.",
+            "Test that a named alternative provider or in-house option exists and that the stated transition duration is shorter than the tolerance for disruption of that CIF.",
+            "Treat an exit strategy that assumes contractual rights the agreement does not contain as a fail, not a documentation gap."
+          ],
+          "done": "every sampled provider exit strategy is supported by matching contract clauses, a named alternative and a transition duration inside the tolerance."
+        },
+        {
+          "step": "Recompute the review-cycle and approval timing arithmetic",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled plan compute the elapsed days between the previous approval date and the current approval date and confirm it does not exceed 365.",
+            "Identify every major ICT-related incident, failed resilience test and material ICT contract change in the year, and confirm a plan review opened within 30 calendar days of each.",
+            "Check the GRC event triggers actually fired by inspecting the task history, not by reading the configuration.",
+            "Log any review that opened late with the number of days late."
+          ],
+          "done": "annual review intervals are within 365 days and every event trigger produced a review task within 30 days, with lateness quantified."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Operational Risk Manager",
+          "role": "Operational Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a GRC issue per exception stating the CIF, the requirement missed, the DORA article and the resilience impact.",
+            "Assign a root cause from a fixed list - CIF not identified, impact analysis not refreshed, plan not approved, dependency not mapped, restore test not run, exit right absent - plus a named owner.",
+            "Set a remediation date and, where a payment or claims CIF is uncovered, open an immediate interim workaround alongside the fix.",
+            "Carry every open exception forward as a mandatory retest row in next year's assurance scope."
+          ],
+          "done": "each exception has an issue record, a fixed-list root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the coverage exception rate and compare it to the zero-tolerance plan-coverage threshold.",
+            "Write the conclusion - effective, effective with exceptions, or ineffective - naming the evidence references behind each judgement.",
+            "Have the reviewer, who sits outside Operational Risk, IT Operations and Business Continuity and authored no sampled plan, sign the workpaper.",
+            "Report the conclusion and open exceptions to the Board Risk Committee at its next sitting and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and a Board Risk Committee reporting date is filed in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-021-C18",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Head of IT",
+          "value": "Head of IT owns delivery of the digital operational resilience testing programme; Operational Resilience Lead owns the programme design and the Art. 6(5) annual framework review it feeds"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - Regulation (EU) 2022/2554 Art. 6(1)-(2) and Art. 6(5) (documented annual review of the ICT risk management framework), Arts. 24-27 (testing programme, testers, TLPT) checked on EUR-Lex, together with Commission Delegated Regulation (EU) 2024/1774 Arts. 6-7 and the TLPT RTS; re-verified at each annual programme refresh"
+        },
+        "In-scope processes": {
+          "value": "The annual digital operational resilience testing programme covering ICT systems and applications supporting critical or important functions - policy administration, claims and payments, broker and customer portals, actuarial platforms - plus the annual documented review of the ICT risk management framework and the lessons-learned loop from incidents, audits and supervisory instructions"
+        },
+        "In-scope systems": {
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "value": "Test plans, findings and remediation tasks tracked as change and problem records; vulnerability results from Qualys / Tenable, performance results from k6 / JMeter, and the consolidated findings register held in the GRC platform"
+        },
+        "Compliance procedure documented": {
+          "value": "Digital Operational Resilience Testing Programme document - test taxonomy (vulnerability assessment, open-source analysis, network security assessment, gap analysis, source code review, scenario-based testing, compatibility, performance, end-to-end and penetration testing), risk-based frequency per system, tester independence rules and the finding-to-remediation workflow"
+        },
+        "Compliance procedure approved": {
+          "value": "Programme approved annually by the Chief Information Officer and Chief Risk Officer, and the resulting ICT risk management framework review is approved by the management body under Art. 6(5); TLPT scope approved by the designated TLPT authority before execution"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Testing programme executed at least annually per Art. 24(6), with every ICT system supporting a critical or important function tested at least once each year; the framework review closes annually and additionally within 30 days of any major ICT-related incident, supervisory instruction or failed test; threat-led penetration testing at least every three years"
+        },
+        "Deadline reminders configured": {
+          "value": "Programme calendar in the ITSM platform raises test-due tasks at T-60 and T-30 to each planned test window, a year-end alert for any CIF system with no completed test, and a 36-month countdown alert on the last TLPT completion date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Test plans, raw scan and test output, findings registers, remediation closure evidence, TLPT reports and the attestation/summary supplied to the competent authority retained 10 years from test date"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "An untested CIF system, a high or critical finding past its remediation due date, or a test run by a non-independent tester is logged as a resilience-testing exception with owner, root cause and Chief Info Security Officer visibility"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Info Security Officer",
+          "value": "Chief Info Security Officer signs off closure of every critical and high finding and any risk acceptance, with an expiry date and a compensating control named"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All ICT systems and applications supporting critical or important functions in the programme year, each with its planned test type, execution record and resulting findings"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any CIF-supporting system with no completed test in the year is a fail; any critical finding open beyond 30 days or high finding beyond 90 days without an approved risk acceptance is a fail; TLPT overdue beyond 36 months is an automatic escalation to the management body"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual under Art. 24(6) and Art. 6(5); independent verification runs annually before the framework review is tabled, with a mid-year interim check on remediation ageing"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Chief Audit Executive",
+          "value": "Reviewer must be outside IT Operations, Security Engineering and the testing function, and must not have executed or commissioned any sampled test"
+        },
+        "Evidence location for test results": {
+          "value": "Annual resilience-testing assurance workpaper - system population, test completion reconciliation, finding ageing recomputation, tester independence evidence - filed in the compliance evidence repository under DORA Arts. 24-27"
+        },
+        "Regulator-ready documentation": {
+          "value": "Testing programme, per-system test completion matrix, findings and remediation register, TLPT summary report and the attestation confirming the test was conducted in accordance with the requirements, deliverable to the national competent authority within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "Compliance coordinates responses to the national competent authority and to the TLPT authority; Chief Info Security Officer approves the technical content and General Counsel clears the release of any raw penetration-test finding outside the firm"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Define the annual digital operational resilience testing programme",
+          "by": "Operational Resilience Lead",
+          "role": "Operational Resilience Lead",
+          "actions": [
+            "Draft the programme document setting out the full test taxonomy DORA Art. 25(1) names: vulnerability assessments and scans, open-source analyses, network security assessments, gap analyses, physical security reviews, questionnaires and scanning software solutions, source code reviews where feasible, scenario-based tests, compatibility testing, performance testing, end-to-end testing and penetration testing.",
+            "State the risk-based rule that determines which test types apply to which system class, and record the criteria used - CIF support, internet exposure, data sensitivity, change velocity.",
+            "Write the tester independence rule required by Art. 24(5): internal testers may be used only where conflicts of interest are prevented and the arrangement is approved by the competent authority where required.",
+            "Take the draft to the Chief Information Officer and Chief Risk Officer for approval and record the approval date and version."
+          ],
+          "done": "an approved programme document names the test taxonomy, the risk-based applicability rules and the tester independence rule with a version and approval date."
+        },
+        {
+          "step": "Build the in-scope system inventory and the risk-based test calendar",
+          "by": "Operational Resilience Analyst",
+          "role": "Operational Resilience Analyst",
+          "app": "CMDB",
+          "actions": [
+            "Query the CMDB for every application and infrastructure service tagged to a critical or important function and export it with owner, hosting model and internet exposure flag.",
+            "Assign each system its required test types from the programme rules and the target quarter, ensuring every CIF-supporting system carries at least one test in the year per Art. 24(6).",
+            "Book the test windows with the IT Service Delivery Manager against the change freeze calendar so testing does not collide with quarter-end reporting or renewal peaks.",
+            "Load the calendar into the ITSM platform as scheduled test records with T-60 and T-30 reminders and a named test owner each."
+          ],
+          "done": "every CIF-supporting system has assigned test types, a booked window outside freeze periods and a scheduled ITSM record with an owner."
+        },
+        {
+          "step": "Run vulnerability assessments and scans across the in-scope estate",
+          "by": "Vulnerability Analyst",
+          "role": "Vulnerability Analyst",
+          "app": "Qualys / Tenable (Vuln)",
+          "actions": [
+            "In the vulnerability platform build an asset group per CIF system from the CMDB tags and confirm authenticated scanning credentials work for each target.",
+            "Run authenticated internal scans and external perimeter scans on the scheduled window and export the findings with CVE, CVSS score, affected host and first-detected date.",
+            "Deduplicate against known findings and set remediation clocks: critical 30 days, high 90 days, measured from first detection not from report date.",
+            "Push each finding into the ITSM platform as a task assigned to the system owner with the CVE and CVSS in the record.",
+            "Hand the summary to the Chief Info Security Officer for the monthly security report."
+          ],
+          "done": "authenticated and perimeter scans completed for every CIF asset group with deduplicated findings pushed to owners on 30/90-day clocks."
+        },
+        {
+          "step": "Run source code review and open-source component analysis on the in-house estate",
+          "by": "Application Security Lead",
+          "role": "Application Security Lead",
+          "app": "SonarQube",
+          "actions": [
+            "Confirm every repository behind a CIF-supporting application is onboarded to the static analysis pipeline and that the quality gate blocks merges on new critical findings.",
+            "Run the software composition analysis over the dependency manifests and export the list of components with known vulnerabilities and their licence status.",
+            "Where source code review is not feasible - vendor-supplied binaries such as the policy administration platform - record that fact and substitute the vendor's own assurance evidence, naming the report and its date.",
+            "Raise a remediation task per critical or high component finding with the upgrade target version stated."
+          ],
+          "done": "static analysis and composition analysis are evidenced for every in-house CIF application, with a documented substitute for vendor binaries."
+        },
+        {
+          "step": "Run network security assessments and penetration testing",
+          "by": "Penetration Tester",
+          "role": "Penetration Tester",
+          "actions": [
+            "Agree the rules of engagement with the Head of IT: targets, test window, out-of-scope systems, escalation contact and the stop condition for production impact.",
+            "Execute external and internal network penetration tests against the CIF-supporting perimeter, the broker and customer portals and the segmentation between the corporate and payment zones.",
+            "Attempt lateral movement from a low-privilege foothold to a CIF data store and record whether segmentation held.",
+            "Deliver a report with an executive summary, each finding rated by exploitability and impact, the reproduction steps and the recommended fix.",
+            "Confirm the tester independence position and record it - external firm, or internal team with the conflict-of-interest controls Art. 24(5) requires."
+          ],
+          "done": "penetration testing is executed under signed rules of engagement, segmentation is explicitly tested, and a rated report with a recorded independence position is delivered."
+        },
+        {
+          "step": "Run performance, capacity and compatibility testing on the CIF path",
+          "by": "Test Lead",
+          "role": "Test Lead",
+          "app": "Apache JMeter / k6 Performance Testing",
+          "actions": [
+            "Take the peak-volume assumptions from the Capacity Planner - renewal peak policy transactions per hour, catastrophe-event claims intake rate, month-end payment file volume.",
+            "Build load profiles at 100% and 150% of peak and run them against the pre-production environment for the quote, bind, claim-notification and payment journeys.",
+            "Record response time percentiles, error rate and the point at which the system degrades, and compare against the service level thresholds.",
+            "Run compatibility checks on supported browser and device versions for the customer and broker portals.",
+            "Raise a finding for any journey that fails at 150% of peak and hand it to the platform owner with the observed breaking point."
+          ],
+          "done": "load profiles at 100% and 150% of peak have run against every CIF journey with percentile results, breaking points and raised findings."
+        },
+        {
+          "step": "Run scenario-based and end-to-end tests including a live recovery exercise",
+          "by": "Resilience Engineer",
+          "role": "Resilience Engineer",
+          "actions": [
+            "Select the scenarios from the continuity plan set - data centre loss, cloud region failure, ransomware, loss of the core provider - and design a test that exercises the actual recovery steps rather than a tabletop discussion.",
+            "Execute at least one live failover of a CIF system to its recovery site or region, timing the elapsed period from invocation to service restoration.",
+            "Measure the achieved recovery time and recovery point against the documented RTO and RPO and record both the achieved and target figures.",
+            "Run the end-to-end business journey after failover to prove the recovered system actually transacts, not merely that it boots.",
+            "Write the exercise report naming what worked, what failed and every action item with an owner."
+          ],
+          "done": "a live failover of at least one CIF system is completed with achieved-versus-target RTO/RPO, a post-failover end-to-end journey and an owned action list."
+        },
+        {
+          "step": "Scope and schedule threat-led penetration testing under Arts. 26-27",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Confirm with the Compliance Officer whether the entity has been designated by the competent authority as in scope for advanced testing, and record the designation and its date.",
+            "Where in scope, plan TLPT at least every three years against live production systems supporting critical or important functions, following the TIBER-EU-aligned methodology.",
+            "Commission threat intelligence and red-team providers meeting the Art. 27 suitability criteria and evidence their certification, professional indemnity cover and independence.",
+            "Agree the scope, control team composition and the risk management measures with the designated TLPT authority before execution begins.",
+            "Diarise the next TLPT at 36 months from the completion date of the last one."
+          ],
+          "done": "the TLPT designation position is recorded and, where in scope, a provider-qualified, authority-agreed test is scheduled within the 36-month cycle."
+        },
+        {
+          "step": "Consolidate every test result into a single findings register",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Import findings from the vulnerability platform, static analysis, penetration test report, performance tests and the recovery exercise into one register keyed by system and CIF.",
+            "Normalise severity onto one scale so a critical from the penetration test and a CVSS 9.x scan finding sit on the same clock.",
+            "Record for each finding: source test, discovery date, severity, owner, due date, remediation plan and current status.",
+            "Run the ageing report and flag every critical past 30 days and high past 90 days for escalation."
+          ],
+          "done": "a single findings register holds every test result on a normalised severity scale with owners, due dates and an ageing report."
+        },
+        {
+          "step": "Drive remediation and re-test to closure",
+          "by": "IT Service Delivery Manager",
+          "role": "IT Service Delivery Manager",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Convert each finding into a change or problem record with the fix, the target release and the system owner as assignee.",
+            "Require evidence of the fix - a re-scan showing the CVE cleared, a re-run load test inside threshold, a re-executed exploit that now fails - before any record is closed.",
+            "Where the fix cannot land inside the clock, route a risk acceptance to the Chief Info Security Officer naming the compensating control and an expiry date; open-ended acceptances are not permitted.",
+            "Report ageing and closure rates to the Chief Information Officer monthly."
+          ],
+          "done": "every finding is closed on re-test evidence or carries a time-bound, Chief Info Security Officer-approved risk acceptance with a compensating control."
+        },
+        {
+          "step": "Feed lessons learned into the ICT risk management framework review",
+          "by": "Operational Risk Manager",
+          "role": "Operational Risk Manager",
+          "actions": [
+            "Collect the inputs Art. 6(5) requires the annual review to consider: resilience test conclusions, major ICT-related incidents, internal audit findings and any supervisory instruction received.",
+            "Redline the ICT risk management framework where a test exposed a control that does not work as written, and record which test drove each change.",
+            "Update the ICT risk register with any newly evidenced risk and re-rate residual risk where a test proved the control weaker than assumed.",
+            "Document the review, the changes made and the changes considered and rejected with the reason - the article requires a documented review, not just an updated document."
+          ],
+          "done": "a documented framework review exists citing test results, incidents, audit findings and supervisory instructions, with each change traced to its driver."
+        },
+        {
+          "step": "Report the programme outcome to the management body",
+          "by": "Chief Information Officer",
+          "role": "Chief Information Officer",
+          "app": "board portal",
+          "actions": [
+            "Prepare the board paper: tests planned versus completed per CIF system, achieved versus target RTO/RPO from the recovery exercise, open critical and high findings with ageing, TLPT status and the framework changes made.",
+            "State plainly any CIF-supporting system that went untested in the year and the reason.",
+            "Table the paper at the Board Risk Committee and capture the decision, challenge and any conditions in the minute.",
+            "Record the management body's approval of the reviewed ICT risk management framework with the version number."
+          ],
+          "done": "board minutes record the testing outcome, untested systems, open findings and approval of the named framework version."
+        },
+        {
+          "step": "Give internal audit its independent review of the framework",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the ICT risk management framework is on the audit plan with a frequency proportionate to the entity's ICT risk profile, as Art. 6(6) requires.",
+            "Ensure auditors assigned have the ICT knowledge and are independent of the ICT function; record the competence basis.",
+            "Run the formal follow-up process on prior ICT audit findings and evidence verification of each remediation rather than accepting management assertion.",
+            "Report the audit conclusion to the Audit Committee alongside the testing programme results."
+          ],
+          "done": "the framework is audited by competent, independent auditors with evidenced follow-up of prior findings and an Audit Committee conclusion."
+        },
+        {
+          "step": "Prepare the supervisory attestation and summary of test results",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Assemble the summary of relevant findings, the remediation plans and the documentation evidencing that testing was conducted in accordance with the requirements.",
+            "For TLPT, prepare the attestation for the designated authority confirming the test was performed in line with the requirements, together with the test summary report and the remediation plan.",
+            "Have the Chief Info Security Officer confirm the technical accuracy and General Counsel clear any raw exploit detail before external release.",
+            "Log the pack in the internal regulatory system against the DORA obligation and the competent authority reference."
+          ],
+          "done": "a cleared attestation and findings summary is prepared and logged against the DORA obligation with the competent authority reference."
+        },
+        {
+          "step": "Retain the programme evidence and arm next year's cycle",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File test plans, raw output, findings registers, closure evidence, exercise reports and board papers in the compliance evidence repository indexed by system, CIF and test type.",
+            "Apply a 10-year-from-test-date retention label and confirm penetration test detail is access-restricted to the security and audit groups.",
+            "Roll the calendar forward: carry every open finding and every untested system into next year's plan as mandatory scope.",
+            "Reset the 36-month TLPT countdown from the completion date recorded this cycle."
+          ],
+          "done": "all programme evidence is retained and indexed, open findings and untested systems are carried into next year's scope and the TLPT countdown is reset."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of systems that required testing in the year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "CMDB",
+          "actions": [
+            "Extract from the CMDB every application and infrastructure service tagged to a critical or important function, with owner, hosting model and internet exposure.",
+            "Add any system named in the register of information as supporting a CIF but absent from the CMDB extract, so tagging gaps cannot shrink the population.",
+            "Reconcile the count to the testing programme's planned scope and investigate every system in one list but not the other.",
+            "Sign the population as complete with the extract date, record count and query."
+          ],
+          "done": "the system population reconciles to the CMDB, the register of information and the planned programme scope and is signed as complete."
+        },
+        {
+          "step": "Reconcile planned tests to completed tests for every population row",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Match each system to its scheduled test records in the ITSM platform and read the completion status and completion date.",
+            "Confirm at least one test of a type appropriate to the system class completed inside the programme year, as Art. 24(6) requires.",
+            "List any system with no completed test, a test completed after year end, or a test closed without an attached result as an automatic exception.",
+            "Confirm the deferral of any planned test was approved by the Chief Information Officer rather than silently rescheduled."
+          ],
+          "done": "every CIF-supporting system is matched to a completed, evidenced in-year test or listed as an exception."
+        },
+        {
+          "step": "Draw and document the sample of tests to re-perform",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of internet-facing CIF systems and 100% of systems in the payment and claims path.",
+            "Take 8 further systems by seeded random selection from the remainder, for a minimum of 15 sampled systems.",
+            "Record the seed, population size, selection date and inclusion rules so the sample can be re-drawn identically.",
+            "Include the recovery exercise and, where applicable, the TLPT as mandatory sample items regardless of the random draw."
+          ],
+          "done": "a reproducible sample covers all internet-facing and payment-path systems, the recovery exercise and the TLPT, plus a seeded random remainder."
+        },
+        {
+          "step": "Re-perform the technical result on sampled systems",
+          "by": "Security Engineer",
+          "role": "Security Engineer",
+          "app": "Qualys / Tenable (Vuln)",
+          "actions": [
+            "For each sampled system re-run an authenticated scan in the vulnerability platform against the same asset group and compare the finding set to the recorded test output.",
+            "Check for findings present now that the original test should have detected - unauthenticated scan coverage, missing credentials or an incomplete asset group are the usual causes.",
+            "Confirm findings recorded as remediated are genuinely absent from the fresh scan; a closed record with a still-present CVE is a fail.",
+            "Attach the fresh scan export and the comparison to the workpaper."
+          ],
+          "done": "each sampled system has an independent re-scan compared to the original result, with undetected and falsely-closed findings identified."
+        },
+        {
+          "step": "Verify tester independence and competence against Arts. 24(5) and 27",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled test identify who executed it and confirm they did not build, operate or own the system under test.",
+            "Where internal testers were used, read the conflict-of-interest controls the programme relies on and confirm they were actually applied, including approval by the competent authority where required.",
+            "For external penetration and TLPT providers obtain the certification, professional indemnity insurance and the independence declaration and check their validity dates cover the test window.",
+            "Treat a test performed by the system's own build team without documented conflict controls as a fail on independence irrespective of technical quality."
+          ],
+          "done": "every sampled test has a documented, in-date independence and competence position for the tester."
+        },
+        {
+          "step": "Trace the recovery exercise to achieved RTO and RPO evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Read the exercise report and obtain the underlying timestamps: invocation time, failover start, service restoration time and the last successfully replicated transaction.",
+            "Recompute achieved RTO and RPO from those timestamps rather than accepting the reported figures, and compare to the documented targets on the CIF record.",
+            "Confirm a post-failover end-to-end business journey ran and produced a real transaction result, not merely a service-up health check.",
+            "Record any failover where the achieved figure exceeded the target, with the gap in hours."
+          ],
+          "done": "achieved RTO and RPO are recomputed from raw timestamps, compared to target, and post-failover transaction evidence is obtained."
+        },
+        {
+          "step": "Recompute finding ageing and remediation clock arithmetic",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Export the findings register and recompute days open as closure date minus first-detection date, not minus report date, for every critical and high finding.",
+            "Compare against the 30-day critical and 90-day high thresholds and list every breach with the number of days over.",
+            "For each finding closed under risk acceptance, confirm the acceptance names a compensating control, an expiry date and the Chief Info Security Officer's signature, and check the expiry has not passed.",
+            "Test five closures for re-test evidence attached to the record; a closure with no re-test artefact is a fail."
+          ],
+          "done": "finding ageing is recomputed from first detection, threshold breaches are quantified and closures are evidenced by re-test or a valid time-bound acceptance."
+        },
+        {
+          "step": "Verify the Art. 6(5) framework review actually happened and cited its inputs",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Obtain the documented annual review of the ICT risk management framework and confirm the review date is within 12 months of the previous one.",
+            "Check the review record explicitly cites the resilience test conclusions, the major ICT-related incidents of the year, internal audit findings and any supervisory instruction.",
+            "For three framework changes trace back to the specific test or incident that drove them, and for two rejected changes read the recorded reason.",
+            "Confirm the management body approved the reviewed framework by inspecting the board minute and the version number it names."
+          ],
+          "done": "the framework review is evidenced within 12 months, cites all four Art. 6(5) input classes and is approved by a minuted management body decision naming the version."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a GRC issue per exception naming the system, the test or requirement missed, the DORA article and the resilience impact.",
+            "Assign a root cause from a fixed list - system not tagged to a CIF, test window lost to change freeze, scan credentials failed, tester not independent, remediation clock started from the wrong date - plus an owner.",
+            "Set a remediation date and, for an untested internet-facing CIF system, require the test to be run inside 30 days rather than deferred to the next cycle.",
+            "Carry every open exception into next year's assurance scope as a mandatory retest row."
+          ],
+          "done": "each exception has an issue record, a fixed-list root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the test-coverage exception rate and the proportion of critical and high findings breaching their clocks, and compare both to the stated thresholds.",
+            "Write the conclusion - effective, effective with exceptions, or ineffective - with the evidence reference behind each judgement.",
+            "Have the reviewer, who sits outside IT Operations, Security Engineering and the testing function and commissioned no sampled test, sign the workpaper.",
+            "Report to the Audit Committee and the Board Risk Committee at their next sittings and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, coverage and ageing exception rates and committee reporting dates is filed in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-021-C19",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Third-Party Risk Manager",
+          "value": "Third-Party Risk Manager owns the DORA register of information and the ICT third-party risk register; Enterprise Architect owns the ICT asset inventory feeding Art. 8(2)-(6), Chief Risk Officer is the accountable executive"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - Regulation (EU) 2022/2554 Art. 8(2)-(6) (identification of ICT risk sources, information and ICT assets, dependencies), Art. 28(2)-(3) (register of information on all contractual arrangements) and Arts. 31-42 (Critical ICT Third-Party Provider designation and oversight), read with Commission Implementing Regulation (EU) 2024/2956 on the register templates and Commission Delegated Regulation (EU) 2024/1773 on subcontracting of ICT services supporting critical or important functions"
+        },
+        "In-scope processes": {
+          "value": "Continuous maintenance of the ICT asset and information inventory and of the ICT third-party contractual register across every EU legal entity - vendor onboarding, contract signature and renewal, subcontractor change notification, service termination and the annual register submission to the national competent authority"
+        },
+        "In-scope systems": {
+          "app": "Archer GRC",
+          "value": "Register of information built in the third-party risk module against the ITS 2024/2956 template structure; contracts held in the contract lifecycle management repository, ICT assets and dependency links in the CMDB, supplier master and spend in the procurement platform"
+        },
+        "Compliance procedure documented": {
+          "value": "ICT Third-Party Register Procedure - what constitutes an ICT service, how a contractual arrangement is captured at signature, how the CIF-support flag and the function identifier are set, how LEI and EUID identifiers are sourced and validated, how subcontracting chains supporting a CIF are recorded, and the quarterly data-quality run"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Risk Officer and Head of Compliance; the register content itself is approved by the management body before the annual submission, consistent with the Art. 5(2) responsibility for the ICT third-party strategy"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Register maintained continuously and updated within 10 business days of any new, renewed, materially amended or terminated ICT contract; the full register is reported to the national competent authority annually against the 31 March reference date, submitted on the date the authority sets (typically during April), plus ad-hoc on supervisory request and on any new arrangement for a critical or important function"
+        },
+        "Deadline reminders configured": {
+          "value": "GRC alerts at T-45 and T-15 to the competent authority submission date, a 10-business-day SLA clock on every contract lifecycle event fed from the CLM repository, and a 90-day pre-expiry alert on every CIF-supporting contract"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Register versions as submitted, validation output, contracts, due diligence files, subcontractor notifications and the management body approval retained 10 years from contract termination"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "Archer GRC",
+          "value": "A live ICT contract absent from the register, a missing or invalid LEI, an unset CIF flag, an unrecorded subcontractor supporting a CIF, or a validation failure at submission is logged as a register data exception with owner and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "Chief Risk Officer signs off the register before submission and signs off closure of every register completeness or accuracy exception"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All ICT third-party contractual arrangements in force at the 31 March reference date across every EU legal entity, plus all ICT assets and information assets recorded under Art. 8, plus all contract lifecycle events in the year"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on completeness - any in-force ICT contract absent from the register is a fail; any CIF-supporting arrangement with a missing LEI, missing function identifier or unrecorded subcontractor is a fail; any submission rejected by the authority's validation rules is a fail requiring root-cause analysis"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous maintenance with an annual authority submission; verification runs quarterly on lifecycle-event timeliness and in full ahead of the annual submission against the 31 March reference date"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must sit outside Vendor Management, Procurement and Third-Party Risk and must not maintain any sampled register row"
+        },
+        "Evidence location for test results": {
+          "value": "Annual register-of-information assurance workpaper - contract population from procurement and the general ledger, register reconciliation, identifier validation, subcontracting chain testing and the exception log - in the compliance evidence repository under DORA Art. 28(3)"
+        },
+        "Regulator-ready documentation": {
+          "value": "Register of information in the ITS 2024/2956 template format with the validation report, the management body approval and the underlying contracts, deliverable to the national competent authority on demand and within 10 business days for an ad-hoc request"
+        },
+        "Regulator response path": {
+          "value": "Compliance submits and responds to the national competent authority, which forwards to the ESAs for the Critical ICT Third-Party Provider designation process under Arts. 31-42; General Counsel handles any provider notification arising from a designation or an oversight request"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Define what counts as an ICT service and an in-scope contractual arrangement",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Write the scoping rule against the DORA Art. 3(21) definition of ICT services - digital and data services provided through ICT systems on an ongoing basis - and record the borderline calls: SaaS in, pure consultancy out, managed print out, cloud hosting in, data feeds in.",
+            "Confirm with the Procurement Manager that intragroup ICT arrangements are in scope on the same terms as external ones.",
+            "Circulate the rule to Procurement, Vendor Management and the CIO office so contract intake applies one definition.",
+            "Record the rule and its approval date in the register procedure document."
+          ],
+          "done": "a written, approved ICT-service scoping rule exists with recorded borderline calls and intragroup treatment, circulated to contract intake."
+        },
+        {
+          "step": "Build the complete inventory of ICT contractual arrangements in force",
+          "by": "Vendor Manager",
+          "role": "Vendor Manager",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "Export every active contract from the CLM repository with counterparty, legal entity, start and end date, notice period and annual value.",
+            "Cross-check against the supplier master and the ICT cost centre spend in the procurement platform to catch services bought on purchase order without a contract record.",
+            "Apply the ICT-service scoping rule to each row and mark it in-scope or out-of-scope with the reason.",
+            "Chase the contract copy for every in-scope row with no document attached - a spend line with no agreement is itself a finding, not a data gap.",
+            "Hand the confirmed in-scope list to the Third-Party Risk Manager for register loading."
+          ],
+          "done": "an in-scope ICT contract list reconciled to supplier master and ICT spend exists, with a contract document attached to every row or a raised finding."
+        },
+        {
+          "step": "Populate the register of information against the ITS 2024/2956 template structure",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "app": "Archer GRC",
+          "actions": [
+            "In the third-party risk module open the register templates and complete each table: entity maintaining the register, contractual arrangements, ICT third-party service providers, functions supported, assessments of ICT services, and the intra-group and subcontracting tables.",
+            "Enter for each arrangement the contract reference number, start and end date, notice periods for both parties, governing law, the countries where the service is performed and where data is stored and processed.",
+            "Record the annual expense or estimated cost of the arrangement in the reporting currency.",
+            "Set the arrangement type - use of ICT services supporting critical or important functions, or not - and the reason for the classification.",
+            "Save the register version with the reference date and lock it against edits once loaded for submission."
+          ],
+          "done": "every register table required by the implementing regulation is populated per arrangement with dates, jurisdictions, cost and the CIF classification, and the version is reference-dated."
+        },
+        {
+          "step": "Source and validate the legal identifiers for every party and every provider",
+          "by": "Governance Analyst",
+          "role": "Governance Analyst",
+          "actions": [
+            "Obtain the LEI for the reporting entity and for each ICT third-party provider from the GLEIF database and paste the 20-character code onto the register row.",
+            "Where a provider has no LEI, record the EUID from the national business register or the applicable alternative identifier and the identifier type code the template requires.",
+            "Check each LEI's registration status is Issued and not Lapsed at the reference date - a lapsed LEI will fail validation.",
+            "Record the provider's legal name exactly as registered rather than the trading name used on invoices, and note any mismatch for procurement to correct in the supplier master."
+          ],
+          "done": "every register party carries a validated, non-lapsed LEI or a typed alternative identifier, with the legal name matching the register of record."
+        },
+        {
+          "step": "Map each arrangement to the functions it supports and set the criticality flag",
+          "by": "Operational Resilience Lead",
+          "role": "Operational Resilience Lead",
+          "actions": [
+            "Take the CIF register and assign each ICT arrangement the function identifier of every function it supports, using the licenced activity and function name the template expects.",
+            "Set the flag for whether the ICT service supports a critical or important function, applying the Art. 3(22) test rather than the vendor's own marketing description.",
+            "For each CIF-supporting arrangement record the criticality assessment: the date of the last assessment, who performed it and the outcome.",
+            "Where a single provider supports several CIFs, record every function link rather than the largest one, so concentration is visible."
+          ],
+          "done": "every arrangement carries its full set of function identifiers, a CIF flag decided on the Art. 3(22) test and a dated criticality assessment for CIF-supporting services."
+        },
+        {
+          "step": "Record the subcontracting chain for services supporting critical or important functions",
+          "by": "Contracts Manager",
+          "role": "Contracts Manager",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "For each CIF-supporting arrangement, obtain from the provider the list of subcontractors effectively underpinning the service and the rank of each in the chain.",
+            "Record subcontractor legal name, identifier, country of establishment and the country where the subcontracted service is performed.",
+            "Check the contract contains the notification and objection rights over material subcontracting changes that Commission Delegated Regulation (EU) 2024/1773 expects, and raise a contract remediation item where it does not.",
+            "Set a standing obligation on the provider to notify chain changes and log each notification against the register row with its date."
+          ],
+          "done": "every CIF-supporting arrangement has a recorded subcontracting chain with ranks, identifiers and countries, and contractual notification rights confirmed or remediated."
+        },
+        {
+          "step": "Record the contractual provisions Art. 30 requires for each arrangement",
+          "by": "Legal Counsel",
+          "role": "Legal Counsel",
+          "actions": [
+            "Read each in-scope contract against DORA Art. 30(2): clear service description, locations of service and data, data protection and availability provisions, access, inspection and audit rights, assistance on ICT incidents, cooperation with competent authorities, and termination rights.",
+            "For CIF-supporting arrangements add the Art. 30(3) provisions: service level descriptions with precise quantitative targets, notice periods and reporting obligations, incident assistance at no additional cost or at a pre-agreed cost, participation in the firm's TLPT, unrestricted audit rights, and exit strategies with a mandatory adequate transition period.",
+            "Record clause-by-clause on the register row whether each required provision is present, absent or partially met.",
+            "Open a contract remediation task with the Procurement Manager for every gap, targeted at the next renewal or earlier where the gap is on a CIF-supporting service."
+          ],
+          "done": "each arrangement has a clause-by-clause Art. 30 compliance assessment on the register row with remediation tasks raised for every gap."
+        },
+        {
+          "step": "Refresh the ICT and information asset inventory under Art. 8(2)-(6)",
+          "by": "Enterprise Architect",
+          "role": "Enterprise Architect",
+          "app": "CMDB",
+          "actions": [
+            "Run the discovery and reconciliation job so the CMDB holds all ICT assets including those at remote sites and network resources, with owner, location, criticality and lifecycle status.",
+            "Record the information assets and their classification alongside, and link each to the processes that depend on it.",
+            "Identify and record all processes dependent on ICT third-party service providers and the interconnections with those third parties, including network links and API integrations.",
+            "Flag every asset that has reached or will reach end of vendor support inside 12 months and hand the list to the Head of IT for the lifecycle plan.",
+            "Reconcile the third-party interconnection list to the register of information so no integration exists without a contract behind it."
+          ],
+          "done": "the CMDB holds a reconciled asset, information-asset and third-party interconnection inventory with end-of-support flags, agreeing to the register of information."
+        },
+        {
+          "step": "Assess concentration risk across providers, chains and locations",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "app": "Archer GRC",
+          "actions": [
+            "Pivot the register by provider, by ultimate parent group, by hosting country and by data-processing location to expose where several CIFs rest on one point.",
+            "Apply the Art. 29 considerations: whether the provider is not easily substitutable, whether multiple CIF arrangements sit with the same provider or closely connected providers, and the effect of subcontracting chains and third-country locations.",
+            "For each concentration above the risk appetite threshold, record the exposure, the substitution difficulty and the mitigation - dual provider, portability design, contractual step-in - with an owner.",
+            "Report the concentration position to the Board Risk Committee with the register submission."
+          ],
+          "done": "a concentration analysis by provider, group, country and chain exists with rated exposures, named mitigations and Board Risk Committee reporting."
+        },
+        {
+          "step": "Run the register validation and data-quality checks before submission",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "Archer GRC",
+          "actions": [
+            "Run the completeness rules: no blank mandatory field, every arrangement linked to at least one function, every CIF-supporting arrangement carrying a criticality assessment date and a subcontracting entry or an explicit none.",
+            "Run the referential rules: every provider identifier resolves, every function identifier exists in the function table, every entity code matches the reporting entity list.",
+            "Run the consistency rules: contract end date after start date, cost in the reporting currency, country codes in ISO 3166 form, dates on or before the 31 March reference date.",
+            "Export the validation report, hand every failure to the row owner with a fix-by date and re-run until the exception count is zero.",
+            "File the final validation report alongside the submitted register version."
+          ],
+          "done": "the register passes completeness, referential and consistency validation with a zero-exception report filed against the submitted version."
+        },
+        {
+          "step": "Obtain management body approval of the register before submission",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "board portal",
+          "actions": [
+            "Present the register summary to the Board Risk Committee: arrangement counts by entity, CIF-supporting count, concentration position, contract-clause gaps and open exceptions.",
+            "Confirm the ICT third-party strategy and the register are consistent - a provider carrying a CIF with unremediated Art. 30 gaps must be visible, not netted out.",
+            "Capture the approval and any conditions in the minute, naming the register version and the reference date.",
+            "Record the Chief Risk Officer sign-off on the register version in the GRC platform."
+          ],
+          "done": "the board minute records approval of the named register version at the stated reference date with conditions and a recorded executive sign-off."
+        },
+        {
+          "step": "Submit the register to the national competent authority",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Confirm the authority's submission channel, file format and submission date for the year - the register is reported annually against the 31 March reference date, typically collected during April via the national reporting portal.",
+            "Generate the register in the required machine-readable format and run the authority's own file validation where one is published before uploading.",
+            "Upload the file, capture the submission receipt and reference number, and store both against the register version.",
+            "Work every authority validation error or follow-up query to closure inside the deadline the authority states and record the resubmission reference.",
+            "Log the submission and its receipt in the internal regulatory system against the DORA Art. 28(3) obligation."
+          ],
+          "done": "the register is submitted through the authority's channel with a captured receipt reference and all validation errors resolved and logged."
+        },
+        {
+          "step": "Keep the register current through the contract lifecycle",
+          "by": "Vendor Coordinator",
+          "role": "Vendor Coordinator",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "Wire the CLM repository so contract signature, renewal, material amendment and termination each raise a register update task within one business day.",
+            "Apply the 10-business-day update SLA on each task and report breaches in the monthly third-party risk pack.",
+            "Require the register row to be complete - identifiers, function links, CIF flag, subcontracting - before a new CIF-supporting service is allowed to go live.",
+            "Set the 90-day pre-expiry alert on every CIF-supporting contract so exit or renewal decisions start ahead of the notice period."
+          ],
+          "done": "every contract lifecycle event raises a register task closed inside 10 business days, and no CIF-supporting service goes live on an incomplete register row."
+        },
+        {
+          "step": "Handle Critical ICT Third-Party Provider designation and oversight interactions",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Monitor the ESAs' published list of designated Critical ICT Third-Party Providers and flag every register row whose provider appears on it.",
+            "For designated providers confirm the contractual arrangements support the Lead Overseer's powers under Arts. 31-42, including information access and on-site inspection cooperation.",
+            "Where a Lead Overseer issues recommendations to a designated provider, record the recommendation, assess the impact on the firm's use of the service and document the response, including any decision to suspend or terminate.",
+            "Report designated-provider exposure to the Board Risk Committee alongside the concentration analysis."
+          ],
+          "done": "designated providers are flagged on the register, their contracts confirmed to support oversight powers, and Lead Overseer recommendations assessed and reported."
+        },
+        {
+          "step": "Retain the register evidence and index it for supervisory retrieval",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the submitted register version, the validation report, the submission receipt, the board minute and the underlying contract set in the compliance evidence repository under DORA Art. 28(3).",
+            "Apply a 10-year-from-contract-termination retention label and index by legal entity, LEI, provider and function identifier.",
+            "Run a timed retrieval test for one entity's full register pack against the 10-business-day ad-hoc request commitment.",
+            "Archive the superseded register version read-only so the reference-date position stays reconstructable."
+          ],
+          "done": "the register pack is retained, indexed by entity, provider and function, retrieval-tested against the 10-business-day commitment and prior versions archived read-only."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of ICT contractual arrangements in force at the reference date",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Coupa / SAP Ariba (Procurement)",
+          "actions": [
+            "Extract every supplier with ICT cost-centre spend in the 12 months to 31 March from the procurement platform and the general ledger, with legal entity and annual value.",
+            "Extract every active contract from the CLM repository at the reference date, independent of the register itself.",
+            "Union the two extracts and apply the firm's ICT-service scoping rule, forming the population independently of the register so register omissions are detectable.",
+            "Sign the population as complete with extract dates, record counts and the queries used."
+          ],
+          "done": "an independently built ICT-arrangement population from spend and contract sources exists at the 31 March reference date, signed as complete."
+        },
+        {
+          "step": "Reconcile the population to the submitted register both ways",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Archer GRC",
+          "actions": [
+            "Match population rows to register rows on counterparty and contract reference and list every population row with no register entry.",
+            "Run the reverse match and list every register row with no supporting contract or spend, which usually signals a terminated arrangement left live.",
+            "Investigate each difference to a cause and record whether it is an omission, a duplicate, a scoping disagreement or a timing difference.",
+            "Treat any in-force ICT arrangement absent from the submitted register as an automatic fail with no materiality filter applied."
+          ],
+          "done": "a two-way reconciliation between the independent population and the submitted register is complete with every difference explained."
+        },
+        {
+          "step": "Draw and document the sample of register rows",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of arrangements flagged as supporting a critical or important function and 100% of arrangements with a provider on the ESAs' designated Critical ICT Third-Party Provider list.",
+            "Take 20 further rows by seeded random selection from the remainder, weighted to include intragroup arrangements and third-country service locations.",
+            "Record the seed, population size, selection date and the inclusion rules so the sample can be re-drawn identically.",
+            "Add any arrangement signed in the final month before the reference date as a cut-off test item."
+          ],
+          "done": "a reproducible sample covers all CIF-supporting and designated-provider rows plus a seeded random remainder and cut-off items."
+        },
+        {
+          "step": "Re-perform the critical-or-important-function classification on the sample",
+          "by": "Operational Resilience Lead",
+          "role": "Operational Resilience Lead",
+          "actions": [
+            "For each sampled arrangement read the contracted service description and reach your own Art. 3(22) conclusion before looking at the recorded flag.",
+            "Compare to the register flag; any difference, including a correct flag supported by the wrong function identifier, is an exception.",
+            "Test in particular arrangements flagged not-CIF whose service underpins claims payment, premium collection or policy issuance - understating the flag removes the Art. 30(3) contractual obligations.",
+            "Record the independent conclusion and its basis in the workpaper for each sampled row."
+          ],
+          "done": "each sampled arrangement has an independent CIF conclusion compared to the recorded flag, with understated flags identified."
+        },
+        {
+          "step": "Validate identifiers, dates, jurisdictions and cost fields to source",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Look up each sampled provider's LEI in the GLEIF database and confirm the code, the registered legal name and that the status is Issued at the reference date.",
+            "Agree contract start date, end date, notice period and governing law directly to the executed agreement rather than to the CLM metadata.",
+            "Agree the service-performance and data-storage countries to the contract schedules and, where the provider is cloud-based, to the region configuration evidence from the Cloud Architect.",
+            "Agree the recorded annual cost to the general ledger or the purchase order value and note differences above 10%."
+          ],
+          "done": "identifiers, dates, jurisdictions and cost on every sampled row are agreed to executed contracts, GLEIF and the ledger, with differences quantified."
+        },
+        {
+          "step": "Test the subcontracting chain recorded for CIF-supporting services",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled CIF-supporting arrangement obtain the provider's current subcontractor disclosure and compare it to the recorded chain, rank by rank.",
+            "Confirm each subcontractor's country of establishment and service-performance country are recorded, and flag any third-country link not visible in the register.",
+            "Read the contract for the notification and objection rights over material subcontracting changes and confirm the last provider notification was logged within the contractual window.",
+            "Treat a chain recorded as none where the provider's own disclosure names subcontractors as a completeness fail."
+          ],
+          "done": "every sampled CIF chain is agreed rank by rank to the provider's disclosure, with countries recorded and notification rights evidenced."
+        },
+        {
+          "step": "Re-perform the Art. 30 clause assessment on a sub-sample",
+          "by": "Legal Counsel",
+          "role": "Legal Counsel",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "Take 10 CIF-supporting contracts and read them independently against Art. 30(2) and Art. 30(3) without first reading the recorded assessment.",
+            "Confirm the presence of quantitative service level targets, incident assistance terms, unrestricted audit and inspection rights, TLPT participation and an exit strategy with a mandatory adequate transition period.",
+            "Compare your findings to the recorded clause-by-clause assessment and log every overstated present rating as an exception.",
+            "Check each recorded gap has an open remediation task with a renewal-linked due date rather than an open-ended intention."
+          ],
+          "done": "an independent Art. 30 clause read on 10 CIF contracts is compared to the recorded assessment with overstatements and unremediated gaps logged."
+        },
+        {
+          "step": "Recompute lifecycle-update timeliness and submission-deadline arithmetic",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Extract all contract signature, renewal, amendment and termination events in the year from the CLM repository with their event dates.",
+            "Recompute for each the business days between the event date and the register update date and compare against the 10-business-day SLA, listing every breach with days over.",
+            "Confirm the submitted register reflects the position at 31 March exactly - arrangements terminated on 30 March must be out, arrangements signed on 31 March must be in.",
+            "Recompute the days between the reference date and the submission receipt date and compare to the authority's stated submission date."
+          ],
+          "done": "update-SLA breaches are quantified, reference-date cut-off is proven correct and the submission timing is recomputed against the authority's date."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "app": "Archer GRC",
+          "actions": [
+            "Raise a GRC issue per exception naming the arrangement, the register field or requirement missed and the DORA article engaged.",
+            "Assign a root cause from a fixed list - contract bought on purchase order without intake, ICT scoping rule misapplied, LEI lapsed, function mapping stale, subcontractor notification not logged, update SLA missed - plus an owner.",
+            "Set a remediation date and, for any omitted CIF-supporting arrangement, require a corrected register entry before the next supervisory contact rather than at the next annual cycle.",
+            "Carry every open exception into the next quarterly check as a mandatory retest row."
+          ],
+          "done": "each exception has an issue record, a fixed-list root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the register completeness and accuracy exception rates and compare them to the zero-tolerance completeness threshold.",
+            "Write the conclusion - effective, effective with exceptions, or ineffective - naming the evidence reference behind each judgement.",
+            "Have the reviewer, who sits outside Vendor Management, Procurement and Third-Party Risk and maintains no sampled row, sign the workpaper.",
+            "Report to the Board Risk Committee before the next annual submission and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, completeness and accuracy exception rates and a Board Risk Committee reporting date is filed in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-021-C20",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Operational Risk Manager",
+          "value": "Operational Risk owns the major ICT-related incident reporting obligation and the classification decision; Incident Response Lead owns detection and containment, Regulatory Reporting Manager owns submission to the national competent authority"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - Regulation (EU) 2022/2554 Arts. 17-19 (incident management, classification, reporting), Art. 19(1)-(4) (initial, intermediate and final reports and voluntary cyber-threat notification) and Art. 11(10) (client communication), read with Commission Delegated Regulation (EU) 2024/1772 on classification criteria and materiality thresholds, Commission Delegated Regulation (EU) 2025/301 on report content and time limits, and the implementing regulation setting the standard forms and templates; obligation applicable from 17 January 2025"
+        },
+        "In-scope processes": {
+          "value": "End-to-end major ICT-related incident handling for the EU undertakings - detection in the SOC and service desk, incident record creation, classification against the 2024/1772 criteria, the staged initial / intermediate / final reporting cascade to the national competent authority, Art. 11(10) client communication, root cause analysis and the recurring-incident aggregation assessment"
+        },
+        "In-scope systems": {
+          "app": "SIEM/SOAR",
+          "value": "Detection and alert timeline evidence in the SIEM with the SOAR case record; the incident record, classification worksheet and reporting task chain in the ITSM platform; submitted reports and receipts logged in the internal regulatory system"
+        },
+        "Compliance procedure documented": {
+          "value": "Major ICT-Related Incident Reporting Procedure - detection-to-awareness timestamping, the classification worksheet against the seven 2024/1772 criteria, the reporting decision authority, the 2025/301 deadline calculator, the ITS template completion guide per report stage, the Art. 11(10) client notification trigger, and the recurring-incident aggregation rule"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Risk Officer and Chief Info Security Officer, reviewed annually and after every major incident; the incident management process itself is approved by the management body as part of the ICT risk management framework"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Initial notification no later than 4 hours from classification as major and no later than 24 hours from becoming aware of the incident; intermediate report within 72 hours of the initial notification, and again on any significant status change; final report no later than one month from the intermediate report; Art. 11(10) client information without undue delay"
+        },
+        "Deadline reminders configured": {
+          "value": "On classification as major the ITSM workflow stamps the awareness time and auto-creates three tasks with hard clocks - initial at +4h/+24h, intermediate at +72h, final at +1 month - each paging the Operational Risk Manager and the Regulatory Reporting Manager at 50% and 80% of the elapsed clock"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Incident record, SIEM alert timeline, classification worksheet with the criterion-by-criterion figures, all three submitted reports and their receipts, client notification copies and the post-incident review retained 10 years from incident closure"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "value": "A missed or late report stage, an incident classified not-major that met a 2024/1772 threshold, an unstamped awareness time, or an omitted Art. 11(10) client notification is logged as a regulatory reporting breach with root cause, owner and Chief Risk Officer visibility"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "Chief Risk Officer signs off every late or missed report, every downgrade from major, and the remediation of any reporting breach, and decides whether a self-report to the competent authority is made"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All ICT-related incidents and significant cyber threats recorded for the EU entities in the period - not only those classified major - together with every report submitted to the national competent authority and every client notification issued"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on deadlines - any initial notification beyond 4 hours from classification or 24 hours from awareness, any intermediate beyond 72 hours, or any final beyond one month from the intermediate is a fail; any incident meeting a 2024/1772 threshold but not classified major is a reportable breach, not a test exception"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven; verification runs quarterly over that quarter's full incident population with 100% coverage of incidents classified major and 100% of incidents that came within one criterion of the major threshold"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Officer",
+          "value": "Reviewer must sit outside Operational Risk, the SOC and IT Operations and must not have made or approved any sampled classification decision"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly incident-reporting test workpaper - incident population extract, classification re-performance, deadline recomputation from raw timestamps, report tracing and the exception log - filed in the compliance evidence repository under DORA Arts. 17-19"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per incident: the completed ITS templates as submitted with authority receipts, the classification worksheet showing each criterion and the measured value, the SIEM timeline, the client notification copies and the root cause analysis, assembled within 5 business days of a supervisory request"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Reporting Manager submits to and corresponds with the national competent authority, which forwards to the ESAs, the ECB and the relevant CSIRT as DORA Art. 19(6)-(7) provides; General Counsel clears any admission of a late or missed report before it is filed"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Detect the incident and stamp the awareness time that starts every clock",
+          "by": "SOC Analyst",
+          "role": "SOC Analyst",
+          "app": "SIEM/SOAR",
+          "actions": [
+            "Triage the alert in the SIEM, open a SOAR case and record the first-detection timestamp to the minute in UTC with the detecting source - correlation rule, endpoint alert, service desk call or provider notification.",
+            "Establish and record the moment the firm became aware of the incident, which is when a competent person recognised it as an ICT-related incident rather than when it started; this timestamp drives the 24-hour outer limit.",
+            "Attach the raw alert timeline and the affected asset list from the CMDB to the case.",
+            "Page the Incident Response Lead for anything touching a critical or important function, client data or a payment path, without waiting for severity to be agreed."
+          ],
+          "done": "a SOAR case exists with a UTC first-detection time, a defensible awareness timestamp, the detecting source and the affected asset list attached."
+        },
+        {
+          "step": "Open the incident record and assemble the facts the classification needs",
+          "by": "Incident Response Lead",
+          "role": "Incident Response Lead",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Create the major-incident record in the ITSM platform linked to the SOAR case and set the incident commander, the entity affected and its LEI.",
+            "Collect the facts the classification criteria consume: services affected, whether a critical or important function is impacted, start and current duration of service downtime, geographical spread, whether data availability, authenticity, integrity or confidentiality was affected, and whether the incident is malicious.",
+            "Ask the Operations Manager for the count of clients and financial counterparts affected and the number and value of transactions impacted, with the query used to derive them.",
+            "Ask the Financial Analyst for the direct and indirect cost estimate - lost revenue, remediation cost, redress - in euro.",
+            "Update the record every time a figure moves; the classification is re-run on new information, not frozen at first assessment."
+          ],
+          "done": "the incident record holds the affected clients, transactions, downtime, geography, data impact, malicious flag and euro cost estimate with each figure's source."
+        },
+        {
+          "step": "Run the classification against the Delegated Regulation (EU) 2024/1772 criteria",
+          "by": "Operational Risk Manager",
+          "role": "Operational Risk Manager",
+          "actions": [
+            "Open the classification worksheet and assess each criterion in turn: clients, financial counterparts and transactions affected; reputational impact; duration and service downtime; geographical spread; data losses affecting availability, authenticity, integrity or confidentiality; criticality of services affected; and economic impact.",
+            "Record for each criterion the measured value, the threshold applied and whether the criterion is met - not a yes/no with no number behind it.",
+            "Apply the combination rule: classify the incident as major where the criticality-of-services criterion is met together with the required number of other criteria, per the delegated regulation.",
+            "Where the incident is a cyber threat rather than an incident, assess it separately for significance to decide whether a voluntary notification under Art. 19(2) is warranted.",
+            "Timestamp the classification decision in UTC - the 4-hour initial-notification clock runs from this moment - and name the decider."
+          ],
+          "done": "a criterion-by-criterion worksheet with measured values, thresholds and the combination test yields a timestamped, named classification decision."
+        },
+        {
+          "step": "Test whether recurring minor incidents aggregate into a major one",
+          "by": "Operational Risk Manager",
+          "role": "Operational Risk Manager",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Query the incident record for incidents sharing the same apparent root cause, the same affected service or the same asset over the rolling window the delegated regulation sets.",
+            "Aggregate their affected clients, downtime and economic impact and re-run the classification criteria on the combined figures.",
+            "Where the aggregate meets the major threshold, classify the aggregated incident as major and start the reporting clocks from that assessment.",
+            "Record the aggregation assessment even when the answer is no, so the absence of a report is an evidenced decision."
+          ],
+          "done": "a documented recurring-incident aggregation assessment exists for the period with the combined figures and its classification outcome."
+        },
+        {
+          "step": "Submit the initial notification inside the 4-hour and 24-hour limits",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Compute the deadline as the earlier of classification time plus 4 hours and awareness time plus 24 hours, and write both computed times on the incident record.",
+            "Complete the initial notification fields on the authority's standard template: reporting entity and LEI, incident reference, date and time of detection and of classification, incident description, whether a critical or important function is affected, whether it is malicious, and the classification criteria met.",
+            "Where a field is genuinely unknown at this stage use the template's unknown marker rather than delaying submission - the deadline does not move for incomplete facts.",
+            "Submit through the national competent authority's designated reporting channel, capture the submission receipt and reference number and paste both onto the incident record.",
+            "Where the incident also engages NIS2, GDPR breach notification or a payment-services obligation, hand the parallel notifications to the Data Protection Officer and Compliance Manager on their own clocks."
+          ],
+          "done": "the initial notification is submitted before the earlier of the 4-hour and 24-hour deadlines with a captured receipt reference and parallel obligations handed off."
+        },
+        {
+          "step": "Contain, recover and keep the evidential timeline intact",
+          "by": "Incident Responder Digital Forensics Analyst",
+          "role": "Incident Responder Digital Forensics Analyst",
+          "app": "CrowdStrike Falcon",
+          "actions": [
+            "Execute containment - host isolation, credential revocation, blocking at the perimeter - and log each action with the actor and the UTC time it took effect.",
+            "Preserve forensic images and log sources before remediation overwrites them, and record the chain of custody.",
+            "Track service restoration per affected service and record the exact restoration time, since service downtime feeds both the classification and the reports.",
+            "Feed the running action log to the Incident Response Lead so the intermediate report describes what was actually done, not what was planned."
+          ],
+          "done": "containment and recovery actions are logged with UTC times, forensic evidence preserved under chain of custody and per-service restoration times recorded."
+        },
+        {
+          "step": "Decide and issue the Art. 11(10) client communication",
+          "by": "Complaints Manager",
+          "role": "Complaints Manager",
+          "actions": [
+            "With the Incident Response Lead determine whether the incident has or may have an impact on the financial interests of clients - delayed claims payment, failed premium collection, exposure of policy or bank details, inability to transact.",
+            "Where it does, prepare the notification stating what happened, which of their interests may be affected and the measures taken to mitigate the adverse effects, as Art. 11(10) requires.",
+            "Have General Counsel and the Data Protection Officer clear the wording, and coordinate with any parallel GDPR Art. 34 communication so clients receive one coherent message.",
+            "Issue without undue delay through the channels of record - policyholder email and portal notice, broker bulletin to distribution partners - and record dispatch time, channel and recipient count.",
+            "Brief the Contact Center Ops Manager with a script and an FAQ before the notification goes out so inbound calls are handled consistently."
+          ],
+          "done": "an impact-on-client-interests decision is recorded and, where positive, a cleared notification is dispatched with time, channel and recipient count logged, and the contact centre briefed."
+        },
+        {
+          "step": "Submit the intermediate report within 72 hours of the initial notification",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Compute the deadline as initial notification time plus 72 hours and record it on the incident record.",
+            "Complete the intermediate template: updated classification figures, incident status, root cause where known, actions taken to restore service, whether normal activities have been recovered, and the actual and estimated impact on clients and on the business.",
+            "Quantify the impact fields to the same basis as the initial notification so the authority sees movement rather than a changed methodology.",
+            "Submit through the same channel, capture the receipt and record it, and file an updated intermediate report whenever there is a significant status change or a regular activity is recovered, without waiting for the final report.",
+            "Notify the Chief Risk Officer of any figure that has moved materially since the initial notification."
+          ],
+          "done": "the intermediate report is submitted inside 72 hours of the initial notification with a receipt captured and further updates filed on significant status change."
+        },
+        {
+          "step": "Complete the root cause analysis and the impact quantification",
+          "by": "Operational Risk Manager",
+          "role": "Operational Risk Manager",
+          "actions": [
+            "Run the root cause analysis with the Incident Response Lead and the affected system owner, distinguishing the technical trigger, the control that failed and the control that should have detected it earlier.",
+            "Finalise the impact numbers with Finance: direct costs, remediation spend, client redress, lost revenue and any regulatory or contractual penalty, all in euro.",
+            "Confirm the final downtime per affected service and the total number of clients and transactions affected against the system of record rather than the initial estimate.",
+            "Assess whether the incident originated with an ICT third-party provider and, if so, record the provider, the contract reference and the register-of-information row it sits on."
+          ],
+          "done": "a root cause analysis, final euro impact, confirmed downtime and client counts, and any third-party origin linked to the register row are recorded."
+        },
+        {
+          "step": "Submit the final report within one month of the intermediate report",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Compute the deadline as the intermediate report submission date plus one month and record it on the incident record.",
+            "Complete the final template: root cause, the permanent remedial measures applied, the definitive impact figures, the incident closure date and the lessons-learned actions with owners.",
+            "Reconcile the final figures to the intermediate report and explain any movement in the narrative field rather than leaving the authority to spot it.",
+            "Obtain the Chief Risk Officer's approval of the final report content before submission and record the approval.",
+            "Submit, capture the receipt and reference, and close the reporting task chain on the incident record."
+          ],
+          "done": "the final report is submitted inside one month of the intermediate report with root cause, definitive figures, executive approval and a captured receipt."
+        },
+        {
+          "step": "Notify significant cyber threats voluntarily where warranted",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Assess each significant cyber threat identified by threat intelligence or the SOC for relevance to the financial system, to clients or to counterparts, as Art. 19(2) contemplates.",
+            "Where the threat is significant, prepare the voluntary notification to the national competent authority describing the threat, the systems exposed and the protective measures taken.",
+            "Coordinate with the sector CSIRT and any information-sharing arrangement so intelligence is shared without duplicating or contradicting the supervisory notification.",
+            "Record the assessment and the decision - notify or not - so the omission is evidenced rather than silent."
+          ],
+          "done": "every significant cyber threat has a recorded notification decision, with voluntary notifications submitted and CSIRT coordination logged."
+        },
+        {
+          "step": "Report the incident internally to management and the management body",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "board portal",
+          "actions": [
+            "Brief the management body on any incident classified major, covering impact, client effect, the reports submitted and the remediation, as their Art. 5 responsibility requires.",
+            "Include the incident in the operational risk pack with the classification worksheet result and the report timing performance against the 4/24-hour, 72-hour and one-month clocks.",
+            "Where the incident exposed a framework weakness, trigger the Art. 6(5) framework review within 30 days rather than waiting for the annual cycle.",
+            "Minute the management body's discussion and any directed action with an owner and date."
+          ],
+          "done": "a minuted management body briefing exists for each major incident with reporting-timeliness performance and any directed actions owned and dated."
+        },
+        {
+          "step": "Run the post-incident review and drive the remedial actions to closure",
+          "by": "Operational Resilience Lead",
+          "role": "Operational Resilience Lead",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Hold the post-incident review inside 15 business days of closure with the SOC, IT Operations, the function owner and, where relevant, the ICT provider.",
+            "Capture the lessons learned against detection, containment, communication and reporting separately, since a fast recovery can still hide a late report.",
+            "Raise each remedial action as a tracked task with an owner, due date and a validation test that proves the fix, and link the tasks to the incident record.",
+            "Feed any control weakness into the ICT risk register and into the next resilience testing programme scope."
+          ],
+          "done": "a post-incident review is held inside 15 business days with owned, validation-tested remedial actions linked to the incident and fed into the risk register."
+        },
+        {
+          "step": "Maintain the incident register and the reporting performance metrics",
+          "by": "Governance Analyst",
+          "role": "Governance Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Maintain the record of all ICT-related incidents and significant cyber threats required by Art. 17, holding classification outcome, criteria met, reporting stages and their timestamps.",
+            "Compute monthly the median and worst elapsed time from awareness to initial notification, from initial to intermediate and from intermediate to final, and chart them against the regulatory limits.",
+            "Flag every incident classified not-major whose measured values sat within 10% of a threshold for a second-line review.",
+            "Publish the metrics in the operational risk pack and to the Chief Info Security Officer monthly."
+          ],
+          "done": "an Art. 17 incident register is current, with monthly elapsed-time metrics against each regulatory limit and near-threshold incidents flagged for review."
+        },
+        {
+          "step": "Retain the incident evidence pack for supervisory retrieval",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File per incident: the SIEM alert timeline, the incident record export, the classification worksheet, all three submitted templates with receipts, the client notification copies and the post-incident review.",
+            "Apply a 10-year-from-closure retention label and index by entity LEI, incident reference and competent authority reference number.",
+            "Restrict access to the forensic detail while leaving the reporting record available to Compliance and Internal Audit.",
+            "Run a timed retrieval test on one major incident against the 5-business-day supervisory request commitment."
+          ],
+          "done": "each incident pack is retained, indexed by LEI and authority reference, access-restricted where needed and retrieval-tested against the 5-business-day commitment."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of ICT-related incidents for the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Extract every incident record for the EU entities in the quarter regardless of severity, with awareness time, classification outcome, affected services and closure date.",
+            "Add SOAR cases and service desk major-incident bridges that never became ITSM incident records, plus provider-notified incidents from the third-party register contacts, so under-recording cannot shrink the population.",
+            "Reconcile the extract to the SIEM case count and to the Art. 17 incident register and resolve every difference before sampling.",
+            "Sign the population as complete with extract date, record count and the queries used."
+          ],
+          "done": "the incident population reconciles across ITSM, SOAR, the service desk and the Art. 17 register and is signed as complete."
+        },
+        {
+          "step": "Reconcile classified-major incidents to submitted reports both ways",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Match every incident classified major to an initial, an intermediate and a final report with authority receipt references in the internal regulatory system.",
+            "Run the reverse match and list any submitted report with no corresponding incident record, which signals reporting outside the process.",
+            "List any major incident missing a report stage as an automatic exception, and any report stage with no receipt as unproven submission.",
+            "Confirm each report names the correct reporting entity and LEI for the affected undertaking rather than the group parent."
+          ],
+          "done": "every classified-major incident is matched to all three report stages with receipts, and unmatched reports and missing stages are listed."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of incidents classified major and 100% of incidents classified not-major whose measured values came within 10% of any 2024/1772 threshold.",
+            "Take 15 further incidents by seeded random selection from the remaining population, weighted to include incidents affecting critical or important functions.",
+            "Record the seed, population size, selection date and the inclusion rules so the sample can be re-drawn identically.",
+            "Add every incident originating with an ICT third-party provider as a mandatory sample item."
+          ],
+          "done": "a reproducible sample covers all major and near-threshold incidents, all third-party-origin incidents and a seeded random remainder."
+        },
+        {
+          "step": "Re-perform the classification against the delegated regulation criteria",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "For each sampled incident read the underlying facts and assess each Delegated Regulation (EU) 2024/1772 criterion independently before reading the recorded worksheet.",
+            "Recompute the measured values - clients affected, transactions affected, downtime duration, geographical spread, data impact, economic impact in euro - from the source systems, not from the worksheet.",
+            "Apply the combination rule yourself and compare your conclusion to the recorded classification; any incident that met the threshold but was classified not-major is a reportable breach, not a test exception.",
+            "Log a separate exception where the classification was right but a criterion value was unsupported or wrongly measured."
+          ],
+          "done": "each sampled incident has an independent criterion-by-criterion re-classification with recomputed values and understated classifications escalated as breaches."
+        },
+        {
+          "step": "Recompute every reporting deadline from raw timestamps",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled major incident take the awareness timestamp, the classification timestamp and the three submission timestamps from the source systems in UTC.",
+            "Recompute the initial deadline as the earlier of classification plus 4 hours and awareness plus 24 hours, and measure the actual elapsed time against it.",
+            "Recompute the intermediate deadline as initial submission plus 72 hours and the final deadline as intermediate submission plus one month, and measure both.",
+            "Test the awareness timestamp itself against the SIEM alert time and the first service desk contact - a late-stamped awareness time that manufactures compliance is the more serious finding.",
+            "Record every breach in hours and the reason it occurred."
+          ],
+          "done": "all three deadlines are recomputed from source UTC timestamps, the awareness stamp is corroborated against SIEM and service desk records, and breaches are quantified in hours."
+        },
+        {
+          "step": "Trace report contents to the underlying evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Open each submitted template and agree the reported client count, transaction count, downtime and economic impact to the source query outputs and the finance workings.",
+            "Confirm the root cause in the final report matches the post-incident review conclusion rather than a softened narrative.",
+            "Check the movement between initial, intermediate and final figures is explained in the narrative and that no figure changed methodology mid-cascade.",
+            "Capture the submitted template and the receipt into the workpaper for each sampled incident."
+          ],
+          "done": "reported figures agree to source evidence, root cause matches the post-incident review, and figure movements are explained across the three stages."
+        },
+        {
+          "step": "Test the Art. 11(10) client communication decision and execution",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "For each sampled major incident read the recorded decision on whether client financial interests were or may have been affected and reach your own conclusion from the facts.",
+            "Where clients were affected, obtain the notification copy and confirm it states the incident and the measures taken to mitigate adverse effects, as the article requires.",
+            "Measure the elapsed time from the decision to dispatch and challenge anything that sat beyond a working day as undue delay.",
+            "Confirm the recipient count reconciles to the affected-client query and that no affected segment was left out; check coordination with any GDPR Art. 34 communication."
+          ],
+          "done": "each sampled incident has an independently reviewed client-impact decision, with notification content, timing and recipient coverage tested and reconciled."
+        },
+        {
+          "step": "Test the recurring-incident aggregation and near-threshold judgements",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Group the quarter's non-major incidents by root cause, affected service and affected asset and aggregate their clients affected, downtime and economic impact yourself.",
+            "Re-run the classification criteria on each aggregate and compare to the firm's recorded aggregation assessment.",
+            "For near-threshold incidents check whether a measurement choice - counting only direct clients, excluding degraded-service minutes - kept the value under the threshold, and challenge it.",
+            "List any aggregate or near-threshold incident that should have been reported as a breach requiring a self-report decision."
+          ],
+          "done": "an independent aggregation and near-threshold re-test is complete with any unreported qualifying incident escalated for a self-report decision."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Operational Risk Manager",
+          "role": "Operational Risk Manager",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Raise an issue per exception naming the incident reference, the report stage or requirement missed, the elapsed time versus the limit and the DORA article engaged.",
+            "Assign a root cause from a fixed list - awareness not stamped, classification delayed, criterion value wrong, template field unavailable, submission channel failure, client notification not triggered - plus an owner.",
+            "Set a remediation date and, for any missed or late report or unreported qualifying incident, open a self-report assessment with General Counsel and the Chief Risk Officer.",
+            "Carry every open exception into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "each exception has an issue record, a fixed-list root cause, an owner, a remediation date and, where required, an opened self-report assessment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the on-time rate for each report stage and the classification accuracy rate, and compare both to the zero-tolerance deadline threshold.",
+            "Write the conclusion - effective, effective with exceptions, or ineffective - with the evidence reference behind each judgement, and state separately any unreported qualifying incident.",
+            "Have the reviewer, who sits outside Operational Risk, the SOC and IT Operations and approved no sampled classification, sign the workpaper.",
+            "Report to the Board Risk Committee at its next sitting and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, per-stage on-time rates, classification accuracy and a Board Risk Committee reporting date is filed in the evidence repository."
+        }
+      ]
+    }
+  ]
+}

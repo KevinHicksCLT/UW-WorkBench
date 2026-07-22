@@ -1,0 +1,2330 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-008-C25",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Operational Risk Manager",
+          "value": "Owns the major-incident notification clock and the internal-model change classification register; escalates to the Chief Risk Officer for the major/minor call"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - Solvency II Directive 2009/138/EC Art. 35(2)(a)(ii) (predefined events reporting) and Art. 115 (model change policy), Delegated Regulation (EU) 2015/35 Art. 245 (major model change), Implementing Regulation (EU) 2015/2450 Annex I S.25.01-S.25.03 and Annex II instructions, read together with the DORA incident reporting RTS/ITS as transposed by the lead NCA; re-read at each classification"
+        },
+        "In-scope processes": {
+          "value": "ICT and operational incident detection and triage; major-incident classification; supervisory notification (initial / intermediate / final); internal-model change intake, classification and approval; accumulated minor-change reporting"
+        },
+        "In-scope systems": {
+          "app": "ServiceNow ITSM",
+          "value": "Incident records and the 4h/24h/72h/1-month clocks run in ITSM; classification criteria and the model change register sit in the GRC platform; notifications leave through the Internal Regulatory System"
+        },
+        "Compliance procedure documented": {
+          "value": "Major ICT/Operational Incident Notification Procedure plus the Internal Model Change Policy (minor/major criteria, quantitative triggers, accumulation rule) - both in the compliance evidence repository"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Risk Officer and adopted by the administrative, management or supervisory body; the model change policy is additionally approved by the NCA as part of the model application"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Initial notification within 4 hours of classifying the incident as major and no later than 24 hours of becoming aware; intermediate report within 72 hours of the initial notification; final report within one month of the intermediate; major model changes need prior supervisory approval (6-month decision window) and accumulated minor changes are reported per the approved policy cadence"
+        },
+        "Deadline reminders configured": {
+          "value": "ITSM raises paged alerts at T+2h, T+18h, T+60h and T+21 days from the classification timestamp; the model change register alerts 30 days before the accumulated-minor-change reporting date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Incident record, classification worksheet, the three regulator submissions with NCA acknowledgement ids, root-cause report and model change dossiers retained 10 years from closure in the compliance evidence repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any missed 4h/24h/72h/1-month deadline, any major incident classified as minor on review, and any major model change implemented before approval is raised as a GRC issue with root cause, owner and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "Signs the final incident report before it goes to the NCA and signs off every late-notification remediation action"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All P1/P2 ICT and operational incidents raised in the period, all incidents scored against the major-incident criteria, and all internal-model changes recorded in the model change register"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on missed statutory clocks - one late or unsent initial/intermediate/final notification is a fail; any major model change used in the SCR before supervisory approval is a reportable breach, not a test exception"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven; test runs quarterly over that quarter's incident and model-change population, with 100% coverage of incidents classified major and 100% of major model changes"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have worked the sampled incidents nor authored any model change classification"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly incident-notification and model-change workpaper (population extract, clock recomputation, sample, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Incident register export with classification scores and timestamps, the three submitted notification forms per major incident, and the model change log with approval references - producible for an NCA on-site inspection within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Reporting Manager owns the NCA channel and all follow-up questions; the Chief Risk Officer clears any statement admitting a late notification before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Register the incident and stamp the awareness time",
+          "by": "Incident Response Lead",
+          "role": "Incident Response Lead",
+          "app": "ServiceNow ITSM",
+          "actions": [
+            "Take the alert from the SOC Analyst on duty or the service desk and open an Incident record in ServiceNow with category ICT / Operational.",
+            "Enter the awareness timestamp in UTC in the Detected field - this is the start of the 24-hour outer limit, so take it from the first monitoring alert or first user report, not from the time you opened the ticket.",
+            "Populate Affected CIs from the CMDB, the business services behind them, and whether an ICT third-party provider is in the chain.",
+            "Set Priority P1/P2 and add the Operational Risk Manager and Operational Resilience Lead as watchers so the classification clock starts with them, not at the post-incident review."
+          ],
+          "done": "the incident record carries a UTC awareness timestamp, affected CIs and business services, and the Operational Risk Manager is on the record."
+        },
+        {
+          "step": "Score the incident against the major-incident classification criteria",
+          "by": "Operational Resilience Analyst",
+          "role": "Operational Resilience Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Open the Major Incident Classification worksheet in the GRC platform and pull the incident id from ServiceNow.",
+            "Score each criterion with the measured value, not an opinion: clients and financial counterparties affected and transactions affected (counts and % of total), reputational impact, duration and service downtime in hours, geographical spread across Member States, data losses (availability, authenticity, integrity, confidentiality), criticality of services affected, and economic impact in EUR (direct and indirect costs).",
+            "Get the client and transaction counts from the Data Quality Manager as a query against the enterprise data warehouse rather than a business estimate.",
+            "Record which thresholds are met and whether the combination triggers major status; attach the query outputs as the evidence line for each criterion."
+          ],
+          "done": "every classification criterion has a measured value, a source query and a met/not-met flag on the worksheet."
+        },
+        {
+          "step": "Confirm the major classification and start the 4-hour notification clock",
+          "by": "Operational Risk Manager",
+          "role": "Operational Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Review the scored worksheet with the Operational Resilience Analyst and take the major / not-major decision within the same working session - a deferred decision does not stop the 24-hour outer limit running.",
+            "Where the answer is major, stamp the Classification timestamp in UTC on the GRC record; the initial notification is then due 4 hours later and in any case within 24 hours of the awareness timestamp.",
+            "Call the Chief Risk Officer to confirm the call and record their confirmation on the record; where they disagree, log the reason and the final decision.",
+            "Where the answer is not major, write the reason against each unmet criterion so the decision can be re-performed later, and flag the incident for recurrence aggregation."
+          ],
+          "done": "a dated, attributed major / not-major decision exists with the classification timestamp and the two derived deadlines showing on the record."
+        },
+        {
+          "step": "Assemble the initial notification data fields",
+          "by": "Operational Resilience Lead",
+          "role": "Operational Resilience Lead",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Open the major-incident notification form in the Internal Regulatory System and select the lead NCA and the reporting entity LEI.",
+            "Complete the initial-report block: incident reference, date and time of detection and of classification, description, whether the incident originated at an ICT third-party provider, Member States affected, and whether the incident is suspected to be malicious.",
+            "Pull the affected-service list from the Incident Response Lead and the client/transaction counts from the classification worksheet so the two documents cannot disagree.",
+            "Leave unknown fields explicitly marked as not yet available rather than guessing - the intermediate report is the place to complete them."
+          ],
+          "done": "the initial notification form is complete against the classification worksheet with every unknown field flagged as pending."
+        },
+        {
+          "step": "Submit the initial notification inside the 4-hour / 24-hour window",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Check the submission clock on the record before sending: not later than 4 hours after classification and not later than 24 hours after awareness, whichever falls first.",
+            "Submit the form to the NCA through the supervisory reporting channel and capture the acknowledgement id, submission timestamp and the receiving authority on the incident record.",
+            "Where the channel is unavailable, use the NCA's documented fallback (secure email to the named supervisory contact) and record the fallback used, the time and the reason.",
+            "Notify the Chief Risk Officer and the Compliance Officer that the initial notification is filed, with the acknowledgement id."
+          ],
+          "done": "an NCA acknowledgement id and submission timestamp are on the record and the submission timestamp is inside both statutory windows."
+        },
+        {
+          "step": "Check ICT third-party involvement and drive the provider's own reporting",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Identify from the CMDB and the register of information which outsourced or ICT service sits in the incident chain and whether it supports a critical or important function.",
+            "Open the contract in the contract lifecycle management repository and read the incident notification clause: notice period, content and the provider's obligation to support regulatory reporting.",
+            "Demand from the provider a written incident statement with their detection time, root cause and remediation, and set the due date to at least 24 hours before our intermediate report is due.",
+            "Where the provider misses the contractual notice period, raise a vendor issue with the Vendor Manager and record it as an input to the next annual provider assessment."
+          ],
+          "done": "the provider's written incident statement is on file ahead of the intermediate report, or a vendor issue is raised for its absence."
+        },
+        {
+          "step": "File the intermediate report within 72 hours",
+          "by": "Operational Resilience Lead",
+          "role": "Operational Resilience Lead",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Reopen the notification form and complete the intermediate block: current status, whether regular activities have been recovered, the temporary actions taken, and updated client, transaction and downtime figures.",
+            "Re-run the classification queries with the Data Quality Manager so the updated impact numbers are measured at the 72-hour point rather than carried forward from the initial report.",
+            "Restate the economic impact in EUR splitting direct costs (recovery, replacement, third-party fees) from indirect (lost revenue, penalties) and show the basis of the estimate.",
+            "Submit before the 72-hour mark from the initial notification and record the second acknowledgement id."
+          ],
+          "done": "the intermediate report is submitted inside 72 hours with refreshed impact measures and an acknowledgement id."
+        },
+        {
+          "step": "Establish root cause and the remediation plan",
+          "by": "Incident Response Lead",
+          "role": "Incident Response Lead",
+          "app": "ITSM/security ticketing system",
+          "actions": [
+            "Run the post-incident review with the SOC Lead, the affected service owner and the Third-Party Risk Manager within 5 working days of service restoration.",
+            "Record the root cause against a fixed taxonomy (change failure, capacity, configuration, third-party outage, malicious act, process failure) and attach the supporting log evidence from the SIEM.",
+            "Raise a problem record per corrective action with an owner and a due date, and link every problem record back to the incident id.",
+            "Hand the agreed root cause and action list to the Operational Risk Manager for the final regulatory report."
+          ],
+          "done": "a root cause from the taxonomy, evidenced from logs, with linked problem records each carrying an owner and due date."
+        },
+        {
+          "step": "File the final report within one month",
+          "by": "Operational Risk Manager",
+          "role": "Operational Risk Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Complete the final block of the notification form: root cause, the full chronology from detection to restoration, permanent corrective actions and their dates, final direct and indirect costs, and recurring-incident information.",
+            "Have the Chief Risk Officer read and sign the final report content before submission - their sign-off is the control on cost and root-cause statements.",
+            "Submit within one month of the intermediate report, capture the third acknowledgement id and close the notification thread on the incident record.",
+            "Attach the submitted final report to the compliance evidence repository under the incident id."
+          ],
+          "done": "the final report is submitted inside one month, CRO-signed, with the acknowledgement id filed against the incident."
+        },
+        {
+          "step": "Test the incident against the Solvency II predefined-events list",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Open the predefined-events schedule maintained under Solvency II Directive Art. 35(2)(a)(ii) and read the events the NCA expects to be reported outside the routine cycle.",
+            "Compare the incident against each listed event - loss of a critical function, material breach of the risk management system, events likely to affect the solvency position - and record the comparison.",
+            "Where the incident meets a predefined event, instruct the Regulatory Reporting Manager to send the separate Solvency II notification; a DORA major-incident report does not discharge it.",
+            "Log the assessment on the incident record whether or not it triggers, so the not-triggered decision is auditable."
+          ],
+          "done": "a written predefined-event assessment sits on the incident record and any triggered Solvency II notification has been sent."
+        },
+        {
+          "step": "Keep the internal model change policy current and approved",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "model governance repository",
+          "actions": [
+            "Review the Internal Model Change Policy annually against Directive Art. 115 and Delegated Regulation Art. 245 and confirm it still defines minor and major changes, the quantitative triggers and the accumulation rule.",
+            "Confirm the quantitative triggers are expressed as a measurable change in SCR (for example a change moving the SCR or a risk module by more than the policy percentage) and that the qualitative triggers cover methodology, scope and data-source changes.",
+            "Take the reviewed policy to the AMSB for approval and lodge the approved version, version number and approval date in the model governance repository.",
+            "Notify the NCA of any amendment to the change policy itself, since the policy forms part of the approved model."
+          ],
+          "done": "the current policy version is board-approved, dated, holds measurable minor/major triggers and any amendment has been notified to the NCA."
+        },
+        {
+          "step": "Classify every model change and route majors for supervisory approval",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "app": "model governance repository",
+          "actions": [
+            "Open a change record for every proposed internal model change with the requesting function, the risk module touched and the intended first-use valuation date.",
+            "Quantify the SCR impact by running the model twice on the same data - before and after the change - and record the delta by module and in total.",
+            "Apply the policy triggers to the delta and classify the change minor or major; where a change is borderline, classify up and note why.",
+            "For major changes, prepare the application dossier (description, justification, quantitative impact, validation report) and hand it to the Regulatory Reporting Manager, and set the model release gate so the change cannot be used in a reported SCR until approval lands.",
+            "Record the NCA decision date and reference on the change record when approval is received."
+          ],
+          "done": "every change record carries a measured SCR delta, a classification against the policy triggers, and majors are gated pending a recorded NCA approval."
+        },
+        {
+          "step": "Report accumulated minor changes on the policy cadence",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "app": "model governance repository",
+          "actions": [
+            "Extract all changes classified minor since the last accumulation report and sum their individual SCR impacts by risk module and in total.",
+            "Compare the accumulated impact to the policy threshold at which combined minor changes become a major change; where the threshold is passed, reclassify to major and start the approval route immediately.",
+            "Draft the accumulated minor change report listing each change, its date, its module and its impact, plus the combined effect, and have the Model Risk Manager review it.",
+            "Hand the report to the Regulatory Reporting Manager for submission to the NCA on the cadence set in the approved change policy."
+          ],
+          "done": "the accumulation report is produced on cadence, totals reconcile to the change register and any threshold breach has been reclassified as major."
+        },
+        {
+          "step": "Reflect the approved model position in the S.25 templates",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Select the correct template for the model position at the valuation date: S.25.01 for standard formula, S.25.02 for standard formula with partial internal model, S.25.03 for full internal model, following the Annex II instructions of Implementing Regulation (EU) 2015/2450.",
+            "Populate the SCR by risk module from the model run that used only approved model versions - confirm against the change register that no gated major change fed the numbers.",
+            "Complete the approach-to-tax-rate and USP flags the template requires and add the narrative on the method used.",
+            "Reconcile the template total SCR to the capital calculation pack signed off by the Head of Capital Management before release."
+          ],
+          "done": "the S.25 template in use matches the approved model status, uses only approved model versions and ties to the signed capital pack."
+        },
+        {
+          "step": "Retain the incident and model change evidence",
+          "by": "Governance Analyst",
+          "role": "Governance Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move each closed incident dossier (record export, classification worksheet, three submissions with acknowledgement ids, provider statement, root-cause report) into the compliance evidence repository indexed by incident id and classification date.",
+            "Move each model change dossier (change record, SCR delta run, validation report, NCA application and decision) into the same repository indexed by change id and first-use valuation date.",
+            "Apply the 10-year retention label and confirm both indexes are searchable by date, NCA acknowledgement id and risk module.",
+            "Report the quarter's retained dossier counts to the Compliance Officer against the ITSM and register counts."
+          ],
+          "done": "every closed incident and model change has a labelled, searchable dossier and the counts agree with the source registers."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of incidents and model changes for the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ServiceNow ITSM",
+          "actions": [
+            "Extract from ServiceNow every incident with category ICT or Operational and priority P1 or P2 with a detection date inside the quarter, including cancelled and reclassified records.",
+            "Extract from the model governance repository every change record with a decision or first-use date inside the quarter.",
+            "Add SIEM-originated security incidents and third-party outage notifications so incidents raised outside the service desk cannot be missed.",
+            "Sign the population as complete with the record counts and the extract timestamp."
+          ],
+          "done": "a signed, timestamped population of incidents and model changes with the extract counts recorded."
+        },
+        {
+          "step": "Reconcile the population to the source of record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Reconcile the ITSM incident count to the SOC's monthly incident summary and to the availability breaches shown in the service-level reporting.",
+            "Reconcile the model change count to the version history in the actuarial modelling platform - every model version bump should have a change record behind it.",
+            "Investigate and clear every difference before sampling; unexplained differences become population-completeness exceptions in their own right."
+          ],
+          "done": "incident and model change populations reconcile to SOC reporting and model version history with differences cleared or logged."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of incidents classified major and 100% of model changes classified major.",
+            "Take 25 not-major incidents by seeded random selection and 10 minor model changes, minimum 40 items in total.",
+            "Record the seed, population sizes, selection date and the selection tool in the workpaper so the sample can be re-drawn identically."
+          ],
+          "done": "a reproducible sample covering all major incidents and all major model changes, with the seed recorded."
+        },
+        {
+          "step": "Re-perform the major-incident classification independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "For each sampled incident, re-run the underlying client, transaction, downtime and geography queries against the enterprise data warehouse before reading the classification worksheet.",
+            "Reach your own major / not-major conclusion against the classification criteria and only then compare it to the recorded call.",
+            "Treat any not-major call that your re-performance makes major as a reportable breach, and any right answer with an unsupported criterion value as an exception.",
+            "Capture the query outputs and the GRC worksheet screen into the workpaper."
+          ],
+          "done": "each sampled incident has an independent classification conclusion with source query evidence attached."
+        },
+        {
+          "step": "Recompute the 4-hour, 24-hour, 72-hour and one-month clocks",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For every major incident, take the awareness and classification timestamps in UTC and recompute initial due = min(classification + 4h, awareness + 24h), intermediate due = initial submission + 72h, final due = intermediate submission + 1 month.",
+            "Compare each recomputed deadline to the actual submission timestamp on the NCA acknowledgement, not to the internal record.",
+            "Challenge any awareness timestamp that is later than the first SIEM or monitoring alert for the same event and restate the clock where it is.",
+            "List every breach in minutes late, with the deadline missed."
+          ],
+          "done": "all four clocks are recomputed from source timestamps and every late submission is quantified in minutes."
+        },
+        {
+          "step": "Trace each notification to an NCA acknowledgement",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Open the submission history in the Internal Regulatory System for each sampled major incident and confirm three distinct submissions exist with distinct acknowledgement ids.",
+            "Open each submitted form and check the entity LEI, incident reference, affected Member States and impact figures match the classification worksheet.",
+            "Where a fallback channel was used, confirm the fallback and reason were logged and that the NCA replied confirming receipt.",
+            "Capture the acknowledgement screens into the workpaper."
+          ],
+          "done": "every major incident traces to three acknowledged submissions whose content agrees with the classification worksheet."
+        },
+        {
+          "step": "Test the model change classification and the approval gate",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "model governance repository",
+          "actions": [
+            "For each sampled model change, re-read the approved Internal Model Change Policy as it stood at the change date and apply its triggers to the recorded SCR delta yourself.",
+            "Re-run or inspect the before/after model runs and confirm the recorded delta is reproducible on the same data.",
+            "For every major change, confirm a dated NCA approval reference exists and that the first-use valuation date is on or after that approval date.",
+            "Treat any major change reflected in a reported SCR before approval as a reportable breach and refer it to the Chief Risk Officer the same day."
+          ],
+          "done": "each sampled change has an independently applied classification and no major change was used in a reported SCR before its approval date."
+        },
+        {
+          "step": "Recompute the accumulated minor change position",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Sum the SCR impacts of all minor changes since the last accumulation report, by module and in total, from the change register rather than from the report.",
+            "Compare the total to the accumulation threshold in the approved policy and confirm the reported figure matches your recomputation.",
+            "Confirm the accumulation report was sent to the NCA on the cadence the policy specifies and that an acknowledgement exists.",
+            "Where the threshold was passed without reclassification to major, raise it as a breach."
+          ],
+          "done": "the accumulated minor change total is independently recomputed, agrees to the report and was submitted on cadence."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a GRC issue per exception carrying the incident or change id, the deadline or trigger missed, the minutes or days late and the supervisory impact.",
+            "Assign a root cause (late awareness stamping, classification deferred past the clock, impact data unavailable, third-party silence, change gate bypassed) and a named owner.",
+            "Set a remediation date and, for missed statutory clocks, open a self-notification assessment with the Regulatory Reporting Manager and Regulatory Counsel.",
+            "Carry every open issue into the next quarter's test as a mandatory retest item."
+          ],
+          "done": "every exception has a GRC issue with root cause, owner, remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the on-time notification rate and the classification agreement rate and compare both to the zero-tolerance threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with the workpaper references behind each statement.",
+            "Have the independent reviewer, who worked none of the sampled incidents and authored no sampled model change classification, sign the workpaper.",
+            "Report the conclusion and any reportable breaches to the Risk Committee at its next sitting and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, on-time and agreement rates, and a Risk Committee reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-008-C26",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Head of Capital Management",
+          "value": "Owns the quarterly and annual SCR/MCR production under the standard formula; the Chief Actuary owns the technical provisions feeding it"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - Solvency II Directive 2009/138/EC Arts. 100, 103, 107, 128-129 and 138-139 with Delegated Regulation (EU) 2015/35 Art. 87 (BSCR structure and correlation) and Art. 204 (operational risk charge), re-read at each year-end and on every EIOPA amending Delegated Regulation"
+        },
+        "In-scope processes": {
+          "value": "Solvency II balance sheet production, technical provisions handover, market/counterparty/life/health/non-life module runs, BSCR aggregation, operational risk charge, LAC-TP and LAC-DT adjustments, MCR corridor calculation"
+        },
+        "In-scope systems": {
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "value": "Module runs and the aggregation engine sit in the actuarial modelling platform; asset data comes from BlackRock Aladdin and the EIOPA risk-free rate curve is loaded per valuation date; results land in the financial reporting repository"
+        },
+        "Compliance procedure documented": {
+          "value": "SCR Calculation Procedure - data cut, RFR load, module-by-module run order, correlation aggregation, SCR_op formula, LAC-TP/LAC-DT method, MCR corridor test, analysis of change and sign-off"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Financial Officer and the Chief Actuary; reviewed annually and whenever the standard formula parameters or the USP set change"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Quarterly SCR produced in time for the solo quarterly submission at 5 weeks after quarter-end; annual SCR in time for the solo annual submission at 14 weeks after year-end; group runs add 6 weeks - the internal capital pack closes 10 working days ahead of each"
+        },
+        "Deadline reminders configured": {
+          "value": "The capital close calendar drives task alerts at valuation date +5, +10 and +15 working days for data cut, module runs and sign-off, with the Regulatory Reporting Manager copied on every slip"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Model run logs, input data extracts, RFR file with its EIOPA publication date, module outputs, aggregation workbook, LAC-DT recoverability memo and the signed capital pack retained 10 years in the financial reporting repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Failed data quality checks, unreconciled module outputs, manual overrides to model output and any use of an unapproved simplification are logged as capital-calculation exceptions with owner and disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Financial Officer",
+          "value": "Signs the capital pack and every manual adjustment above the materiality threshold before the SCR is used in reporting"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Each quarterly and annual SCR/MCR calculation run for every solo entity and the group, with their input data extracts, module outputs and manual adjustments"
+        },
+        "Pass/fail thresholds": {
+          "value": "Recomputed SCR must agree to the reported SCR within 0.5%; any unexplained difference above that, any unapproved simplification, and any manual adjustment without CFO sign-off is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is quarterly and annual; the test runs quarterly with full module re-performance at year-end and targeted module re-performance in interim quarters"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Model Risk Manager",
+          "value": "Validation is performed by model risk, who neither built nor ran the module models being tested"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly SCR validation workpaper (data reconciliation, module re-performance, aggregation recomputation, analysis of change, exceptions) in the model governance repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Capital pack with module-level SCR, the aggregation workbook, S.25.01 and the S.26/S.27 supporting templates, and the validation report - producible for an NCA capital review within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Head of Capital Management answers NCA capital queries with the Chief Actuary; the Chief Financial Officer clears any restatement of a reported solvency ratio before it is communicated"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Lock the valuation date data cut",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Trigger the capital data extract in the warehouse for the valuation date: in-force policy data, claims and reserve triangles, asset holdings by CIC and NACE code, reinsurance recoverables by counterparty and rating, and deferred tax balances.",
+            "Run the agreed data quality suite with the Data Quality Manager - completeness against policy counts, currency and CIC code validity, missing rating and duration fields - and get the pass report before releasing the cut.",
+            "Freeze the extract with a run id and record row counts per feed; any post-freeze data change requires a new run id, never an in-place edit.",
+            "Reconcile total assets and total technical provisions in the cut to the general ledger balances supplied by the Controller and document the reconciling items."
+          ],
+          "done": "a frozen, run-id stamped data cut that passes the data quality suite and reconciles to the ledger."
+        },
+        {
+          "step": "Load the EIOPA risk-free rate term structure and market data",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "app": "Bloomberg Terminal",
+          "actions": [
+            "Download the EIOPA monthly risk-free interest rate term structure for the valuation date, in the correct currency set and with and without volatility adjustment as the entity is approved to use.",
+            "Confirm the file is the published version for that month, record its publication date, and check the last liquid point and extrapolation parameters are the ones the entity applies.",
+            "Pull market inputs from Bloomberg for equity indices, property indices, credit spreads by rating and duration, and FX rates as at the valuation date close.",
+            "Load both sets into the actuarial modelling platform and run the load reconciliation report so the curve loaded equals the curve published, point by point."
+          ],
+          "done": "the published EIOPA curve for the valuation date is loaded and reconciled point-by-point, with market inputs dated to the valuation close."
+        },
+        {
+          "step": "Take the Solvency II balance sheet and technical provisions handover",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Take from the Reserving Actuary the best estimate liability by line of business, gross and net of reinsurance, with the cash-flow projections behind it.",
+            "Compute the risk margin using the cost-of-capital method at the prescribed 6% rate applied to the projected SCR of the reference undertaking, and record the projection approach used.",
+            "Assemble the Solvency II balance sheet: assets at fair value, technical provisions as BEL plus risk margin, other liabilities, and derive excess of assets over liabilities.",
+            "Sign the handover note stating the BEL and risk margin figures being carried into the SCR run and the run id of the data cut they came from."
+          ],
+          "done": "a signed handover with BEL, risk margin and the Solvency II balance sheet, tied to the frozen data cut run id."
+        },
+        {
+          "step": "Run the market risk sub-modules",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Run interest rate risk on both the up and down shocked curves and take the higher net asset value loss as the sub-module charge.",
+            "Run equity risk splitting type 1 and type 2 holdings, applying the symmetric adjustment published for the valuation date, and apply the duration-based or transitional equity treatment only where the entity is approved for it.",
+            "Run property, spread (by rating and modified duration, with the qualifying infrastructure and securitisation treatments applied), currency (both directions per currency) and market concentration (single-name exposures against the relative excess threshold by rating).",
+            "Aggregate the sub-modules using the market risk correlation matrix, applying the up or down interest-rate correlation set that matches the scenario selected in the first step.",
+            "Record each sub-module charge and the driving positions in the module output pack."
+          ],
+          "done": "all six market sub-modules are run and aggregated with the correlation set matching the selected interest-rate scenario."
+        },
+        {
+          "step": "Run the counterparty default risk module",
+          "by": "Reinsurance Credit & Security Analyst",
+          "role": "Reinsurance Credit & Security Analyst",
+          "app": "Reinsurance administration system",
+          "actions": [
+            "Build the type 1 exposure list: reinsurance recoverables by counterparty, cash at bank, derivatives and letters of credit, each with the counterparty credit quality step and the risk-mitigating effect claimed.",
+            "Build the type 2 exposure list: intermediary receivables, policyholder debtors past due more than three months, and mortgage loans meeting the criteria.",
+            "Take collateral values from the treaty repository and apply the collateral haircut rules before netting them against exposures.",
+            "Compute the loss-given-default and the charge for each type, and confirm every counterparty rating used ties to the rating file supplied by the Reinsurance Manager."
+          ],
+          "done": "type 1 and type 2 exposures are complete, collateral-adjusted and rating-sourced, with the module charge computed."
+        },
+        {
+          "step": "Run the life, health and non-life underwriting modules",
+          "by": "Actuary",
+          "role": "Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Run the life module sub-risks - mortality, longevity, disability-morbidity, lapse (up, down and mass lapse, taking the highest), expense, revision and life catastrophe - on the BEL cash flows.",
+            "Run the health module split into SLT health, NSLT health and health catastrophe, using the prescribed volume measures and standard deviations by segment.",
+            "Run the non-life module: premium and reserve risk from earned/written premium and best estimate reserve volume measures by line of business, lapse risk, and catastrophe risk from the CAT Modeler's scenario or standardised output.",
+            "Confirm with the Chief Actuary in writing which undertaking-specific parameters are approved and used, and that no unapproved USP has been applied.",
+            "Aggregate the sub-risks in each module with the prescribed correlation matrices and record the charges."
+          ],
+          "done": "life, health and non-life module charges are produced from approved volume measures with only NCA-approved USPs applied."
+        },
+        {
+          "step": "Aggregate the modules into the Basic SCR",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Load the market, counterparty default, life, health and non-life module charges into the aggregation workbook.",
+            "Apply the correlation matrix set out in Delegated Regulation (EU) 2015/35 Art. 87 and Annex IV to produce the square-root aggregation.",
+            "Add the intangible asset risk charge where intangibles are recognised on the Solvency II balance sheet.",
+            "Lock the workbook formulas, protect the correlation cells, and have a second capital actuary tick each module input against the module output pack before the total is used."
+          ],
+          "done": "the BSCR is produced from the prescribed correlation matrix with every module input tied to its output pack and independently ticked."
+        },
+        {
+          "step": "Compute the operational risk capital charge",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Assemble the Art. 204 inputs: earned premiums and technical provisions (excluding risk margin) for life and non-life, split out unit-linked business, and expenses incurred in the last 12 months for unit-linked.",
+            "Compute the premium-based and provision-based measures, take the higher, and cap the result at 30% of the BSCR.",
+            "Add the unit-linked expense component at the prescribed 25% of annual expenses incurred for unit-linked business.",
+            "Show the cap test explicitly in the workbook so a reviewer can see whether the 30% cap bound the result."
+          ],
+          "done": "SCR_op is computed on the higher of the premium and provision measures, capped at 30% of BSCR, with the unit-linked expense component added and the cap test visible."
+        },
+        {
+          "step": "Compute the loss-absorbing capacity of technical provisions and deferred taxes",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Compute LAC-TP as the reduction in future discretionary benefits under each shock, limited to the value of future discretionary benefits in the BEL and consistent with the entity's approved management actions.",
+            "Compute the gross-to-net effect consistently across modules so the adjustment is not double counted between module-level and aggregate-level netting.",
+            "Work with the Tax Manager on LAC-DT: quantify the notional deferred tax movement from the instantaneous loss equal to BSCR + SCR_op, and support recoverability with projected future taxable profits, carry-back and reversal of deferred tax liabilities.",
+            "Write the LAC-DT recoverability memo naming the evidence relied on, and cap the adjustment where the recoverability evidence does not support it."
+          ],
+          "done": "LAC-TP and LAC-DT are computed with no double counting and LAC-DT is supported by a signed recoverability memo."
+        },
+        {
+          "step": "Derive the SCR and the MCR",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Compute SCR = BSCR + SCR_op + Adj, where Adj is the combined LAC-TP and LAC-DT adjustment, as required by Art. 103.",
+            "Compute the linear MCR from the prescribed factors applied to technical provisions and written premiums by line of business.",
+            "Apply the corridor: MCR is the linear MCR floored at 25% and capped at 45% of the SCR, then floored at the absolute minimum capital requirement for the entity's authorised classes.",
+            "Show which of the linear, corridor or absolute floor is binding, and record the SCR and MCR coverage ratios against eligible own funds supplied by the Head of Capital Management."
+          ],
+          "done": "SCR and MCR are derived with the binding MCR constraint identified and coverage ratios computed against eligible own funds."
+        },
+        {
+          "step": "Confirm the approved simplifications and undertaking-specific parameters",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "app": "model governance repository",
+          "actions": [
+            "List every simplification applied (for example simplified spread risk, simplified counterparty default, simplified risk margin) and check each against the proportionality conditions in the Delegated Regulation.",
+            "Confirm each USP in use has a current NCA approval reference and that the underlying data still meets the approval conditions.",
+            "Where a simplification no longer meets its proportionality test, direct the Capital Model Actuary to re-run the module on the full method before sign-off.",
+            "Record the approved list, with references and the valuation date it applies from, in the model governance repository."
+          ],
+          "done": "every simplification passes its proportionality test and every USP carries a current NCA approval reference for the valuation date."
+        },
+        {
+          "step": "Obtain independent validation of the calculation",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "model governance repository",
+          "actions": [
+            "Re-perform the aggregation from module outputs to SCR in a separate workbook built independently of the production workbook.",
+            "Re-perform two modules in full each quarter on a rotating basis and the operational risk charge every quarter.",
+            "Review the manual adjustment log, challenge each entry and require the preparer to evidence any override of model output.",
+            "Issue a validation report with findings rated and a clear statement on whether the SCR is fit for reporting."
+          ],
+          "done": "a validation report exists with an independent aggregation re-performance, rotating module re-performance and a fit-for-reporting statement."
+        },
+        {
+          "step": "Produce the analysis of change against the prior calculation",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "app": "Power BI",
+          "actions": [
+            "Build a module-level bridge from the prior quarter SCR to the current SCR: opening, model/method change, data change, market movement, new business, run-off, reinsurance change, closing.",
+            "Explain every module movement above the materiality threshold with a named driver and the position that caused it.",
+            "Challenge any module that moved by less than the threshold when the underlying exposure changed materially - a static charge on a moving book usually means a stale input.",
+            "Circulate the bridge to the Chief Financial Officer and Chief Risk Officer ahead of sign-off."
+          ],
+          "done": "a module-level bridge exists where every material movement has a named driver and no material exposure change is left unexplained."
+        },
+        {
+          "step": "Populate the SCR reporting templates",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Populate S.25.01 with the module and total SCR, and the S.26.01 to S.26.07 templates with the sub-module detail for market, counterparty default, life, health, non-life and operational risk, following the Annex II instructions of Implementing Regulation (EU) 2015/2450.",
+            "Populate S.27.01 for non-life catastrophe risk and S.28.01 or S.28.02 for the MCR, depending on whether the entity writes only life, only non-life, or both.",
+            "Run the taxonomy validation and clear every blocking error and every non-blocking error with a documented reason.",
+            "Tie each populated cell group back to the capital pack line it came from and record the tie-out in the submission file."
+          ],
+          "done": "S.25, S.26, S.27 and S.28 are populated, validation-clean and tied cell-group by cell-group to the capital pack."
+        },
+        {
+          "step": "Sign off and file the capital pack",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "app": "financial reporting repository",
+          "actions": [
+            "Read the capital pack (SCR by module, MCR with the binding constraint, coverage ratios, analysis of change, validation report and the exceptions log) and challenge the material movements.",
+            "Sign the pack, naming the data cut run id, the model versions used and the date, and approve each manual adjustment above the materiality threshold individually.",
+            "Release the signed pack to the Regulatory Reporting Manager as the only version permitted to feed the supervisory submission.",
+            "File the pack and all supporting runs in the financial reporting repository under the valuation date with a 10-year retention label."
+          ],
+          "done": "a CFO-signed capital pack naming the run id and model versions is filed and is the sole source for the supervisory submission."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of capital calculation runs",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "model governance repository",
+          "actions": [
+            "List every SCR and MCR calculation run in the period by entity and valuation date, including re-runs and abandoned runs, from the model run log.",
+            "Add the group calculation runs and confirm each solo entity in the group scope appears.",
+            "Confirm which run id fed each supervisory submission and flag any submission fed by a run other than the signed one."
+          ],
+          "done": "a complete run inventory by entity and valuation date, with the submission-feeding run identified for each."
+        },
+        {
+          "step": "Reconcile calculation inputs to the source of record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Reconcile total assets, technical provisions and other liabilities in the Solvency II balance sheet to the general ledger and the statutory accounts, and agree the Solvency II valuation adjustments line by line.",
+            "Reconcile the asset holdings by CIC code used in market risk to the custodian position report and to Aladdin.",
+            "Reconcile reinsurance recoverables used in counterparty default to the ceded accounting platform.",
+            "Investigate every difference above the materiality threshold before sampling."
+          ],
+          "done": "balance sheet, asset and recoverable inputs reconcile to ledger, custodian and ceded records with differences cleared."
+        },
+        {
+          "step": "Draw and document the sample of modules and positions",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of the modules contributing more than 10% of the BSCR and 100% of the operational risk and adjustment calculations.",
+            "Take 25 positions by seeded random selection from the market and counterparty exposure lists, weighted to the largest single-name exposures.",
+            "Record the seed, population sizes and selection date so the sample can be re-drawn identically."
+          ],
+          "done": "a reproducible sample covering all major modules, the adjustments and 25 weighted positions."
+        },
+        {
+          "step": "Re-perform the module calculations independently",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Rebuild the sampled module charges from the frozen data cut in an independent workbook, applying the shocks straight from the Delegated Regulation rather than from the production configuration.",
+            "For interest rate risk, confirm the up and down shocked curves were both run and the higher loss taken; for equity risk, confirm the symmetric adjustment used is the value published for the valuation date.",
+            "For spread and concentration risk, re-derive the credit quality step and duration for the sampled positions from the source rating and holding data.",
+            "Compare to the production charge and treat any difference above 0.5% of the module charge as an exception with a written cause."
+          ],
+          "done": "each sampled module is independently rebuilt and agrees to production within 0.5%, or the difference is explained and logged."
+        },
+        {
+          "step": "Recompute the BSCR aggregation and the operational risk charge",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Rebuild the square-root aggregation from the module charges using the Art. 87 and Annex IV correlation matrix typed in from the regulation text, not copied from the production workbook.",
+            "Confirm the interest-rate correlation set used matches the up or down scenario that was selected as binding.",
+            "Recompute SCR_op from earned premiums, technical provisions and unit-linked expenses, apply the 30% BSCR cap and confirm which limb bound.",
+            "Recompute SCR = BSCR + SCR_op + Adj and compare to the reported SCR."
+          ],
+          "done": "BSCR, SCR_op and total SCR are independently recomputed and agree to the reported SCR within 0.5%."
+        },
+        {
+          "step": "Test the LAC-TP and LAC-DT adjustments",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the LAC-TP adjustment does not exceed the value of future discretionary benefits in the BEL and that the management actions assumed match those in the approved management actions policy.",
+            "Recompute the notional deferred tax movement from an instantaneous loss equal to BSCR + SCR_op at the enacted tax rate.",
+            "Read the LAC-DT recoverability memo and test the projected future taxable profits against the board-approved business plan; treat unsupported recoverability as an exception requiring the adjustment to be capped.",
+            "Confirm the gross-to-net treatment is applied once and not both at module and aggregate level."
+          ],
+          "done": "both adjustments are recomputed, bounded by their regulatory limits and supported by plan-based recoverability evidence."
+        },
+        {
+          "step": "Recompute the MCR corridor and identify the binding constraint",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute the linear MCR from the prescribed factors and the technical provisions and written premiums by line of business.",
+            "Apply the 25% and 45% of SCR corridor and the absolute minimum capital requirement for the entity's authorised classes.",
+            "Confirm the reported MCR is the correct binding value and that the reported figure matches template S.28.",
+            "Recompute the SCR and MCR coverage ratios from eligible own funds and compare to the reported ratios."
+          ],
+          "done": "the MCR is recomputed with the correct binding constraint and both coverage ratios agree to the reported figures."
+        },
+        {
+          "step": "Test the manual adjustments and simplifications",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "model governance repository",
+          "actions": [
+            "Pull the manual adjustment log for the sampled runs and test each entry for a documented rationale, a supporting calculation and CFO approval where it exceeds the materiality threshold.",
+            "For each simplification applied, re-perform the proportionality test against the conditions in the Delegated Regulation on the current book.",
+            "Confirm every USP used carries a live NCA approval reference covering the valuation date.",
+            "Treat any adjustment overriding model output without evidence, and any simplification failing its proportionality test, as a fail."
+          ],
+          "done": "every manual adjustment is evidenced and approved, and every simplification and USP passes its test with a live approval reference."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a GRC issue per exception with the entity, valuation date, module, the quantified capital effect and whether the reported SCR is misstated.",
+            "Assign a root cause (stale market data, wrong correlation set, unapproved simplification, data quality failure, unevidenced override) and an owner.",
+            "Set a remediation date and, where a reported solvency ratio is misstated, open a resubmission assessment with the Regulatory Reporting Manager.",
+            "Carry every open issue into the next quarter's validation as a mandatory retest item."
+          ],
+          "done": "every exception carries a quantified capital effect, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the validation",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the aggregate difference between recomputed and reported SCR as a percentage and compare it to the 0.5% threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with the workpaper references behind each finding.",
+            "Have the independent reviewer, who neither built nor ran the tested models, sign the workpaper.",
+            "Report the conclusion and any misstatement to the Audit Committee and the Risk Committee at their next sittings and file the workpaper in the model governance repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, the recomputation variance and committee reporting dates exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-008-C27",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Chief Financial Officer",
+          "value": "Owns solvency coverage against the intervention ladder and the Art. 138/139 notifications; the Chief Risk Officer owns the risk-appetite limits the ladder is calibrated to"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - Solvency II Directive 2009/138/EC Art. 44 (risk management system) with Delegated Regulation (EU) 2015/35 Art. 259(1) (AMSB responsibility for the risk management system), and Arts. 138(2) and 142 (SCR non-compliance, recovery plan, deteriorating financial conditions), re-read at each annual limit review"
+        },
+        "In-scope processes": {
+          "value": "Board risk-appetite setting, translation into solvency intervention levels, daily/weekly solvency monitoring and roll-forward, limit breach escalation, supervisory notification and recovery or finance scheme production"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Limits, breach records and escalation workflow live in the GRC platform; the solvency dashboard is published in Power BI from the capital roll-forward, with asset triggers monitored in BlackRock Aladdin"
+        },
+        "Compliance procedure documented": {
+          "value": "Capital Monitoring and Escalation Procedure - the intervention ladder, roll-forward method, breach definitions, escalation routes and timings, and the Art. 138/139 notification and recovery plan steps"
+        },
+        "Compliance procedure approved": {
+          "value": "Risk appetite statement and intervention ladder approved by the AMSB annually; the escalation procedure approved by the Chief Risk Officer and reviewed after every amber or red event"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "SCR breach: notify the supervisor immediately, submit a realistic recovery plan within 2 months of observing the breach and restore within 6 months (extendable by 3 months); MCR breach: notify immediately, submit a short-term realistic finance scheme within 1 month and restore within 3 months; deteriorating financial conditions under Art. 138(4)/142 notified as they arise"
+        },
+        "Deadline reminders configured": {
+          "value": "GRC breach records auto-set the notification task at breach date +0 days, the recovery plan task at +45 days and the restoration checkpoint at +5 months for SCR; +20 days and +2 months for MCR, with the CFO on every alert"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Dated solvency dashboards, roll-forward workings, limit breach records with disposition, board and risk committee minutes and any supervisory notifications retained 10 years in the compliance evidence repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Every amber and red ladder trigger is a GRC breach record with the trigger value, the date observed, escalation timestamps, management action taken and the closure decision by the CRO"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "Signs the closure of every limit breach and confirms the ratio returned above the trigger before the record is closed"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every daily and weekly solvency monitoring observation in the period, every ladder trigger event recorded, and every escalation, notification and recovery action taken"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on unescalated triggers - any observation below a trigger without a GRC breach record inside the procedure's escalation window is a fail; any SCR or MCR breach not notified to the supervisor immediately is a reportable breach"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous; the test runs quarterly over the full period of observations with 100% coverage of amber and red events and a sample of green observations to prove the calculation"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must sit outside Capital Management and Finance and must not have produced any tested dashboard"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly capital monitoring test workpaper (observation extract, roll-forward recomputation, breach trace, escalation timing analysis) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Board-approved risk appetite statement and intervention ladder, dated dashboard series, breach register with escalation timestamps and any recovery plan - producible for a supervisory review meeting within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "The Chief Financial Officer leads supervisory dialogue on a breach with the Chief Risk Officer; Regulatory Counsel clears the recovery plan wording before it is filed and no draft leaves the company without CFO approval"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Take the board-approved risk appetite and tolerance limits",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "board portal",
+          "actions": [
+            "Table the risk appetite statement at the AMSB annually with the proposed solvency appetite expressed as an SCR coverage range and a hard floor.",
+            "Have the board approve the appetite, the tolerance limits per material risk category and the escalation authority at each level, and record the approval in the minutes on the board portal.",
+            "Capture from the minutes the exact approved numbers and the effective date so the ladder can be calibrated to them rather than to an interpretation.",
+            "Hand the approved statement to the Capital Management Manager and the Enterprise Risk Manager for translation into monitoring triggers."
+          ],
+          "done": "a minuted, dated board approval of the solvency appetite range, hard floor and per-risk tolerance limits."
+        },
+        {
+          "step": "Calibrate the solvency intervention ladder",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Translate the board appetite into named ladder levels with numeric SCR coverage triggers - for example green above the appetite range, amber inside a management-action zone, red approaching the regulatory floor, and breach below 100% SCR coverage.",
+            "Set the equivalent MCR ladder, remembering MCR coverage below 100% carries the shortest statutory clock.",
+            "Attach to each level the required action, the accountable role and the escalation deadline in working days or hours.",
+            "Configure the levels as limit records in the GRC platform so an observation below a trigger automatically opens a breach record rather than relying on someone raising it."
+          ],
+          "done": "a numeric ladder for SCR and MCR coverage is configured in GRC with an owner, action and escalation clock at each level."
+        },
+        {
+          "step": "Build the solvency monitoring dashboard",
+          "by": "Risk Analyst",
+          "role": "Risk Analyst",
+          "app": "Power BI",
+          "actions": [
+            "Build a dashboard showing SCR coverage, MCR coverage, eligible own funds by tier and the distance to each ladder trigger, refreshed on the agreed daily or weekly cadence.",
+            "Source own funds from the last signed capital pack and movements from the ledger and the investment position feed so the roll-forward is auditable to two sources.",
+            "Show the observation date, the data as-at date and the last full calculation date on the face of the dashboard so a stale roll-forward is visible.",
+            "Distribute to the CFO, CRO, Head of Capital Management and the Risk Committee secretary on a fixed schedule and archive each dated version."
+          ],
+          "done": "a dated dashboard publishes on cadence showing both coverage ratios, tier composition, distance to trigger and the as-at dates."
+        },
+        {
+          "step": "Run the solvency roll-forward between full calculations",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Roll the last full SCR forward using the agreed sensitivities: interest rate and credit spread moves, equity and property index moves, FX, new business volumes and the period's claims experience.",
+            "Roll own funds forward for the period result, dividends declared or foreseeable, unrealised gains and losses and any capital instrument movement notified by the Treasury Manager.",
+            "Compare the roll-forward result to the last full calculation at the last common date and record the tracking error; where the error exceeds the tolerance in the procedure, trigger an early full recalculation.",
+            "Publish the roll-forward inputs and outputs alongside the dashboard so the ratio can be reconstructed."
+          ],
+          "done": "each published ratio has a documented roll-forward with its inputs, and the tracking error against the last full run is inside tolerance."
+        },
+        {
+          "step": "Monitor the MCR corridor position separately",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Recompute the MCR each monitoring cycle, since a falling SCR pulls the 25% floor and 45% cap of the corridor with it and can move the MCR independently of the linear result.",
+            "Track eligible own funds for MCR coverage separately - Tier 3 and ancillary own funds do not count toward the MCR, so MCR coverage can breach while SCR coverage looks adequate.",
+            "Flag on the dashboard which limb of the corridor is binding and how far the entity is from the absolute minimum capital requirement floor.",
+            "Alert the CFO immediately whenever MCR coverage falls below the amber trigger, ahead of the routine cycle."
+          ],
+          "done": "MCR coverage is monitored on its own eligible own funds basis each cycle with the binding corridor limb shown."
+        },
+        {
+          "step": "Monitor the market and ALM triggers that move the ratio fastest",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "app": "BlackRock Aladdin",
+          "actions": [
+            "Set alerts in Aladdin on the market variables the sensitivity analysis shows move coverage most: parallel rate shifts, credit spread widening by rating band, equity index falls and the symmetric adjustment level.",
+            "Set duration and convexity mismatch limits between assets and the liability cash flows and alert when the mismatch exceeds the ALM policy tolerance.",
+            "Report to the Capital Management Manager the same day any alert fires, with the estimated coverage effect using the published sensitivities.",
+            "Escalate concentration or downgrade events on single counterparties to the Reinsurance Credit and Security Analyst for the counterparty default impact."
+          ],
+          "done": "market and ALM alerts are configured to the published sensitivities and fire same-day to Capital Management with an estimated coverage effect."
+        },
+        {
+          "step": "Escalate amber triggers to the Risk Committee",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Open the auto-raised GRC breach record and complete it within the escalation window: trigger level, observed ratio, observation date, driver analysis and the roll-forward reference.",
+            "Convene the escalation call named in the ladder with the CFO, CRO and Head of Capital Management inside the working-day deadline for that level.",
+            "Record the management actions selected, their owners and their expected coverage effect on the record.",
+            "Report the event and the actions to the Risk Committee at its next sitting and add it to the standing breach report."
+          ],
+          "done": "each amber trigger has a completed breach record, a timed escalation call and named management actions with owners."
+        },
+        {
+          "step": "Notify the supervisor immediately on an SCR breach or risk of breach",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Where SCR coverage falls below 100%, or where the entity observes that it is at risk of doing so in the following three months, inform the supervisory authority immediately - the trigger is observation, not confirmation by a full recalculation.",
+            "Draft the notification with the observed ratio, the observation date, the drivers, the immediate actions taken and the expected trajectory, and have Regulatory Counsel clear the wording.",
+            "Send it through the supervisory reporting channel, capture the acknowledgement and the receiving supervisor's name, and log both on the GRC breach record.",
+            "Brief the AMSB chair the same day and put the breach on the next board agenda as a standing item until closed."
+          ],
+          "done": "the supervisor is notified on the observation date with an acknowledgement logged and the board chair briefed same-day."
+        },
+        {
+          "step": "Produce the realistic recovery plan within two months",
+          "by": "Head of Capital Management",
+          "role": "Head of Capital Management",
+          "app": "financial reporting repository",
+          "actions": [
+            "Build the recovery plan showing how eligible own funds covering the SCR, or the risk profile, will be restored within six months of the observation date.",
+            "Quantify each measure - capital injection, reinsurance purchase, de-risking of the asset portfolio, dividend suspension, new business restriction - with its coverage effect, its execution date and its owner and its dependency (for example shareholder approval).",
+            "Show the projected quarterly coverage path to restoration and state the assumptions the path relies on, so the supervisor can test them.",
+            "Have the AMSB approve the plan, then submit it within two months of the observation date and record the acknowledgement."
+          ],
+          "done": "a board-approved recovery plan with quantified, dated, owned measures and a projected coverage path is submitted inside two months."
+        },
+        {
+          "step": "Run the MCR breach route on its shorter clock",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "On observing MCR coverage below 100%, notify the supervisor immediately and mark the breach record MCR so the one-month clock, not the two-month clock, is applied.",
+            "Prepare the short-term realistic finance scheme showing restoration of eligible basic own funds to at least the MCR, or reduction of the risk profile, within three months of observation.",
+            "Restrict to basic own funds items eligible for MCR coverage when quantifying the measures - ancillary own funds and Tier 3 do not count.",
+            "Obtain AMSB approval and submit within one month of observation, then report progress to the supervisor monthly until closure."
+          ],
+          "done": "the MCR notification is immediate and a board-approved finance scheme using MCR-eligible own funds is submitted inside one month."
+        },
+        {
+          "step": "Keep the management action playbook executable",
+          "by": "Treasury Manager",
+          "role": "Treasury Manager",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Maintain a playbook listing each available capital action with its realistic coverage effect, execution lead time, cost and the approvals it needs.",
+            "Refresh the lead times quarterly with the Chief Investment Officer and the Head of Reinsurance - a de-risking trade or a quota share that takes longer than the recovery window is not a recovery measure.",
+            "Pre-clear with Regulatory Counsel which measures need supervisory approval or notification, such as own-funds item redemptions.",
+            "Test one measure a year end-to-end on paper with the Risk Committee to prove it could actually be executed."
+          ],
+          "done": "the playbook shows a current lead time, coverage effect and approval path for every measure and one measure is tested annually."
+        },
+        {
+          "step": "Assess deteriorating financial conditions beyond the ratio",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Each cycle, review the non-ratio indicators the supervisor may treat as deteriorating financial conditions: adverse claims development, liquidity strain, ratings actions, loss of a major reinsurance panel member or a material operational loss.",
+            "Where indicators point to deterioration even with adequate coverage, record the assessment and consider a voluntary supervisory notification under Arts. 138(4) and 142.",
+            "Link the assessment to the ORSA so the forward-looking view and the monitoring view do not diverge.",
+            "Table the assessment at the Risk Committee with a recommendation."
+          ],
+          "done": "a documented deteriorating-conditions assessment exists each cycle with a Risk Committee recommendation and an ORSA linkage."
+        },
+        {
+          "step": "Maintain the breach register and dispositions",
+          "by": "Operational Risk Manager",
+          "role": "Operational Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Keep one register row per trigger event with observation date, level, ratio, driver, escalation timestamps, actions, supervisory notification reference and closure date.",
+            "Require the ratio to be back above the trigger for two consecutive monitoring cycles before a record can move to closed.",
+            "Have the Chief Risk Officer sign each closure and record the signature and date on the row.",
+            "Publish the open and closed counts in the monthly risk report."
+          ],
+          "done": "every trigger event has a register row with escalation timestamps and a CRO-signed closure supported by two clear cycles."
+        },
+        {
+          "step": "Report the position to the board every cycle",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "app": "board portal",
+          "actions": [
+            "Include in every board and Risk Committee pack the current SCR and MCR coverage, the distance to each ladder trigger, the trend since the last meeting and the open breach records.",
+            "Minute the board's challenge and any decision to change appetite, restrict dividends or restrict new business, with the decision date.",
+            "Confirm the AMSB has discharged its Art. 259(1) responsibility by evidencing the discussion, not merely the tabling of the pack.",
+            "Circulate the approved minutes to the CFO and CRO for action tracking."
+          ],
+          "done": "each board and Risk Committee pack shows both ratios and open breaches, and the minutes evidence board challenge and decisions."
+        },
+        {
+          "step": "Retain the monitoring evidence",
+          "by": "Governance Analyst",
+          "role": "Governance Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Archive every dated dashboard, its roll-forward workings and its source extracts into the compliance evidence repository indexed by observation date and entity.",
+            "Archive each closed breach record with its escalation timestamps, supervisory notifications, recovery plan and board minutes.",
+            "Apply the 10-year retention label and confirm the archive is searchable by observation date, ladder level and entity.",
+            "Reconcile the archived dashboard count to the expected count for the cadence and chase any missing cycle."
+          ],
+          "done": "every monitoring cycle and breach record is archived, labelled and searchable, with no missing cycles in the series."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of monitoring observations and trigger events",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Power BI",
+          "actions": [
+            "Extract every published solvency dashboard in the period with its observation date, SCR coverage, MCR coverage and ladder level.",
+            "Extract every GRC breach record raised in the period, including records raised and later withdrawn.",
+            "Count the published dashboards against the expected count for the cadence and list every missing cycle as a completeness exception before going further."
+          ],
+          "done": "a dated observation series with no unexplained gaps and a full list of trigger events, signed as complete."
+        },
+        {
+          "step": "Reconcile the observations to the signed capital packs",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "financial reporting repository",
+          "actions": [
+            "Agree each quarter's opening roll-forward position to the CFO-signed capital pack for that valuation date.",
+            "Agree own funds movements in the roll-forward to the general ledger result, declared dividends and the Treasury Manager's capital instrument log.",
+            "Recompute the tracking error between the final roll-forward before each full calculation and the full calculation result, and test it against the procedure tolerance."
+          ],
+          "done": "roll-forwards tie to signed capital packs and ledger movements, and every tracking error is inside the procedure tolerance or explained."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of amber, red and breach observations and 100% of the associated GRC records.",
+            "Take 20 green observations by seeded random selection spread across the period to test the calculation and publication controls.",
+            "Record the seed, the population size and the selection date so the sample can be re-drawn identically."
+          ],
+          "done": "a reproducible sample covering every non-green observation and 20 green observations across the period."
+        },
+        {
+          "step": "Re-perform the ladder classification on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Read the board-approved appetite statement in force at each sampled observation date and the ladder configuration as it stood then.",
+            "Recompute the coverage ratios from the roll-forward inputs and classify the observation against the ladder yourself before reading the recorded level.",
+            "Treat any observation classified green that your recomputation puts amber or worse as an exception, and any ladder configuration that does not match the board-approved numbers as a control failure.",
+            "Capture the GRC limit configuration screen and the board appetite extract into the workpaper."
+          ],
+          "done": "each sampled observation has an independently recomputed ratio and ladder classification tied to the appetite in force on that date."
+        },
+        {
+          "step": "Test escalation timeliness against the procedure clocks",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For every trigger event, take the observation timestamp and the GRC record creation, escalation call and action-decision timestamps.",
+            "Recompute the elapsed time against the escalation window the ladder sets for that level and record any breach in working hours.",
+            "Check the escalation reached the roles the ladder names - an amber escalated only within Capital Management when the ladder requires the CFO is a fail.",
+            "Confirm each event appeared in the next Risk Committee pack after it was raised."
+          ],
+          "done": "every trigger event has a measured escalation elapsed time against its required window and a traced committee reporting date."
+        },
+        {
+          "step": "Trace SCR and MCR breaches to immediate supervisory notification",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For every observation below 100% SCR or MCR coverage, find the supervisory notification in the Internal Regulatory System and read its submission timestamp.",
+            "Compare it to the observation date - immediate means the same business day, so any gap requires a written explanation and is presumed a breach.",
+            "Confirm the notification content states the observed ratio, date and drivers and was cleared by Regulatory Counsel.",
+            "Confirm the board chair briefing and board agenda entry exist for the same date."
+          ],
+          "done": "every coverage breach traces to a same-day, counsel-cleared supervisory notification with an acknowledgement and a board briefing."
+        },
+        {
+          "step": "Recompute the recovery plan and finance scheme deadlines",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each SCR breach, recompute the recovery plan due date as observation date plus two months and the restoration checkpoint as observation date plus six months.",
+            "For each MCR breach, recompute the finance scheme due date as observation date plus one month and restoration as plus three months.",
+            "Compare each recomputed date to the actual submission date on the supervisory acknowledgement and quantify any lateness in days.",
+            "Test whether the measures in the plan were executed by their stated dates and whether the projected coverage path was met."
+          ],
+          "done": "all recovery and finance scheme clocks are recomputed from the observation date, with lateness quantified and measure execution tested."
+        },
+        {
+          "step": "Test the eligibility basis used for MCR coverage",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "actions": [
+            "Take the own funds items counted toward MCR coverage in the sampled observations and confirm Tier 3 and ancillary own funds were excluded.",
+            "Recompute MCR coverage on the correct eligible basis and compare to the reported figure.",
+            "Confirm the MCR itself was recomputed each cycle rather than held static, since the 25%/45% corridor moves with the SCR.",
+            "Treat any observation where a corrected basis would have crossed a ladder trigger as a reportable exception."
+          ],
+          "done": "MCR coverage is recomputed on the correct eligible own funds basis for every sampled observation with any trigger crossing reported."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a GRC issue per exception with the observation date, the ladder level involved, the hours or days of delay and whether a statutory clock was missed.",
+            "Assign a root cause (stale roll-forward, mis-set limit configuration, escalation not routed to the named role, ineligible own funds counted, notification delayed for internal review) and an owner.",
+            "Set a remediation date and, where a supervisory notification was late, open a self-report assessment with Regulatory Counsel and the CFO.",
+            "Carry every open issue into the next quarter's test as a mandatory retest item."
+          ],
+          "done": "every exception has a GRC issue with root cause, owner, remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the escalation on-time rate and the ladder classification agreement rate and compare both to the zero-tolerance threshold for unescalated triggers.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with the workpaper references behind each finding.",
+            "Have the independent reviewer, who sits outside Capital Management and Finance and produced none of the tested dashboards, sign the workpaper.",
+            "Report the conclusion and any missed statutory notification to the Audit Committee and the board and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, escalation and classification rates, and board reporting dates exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-008-C28",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Owns the QRT, SFCR and RSR submissions to the NCA; the Head of Capital Management owns the own-funds tiering and eligibility position inside them"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - Solvency II Directive 2009/138/EC Art. 98 (eligibility of own funds) with Delegated Regulation (EU) 2015/35 Arts. 82-82a (quantitative tier limits), Art. 100 (SCR calculation) and Art. 45(1) with DR Art. 262 (ORSA linkage), plus Implementing Regulation (EU) 2015/2450 for the templates; re-read at each annual reporting cycle and on each EIOPA taxonomy release"
+        },
+        "In-scope processes": {
+          "value": "Own funds classification and tiering, eligibility testing against the SCR and MCR limits, QRT production and taxonomy validation, SFCR narrative drafting and board approval, submission to the NCA and public disclosure"
+        },
+        "In-scope systems": {
+          "app": "Internal Regulatory System",
+          "value": "QRT assembly, XBRL taxonomy validation and NCA submission run through the Internal Regulatory System, fed by the close/consolidation tool and the signed capital pack in the financial reporting repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Solvency II Reporting Procedure - own funds classification and tiering test, QRT build and validation, GL and statutory reconciliation, SFCR drafting and approval, submission, publication and re-filing policy"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Financial Officer; the SFCR itself is approved by the administrative, management or supervisory body before submission and publication"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Solo quarterly QRTs within 5 weeks of quarter-end; solo annual QRTs and the SFCR within 14 weeks of year-end; the RSR on the NCA's cycle (full report at least every three years, summary of material changes in the intervening years); group reporting adds 6 weeks - 11 weeks quarterly and 20 weeks annual"
+        },
+        "Deadline reminders configured": {
+          "value": "The reporting calendar drives alerts at T-30, T-14 and T-5 days to each statutory submission date, with a hard internal cut-off for the signed capital pack at 10 working days before submission"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Submitted XBRL instance documents, validation logs, NCA acknowledgements, GL and statutory reconciliations, the tiering test workbook, board approval minutes and the published SFCR retained 10 years in the financial reporting repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Late submissions, resubmissions, unresolved non-blocking validation errors, tier limit breaches and any restatement of a published ratio are logged as filing issues with root cause and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Financial Officer",
+          "value": "Signs the submission release and every resubmission or restatement of a previously reported solvency ratio"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every quarterly and annual QRT submission, the SFCR and RSR, for every solo entity and the group, with their validation logs, acknowledgements and the own funds items reported in each"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on missed statutory submission dates and on blocking validation errors at submission; any tier limit breach reported as compliant, or any eligible own funds figure not tying to the tiering test, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is quarterly and annual; the test runs after each submission cycle with full re-performance of the tiering test annually and a targeted re-performance quarterly"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Statutory Reporting Manager",
+          "value": "Reviewer must sit outside the regulatory reporting production team and must not have prepared or submitted the tested filings"
+        },
+        "Evidence location for test results": {
+          "value": "Post-submission review workpaper (deadline recomputation, tiering re-performance, template-to-ledger reconciliation, validation log review, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Submitted instance documents with acknowledgement ids, the validation logs, the tiering test workbook, the reconciliation to statutory accounts and the board-approved SFCR - producible for an NCA reporting review within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "The Regulatory Reporting Manager answers NCA data queries and manages resubmissions; the Chief Financial Officer approves any correction to a previously reported solvency or MCR coverage ratio before it is communicated"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Build the reporting calendar for the cycle",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "List every reporting entity and the group, and against each set the statutory submission dates: quarterly solo at 5 weeks after quarter-end, annual solo and SFCR at 14 weeks after year-end, group at 11 and 20 weeks.",
+            "Add the NCA's national add-ons and any entity-specific waivers or exemptions from quarterly reporting, quoting the decision reference granting them.",
+            "Back off internal milestones from each submission date: data cut, signed capital pack at T-10 working days, validation run at T-7, board approval for the SFCR at T-5.",
+            "Publish the calendar to Finance, Actuarial, Risk and the Corporate Secretary and load the milestones as tasks with T-30/T-14/T-5 alerts."
+          ],
+          "done": "every entity has statutory dates, internal milestones and alerts loaded, with any exemption evidenced by an NCA decision reference."
+        },
+        {
+          "step": "Classify every own funds item into tiers",
+          "by": "Head of Capital Management",
+          "role": "Head of Capital Management",
+          "app": "financial reporting repository",
+          "actions": [
+            "List every basic own funds item - ordinary share capital and related share premium, the reconciliation reserve, subordinated liabilities, preference shares, subordinated mutual member accounts and net deferred tax assets - and every ancillary own funds item approved by the NCA.",
+            "Classify each item by testing it against the permanent availability and subordination features and the loss-absorbency criteria, not by carrying forward last period's classification.",
+            "For each subordinated instrument, read the terms in the contract lifecycle management repository and confirm the maturity, call dates, coupon cancellation and write-down features support the tier claimed.",
+            "Record grandfathered instruments separately with their transitional expiry date, since transitional treatment falls away and reclassifies the item.",
+            "Confirm net deferred tax assets are classified Tier 3 and that ancillary own funds carry a live NCA approval amount."
+          ],
+          "done": "every own funds item has a tier with the tested features and, for instruments, the contract terms behind the classification recorded."
+        },
+        {
+          "step": "Run the quantitative tier limit test",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For SCR coverage, test that eligible Tier 1 is at least 50% of the SCR, that Tier 3 is no more than 15% of the SCR, and that restricted Tier 1 items do not exceed 20% of total Tier 1.",
+            "For MCR coverage, test that eligible Tier 1 is at least 80% of the MCR, that Tier 2 basic own funds cover no more than 20%, and that Tier 3 and all ancillary own funds are excluded entirely.",
+            "Where a limit binds, disallow the excess and carry only the eligible amount into the coverage ratio - never report the full available amount.",
+            "Show each limit test as a separate line with the available amount, the limit, the eligible amount and the disallowed excess so a reviewer can see the binding constraint."
+          ],
+          "done": "each SCR and MCR tier limit is tested on its own line with available, limit, eligible and disallowed amounts shown."
+        },
+        {
+          "step": "Deduct foreseeable dividends, distributions and charges",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Take from the board minutes and the dividend policy any dividend declared or foreseeable at the valuation date, including a proposed dividend not yet approved where it is foreseeable.",
+            "Deduct the foreseeable dividends, distributions and charges from the reconciliation reserve before the tiering test runs, not after.",
+            "Reconcile the reconciliation reserve to excess of assets over liabilities less own shares, less foreseeable dividends, less other basic own funds items and less restricted ring-fenced fund items.",
+            "Have the Chief Financial Officer confirm the foreseeable dividend figure in writing before it is locked."
+          ],
+          "done": "the reconciliation reserve reconciles to the balance sheet with a CFO-confirmed foreseeable dividend deduction applied before tiering."
+        },
+        {
+          "step": "Assemble the quantitative reporting templates",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Load the template set required for the cycle: S.01 content and basic information, S.02 balance sheet, S.05 premiums claims and expenses, S.06/S.08 assets and derivatives, S.12/S.17 technical provisions, S.19 non-life claims development, S.22 long-term guarantee measures, S.23 own funds, S.25-S.28 capital requirements.",
+            "Map each template cell group to its source: the signed capital pack, the Solvency II balance sheet, the asset data extract or the ledger, and record the mapping in the submission file.",
+            "Apply the correct reporting currency, entity LEI, reporting reference date and the accounting standard flag on S.01.",
+            "Complete the quarterly subset only where a quarterly waiver does not apply, and evidence any waiver with its NCA reference."
+          ],
+          "done": "the correct template set for the entity and cycle is populated with every cell group mapped to a named source."
+        },
+        {
+          "step": "Run the taxonomy validation and clear the errors",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Generate the XBRL instance against the EIOPA taxonomy version the NCA has mandated for the reference date and confirm the taxonomy version on the instance header.",
+            "Run the full validation and export the log; resolve every blocking error at source in the underlying data rather than by overwriting the cell.",
+            "For each non-blocking error, write the explanation that will accompany the filing and have the Regulatory Reporting Manager approve it - unexplained non-blocking errors are the most common NCA query.",
+            "Re-run the validation until the log shows zero blocking errors and archive the final log with the instance."
+          ],
+          "done": "the instance validates against the mandated taxonomy with zero blocking errors and every non-blocking error carries an approved explanation."
+        },
+        {
+          "step": "Reconcile the templates to the ledger and statutory accounts",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "close/consolidation tool",
+          "actions": [
+            "Reconcile S.02 balance sheet assets and liabilities to the statutory or IFRS balance sheet, listing each Solvency II valuation adjustment with its amount and basis.",
+            "Reconcile S.05 premiums, claims and expenses to the income statement by line of business and explain the mapping of statutory lines to Solvency II lines of business.",
+            "Reconcile S.23 own funds to the equity statement and to the tiering test workbook, and reconcile S.25 and S.28 to the CFO-signed capital pack.",
+            "Sign the reconciliation pack and attach it to the submission file - an unreconciled template is not released."
+          ],
+          "done": "a signed reconciliation pack ties the balance sheet, income, own funds and capital templates to the ledger and the signed capital pack."
+        },
+        {
+          "step": "Draft the SFCR narrative",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Microsoft 365 / SharePoint",
+          "actions": [
+            "Draft to the prescribed structure: A business and performance, B system of governance, C risk profile, D valuation for solvency purposes, E capital management, following the Annex XX headings of Delegated Regulation (EU) 2015/35.",
+            "In section E, describe the own funds structure, the tiering, the material terms of each own funds item, the eligible amounts against SCR and MCR, and explain any tier limit that bound.",
+            "Explain each material change from the prior year in own funds, SCR and coverage, and quantify it.",
+            "Collect section owners' written confirmations - governance from the Corporate Secretary, risk profile from the CRO, valuation from the Chief Actuary - before the draft goes to the board."
+          ],
+          "done": "a complete SFCR draft to the Annex XX structure with section-owner confirmations and a quantified explanation of every material movement."
+        },
+        {
+          "step": "Obtain the required audit or review of the SFCR",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "AuditBoard",
+          "actions": [
+            "Confirm with the Chief Financial Officer which SFCR elements the NCA requires to be audited in the jurisdiction - typically the Solvency II balance sheet and parts of own funds, with technical provisions often carved out.",
+            "Provide the external auditor with the reconciliation pack, the tiering test workbook and the signed capital pack, and track their requests to closure in AuditBoard.",
+            "Resolve every audit finding before board approval and record the adjustment in the templates, re-running validation after any change.",
+            "File the auditor's report or opinion with the SFCR submission package."
+          ],
+          "done": "the audit scope required by the NCA is completed, findings are cleared into the templates, and the opinion is in the submission package."
+        },
+        {
+          "step": "Obtain board approval of the SFCR",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "board portal",
+          "actions": [
+            "Table the final SFCR, the reconciliation pack, the validation log summary and the auditor's opinion at the AMSB at least 5 working days before the submission date.",
+            "Record the board's approval of the SFCR and of the solvency and MCR coverage ratios it discloses, with the date, in the minutes.",
+            "Capture the board's challenge on material movements in the minutes - approval without recorded challenge is a governance finding at the next NCA review.",
+            "Release the approved version number to the Regulatory Reporting Manager as the only version permitted for submission and publication."
+          ],
+          "done": "a minuted AMSB approval of a named SFCR version, with recorded challenge, dated ahead of the submission date."
+        },
+        {
+          "step": "Submit to the supervisory authority",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Submit the validated XBRL instance and the SFCR through the NCA's reporting channel, selecting the correct reporting reference date, entity LEI and submission type (initial or resubmission).",
+            "Confirm the submission timestamp is inside the statutory window and capture the acknowledgement id and any receipt-level validation feedback from the NCA.",
+            "Where the NCA returns errors on receipt, correct and resubmit inside the same statutory window where possible, and notify the supervisor in writing where it is not.",
+            "Log the acknowledgement id, submission timestamp and any feedback against the calendar entry."
+          ],
+          "done": "each submission carries an NCA acknowledgement id and a timestamp inside its statutory window, with any receipt feedback logged."
+        },
+        {
+          "step": "Publish the SFCR",
+          "by": "Communications Specialist",
+          "role": "Communications Specialist",
+          "app": "Microsoft 365 / SharePoint",
+          "actions": [
+            "Publish the board-approved SFCR on the company website within the same statutory deadline as the submission and keep it accessible for at least five years.",
+            "Confirm the published PDF is the board-approved version number and that the disclosed SCR and MCR coverage ratios match the submitted S.23 and S.28.",
+            "Where a prior year SFCR is superseded or corrected, publish the corrected version with a clear statement of what changed and the date.",
+            "Record the publication URL and date on the calendar entry as the evidence of disclosure."
+          ],
+          "done": "the approved SFCR is publicly accessible by the deadline, matches the submitted templates, and the URL and date are logged."
+        },
+        {
+          "step": "Manage resubmissions under the re-filing policy",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Assess every post-submission error against the re-filing materiality thresholds the NCA applies and record the assessment even where no re-filing is required.",
+            "Where a re-filing is required, raise a tracker issue, correct the source data, re-run validation and resubmit marking the submission type as a resubmission for the same reference date.",
+            "Notify the NCA contact in writing of what changed, the reference date affected and the effect on the reported ratios, cleared by the Chief Financial Officer.",
+            "Link the resubmission acknowledgement to the original submission record so the filing history is complete."
+          ],
+          "done": "every post-submission error has a documented materiality assessment and any resubmission is CFO-cleared and linked to the original filing."
+        },
+        {
+          "step": "Log acknowledgements and close the cycle",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Confirm every entity and every template set due in the cycle has an acknowledgement id and mark the calendar entry complete only against that evidence.",
+            "List any submission made after its statutory date with the days late and open a filing issue with a root cause.",
+            "Report the cycle's completion status, late filings and open validation explanations to the Audit Committee.",
+            "Hand the cycle file to the Statutory Reporting Manager for the post-submission review."
+          ],
+          "done": "every due submission is closed against an acknowledgement id and every late filing has an issue with a root cause."
+        },
+        {
+          "step": "Retain the filing evidence",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "financial reporting repository",
+          "actions": [
+            "Archive per entity and reference date: the submitted instance document, the validation log, the reconciliation pack, the tiering test workbook, the board minutes, the auditor's opinion, the published SFCR and the NCA acknowledgement.",
+            "Apply the 10-year retention label and confirm the archive is searchable by entity, reference date and acknowledgement id.",
+            "Confirm the published SFCR remains accessible for the required five-year public availability period.",
+            "Reconcile the archived submission count to the calendar entries for the cycle."
+          ],
+          "done": "every submission has a complete labelled archive, searchable by entity and reference date, reconciled to the reporting calendar."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of filings due and made",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Derive the population of filings due from the entity list and the statutory frequencies, independently of the reporting calendar, so an entity missing from the calendar cannot hide.",
+            "Extract every submission made in the period with entity, reference date, submission type and acknowledgement id.",
+            "Match due to made and list every gap and every unexpected extra submission before sampling."
+          ],
+          "done": "an independently derived due list is matched to actual submissions with all gaps and extras listed."
+        },
+        {
+          "step": "Reconcile submitted templates to the source of record",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "close/consolidation tool",
+          "actions": [
+            "Take the submitted instance documents and agree S.02 to the statutory balance sheet, S.23 to the equity statement and the tiering workbook, and S.25/S.28 to the CFO-signed capital pack.",
+            "Confirm the capital pack used was the signed version and not a later or draft run.",
+            "Investigate every difference and confirm each Solvency II valuation adjustment in the reconciliation has a stated basis."
+          ],
+          "done": "submitted templates reconcile to statutory accounts and the signed capital pack, with every valuation adjustment based."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of annual submissions and the SFCR for every entity, and 100% of resubmissions.",
+            "Take 20 own funds items by seeded random selection, forced to include every subordinated instrument, every grandfathered item and every ancillary own funds item.",
+            "Record the seed, population sizes and selection date so the sample can be re-drawn identically."
+          ],
+          "done": "a reproducible sample covering all annual filings, all resubmissions and every non-ordinary own funds item."
+        },
+        {
+          "step": "Re-perform the own funds classification on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "Pull the instrument documentation for each sampled item and read the maturity, call, coupon cancellation, write-down and subordination terms yourself.",
+            "Test the terms against the tier criteria in Delegated Regulation Arts. 69-79 before reading the recorded tier, and reach your own classification.",
+            "Confirm grandfathered items are still inside their transitional window at the reference date, and that expired transitionals were reclassified.",
+            "Confirm net deferred tax assets sit in Tier 3 and that ancillary own funds do not exceed the NCA-approved amount."
+          ],
+          "done": "each sampled item has an independently derived tier from source contract terms, with transitional expiry and approval limits checked."
+        },
+        {
+          "step": "Recompute the tier limit and eligibility maths",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Recompute SCR eligibility: Tier 1 at least 50% of SCR, Tier 3 no more than 15% of SCR, restricted Tier 1 no more than 20% of total Tier 1, and recompute the disallowed excess where a limit binds.",
+            "Recompute MCR eligibility: Tier 1 at least 80% of MCR, Tier 2 no more than 20%, Tier 3 and ancillary own funds excluded.",
+            "Recompute both coverage ratios from the eligible amounts and compare to the ratios reported in S.23, S.28 and the published SFCR.",
+            "Treat any reported ratio built on available rather than eligible own funds as a fail and quantify the overstatement."
+          ],
+          "done": "all tier limits and both coverage ratios are independently recomputed and agree to the reported and published figures."
+        },
+        {
+          "step": "Recompute the submission deadlines and test timeliness",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute each due date from the reference date: solo quarterly at 5 weeks, solo annual and SFCR at 14 weeks, group at 11 and 20 weeks.",
+            "Compare each recomputed date to the submission timestamp on the NCA acknowledgement, not to the internal calendar completion flag.",
+            "Test any claimed exemption or waiver from quarterly reporting against the NCA decision granting it and its validity at the reference date.",
+            "Quantify every late submission in days and identify whether an extension was formally granted."
+          ],
+          "done": "every deadline is recomputed from the reference date, timeliness is measured against the acknowledgement, and waivers are evidenced."
+        },
+        {
+          "step": "Review the validation logs and non-blocking explanations",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Open the archived validation log for each sampled submission and confirm zero blocking errors at the point of submission.",
+            "Read each non-blocking error explanation and test whether it is a genuine reason or a restatement of the error text.",
+            "Confirm the taxonomy version on the instance is the one the NCA mandated for that reference date.",
+            "Check that any correction made to clear an error was made in the source data and flowed to the reconciliation, not typed over the cell."
+          ],
+          "done": "each submission has a clean blocking-error log, mandated taxonomy version and substantive explanations for non-blocking errors."
+        },
+        {
+          "step": "Trace the SFCR to board approval and public disclosure",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Find the AMSB minute approving the SFCR, confirm it names the version submitted and that its date precedes the submission date.",
+            "Open the published SFCR at the recorded URL and compare the disclosed SCR and MCR coverage ratios and own funds tiering to the submitted S.23 and S.28.",
+            "Confirm the publication date is inside the statutory deadline and that prior-year reports remain accessible for the required period.",
+            "Confirm the auditor's opinion covering the NCA-required scope is included with the published and submitted report."
+          ],
+          "done": "the published SFCR matches the board-approved and submitted version, was published on time and carries the required audit opinion."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a filing issue per exception with the entity, reference date, template or SFCR section affected, the days late or the amount misstated, and the supervisory impact.",
+            "Assign a root cause (calendar omission, late capital pack, tier misclassification, taxonomy version drift, unexplained non-blocking error, approval after submission) and an owner.",
+            "Set a remediation date and, where a reported ratio is misstated, open a resubmission and CFO-cleared notification to the NCA.",
+            "Carry every open issue into the next cycle's post-submission review as a mandatory retest item."
+          ],
+          "done": "every exception has a filing issue with quantified impact, root cause, owner, remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the review",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the on-time submission rate, the blocking-error rate at submission and the tiering agreement rate, and compare each to the zero-tolerance threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with the workpaper references behind each finding.",
+            "Have the independent reviewer, who sits outside regulatory reporting production and prepared none of the tested filings, sign the workpaper.",
+            "Report the conclusion, late filings and any restatement to the Audit Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, submission and tiering rates, and an Audit Committee reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-008-C29",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Enterprise Risk Manager",
+          "value": "Runs the ORSA process and drafts the report under the Chief Risk Officer; the AMSB owns the assessment itself and cannot delegate the conclusion"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - Solvency II Directive 2009/138/EC Art. 45(1) and Art. 246(4) for the group ORSA, with Delegated Regulation (EU) 2015/35 Art. 262 and specifically Art. 262(1)(a) as amended by Delegated Regulation (EU) 2021/1256 requiring sustainability risks, including climate-change scenarios, in the assessment of overall solvency needs; re-read each ORSA cycle"
+        },
+        "In-scope processes": {
+          "value": "Risk identification and materiality assessment, overall solvency needs assessment, sustainability and climate scenario analysis, continuous compliance projection over the business plan, standard-formula deviation assessment, board challenge and approval, supervisory ORSA report"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Risk register, materiality scoring and the ORSA action log sit in the GRC platform; projections run in the actuarial modelling platform and the report is approved through the board portal"
+        },
+        "Compliance procedure documented": {
+          "value": "ORSA Policy and the ORSA Process Manual - trigger events for a non-regular ORSA, risk identification method, overall solvency needs methods, climate scenario set, projection basis, board challenge protocol and the supervisory report route"
+        },
+        "Compliance procedure approved": {
+          "value": "ORSA Policy approved by the AMSB annually; each ORSA report is approved by the AMSB before it is used in decision-making or sent to the supervisor"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "ORSA performed at least annually and immediately following any significant change in the risk profile; the supervisory ORSA report is submitted within two weeks of the conclusion of the assessment, so the board approval date starts a 14-day clock"
+        },
+        "Deadline reminders configured": {
+          "value": "The ORSA project plan alerts at T-90, T-60 and T-30 days to the scheduled board approval, and the GRC record auto-sets the supervisory submission task at board approval date +10 days"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Risk register extract, materiality scoring, scenario specifications and results, projection model runs, the actuarial function opinion, board papers and minutes, the approved ORSA report and the supervisory submission acknowledgement retained 10 years"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "A missed annual cycle, a significant risk profile change without a triggered ORSA, an omitted climate scenario, or a late supervisory report is logged as a governance exception with root cause and owner"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "Signs the ORSA report as complete and signs off closure of every ORSA action and every governance exception raised on the cycle"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every ORSA performed in the period (regular and triggered), the risk profile change events that could have triggered one, the scenario set run, and the ORSA actions raised"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance - a cycle with no ORSA, an ORSA report used without AMSB approval, a supervisory report later than two weeks after conclusion, or an overall solvency needs assessment with no sustainability and climate content is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is at least annual plus event-driven; the test runs annually after board approval with an interim check each quarter that no trigger event went without an ORSA"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must sit outside the risk function and must not have drafted any section of the tested ORSA report"
+        },
+        "Evidence location for test results": {
+          "value": "ORSA review workpaper (trigger analysis, scenario re-performance, projection recomputation, board challenge evidence, submission timing) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Approved ORSA report, the supporting scenario and projection packs, the actuarial function opinion and the board minutes evidencing challenge - producible for a supervisory ORSA review within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "The Chief Risk Officer leads supervisory dialogue on the ORSA with the Enterprise Risk Manager; the Regulatory Reporting Manager submits and tracks any follow-up information request"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Open the ORSA cycle against the approved policy",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Read the ORSA Policy and confirm the scheduled cycle dates, the assessment reference date and the business plan version the projection will use.",
+            "Check the trigger list in the policy against the period's events - a major acquisition, a new line of business, a reinsurance programme change, a material reserve strengthening or a solvency ladder breach each force a non-regular ORSA.",
+            "Open the ORSA record in GRC with the reference date, the planned board approval date and the derived supervisory submission deadline at approval +14 days.",
+            "Issue the workplan to Actuarial, Capital Management, Finance, the Sustainability Risk Manager and the Chief Actuary with named deliverables and dates."
+          ],
+          "done": "an ORSA record exists with reference date, planned approval date, derived submission deadline and a workplan with named deliverable owners."
+        },
+        {
+          "step": "Refresh the risk universe and materiality assessment",
+          "by": "Risk Analyst",
+          "role": "Risk Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Extract the risk register and re-score each risk for likelihood and impact with the risk owners, using the current exposure data rather than last year's scores.",
+            "Add risks that the standard formula does not capture - strategic risk, reputational risk, liquidity risk, group risk, sustainability risk, conduct risk, ICT and cyber concentration - and score them explicitly.",
+            "Set the materiality threshold as a quantified figure (for example a percentage of own funds) and record which risks fall above it, since those must be quantified in the overall solvency needs.",
+            "Record risks screened out as immaterial with the reason and the value tested, so the screening decision is auditable."
+          ],
+          "done": "a re-scored risk register with a quantified materiality threshold, non-standard-formula risks scored, and screened-out risks reasoned."
+        },
+        {
+          "step": "Assess the overall solvency needs",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Quantify the capital needed for each material risk on the entity's own economic basis, stating the confidence level and time horizon used and why they differ from the SCR's 99.5% one-year basis where they do.",
+            "Quantify separately the risks the standard formula does not cover, and state the method for each - scenario, stress, factor or expert judgement with a documented rationale.",
+            "Aggregate to a single overall solvency needs figure showing the diversification assumed and its basis, and compare it to the SCR with the difference explained.",
+            "Record the expert judgements used, who made them and what evidence supported them, since these are the first thing a supervisor challenges."
+          ],
+          "done": "an overall solvency needs figure exists on a stated basis, covering non-standard-formula risks, reconciled to the SCR with documented expert judgement."
+        },
+        {
+          "step": "Bring sustainability risks into the overall solvency needs",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Identify the material sustainability risks on both sides of the balance sheet: physical and transition climate risk in the underwriting portfolio, transition risk and stranded-asset risk in the investment portfolio, and litigation and conduct exposure.",
+            "Map the underwriting exposure by geography and peril with the CAT Modeler and the investment exposure by sector NACE code with the Investment Analyst, so the assessment rests on positions rather than narrative.",
+            "Assess each material sustainability risk for its effect on technical provisions, asset values and own funds and feed the quantification into the overall solvency needs.",
+            "Where a sustainability risk is judged immaterial, record the exposure tested and the threshold used - Art. 262(1)(a) as amended requires the consideration to be evidenced, not asserted."
+          ],
+          "done": "material sustainability risks are identified from underwriting and investment positions and quantified into the overall solvency needs, with immateriality decisions evidenced."
+        },
+        {
+          "step": "Run the climate-change scenarios",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "app": "Moody's RMS (Cat Model)",
+          "actions": [
+            "Specify at least two long-term climate scenarios where climate risk is material - one consistent with global temperature increase staying below 2 degrees and one where it exceeds 2 degrees - and state the reference pathway each is built on.",
+            "Run the physical-risk leg through the catastrophe model on the current underwriting portfolio with the frequency and severity uplifts the scenario implies, by peril and region.",
+            "Run the transition-risk leg on the investment portfolio with the Investment Analyst, applying sector-level valuation shocks and testing the carbon-intensive holdings individually.",
+            "Report the effect of each scenario on technical provisions, asset values, own funds and the projected solvency ratio over the scenario horizon, and state the management actions assumed."
+          ],
+          "done": "at least two long-term climate scenarios are run on real portfolio positions with their solvency effect and assumed management actions stated."
+        },
+        {
+          "step": "Project continuous compliance with the SCR, MCR and technical provisions",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Project the balance sheet, own funds, SCR and MCR over the business plan horizon, typically three to five years, using the board-approved plan volumes, expenses and investment strategy.",
+            "Show projected SCR and MCR coverage at each year-end and confirm the entity would remain compliant continuously, not just at the endpoints.",
+            "Project the technical provisions on the same basis and confirm the assumptions used are consistent with those in the reserving and pricing work.",
+            "Flag any projected year where coverage falls below the board's appetite range and hand it to the Head of Capital Management for a management action."
+          ],
+          "done": "a year-by-year projection of own funds, SCR, MCR and technical provisions over the plan horizon with any appetite breach flagged."
+        },
+        {
+          "step": "Assess deviation of the risk profile from the standard formula assumptions",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Compare the entity's actual risk profile module by module to the assumptions underlying the standard formula calibration - business mix, geographic concentration, reinsurance structure, asset allocation, catastrophe exposure.",
+            "Quantify the significance of each deviation and state whether the standard formula over- or under-states the capital need for that module.",
+            "Where a deviation is significant, set out the response: a USP application, a partial internal model, or a documented capital add-on to the overall solvency needs.",
+            "Record the conclusion as a clear statement on whether the standard formula remains appropriate for the entity."
+          ],
+          "done": "a module-level deviation assessment with quantified significance and a stated conclusion on the appropriateness of the standard formula."
+        },
+        {
+          "step": "Run the stress and reverse stress tests supporting the assessment",
+          "by": "Risk Analyst",
+          "role": "Risk Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Run the single-factor sensitivities agreed with the Risk Committee - interest rates, spreads, equity, lapse, inflation, catastrophe - and report the coverage effect of each.",
+            "Run at least two combined-event scenarios that plausibly hit both sides of the balance sheet at once, since the standard formula's diversification is the assumption most likely to fail in practice.",
+            "Run the reverse stress test: find the combination of events that would exhaust eligible own funds against the SCR and describe how plausible it is.",
+            "Report each result with the recovery actions available, their lead times from the management action playbook, and the residual position after actions."
+          ],
+          "done": "sensitivities, combined scenarios and a reverse stress test are run with coverage effects and post-action residual positions reported."
+        },
+        {
+          "step": "Set the capital plan and management actions arising",
+          "by": "Head of Capital Management",
+          "role": "Head of Capital Management",
+          "app": "Anaplan (Planning)",
+          "actions": [
+            "Build the capital plan over the projection horizon showing planned issuance, redemptions, dividends and reinsurance changes against the projected requirement.",
+            "For each projected shortfall or appetite breach, name the management action, its coverage effect, its lead time and its owner, and test it against the playbook lead times.",
+            "Confirm with the Treasury Manager and the Chief Investment Officer that the assumed actions are executable in the assumed timeframe and market conditions.",
+            "Raise each action as an ORSA action in GRC with an owner and a due date rather than leaving it in the report narrative."
+          ],
+          "done": "a capital plan covering the projection horizon with every shortfall answered by an owned, dated, executable action raised in GRC."
+        },
+        {
+          "step": "Draft the ORSA report",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "app": "Microsoft 365 / SharePoint",
+          "actions": [
+            "Draft the report covering the assessment of overall solvency needs, continuous compliance with the SCR, MCR and technical provisions, and the significance of any deviation from the standard formula assumptions - the three assessments Art. 45(1) requires.",
+            "Include the sustainability and climate scenario section with the results, the assumptions and the limitations stated plainly.",
+            "State the methods, data, assumptions and expert judgements used, and the limitations of each, so the board can challenge them.",
+            "Set out the conclusions and the decisions the board is being asked to take, with each linked to an ORSA action."
+          ],
+          "done": "a complete draft covering all three Art. 45(1) assessments plus climate scenarios, with methods, limitations and board decisions set out."
+        },
+        {
+          "step": "Obtain the actuarial function opinion",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "app": "model governance repository",
+          "actions": [
+            "Review the technical provisions, the underwriting policy and the reinsurance arrangements as they feed the ORSA and form the actuarial function's opinion on each.",
+            "Take sustainability risks into account in the opinion on the overall underwriting policy - state which sustainability risks were considered, how they bear on pricing, product design and portfolio steering, and what the conclusion is.",
+            "Where the opinion identifies a weakness, state the recommendation and the addressee rather than a general observation.",
+            "Sign and date the opinion and file it with the ORSA pack so the board sees it alongside the report."
+          ],
+          "done": "a signed, dated actuarial function opinion covering technical provisions, underwriting policy including sustainability risks, and reinsurance."
+        },
+        {
+          "step": "Take the ORSA to the board for challenge and approval",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "app": "board portal",
+          "actions": [
+            "Circulate the ORSA report, the scenario pack, the capital plan and the actuarial function opinion at least 7 days before the meeting so the board can prepare challenge.",
+            "Run the session so the board actively steers the assessment - the AMSB is required to take an active part, not receive a finished product - and record the questions asked and the answers given.",
+            "Minute the approval of the ORSA report, the decisions taken on the capital plan and the date the assessment is concluded, since that date starts the 14-day supervisory clock.",
+            "Record any board-directed rework and re-table the affected section before approval rather than approving subject to changes."
+          ],
+          "done": "minuted AMSB challenge, an approved report version, recorded decisions and an explicit assessment conclusion date."
+        },
+        {
+          "step": "Submit the supervisory ORSA report within two weeks",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Take the conclusion date from the board minutes and confirm the submission task is set at conclusion date +14 days at the latest.",
+            "Assemble the supervisory report package - the approved ORSA report, the scenario results and the actuarial function opinion where the NCA expects it - in the format the NCA specifies.",
+            "Submit through the supervisory channel, capture the acknowledgement id and record it against the GRC ORSA record.",
+            "Where the entity is part of a group, coordinate with the group risk function on whether a single group ORSA document is submitted under Art. 246(4) and record which entities it covers."
+          ],
+          "done": "the supervisory ORSA report is submitted within two weeks of the board conclusion date with an acknowledgement id recorded."
+        },
+        {
+          "step": "Embed the ORSA into decision-making",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Feed the ORSA conclusions into the business plan, the reinsurance strategy, the investment mandate and the product pricing reviews, and record where each conclusion landed.",
+            "Track every ORSA action to closure in GRC with monthly reporting to the Risk Committee on overdue actions.",
+            "Re-open the ORSA where a trigger event occurs before the next scheduled cycle, using the same process on the changed risk profile.",
+            "Review at the next cycle whether the prior year's actions changed behaviour, and report that assessment to the board."
+          ],
+          "done": "each ORSA conclusion is traceable to a business decision, actions are tracked to closure, and prior-year effectiveness is reported."
+        },
+        {
+          "step": "Retain the ORSA evidence",
+          "by": "Governance Analyst",
+          "role": "Governance Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Archive the risk register extract, materiality scoring, scenario specifications and results, projection runs with their model versions, the capital plan, the actuarial function opinion, the board papers and minutes, the approved report and the acknowledgement.",
+            "Index by ORSA reference date and entity, and cross-link triggered ORSAs to the event that triggered them.",
+            "Apply the 10-year retention label and confirm the archive is searchable by reference date, scenario name and action id.",
+            "Confirm with the Enterprise Risk Manager that the archived report version is the board-approved version number."
+          ],
+          "done": "a complete, labelled and searchable ORSA archive holding the board-approved version and all supporting runs."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of ORSA cycles and trigger events",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "List every ORSA record in the period by entity, with its reference date, conclusion date and submission date.",
+            "Independently build the list of events that the ORSA Policy defines as triggers - acquisitions, new lines of business, reinsurance programme changes, material reserve movements, solvency ladder breaches - from board minutes, the breach register and the change log.",
+            "Match trigger events to triggered ORSAs and list every event with no ORSA behind it as a completeness exception."
+          ],
+          "done": "a full ORSA inventory matched to an independently built trigger event list, with unmatched triggers listed."
+        },
+        {
+          "step": "Reconcile the ORSA inputs to the source of record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Agree the opening balance sheet, own funds and SCR in the projection to the CFO-signed capital pack for the reference date.",
+            "Agree the projection's volumes, expenses and investment strategy to the board-approved business plan version named in the report.",
+            "Agree the underwriting and investment exposures used in the climate scenarios to the portfolio extracts and the custodian position report.",
+            "Clear every difference before sampling."
+          ],
+          "done": "projection openings, plan assumptions and scenario exposures all tie to signed source records with differences cleared."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of ORSA cycles in the period and 100% of climate scenarios run.",
+            "Take 15 material risks by seeded random selection from the risk register, forced to include every risk not covered by the standard formula.",
+            "Record the seed, population sizes and selection date so the sample can be re-drawn identically."
+          ],
+          "done": "a reproducible sample covering all ORSA cycles, all climate scenarios and every non-standard-formula risk."
+        },
+        {
+          "step": "Re-perform the materiality screening and solvency needs quantification",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take the quantified materiality threshold and re-apply it to the risk register yourself, before reading which risks were carried into the overall solvency needs.",
+            "For each sampled material risk, re-perform or inspect the quantification and confirm the method, confidence level and horizon stated in the report match what was actually run.",
+            "Test the expert judgements: confirm each names the person, the evidence and the date, and challenge any judgement with no supporting analysis.",
+            "Treat a risk screened out as immaterial without a tested value as an exception."
+          ],
+          "done": "materiality screening is independently re-applied and each sampled risk's quantification is traced to a run matching the stated method."
+        },
+        {
+          "step": "Test the sustainability and climate scenario content",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "app": "Moody's RMS (Cat Model)",
+          "actions": [
+            "Confirm at least two long-term scenarios were run where climate risk is material, one below and one above 2 degrees, with the reference pathway named for each.",
+            "Re-run one physical-risk scenario on the same portfolio extract and compare the modelled loss to the reported figure.",
+            "Confirm the transition-risk leg was applied to actual investment holdings by sector rather than to an index proxy, and inspect the treatment of the largest carbon-intensive holdings.",
+            "Treat a report that discusses climate risk without a quantified portfolio-level result as a fail against Art. 262(1)(a) as amended."
+          ],
+          "done": "both required scenarios are evidenced with named pathways, one physical scenario is re-run and agrees, and transition shocks hit real holdings."
+        },
+        {
+          "step": "Recompute the continuous compliance projection",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Rebuild the own funds and SCR projection for two plan years independently from the plan assumptions and compare to the reported path.",
+            "Confirm coverage was assessed at every projected year-end and not only at the horizon, and that the MCR was projected as well as the SCR.",
+            "Test whether any projected year breaches the board appetite and, where it does, confirm the report says so rather than smoothing it.",
+            "Confirm the technical provisions projection uses assumptions consistent with the reserving basis."
+          ],
+          "done": "two projection years are independently rebuilt and agree, with year-by-year coverage and any appetite breach disclosed."
+        },
+        {
+          "step": "Test the standard formula deviation assessment",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each material module, compare the entity's actual business mix, concentration and reinsurance structure to the standard formula calibration assumptions yourself.",
+            "Confirm the report quantifies the significance of each deviation rather than describing it qualitatively.",
+            "Where a significant deviation is identified, confirm a response is stated - USP application, partial internal model or an add-on to overall solvency needs - with an owner and a date.",
+            "Treat a blanket statement that the standard formula is appropriate, with no module-level analysis, as a fail."
+          ],
+          "done": "each material module has an evidenced deviation analysis with quantified significance and, where significant, an owned response."
+        },
+        {
+          "step": "Trace board challenge, approval and the two-week submission clock",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Read the board minutes and evidence active challenge - recorded questions, answers and any directed rework - not merely a resolution to approve.",
+            "Take the conclusion date from the minutes and recompute the supervisory submission deadline as conclusion date plus two weeks.",
+            "Compare the recomputed deadline to the submission timestamp on the NCA acknowledgement and quantify any lateness in days.",
+            "Confirm the version submitted is the version the board approved, by version number and page count."
+          ],
+          "done": "board challenge is evidenced from the minutes, the 14-day clock is recomputed from the conclusion date and the submitted version matches the approved one."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a GRC issue per exception with the entity, ORSA reference date, the requirement missed and the supervisory impact.",
+            "Assign a root cause (trigger event not recognised, materiality threshold not applied, climate scenario narrative-only, projection not year-by-year, approval without recorded challenge, late submission) and an owner.",
+            "Set a remediation date and, where the supervisory report was late or incomplete, agree the notification wording with the Chief Risk Officer before it goes to the NCA.",
+            "Carry every open issue into the next ORSA cycle's review as a mandatory retest item."
+          ],
+          "done": "every exception has a GRC issue with root cause, owner, remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the review",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "State whether all three Art. 45(1) assessments and the Art. 262(1)(a) sustainability requirement were met, and compute the trigger-event coverage rate.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with the workpaper references behind each finding.",
+            "Have the independent reviewer, who sits outside the risk function and drafted no section of the report, sign the workpaper.",
+            "Report the conclusion to the Audit Committee and the AMSB and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper stating a conclusion against each Art. 45(1) assessment, the trigger coverage rate and board reporting dates."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-008-C30",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Enterprise Risk Manager",
+          "value": "Owns the annual stress and scenario testing programme and the SFCR Section C risk-profile disclosure; the Chief Actuary owns the underwriting and reserving scenarios inside it"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes - Delegated Regulation (EU) 2015/35 Art. 295 requiring the SFCR to describe, separately for underwriting, market, credit, liquidity, operational and other material risks, the exposure, concentration, mitigation and sensitivity including the results of stress and scenario testing; re-read at the start of each annual SFCR cycle"
+        },
+        "In-scope processes": {
+          "value": "Stress and scenario programme design, per-risk-category scenario calibration and execution (underwriting, market, credit, liquidity, operational, other), reverse stress testing, results aggregation and the SFCR Section C drafting"
+        },
+        "In-scope systems": {
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "value": "Scenario runs execute in the actuarial modelling platform with catastrophe scenarios in Moody's RMS and market shocks sourced from Bloomberg; the programme and results are logged in the GRC platform and published through the SFCR"
+        },
+        "Compliance procedure documented": {
+          "value": "Stress and Scenario Testing Policy plus the annual programme document - the scenario library by risk category, calibration basis, run calendar, management action assumptions, reporting route and the SFCR Section C mapping"
+        },
+        "Compliance procedure approved": {
+          "value": "Policy approved by the AMSB annually; the annual programme and the scenario set are approved by the Risk Committee before the runs start"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "The programme runs annually so results are available for the ORSA and for SFCR Section C, which itself is due within 14 weeks of year-end for solo entities and 20 weeks for the group; any supervisory or EIOPA stress test exercise runs to the deadlines in its own technical specifications"
+        },
+        "Deadline reminders configured": {
+          "value": "The programme plan alerts at T-60 and T-30 days to the results deadline for the ORSA and at T-45 days to the SFCR Section C drafting cut-off, with the Chief Risk Officer copied on slips"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Scenario specifications with calibration sources, model run logs and versions, per-category results packs, management action assumptions, Risk Committee minutes and the SFCR Section C source file retained 10 years"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "A risk category with no scenario run, an uncalibrated or unapproved scenario, a result not reflected in SFCR Section C, or a management action assumed without a playbook entry is logged as an exception with owner and disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "Signs the results pack and confirms every scenario finding is either reflected in SFCR Section C or explicitly closed with a reason"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every scenario in the approved annual programme across the six risk categories, their model runs, and the SFCR Section C sensitivity statements built from them"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on category coverage - any of underwriting, market, credit, liquidity, operational or other material risk lacking a run scenario and a disclosed sensitivity is a fail; any SFCR sensitivity figure that does not tie to a model run is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual through the SFCR; the test runs annually before SFCR sign-off with a mid-year check that the programme is on schedule"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Model Risk Manager",
+          "value": "Reviewer must not have specified, calibrated or run any scenario in the tested programme"
+        },
+        "Evidence location for test results": {
+          "value": "Stress testing review workpaper (category coverage matrix, calibration re-performance, run reconciliation, SFCR tie-out, exceptions) in the model governance repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Approved programme document, scenario specifications with calibration sources, results packs by risk category and the SFCR Section C tie-out - producible for a supervisory review of the risk profile disclosure within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "The Chief Risk Officer answers supervisory questions on scenario design and results; the Regulatory Reporting Manager handles any EIOPA or NCA stress test data request and its resubmissions"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Set the annual stress and scenario programme",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Draft the programme listing, for each of the six Art. 295 categories - underwriting, market, credit, liquidity, operational and other material risks - the scenarios to be run, their owner, their model and their run date.",
+            "Build the coverage matrix that maps every scenario to the risk category and the SFCR Section C sub-section it will feed, so a category cannot silently go unrun.",
+            "Set the results deadline back from the ORSA board date and the SFCR Section C drafting cut-off.",
+            "Take the programme to the Risk Committee for approval and record the approval date and any scenario the committee added or removed."
+          ],
+          "done": "a Risk-Committee-approved programme with a coverage matrix showing at least one owned, dated scenario for each of the six categories."
+        },
+        {
+          "step": "Specify and calibrate each scenario",
+          "by": "Risk Analyst",
+          "role": "Risk Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Write a one-page specification per scenario: the narrative, the shocked variables with their magnitudes, the time horizon, the balance-sheet items affected and the metrics to be reported.",
+            "State the calibration basis for each shock - a historical event, a statistical return period, a supervisory prescribed shock or expert judgement - and name the source document.",
+            "Set the severity so it is plausible but severe: scenarios calibrated to a mild return period produce disclosures that tell a supervisor nothing.",
+            "Have the Chief Risk Officer approve each specification before the run, and version-control it so results can be tied back to the exact specification used."
+          ],
+          "done": "every scenario has a versioned, CRO-approved specification naming its shocked variables, magnitudes, horizon and calibration source."
+        },
+        {
+          "step": "Calibrate the market risk shocks",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "app": "Bloomberg Terminal",
+          "actions": [
+            "Pull from Bloomberg the historical series for government yields by tenor, credit spreads by rating band, equity indices, property indices and FX rates over at least the last 20 years.",
+            "Derive the shock magnitudes at the chosen return period and cross-check them against the standard formula shocks so the report can explain where the internal scenario is more or less severe.",
+            "Specify combined market scenarios - a rates-down with spreads-wide and equity-down combination, and an inflation-shock combination - since single-factor moves understate the balance-sheet effect.",
+            "Hand the calibrated shocks to the Capital Model Actuary with the derivation workbook attached."
+          ],
+          "done": "market shocks are derived from a named historical window at a stated return period, cross-checked to the standard formula, and handed over with the derivation."
+        },
+        {
+          "step": "Run the catastrophe and underwriting scenarios",
+          "by": "CAT Modeler",
+          "role": "CAT Modeler",
+          "app": "Moody's RMS (Cat Model)",
+          "actions": [
+            "Run the natural catastrophe scenarios on the current exposure file - windstorm, flood, earthquake and wildfire as relevant to the portfolio - at the return periods the specification sets.",
+            "Report gross and net of reinsurance losses, showing the reinstatement premiums and the retention and limit consumed on each treaty, taken from the treaty repository.",
+            "Run a second-event scenario after the first has consumed reinsurance, since the eroded programme is where the real exposure sits.",
+            "Add man-made scenarios where material - a single large liability loss, a cyber accumulation event - and state the accumulation assumption used."
+          ],
+          "done": "catastrophe and man-made scenarios are run on the current exposure file with gross, net, reinstatement and second-event results reported."
+        },
+        {
+          "step": "Run the reserving and premium deterioration scenarios",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "app": "Milliman Arius (Reserving)",
+          "actions": [
+            "Run the reserve deterioration scenario by applying the specified uplift to the best estimate by line of business and re-deriving the technical provisions and the risk margin.",
+            "Run an inflation scenario on claims severity, showing the effect on long-tail lines separately since they carry the duration.",
+            "Run a premium adequacy scenario reflecting a soft-market rate reduction and loss ratio deterioration over the plan horizon.",
+            "Report the effect of each on technical provisions, own funds and the non-life underwriting module of the SCR."
+          ],
+          "done": "reserve, inflation and premium adequacy scenarios are run with their effect on technical provisions, own funds and the SCR reported by line of business."
+        },
+        {
+          "step": "Run the credit and counterparty default scenarios",
+          "by": "Reinsurance Credit & Security Analyst",
+          "role": "Reinsurance Credit & Security Analyst",
+          "app": "Reinsurance administration system",
+          "actions": [
+            "Run the default of the single largest reinsurance counterparty, taking the recoverable balance and any collateral held from the ceded accounting platform and the treaty repository.",
+            "Run a systemic downgrade scenario moving all counterparties down one to two credit quality steps and re-derive the counterparty default charge.",
+            "Run a corporate bond default and downgrade scenario on the investment portfolio with the Investment Analyst, applying migration to the holdings by rating band.",
+            "Report the combined effect on own funds and on the counterparty default and spread risk modules."
+          ],
+          "done": "counterparty default, systemic downgrade and bond migration scenarios are run from actual exposures with their module effects reported."
+        },
+        {
+          "step": "Run the liquidity stress scenario",
+          "by": "Treasury Manager",
+          "role": "Treasury Manager",
+          "app": "BlackRock Aladdin",
+          "actions": [
+            "Build the stressed cash-flow projection over 1 week, 1 month, 3 months and 12 months combining a catastrophe claims outflow, a mass lapse or surrender outflow and a collateral call on derivative positions.",
+            "Classify the asset portfolio into liquidity buckets in Aladdin, applying haircuts by asset class and testing whether the assets can actually be sold in the stressed window rather than assuming they can.",
+            "Compute the liquidity coverage in each horizon and identify the first horizon at which the buffer fails.",
+            "Report the available contingent funding - repo lines, committed facilities, intra-group support - with the time it takes to draw each."
+          ],
+          "done": "a stressed cash-flow projection across four horizons with haircut-adjusted asset liquidity, a stated failure point and drawable contingent funding."
+        },
+        {
+          "step": "Run the operational and ICT scenarios",
+          "by": "Operational Resilience Lead",
+          "role": "Operational Resilience Lead",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Build scenarios against the identified critical or important functions: a prolonged outage of the policy administration platform, a ransomware event on the claims platform, and the failure of a critical ICT third-party provider.",
+            "Quantify the loss using the impact tolerance for each function, the operational loss database and the cost drivers - recovery costs, regulatory penalty exposure, client redress and lost business.",
+            "Test the scenarios against the business continuity and disaster recovery test results supplied by the Business Continuity Manager, so the assumed recovery time is one that has actually been demonstrated.",
+            "Report the effect on own funds and compare it to the standard formula operational risk charge, stating whether the charge looks adequate."
+          ],
+          "done": "operational and ICT scenarios are quantified against impact tolerances and demonstrated recovery times, and compared to the SCR_op charge."
+        },
+        {
+          "step": "Run the reverse stress test",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Define the failure point to be searched for - eligible own funds falling below the SCR, and separately below the MCR - and work backwards to the combinations of events that reach it.",
+            "Produce at least two distinct paths to failure with different dominant drivers, so the exercise does not simply restate the largest single risk.",
+            "Assess the plausibility of each path and name the early-warning indicators that would show it developing, and hand those indicators to the Risk Analyst for the monitoring dashboard.",
+            "Take the reverse stress results to the Risk Committee with a recommendation on which vulnerabilities need a management action."
+          ],
+          "done": "at least two distinct failure paths are identified with plausibility assessments, early-warning indicators and a committee recommendation."
+        },
+        {
+          "step": "Run the scenarios through the capital model consistently",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Run every scenario off the same frozen data cut and the same model version, recording the run id and model version for each so results are comparable and reproducible.",
+            "For each scenario report the effect on assets, technical provisions, own funds by tier, the SCR, the MCR and both coverage ratios - a scenario reported only as a loss figure cannot feed a sensitivity disclosure.",
+            "State whether management actions are assumed in each result and report pre-action and post-action figures separately.",
+            "Log every run in the model run log with its specification version so a result can be traced to the specification it came from."
+          ],
+          "done": "every scenario is run on one frozen data cut and model version, reporting pre- and post-action effects on own funds, SCR, MCR and coverage."
+        },
+        {
+          "step": "Participate in the supervisory or EIOPA stress test exercise",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Read the exercise technical specifications and the Q and A when the NCA or EIOPA launches an exercise, and map each requested data field to an internal source before any work starts.",
+            "Run the prescribed scenarios exactly as specified, including where the prescribed shocks differ from the internal calibration - never substitute the internal scenario.",
+            "Complete the submission templates, validate them, obtain the sign-off the specification requires (usually the AMSB or the CRO) and submit by the exercise deadline with the acknowledgement captured.",
+            "Track and answer the follow-up queries and any resubmission request, and file the final submitted templates alongside the internal programme results."
+          ],
+          "done": "any launched exercise is run on prescribed shocks, submitted by its deadline with the required sign-off, and the templates are filed."
+        },
+        {
+          "step": "Aggregate the results and set the management actions",
+          "by": "Head of Capital Management",
+          "role": "Head of Capital Management",
+          "app": "Power BI",
+          "actions": [
+            "Build the results dashboard showing each scenario's coverage effect side by side, ranked by severity, with the risk category tagged.",
+            "Identify the scenarios that would take coverage below the board's appetite range and, for each, name the management action, its coverage effect and its lead time from the playbook.",
+            "Confirm with the Treasury Manager and the Head of Reinsurance that each assumed action is executable in the scenario's own conditions - a rights issue in a market-wide stress is not.",
+            "Raise each required action in GRC with an owner and a due date and report the set to the Risk Committee."
+          ],
+          "done": "a ranked results dashboard with an owned, dated and feasibility-tested management action for every appetite-breaching scenario."
+        },
+        {
+          "step": "Draft SFCR Section C from the results",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Microsoft 365 / SharePoint",
+          "actions": [
+            "Draft Section C with a separate sub-section for underwriting, market, credit, liquidity, operational and other material risks, as Art. 295 requires - do not merge categories.",
+            "In each sub-section state the exposure measure, the material concentrations, the risk mitigation techniques used and their effectiveness, and the sensitivity including the stress and scenario results.",
+            "Quote the actual scenario results as figures with the shock described, so a reader can see the severity tested; for liquidity, include the expected profit included in future premiums where the disclosure requires it.",
+            "Tie every figure in Section C to a named model run id in the tie-out schedule attached to the drafting file."
+          ],
+          "done": "Section C has all six sub-sections with exposure, concentration, mitigation and quantified sensitivity, every figure tied to a named run id."
+        },
+        {
+          "step": "Take the results and disclosure to the Risk Committee and board",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "board portal",
+          "actions": [
+            "Table the results pack, the reverse stress conclusions, the management actions and the draft Section C at the Risk Committee, and record the challenge in the minutes.",
+            "Confirm the board sees the same severity in Section C as it saw in the results pack - a disclosure softened after the committee saw the numbers is a governance finding.",
+            "Obtain the board's decisions on any risk appetite change, de-risking action or reinsurance purchase arising, with owners and dates.",
+            "Feed the approved Section C to the Regulatory Reporting Manager for inclusion in the SFCR."
+          ],
+          "done": "minuted committee and board challenge on the results, decisions with owners, and an approved Section C consistent with the results pack."
+        },
+        {
+          "step": "Retain the scenario evidence",
+          "by": "Governance Analyst",
+          "role": "Governance Analyst",
+          "app": "model governance repository",
+          "actions": [
+            "Archive per scenario: the versioned specification, the calibration workbook and its data source, the model run log entry with run id and model version, the results pack and the management action record.",
+            "Archive the coverage matrix, the Risk Committee approval of the programme and the Section C tie-out schedule alongside them.",
+            "Apply the 10-year retention label and confirm the archive is searchable by scenario name, risk category, run id and reporting year.",
+            "Reconcile the archived scenario count to the approved programme and chase any scenario in the programme with no archived result."
+          ],
+          "done": "every programme scenario has an archived specification, calibration, run and result, reconciled to the approved programme with no gaps."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of programme scenarios and runs",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Extract the Risk-Committee-approved programme with every scenario, its risk category, owner and planned run date.",
+            "Extract the model run log for the year and list every run tagged to a scenario, including re-runs and abandoned runs.",
+            "Match programme to runs and list every approved scenario with no completed run, and every run with no approved specification, before sampling."
+          ],
+          "done": "the approved programme is matched to actual runs with unrun scenarios and unapproved runs both listed."
+        },
+        {
+          "step": "Test coverage of all six Art. 295 risk categories",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Build a coverage matrix independently from the regulation text: underwriting, market, credit, liquidity, operational and other material risks.",
+            "Map each completed run to a category and identify any category with no run scenario or with only a qualitative treatment.",
+            "Confirm each category's SFCR sub-section exists and contains a quantified sensitivity, not a narrative statement.",
+            "Treat any uncovered category as a fail regardless of how many scenarios were run elsewhere."
+          ],
+          "done": "every one of the six categories has at least one completed quantitative scenario mapped to a populated SFCR sub-section."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of the scenarios whose results are quoted in SFCR Section C and 100% of the reverse stress paths.",
+            "Take 10 further scenarios by seeded random selection across the remaining programme, forced to include at least one from each category.",
+            "Record the seed, population size and selection date so the sample can be re-drawn identically."
+          ],
+          "done": "a reproducible sample covering every disclosed scenario, the reverse stress paths and at least one scenario per category."
+        },
+        {
+          "step": "Reconcile the runs to a single frozen data cut and model version",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "For each sampled run, take the run id and confirm the input data cut and model version match the base capital run for the reference date.",
+            "Confirm the unstressed base result in each scenario pack equals the reported base own funds, SCR and coverage - a base that does not tie means the scenario is not comparable.",
+            "List any scenario run on a different data cut or model version and assess whether the results in Section C are therefore inconsistent."
+          ],
+          "done": "every sampled run ties to the same frozen data cut and model version and reproduces the reported base position."
+        },
+        {
+          "step": "Re-perform the calibration of the sampled scenarios",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "Bloomberg Terminal",
+          "actions": [
+            "Take the calibration source named in each sampled specification and re-derive the shock magnitude yourself from the same historical window and return period.",
+            "Compare the internal shock to the standard formula shock for the same risk and confirm the report explains any case where the internal scenario is materially milder.",
+            "Challenge expert-judgement calibrations that have no analysis behind them and any severity that was reduced between specification versions.",
+            "Confirm the specification version referenced in the results pack is the version the Chief Risk Officer approved."
+          ],
+          "done": "each sampled shock is independently re-derived from its named source and any softening between specification versions is identified."
+        },
+        {
+          "step": "Re-perform two scenario results end to end",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Select one market and one underwriting or catastrophe scenario and re-run them from the specification on the frozen data cut.",
+            "Compare the resulting effect on own funds, SCR, MCR and coverage to the reported figures and explain any difference above 1%.",
+            "Confirm the pre-action and post-action results are reported separately and that the management actions applied match the approved playbook entries.",
+            "Confirm net-of-reinsurance catastrophe results reflect the actual treaty structure including reinstatements and eroded limits."
+          ],
+          "done": "two scenarios are re-run end to end and agree to the reported effects within 1%, with action assumptions traced to the playbook."
+        },
+        {
+          "step": "Test the liquidity and operational scenarios against demonstrated capability",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For the liquidity scenario, test the asset liquidity haircuts and bucket assignments against actual trade data or the custodian's liquidity classification, and challenge any asset assumed saleable within a week that has no recent trading history.",
+            "Confirm the contingent funding assumed is committed and drawable in the stated timeframe by reading the facility agreements.",
+            "For the operational scenarios, compare the assumed recovery times to the latest BCP and DR test results and treat any assumed recovery faster than the demonstrated one as an exception.",
+            "Confirm the operational scenario loss estimates draw on the operational loss database rather than only on expert opinion."
+          ],
+          "done": "liquidity haircuts, funding availability and operational recovery times are all supported by trade data, facility terms and demonstrated test results."
+        },
+        {
+          "step": "Tie SFCR Section C to the model runs",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Take every quantified sensitivity figure in Section C and trace it through the tie-out schedule to a named run id and results pack.",
+            "Confirm the shock described in the disclosure matches the shock in the specification - a disclosure quoting a milder shock than was run, or a result from a different scenario, is a misstatement.",
+            "Confirm each sub-section states exposure, concentration, mitigation and sensitivity as Art. 295 requires, and that mitigation effectiveness is evidenced.",
+            "Compare the severity presented to the board in the results pack to the severity in the published Section C and flag any softening."
+          ],
+          "done": "every Section C figure traces to a named run with a matching shock description, and no softening between the board pack and the disclosure."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a GRC issue per exception with the scenario name, risk category, the requirement missed and whether the SFCR disclosure is affected.",
+            "Assign a root cause (category not covered, scenario unrun, calibration unsupported, mixed data cuts, unexecutable management action assumed, disclosure not tied to a run) and an owner.",
+            "Set a remediation date and, where a published Section C figure is wrong, open a correction assessment with the Regulatory Reporting Manager and the Chief Financial Officer.",
+            "Carry every open issue into next year's programme review as a mandatory retest item."
+          ],
+          "done": "every exception has a GRC issue with root cause, owner, remediation date, disclosure impact and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the review",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "State the category coverage rate across the six Art. 295 categories and the proportion of Section C figures successfully tied to a model run.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with the workpaper references behind each finding.",
+            "Have the independent reviewer, who specified, calibrated and ran none of the tested scenarios, sign the workpaper.",
+            "Report the conclusion and any disclosure misstatement to the Risk Committee and the Audit Committee before the SFCR is approved, and file the workpaper in the model governance repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, category coverage and tie-out rates, reported before SFCR approval and filed in the repository."
+        }
+      ]
+    }
+  ]
+}

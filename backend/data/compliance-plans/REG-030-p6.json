@@ -1,0 +1,2699 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-030-C41",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Chief Financial Officer",
+          "value": "CFO owns the solvency margin ratio and price fluctuation reserve position; day-to-day monitoring delegated to the Capital Management Manager, escalation to the Chief Risk Officer and the Board"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Insurance Business Act Art. 115 (price fluctuation reserve), Art. 116 (policy reserve), Art. 117 (outstanding claims reserve), Art. 130 (solvency margin ratio) and Art. 132 prompt corrective action, re-read against the current e-Gov text plus the FSA Ordinance for Enforcement Art. 65-2 accumulation rates and FSA Notification No. 50 of 1999 intervention categories"
+        },
+        "In-scope processes": {
+          "value": "Monthly close capital roll-forward for the Japan life entity: price fluctuation reserve accrual on stocks, bonds, foreign-currency assets and derivatives; solvency margin ratio recalculation; ESR (economic value-based solvency ratio) tracking; breach escalation to CFO/CRO/Board"
+        },
+        "In-scope systems": {
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "value": "Prophet/Axis solvency margin and ESR models fed by the general ledger asset ledger and BlackRock Aladdin market values; results published to the capital dashboard"
+        },
+        "Compliance procedure documented": {
+          "value": "Capital Monitoring & Prompt Corrective Action Escalation Procedure — monthly SMR/ESR recalculation, Art. 115 reserve accrual and drawdown test, 300%/250%/200%/100% trigger ladder, 24-hour escalation and 5-business-day improvement plan drafting"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Financial Officer and the Risk Committee; re-approved annually and on any FSA notification changing the solvency margin formula or the price fluctuation reserve accumulation rates"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Monthly SMR estimate by working day 10; Art. 115 reserve accrual booked at the 31 March business-year end and 30 September interim; a Category 1 breach (SMR below 200%) obliges an improvement plan to the FSA on demand, so the internal clock is 5 business days from detection"
+        },
+        "Deadline reminders configured": {
+          "value": "Capital calendar alerts at WD-3 for the monthly recalculation, and automatic dashboard alerts firing to the CFO and CRO the moment estimated SMR falls below the 250% amber or 200% red trigger"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Monthly capital monitoring pack, reserve accrual worksheet, trigger log and escalation emails retained 10 years to match the Insurance Business Act accounting-record retention expectation"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Every trigger breach, missed recalculation and unauthorised price fluctuation reserve drawdown is raised as a risk event with root cause, remediation owner and Board reporting date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "CRO signs off the closure of every amber/red trigger event and confirms the recovery actions actually restored the ratio"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All 12 monthly capital monitoring packs for the business year plus the 31 March and 30 September statutory reserve accrual entries and every trigger event raised in the period"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on two things — a monitoring cycle skipped, or a trigger breach not escalated within 1 business day; reserve accrual must recompute to within JPY 1 million of the booked figure or it is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous monitoring with an annual Art. 115 accrual; test runs semi-annually over the intervening months plus 100% re-performance of both statutory accrual entries"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Auditor must sit outside Capital Management and must not have prepared or reviewed any monitoring pack in the period"
+        },
+        "Evidence location for test results": {
+          "value": "Semi-annual capital monitoring test workpaper (population extract, recomputation of the Art. 115 accrual, trigger timeline, exceptions) in the compliance evidence repository under Japan / Solvency"
+        },
+        "Regulator-ready documentation": {
+          "value": "Trigger log, monthly SMR trend, Art. 115 reserve roll-forward and the Board escalation minutes, assemblable as an FSA on-site inspection response within 3 business days"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Reporting Manager is the single channel to the FSA Supervisory Bureau Insurance Business Division and the Local Finance Bureau; Regulatory Counsel clears any communication that concedes a ratio breach before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Rebuild the covered-asset base for the price fluctuation reserve",
+          "by": "Investment Operations Manager",
+          "role": "Investment Operations Manager",
+          "app": "BlackRock Aladdin",
+          "actions": [
+            "Export from Aladdin the month-end position file for the Japan general account: domestic equities, domestic bonds, foreign-currency bonds and equities, money-held-in-trust and real estate held for investment.",
+            "Map each position to the Art. 115 reserve category set by the Ordinance for Enforcement (equities, bonds, foreign-currency denominated assets, real estate) and drop categories the ordinance excludes.",
+            "Reconcile the position book values line by line to the SAP S/4HANA investment sub-ledger and clear any difference above JPY 1 million with the Controller before releasing the file.",
+            "Hand the signed covered-asset base to the Capital Management Manager with the reconciliation attached."
+          ],
+          "done": "the covered-asset base ties to the investment sub-ledger and every Art. 115 category is populated with book values."
+        },
+        {
+          "step": "Compute the price fluctuation reserve accrual at the ordinance rates",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "app": "Microsoft Excel",
+          "actions": [
+            "In the Art. 115 reserve worksheet enter the covered book value per category and apply the accumulation rate set by the Ordinance for Enforcement (domestic equities the highest band, domestic bonds the lowest, foreign-currency assets in between).",
+            "Compare the accumulated balance to the ordinance ceiling for each category and cap the accrual where the ceiling is already reached.",
+            "Compute the required accrual for the business year as (target balance − opening balance) and split it across the interim (30 September) and year-end (31 March) postings.",
+            "Send the worksheet to the Appointed Actuary and the Controller for concurrence before any journal is raised."
+          ],
+          "done": "the accrual is computed per category at the ordinance rate, capped at the ceiling, and concurred by the Appointed Actuary and Controller."
+        },
+        {
+          "step": "Test whether any reserve drawdown is actually permitted",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "Pull realised gains and losses on Art. 115 covered assets for the period from the GL disposal accounts.",
+            "Net the realised losses against realised gains inside each covered category and compare the net loss to the drawdown threshold prescribed by the FSA ordinance.",
+            "Where the net loss exceeds the threshold, compute the permitted drawdown as the excess only — never the whole loss — and document the arithmetic on the reserve worksheet.",
+            "Where the threshold is not breached, record 'no drawdown permitted' with the tested figures rather than leaving the line blank.",
+            "Route any proposed drawdown to the CFO for written approval before posting."
+          ],
+          "done": "any drawdown is supported by a tested net realised loss above the prescribed threshold and carries written CFO approval."
+        },
+        {
+          "step": "Recalculate the solvency margin ratio for the month",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Load the month-end asset file, the Art. 116 policy reserve balance and the Art. 117 outstanding claims reserve into the solvency margin model.",
+            "Build the numerator: capital and surplus, price fluctuation reserve, contingency reserve, general allowance for doubtful accounts, net unrealised gains on securities at the prescribed inclusion rate, and subordinated debt within its limit.",
+            "Build the denominator risk components — insurance risk, assumed interest rate risk, minimum guarantee risk on variable annuities, asset management risk and business management risk — and combine them with the prescribed correlation formula.",
+            "Compute SMR = numerator ÷ (0.5 × total risk) × 100 and record the result to one decimal place.",
+            "Attach the model run id and input hash so the number can be reproduced."
+          ],
+          "done": "a reproducible SMR figure exists for the month with numerator, denominator and model run id recorded."
+        },
+        {
+          "step": "Recalculate the economic value-based solvency ratio alongside the statutory ratio",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "app": "FIS Prophet",
+          "actions": [
+            "Run the ESR model on the month-end economic scenario set using the FSA-prescribed ultimate forward rate and last liquid point for the JPY curve.",
+            "Compute eligible own funds as market-consistent assets less best-estimate liabilities less risk margin, then divide by the required capital at the 99.5% one-year confidence level.",
+            "Compare the ESR to the statutory SMR and explain any divergence above 20 percentage points in the commentary — interest rate duration mismatch is the usual driver.",
+            "Send the ESR pack to the Chief Risk Officer with the SMR result so both ratios are reviewed together."
+          ],
+          "done": "ESR and SMR are produced from the same month-end data with a written explanation of the divergence."
+        },
+        {
+          "step": "Score both ratios against the intervention ladder",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Enter the month's SMR and ESR into the capital trigger register.",
+            "Score SMR against the ladder: above 300% green, 250–300% amber watch, 200–250% amber action, below 200% Category 1 prompt corrective action, below 100% Category 2, below 0% Category 3.",
+            "Score ESR against the 100% regulatory floor and the internal 130% risk appetite trigger.",
+            "Where the score changed from last month, set the register status and name the accountable executive on the row."
+          ],
+          "done": "both ratios carry a dated trigger score and any change of status names an accountable executive."
+        },
+        {
+          "step": "Escalate an amber or red trigger inside one business day",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "On any amber or red score, issue the trigger notification to the CFO, CEO and the Chair of the Risk Committee within one business day of the ratio being produced.",
+            "State in the notification the ratio, the driver (equity fall, JGB yield move, yen strength, reserve strengthening), the distance to the next threshold and the date of the next recalculation.",
+            "Call an out-of-cycle Risk Committee where the SMR is below 250% or the ESR below 110%.",
+            "Log the notification time against the ratio production time in the trigger register so the one-business-day rule is provable."
+          ],
+          "done": "every amber/red score has a timestamped notification to CFO, CEO and Risk Committee Chair within one business day."
+        },
+        {
+          "step": "Build the management action menu before it is needed",
+          "by": "Head of Capital Management",
+          "role": "Head of Capital Management",
+          "actions": [
+            "Maintain a costed menu of capital actions: equity hedging or de-risking of the price-variable portfolio, reinsurance of the variable annuity minimum guarantee block, subordinated debt issue, dividend suspension, and new-business volume throttling.",
+            "For each action record the SMR and ESR uplift in percentage points, the lead time in weeks and the approval body required.",
+            "Refresh the uplift estimates each quarter using the current balance sheet, not the estimate from launch.",
+            "Present the menu to the Risk Committee with the quarterly capital pack."
+          ],
+          "done": "a costed, lead-timed action menu with current uplift estimates is tabled at the Risk Committee each quarter."
+        },
+        {
+          "step": "Draft the improvement plan the moment a Category 1 threshold is crossed",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "On an SMR below 200%, open the improvement plan template within 5 business days of detection.",
+            "Set out the cause, the projected ratio path over the next 4 quarters, the selected management actions with dates, and the responsible executive per action.",
+            "Have the Appointed Actuary confirm the projected policy reserve and minimum guarantee assumptions used in the path.",
+            "Table the draft at the Board and record the resolution before any version is shared outside the company."
+          ],
+          "done": "a Board-resolved improvement plan with a quarterly ratio path exists within 5 business days of a sub-200% reading."
+        },
+        {
+          "step": "Feed the ratio and the reserve position into the Board pack",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "board portal",
+          "actions": [
+            "Publish to the board portal the monthly capital dashboard: SMR, ESR, price fluctuation reserve balance and headroom to ceiling, contingency reserve balance and trigger status.",
+            "Include the 24-month trend chart and the distance to the 200% Category 1 line in percentage points.",
+            "Record in the minutes that the Board received the capital position, naming the meeting date and the papers tabled.",
+            "Retain the pack and the minute extract as the governance evidence for the period."
+          ],
+          "done": "each Board meeting minute records receipt of the capital dashboard, with the pack retained on the portal."
+        },
+        {
+          "step": "Reconcile the monitoring numbers to the statutory ledger before period close",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "close/consolidation tool",
+          "actions": [
+            "Tie the price fluctuation reserve balance in the monitoring pack to the statutory balance sheet reserve account at 30 September and 31 March.",
+            "Tie the policy reserve and outstanding claims reserve inputs to the Appointed Actuary's signed valuation summary.",
+            "Investigate and clear any difference before the close is locked; a monitoring number that never touched the ledger is treated as unsupported.",
+            "Sign the reconciliation and file it with the close binder."
+          ],
+          "done": "monitoring reserve balances agree to the closed statutory ledger with a signed reconciliation on file."
+        },
+        {
+          "step": "Re-read the ordinance rates and formula each time the FSA moves them",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Subscribe the regulatory change inbox to FSA notifications and Cabinet Office Ordinance amendments touching Insurance Business Act Arts. 115, 116, 117 and 130.",
+            "On each amendment, record the amended accumulation rate, ceiling or risk factor, its effective date, and which model or worksheet must change.",
+            "Open a change request against the solvency margin model and the reserve worksheet with the effective date as the deadline.",
+            "Confirm with the Capital Model Actuary that the changed factor is live before the first affected period end."
+          ],
+          "done": "every ordinance change has a logged effective date and a model/worksheet change confirmed live before the affected period end."
+        },
+        {
+          "step": "Prove the monitoring controls to the Appointed Actuary",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Review the capital monitoring packs for the year alongside the reserve adequacy work supporting the Art. 121 actuarial opinion.",
+            "Confirm the price fluctuation and contingency reserve balances used in the monitoring agree with the balances underlying the opinion.",
+            "Challenge any month where the SMR moved more than 30 percentage points without an explained driver.",
+            "Record the review and any qualification in the actuarial working papers."
+          ],
+          "done": "the Appointed Actuary has reviewed the year's monitoring against the reserve basis and recorded any qualification."
+        },
+        {
+          "step": "Close out each trigger event with proof the ratio recovered",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "For every open amber/red event, record the actions actually executed with their dates and the realised ratio uplift.",
+            "Compare the realised uplift to the estimate on the action menu and record the variance.",
+            "Only move the event to closed once two consecutive monthly readings sit above the trigger level.",
+            "Where the ratio did not recover, escalate again rather than extending the remediation date a second time."
+          ],
+          "done": "each trigger event closes on two consecutive readings above the trigger with realised-versus-estimated uplift recorded."
+        },
+        {
+          "step": "File the monitoring evidence for retention",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move each month's capital pack, reserve worksheet, trigger register extract and escalation correspondence into the repository under Japan / Solvency / <business year>.",
+            "Apply the 10-year retention label so the records survive the FSA inspection cycle.",
+            "Index each record by business year, month, ratio value and trigger status so an inspector's question can be answered without a rebuild.",
+            "Confirm the index returns all 12 months before the business year is signed off."
+          ],
+          "done": "all 12 monthly packs plus both accrual worksheets are filed, labelled for 10 years and retrievable by month and ratio."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of monitoring cycles and trigger events",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Extract from the capital trigger register every monthly row for the period under test plus every event raised.",
+            "Compare the row count to the number of month ends in the period — a missing month is an exception before any sampling happens.",
+            "Add the 30 September and 31 March Art. 115 accrual worksheets to the population.",
+            "Sign the population extract as complete and date it."
+          ],
+          "done": "the population covers every month end and both statutory accruals, signed as complete."
+        },
+        {
+          "step": "Reconcile the monitored reserve balances to the statutory ledger",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "Pull the price fluctuation reserve, contingency reserve and policy reserve closing balances from the GL at the interim and year end.",
+            "Agree each to the corresponding figure in the monitoring pack and to the Appointed Actuary's valuation summary.",
+            "Investigate any difference above JPY 1 million and record the explanation and its source.",
+            "Treat an unexplained difference as an exception rather than a rounding note."
+          ],
+          "done": "all three reserve balances agree across ledger, monitoring pack and actuarial summary, or the difference is logged."
+        },
+        {
+          "step": "Draw a documented sample of monitoring cycles",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of months carrying an amber or red trigger score.",
+            "Take 4 further months selected at random with a recorded seed from the remaining green months.",
+            "Record population size, seed, selection date and sample size in the workpaper so the draw is reproducible.",
+            "Include both statutory accrual worksheets in the sample regardless of the draw."
+          ],
+          "done": "the sample is reproducible, covers every triggered month and both accrual worksheets."
+        },
+        {
+          "step": "Re-perform the price fluctuation reserve accrual independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Take the covered-asset base for the sampled period and independently apply the accumulation rates from the current Ordinance for Enforcement text — do not copy the company's rate cells.",
+            "Recompute the ceiling test per category and the resulting capped accrual.",
+            "Compare to the booked journal in SAP S/4HANA and record the difference in yen.",
+            "Any difference above JPY 1 million, or any rate that does not match the ordinance, is an exception."
+          ],
+          "done": "the recomputed accrual agrees to the booked entry within JPY 1 million with ordinance rates independently sourced."
+        },
+        {
+          "step": "Re-perform the solvency margin ratio for two sampled months",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Re-run the solvency margin model for two sampled month ends from the archived input files using the recorded model run id.",
+            "Rebuild the numerator inclusions independently, especially the unrealised gain inclusion rate and the subordinated debt limit.",
+            "Recompute the risk correlation combination and the 0.5 factor in the denominator.",
+            "Compare to the reported SMR; a difference above 1.0 percentage point is an exception requiring a written explanation."
+          ],
+          "done": "both re-performed SMR figures land within 1.0 percentage point of the reported ratio."
+        },
+        {
+          "step": "Test that the drawdown rule was respected",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "List every debit to the price fluctuation reserve account in the period.",
+            "For each, pull the realised gain/loss detail on covered assets and recompute the net loss against the prescribed threshold.",
+            "Confirm the drawdown never exceeded the excess above the threshold and carried written CFO approval dated before the posting.",
+            "A drawdown taken to smooth earnings rather than to offset a threshold-breaching realised loss is a reportable breach, not a test exception."
+          ],
+          "done": "every reserve debit is supported by a recomputed threshold breach and a pre-dated CFO approval."
+        },
+        {
+          "step": "Trace trigger escalations to timestamped evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Teams / Email",
+          "actions": [
+            "For each amber/red event, pull the ratio production timestamp from the model run log and the escalation notification timestamp from the mailbox.",
+            "Compute the elapsed business days between them and compare to the one-business-day standard.",
+            "Confirm the notification actually reached the CFO, CEO and Risk Committee Chair and named the ratio, driver and distance to the next threshold.",
+            "Trace any sub-250% event to the out-of-cycle Risk Committee minute."
+          ],
+          "done": "every triggered event shows escalation within one business day to all three named recipients, evidenced by timestamps."
+        },
+        {
+          "step": "Recompute the distance-to-threshold and improvement plan clock",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled month recompute the headroom in percentage points from the reported SMR to the 200% Category 1 line and to the 100% Category 2 line.",
+            "Compare to the headroom quoted in the Board pack and flag any overstatement.",
+            "Where the ratio fell below 200%, count the business days from detection to the dated improvement plan draft and test it against the 5-business-day standard.",
+            "Confirm the plan's projected quarterly ratio path used the Appointed Actuary's confirmed reserve assumptions."
+          ],
+          "done": "reported headroom recomputes correctly and any sub-200% reading produced a plan inside 5 business days."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception recording the month, the control that failed and the yen or percentage-point impact.",
+            "Assign a root cause from the fixed list: stale ordinance rate, asset base mis-mapping, model input error, late escalation, unapproved drawdown.",
+            "Name an owner and a remediation date, and open a self-report assessment with Regulatory Counsel for any unapproved drawdown or unescalated sub-200% reading.",
+            "Carry every open issue into the next test cycle as a mandatory retest row."
+          ],
+          "done": "each exception carries an issue, a root cause from the fixed list, an owner, a date and a retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the exception rate against the population and compare to the zero-tolerance thresholds for skipped cycles and late escalations.",
+            "State the conclusion — effective, effective with exceptions, or ineffective — with the workpaper references behind it.",
+            "Have the reviewer, who prepared no monitoring pack in the period, sign and date the workpaper.",
+            "Report the conclusion and any open breach to the Audit Committee and the Risk Committee at their next sittings and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states an exception rate, a conclusion and the committee reporting dates."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-030-C42",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Owns the Art. 110 business report and the Art. 111 disclosure document for the Japan entity, including the Art. 115 price fluctuation reserve and Art. 116/117 reserve schedules inside them"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Insurance Business Act Art. 110 (business report within 3 months of the business-year end), Art. 111 (explanatory documents for public inspection), Art. 115/116/117 reserve schedules and Art. 130 solvency margin disclosure, checked against the current Ordinance for Enforcement prescribed forms (Business Report Form No. 4 and its supplementary schedules)"
+        },
+        "In-scope processes": {
+          "value": "Statutory close for the Japan life entity → business report assembly (annual for the year ended 31 March, interim for the half year ended 30 September) → Appointed Actuary opinion attachment → FSA submission → Art. 111 disclosure document production"
+        },
+        "In-scope systems": {
+          "app": "Internal Regulatory System",
+          "value": "Filing workspace holding the Business Report Form No. 4 workbook and schedules; source figures from the ERP general ledger and the close/consolidation tool; submission through the FSA electronic application and notification system"
+        },
+        "Compliance procedure documented": {
+          "value": "Japan Statutory Filing Procedure — schedule ownership map, tie-out pack to the closed ledger, Appointed Actuary opinion attachment, two-person review, FSA electronic submission and receipt capture"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Financial Officer with Regulatory Counsel concurrence; re-approved whenever the FSA amends the prescribed business report forms"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual business report due within 3 months of the 31 March business-year end (30 June); interim business report due within 3 months of the 30 September half year (31 December); Art. 111 explanatory documents made available for public inspection without delay after the year end"
+        },
+        "Deadline reminders configured": {
+          "value": "Filing calendar milestones at T-45 (schedule owners drafting), T-20 (tie-out complete), T-10 (Appointed Actuary opinion attached) and T-3 (submission ready) against each 30 June and 31 December due date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Submitted business report, all supplementary schedules, tie-out workbook, actuarial opinion and the FSA electronic receipt retained 10 years in the financial reporting repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Late submission, resubmission, or any schedule that failed to tie to the closed ledger is logged with root cause, corrected figure and the date the correction reached the FSA"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Financial Officer",
+          "value": "CFO signs off every resubmission and every filing made after the statutory due date, with Regulatory Counsel clearing the covering explanation"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The annual and interim business reports for the period plus every supplementary schedule, resubmission and the Art. 111 disclosure document"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on a missed statutory due date or a filing submitted without the Appointed Actuary opinion; any schedule differing from the closed ledger by more than JPY 1 million is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual with an interim filing; test runs twice a year immediately after each submission, covering 100% of prescribed schedules"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Statutory Reporting Manager",
+          "value": "Reviewer must not have prepared or owned any schedule in the filing under test"
+        },
+        "Evidence location for test results": {
+          "value": "Post-filing verification workpaper (schedule tie-out, opinion trace, receipt capture, exceptions) in the compliance evidence repository under Japan / Statutory Filings"
+        },
+        "Regulator-ready documentation": {
+          "value": "Submitted PDF set, electronic receipt with acknowledgement number, tie-out workbook and the signed actuarial opinion, producible for an FSA inspection within 2 business days"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Reporting Manager handles FSA and Local Finance Bureau queries on the filing; material corrections go through the CFO and Regulatory Counsel before any amended report is transmitted"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Open the filing pack and confirm the prescribed forms are the current edition",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Create the filing workspace named JP-BusinessReport-<business year>-<annual|interim> and set the statutory due date to 30 June or 31 December.",
+            "Download the current prescribed Business Report forms and supplementary schedules from the FSA site and compare the form version stamp to last period's pack.",
+            "List every changed line item, added schedule or renumbered column and raise a change note for the affected schedule owner.",
+            "Attach the current Ordinance for Enforcement extract that prescribes the forms as the version evidence."
+          ],
+          "done": "the workspace holds the current-edition forms with every change from the prior period noted and assigned."
+        },
+        {
+          "step": "Assign each schedule to a named owner with a due date",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Build the schedule ownership map: balance sheet and P&L to the Controller, policy reserve and outstanding claims schedules to the Valuation Actuary, price fluctuation and contingency reserve schedules to Capital Management, solvency margin schedule to the Capital Model Actuary, investment schedules to Investment Operations.",
+            "Set each owner's internal due date at T-20 from the statutory date so the tie-out has room.",
+            "Circulate the map with the change notes from the form comparison and get an acknowledgement per owner.",
+            "Track acknowledgement and draft status daily from T-45."
+          ],
+          "done": "every prescribed schedule has a named owner, an internal T-20 due date and an acknowledgement on record."
+        },
+        {
+          "step": "Lock the statutory close and freeze the source figures",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "close/consolidation tool",
+          "actions": [
+            "Complete the statutory close for the period and set the ledger period status to closed so no post-filing journals can move the numbers.",
+            "Publish the frozen trial balance with a version id and timestamp to the filing workspace.",
+            "Confirm the price fluctuation reserve accrual, contingency reserve and policy reserve journals are all posted before the freeze.",
+            "Notify all schedule owners that the frozen trial balance is the only permitted source."
+          ],
+          "done": "the ledger is closed, the frozen trial balance is published with a version id, and owners are notified."
+        },
+        {
+          "step": "Populate the reserve schedules from the actuarial valuation",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Export the Art. 116 policy reserve by product group, valuation method and valuation interest rate, and the Art. 117 outstanding claims reserve split reported/IBNR.",
+            "Show separately the standard policy reserve blocks valued on the FSA-notified standard valuation interest rate and standard mortality table, and the non-standard blocks with the basic-document method used.",
+            "Enter the figures into the prescribed reserve schedules and reconcile the totals to the frozen trial balance liability accounts.",
+            "Attach the valuation summary and model run id behind each schedule cell block."
+          ],
+          "done": "the reserve schedules are populated, split standard versus non-standard, and tie to the frozen trial balance."
+        },
+        {
+          "step": "Populate the price fluctuation reserve and solvency schedules",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "actions": [
+            "Enter the Art. 115 price fluctuation reserve roll-forward: opening balance, accrual at the ordinance rate per covered category, any threshold-tested drawdown, closing balance and headroom to the ceiling.",
+            "Enter the solvency margin schedule numerator and denominator components from the signed month-13 model run and state the ratio to one decimal place.",
+            "Cross-check that the price fluctuation reserve figure used in the solvency numerator equals the balance sheet figure to the yen.",
+            "Hand the completed schedules to the Regulatory Reporting Analyst with the supporting worksheets."
+          ],
+          "done": "the reserve roll-forward and solvency schedule are complete and the reserve figure agrees across both."
+        },
+        {
+          "step": "Run the cross-schedule tie-out",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Build the tie-out workbook with one row per prescribed line item, its source (ledger account, actuarial summary, model output) and the two values being compared.",
+            "Test every internal cross-foot the forms require: total assets to total liabilities plus net assets, premium income to the segment schedule, reserve movement to the P&L charge, prior-year comparatives to last period's filed report.",
+            "Clear every difference above JPY 1 million with the schedule owner and record the explanation on the row.",
+            "Freeze the workbook and mark it the tie-out of record for the filing."
+          ],
+          "done": "every prescribed line item ties to a named source with no unexplained difference above JPY 1 million."
+        },
+        {
+          "step": "Attach the Appointed Actuary's opinion",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Confirm the policy reserve in the filing is the reserve the opinion covers, at the same valuation date and on the same basis.",
+            "Perform the future cash-flow adequacy check on the in-force block and record the conclusion in the opinion.",
+            "Sign the opinion, state any qualification in plain terms, and submit it to the Board for receipt before the filing is transmitted.",
+            "Give the signed opinion to the Regulatory Reporting Manager for attachment to the filing pack."
+          ],
+          "done": "a signed actuarial opinion covering the filed reserve is attached and has been received by the Board."
+        },
+        {
+          "step": "Put the pack through two-person review",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "actions": [
+            "Review every schedule against the tie-out workbook and initial each schedule as reviewed.",
+            "Re-read the prescribed form instructions for units, rounding convention and negative-number presentation and correct anything that deviates.",
+            "Check the prior-period comparatives against the report as actually filed last period, not against a restated internal figure.",
+            "Reject the pack back to the owner where a schedule carries an unexplained tie-out difference rather than accepting a note."
+          ],
+          "done": "every schedule carries a reviewer initial and the form instructions on units and rounding are satisfied."
+        },
+        {
+          "step": "Obtain the internal approvals recorded on the filing",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Review the filing summary: headline financials, solvency margin ratio, reserve balances and any actuarial qualification.",
+            "Approve the pack for submission in writing, naming the business year and the filing type.",
+            "Where the Appointed Actuary qualified the opinion, require the covering explanation to be drafted before approval.",
+            "Pass the approved pack to the Regulatory Reporting Manager for transmission."
+          ],
+          "done": "a written CFO approval naming the period and filing type is on the pack before transmission."
+        },
+        {
+          "step": "Transmit the filing to the FSA and capture the receipt",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Log in to the FSA electronic application and notification system with the company's registered account and select the business report submission for the Japan entity.",
+            "Upload the prescribed forms, supplementary schedules and the signed actuarial opinion in the order the system requires, checking each attachment opens after upload.",
+            "Submit before the statutory due date — 30 June for the annual report, 31 December for the interim — and never on the due date itself.",
+            "Download the acknowledgement, record the acknowledgement number and submission timestamp on the filing workspace row, and file the receipt PDF."
+          ],
+          "done": "the filing is transmitted before the statutory date with the acknowledgement number and receipt PDF on file."
+        },
+        {
+          "step": "Produce and publish the Art. 111 explanatory documents",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "document management repository",
+          "actions": [
+            "Build the explanatory document for public inspection from the filed figures — business overview, financial position, solvency margin ratio, reserve balances and the price fluctuation reserve.",
+            "Have Regulatory Counsel review the narrative sections for statements that go beyond the filed numbers.",
+            "Place the document for public inspection at the head office and branch offices and publish the electronic version on the corporate site without delay after the year end.",
+            "Record the publication date and the office locations where the paper copy is available."
+          ],
+          "done": "the explanatory document is published electronically and available at the offices, with the date recorded."
+        },
+        {
+          "step": "Handle FSA follow-up questions on the filing",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log every FSA or Local Finance Bureau query against the filing with the date received, the schedule and line item questioned and the response due date.",
+            "Draft the response with the schedule owner, attaching the tie-out row and source extract that supports the figure.",
+            "Have Regulatory Counsel clear any response that concedes an error before it is sent.",
+            "Record the sent date and the regulator's closure of the query on the tracker row."
+          ],
+          "done": "every regulator query has a logged response, a counsel clearance where needed, and a recorded closure."
+        },
+        {
+          "step": "Correct and resubmit where an error is found after filing",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "On discovering a misstatement, quantify the effect on each affected schedule and on the solvency margin ratio.",
+            "Decide with the CFO and Regulatory Counsel whether the error requires an amended report or a written explanation, and record the reasoning.",
+            "Where an amended report is required, rebuild the affected schedules from the frozen trial balance, re-run the tie-out and resubmit through the FSA system with a covering note stating what changed and why.",
+            "Log the resubmission on the filing tracker with both acknowledgement numbers."
+          ],
+          "done": "any post-filing error has a quantified impact, a documented decision and, where needed, a resubmission with both acknowledgement numbers."
+        },
+        {
+          "step": "Run the post-filing lessons review before the next cycle",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Within 10 business days of submission, review every late schedule, every tie-out difference and every reviewer rejection from the cycle.",
+            "Assign each to a cause — form change missed, source not frozen, owner unclear, actuarial input late — and agree an action with the owner.",
+            "Update the schedule ownership map and the internal due dates for the next cycle from those actions.",
+            "Circulate the revised map with the next cycle's kick-off."
+          ],
+          "done": "the cycle review is complete within 10 business days with actions folded into the next cycle's ownership map."
+        },
+        {
+          "step": "Retain the full filing record",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "financial reporting repository",
+          "actions": [
+            "File the submitted forms, schedules, tie-out workbook, actuarial opinion, CFO approval and FSA receipt as one indexed record per filing.",
+            "Apply the 10-year retention label and index by business year, filing type and acknowledgement number.",
+            "Confirm the record can be retrieved by acknowledgement number in a single search.",
+            "Link the record to the Art. 111 explanatory document and its publication date."
+          ],
+          "done": "one indexed, 10-year-labelled record per filing is retrievable by acknowledgement number and linked to the public document."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of filings and schedules",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Extract every filing workspace row for the period: annual report, interim report, resubmissions and the Art. 111 document.",
+            "List the prescribed schedules the current forms require and confirm each appears in each filing — a missing schedule is an exception before sampling.",
+            "Reconcile the workspace list to the FSA acknowledgements actually received.",
+            "Sign and date the population extract."
+          ],
+          "done": "the population lists every filing and every prescribed schedule, reconciled to the acknowledgements received."
+        },
+        {
+          "step": "Reconcile the filed figures back to the closed ledger",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Pull the frozen trial balance version referenced by the tie-out workbook and confirm the ledger period is still closed.",
+            "Agree total assets, total liabilities, net assets, premium income and the three reserve balances from the filed report to that trial balance.",
+            "Confirm no journal was posted to the period after the freeze timestamp; a post-freeze journal invalidates the tie-out.",
+            "Record every difference in yen with its explanation."
+          ],
+          "done": "filed headline figures agree to the frozen trial balance and no post-freeze journal exists."
+        },
+        {
+          "step": "Draw a documented sample of schedules",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of the reserve schedules (Art. 115, 116, 117) and the solvency margin schedule.",
+            "Take 8 further schedules at random with a recorded seed from the remaining prescribed schedules.",
+            "Record population size, seed and selection date in the workpaper.",
+            "Cover both the annual and interim filings in the draw."
+          ],
+          "done": "the sample is reproducible, covers all reserve and solvency schedules and both filings."
+        },
+        {
+          "step": "Re-perform the tie-out on the sampled schedules",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each sampled schedule, independently trace each line item to its named source — ledger account, actuarial valuation summary or model output.",
+            "Re-run the internal cross-foots the forms require rather than accepting the company's tie-out row.",
+            "Check units, rounding and negative-number presentation against the prescribed form instructions.",
+            "Log any difference above JPY 1 million or any presentation deviation as an exception."
+          ],
+          "done": "each sampled schedule is independently traced and cross-footed with differences logged."
+        },
+        {
+          "step": "Verify the prior-period comparatives against what was actually filed",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "financial reporting repository",
+          "actions": [
+            "Retrieve the prior period's submitted report by acknowledgement number.",
+            "Compare every comparative column in the current filing to the prior filed figures line by line.",
+            "Where a comparative was restated, confirm the restatement is disclosed and the reason recorded.",
+            "An undisclosed restated comparative is an exception."
+          ],
+          "done": "all comparatives agree to the prior filed report or the restatement is disclosed and explained."
+        },
+        {
+          "step": "Trace the actuarial opinion to the reserve actually filed",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Open the signed Appointed Actuary opinion attached to the filing and read the valuation date, the block covered and any qualification.",
+            "Agree the reserve amount in the opinion to the Art. 116 schedule in the filing to the yen.",
+            "Confirm the opinion was signed and received by the Board before the transmission timestamp.",
+            "An opinion dated after transmission, or covering a different valuation date, is an exception."
+          ],
+          "done": "the opinion covers the filed reserve at the filed valuation date and pre-dates transmission."
+        },
+        {
+          "step": "Recompute the statutory deadline maths for each filing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute the annual due date as 3 months from the 31 March business-year end and the interim due date as 3 months from the 30 September half-year end.",
+            "Compare the FSA acknowledgement timestamp to the recomputed due date and record the days of margin or the days late.",
+            "Test the Art. 111 explanatory document publication date against the 'without delay after the year end' standard and record the elapsed days.",
+            "Any filing on or after the due date is treated as a fail regardless of acceptance by the system."
+          ],
+          "done": "each filing shows a recomputed due date and a measured margin, with any late filing flagged."
+        },
+        {
+          "step": "Confirm the receipt evidence is complete and retrievable",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Search the repository by each acknowledgement number and confirm the search returns the full record in one hit.",
+            "Open the record and verify it holds the submitted PDFs, tie-out workbook, actuarial opinion, CFO approval and the FSA receipt.",
+            "Check the 10-year retention label is applied and the record is not editable.",
+            "Missing components or an unlabelled record is an exception."
+          ],
+          "done": "every filing record is retrievable by acknowledgement number, complete and labelled for 10-year retention."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise one issue per exception with the filing, the schedule, the difference in yen and the compliance impact.",
+            "Assign a root cause from the fixed list: stale form edition, unfrozen source, late actuarial input, comparative not traced, late transmission.",
+            "Name an owner and a remediation date; for a late filing or a resubmission, open a self-report assessment with Regulatory Counsel.",
+            "Carry each open issue into the next filing cycle as a mandatory retest row."
+          ],
+          "done": "each exception has an issue, a root cause, an owner, a date and a retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "actions": [
+            "Compute the schedule exception rate and compare it to the zero-tolerance thresholds for late filing and missing opinion.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — citing the workpaper references.",
+            "Have the reviewer, who owned no schedule in the filing under test, sign and date the workpaper.",
+            "Report to the Audit Committee at its next sitting and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states the exception rate, a conclusion and the committee reporting date."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-030-C43",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Chief Risk Officer",
+          "value": "CRO owns the ORSA report and its submission to the FSA; the Enterprise Risk Manager runs the process and the Board resolves the report"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Insurance Business Act Art. 115 (price fluctuation reserve as a loss-absorbing buffer), Art. 116 (policy and contingency reserves) and Art. 117, read with the FSA Comprehensive Supervisory Guidelines for Insurance Companies risk-management sections that require the annual ORSA report and the economic value-based solvency assessment"
+        },
+        "In-scope processes": {
+          "value": "Annual own-risk and solvency assessment for the Japan life entity: risk profile refresh, forward-looking capital projection over the 3-to-5-year business plan, ESR and SMR projection, buffer adequacy of the Art. 115 and contingency reserves, Board resolution and FSA submission"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Risk register, risk appetite limits and control assessments feed the ORSA; capital projections run in the actuarial modelling platform and are versioned in the model governance repository"
+        },
+        "Compliance procedure documented": {
+          "value": "ORSA Production Procedure — risk profile refresh, appetite calibration, projection assumption sign-off, buffer adequacy test, Board resolution, FSA submission and use-test evidence"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Risk Committee and re-approved by the Board annually as part of the risk management policy"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual cycle anchored on the 31 March business-year end — assumptions locked by 31 May, draft to Risk Committee by 30 June, Board resolution at the July meeting, ORSA report submitted to the FSA in line with the supervisory schedule and re-run out of cycle on any material risk-profile change"
+        },
+        "Deadline reminders configured": {
+          "value": "ORSA calendar milestones at assumption lock, model run complete, draft circulation, Risk Committee, Board resolution and submission, each with a named owner and a reminder 10 business days ahead"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "ORSA report, assumption pack, model run archive, Risk Committee and Board minutes and the FSA submission receipt retained 10 years"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Missed milestones, unresolved model validation findings and any risk-appetite breach identified by the ORSA are logged as risk events with owner and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Executive Officer",
+          "value": "CEO signs off closure of ORSA-identified appetite breaches and confirms the management actions were executed"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The annual ORSA report and any out-of-cycle ORSA, together with the assumption pack, model runs, validation reports, committee papers and Board minutes supporting them"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on an ORSA submitted without a Board resolution or with an open critical model validation finding; every projected ratio must reproduce from the archived run within 1.0 percentage point"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; test runs once per cycle after Board resolution and before FSA submission, covering 100% of the report's key figures"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Model Risk Manager",
+          "value": "Validator must be independent of the capital modelling team that produced the projections"
+        },
+        "Evidence location for test results": {
+          "value": "ORSA verification workpaper (assumption trace, projection re-performance, buffer adequacy recomputation, governance trace) in the compliance evidence repository under Japan / ORSA"
+        },
+        "Regulator-ready documentation": {
+          "value": "ORSA report, Board resolution extract, assumption pack and model validation report, producible for an FSA risk-management interview within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Chief Risk Officer leads FSA dialogue on the ORSA; Regulatory Reporting Manager transmits, and Regulatory Counsel clears any statement about capital shortfall before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Refresh the risk profile that the ORSA has to assess",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Export the risk register as at 31 March and re-score each risk with the business owner on likelihood and impact against the current in-force book.",
+            "Add or retire risks from the year's events: variable annuity minimum guarantee exposure, JGB reinvestment risk, equity concentration in the price-variable portfolio, mass lapse, operational and cyber events.",
+            "Map every material risk to a quantified capital charge or to an explicit statement of why it is not capitalised.",
+            "Circulate the refreshed profile to the Risk Committee for challenge before assumptions are locked."
+          ],
+          "done": "every material risk is re-scored, owned and either capitalised or explicitly explained as uncapitalised."
+        },
+        {
+          "step": "Recalibrate the risk appetite statement and its limits",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Restate the appetite in measurable terms: minimum ESR, minimum solvency margin ratio, maximum equity exposure as a share of the general account, maximum duration mismatch in years.",
+            "Set the early-warning level above each hard limit and name the escalation body for each.",
+            "Have the Board approve any change to a limit before the projections are run against it.",
+            "Record the approved limit set with its effective date as the yardstick for this ORSA cycle."
+          ],
+          "done": "an approved, measurable limit set with early-warning levels and named escalation bodies is in force for the cycle."
+        },
+        {
+          "step": "Lock the projection assumptions with the business plan",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "actions": [
+            "Take the Board-approved 3-to-5-year business plan from Finance: new business volumes by product, expense plan, dividend plan and the investment strategy.",
+            "Set the economic assumptions: JPY yield curve, equity return, yen exchange rates, and the FSA-prescribed ultimate forward rate and last liquid point for the ESR basis.",
+            "Set the actuarial assumptions: mortality, lapse, and the standard valuation interest rate applying to new standard-reserve business.",
+            "Freeze the assumption pack by 31 May with sign-off from the Appointed Actuary, the Chief Investment Officer and the CFO."
+          ],
+          "done": "a frozen, tri-signed assumption pack ties to the Board-approved business plan and the ESR basis."
+        },
+        {
+          "step": "Project capital and solvency over the plan horizon",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Run the base-case projection of the balance sheet, statutory solvency margin ratio and ESR for each year of the plan horizon.",
+            "Project the Art. 115 price fluctuation reserve balance under the planned asset mix, showing accrual, ceiling headroom and any modelled drawdown.",
+            "Project the Art. 116 contingency reserve and policy reserve movement, separating standard-reserve and non-standard blocks.",
+            "Archive the run with the model version, assumption pack id and input hash in the model governance repository."
+          ],
+          "done": "a base-case projection of SMR, ESR and all three reserves exists for every plan year with an archived, reproducible run."
+        },
+        {
+          "step": "Test the reserve buffers against the adverse cases",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "Re-run the projection under the adverse cases agreed with the Risk Committee, including a sustained equity fall and a parallel JGB yield shock.",
+            "For each case compute the valuation loss on Art. 115 covered assets and compare it to the projected reserve balance to show whether the reserve absorbs it.",
+            "Compute the point in the projection at which a drawdown would exceed the prescribed threshold and become permissible, and state it in years.",
+            "Record whether the ESR and SMR stay above the appetite limits in every case and by how many percentage points."
+          ],
+          "done": "each adverse case states the reserve absorption, the drawdown trigger point and the headroom against appetite limits."
+        },
+        {
+          "step": "Get the model independently validated before the report is drafted",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "model governance repository",
+          "actions": [
+            "Review the capital model against the model risk policy: conceptual soundness, assumption support, code change control and back-testing of last year's projection against actuals.",
+            "Re-perform two projection years independently from the archived inputs and compare to the reported figures.",
+            "Raise validation findings with severity, owner and due date; a critical finding blocks the ORSA from proceeding.",
+            "Issue the validation report and file it with the model run archive."
+          ],
+          "done": "a dated validation report exists with no open critical finding and two independently re-performed projection years."
+        },
+        {
+          "step": "Write the ORSA report to the structure the supervisor expects",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "actions": [
+            "Draft the report in sections: risk management framework and governance, risk profile, risk appetite and limits, capital adequacy assessment on both the statutory and economic bases, stress and scenario results, and the conclusion on capital sufficiency over the horizon.",
+            "State plainly whether current and projected capital is sufficient, and where it is not, name the management actions and their dates.",
+            "Reference each figure to its model run id and assumption pack so nothing in the narrative is unsourced.",
+            "Circulate the draft to the CFO, Appointed Actuary and Chief Investment Officer for factual challenge before it goes to committee."
+          ],
+          "done": "a complete draft covering all six sections exists with every figure referenced to a model run and challenged by the three executives."
+        },
+        {
+          "step": "Take the ORSA through the Risk Committee",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Table the draft ORSA, the validation report and the adverse-case results at the Risk Committee by 30 June.",
+            "Walk the committee through the appetite breaches shown by the projection and the proposed management actions.",
+            "Capture every committee challenge and the response in the minutes, and update the report where the challenge changes a conclusion.",
+            "Obtain the committee's recommendation to the Board."
+          ],
+          "done": "the Risk Committee has minuted its challenge and recommended the ORSA to the Board."
+        },
+        {
+          "step": "Obtain the Board resolution on the ORSA",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "app": "board portal",
+          "actions": [
+            "Publish the final ORSA, the validation report and the Risk Committee minute to the board portal at least 5 business days before the meeting.",
+            "Put a resolution to the Board approving the ORSA report and the conclusion on capital sufficiency.",
+            "Ensure the minute names the report version, the date, and any condition the Board attached to its approval.",
+            "Return any conditional approval to the Enterprise Risk Manager with the condition and its due date."
+          ],
+          "done": "a Board minute records approval of the named ORSA version and any condition with a due date."
+        },
+        {
+          "step": "Submit the ORSA report to the FSA",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Assemble the submission set: Board-approved ORSA report, the resolution extract and any appendix the supervisor requested at the last dialogue.",
+            "Transmit through the FSA electronic application and notification system to the Insurance Business Division in line with the supervisory schedule.",
+            "Capture the acknowledgement number and timestamp and record them on the ORSA workspace row.",
+            "File the receipt with the report in the evidence repository."
+          ],
+          "done": "the Board-approved report is transmitted with the acknowledgement number and receipt on file."
+        },
+        {
+          "step": "Prove the ORSA was used, not just written",
+          "by": "Chief Executive Officer",
+          "role": "Chief Executive Officer",
+          "actions": [
+            "Name the decisions taken in the year that cite the ORSA: investment strategy limits, product pricing changes, reinsurance of the minimum guarantee block, dividend decisions.",
+            "For each decision, point to the meeting minute that references the ORSA conclusion.",
+            "Where a plan assumption was changed because of the ORSA, record the before and after values.",
+            "Include the use-test evidence as an appendix to the next cycle's report."
+          ],
+          "done": "at least three named decisions in the year trace to an ORSA conclusion through a dated minute."
+        },
+        {
+          "step": "Monitor the appetite limits between cycles",
+          "by": "Risk Analyst",
+          "role": "Risk Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Load the approved limits into the limit monitoring dashboard with their early-warning levels.",
+            "Refresh actuals monthly from the capital monitoring pack and the investment position file.",
+            "Raise a limit event the same day an early-warning level is passed, naming the escalation body from the appetite statement.",
+            "Report limit status to the Risk Committee each quarter with the trend since the ORSA."
+          ],
+          "done": "every approved limit is monitored monthly with same-day events on early-warning breaches and quarterly committee reporting."
+        },
+        {
+          "step": "Trigger an out-of-cycle ORSA on a material change",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Define the triggers in the procedure: a hard-limit breach, a major acquisition or block reinsurance, a market move that cuts ESR by more than 20 percentage points, or a change in the FSA solvency framework.",
+            "On a trigger, decide within 10 business days whether a full or targeted re-run is needed and record the decision and reasoning.",
+            "Run the targeted projection on refreshed data and take the conclusion back to the Risk Committee.",
+            "Notify the FSA where the re-run changes the conclusion on capital sufficiency."
+          ],
+          "done": "each trigger has a recorded decision inside 10 business days and, where re-run, a committee-reviewed conclusion."
+        },
+        {
+          "step": "Close out the validation findings and Board conditions",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "actions": [
+            "Track every open validation finding and Board condition on a single action log with owner and due date.",
+            "Require evidence of the fix — a model change record, a rerun, or an updated assumption sign-off — before closing an item.",
+            "Report ageing items to the Risk Committee each quarter.",
+            "Carry anything still open into the next ORSA cycle as a stated limitation in the report."
+          ],
+          "done": "every finding and condition is closed with evidence or carried into the next report as a stated limitation."
+        },
+        {
+          "step": "Archive the cycle evidence",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the ORSA report, assumption pack, model run archive reference, validation report, committee and Board minutes and the FSA receipt as one indexed cycle record.",
+            "Apply the 10-year retention label and index by business year and report version.",
+            "Confirm each referenced model run is still retrievable from the model governance repository.",
+            "Link the use-test evidence to the same cycle record."
+          ],
+          "done": "one indexed cycle record holds every ORSA artefact, is labelled for 10 years, and its model runs still resolve."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of ORSA artefacts for the cycle",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "List the cycle's artefacts: report versions, assumption pack, model runs, validation report, committee papers, Board minute and FSA receipt.",
+            "Check each required artefact exists and is dated; a missing validation report or Board minute is an exception before sampling.",
+            "Add any out-of-cycle ORSA and its trigger record to the population.",
+            "Sign and date the population extract."
+          ],
+          "done": "the population lists every required artefact for the cycle, each present and dated."
+        },
+        {
+          "step": "Reconcile the ORSA opening balance sheet to the filed statutory position",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "financial reporting repository",
+          "actions": [
+            "Agree the ORSA's opening total assets, policy reserve, contingency reserve and price fluctuation reserve to the 31 March business report as filed.",
+            "Agree the opening solvency margin ratio to the filed solvency schedule to one decimal place.",
+            "Investigate any difference and record whether it comes from a legitimate economic-basis adjustment or an error.",
+            "An unexplained difference in the opening position invalidates the projection and is an exception."
+          ],
+          "done": "the ORSA opening position agrees to the filed statutory report or every difference is explained as a basis adjustment."
+        },
+        {
+          "step": "Draw a documented sample of projections and assumptions",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of the adverse cases and the base case's final projection year.",
+            "Take 6 assumptions at random with a recorded seed from the frozen assumption pack.",
+            "Record population size, seed and selection date so the sample can be re-drawn.",
+            "Include every risk shown as breaching an appetite limit in the projection."
+          ],
+          "done": "the sample is reproducible and covers all adverse cases plus every projected limit breach."
+        },
+        {
+          "step": "Re-perform two projection years in the model",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "FIS Prophet",
+          "actions": [
+            "Restore the archived run by model version and input hash and re-run the base case for two plan years.",
+            "Rebuild the ESR own-funds and required-capital components independently rather than reading the model summary.",
+            "Compare the re-performed SMR and ESR to the reported figures for those years.",
+            "A difference above 1.0 percentage point, or a run that cannot be restored from the archive, is an exception."
+          ],
+          "done": "two projection years reproduce from the archive within 1.0 percentage point on both ratios."
+        },
+        {
+          "step": "Trace sampled assumptions to their approved source",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "For each sampled assumption, find its source: the Board-approved business plan, the investment strategy paper, the actuarial experience study, or the FSA-prescribed ESR basis.",
+            "Confirm the value used in the model equals the source value and the sign-off pre-dates the assumption freeze date of 31 May.",
+            "Where the assumption differs from experience, confirm the deviation is explained in the assumption pack.",
+            "An assumption without a traceable, pre-dated source is an exception."
+          ],
+          "done": "every sampled assumption traces to an approved source signed before the freeze date."
+        },
+        {
+          "step": "Recompute the reserve buffer adequacy in the adverse cases",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "For each adverse case, independently recompute the modelled valuation loss on Art. 115 covered assets from the shocked market values.",
+            "Compare the loss to the projected price fluctuation reserve balance and reproduce the stated absorption percentage.",
+            "Recompute the year in which a permissible drawdown would first arise using the prescribed threshold.",
+            "Any restatement of absorption or drawdown timing is an exception with the corrected figure recorded."
+          ],
+          "done": "reserve absorption and drawdown timing reproduce independently for every adverse case."
+        },
+        {
+          "step": "Trace the governance chain from draft to submission",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Match the report version number in the Board minute to the version transmitted to the FSA.",
+            "Confirm the papers were published at least 5 business days before the Board meeting.",
+            "Read the Risk Committee minute for the recorded challenge and confirm any change it demanded appears in the final version.",
+            "A submitted version that differs from the resolved version is a reportable governance breach, not a test exception."
+          ],
+          "done": "the submitted version equals the Board-resolved version and committee challenges are reflected in it."
+        },
+        {
+          "step": "Test the use of the ORSA in actual decisions",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Take the decisions the CEO cited as ORSA-driven and open the minute for each.",
+            "Confirm the minute genuinely references the ORSA conclusion rather than mentioning risk generically.",
+            "Where a plan assumption changed, agree the before and after values to the plan documents.",
+            "Fewer than three traceable decisions is an exception against the use-test expectation."
+          ],
+          "done": "at least three decisions trace to an ORSA conclusion through a dated minute with values agreed."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception recording the artefact, the failure and its effect on the capital sufficiency conclusion.",
+            "Assign a root cause from the fixed list: assumption unsourced, run not reproducible, open critical validation finding, governance sequence broken, use-test not evidenced.",
+            "Name an owner and a remediation date, and escalate any issue that changes the capital sufficiency conclusion to the CRO the same day.",
+            "Carry every open issue into the next ORSA cycle as a mandatory retest row."
+          ],
+          "done": "each exception has an issue, a root cause, an owner, a date and a retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the exception rate across artefacts and compare to the zero-tolerance thresholds for a missing Board resolution or an open critical validation finding.",
+            "State the conclusion — effective, effective with exceptions, or ineffective — with workpaper references.",
+            "Have the reviewer, independent of the capital modelling team, sign and date the workpaper.",
+            "Report to the Audit Committee and the Risk Committee at their next sittings and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states the exception rate, a conclusion and the committee reporting dates."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-030-C44",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Capital Model Actuary",
+          "value": "Runs the annual stress and scenario suite for the Japan entity under the Chief Risk Officer's mandate; ALM sets the market shocks and the Appointed Actuary owns the liability response"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Insurance Business Act Art. 115 (price fluctuation reserve absorbing valuation losses on price-variable assets), Art. 116 (policy and contingency reserves) and Art. 117, read with the FSA Comprehensive Supervisory Guidelines stress-testing expectations and the economic value-based solvency field-test specifications"
+        },
+        "In-scope processes": {
+          "value": "Annual stress and scenario testing of the Japan general account and in-force liabilities: single-factor market shocks, insurance shocks, combined adverse scenarios, reverse stress test, and the reserve-absorption test on Art. 115 covered assets"
+        },
+        "In-scope systems": {
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "value": "Liability and capital models take shocked market data from Bloomberg Terminal and BlackRock Aladdin position files; results versioned in the model governance repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Stress & Scenario Testing Procedure — scenario library governance, calibration sourcing, run control, reserve absorption test, results challenge, Board reporting and re-run triggers"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Risk Committee; the scenario library and its calibrations are re-approved annually before the run and after any FSA field-test specification change"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual run on the 31 March balance sheet — scenario library approved by 30 April, runs complete by 31 May so results feed the ORSA assumption freeze, Board reporting at the July meeting; out-of-cycle runs within 10 business days of a trigger event"
+        },
+        "Deadline reminders configured": {
+          "value": "Testing calendar reminders at scenario approval, data cut, run completion, challenge session and Board reporting, each fired 10 business days ahead to the named owner"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Scenario definitions with calibration sources, input data cuts, model run archive, results pack, challenge minutes and Board papers retained 10 years"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Runs that fail to reproduce, scenarios dropped without approval and management actions assumed but not authorised are logged with owner and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "CRO signs off closure of every stress-testing finding and confirms any assumed management action is genuinely available"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every scenario in the approved library run in the cycle, with its calibration source, input data cut, model run and result, plus the reverse stress test and any out-of-cycle run"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on an approved scenario not run or a run that cannot be reproduced from the archive; re-performed post-stress ratios must land within 1.0 percentage point of the reported figure"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; verification runs once per cycle after the results pack is finalised and before it feeds the ORSA, with 100% coverage of the scenario library"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Model Risk Manager",
+          "value": "Validator must not have built or calibrated any scenario in the library under test"
+        },
+        "Evidence location for test results": {
+          "value": "Stress testing verification workpaper (library completeness, calibration trace, run reproduction, reserve absorption recomputation) in the compliance evidence repository under Japan / Stress Testing"
+        },
+        "Regulator-ready documentation": {
+          "value": "Scenario library with calibrations, results pack, reverse stress test conclusion and Board minute, producible for an FSA risk interview within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Chief Risk Officer answers FSA questions on scenario severity and results; Capital Model Actuary supplies the run evidence and Regulatory Counsel clears anything stating a projected capital shortfall"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Refresh and approve the scenario library for the cycle",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Open the scenario library and review each scenario against the current risk profile — drop only what the Risk Committee approves in writing.",
+            "Cover the mandatory families: equity shock, JGB yield shift up and down, credit spread widening, yen appreciation, mass lapse, pandemic mortality, and a Nankai Trough-scale earthquake affecting operations and assets.",
+            "Add a combined adverse scenario that runs equity, rates and lapse together rather than in isolation.",
+            "Take the library to the Risk Committee for approval by 30 April and record the approval date against each scenario."
+          ],
+          "done": "every scenario in the library carries a Risk Committee approval date and the mandatory families are all represented."
+        },
+        {
+          "step": "Calibrate each shock from a named external source",
+          "by": "Risk Analyst",
+          "role": "Risk Analyst",
+          "app": "Bloomberg Terminal",
+          "actions": [
+            "For the equity shock, pull the TOPIX and Nikkei 225 drawdown history and set the shock at a stated percentile with the observation window recorded.",
+            "For the rate shocks, pull the JGB par curve history and set the parallel and steepening shifts in basis points per tenor.",
+            "For the FX shock, pull the USD/JPY and EUR/JPY history and set the yen appreciation percentage.",
+            "Record for every calibration the source, the data window, the percentile and the date pulled — a shock with no source is not approved.",
+            "Send the calibration pack to the ALM / Asset-Liability Actuary for review."
+          ],
+          "done": "every market shock has a named source, data window and percentile recorded in the calibration pack."
+        },
+        {
+          "step": "Cut and reconcile the input data at the valuation date",
+          "by": "Investment Operations Manager",
+          "role": "Investment Operations Manager",
+          "app": "BlackRock Aladdin",
+          "actions": [
+            "Export the 31 March general account position file with book value, market value, duration and credit rating per holding.",
+            "Tag every holding to its Art. 115 covered category so the reserve absorption test can be run on the right base.",
+            "Reconcile market values to the closed statutory ledger and clear differences above JPY 1 million with the Controller.",
+            "Publish the reconciled data cut with a version id to the model governance repository."
+          ],
+          "done": "the position file is Art. 115-tagged, reconciled to the ledger and published with a version id."
+        },
+        {
+          "step": "Set the liability response assumptions for each scenario",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Specify how policyholder behaviour moves under each scenario — dynamic lapse under a rate rise, surrender under an equity fall on variable annuity contracts.",
+            "Specify the reserve response: whether the Art. 116 policy reserve strengthens under the scenario and whether the contingency reserve can be drawn.",
+            "State the variable annuity minimum guarantee cost response under the equity and rate shocks separately.",
+            "Sign the liability assumption set and file it with the calibration pack."
+          ],
+          "done": "each scenario has a signed liability response covering behaviour, reserves and minimum guarantee cost."
+        },
+        {
+          "step": "Run the single-factor shocks",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Load the reconciled data cut and the approved calibrations, and run each single-factor scenario against the 31 March balance sheet.",
+            "Produce for each: post-shock own funds, post-shock solvency margin ratio, post-shock ESR, and the change in each in percentage points.",
+            "Confirm the model applied the shock to every affected asset class — spot-check a domestic equity, a foreign bond and a derivative position by hand.",
+            "Archive each run with model version, calibration id and input hash."
+          ],
+          "done": "every single-factor scenario has an archived, reproducible run reporting post-shock SMR and ESR."
+        },
+        {
+          "step": "Run the combined adverse and reverse stress tests",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "app": "FIS Prophet",
+          "actions": [
+            "Run the combined adverse scenario applying equity, rate, credit and lapse shocks simultaneously with the agreed correlation treatment.",
+            "Run the reverse stress test: solve for the combination of shocks that drives ESR to 100% and SMR to 200%, and state the shock magnitudes that get there.",
+            "Describe in words the business situation the reverse stress represents so the Board can judge plausibility.",
+            "Archive both runs alongside the single-factor set."
+          ],
+          "done": "the combined scenario and a solved reverse stress test are archived with the shock magnitudes that breach each threshold stated."
+        },
+        {
+          "step": "Test whether the price fluctuation reserve absorbs the modelled loss",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each market scenario, compute the valuation loss on Art. 115 covered assets by category from the shocked market values.",
+            "Compare the loss to the opening reserve balance per category and express absorption as a percentage of the loss covered.",
+            "Compute the realised loss level at which the prescribed drawdown threshold would be crossed and whether the scenario crosses it.",
+            "Show the residual loss that would fall to capital after the reserve is exhausted."
+          ],
+          "done": "each scenario reports covered-asset loss, reserve absorption percentage, drawdown threshold status and residual loss to capital."
+        },
+        {
+          "step": "Compare results to the risk appetite limits",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Score each scenario's post-shock ESR and SMR against the approved appetite limits and early-warning levels.",
+            "List every scenario that breaches a limit with the breach size in percentage points.",
+            "Rank scenarios by severity so the Board sees the binding constraint rather than the full grid.",
+            "Take the ranked list into the challenge session."
+          ],
+          "done": "every scenario is scored against appetite with breaches sized and the scenario grid ranked by severity."
+        },
+        {
+          "step": "Hold a results challenge session with the first line",
+          "by": "Chief Investment Officer",
+          "role": "Chief Investment Officer",
+          "actions": [
+            "Walk the investment, product and ALM leads through the ranked results and the drivers behind each.",
+            "Challenge any result that looks counter-intuitive — an equity shock that barely moves ESR usually means a hedge is double-counted.",
+            "Record each challenge, the response and any re-run agreed, with an owner and a date.",
+            "Sign the results pack as challenged before it is used anywhere else."
+          ],
+          "done": "the results pack carries a minuted challenge with owners for every agreed re-run."
+        },
+        {
+          "step": "Attach credible management actions to the severe scenarios",
+          "by": "Head of Capital Management",
+          "role": "Head of Capital Management",
+          "actions": [
+            "For every scenario breaching an appetite limit, name the management actions that would be taken and the ratio uplift each delivers.",
+            "State the lead time and the approval body for each action and confirm it is executable in the scenario's own market conditions.",
+            "Strike out any action that depends on markets that would be closed in the scenario — a subordinated debt issue in a credit crisis is not credible.",
+            "Show post-action ratios separately from pre-action ratios so the Board sees both."
+          ],
+          "done": "each limit-breaching scenario carries credible, lead-timed actions with pre- and post-action ratios shown separately."
+        },
+        {
+          "step": "Get the results independently validated",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "model governance repository",
+          "actions": [
+            "Check every approved scenario has a run and that no run used an unapproved calibration.",
+            "Independently re-run two scenarios from the archived inputs and compare the post-shock ratios.",
+            "Review whether the shock actually propagated to the liability side rather than only to assets.",
+            "Issue findings with severity and owner; a critical finding blocks the results from feeding the ORSA."
+          ],
+          "done": "a dated validation report confirms library completeness, two reproduced runs and no open critical finding."
+        },
+        {
+          "step": "Report the results to the Board with the reserve position",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "board portal",
+          "actions": [
+            "Publish the results pack with the ranked scenarios, the reverse stress conclusion, the Art. 115 reserve absorption table and the management action menu.",
+            "Put the stress testing conclusion to the Board alongside the ORSA at the July meeting.",
+            "Record in the minute the scenarios that breached appetite and the actions the Board endorsed.",
+            "Return any Board-requested additional scenario to the Capital Model Actuary with a due date."
+          ],
+          "done": "the Board minute records the stress results, the appetite breaches and the endorsed actions."
+        },
+        {
+          "step": "Feed the results into the ORSA and the investment strategy",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "actions": [
+            "Hand the finalised scenario results to the ORSA drafting team before the assumption freeze so the report uses this cycle's numbers.",
+            "Give the Chief Investment Officer the scenarios that breached appetite so the strategic asset allocation review can respond.",
+            "Where the results support a limit change, route the proposal through the Risk Committee rather than adjusting the limit informally.",
+            "Record where each result was used."
+          ],
+          "done": "the results are recorded as used in the ORSA, the asset allocation review and any limit proposal."
+        },
+        {
+          "step": "Re-run out of cycle when the world moves",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "Monitor the triggers: a TOPIX fall beyond the calibrated shock, a JGB yield move beyond the calibrated shift, a block acquisition, or a change in the FSA field-test specification.",
+            "On a trigger, re-run the affected scenarios on refreshed data within 10 business days.",
+            "Report the re-run results to the Risk Committee with a comparison to the annual run.",
+            "Log the trigger, the decision and the run reference."
+          ],
+          "done": "every trigger has a logged decision and, where re-run, results compared to the annual run at the Risk Committee."
+        },
+        {
+          "step": "Archive the cycle's testing evidence",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the approved scenario library, calibration pack, data cut version, run archive references, results pack, challenge minute, validation report and Board minute as one cycle record.",
+            "Apply the 10-year retention label and index by business year and scenario name.",
+            "Confirm each archived run reference still resolves in the model governance repository.",
+            "Check the record can be retrieved by scenario name in a single search."
+          ],
+          "done": "one indexed cycle record holds every artefact, is labelled for 10 years, and every run reference still resolves."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of approved scenarios and runs",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Extract the Risk Committee-approved scenario library with approval dates.",
+            "Extract the run register from the model governance repository for the cycle.",
+            "Match them one to one; an approved scenario with no run, or a run with no approved scenario, is an exception before sampling.",
+            "Add the reverse stress test and any out-of-cycle run and sign the population as complete."
+          ],
+          "done": "every approved scenario matches exactly one archived run, with mismatches listed as exceptions."
+        },
+        {
+          "step": "Reconcile the stress input data to the statutory position",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "Agree the pre-shock total market value and book value in the data cut to the 31 March investment sub-ledger.",
+            "Agree the Art. 115 covered-asset base used in the absorption test to the reserve schedule filed in the business report.",
+            "Agree the opening policy reserve and contingency reserve to the actuarial valuation summary.",
+            "An unreconciled input base makes every downstream result an exception."
+          ],
+          "done": "all pre-shock balances agree to the ledger, the filed reserve schedule and the valuation summary."
+        },
+        {
+          "step": "Draw a documented sample of scenarios",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of scenarios that breached an appetite limit, plus the combined adverse and reverse stress runs.",
+            "Take 4 further scenarios at random with a recorded seed from the remaining library.",
+            "Record population size, seed and selection date in the workpaper.",
+            "Include every scenario whose calibration changed from the prior cycle."
+          ],
+          "done": "the sample is reproducible and covers all breaching, combined, reverse and recalibrated scenarios."
+        },
+        {
+          "step": "Trace each sampled calibration to its external source",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Bloomberg Terminal",
+          "actions": [
+            "For each sampled market shock, pull the same index or curve history for the recorded data window.",
+            "Recompute the stated percentile and compare it to the calibrated shock magnitude.",
+            "Confirm the calibration date pre-dates the Risk Committee approval date for that scenario.",
+            "A shock that cannot be reproduced from its own stated source and window is an exception."
+          ],
+          "done": "each sampled shock reproduces from its stated source, window and percentile, and pre-dates its approval."
+        },
+        {
+          "step": "Re-perform two scenario runs in the model",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Restore two sampled runs by model version and input hash and execute them again.",
+            "Compare post-shock own funds, SMR and ESR to the reported figures.",
+            "Check the shock reached the liability side by inspecting the minimum guarantee cost and lapse output, not only the asset values.",
+            "A difference above 1.0 percentage point or a run that will not restore is an exception."
+          ],
+          "done": "both re-performed runs reproduce within 1.0 percentage point with the liability response confirmed present."
+        },
+        {
+          "step": "Recompute the Art. 115 reserve absorption arithmetic",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each sampled scenario, independently compute the covered-asset valuation loss by category from the shocked market values.",
+            "Recompute absorption as reserve balance ÷ loss and compare to the reported percentage.",
+            "Recompute whether the prescribed drawdown threshold is crossed and compare to the reported status.",
+            "Recompute the residual loss falling to capital and reconcile it to the reported post-shock own funds movement."
+          ],
+          "done": "absorption percentage, drawdown status and residual loss all reproduce and tie to the reported own funds movement."
+        },
+        {
+          "step": "Test the credibility of the assumed management actions",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each limit-breaching scenario, take the assumed actions and check each has a named approval body and a stated lead time.",
+            "Challenge any action requiring a market that the scenario itself closes, and any action assuming a counterparty that the scenario stresses.",
+            "Agree the claimed ratio uplift to a supporting calculation rather than a management estimate.",
+            "An uplift with no calculation behind it is an exception."
+          ],
+          "done": "every assumed action has an approval body, a lead time, a supporting uplift calculation and survives the scenario's own conditions."
+        },
+        {
+          "step": "Trace results into the ORSA and the Board minute",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Compare the scenario figures quoted in the ORSA report to the finalised results pack line by line.",
+            "Confirm the Board minute records the appetite breaches and the endorsed actions.",
+            "Confirm any Board-requested additional scenario was run and reported back with a date.",
+            "A figure that changed between the results pack and the ORSA without a documented reason is an exception."
+          ],
+          "done": "every scenario figure in the ORSA matches the results pack and the Board minute records the breaches and actions."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception with the scenario, the failure and its effect on the reported severity.",
+            "Assign a root cause from the fixed list: calibration unsourced, scenario not run, run not reproducible, shock not propagated to liabilities, action not credible.",
+            "Name an owner and a remediation date; escalate to the CRO the same day where a corrected result would breach an appetite limit.",
+            "Carry every open issue into the next cycle as a mandatory retest row."
+          ],
+          "done": "each exception has an issue, a root cause, an owner, a date and a retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the exception rate over the scenario population against the zero-tolerance thresholds for unrun scenarios and irreproducible runs.",
+            "State the conclusion — effective, effective with exceptions, or ineffective — with workpaper references.",
+            "Have the reviewer, who built and calibrated no scenario in the library, sign and date the workpaper.",
+            "Report to the Risk Committee and the Audit Committee at their next sittings and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states the exception rate, a conclusion and the committee reporting dates."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-030-C45",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Distribution Operations Manager",
+          "value": "Owns the customer intention-confirmation and profile capture at point of sale; Product Filing Specialist owns the form itself because it sits inside the filed statement of business procedures"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Insurance Business Act Art. 123 and Art. 125 (prior authorisation or notification for amendments to the statement of business procedures, policy conditions and premium/reserve calculation methods), Art. 3(1) licensing scope and Art. 315 penalties, checked against the current Ordinance for Enforcement list of matters that may proceed by notification"
+        },
+        "In-scope processes": {
+          "value": "Pre-recommendation customer profiling for variable annuity and other specified insurance contracts: intention sheet capture, financial situation and investment experience capture, profile storage on the application record, and the pre-use gate on any change to the profile form itself"
+        },
+        "In-scope systems": {
+          "app": "Salesforce FSC",
+          "value": "Profile and intention sheet captured on the opportunity record and pushed to the policy administration system with the application; form versions controlled in the document management repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Customer Profile & Intention Confirmation Procedure — mandatory fields, refusal handling, variable annuity investment-experience section, re-confirmation at application, and the Art. 123 basic-document change gate on the form"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance with Regulatory Counsel concurrence on the Art. 123 gate; re-approved on every filed amendment to the statement of business procedures"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per sale — the profile must exist and be dated before the first product recommendation; any change to the profile form needs FSA authorisation under Art. 123 (or a notification under Art. 125) cleared before the new version is used, so the version go-live date is the tracked deadline"
+        },
+        "Deadline reminders configured": {
+          "value": "Form version release calendar with a hard gate flag: the new profile form cannot be published to the field until the authorisation or notification acknowledgement is recorded; reminders at T-60, T-30 and T-10 to the target release date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Signed or e-signed profile and intention sheet, timestamped capture record and the form version in force at capture, retained for the life of the contract plus 5 years"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "workflow/case management tool",
+          "value": "Applications reaching underwriting without a pre-dated profile, and any use of an unauthorised form version, are logged as conduct exceptions with producer, root cause and remediation"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs off remediation of every missing or back-dated profile and every unauthorised form version released to the field"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All variable annuity and specified insurance contract applications submitted in the quarter, by channel and producer, plus every profile form version released in the period"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — an application with no profile, or a profile timestamped after the first recommendation, is a fail; any use of a form version without a recorded FSA authorisation or notification is a reportable breach"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per sale; test runs quarterly over that quarter's applications, with 100% review of the variable annuity subset and of every form version change"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "value": "Reviewer must sit outside Distribution and must not manage any sampled producer"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly profile-capture test workpaper (application population, sample, timestamp analysis, form version trace, exceptions) in the compliance evidence repository under Japan / Market Conduct"
+        },
+        "Regulator-ready documentation": {
+          "value": "Profile completion rate by channel, sampled profile images, form version history with FSA acknowledgement numbers, presentable in an FSA on-site inspection within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager owns the FSA inspection response; Regulatory Counsel clears any admission that an unauthorised form version reached the field"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Fix the mandatory content of the profile and intention sheet",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "List the mandatory fields: purpose of cover, who is to be protected and against what, required benefit amount and term, premium the customer can sustain, and the customer's stated priority between protection and accumulation.",
+            "Add the specified-contract fields for variable annuities: age, income and asset position, investment experience by product type, tolerance for principal loss, and intended holding period against the surrender charge period.",
+            "Mark which fields block submission if blank and which permit a recorded 'declined to answer'.",
+            "Have Regulatory Counsel confirm the field set satisfies Art. 294-2 intention confirmation and the specified-contract suitability rules."
+          ],
+          "done": "a counsel-confirmed field list exists, marking blocking fields and permitted refusals separately."
+        },
+        {
+          "step": "Route any change to the form through the Art. 123 basic-document gate",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Determine for each proposed change whether it amends the statement of business procedures, the policy conditions, or the premium and reserve calculation methods.",
+            "Classify the change as requiring prior FSA authorisation under Art. 123 or as a notification-only item under Art. 125, citing the ordinance provision that supports the classification.",
+            "Prepare the amendment application with the before-and-after text and the reason for the change, and submit through the FSA electronic application and notification system.",
+            "Record the acknowledgement number and the authorisation date on the form version row and hold the release until it is present."
+          ],
+          "done": "the form version row carries a classification with citation and an FSA authorisation or notification acknowledgement before release."
+        },
+        {
+          "step": "Version-control the form and publish it to the field",
+          "by": "Document Management Specialist",
+          "role": "Document Management Specialist",
+          "app": "document management repository",
+          "actions": [
+            "Stamp the approved form with a version number and effective date in the footer of every page.",
+            "Publish it to the agent and broker portal and to the tablet application capture, and withdraw the superseded version on the same date.",
+            "Confirm the superseded version can no longer be opened or printed from the portal.",
+            "Retain every superseded version with its in-force date range so a historic capture can be matched to the form actually used."
+          ],
+          "done": "the new version is live, the old one is withdrawn on the same date, and the version history shows in-force date ranges."
+        },
+        {
+          "step": "Capture the profile before any product is named",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Open the customer record and complete the intention sheet before opening any product illustration — the system blocks illustration launch until the sheet is saved.",
+            "Read each question aloud to the customer and enter their words, not a paraphrase, into the free-text purpose field.",
+            "Where the customer declines to answer a permitted field, record the refusal and the reason rather than leaving the field blank.",
+            "Save the sheet; the system stamps the capture time, the producer code and the form version in force."
+          ],
+          "done": "a saved intention sheet exists with a capture timestamp, producer code and form version, before any illustration was opened."
+        },
+        {
+          "step": "Capture the additional profile a variable annuity demands",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Salesforce FSC",
+          "actions": [
+            "For any specified insurance contract, complete the investment experience grid: products previously held, years of experience and approximate amounts.",
+            "Record the customer's financial position — annual income band, liquid assets, and the proportion of liquid assets the proposed premium represents.",
+            "Record the stated tolerance for loss of principal and the intended holding period, and compare the holding period to the contract's surrender charge schedule.",
+            "Flag for supervisory review any case where the premium exceeds the concentration guideline for the customer's liquid assets or the holding period is shorter than the surrender charge period."
+          ],
+          "done": "the specified-contract section is complete and any concentration or holding-period conflict is flagged for supervisory review."
+        },
+        {
+          "step": "Confirm the captured profile back to the customer",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "DocuSign",
+          "actions": [
+            "Read the completed sheet back to the customer and correct anything they dispute before signature.",
+            "Send the sheet for signature or capture an in-person e-signature with a timestamp.",
+            "Give the customer a copy immediately and record the delivery method and time.",
+            "Where the customer amends an answer at this point, keep both versions rather than overwriting the first."
+          ],
+          "done": "a signed, timestamped sheet exists, a copy is with the customer, and any amendment retains the original answer."
+        },
+        {
+          "step": "Re-confirm intention at application, not just at first meeting",
+          "by": "New Business Case Manager",
+          "role": "New Business Case Manager",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "At application submission, display the earlier intention sheet alongside the product actually applied for.",
+            "Confirm with the customer that the applied-for product still matches the stated intention and record the confirmation with a fresh timestamp.",
+            "Where the product no longer matches, send the case back to the producer for a documented explanation rather than accepting it.",
+            "Attach both the original sheet and the re-confirmation to the application record."
+          ],
+          "done": "every application carries a dated re-confirmation that the product matches the earlier stated intention."
+        },
+        {
+          "step": "Block submission where the profile is incomplete",
+          "by": "Policy Issuance Specialist",
+          "role": "Policy Issuance Specialist",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Configure the new business validation to reject any application without a linked profile whose capture timestamp precedes the illustration timestamp.",
+            "Reject on any blocking field left blank and on any specified-contract application missing the investment experience grid.",
+            "Return the rejection to the producer with the named missing field, not a generic error.",
+            "Log every rejection so repeat offenders surface in the producer scorecard."
+          ],
+          "done": "applications failing the profile validation are rejected with the named missing field and the rejection is logged."
+        },
+        {
+          "step": "Handle the customer who will not provide the information",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Where a customer declines the specified-contract financial information, record the refusal on the sheet with the date.",
+            "Apply the rule that a variable annuity recommendation cannot proceed on a refused financial position — the case moves to execution-only handling or stops.",
+            "Have the producer record what was said to the customer about why the information matters.",
+            "Route refusal cases to the Annuity Suitability Analyst for a decision before the application is accepted."
+          ],
+          "done": "every refusal is recorded, routed for decision, and no recommendation proceeds on a refused financial position."
+        },
+        {
+          "step": "Match every historic capture to the form version then in force",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Load the form version history with in-force date ranges into the warehouse alongside the capture records.",
+            "Join capture timestamp to version date range and flag any capture made on a version not in force at that time.",
+            "Publish the mismatch report weekly to the Producer Compliance Manager.",
+            "Treat a capture on a withdrawn version as a control failure in the portal, not a producer error."
+          ],
+          "done": "a weekly report identifies every capture made on a form version not in force at the capture time."
+        },
+        {
+          "step": "Train the field on the current form and its blocking rules",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "learning management system",
+          "actions": [
+            "Publish a short module on each form version release covering what changed, why, and which fields now block submission.",
+            "Make completion mandatory before the producer's next specified-contract sale and enforce it through the portal.",
+            "Track completion by producer code and chase non-completers weekly.",
+            "Keep the module and its completion records with the form version history."
+          ],
+          "done": "every producer selling specified contracts has completed the module for the version in force."
+        },
+        {
+          "step": "Monitor capture quality, not just capture presence",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "BI/reporting platform",
+          "actions": [
+            "Report weekly on completion rate, refusal rate, average free-text length in the purpose field and the share of sheets that are identical across a producer's cases.",
+            "Investigate any producer whose purpose text is templated across customers — identical wording is a capture failure even when the field is populated.",
+            "Investigate refusal rates materially above the channel average.",
+            "Feed findings into the producer scorecard and the supervision plan."
+          ],
+          "done": "weekly quality metrics are published and every templated-text or high-refusal producer has an open investigation."
+        },
+        {
+          "step": "Remediate the customer where the profile was missed",
+          "by": "Consumer Affairs Manager",
+          "role": "Consumer Affairs Manager",
+          "actions": [
+            "For any policy issued without a valid pre-dated profile, contact the policyholder and complete the profile retrospectively, recording that it is a remediation.",
+            "Re-test the sold product against the completed profile and, where it does not fit, offer cancellation with premium return or a switch, with the offer in writing.",
+            "Record the customer's decision and complete it within 20 business days.",
+            "Never back-date the remediation capture to look like an original."
+          ],
+          "done": "every missed profile has a retrospective capture, a re-test, a written customer offer and a completed decision within 20 business days."
+        },
+        {
+          "step": "Report profile control performance to the compliance committee",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Table quarterly the completion rate by channel, the form version compliance rate, the exception count and the remediation outcomes.",
+            "Name the channels and producers driving the exceptions rather than reporting a company average.",
+            "Record the committee's directed actions with owners and due dates.",
+            "Escalate to the Board any quarter with an unauthorised form version in field use."
+          ],
+          "done": "the committee minute records channel-level performance, named drivers and directed actions with owners."
+        },
+        {
+          "step": "Retain the profile evidence for the contract's life",
+          "by": "Document Management Specialist",
+          "role": "Document Management Specialist",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the signed sheet, the capture metadata and the form version identifier against the policy number.",
+            "Apply the retention label of contract life plus 5 years so the record survives the policy.",
+            "Confirm retrieval by policy number, producer code and capture date works in a single search.",
+            "Link the record to any remediation case raised against the same policy."
+          ],
+          "done": "the profile record is filed against the policy number, labelled for contract life plus 5 years and retrievable in one search."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of applications requiring a profile",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Extract every application submitted in the quarter for variable annuity and other specified insurance contracts, with producer code, channel, submission date and policy number.",
+            "Add applications withdrawn or declined after submission so failures cannot hide behind a non-issue.",
+            "Reconcile the extract count to the new business production report for the quarter and clear differences before sampling.",
+            "Sign and date the population extract."
+          ],
+          "done": "the population reconciles to the new business production report and includes withdrawn and declined cases."
+        },
+        {
+          "step": "Reconcile every application to a profile record",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Join the application population to the profile capture table on policy or opportunity id.",
+            "List applications with no profile at all as automatic exceptions.",
+            "For matched rows, compare capture timestamp to the first illustration timestamp and list any capture that is later.",
+            "Report both lists with counts by channel and producer."
+          ],
+          "done": "every application is matched to a pre-dated profile or listed as an exception, with counts by channel and producer."
+        },
+        {
+          "step": "Draw a documented sample of applications",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of applications from producers with any exception in the prior quarter and 100% of flagged concentration or holding-period conflicts.",
+            "Take 30 further applications at random with a recorded seed across all channels, minimum 50 in total.",
+            "Record population size, seed, sample size and selection date so the draw can be repeated.",
+            "Ensure every channel with production in the quarter appears in the sample."
+          ],
+          "done": "the sample is reproducible, covers every channel and includes all repeat-offender and flagged cases."
+        },
+        {
+          "step": "Re-perform the completeness assessment on each sampled profile",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Open each sampled profile and check every mandatory field against the counsel-confirmed field list without looking at the producer's own compliance flag.",
+            "For specified contracts, check the investment experience grid, income and asset bands, loss tolerance and intended holding period are all present.",
+            "Read the purpose free text and judge whether it records the customer's own words or a template.",
+            "Record a pass or fail per field group with the reason."
+          ],
+          "done": "each sampled profile has an independent field-by-field assessment with a reason recorded for every fail."
+        },
+        {
+          "step": "Trace each sampled capture to the form version in force",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "document management repository",
+          "actions": [
+            "Read the form version identifier stored with each sampled capture.",
+            "Open the version history and confirm that version was in force on the capture date.",
+            "For every version used in the period, open the Art. 123 authorisation or Art. 125 notification acknowledgement and confirm its date precedes the version's go-live date.",
+            "A version used in the field before its acknowledgement date is a reportable breach, not a test exception."
+          ],
+          "done": "every sampled capture used an in-force version and every version in the period has a pre-dated FSA acknowledgement."
+        },
+        {
+          "step": "Verify the signature and customer copy evidence",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "DocuSign",
+          "actions": [
+            "Open the envelope for each sampled sheet and read the signing certificate: signer identity, signature timestamp and IP or in-person capture method.",
+            "Confirm the signature timestamp is on or after the capture timestamp and before the application submission.",
+            "Confirm a copy was delivered to the customer and the delivery method and time are recorded.",
+            "A signature timestamp preceding the capture timestamp indicates a pre-signed blank and is an automatic fail."
+          ],
+          "done": "each sampled sheet has a coherent signature-then-submission timeline and evidenced customer delivery."
+        },
+        {
+          "step": "Test the re-confirmation at application",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "For each sampled application, open the re-confirmation record and compare the product applied for to the stated intention.",
+            "Where the product diverges, confirm a documented explanation exists and was accepted by a supervisor, not by the producer.",
+            "Confirm the re-confirmation timestamp sits between the profile capture and the submission.",
+            "A missing or auto-generated re-confirmation with no customer interaction evidence is an exception."
+          ],
+          "done": "every sampled application has a timestamped re-confirmation and any product divergence is supervisor-explained."
+        },
+        {
+          "step": "Recompute the concentration and holding-period tests",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "actions": [
+            "For each sampled specified-contract case, recompute premium as a percentage of the recorded liquid assets and compare it to the concentration guideline.",
+            "Compare the recorded intended holding period to the contract's surrender charge period from the product specification.",
+            "Confirm every case breaching either test was actually flagged and reviewed before acceptance.",
+            "An unflagged breach is an exception even if the case was ultimately suitable."
+          ],
+          "done": "both tests recompute for every sampled specified-contract case and every breach was flagged before acceptance."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Raise one case per exception with the policy number, producer code, channel and the specific failure.",
+            "Assign a root cause from the fixed list: profile absent, captured after illustration, blocking field blank, templated free text, withdrawn form version, re-confirmation missing.",
+            "Name an owner and a remediation date, and open customer remediation where a policy was issued on an absent or invalid profile.",
+            "Carry every open case into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "each exception has a case, a root cause, an owner, a remediation date and, where a policy issued, a customer remediation."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Compute the exception rate by channel and producer against the zero-tolerance threshold for a missing or late profile.",
+            "State the conclusion — effective, effective with exceptions, or ineffective — with workpaper references.",
+            "Have the reviewer, who sits outside Distribution and manages no sampled producer, sign and date the workpaper.",
+            "Report to the Compliance Committee at its next sitting, escalate any unauthorised form version to the Board, and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states exception rates by channel, a conclusion and the committee reporting date."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-030-C46",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Annuity Suitability Analyst",
+          "value": "Suitability desk analyst decides each recommendation against the best-interest standard; escalation to the Market Conduct / Consumer Compliance Manager and technical support from the Valuation Actuary on the reserved benefit basis"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Insurance Business Act Art. 116 (policy reserves for future obligations calculated by the method stated in the basic documents, with standard valuation interest rate and standard mortality table set by FSA notification), read with the intention-confirmation and information-provision duties and the FSA principles for customer-oriented business conduct"
+        },
+        "In-scope processes": {
+          "value": "Pre-issue suitability review of every variable annuity and specified insurance contract recommendation: profile-to-product fit, guarantee and illustration integrity against the reserved basis, replacement and switching review, and supervisory approval before the application is accepted"
+        },
+        "In-scope systems": {
+          "app": "workflow/case management tool",
+          "value": "Suitability cases queued with the profile, illustration and application; product parameters and reserved basis drawn from the actuarial modelling platform and the filed basic documents"
+        },
+        "Compliance procedure documented": {
+          "value": "Best-Interest Recommendation Review Procedure — fit tests, guarantee integrity check against the Art. 116 reserved basis, replacement scrutiny, decision codes, escalation and customer communication"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and the Chief Product Officer's delegate; re-approved on every amendment to the filed premium and policy-reserve calculation method for an in-scope product"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per sale — the suitability decision must be recorded before the application is accepted into underwriting, with a 2-business-day service standard on the desk and same-day handling for replacement cases"
+        },
+        "Deadline reminders configured": {
+          "value": "Case queue ageing alerts at 1 and 2 business days to the desk supervisor, and an immediate alert on any replacement or over-concentration case entering the queue"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Suitability case file — profile, illustration version, guarantee check, decision code, reviewer identity and rationale — retained for the life of the contract plus 5 years"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "workflow/case management tool",
+          "value": "Applications accepted without a recorded decision, decisions with no written rationale, and illustrations inconsistent with the reserved basis are logged with producer, root cause and remediation"
+        },
+        "Remediation sign-off captured": {
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "value": "Signs off remediation on every overturned decision and every policy issued without a suitability decision"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All suitability cases decided in the quarter plus all in-scope applications accepted into underwriting, so that accepted cases with no decision are visible"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — an in-scope application accepted with no recorded decision is a fail; a decision with no written rationale, or an illustration whose guaranteed benefit is not supported by the filed reserve basis, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per sale; test runs quarterly with 100% review of replacement cases and of every case overturned on appeal, plus a random sample of approvals"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Officer",
+          "value": "Reviewer must not have decided any sampled case nor supervise the deciding analyst"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly suitability review test workpaper (case population, decision re-performance, guarantee-basis trace, exceptions) in the compliance evidence repository under Japan / Market Conduct"
+        },
+        "Regulator-ready documentation": {
+          "value": "Decision log with codes and rationales, sampled case files, and the mapping from each product's illustrated guarantee to its filed Art. 116 reserve basis, producible for an FSA inspection within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager answers FSA conduct queries; the Appointed Actuary answers any question on the reserve basis behind an illustrated guarantee"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Define what the best-interest test actually decides",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Write the test as a fixed set of questions: does the product meet the stated purpose, is the cost justified against a simpler alternative, can the customer sustain the premium, does the term fit the stated horizon, and is the customer able to bear the investment risk.",
+            "Define the decision codes: approved, approved with condition, referred to supervisor, declined.",
+            "State that a recommendation is not in the customer's best interest merely because it is suitable — a cheaper product meeting the same need must be considered and the comparison recorded.",
+            "Have Regulatory Counsel confirm the test against the information-provision and intention-confirmation duties and the customer-oriented conduct principles."
+          ],
+          "done": "a counsel-confirmed question set and decision code list is published and in use on the desk."
+        },
+        {
+          "step": "Publish the reserved basis behind every illustrated guarantee",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "For each in-scope product, extract the Art. 116 policy reserve method as stated in the filed basic documents: valuation method, valuation interest rate and mortality table.",
+            "Mark which products fall under the standard policy reserve using the FSA-notified standard valuation interest rate and standard mortality table, and which use a basic-document method.",
+            "Produce a one-page product fact card per product showing the guaranteed benefits, the minimum guarantee charge, the surrender charge schedule and the reserved basis behind the guarantee.",
+            "Refresh the cards whenever the filed calculation method changes and date-stamp each version."
+          ],
+          "done": "every in-scope product has a dated fact card stating its guaranteed benefits and the Art. 116 basis reserving them."
+        },
+        {
+          "step": "Open the case with the profile, illustration and application together",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Take the case from the queue and confirm it carries the intention sheet, the profile, the illustration version and the draft application.",
+            "Reject incomplete cases back to the producer the same day with the missing item named.",
+            "Note the producer code, channel and whether the case is a replacement or a new relationship.",
+            "Start the 2-business-day clock, or the same-day clock for replacement cases."
+          ],
+          "done": "the case is complete, categorised and clocked, or returned the same day with the missing item named."
+        },
+        {
+          "step": "Test the product against the customer's stated purpose",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "actions": [
+            "Read the purpose text from the intention sheet and state in the case notes what the customer said they wanted.",
+            "Compare the product's core function — accumulation with a minimum guarantee, income for life, death benefit — to that purpose.",
+            "Where the purpose is protection and the product is accumulation-led, record the mismatch and refer rather than approve.",
+            "Record the comparison against at least one simpler or cheaper alternative from the product shelf, naming it."
+          ],
+          "done": "the case notes state the customer's purpose, the product's function, and a named cheaper alternative considered."
+        },
+        {
+          "step": "Test affordability and concentration against the recorded finances",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Compute premium as a percentage of recorded annual income for regular premium cases and as a percentage of liquid assets for single premium cases.",
+            "Compare both to the desk concentration guidelines and record the computed values, not just a pass flag.",
+            "Check the customer retains an emergency reserve after the premium, using the recorded liquid asset figure.",
+            "Refer any case above guideline to the supervisor with the computed figures attached."
+          ],
+          "done": "the case records computed affordability and concentration percentages and any breach is referred with the figures."
+        },
+        {
+          "step": "Check the illustration is consistent with the filed reserve basis",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "actions": [
+            "Compare the guaranteed values on the illustration to the guaranteed values supported by the product's Art. 116 reserved basis on the fact card.",
+            "Confirm the illustration used the current filed premium rate and the current minimum guarantee charge, not a superseded version.",
+            "Confirm any non-guaranteed projection is labelled as such and uses a rate within the approved illustration range.",
+            "Reject to Product any illustration whose guaranteed values exceed what the filed basis reserves — that is a basic-document conflict, not a presentation issue."
+          ],
+          "done": "the illustration's guaranteed values, premium rate and guarantee charge all agree with the current filed basis."
+        },
+        {
+          "step": "Apply extra scrutiny to replacements and switches",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Identify from the customer record and the application whether an existing contract is being surrendered or reduced to fund the new one.",
+            "Pull the existing contract's surrender value, surrender charge remaining, guaranteed rate and any benefit that would be lost.",
+            "Build the side-by-side comparison of the old and new contracts across cost, guarantees and charges over the customer's stated horizon.",
+            "Decline where the customer gives up a higher guaranteed rate for no demonstrated benefit, and record the arithmetic behind the call."
+          ],
+          "done": "every replacement case carries a side-by-side comparison and a decision supported by the surrender and guarantee arithmetic."
+        },
+        {
+          "step": "Apply the vulnerability and age overlays",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Flag cases where the customer is above the desk's senior age threshold, where the surrender charge period extends beyond a plausible horizon, or where a vulnerability indicator was recorded.",
+            "Require a second signature from a supervisor and, for senior cases, evidence that a family member or supporter was present or offered.",
+            "Record the extra steps taken rather than simply raising the flag.",
+            "Decline where the surrender charge period materially exceeds the customer's stated horizon and no adequate reason is recorded."
+          ],
+          "done": "every flagged case shows the extra steps taken and a second supervisory signature."
+        },
+        {
+          "step": "Record the decision with a written rationale",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Set the decision code and write a rationale that names the purpose, the fit, the affordability figures and the alternative considered.",
+            "Attach the illustration version id, the fact card version and the profile capture id to the decision.",
+            "Never record a rationale that would read identically for a different customer — the customer's own facts must appear in it.",
+            "Release the decision to the new business queue with the code visible."
+          ],
+          "done": "each case carries a coded decision, a customer-specific written rationale and links to the illustration, fact card and profile."
+        },
+        {
+          "step": "Escalate contested and borderline decisions",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "Take referrals and producer appeals against declines within 2 business days.",
+            "Re-perform the fit and affordability tests independently before ruling, rather than reviewing the analyst's note.",
+            "Record the ruling, the reasoning and whether the original decision is upheld or overturned.",
+            "Track overturn rates by analyst and by producer and investigate any producer whose appeals are routinely upheld."
+          ],
+          "done": "every referral and appeal is ruled within 2 business days with an independent re-performance recorded."
+        },
+        {
+          "step": "Stop the application where the recommendation fails",
+          "by": "Policy Issuance Specialist",
+          "role": "Policy Issuance Specialist",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Configure new business acceptance to require an approved or conditionally approved suitability decision id on the application.",
+            "Reject any application whose decision is declined or absent, returning the decision reference to the producer.",
+            "Where a condition was attached, confirm the condition is satisfied and evidenced before acceptance.",
+            "Log every rejection with the decision code so producer patterns are visible."
+          ],
+          "done": "no in-scope application is accepted without an approved decision id and satisfied conditions."
+        },
+        {
+          "step": "Tell the customer what was decided and why, where it affects them",
+          "by": "Consumer Affairs Analyst",
+          "role": "Consumer Affairs Analyst",
+          "actions": [
+            "Where a recommendation is declined or altered, write to the customer explaining what changed and why, in plain language.",
+            "For replacement declines, state the specific benefit they would have lost.",
+            "Record the letter and the date sent on the case file.",
+            "Handle any resulting complaint through the complaints process rather than reopening the case informally."
+          ],
+          "done": "every declined or altered recommendation has a dated plain-language letter on the case file."
+        },
+        {
+          "step": "Monitor decision quality across the desk",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "BI/reporting platform",
+          "actions": [
+            "Report weekly on approval rate by analyst, decline rate by producer, replacement volume, average rationale length and the share of rationales reusing identical wording.",
+            "Investigate any analyst approving at a materially higher rate than the desk average.",
+            "Investigate any producer whose replacement share exceeds the channel average by a wide margin.",
+            "Feed findings into the analyst calibration session held monthly."
+          ],
+          "done": "weekly metrics are published and every outlier analyst or producer has an open investigation."
+        },
+        {
+          "step": "Calibrate the desk on real cases every month",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Take five recent cases including at least one decline and one replacement and have every analyst decide them blind.",
+            "Compare the decisions and discuss every divergence against the published question set.",
+            "Update the procedure or the guidance where the divergence came from an ambiguity rather than an error.",
+            "Record attendance and the outcomes as training evidence."
+          ],
+          "done": "a monthly calibration record shows the cases used, the divergences and any guidance change."
+        },
+        {
+          "step": "Retain the suitability case file",
+          "by": "Document Management Specialist",
+          "role": "Document Management Specialist",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the case — profile, illustration, fact card version, comparison worksheets, decision, rationale and any customer letter — against the policy or application number.",
+            "Apply the contract-life-plus-5-years retention label.",
+            "Confirm retrieval by policy number, producer code, analyst and decision code works in a single search.",
+            "Link the case to any complaint or remediation raised on the same policy."
+          ],
+          "done": "each case file is complete, labelled for contract life plus 5 years and retrievable by policy, producer and decision code."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of decisions and accepted applications",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Extract every suitability case decided in the quarter with decision code, analyst, producer, channel and decision timestamp.",
+            "Extract every in-scope application accepted into underwriting in the quarter from the policy administration system.",
+            "Hold both populations — the second exists to expose accepted applications with no decision.",
+            "Sign and date both extracts as complete."
+          ],
+          "done": "both populations are extracted, dated and signed, covering decisions and accepted applications separately."
+        },
+        {
+          "step": "Reconcile accepted applications to recorded decisions",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Join accepted applications to decisions on application id.",
+            "List any accepted application with no decision, with a declined decision, or with a decision timestamped after acceptance as automatic exceptions.",
+            "Confirm conditionally approved cases carry evidence the condition was satisfied before acceptance.",
+            "Report counts by channel and producer."
+          ],
+          "done": "every accepted application matches a pre-dated approved decision or appears on the exception list."
+        },
+        {
+          "step": "Draw a documented sample of decisions",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of replacement cases, 100% of overturned appeals and 100% of senior or vulnerability-flagged cases.",
+            "Take 25 approvals at random with a recorded seed across all analysts, minimum 45 cases in total.",
+            "Record population size, seed, sample size and selection date.",
+            "Ensure every deciding analyst appears in the sample."
+          ],
+          "done": "the sample is reproducible, covers every analyst and includes all replacement, overturned and flagged cases."
+        },
+        {
+          "step": "Re-perform the best-interest decision independently",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "workflow/case management tool",
+          "actions": [
+            "For each sampled case read the profile and the illustration and reach your own decision against the published question set before opening the analyst's rationale.",
+            "Compare your decision to the recorded one; a difference in outcome, and a right outcome supported by the wrong reasoning, are both exceptions.",
+            "Check the rationale names the customer's own purpose, the computed affordability figures and a named alternative.",
+            "Record the re-performance note in the workpaper for every sampled case."
+          ],
+          "done": "each sampled case has an independent decision and a documented comparison to the recorded one."
+        },
+        {
+          "step": "Trace illustrated guarantees to the filed Art. 116 reserve basis",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "For each sampled case, open the illustration and read the guaranteed values, the premium rate and the minimum guarantee charge.",
+            "Open the product's filed basic-document reserve method and confirm the guaranteed values are supported by the valuation interest rate and mortality basis actually reserved.",
+            "Confirm standard-reserve products used the FSA-notified standard valuation interest rate and standard mortality table in force at issue.",
+            "An illustrated guarantee exceeding the reserved basis is a reportable breach, not a test exception."
+          ],
+          "done": "every sampled illustration's guarantees are supported by the filed reserve basis in force at issue."
+        },
+        {
+          "step": "Recompute the affordability and concentration arithmetic",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Recompute premium as a percentage of recorded income and of recorded liquid assets from the profile figures.",
+            "Compare to the values recorded on the case and to the desk guidelines.",
+            "Confirm every guideline breach was referred to the supervisor before approval.",
+            "A recomputed breach that was never referred is an exception regardless of the final outcome."
+          ],
+          "done": "affordability and concentration recompute for every sampled case and every breach shows a prior referral."
+        },
+        {
+          "step": "Re-perform the replacement comparison",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "For each replacement case, pull the surrendered contract's surrender value, remaining surrender charge, guaranteed rate and lost benefits from the administration system.",
+            "Rebuild the cost and guarantee comparison over the customer's stated horizon independently.",
+            "Compare your conclusion to the recorded decision and flag any case where a higher guaranteed rate was given up without a demonstrated benefit.",
+            "Confirm the customer letter was sent where the recommendation was declined or altered."
+          ],
+          "done": "every replacement decision is independently rebuilt and any unjustified give-up of a guarantee is flagged."
+        },
+        {
+          "step": "Test decision timeliness and queue integrity",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute elapsed business days from case creation to decision and compare to the 2-business-day standard, and same-day for replacements.",
+            "Check no case was closed and re-opened to reset the clock, using the case audit trail.",
+            "Recompute appeal turnaround against the 2-business-day standard.",
+            "List every breach of the service standard with its elapsed days."
+          ],
+          "done": "elapsed days recompute for every sampled case and no clock reset appears in the audit trail."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Raise one case per exception with the policy or application number, analyst, producer and the specific failure.",
+            "Assign a root cause from the fixed list: decision absent, rationale generic, affordability breach unreferred, replacement comparison missing, illustration inconsistent with the filed basis, clock reset.",
+            "Name an owner and a remediation date, and open customer remediation where a policy issued on an absent or overturned decision.",
+            "Carry every open case into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "each exception has a case, a root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the exception rate by analyst and by producer against the zero-tolerance threshold for an accepted application with no decision.",
+            "State the conclusion — effective, effective with exceptions, or ineffective — with workpaper references.",
+            "Have the reviewer, who decided no sampled case and supervises no deciding analyst, sign and date the workpaper.",
+            "Report to the Compliance Committee and escalate any illustration-versus-reserve-basis breach to the Appointed Actuary and the Board; file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states exception rates by analyst and producer, a conclusion and the reporting dates."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-030-C47",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Producer Compliance Manager",
+          "value": "Owns the pre-solicitation gate for employed solicitors and agencies under the Art. 294-3 solicitation control system; Producer Licensing Coordinator maintains registration and qualification records"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Insurance Business Act Art. 294-3 (systems and internal rules to ensure sound and appropriate solicitation, including training, monitoring and correction) and Art. 294 (information provision duty), read with the registration requirements for insurance solicitors and the variable insurance sales qualification required for specified insurance contracts"
+        },
+        "In-scope processes": {
+          "value": "Producer onboarding and ongoing eligibility for the Japan life business: solicitor registration, product-specific training and the variable insurance sales qualification, annual continuing education, and the system gate that blocks solicitation without them"
+        },
+        "In-scope systems": {
+          "app": "learning management system",
+          "value": "Training records and qualification expiries held in the LMS and synchronised nightly to the agency/producer management system, which holds the solicitation entitlement flag"
+        },
+        "Compliance procedure documented": {
+          "value": "Producer Eligibility & Training Control Procedure — registration verification, curriculum by product tier, variable annuity qualification gate, annual continuing education, entitlement suspension and reinstatement"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Distribution and the Head of Compliance; re-approved annually and whenever a new product tier or a new qualification requirement is introduced"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Continuous — entitlement must be verified before each producer's first solicitation of a product; qualification expiries and annual continuing education deadlines are tracked per producer with suspension on the day of expiry"
+        },
+        "Deadline reminders configured": {
+          "value": "Automated reminders to producer and manager at 60, 30 and 7 days before a qualification or continuing education deadline, and an automatic entitlement suspension job running on the expiry date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Registration record, course completion records with dates and scores, qualification certificates and entitlement change history retained 5 years after the producer leaves the panel"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any solicitation by an unregistered, unqualified or lapsed producer is logged as a conduct breach with the affected policies listed and a remediation owner"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Distribution",
+          "value": "Signs off the remediation of every lapsed-entitlement case, including the treatment of policies sold during the lapse"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All active producers on the Japan panel during the quarter and all policies they solicited, joined so that each sale is testable against the producer's entitlement on the solicitation date"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any policy solicited by a producer without valid registration, without the required product training, or without the variable insurance sales qualification on the solicitation date is a fail and a reportable conduct breach"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous; test runs quarterly across 100% of sales using an automated entitlement-versus-sale-date join, with a manual sample of 40 producer files for document verification"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Auditor must sit outside Distribution and Distribution Compliance and must not maintain any producer record"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly producer eligibility test workpaper (entitlement join output, sampled producer files, lapse timeline, exceptions) in the compliance evidence repository under Japan / Distribution"
+        },
+        "Regulator-ready documentation": {
+          "value": "Producer register with registration numbers, qualification and training completion by producer, entitlement change history and the solicitation control system description, producible for an FSA inspection within 3 business days"
+        },
+        "Regulator response path": {
+          "value": "Head of Compliance owns the FSA response on solicitation control system adequacy; Regulatory Counsel clears any disclosure that an unqualified producer solicited business"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Define the curriculum tier each product demands",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "actions": [
+            "Map every product on the shelf to a tier: basic protection, medical and living benefits, savings-type, and specified insurance contracts including variable annuities.",
+            "For each tier list the mandatory items: the general solicitor course, the applied course, the product-specific module, and for specified contracts the variable insurance sales qualification.",
+            "State the pass mark and the validity period for each item and where the certificate comes from.",
+            "Have the Head of Compliance approve the map and publish it as the entitlement rule set."
+          ],
+          "done": "every product maps to an approved tier with named mandatory items, pass marks and validity periods."
+        },
+        {
+          "step": "Verify solicitor registration before anything else",
+          "by": "Producer Licensing Coordinator",
+          "role": "Producer Licensing Coordinator",
+          "app": "agency/producer management system",
+          "actions": [
+            "For each new solicitor or agency, record the registration number, the registering entity, the effective date and the product categories the registration covers.",
+            "Confirm the registration is live and covers life insurance solicitation for the company before creating a producer code.",
+            "For agency staff, confirm the agency's own registration and the individual's affiliation with it are both current.",
+            "Reject onboarding where registration is pending — a producer code must not exist ahead of registration."
+          ],
+          "done": "no producer code exists without a verified live registration covering the products to be solicited."
+        },
+        {
+          "step": "Assign the curriculum and hold the entitlement closed",
+          "by": "Learning & Development Specialist",
+          "role": "Learning & Development Specialist",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "On producer code creation, auto-assign the tier curriculum from the entitlement rule set with a completion due date.",
+            "Leave the solicitation entitlement flag closed in the producer management system until every mandatory item is complete.",
+            "Send the producer the learning plan with the items, the due dates and the consequence of non-completion.",
+            "Notify the producer's manager of the assignment so the field knows the producer cannot yet sell."
+          ],
+          "done": "each new producer has an assigned curriculum, a due date, a notified manager and a closed entitlement flag."
+        },
+        {
+          "step": "Deliver the product training with an assessment that can fail people",
+          "by": "Trainer",
+          "role": "Trainer",
+          "app": "learning management system",
+          "actions": [
+            "Deliver the module covering the product's guarantees, charges, surrender charge schedule, the customer profiling duty and the prohibited solicitation acts.",
+            "Set an assessment with a stated pass mark and a limited number of attempts, recording the score on every attempt.",
+            "For specified contracts, cover the investment risk disclosure and the pre-contract document requirements explicitly.",
+            "Record attendance for instructor-led sessions against the producer code, not against a name."
+          ],
+          "done": "each producer has a scored assessment result against their producer code with attempts recorded."
+        },
+        {
+          "step": "Gate variable annuity selling on the specialist qualification",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "agency/producer management system",
+          "actions": [
+            "Require the variable insurance sales qualification certificate for any producer selling specified insurance contracts, recording the certificate number and issue date.",
+            "Store the expiry or renewal date and set the entitlement to variable products to expire with it.",
+            "Confirm the certificate is genuine against the issuing body's record rather than accepting a scan alone.",
+            "Leave the variable product entitlement closed until the certificate is recorded and verified."
+          ],
+          "done": "no producer holds a variable product entitlement without a verified qualification certificate and recorded expiry."
+        },
+        {
+          "step": "Open the entitlement only when every item is satisfied",
+          "by": "Channel Operations Coordinator",
+          "role": "Channel Operations Coordinator",
+          "app": "agency/producer management system",
+          "actions": [
+            "Run the nightly synchronisation from the LMS and set the entitlement flag per product tier only where every mandatory item shows complete and in date.",
+            "Record the entitlement change with a timestamp, the triggering item and the operator or job that made it.",
+            "Publish the entitlement to the quotation and application systems so the block bites at point of sale.",
+            "Report any synchronisation failure to the Producer Compliance Manager the same morning — a failed sync must fail closed."
+          ],
+          "done": "entitlements are set only on complete, in-date curricula, with a timestamped change history and a fail-closed sync."
+        },
+        {
+          "step": "Block the sale at the point of solicitation",
+          "by": "Distribution Operations Manager",
+          "role": "Distribution Operations Manager",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Configure the portal so the product list a producer sees is filtered by their live entitlement — an unentitled product cannot be quoted, not merely warned against.",
+            "Configure the application submission check to re-validate entitlement against the solicitation date, not the submission date.",
+            "Show the producer the reason and the missing item when a product is unavailable to them.",
+            "Log every blocked attempt with producer code, product and timestamp."
+          ],
+          "done": "unentitled products are unquotable in the portal and every blocked attempt is logged."
+        },
+        {
+          "step": "Track expiries and continuing education deadlines per producer",
+          "by": "Producer Licensing Coordinator",
+          "role": "Producer Licensing Coordinator",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Maintain per producer the registration renewal date, the qualification expiry and the annual continuing education deadline.",
+            "Fire reminders to producer and manager at 60, 30 and 7 days before each date.",
+            "Escalate to the regional manager at 7 days with the list of producers who will lose entitlement.",
+            "Report the forward 90-day expiry pipeline weekly to Distribution leadership."
+          ],
+          "done": "every producer has tracked dates, three-stage reminders and a weekly 90-day expiry pipeline report."
+        },
+        {
+          "step": "Suspend entitlement automatically on the expiry date",
+          "by": "Channel Operations Coordinator",
+          "role": "Channel Operations Coordinator",
+          "app": "agency/producer management system",
+          "actions": [
+            "Run the suspension job daily so any lapsed registration, qualification or continuing education closes the entitlement that day, without manual intervention.",
+            "Notify the producer, the manager and Distribution Compliance of every suspension with the reason.",
+            "Confirm the suspension propagated to the portal by checking the affected product is no longer quotable for that producer.",
+            "Record the suspension in the entitlement change history."
+          ],
+          "done": "every lapse produces a same-day automatic suspension, a notification and a verified portal block."
+        },
+        {
+          "step": "Reinstate only on evidence, never on assurance",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "actions": [
+            "Require the completion record, certificate or renewed registration as a document before reinstating.",
+            "Check the document's dates cover the period going forward, and note the lapse period explicitly.",
+            "Reinstate through the same controlled job that suspends, so the change history shows both.",
+            "Investigate any sale dated inside the lapse period before reinstatement is completed."
+          ],
+          "done": "each reinstatement is evidenced by a dated document, recorded in the change history, and preceded by a lapse-period sales check."
+        },
+        {
+          "step": "Reconcile sales against entitlement every week",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Join the week's policies to the entitlement change history on producer code and solicitation date.",
+            "List every policy solicited on a date when the producer lacked the entitlement for that product tier.",
+            "Publish the list to the Producer Compliance Manager and the Head of Compliance the same day.",
+            "Keep the query and its output versioned so a historic week can be re-run unchanged."
+          ],
+          "done": "a weekly reconciliation lists every sale made without a matching live entitlement, published same day."
+        },
+        {
+          "step": "Handle agency panels and their staff turnover",
+          "by": "Agency Relations Manager",
+          "role": "Agency Relations Manager",
+          "app": "agency/producer management system",
+          "actions": [
+            "Require each agency to notify joiners and leavers within 5 business days and reconcile their staff list to your producer records monthly.",
+            "Close entitlements for leavers on notification and investigate any sale after their departure date.",
+            "For multi-carrier agencies, confirm your product training is completed even where the agency has trained on a competitor's equivalent.",
+            "Record the monthly reconciliation and any discrepancy with the agency's response."
+          ],
+          "done": "each agency's staff list reconciles monthly to producer records with leavers' entitlements closed on notification."
+        },
+        {
+          "step": "Feed monitoring findings back into the training",
+          "by": "Instructional Designer",
+          "role": "Instructional Designer",
+          "actions": [
+            "Take the quarter's complaints, mis-selling findings and suitability declines by theme from Market Conduct.",
+            "Rewrite or add training content addressing the top three themes, naming the behaviour to change.",
+            "Assign the revised module to the producers and channels the findings came from, with a deadline.",
+            "Measure whether the theme's finding rate falls in the following quarter and report it."
+          ],
+          "done": "the top three conduct themes each have revised content, a targeted assignment and a measured follow-up rate."
+        },
+        {
+          "step": "Report solicitation control system performance to the committee",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Table quarterly the entitlement compliance rate, the lapse count, sales-during-lapse count, training completion rate and the reconciliation exceptions.",
+            "Name the agencies and channels driving exceptions rather than reporting a panel average.",
+            "Record the committee's directed actions with owners and due dates.",
+            "Escalate to the Board any sale made by an unregistered producer."
+          ],
+          "done": "the committee minute records channel-level performance, named drivers and directed actions with owners."
+        },
+        {
+          "step": "Retain the producer eligibility record",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File per producer the registration record, course completions with scores and dates, qualification certificates and the entitlement change history.",
+            "Apply the retention label of 5 years after panel departure.",
+            "Confirm retrieval by producer code, registration number and product tier works in a single search.",
+            "Link the record to any conduct breach raised against that producer."
+          ],
+          "done": "each producer record is complete, labelled for 5 years after departure and retrievable by producer code and registration number."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of producers and their sales",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "agency/producer management system",
+          "actions": [
+            "Extract every producer active on the Japan panel at any point in the quarter with producer code, registration number, channel and agency.",
+            "Extract every policy solicited in the quarter with producer code, product tier and solicitation date.",
+            "Reconcile the sales count to the new business production report and the producer count to the panel report.",
+            "Sign and date both extracts as complete."
+          ],
+          "done": "both extracts are reconciled to the production and panel reports and signed as complete."
+        },
+        {
+          "step": "Reconcile every sale to a live entitlement on the solicitation date",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Rebuild the entitlement-versus-sale join independently rather than using the operational weekly report.",
+            "For each sale, test whether the producer held a live entitlement for that product tier on the solicitation date using the entitlement change history.",
+            "List every failing sale with producer, product, date and the missing item.",
+            "Compare your list to the operational weekly reports and explain any sale the operational report missed."
+          ],
+          "done": "an independent join lists every sale without a live entitlement and reconciles to the operational reports."
+        },
+        {
+          "step": "Draw a documented sample of producer files",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of producers with a lapse, a suspension or a failing sale in the quarter.",
+            "Take 40 further producers at random with a recorded seed, stratified across employed solicitors and agency staff.",
+            "Record population size, seed, sample size and selection date.",
+            "Include every producer newly onboarded in the quarter selling specified contracts."
+          ],
+          "done": "the sample is reproducible, stratified by channel and covers all lapse and new specified-contract producers."
+        },
+        {
+          "step": "Verify registration for each sampled producer at source",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "For each sampled producer, take the recorded registration number and verify it against the registering body's record rather than the internal field.",
+            "Confirm the registration was live across the whole quarter and covers life insurance solicitation for this company.",
+            "For agency staff, confirm both the agency registration and the individual affiliation were live.",
+            "A producer code active while registration was not live is a reportable breach, not a test exception."
+          ],
+          "done": "every sampled producer's registration is verified at source as live and in scope across the quarter."
+        },
+        {
+          "step": "Re-perform the curriculum completeness check",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Take the approved entitlement rule set and independently list the mandatory items for each sampled producer's entitled tiers.",
+            "Pull the LMS transcript and confirm every item is complete, in date, and passed at the stated pass mark.",
+            "Check the completion date pre-dates the entitlement opening date in the producer management system.",
+            "An entitlement opened before the last completion date is an exception in the synchronisation control."
+          ],
+          "done": "each sampled producer's transcript covers every mandatory item, passed and completed before entitlement opened."
+        },
+        {
+          "step": "Verify the variable insurance sales qualification certificates",
+          "by": "Producer Licensing Coordinator",
+          "role": "Producer Licensing Coordinator",
+          "actions": [
+            "For every sampled producer holding a variable product entitlement, open the stored qualification certificate.",
+            "Verify the certificate number and issue date against the issuing body's record.",
+            "Confirm the recorded expiry matches the certificate and that the variable entitlement expires with it.",
+            "A variable entitlement without a verified certificate, or outliving it, is a reportable breach."
+          ],
+          "done": "every sampled variable entitlement is backed by a source-verified certificate whose expiry governs the entitlement."
+        },
+        {
+          "step": "Recompute the lapse and suspension timing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each lapse in the quarter, recompute the expiry date from the source document — registration renewal, certificate expiry or continuing education deadline.",
+            "Compare it to the suspension timestamp in the entitlement change history and record the days of delay.",
+            "Recompute whether the 60/30/7-day reminders actually fired by checking the notification log.",
+            "List every sale falling inside a lapse window with the days of exposure."
+          ],
+          "done": "every lapse shows a recomputed expiry, a measured suspension delay, evidenced reminders and any in-window sales."
+        },
+        {
+          "step": "Test that the portal block genuinely bites",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "With a controlled test producer code lacking the variable entitlement, attempt to quote a variable annuity in the portal.",
+            "Confirm the product is absent from the list rather than merely warned against, and that submission is refused.",
+            "Repeat after granting and then suspending the entitlement to confirm the block follows the change within the stated sync window.",
+            "Capture screenshots of each attempt into the workpaper."
+          ],
+          "done": "the portal block is demonstrated absent-not-warned in both the unentitled and the suspended states, with screenshots."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception with producer code, agency, the missing item and the policies affected.",
+            "Assign a root cause from the fixed list: registration not verified, entitlement opened early, sync failed open, suspension job late, agency leaver not notified, certificate unverified.",
+            "Name an owner and a remediation date, and decide with Regulatory Counsel how policies sold during a lapse are treated.",
+            "Carry every open issue into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "each exception has an issue, a root cause, an owner, a remediation date and a decision on affected policies."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the entitlement exception rate over 100% of sales and the file exception rate over the sampled producers.",
+            "State the conclusion — effective, effective with exceptions, or ineffective — with workpaper references.",
+            "Have the reviewer, who sits outside Distribution and maintains no producer record, sign and date the workpaper.",
+            "Report to the Compliance Committee, escalate any sale by an unregistered producer to the Board, and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper states both exception rates, a conclusion and the committee reporting date."
+        }
+      ]
+    }
+  ]
+}

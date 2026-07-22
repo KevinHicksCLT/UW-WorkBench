@@ -1,0 +1,2680 @@
+[
+  {
+    "taskId": "d97e129a-926f-440f-a43f-6f660418a322",
+    "roles": [
+      { "roleId": "cmqsck0rn03rambk8wyo584qs", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7", "use": "performed" },
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscol7f1m90mbk8uqz22zfo",
+      "cmqscpcl11nlumbk8wk2yfz1c",
+      "cmqscp2sd1n3ymbk8ke7fihs7"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the vendor record change is documented with date and approver",
+      "Confirm supporting due-diligence evidence is attached and retrievable for audit"
+    ],
+    "checklistSpecific": [
+      "Enter the proposed vendor bank account and routing number change in the ERP vendor master 'Banking Details' tab as a pending edit, not a live update",
+      "Route the pending banking change to a second approver via the maker-checker workflow queue before it posts to the vendor master",
+      "Verify the new bank account against the vendor's original W-9/remittance letter or a callback to a verified vendor phone number, not the number on the change request",
+      "Confirm the checker is not the same user ID who entered the change (system-enforced maker-checker control)",
+      "Record the dual-approval timestamp and approver name in the vendor master change log"
+    ],
+    "testing": [
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "vendor master banking-change audit log",
+        "checkType": "presence",
+        "expected": "Every banking detail change shows a distinct maker and checker user ID with timestamps"
+      }
+    ]
+  },
+  {
+    "taskId": "f36d0cf7-4979-440e-8a31-637dd562748f",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "c8d1d23f-f3bd-4af9-95f3-b9372dfd1813", "use": "performed" },
+      { "appId": "cmqsck0z203zambk8kfrzp0ud", "use": "performed" }
+    ],
+    "standards": ["cmqscp2n71n3ombk805591ug1", "cmqscp2sd1n3ymbk8ke7fihs7"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the vendor record change is documented with date and approver",
+      "Confirm supporting due-diligence evidence is attached and retrievable for audit"
+    ],
+    "checklistSpecific": [
+      "Upload the completed due-diligence questionnaire, W-9, COI, and sanctions screening result into the vendor's folder in the contract/vendor repository",
+      "Tag the archived folder with vendor ID, onboarding date and risk tier",
+      "Apply the document retention schedule and legal-hold flag per the records retention policy",
+      "Confirm the archived package matches the vendor onboarding checklist with no missing items"
+    ],
+    "testing": [
+      {
+        "system": "contract lifecycle management repository",
+        "location": "vendor onboarding folder for the vendor ID",
+        "checkType": "presence",
+        "expected": "Complete onboarding package archived with retention period applied"
+      }
+    ]
+  },
+  {
+    "taskId": "9c6ac170-fd33-4fa4-bd6e-7b55d85a9eb1",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" },
+      { "appId": "cmqsck0z203zambk8kfrzp0ud", "use": "performed" }
+    ],
+    "standards": ["cmqscp2sd1n3ymbk8ke7fihs7"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the vendor record change is documented with date and approver",
+      "Confirm supporting due-diligence evidence is attached and retrievable for audit"
+    ],
+    "checklistSpecific": [
+      "Confirm the vendor master record is active in Coupa/Ariba with a valid vendor ID before notifying the sponsor",
+      "Send the sponsor the vendor ID, approved payment terms and effective date via the procurement system's notification workflow",
+      "Attach the vendor's onboarding summary (COI status, tax form, banking verification) to the confirmation"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "vendor record notification log",
+        "checkType": "presence",
+        "expected": "Sponsor notification sent with vendor ID and effective date after vendor activation"
+      }
+    ]
+  },
+  {
+    "taskId": "9ea3c1a9-6499-45a5-9376-58447a3c5ed1",
+    "roles": [
+      { "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7", "use": "performed" },
+      { "appId": "cmrqex50x000hv8w0nvpm0xga", "use": "performed" }
+    ],
+    "standards": ["cmqscol561m8wmbk8rrhp9138", "cmqscpc8m1nlambk8jq73b416"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the reconciliation was performed by someone independent of vendor invoice entry",
+      "Confirm variances above threshold are documented and resolved"
+    ],
+    "checklistSpecific": [
+      "Pull the vendor statement for each high-volume supplier and match it to the open-item balance in the ERP AP subledger",
+      "Investigate and clear items over the reconciling-item threshold (e.g., unmatched credits, disputed invoices)",
+      "Document the reconciliation in BlackLine with the supporting statement attached",
+      "Obtain sign-off from the Controller for any unreconciled variance above the materiality threshold"
+    ],
+    "testing": [
+      {
+        "system": "BlackLine (Close)",
+        "location": "annual vendor statement reconciliation task for the supplier",
+        "checkType": "presence",
+        "expected": "Reconciliation completed and signed off with variance within threshold or explained"
+      }
+    ]
+  },
+  {
+    "taskId": "f6550452-ea49-4b65-9498-6f8ceaabd3fb",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4", "rel": "Participant" },
+      { "roleId": "cmqsck0rq03w6mbk85tqv0dtz", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7", "use": "performed" }],
+    "standards": ["cmqscp2sd1n3ymbk8ke7fihs7", "cmqscol7f1m90mbk8uqz22zfo"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the vendor record change is documented with date and approver",
+      "Confirm supporting due-diligence evidence is attached and retrievable for audit"
+    ],
+    "checklistSpecific": [
+      "Run the vendor duplicate-check report in the ERP vendor master module by tax ID and legal name before creating a new record",
+      "Enter payment terms, currency and GL default account mapping per the approved vendor category",
+      "Attach the verified W-9/tax form and banking confirmation to the vendor master record",
+      "Route the new vendor master record for Procurement Manager approval before it is set to active status"
+    ],
+    "testing": [
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "vendor master record status field",
+        "checkType": "presence",
+        "expected": "Vendor record approved and active only after duplicate check and documentation attached"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fldo71u6pkfgzsfttoxpv",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7", "use": "performed" }],
+    "standards": ["cmqscp2qe1n3umbk8sm5m3zpe", "cmqscpcl11nlumbk8wk2yfz1c"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the vendor record change is documented with date and approver",
+      "Confirm supporting due-diligence evidence is attached and retrievable for audit"
+    ],
+    "checklistSpecific": [
+      "Run the vendor master 'no activity in 24 months' report to identify dormant vendor accounts",
+      "Run the duplicate-vendor report matching on tax ID, address and banking details to flag duplicates",
+      "Set flagged accounts to inactive status in the ERP vendor master rather than deleting the record",
+      "Record the deactivation reason and date in the vendor master change log"
+    ],
+    "testing": [
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "vendor master inactive-status report",
+        "checkType": "absence",
+        "expected": "No dormant or duplicate vendor accounts remain in active status"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjk250zockfgzgiuz5r3s",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "c8d1d23f-f3bd-4af9-95f3-b9372dfd1813", "use": "performed" }],
+    "standards": ["cmqscp2sd1n3ymbk8ke7fihs7", "cmqscp2p61n3smbk84d3qbexs"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the vendor record change is documented with date and approver",
+      "Confirm supporting due-diligence evidence is attached and retrievable for audit"
+    ],
+    "checklistSpecific": [
+      "Request the certificate of insurance (COI) naming the company as additional insured with the required coverage limits",
+      "Verify COI coverage lines (general liability, E&O/cyber, workers comp) and limits meet the contract's minimum insurance requirements",
+      "Confirm the COI policy period covers the current contract term",
+      "File the COI in the vendor's repository folder and set a renewal reminder before expiry"
+    ],
+    "testing": [
+      {
+        "system": "contract lifecycle management repository",
+        "location": "vendor COI folder",
+        "checkType": "presence",
+        "expected": "Current, unexpired COI on file meeting contracted coverage minimums"
+      }
+    ]
+  },
+  {
+    "taskId": "b64ada2a-ae06-4298-92c3-d15b211c3b48",
+    "roles": [
+      { "roleId": "cmqsck0rq03w6mbk85tqv0dtz", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": ["cmqscp1yg1n2gmbk8f0gkdke6", "cmqscp2sd1n3ymbk8ke7fihs7"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm approval was granted by an authority holder with sufficient delegated limit",
+      "Confirm the approval decision and date are retained as evidence"
+    ],
+    "checklistSpecific": [
+      "Route the vendor onboarding request through the Coupa/Ariba approval workflow to the Procurement Manager",
+      "Confirm finance approval is captured from the budget owner named on the onboarding request",
+      "Verify the approval is recorded against the correct approval-authority tier for the vendor's expected annual spend",
+      "Confirm both approvals are logged with date/time before vendor activation proceeds"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "vendor onboarding approval workflow",
+        "checkType": "presence",
+        "expected": "Finance and Procurement Manager approvals both recorded before vendor is activated"
+      }
+    ]
+  },
+  {
+    "taskId": "fcd2ba8b-0d5f-48a2-b55f-e7d3d4caa771",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": ["cmqscp2sd1n3ymbk8ke7fihs7"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the vendor record change is documented with date and approver",
+      "Confirm supporting due-diligence evidence is attached and retrievable for audit"
+    ],
+    "checklistSpecific": [
+      "Log the intake request in the Coupa/Ariba vendor onboarding queue with sponsor name, business justification and expected annual spend",
+      "Confirm the sponsor has attached a statement of work or purchase description",
+      "Assign a vendor onboarding case number and acknowledge receipt to the sponsor"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "vendor onboarding intake queue",
+        "checkType": "presence",
+        "expected": "Onboarding request logged with case number and sponsor acknowledgment sent"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fldcl1u24kfgz8ms3n5ks",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7", "use": "performed" },
+      { "appId": "cmqsck0z203zxmbk8fvc9wihw", "use": "performed" }
+    ],
+    "standards": ["cmqscp2qe1n3umbk8sm5m3zpe", "cmqscol561m8wmbk8rrhp9138"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the reconciliation was performed by someone independent of vendor master entry",
+      "Confirm variances above threshold are documented and resolved"
+    ],
+    "checklistSpecific": [
+      "Pull the vendor master extract from the ERP and compare address, tax ID and banking fields against the last refresh cycle",
+      "Reconcile vendor count and active/inactive status between the ERP and the procurement system (Coupa/Ariba)",
+      "Correct or flag mismatched fields for vendor-record update",
+      "Publish the refreshed vendor master reconciliation summary to the procurement operations lead"
+    ],
+    "testing": [
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "vendor master data refresh reconciliation log",
+        "checkType": "presence",
+        "expected": "Vendor master reconciled to procurement system with mismatches resolved or flagged"
+      }
+    ]
+  },
+  {
+    "taskId": "63e3831f-e786-43f8-bab9-35b7674b561d",
+    "roles": [
+      { "roleId": "cmqsck0rr03xtmbk8ws1yyyfd", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z203zfmbk81wgqo9sm", "use": "performed" },
+      { "appId": "bfba64d7-d43a-45d4-aac3-342683c98f2f", "use": "performed" }
+    ],
+    "standards": ["cmqscp2sd1n3ymbk8ke7fihs7", "cmqscogeo1m0ombk8igjy1iap"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the vendor record change is documented with date and approver",
+      "Confirm supporting due-diligence evidence is attached and retrievable for audit"
+    ],
+    "checklistSpecific": [
+      "Run the vendor legal name and beneficial owners through the OFAC SDN and sanctions screening tool",
+      "Check the vendor against the federal SAM.gov debarment/exclusion list and any state debarment registers",
+      "Resolve any potential name match as a true or false positive and document the disposition rationale",
+      "Record the screening result, date and screening tool reference in the vendor due-diligence file"
+    ],
+    "testing": [
+      {
+        "system": "NICE Actimize (AML)",
+        "location": "vendor sanctions screening result log",
+        "checkType": "presence",
+        "expected": "Clean or resolved sanctions/debarment screening result recorded before vendor activation"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjju00zizkfgzca3nwk3u",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "bfba64d7-d43a-45d4-aac3-342683c98f2f", "use": "performed" }],
+    "standards": ["cmqscp2sd1n3ymbk8ke7fihs7"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the vendor record change is documented with date and approver",
+      "Confirm supporting due-diligence evidence is attached and retrievable for audit"
+    ],
+    "checklistSpecific": [
+      "Verify the vendor's business registration and good-standing status with the secretary of state",
+      "Confirm the vendor has an active physical business address and working business phone/website",
+      "Cross-check the vendor's D-U-N-S number or business credit file for red flags",
+      "Document legitimacy findings in the vendor due-diligence questionnaire"
+    ],
+    "testing": [
+      {
+        "system": "GRC platform (Archer/ServiceNow GRC)",
+        "location": "vendor due-diligence questionnaire record",
+        "checkType": "presence",
+        "expected": "Business registration and legitimacy checks documented before vendor approval"
+      }
+    ]
+  },
+  {
+    "taskId": "d75c560e-d035-487d-bde3-749c926abaf8",
+    "roles": [
+      { "roleId": "cmqsck0rn03rambk8wyo584qs", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7", "use": "performed" }],
+    "standards": ["cmqscp2sd1n3ymbk8ke7fihs7", "cmqscokx71m8gmbk8fk7wyeay"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the vendor record change is documented with date and approver",
+      "Confirm supporting due-diligence evidence is attached and retrievable for audit"
+    ],
+    "checklistSpecific": [
+      "Collect the signed W-9 (or W-8BEN for foreign vendors) and confirm the legal name matches the tax ID via IRS TIN match",
+      "Verify banking details via a voided check, bank letter, or callback to a verified vendor contact — never the number on the submitted form",
+      "Confirm the legal entity name on the tax form matches the name on the vendor master record exactly",
+      "File verified tax and banking documents in the vendor master attachment folder"
+    ],
+    "testing": [
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "vendor master tax and banking attachments",
+        "checkType": "presence",
+        "expected": "Verified W-9/W-8 and banking confirmation on file matching the vendor master record"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi1xi0a56kfgzk02b5015",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rq03w6mbk85tqv0dtz", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "c8d1d23f-f3bd-4af9-95f3-b9372dfd1813", "use": "performed" },
+      { "appId": "cmqsck0z203zambk8kfrzp0ud", "use": "performed" }
+    ],
+    "standards": ["cmqscp2n71n3ombk805591ug1"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the sourcing step is documented in the sourcing event record",
+      "Confirm the action was completed within the defined sourcing cycle-time target"
+    ],
+    "checklistSpecific": [
+      "Upload the RFP, vendor responses, scoring matrix and award recommendation into the sourcing event folder",
+      "Tag the folder with sourcing event ID, category and award date",
+      "Apply the procurement records retention schedule to the archived event",
+      "Confirm the archived package is complete against the sourcing documentation checklist"
+    ],
+    "testing": [
+      {
+        "system": "contract lifecycle management repository",
+        "location": "sourcing event archive folder",
+        "checkType": "presence",
+        "expected": "Complete sourcing package archived with retention period applied"
+      }
+    ]
+  },
+  {
+    "taskId": "6d405eee-7165-4386-94ce-1e3ba5919a1d",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" },
+      { "appId": "cmqsck0z203zambk8kfrzp0ud", "use": "performed" }
+    ],
+    "standards": ["cmqscp2sd1n3ymbk8ke7fihs7"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the sourcing step is documented in the sourcing event record",
+      "Confirm the action was completed within the defined sourcing cycle-time target"
+    ],
+    "checklistSpecific": [
+      "Schedule finalist vendor presentations and capture attendee notes in the sourcing event workspace",
+      "Contact at least two vendor-supplied references and record responses against a standard reference-check script",
+      "Flag any negative reference or presentation concern for the evaluation committee",
+      "File presentation notes and reference-check records in the sourcing event folder"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "sourcing event reference-check records",
+        "checkType": "presence",
+        "expected": "Reference checks completed and documented for each finalist vendor"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fiuud0no1kfgz8racje0g",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03ugmbk8f21k9c0s", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" },
+      { "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7", "use": "performed" }
+    ],
+    "standards": ["cmqscp1yg1n2gmbk8f0gkdke6"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm approval was granted by an authority holder with sufficient delegated limit",
+      "Confirm the approval decision and date are retained as evidence"
+    ],
+    "checklistSpecific": [
+      "Check the requester's spend authority tier in the procurement policy matrix against the estimated sourcing spend",
+      "Confirm available budget in the ERP cost center before the sourcing event is initiated",
+      "Route for FP&A sign-off if spend exceeds the delegated authority threshold"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "sourcing event budget-check field",
+        "checkType": "presence",
+        "expected": "Budget availability and spend authority confirmed before RFP is issued"
+      }
+    ]
+  },
+  {
+    "taskId": "191464db-3e71-4d71-b9a4-3cc9483675fe",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": ["cmqscp2p61n3smbk84d3qbexs"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the sourcing step is documented in the sourcing event record",
+      "Confirm the action was completed within the defined sourcing cycle-time target"
+    ],
+    "checklistSpecific": [
+      "Document category requirements, technical specifications and required service levels in the sourcing specification template",
+      "Confirm the business sponsor has reviewed and signed off on the specification",
+      "Attach the specification to the sourcing event record in Coupa/Ariba"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "sourcing event specification document",
+        "checkType": "presence",
+        "expected": "Sponsor-approved sourcing specification attached before RFP development begins"
+      }
+    ]
+  },
+  {
+    "taskId": "ab6651b2-ea71-4cbf-849e-781aa8bbd964",
+    "roles": [
+      { "roleId": "cmqsck0rq03w6mbk85tqv0dtz", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" },
+      { "appId": "cmqsck0z203znmbk8n0lfz54r", "use": "performed" }
+    ],
+    "standards": ["cmqscp2p61n3smbk84d3qbexs"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the sourcing step is documented in the sourcing event record",
+      "Confirm the action was completed within the defined sourcing cycle-time target"
+    ],
+    "checklistSpecific": [
+      "Complete the make-vs-buy analysis comparing in-house delivery cost against market pricing",
+      "Assess the supplier market (number of qualified suppliers, competitive intensity) for the category",
+      "Select the sourcing approach (RFP, RFQ, single-source justification) and document the rationale"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "sourcing strategy document in the event record",
+        "checkType": "presence",
+        "expected": "Documented sourcing strategy with make-vs-buy and market assessment on file"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fiumm0njqkfgz467f9imv",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" },
+      { "appId": "cmqsck0z203zambk8kfrzp0ud", "use": "performed" }
+    ],
+    "standards": ["cmqscp2p61n3smbk84d3qbexs"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the sourcing step is documented in the sourcing event record",
+      "Confirm the action was completed within the defined sourcing cycle-time target"
+    ],
+    "checklistSpecific": [
+      "Draft the RFP/RFQ using the standard template including scope, evaluation criteria and required contract terms",
+      "Include mandatory insurance, data security, and SLA requirements sections in the document",
+      "Route the draft RFP to legal/business stakeholders for review before issuance"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "sourcing event RFP/RFQ document",
+        "checkType": "presence",
+        "expected": "Finalized RFP/RFQ document attached with evaluation criteria and required terms"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fkumc1ky5kfgzmevckey7",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the sourcing step is documented in the sourcing event record",
+      "Confirm the action was completed within the defined sourcing cycle-time target"
+    ],
+    "checklistSpecific": [
+      "Confirm each vendor on the distribution list has passed the qualification/due-diligence screen before the RFP is sent",
+      "Issue the RFP through the Coupa/Ariba sourcing event with a defined response deadline",
+      "Confirm receipt acknowledgment from each invited vendor"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "sourcing event vendor distribution list",
+        "checkType": "presence",
+        "expected": "RFP issued only to qualified vendors with receipt confirmed"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjw65153lkfgz9if7wkk2",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rq03w6mbk85tqv0dtz", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" },
+      { "appId": "cmqsck0z203zambk8kfrzp0ud", "use": "performed" }
+    ],
+    "standards": ["cmqscp1yg1n2gmbk8f0gkdke6"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the sourcing step is documented in the sourcing event record",
+      "Confirm the action was completed within the defined sourcing cycle-time target"
+    ],
+    "checklistSpecific": [
+      "Write up the award recommendation memo covering scoring results, pricing, and risk considerations",
+      "Attach the vendor scoring matrix and TCO analysis as supporting exhibits",
+      "State the recommended contract term and any conditions of award"
+    ],
+    "testing": [
+      {
+        "system": "Microsoft 365 / SharePoint",
+        "location": "sourcing event award recommendation memo",
+        "checkType": "presence",
+        "expected": "Award recommendation memo with supporting exhibits on file before approval routing"
+      }
+    ]
+  },
+  {
+    "taskId": "7e59ef6a-c466-4684-baa5-db7567ec164c",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rq03w6mbk85tqv0dtz", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": ["cmqscp2n71n3ombk805591ug1"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the sourcing step is documented in the sourcing event record",
+      "Confirm the action was completed within the defined sourcing cycle-time target"
+    ],
+    "checklistSpecific": [
+      "Record the final sourcing decision, selected vendor and award rationale in the Coupa/Ariba sourcing event record",
+      "Link the decision record to the RFP, scoring matrix and approval evidence",
+      "Close the sourcing event status to 'Awarded' in the system"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "sourcing event decision record",
+        "checkType": "presence",
+        "expected": "Sourcing decision and rationale recorded and event status closed"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fiukq0nimkfgz7s3hkyzq",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the sourcing step is documented in the sourcing event record",
+      "Confirm the action was completed within the defined sourcing cycle-time target"
+    ],
+    "checklistSpecific": [
+      "Capture the business unit's requirement, quantity, and timing in the procurement intake form",
+      "Confirm whether an existing contract or preferred vendor can already fulfill the need",
+      "Log the need as a new sourcing opportunity if no existing contract applies"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "procurement intake form",
+        "checkType": "presence",
+        "expected": "Procurement need documented and checked against existing contracts before sourcing begins"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fiuwf0nomkfgzywrb0mo0",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the sourcing step is documented in the sourcing event record",
+      "Confirm the action was completed within the defined sourcing cycle-time target"
+    ],
+    "checklistSpecific": [
+      "Issue the RFP/RFQ through the sourcing event with the published response deadline",
+      "Log all bidder questions in the Q&A tracker and confirm answers are distributed equally to all bidders",
+      "Extend the deadline formally to all bidders if a material clarification changes scope"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "sourcing event Q&A log",
+        "checkType": "presence",
+        "expected": "All bidder questions answered and distributed equally to every invited vendor"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fkuuv1l24kfgzf9kfciyb",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the sourcing step is documented in the sourcing event record",
+      "Confirm the action was completed within the defined sourcing cycle-time target"
+    ],
+    "checklistSpecific": [
+      "Consolidate incoming supplier questions from the sourcing portal into a single tracker",
+      "Route technical questions to the business SME and commercial questions to procurement for response",
+      "Publish a consolidated Q&A addendum to all bidders simultaneously"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "sourcing event Q&A addendum",
+        "checkType": "presence",
+        "expected": "Consolidated Q&A addendum published to all bidders at the same time"
+      }
+    ]
+  },
+  {
+    "taskId": "aac1d02c-2e93-4e5b-bd2c-7ae1fd71e7b2",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03tambk85afrj0so", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" },
+      { "appId": "cmrqex5al000xv8w0hrqlph1h", "use": "performed" }
+    ],
+    "standards": ["cmqscp2p61n3smbk84d3qbexs"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the sourcing step is documented in the sourcing event record",
+      "Confirm the action was completed within the defined sourcing cycle-time target"
+    ],
+    "checklistSpecific": [
+      "Negotiate unit pricing, payment schedule and volume discounts against the vendor's initial proposal",
+      "Negotiate SLA targets and remedies (service credits, termination rights) into the term sheet",
+      "Document the final negotiated terms in the term sheet before contract drafting begins"
+    ],
+    "testing": [
+      {
+        "system": "Icertis CLM (Contracts)",
+        "location": "negotiated term sheet for the sourcing event",
+        "checkType": "presence",
+        "expected": "Final negotiated commercial terms and SLAs documented before contract drafting"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi1oo0a26kfgz6a1s1yep",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the sourcing step is documented in the sourcing event record",
+      "Confirm the action was completed within the defined sourcing cycle-time target"
+    ],
+    "checklistSpecific": [
+      "Send the standard unsuccessful-bidder notification through the sourcing portal to each non-selected vendor",
+      "Offer a debrief call to bidders who request one, without disclosing competitor pricing",
+      "Record the notification date for each unsuccessful vendor in the sourcing event log"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "sourcing event vendor notification log",
+        "checkType": "presence",
+        "expected": "All unsuccessful vendors notified with notification date recorded"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fjwf2157ckfgz0r02mtiv",
+    "roles": [
+      { "roleId": "cmqsck0rq03w6mbk85tqv0dtz", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" },
+      { "appId": "cmqsck0z203zambk8kfrzp0ud", "use": "performed" }
+    ],
+    "standards": ["cmqscp1yg1n2gmbk8f0gkdke6"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm approval was granted by an authority holder with sufficient delegated limit",
+      "Confirm the approval decision and date are retained as evidence"
+    ],
+    "checklistSpecific": [
+      "Submit the award recommendation package to the procurement governance committee per the approval threshold",
+      "Confirm committee approval is recorded with names, date and any conditions attached",
+      "Update the sourcing event status once governance approval is granted"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "sourcing event governance approval record",
+        "checkType": "presence",
+        "expected": "Governance committee approval recorded before contract execution proceeds"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2flegf1umpkfgz2f76o9ej",
+    "roles": [
+      { "roleId": "cmqsck0rq03w6mbk85tqv0dtz", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z203zambk8kfrzp0ud", "use": "performed" }],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the sourcing step is documented in the sourcing event record",
+      "Confirm the action was completed within the defined sourcing cycle-time target"
+    ],
+    "checklistSpecific": [
+      "Prepare the award recommendation presentation covering scoring, pricing, risk and recommended vendor",
+      "Present to the procurement governance committee or budget owner for decision",
+      "Capture committee feedback and any follow-up actions requested"
+    ],
+    "testing": [
+      {
+        "system": "Microsoft 365 / SharePoint",
+        "location": "award recommendation presentation deck",
+        "checkType": "presence",
+        "expected": "Presentation delivered to governance committee with feedback captured"
+      }
+    ]
+  },
+  {
+    "taskId": "8e81758b-ef8f-49fc-9348-79fed12af092",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the sourcing step is documented in the sourcing event record",
+      "Confirm the action was completed within the defined sourcing cycle-time target"
+    ],
+    "checklistSpecific": [
+      "Build the total-cost-of-ownership model covering price, implementation, support and switching costs for each shortlisted vendor",
+      "Calculate projected savings versus the current-state baseline spend",
+      "Attach the TCO model and savings calculation to the sourcing event record"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "sourcing event TCO analysis attachment",
+        "checkType": "presence",
+        "expected": "TCO and savings analysis on file for each shortlisted vendor"
+      }
+    ]
+  },
+  {
+    "taskId": "23d1c561-c23b-4f92-a524-1da705f848bf",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the sourcing step is documented in the sourcing event record",
+      "Confirm the action was completed within the defined sourcing cycle-time target"
+    ],
+    "checklistSpecific": [
+      "Score each vendor response against the weighted evaluation criteria in the scoring matrix",
+      "Have at least two evaluation committee members independently score before consolidating",
+      "Record and resolve any scoring discrepancies greater than the defined variance threshold"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "sourcing event scoring matrix",
+        "checkType": "presence",
+        "expected": "Independently scored evaluation matrix with discrepancies resolved before ranking"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fle6x1ugmkfgzfq0h2wjv",
+    "roles": [
+      { "roleId": "cmqsck0rq03w6mbk85tqv0dtz", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the sourcing step is documented in the sourcing event record",
+      "Confirm the action was completed within the defined sourcing cycle-time target"
+    ],
+    "checklistSpecific": [
+      "Confirm the top-ranked vendor from the scoring matrix aligns with the TCO and risk assessment",
+      "Document the selection rationale, including any deviation from the highest score",
+      "Update the sourcing event to reflect the selected vendor"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "sourcing event vendor selection field",
+        "checkType": "presence",
+        "expected": "Selected vendor recorded with documented rationale"
+      }
+    ]
+  },
+  {
+    "taskId": "b9303e50-a026-4642-ab80-9efa76edc541",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": ["cmqscp2p61n3smbk84d3qbexs"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the PO or requisition action was approved at the correct authority level",
+      "Confirm supporting documentation is attached to the PO record"
+    ],
+    "checklistSpecific": [
+      "Pull the maverick-spend exception report from Coupa/Ariba for transactions processed outside an approved PO or contract",
+      "Contact the requesting business unit to obtain a retroactive PO or justify the exception",
+      "Route repeat maverick-spend offenders to the Procurement Manager for policy reinforcement",
+      "Close each flagged transaction with a documented resolution"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "maverick-spend exception report",
+        "checkType": "absence",
+        "expected": "No open, unresolved maverick-spend exceptions past the resolution SLA"
+      }
+    ]
+  },
+  {
+    "taskId": "b251bfbc-bb0d-4141-809f-d06700bc01de",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rn03rambk8wyo584qs", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7", "use": "performed" },
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }
+    ],
+    "standards": ["cmqscokx71m8gmbk8fk7wyeay"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the PO or requisition action was approved at the correct authority level",
+      "Confirm supporting documentation is attached to the PO record"
+    ],
+    "checklistSpecific": [
+      "Confirm the three-way match (PO, receipt, invoice) has passed for the final line item",
+      "Confirm final payment has been issued against the PO in the ERP",
+      "Set the PO status to 'Closed' and release any remaining encumbrance/commitment"
+    ],
+    "testing": [
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "purchase order status field",
+        "checkType": "presence",
+        "expected": "PO closed with encumbrance released only after final match and payment"
+      }
+    ]
+  },
+  {
+    "taskId": "6ee75ddb-7ebe-4ec0-ad93-14b0b51470fe",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rq03w6mbk85tqv0dtz", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": ["cmqscp1yg1n2gmbk8f0gkdke6"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the PO or requisition action was approved at the correct authority level",
+      "Confirm supporting documentation is attached to the PO record"
+    ],
+    "checklistSpecific": [
+      "Confirm the requisition value exceeds the procurement policy's competitive-bid threshold",
+      "Run a minimum of three qualified bids through the sourcing event before PO issuance",
+      "Document the threshold determination and sourcing outcome on the requisition record"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "requisition threshold and sourcing record",
+        "checkType": "presence",
+        "expected": "Competitive sourcing with minimum bid count completed for spend above threshold"
+      }
+    ]
+  },
+  {
+    "taskId": "28ac47bc-140e-462f-8bf3-d8d3e218c87c",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": ["cmqscp1yg1n2gmbk8f0gkdke6", "cmqscpcl11nlumbk8wk2yfz1c"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the PO or requisition action was approved at the correct authority level",
+      "Confirm supporting documentation is attached to the PO record"
+    ],
+    "checklistSpecific": [
+      "Confirm the PO approval workflow routes to the approver matching the requester's delegated spend authority tier",
+      "Test that a PO exceeding a single approver's authority auto-escalates to the next tier",
+      "Confirm no user can self-approve a PO above their individually delegated limit"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "PO approval workflow configuration",
+        "checkType": "absence",
+        "expected": "No PO approved by a user exceeding their delegated spend authority"
+      }
+    ]
+  },
+  {
+    "taskId": "523349bd-29ce-4296-8534-08679a9b580b",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" },
+      { "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7", "use": "performed" }
+    ],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the PO or requisition action was approved at the correct authority level",
+      "Confirm supporting documentation is attached to the PO record"
+    ],
+    "checklistSpecific": [
+      "Convert the approved requisition into a PO in Coupa/Ariba referencing the selected vendor and negotiated pricing",
+      "Confirm the PO carries the correct GL account, cost center and delivery terms",
+      "Route the PO through the standard approval workflow before transmission to the vendor"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "purchase order record",
+        "checkType": "presence",
+        "expected": "PO issued with correct vendor, pricing and GL coding after requisition approval"
+      }
+    ]
+  },
+  {
+    "taskId": "fcafc4bc-57f0-4268-a68e-b8979d5b5637",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" },
+      { "appId": "cmqsck0z203znmbk8n0lfz54r", "use": "performed" }
+    ],
+    "standards": ["cmqscpm1y1o32mbk8p8nq98n0"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the PO or requisition action was approved at the correct authority level",
+      "Confirm supporting documentation is attached to the PO record"
+    ],
+    "checklistSpecific": [
+      "Pull the open-PO aging report and compare delivery dates against the agreed schedule",
+      "Flag POs with deliverables past due for follow-up with the vendor",
+      "Update the expected delivery date in the PO record when the vendor confirms a revised schedule"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "open PO aging report",
+        "checkType": "presence",
+        "expected": "Open POs tracked with current expected delivery dates and past-due items flagged"
+      }
+    ]
+  },
+  {
+    "taskId": "2b5774b3-51c3-47e9-95cf-f1513264ebf0",
+    "roles": [
+      { "roleId": "cmqsck0rq03w6mbk85tqv0dtz", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": ["cmqscp1yg1n2gmbk8f0gkdke6"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm approval was granted by an authority holder with sufficient delegated limit",
+      "Confirm the approval decision and date are retained as evidence"
+    ],
+    "checklistSpecific": [
+      "Complete the single-source justification form documenting why competitive bidding was not conducted",
+      "Route the justification and award to the CFO or procurement committee per the single-source approval threshold",
+      "Record the approval and file the justification with the PO/contract record"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "single-source award approval record",
+        "checkType": "presence",
+        "expected": "Documented justification and required approval on file for every single-source award above threshold"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi1pg0a2dkfgzafapn4l3",
+    "roles": [
+      { "roleId": "cmqsck0rn03rambk8wyo584qs", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7", "use": "performed" }],
+    "standards": ["cmqscokx71m8gmbk8fk7wyeay", "cmqscol7f1m90mbk8uqz22zfo"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the PO or requisition action was approved at the correct authority level",
+      "Confirm supporting documentation is attached to the PO record"
+    ],
+    "checklistSpecific": [
+      "Match the invoice quantity and price against the PO and the goods-receipt record in the ERP three-way-match screen",
+      "Investigate and resolve any price or quantity variance before releasing the invoice for payment",
+      "Hold the invoice in exception status until the match passes or a documented override is approved"
+    ],
+    "testing": [
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "three-way match exception queue",
+        "checkType": "absence",
+        "expected": "No invoice released for payment with an unresolved three-way match exception"
+      }
+    ]
+  },
+  {
+    "taskId": "39d406dc-e177-4e56-81f2-b481fbd7c1de",
+    "roles": [
+      { "roleId": "cmqsck0rq03w6mbk85tqv0dtz", "rel": "Owner" },
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z203zambk8kfrzp0ud", "use": "performed" }],
+    "standards": ["cmqscp1yg1n2gmbk8f0gkdke6", "cmqscp24x1n2qmbk893kbwwtg"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the PO or requisition action was approved at the correct authority level",
+      "Confirm supporting documentation is attached to the PO record"
+    ],
+    "checklistSpecific": [
+      "Update the procurement policy document with current PO thresholds and competitive-bid requirements",
+      "Route the updated policy through Legal and Finance for review before publication",
+      "Publish the approved policy to the company intranet/policy library and notify procurement staff"
+    ],
+    "testing": [
+      {
+        "system": "Microsoft 365 / SharePoint",
+        "location": "procurement policy library",
+        "checkType": "presence",
+        "expected": "Current, approved procurement policy published with defined PO thresholds"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi1fn09xjkfgzq0tb2782",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7", "use": "performed" }],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the PO or requisition action was approved at the correct authority level",
+      "Confirm supporting documentation is attached to the PO record"
+    ],
+    "checklistSpecific": [
+      "Record the goods receipt or service acceptance against the PO in the ERP receiving module",
+      "Confirm quantity and condition received match the PO line before confirming receipt",
+      "Flag any short-shipment or damaged-goods discrepancy for vendor resolution"
+    ],
+    "testing": [
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "goods receipt record for the PO",
+        "checkType": "presence",
+        "expected": "Receipt recorded matching PO quantity, or discrepancy flagged"
+      }
+    ]
+  },
+  {
+    "taskId": "1119d4f1-4a83-4fa6-a796-271fc81fdc58",
+    "roles": [
+      { "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmrqex4zw000fv8w0eylcs430", "use": "performed" },
+      { "appId": "cmrqex50x000hv8w0nvpm0xga", "use": "performed" },
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }
+    ],
+    "standards": ["cmqscol561m8wmbk8rrhp9138", "cmqscpc8m1nlambk8jq73b416"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the reconciliation was performed by someone independent of PO entry",
+      "Confirm variances above threshold are documented and resolved"
+    ],
+    "checklistSpecific": [
+      "Pull the open-PO report as of period-end and identify goods/services received but not yet invoiced",
+      "Calculate the accrual amount for each open PO based on receipt quantity and PO price",
+      "Post the accrual journal entry in the GL and attach the open-PO support in BlackLine",
+      "Reverse the prior-period accrual once the vendor invoice is received and matched"
+    ],
+    "testing": [
+      {
+        "system": "BlackLine (Close)",
+        "location": "period-end PO accrual reconciliation task",
+        "checkType": "presence",
+        "expected": "Open-PO accrual calculated, posted and supported by the open-PO report"
+      }
+    ]
+  },
+  {
+    "taskId": "a8857e8a-6cb1-4e6f-b651-d70a482d8a9d",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the PO or requisition action was approved at the correct authority level",
+      "Confirm supporting documentation is attached to the PO record"
+    ],
+    "checklistSpecific": [
+      "Log the disputed or incomplete delivery against the PO with a description of the shortfall",
+      "Notify the vendor of the discrepancy and request a corrective shipment, credit, or replacement",
+      "Hold the associated invoice from payment until the dispute is resolved",
+      "Record the resolution outcome and close the dispute against the PO"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "PO delivery dispute log",
+        "checkType": "absence",
+        "expected": "No open delivery disputes past the vendor resolution SLA"
+      }
+    ]
+  },
+  {
+    "taskId": "5cabc60b-d4ed-4392-a744-cbe93c845434",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the PO or requisition action was approved at the correct authority level",
+      "Confirm supporting documentation is attached to the PO record"
+    ],
+    "checklistSpecific": [
+      "Transmit the approved PO to the vendor via the Coupa/Ariba supplier portal or EDI/email",
+      "Confirm the vendor has acknowledged and accepted the PO terms within the defined SLA window",
+      "Escalate to the Vendor Manager if acceptance is not received within the SLA window"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "PO transmission and acceptance log",
+        "checkType": "presence",
+        "expected": "Vendor acceptance confirmed and recorded for each transmitted PO"
+      }
+    ]
+  },
+  {
+    "taskId": "d08fa67f-5350-4cfb-8e93-d18b5faffad0",
+    "roles": [
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03ugmbk8f21k9c0s", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" },
+      { "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7", "use": "performed" }
+    ],
+    "standards": ["cmqscp1yg1n2gmbk8f0gkdke6"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the PO or requisition action was approved at the correct authority level",
+      "Confirm supporting documentation is attached to the PO record"
+    ],
+    "checklistSpecific": [
+      "Check the requisition's cost center budget balance in the ERP before approving the requisition",
+      "Confirm the requisition amount does not exceed remaining budget for the period",
+      "Route to FP&A for a budget exception approval if the requisition would exceed available budget"
+    ],
+    "testing": [
+      {
+        "system": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "location": "cost center budget balance for the requisition",
+        "checkType": "presence",
+        "expected": "Budget availability confirmed before requisition is approved for sourcing"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhfea004akfgz32nixgvl",
+    "roles": [
+      { "roleId": "cmqsck0ro03t9mbk8y585puqo", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03tambk85afrj0so", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmrqex5al000xv8w0hrqlph1h", "use": "performed" },
+      { "appId": "c8d1d23f-f3bd-4af9-95f3-b9372dfd1813", "use": "performed" }
+    ],
+    "standards": ["cmqscp2n71n3ombk805591ug1", "cmqscp2p61n3smbk84d3qbexs"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the contract action is recorded in the contract management system",
+      "Confirm supporting contract documentation is attached and retrievable"
+    ],
+    "checklistSpecific": [
+      "Upload the fully executed contract, all amendments and the signature page into Icertis CLM",
+      "Tag the contract record with vendor ID, contract type, effective date and expiry date",
+      "Apply the contract retention schedule and set the system reminder for the expiry/renewal date",
+      "Confirm the archived contract matches the negotiated term sheet with no missing signature pages"
+    ],
+    "testing": [
+      {
+        "system": "Icertis CLM (Contracts)",
+        "location": "executed contract record for the vendor",
+        "checkType": "presence",
+        "expected": "Fully executed contract archived with retention schedule and expiry reminder set"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fiwsd0ojwkfgzpnbbk2sn",
+    "roles": [
+      { "roleId": "cmqsck0ro03tambk85afrj0so", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03v5mbk8cz1pbndt", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmrqex5al000xv8w0hrqlph1h", "use": "performed" }],
+    "standards": ["cmqscp2p61n3smbk84d3qbexs"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the contract action is recorded in the contract management system",
+      "Confirm supporting contract documentation is attached and retrievable"
+    ],
+    "checklistSpecific": [
+      "Extract payment terms, late-payment penalties, and price-escalation clauses from the executed contract",
+      "Identify any minimum-commitment or take-or-pay obligations and their trigger conditions",
+      "Document the financial obligations summary in the contract record for finance visibility"
+    ],
+    "testing": [
+      {
+        "system": "Icertis CLM (Contracts)",
+        "location": "contract financial obligations summary field",
+        "checkType": "presence",
+        "expected": "Payment terms, penalties and escalation clauses documented for the contract"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi91j0d9nkfgz7lcdltwh",
+    "roles": [
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmrqex5al000xv8w0hrqlph1h", "use": "performed" },
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }
+    ],
+    "standards": ["cmqscp2qe1n3umbk8sm5m3zpe", "cmqscpm1y1o32mbk8p8nq98n0"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the contract action is recorded in the contract management system",
+      "Confirm supporting contract documentation is attached and retrievable"
+    ],
+    "checklistSpecific": [
+      "Review the vendor's scorecard history and pricing trend against market benchmarks ahead of the renewal date",
+      "Weigh switching costs and supplier-market conditions against the case for re-bidding",
+      "Document the renew-vs-re-bid recommendation with supporting rationale in the contract record"
+    ],
+    "testing": [
+      {
+        "system": "Icertis CLM (Contracts)",
+        "location": "contract renewal recommendation record",
+        "checkType": "presence",
+        "expected": "Documented renew-or-re-bid recommendation on file ahead of the contract renewal date"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fip350ky7kfgze9ucux8y",
+    "roles": [
+      { "roleId": "cmqsck0ro03t9mbk8y585puqo", "rel": "Owner" },
+      { "roleId": "cmqsck0rn03rambk8wyo584qs", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmrqex5al000xv8w0hrqlph1h", "use": "performed" },
+      { "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7", "use": "performed" }
+    ],
+    "standards": ["cmqscp2p61n3smbk84d3qbexs", "cmqscpblr1nk4mbk8zh0ipfpe"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the contract action is recorded in the contract management system",
+      "Confirm supporting contract documentation is attached and retrievable"
+    ],
+    "checklistSpecific": [
+      "Compare the vendor's invoice submission dates against the milestone schedule in the executed contract",
+      "Flag any invoice submitted late against the contracted milestone for follow-up with the vendor",
+      "Record confirmed on-time invoicing status against each milestone in the contract obligations register"
+    ],
+    "testing": [
+      {
+        "system": "Icertis CLM (Contracts)",
+        "location": "contract milestone invoicing tracker",
+        "checkType": "presence",
+        "expected": "Invoice timeliness confirmed against each contract milestone"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fix2m0oqmkfgz7im7f0xo",
+    "roles": [
+      { "roleId": "cmqsck0ro03t9mbk8y585puqo", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03tambk85afrj0so", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmrqex5al000xv8w0hrqlph1h", "use": "performed" }],
+    "standards": ["cmqscp2p61n3smbk84d3qbexs"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the contract action is recorded in the contract management system",
+      "Confirm supporting contract documentation is attached and retrievable"
+    ],
+    "checklistSpecific": [
+      "Read the executed contract's payment schedule and delivery milestones section",
+      "Enter each milestone (description, due date, amount) into the contract management system's milestone tracker",
+      "Cross-check extracted milestones against the negotiated term sheet for completeness"
+    ],
+    "testing": [
+      {
+        "system": "Icertis CLM (Contracts)",
+        "location": "contract milestone tracker",
+        "checkType": "presence",
+        "expected": "All financial milestones from the executed contract captured in the tracker"
+      }
+    ]
+  },
+  {
+    "taskId": "a7fc6b60-fcc7-4c30-989a-0ac30d5babf5",
+    "roles": [
+      { "roleId": "cmqsck0ro03t9mbk8y585puqo", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmrqex5al000xv8w0hrqlph1h", "use": "performed" }],
+    "standards": ["cmqscp2p61n3smbk84d3qbexs"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the contract action is recorded in the contract management system",
+      "Confirm supporting contract documentation is attached and retrievable"
+    ],
+    "checklistSpecific": [
+      "Create the contract record in Icertis CLM with vendor, contract type, term and total contract value",
+      "Attach the executed contract PDF and link it to the associated vendor master record",
+      "Enter key financial milestones and renewal/notice dates into the system fields"
+    ],
+    "testing": [
+      {
+        "system": "Icertis CLM (Contracts)",
+        "location": "contract record fields",
+        "checkType": "presence",
+        "expected": "Contract loaded with vendor link, milestones and renewal date populated"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhfsn0091kfgzntcaol91",
+    "roles": [
+      { "roleId": "cmqsck0ro03t9mbk8y585puqo", "rel": "Owner" },
+      { "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmrqex5al000xv8w0hrqlph1h", "use": "performed" },
+      { "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7", "use": "performed" }
+    ],
+    "standards": ["cmqscp2p61n3smbk84d3qbexs", "cmqscpcjw1nlsmbk8rm9clavs"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the contract action is recorded in the contract management system",
+      "Confirm supporting contract documentation is attached and retrievable"
+    ],
+    "checklistSpecific": [
+      "Update the financial obligations register each time a contract is executed, amended or terminated",
+      "Reconcile the register's total committed value against the ERP's open commitment/encumbrance balance",
+      "Review the register monthly for obligations coming due in the next 90 days"
+    ],
+    "testing": [
+      {
+        "system": "Icertis CLM (Contracts)",
+        "location": "financial obligations register",
+        "checkType": "presence",
+        "expected": "Register current and reconciled to ERP commitment balance"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fi8px0d4ykfgz72fop45x",
+    "roles": [
+      { "roleId": "cmqsck0ro03t9mbk8y585puqo", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmrqex5al000xv8w0hrqlph1h", "use": "performed" }],
+    "standards": ["cmqscp2p61n3smbk84d3qbexs"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the contract action is recorded in the contract management system",
+      "Confirm supporting contract documentation is attached and retrievable"
+    ],
+    "checklistSpecific": [
+      "Run the contract expiry/auto-renew report for contracts within the next 120 days",
+      "Confirm the notice period required to prevent unwanted auto-renewal for each contract",
+      "Notify the contract owner and Vendor Manager ahead of the notice deadline"
+    ],
+    "testing": [
+      {
+        "system": "Icertis CLM (Contracts)",
+        "location": "contract expiry/auto-renew report",
+        "checkType": "presence",
+        "expected": "Upcoming expiry and auto-renew dates flagged ahead of the notice deadline"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fioqg0kqdkfgz5b3ljg7w",
+    "roles": [
+      { "roleId": "cmqsck0ro03t9mbk8y585puqo", "rel": "Owner" },
+      { "roleId": "cmqsck0rn03rambk8wyo584qs", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmrqex5al000xv8w0hrqlph1h", "use": "performed" },
+      { "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7", "use": "performed" }
+    ],
+    "standards": ["cmqscp2p61n3smbk84d3qbexs", "cmqscpblr1nk4mbk8zh0ipfpe"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the contract action is recorded in the contract management system",
+      "Confirm supporting contract documentation is attached and retrievable"
+    ],
+    "checklistSpecific": [
+      "Review the milestone tracker weekly for payment milestones due in the current period",
+      "Confirm each due milestone has a corresponding vendor invoice and deliverable acceptance",
+      "Update milestone status to paid once payment posts in the ERP"
+    ],
+    "testing": [
+      {
+        "system": "Icertis CLM (Contracts)",
+        "location": "contract payment milestone tracker",
+        "checkType": "presence",
+        "expected": "Milestone status current and matched to ERP payment postings"
+      }
+    ]
+  },
+  {
+    "taskId": "45fe982b-de0d-4e3a-9b59-183909afcd77",
+    "roles": [
+      { "roleId": "cmqsck0ro03tambk85afrj0so", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmrqex5al000xv8w0hrqlph1h", "use": "performed" },
+      { "appId": "cmqsck0z103yumbk82kevbe1n", "use": "performed" }
+    ],
+    "standards": ["cmqscp1yg1n2gmbk8f0gkdke6"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm approval was granted by an authority holder with sufficient delegated limit",
+      "Confirm the approval decision and date are retained as evidence"
+    ],
+    "checklistSpecific": [
+      "Confirm the contract's total value exceeds the material-contract threshold requiring CFO sign-off",
+      "Route the contract package through the CFO approval workflow in Icertis CLM before execution",
+      "Confirm CFO e-signature or written sign-off is captured and attached to the contract record"
+    ],
+    "testing": [
+      {
+        "system": "Icertis CLM (Contracts)",
+        "location": "contract CFO approval workflow",
+        "checkType": "presence",
+        "expected": "CFO sign-off recorded for every contract above the material-value threshold"
+      }
+    ]
+  },
+  {
+    "taskId": "2cd47a38-78fe-49ee-8113-819b428add26",
+    "roles": [
+      { "roleId": "cmqsck0ro03t9mbk8y585puqo", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03tambk85afrj0so", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmrqex5al000xv8w0hrqlph1h", "use": "performed" }],
+    "standards": ["cmqscp2p61n3smbk84d3qbexs", "cmqscp1yg1n2gmbk8f0gkdke6"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the contract action is recorded in the contract management system",
+      "Confirm supporting contract documentation is attached and retrievable"
+    ],
+    "checklistSpecific": [
+      "Draft the change order/amendment referencing the original contract clause being modified",
+      "Run the budget-impact analysis comparing the amended value to the original committed value",
+      "Route the amendment through the same approval authority tier as the original contract value",
+      "Link the executed amendment to the parent contract record in Icertis CLM"
+    ],
+    "testing": [
+      {
+        "system": "Icertis CLM (Contracts)",
+        "location": "contract amendment record",
+        "checkType": "presence",
+        "expected": "Amendment approved at the correct authority tier and linked to the parent contract"
+      }
+    ]
+  },
+  {
+    "taskId": "e1c750e5-e554-4a23-a6ab-e4b8d4a2b256",
+    "roles": [
+      { "roleId": "cmqsck0ro03tambk85afrj0so", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03v5mbk8cz1pbndt", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmrqex5al000xv8w0hrqlph1h", "use": "performed" }],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the contract action is recorded in the contract management system",
+      "Confirm supporting contract documentation is attached and retrievable"
+    ],
+    "checklistSpecific": [
+      "Log intake of the contract from Legal or the business unit into the financial review queue",
+      "Confirm the contract package includes the redlined draft and negotiated term sheet",
+      "Assign the review to a Contract Administrator with a target completion date"
+    ],
+    "testing": [
+      {
+        "system": "Icertis CLM (Contracts)",
+        "location": "contract financial review intake queue",
+        "checkType": "presence",
+        "expected": "Contract logged for financial review with assigned reviewer and due date"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2f7xzp01ltbn7ioi6on03v",
+    "roles": [
+      { "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03t9mbk8y585puqo", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmrqex4zw000fv8w0eylcs430", "use": "performed" },
+      { "appId": "cmrqex50x000hv8w0nvpm0xga", "use": "performed" },
+      { "appId": "cmrqex5pj001lv8w0tcfbtiwp", "use": "performed" }
+    ],
+    "standards": ["cmqscol561m8wmbk8rrhp9138"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the reconciliation was performed by someone independent of contract spend entry",
+      "Confirm variances above threshold are documented and resolved"
+    ],
+    "checklistSpecific": [
+      "Pull year-to-date actual spend against the contract from the GL and compare to the committed contract value",
+      "Investigate variances beyond the reconciling-item threshold with the contract owner",
+      "Document the reconciliation result in the contract spend tracker"
+    ],
+    "testing": [
+      {
+        "system": "SAP S/4HANA (GL)",
+        "location": "contract spend-to-commitment reconciliation",
+        "checkType": "presence",
+        "expected": "Actual spend reconciled to committed contract value with variances explained"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2f7yq801m3bn7icemfpqua",
+    "roles": [
+      { "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03t9mbk8y585puqo", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmrqex4zw000fv8w0eylcs430", "use": "performed" },
+      { "appId": "cmrqex5pj001lv8w0tcfbtiwp", "use": "performed" }
+    ],
+    "standards": ["cmqscol561m8wmbk8rrhp9138"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the reconciliation was performed by someone independent of contract spend entry",
+      "Confirm variances above threshold are documented and resolved"
+    ],
+    "checklistSpecific": [
+      "Calculate the variance between actual contract spend and the approved committed amount",
+      "Summarize variances by contract and category in the variance report",
+      "Distribute the variance report to the budget owner and Procurement Manager"
+    ],
+    "testing": [
+      {
+        "system": "Oracle EPM",
+        "location": "contract spend variance report",
+        "checkType": "presence",
+        "expected": "Variance report issued to budget owner covering all contracts with material variance"
+      }
+    ]
+  },
+  {
+    "taskId": "48c8daa2-a92d-4d94-bad4-0e9ece75011a",
+    "roles": [
+      { "roleId": "cmqsck0ro03tambk85afrj0so", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmrqex5al000xv8w0hrqlph1h", "use": "performed" },
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }
+    ],
+    "standards": ["cmqscp1yg1n2gmbk8f0gkdke6", "cmqscp2p61n3smbk84d3qbexs"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the contract action is recorded in the contract management system",
+      "Confirm supporting contract documentation is attached and retrievable"
+    ],
+    "checklistSpecific": [
+      "Confirm the contract's total value and term against the procurement policy's competitive-bid and approval thresholds",
+      "Verify the contract was sourced through the required competitive process for its value tier",
+      "Document the policy-compliance confirmation in the contract record before execution"
+    ],
+    "testing": [
+      {
+        "system": "Icertis CLM (Contracts)",
+        "location": "contract policy-compliance confirmation field",
+        "checkType": "presence",
+        "expected": "Contract confirmed compliant with procurement policy thresholds before execution"
+      }
+    ]
+  },
+  {
+    "taskId": "b163061e-8dfe-4b32-9aad-8199d1d6cfbc",
+    "roles": [
+      { "roleId": "76ed2e40-4911-44ae-993e-3ca1905a02b4", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03t9mbk8y585puqo", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmrqex4zw000fv8w0eylcs430", "use": "performed" }],
+    "standards": ["cmqscpcjw1nlsmbk8rm9clavs"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the contract action is recorded in the contract management system",
+      "Confirm supporting contract documentation is attached and retrievable"
+    ],
+    "checklistSpecific": [
+      "Post the contract commitment/encumbrance entry in the GL for the total committed value",
+      "Set up the accrual schedule for committed payments per the contract's payment terms",
+      "Confirm the posting is linked to the correct cost center and contract reference number"
+    ],
+    "testing": [
+      {
+        "system": "SAP S/4HANA (GL)",
+        "location": "contract commitment posting",
+        "checkType": "presence",
+        "expected": "Commitment and accrual postings recorded and linked to the contract reference"
+      }
+    ]
+  },
+  {
+    "taskId": "76e4db0b-b2f3-42b0-9a78-d3e529ca1d57",
+    "roles": [
+      { "roleId": "cmqsck0ro03t9mbk8y585puqo", "rel": "Owner" },
+      { "roleId": "cmqsck0rn03rambk8wyo584qs", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmrqex5al000xv8w0hrqlph1h", "use": "performed" },
+      { "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7", "use": "performed" }
+    ],
+    "standards": ["cmqscp2p61n3smbk84d3qbexs", "cmqscpblr1nk4mbk8zh0ipfpe"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the contract action is recorded in the contract management system",
+      "Confirm supporting contract documentation is attached and retrievable"
+    ],
+    "checklistSpecific": [
+      "Compare each invoice line's unit rate against the rate card in the executed contract",
+      "Verify any contracted volume discounts or credits were applied correctly on the invoice",
+      "Dispute and hold from payment any invoice line priced above the contracted rate"
+    ],
+    "testing": [
+      {
+        "system": "Icertis CLM (Contracts)",
+        "location": "contract rate card versus invoice comparison",
+        "checkType": "absence",
+        "expected": "No invoice paid at a rate exceeding the contracted rate card"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhoq4046akfgzu73n7j5y",
+    "roles": [
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "c8d1d23f-f3bd-4af9-95f3-b9372dfd1813", "use": "performed" },
+      { "appId": "cmqsck0z203zambk8kfrzp0ud", "use": "performed" }
+    ],
+    "standards": ["cmqscp2n71n3ombk805591ug1", "cmqscpm1y1o32mbk8p8nq98n0"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the performance action is recorded against the supplier's scorecard history",
+      "Confirm the finding or action was communicated to the appropriate stakeholder"
+    ],
+    "checklistSpecific": [
+      "Upload the scorecard, QBR notes and corrective-action log for the review period into the supplier's performance folder",
+      "Tag the archived records with supplier ID and review period",
+      "Apply the retention schedule to the archived performance records"
+    ],
+    "testing": [
+      {
+        "system": "contract lifecycle management repository",
+        "location": "supplier performance archive folder",
+        "checkType": "presence",
+        "expected": "Scorecard and QBR records archived for the review period with retention applied"
+      }
+    ]
+  },
+  {
+    "taskId": "7c1ed664-8683-43fc-bee7-3e41b15ef908",
+    "roles": [
+      { "roleId": "cmqsck0rr03xtmbk8ws1yyyfd", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "bfba64d7-d43a-45d4-aac3-342683c98f2f", "use": "performed" }],
+    "standards": ["cmqscogeo1m0ombk8igjy1iap", "cmqscp2re1n3wmbk8sejk1tv2"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the performance action is recorded against the supplier's scorecard history",
+      "Confirm the finding or action was communicated to the appropriate stakeholder"
+    ],
+    "checklistSpecific": [
+      "Pull the supplier's latest financial statements or credit rating and assess financial stability",
+      "Assess the supplier's business continuity/disaster recovery plan for critical services provided",
+      "Update the supplier's risk tier in the GRC platform based on the assessment outcome",
+      "Escalate any high-risk finding to the Third-Party Risk Manager for a mitigation plan"
+    ],
+    "testing": [
+      {
+        "system": "GRC platform (Archer/ServiceNow GRC)",
+        "location": "supplier risk assessment record",
+        "checkType": "presence",
+        "expected": "Annual financial and continuity risk assessment completed with risk tier updated"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhkdc025jkfgzi6f441nz",
+    "roles": [
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z203znmbk8n0lfz54r", "use": "performed" },
+      { "appId": "cmqsck0z203zxmbk8fvc9wihw", "use": "performed" }
+    ],
+    "standards": ["cmqscpm1y1o32mbk8p8nq98n0", "cmqscpm321o34mbk8ffxa91dz"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the performance action is recorded against the supplier's scorecard history",
+      "Confirm the finding or action was communicated to the appropriate stakeholder"
+    ],
+    "checklistSpecific": [
+      "Apply the approved scorecard weighting to the compiled delivery, quality and cost data per supplier",
+      "Compute the composite rating and compare it against the prior period's rating",
+      "Publish the calculated scorecard to the supplier performance dashboard"
+    ],
+    "testing": [
+      {
+        "system": "Power BI",
+        "location": "supplier scorecard dashboard",
+        "checkType": "presence",
+        "expected": "Composite scorecard ratings calculated and published for the review period"
+      }
+    ]
+  },
+  {
+    "taskId": "05a2a0c5-caa6-4b7f-a950-5727bbf477f4",
+    "roles": [
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z203zxmbk8fvc9wihw", "use": "performed" },
+      { "appId": "cmqsck0z203znmbk8n0lfz54r", "use": "performed" }
+    ],
+    "standards": ["cmqscpm1y1o32mbk8p8nq98n0"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the performance action is recorded against the supplier's scorecard history",
+      "Confirm the finding or action was communicated to the appropriate stakeholder"
+    ],
+    "checklistSpecific": [
+      "Pull on-time delivery and quality-defect data from the ERP/receiving records for each supplier",
+      "Pull invoice pricing versus contracted rate data to compute the cost-performance component",
+      "Consolidate the data into the supplier scorecard input template"
+    ],
+    "testing": [
+      {
+        "system": "Power BI",
+        "location": "supplier performance data extract",
+        "checkType": "presence",
+        "expected": "Delivery, quality and cost data compiled for every scored supplier"
+      }
+    ]
+  },
+  {
+    "taskId": "91515c4b-1189-4686-ba5b-f9216bb242d5",
+    "roles": [
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" },
+      { "appId": "cmrqex5al000xv8w0hrqlph1h", "use": "performed" }
+    ],
+    "standards": ["cmqscpm321o34mbk8ffxa91dz"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the performance action is recorded against the supplier's scorecard history",
+      "Confirm the finding or action was communicated to the appropriate stakeholder"
+    ],
+    "checklistSpecific": [
+      "Define KPIs (on-time delivery %, defect rate, response time) appropriate to the supplier's category",
+      "Set SLA target thresholds and escalation triggers in the scorecard template",
+      "Confirm the KPIs and targets match what is contractually committed in the executed agreement"
+    ],
+    "testing": [
+      {
+        "system": "Icertis CLM (Contracts)",
+        "location": "contract SLA terms versus scorecard template",
+        "checkType": "presence",
+        "expected": "Scorecard KPIs and targets match the contracted SLA terms"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fiwrc0oitkfgz2soaqq5e",
+    "roles": [
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03xtmbk8ws1yyyfd", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "bfba64d7-d43a-45d4-aac3-342683c98f2f", "use": "performed" }],
+    "standards": ["cmqscp2re1n3wmbk8sejk1tv2", "cmqscogeo1m0ombk8igjy1iap"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the performance action is recorded against the supplier's scorecard history",
+      "Confirm the finding or action was communicated to the appropriate stakeholder"
+    ],
+    "checklistSpecific": [
+      "Identify each critical single-source vendor from the concentration-risk report",
+      "Draft a mitigation plan covering alternate-source identification, safety stock, or contractual continuity clauses",
+      "Review the mitigation plan with the business owner and record the sign-off"
+    ],
+    "testing": [
+      {
+        "system": "GRC platform (Archer/ServiceNow GRC)",
+        "location": "single-source vendor mitigation plan",
+        "checkType": "presence",
+        "expected": "Documented mitigation plan on file for every critical single-source vendor"
+      }
+    ]
+  },
+  {
+    "taskId": "8b8c62d2-af83-474b-86a5-d84fc6d311e4",
+    "roles": [
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }],
+    "standards": ["cmqscpm1y1o32mbk8p8nq98n0"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the performance action is recorded against the supplier's scorecard history",
+      "Confirm the finding or action was communicated to the appropriate stakeholder"
+    ],
+    "checklistSpecific": [
+      "Identify suppliers scoring in the top performance tier for the period",
+      "Document the specific performance achievements driving the recognition",
+      "Communicate recognition to the supplier and consider it in future sourcing decisions"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "supplier recognition record",
+        "checkType": "presence",
+        "expected": "Top-tier supplier performance documented and communicated"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fiyc20pb3kfgz8heuosnn",
+    "roles": [
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Owner" },
+      { "roleId": "cmqsck0rq03w6mbk85tqv0dtz", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "bfba64d7-d43a-45d4-aac3-342683c98f2f", "use": "performed" }],
+    "standards": ["cmqscpm1y1o32mbk8p8nq98n0", "cmqscpm321o34mbk8ffxa91dz"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the performance action is recorded against the supplier's scorecard history",
+      "Confirm the finding or action was communicated to the appropriate stakeholder"
+    ],
+    "checklistSpecific": [
+      "Identify suppliers with scores below threshold for two or more consecutive review periods",
+      "Escalate the persistent failure to the Procurement Manager with the performance history attached",
+      "Determine next steps (formal notice, contract remedy, or sourcing re-bid) and record the decision"
+    ],
+    "testing": [
+      {
+        "system": "GRC platform (Archer/ServiceNow GRC)",
+        "location": "supplier escalation record",
+        "checkType": "presence",
+        "expected": "Persistent underperformers escalated with a documented next-step decision"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhko202bxkfgzouij0cwk",
+    "roles": [
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z203znmbk8n0lfz54r", "use": "performed" }],
+    "standards": ["cmqscpm1y1o32mbk8p8nq98n0", "cmqscpm321o34mbk8ffxa91dz"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the performance action is recorded against the supplier's scorecard history",
+      "Confirm the finding or action was communicated to the appropriate stakeholder"
+    ],
+    "checklistSpecific": [
+      "Filter the supplier scorecard dashboard for scores below the defined performance threshold",
+      "Confirm the underperformance is not a data-quality artifact before flagging the supplier",
+      "Add flagged suppliers to the corrective-action tracking list"
+    ],
+    "testing": [
+      {
+        "system": "Power BI",
+        "location": "supplier scorecard dashboard threshold filter",
+        "checkType": "presence",
+        "expected": "Suppliers below the performance threshold identified and added to the tracking list"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhky302hokfgzvdkm5q8b",
+    "roles": [
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03tambk85afrj0so", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmrqex5al000xv8w0hrqlph1h", "use": "performed" },
+      { "appId": "cmqsck0z103yumbk82kevbe1n", "use": "performed" }
+    ],
+    "standards": ["cmqscpm1y1o32mbk8p8nq98n0", "cmqscpm321o34mbk8ffxa91dz"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the performance action is recorded against the supplier's scorecard history",
+      "Confirm the finding or action was communicated to the appropriate stakeholder"
+    ],
+    "checklistSpecific": [
+      "Draft the formal performance improvement notice citing the specific SLA breaches and scorecard history",
+      "Route the notice through Contracts Manager review before it is sent to the vendor",
+      "Send the notice to the vendor and log the delivery date and required response-by date"
+    ],
+    "testing": [
+      {
+        "system": "Icertis CLM (Contracts)",
+        "location": "vendor performance improvement notice log",
+        "checkType": "presence",
+        "expected": "Formal notice issued with SLA breach citation and vendor response deadline recorded"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2flejk1uodkfgz3ayar43t",
+    "roles": [
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "bfba64d7-d43a-45d4-aac3-342683c98f2f", "use": "performed" }],
+    "standards": ["cmqscpm1y1o32mbk8p8nq98n0"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the performance action is recorded against the supplier's scorecard history",
+      "Confirm the finding or action was communicated to the appropriate stakeholder"
+    ],
+    "checklistSpecific": [
+      "Record each corrective action from the QBR or improvement notice with owner and target date",
+      "Link the corrective action to the underlying scorecard metric it addresses",
+      "Confirm the corrective action is visible on the supplier's tracking record"
+    ],
+    "testing": [
+      {
+        "system": "GRC platform (Archer/ServiceNow GRC)",
+        "location": "supplier corrective-action log",
+        "checkType": "presence",
+        "expected": "Corrective actions logged with owner, target date and linked metric"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2flesj1usdkfgz24j4pey2",
+    "roles": [
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Owner" },
+      { "roleId": "cmqsck0rq03w6mbk85tqv0dtz", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z203znmbk8n0lfz54r", "use": "performed" }],
+    "standards": ["cmqscpm1y1o32mbk8p8nq98n0"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the performance action is recorded against the supplier's scorecard history",
+      "Confirm the finding or action was communicated to the appropriate stakeholder"
+    ],
+    "checklistSpecific": [
+      "Compile the top and bottom performing suppliers with scorecard trends into the leadership report",
+      "Summarize open corrective actions and single-source risk items for leadership visibility",
+      "Distribute the report to Procurement Manager and finance leadership"
+    ],
+    "testing": [
+      {
+        "system": "Power BI",
+        "location": "supplier performance leadership report",
+        "checkType": "presence",
+        "expected": "Leadership report published summarizing supplier performance and open risk items"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fiwi30oddkfgzx3um4dgl",
+    "roles": [
+      { "roleId": "cmqsck0rr03xtmbk8ws1yyyfd", "rel": "Owner" },
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z203znmbk8n0lfz54r", "use": "performed" },
+      { "appId": "bfba64d7-d43a-45d4-aac3-342683c98f2f", "use": "performed" }
+    ],
+    "standards": ["cmqscp2re1n3wmbk8sejk1tv2", "cmqscogeo1m0ombk8igjy1iap"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the performance action is recorded against the supplier's scorecard history",
+      "Confirm the finding or action was communicated to the appropriate stakeholder"
+    ],
+    "checklistSpecific": [
+      "Calculate spend concentration by supplier to identify those exceeding the concentration-risk threshold",
+      "Cross-reference concentrated suppliers against the single-source vendor list",
+      "Document the concentration exposure and route to risk mitigation planning if above threshold"
+    ],
+    "testing": [
+      {
+        "system": "GRC platform (Archer/ServiceNow GRC)",
+        "location": "supplier concentration risk report",
+        "checkType": "presence",
+        "expected": "Concentration risk calculated with suppliers above threshold flagged for mitigation"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fleai1uiwkfgz1o1421dp",
+    "roles": [
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z203zambk8kfrzp0ud", "use": "performed" }],
+    "standards": ["cmqscpm0z1o30mbk82q3gqfjo"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the performance action is recorded against the supplier's scorecard history",
+      "Confirm the finding or action was communicated to the appropriate stakeholder"
+    ],
+    "checklistSpecific": [
+      "Prepare the QBR agenda covering scorecard results, open corrective actions and upcoming milestones",
+      "Hold the QBR with the supplier's account team and record meeting minutes",
+      "Capture and assign any new action items arising from the review"
+    ],
+    "testing": [
+      {
+        "system": "Microsoft 365 / SharePoint",
+        "location": "quarterly business review minutes",
+        "checkType": "presence",
+        "expected": "QBR held with minutes and action items recorded for the quarter"
+      }
+    ]
+  },
+  {
+    "taskId": "1bd8661b-4ed8-4f63-bbe4-d971cb3a1997",
+    "roles": [
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z203znmbk8n0lfz54r", "use": "performed" }],
+    "standards": ["cmqscpm321o34mbk8ffxa91dz", "cmqscpm1y1o32mbk8p8nq98n0"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the performance action is recorded against the supplier's scorecard history",
+      "Confirm the finding or action was communicated to the appropriate stakeholder"
+    ],
+    "checklistSpecific": [
+      "Apply the approved scorecard methodology to compare actual delivery/quality data against the contracted SLA targets",
+      "Flag any SLA metric that fell below its contracted target for the period",
+      "Publish the SLA-based score to the supplier scorecard record"
+    ],
+    "testing": [
+      {
+        "system": "Power BI",
+        "location": "supplier SLA scorecard",
+        "checkType": "presence",
+        "expected": "Supplier scored against every contracted SLA metric for the period"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fiy280p67kfgz64rafj4l",
+    "roles": [
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "bfba64d7-d43a-45d4-aac3-342683c98f2f", "use": "performed" }],
+    "standards": ["cmqscpm1y1o32mbk8p8nq98n0"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the performance action is recorded against the supplier's scorecard history",
+      "Confirm the finding or action was communicated to the appropriate stakeholder"
+    ],
+    "checklistSpecific": [
+      "Review the open corrective-action list weekly for items past their target closure date",
+      "Confirm evidence of remediation before marking a corrective action closed",
+      "Escalate overdue corrective actions to the Procurement Manager"
+    ],
+    "testing": [
+      {
+        "system": "GRC platform (Archer/ServiceNow GRC)",
+        "location": "corrective-action tracker",
+        "checkType": "absence",
+        "expected": "No corrective action past its target date remains open without an escalation"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhozr04axkfgz4c76wjqk",
+    "roles": [
+      { "roleId": "cmqsck0rr03y7mbk8318mn3k0", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" },
+      { "appId": "cmrqex5al000xv8w0hrqlph1h", "use": "performed" }
+    ],
+    "standards": ["cmqscpm1y1o32mbk8p8nq98n0", "cmqscp2qe1n3umbk8sm5m3zpe"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the performance action is recorded against the supplier's scorecard history",
+      "Confirm the finding or action was communicated to the appropriate stakeholder"
+    ],
+    "checklistSpecific": [
+      "Attach the supplier's scorecard history and open corrective-action log to the renewal sourcing case",
+      "Factor performance findings into the renew-vs-re-bid recommendation",
+      "Document how performance history influenced the final renewal decision"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "renewal sourcing case record",
+        "checkType": "presence",
+        "expected": "Scorecard history attached and referenced in the renewal decision rationale"
+      }
+    ]
+  },
+  {
+    "taskId": "5f82ad66-70db-40d9-9bd5-b76cafeaa683",
+    "roles": [
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z203zxmbk8fvc9wihw", "use": "performed" },
+      { "appId": "cmqsck0z203znmbk8n0lfz54r", "use": "performed" }
+    ],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the analysis or test result is documented with supporting data",
+      "Confirm findings were reported to the appropriate compliance or leadership stakeholder"
+    ],
+    "checklistSpecific": [
+      "Pull 12 months of spend transactions from the ERP/procurement system by category and vendor",
+      "Identify categories with high spend concentration or fragmented purchasing across multiple vendors",
+      "Flag categories as candidates for consolidated sourcing or contract renegotiation"
+    ],
+    "testing": [
+      {
+        "system": "Power BI",
+        "location": "spend-by-category analysis dashboard",
+        "checkType": "presence",
+        "expected": "Spend analyzed by category with consolidation opportunities identified"
+      }
+    ]
+  },
+  {
+    "taskId": "147624f1-d5b6-4d46-9db5-2b40f7a9004c",
+    "roles": [
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z203zambk8kfrzp0ud", "use": "performed" }],
+    "standards": ["cmqscp2n71n3ombk805591ug1"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the analysis or test result is documented with supporting data",
+      "Confirm findings were reported to the appropriate compliance or leadership stakeholder"
+    ],
+    "checklistSpecific": [
+      "Save the finalized spend analytics report and underlying data extract to the compliance evidence repository",
+      "Tag the archived report with the reporting period and category scope",
+      "Apply the records retention schedule to the archived report"
+    ],
+    "testing": [
+      {
+        "system": "compliance evidence repository",
+        "location": "spend analytics report archive",
+        "checkType": "presence",
+        "expected": "Spend analytics report archived with retention period applied"
+      }
+    ]
+  },
+  {
+    "taskId": "622821dd-8855-4b7c-b203-4bf139720679",
+    "roles": [
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z203znmbk8n0lfz54r", "use": "performed" }],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the analysis or test result is documented with supporting data",
+      "Confirm findings were reported to the appropriate compliance or leadership stakeholder"
+    ],
+    "checklistSpecific": [
+      "Compare category unit pricing against third-party market/index benchmarks",
+      "Identify categories priced materially above benchmark for renegotiation follow-up",
+      "Document the benchmark methodology and data source used"
+    ],
+    "testing": [
+      {
+        "system": "Power BI",
+        "location": "category benchmarking report",
+        "checkType": "presence",
+        "expected": "Spend categories benchmarked against market data with above-benchmark categories flagged"
+      }
+    ]
+  },
+  {
+    "taskId": "c663fc03-66b0-404b-956b-a6cdadca012f",
+    "roles": [
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z203zxmbk8fvc9wihw", "use": "performed" },
+      { "appId": "58db03fe-aafc-4d7d-b89d-4895463475e7", "use": "performed" }
+    ],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the analysis or test result is documented with supporting data",
+      "Confirm findings were reported to the appropriate compliance or leadership stakeholder"
+    ],
+    "checklistSpecific": [
+      "Map each spend transaction to a standard category, vendor and GL account using the spend classification taxonomy",
+      "Review and correct unclassified or 'miscellaneous' transactions above the materiality threshold",
+      "Confirm classified spend reconciles in total to the GL expense accounts"
+    ],
+    "testing": [
+      {
+        "system": "Snowflake Data Cloud",
+        "location": "spend classification table",
+        "checkType": "absence",
+        "expected": "No material spend transactions remain unclassified"
+      }
+    ]
+  },
+  {
+    "taskId": "9369503b-7ce2-47f3-b165-d0596e1028af",
+    "roles": [
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03v1mbk85ybdol40", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmrqex5ti001tv8w0xyji25ii", "use": "performed" },
+      { "appId": "bfba64d7-d43a-45d4-aac3-342683c98f2f", "use": "performed" }
+    ],
+    "standards": ["cmqscp27y1n2wmbk8jikb5gah", "cmqscofu51lzkmbk898prv041"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the analysis or test result is documented with supporting data",
+      "Confirm findings were reported to the appropriate compliance or leadership stakeholder"
+    ],
+    "checklistSpecific": [
+      "Map applicable procurement regulations and internal policy requirements to the current procurement process",
+      "Sample recent procurement transactions to test adherence to competitive-bid and approval requirements",
+      "Document the compliance assessment outcome and any gaps identified"
+    ],
+    "testing": [
+      {
+        "system": "AuditBoard",
+        "location": "procurement regulatory compliance assessment",
+        "checkType": "presence",
+        "expected": "Compliance assessment documented against applicable procurement regulations"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fixj00owjkfgzp6quef39",
+    "roles": [
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" },
+      { "appId": "cmqsck0z203zxmbk8fvc9wihw", "use": "performed" }
+    ],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the analysis or test result is documented with supporting data",
+      "Confirm findings were reported to the appropriate compliance or leadership stakeholder"
+    ],
+    "checklistSpecific": [
+      "Run the report for spend transactions processed without an approved PO or against an expired contract",
+      "Filter for repeat offenders by requester or business unit",
+      "Route flagged transactions to Procurement Compliance for resolution"
+    ],
+    "testing": [
+      {
+        "system": "Coupa / SAP Ariba (Procurement)",
+        "location": "maverick spend identification report",
+        "checkType": "presence",
+        "expected": "Off-contract and no-PO spend transactions identified and routed for resolution"
+      }
+    ]
+  },
+  {
+    "taskId": "d6c19a87-e192-4b6c-8e10-4ad92bc2662a",
+    "roles": [
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Owner" },
+      { "roleId": "cmqsck0rq03w6mbk85tqv0dtz", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmqsck0z203znmbk8n0lfz54r", "use": "performed" }],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the analysis or test result is documented with supporting data",
+      "Confirm findings were reported to the appropriate compliance or leadership stakeholder"
+    ],
+    "checklistSpecific": [
+      "Refresh the procurement KPI dashboard with current-period spend, savings, and cycle-time metrics",
+      "Confirm data reconciles to the source spend and sourcing systems before publishing",
+      "Publish the dashboard to finance and business leadership on the standard schedule"
+    ],
+    "testing": [
+      {
+        "system": "Power BI",
+        "location": "procurement KPI dashboard",
+        "checkType": "presence",
+        "expected": "Current-period procurement KPI dashboard published and reconciled to source data"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fixs00p0ckfgzdtzj8ezc",
+    "roles": [
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Owner" },
+      { "roleId": "9c2525d6-1473-4984-a7d0-dad70a72884a", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z203zxmbk8fvc9wihw", "use": "performed" },
+      { "appId": "cmqsck0z203znmbk8n0lfz54r", "use": "performed" }
+    ],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the analysis or test result is documented with supporting data",
+      "Confirm findings were reported to the appropriate compliance or leadership stakeholder"
+    ],
+    "checklistSpecific": [
+      "Calculate the price differential between maverick-spend transactions and the contracted/negotiated rate",
+      "Total the leakage amount by category and business unit",
+      "Include the leakage quantification in the procurement compliance report"
+    ],
+    "testing": [
+      {
+        "system": "Power BI",
+        "location": "savings leakage calculation",
+        "checkType": "presence",
+        "expected": "Savings leakage from maverick spend quantified by category"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhyt908rakfgzv2b7r53o",
+    "roles": [
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Owner" },
+      { "roleId": "cmqsck0rq03w6mbk85tqv0dtz", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "bfba64d7-d43a-45d4-aac3-342683c98f2f", "use": "performed" },
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }
+    ],
+    "standards": ["cmqscp1zj1n2imbk8iolmq0sk", "cmqscpcl11nlumbk8wk2yfz1c"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the analysis or test result is documented with supporting data",
+      "Confirm findings were reported to the appropriate compliance or leadership stakeholder"
+    ],
+    "checklistSpecific": [
+      "Investigate each flagged policy or SoD exception to root cause (system control gap vs. one-off error)",
+      "Document the remediation action taken for each exception in the GRC exception record",
+      "Confirm the exception is closed only after remediation evidence is attached"
+    ],
+    "testing": [
+      {
+        "system": "GRC platform (Archer/ServiceNow GRC)",
+        "location": "procurement compliance exception log",
+        "checkType": "absence",
+        "expected": "No procurement compliance exception remains open without documented remediation"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fiy9z0paakfgz3sljwypf",
+    "roles": [
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03v1mbk85ybdol40", "rel": "Participant" }
+    ],
+    "apps": [{ "appId": "cmrqex5ti001tv8w0xyji25ii", "use": "performed" }],
+    "standards": ["cmqscofu51lzkmbk898prv041"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the analysis or test result is documented with supporting data",
+      "Confirm findings were reported to the appropriate compliance or leadership stakeholder"
+    ],
+    "checklistSpecific": [
+      "Compile the sample testing results with pass/fail counts by control area",
+      "Summarize root causes for any failed samples and planned remediation",
+      "Publish the compliance test results report to Procurement leadership and Internal Audit"
+    ],
+    "testing": [
+      {
+        "system": "AuditBoard",
+        "location": "procurement compliance test results report",
+        "checkType": "presence",
+        "expected": "Test results report published with pass/fail counts and remediation summary"
+      }
+    ]
+  },
+  {
+    "taskId": "8617033b-cacd-4555-bfa6-0bc075d4f1c5",
+    "roles": [
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Owner" },
+      { "roleId": "cmqsck0rq03w6mbk85tqv0dtz", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmqsck0z203znmbk8n0lfz54r", "use": "performed" },
+      { "appId": "cmqsck0z203zxmbk8fvc9wihw", "use": "performed" }
+    ],
+    "standards": [],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the analysis or test result is documented with supporting data",
+      "Confirm findings were reported to the appropriate compliance or leadership stakeholder"
+    ],
+    "checklistSpecific": [
+      "Compare realized savings booked in the GL/spend system against the savings projected at sourcing award",
+      "Calculate the realization rate by category and sourcing initiative",
+      "Publish the savings realization report to finance leadership"
+    ],
+    "testing": [
+      {
+        "system": "Power BI",
+        "location": "savings realization report",
+        "checkType": "presence",
+        "expected": "Realized savings compared to projected savings by sourcing initiative"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fiy170p5hkfgztkiyap89",
+    "roles": [
+      { "roleId": "cmqsck0rp03v1mbk85ybdol40", "rel": "Owner" },
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmrqex5ti001tv8w0xyji25ii", "use": "performed" },
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscofu51lzkmbk898prv041",
+      "cmqscpcl11nlumbk8wk2yfz1c",
+      "cmqscol7f1m90mbk8uqz22zfo"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the analysis or test result is documented with supporting data",
+      "Confirm findings were reported to the appropriate compliance or leadership stakeholder"
+    ],
+    "checklistSpecific": [
+      "Draw a risk-based sample of procurement transactions for the test period",
+      "Test each sampled transaction for competitive-bid compliance, approval-authority adherence, and requester/approver segregation",
+      "Record pass/fail results and supporting evidence for each sampled transaction in AuditBoard"
+    ],
+    "testing": [
+      {
+        "system": "AuditBoard",
+        "location": "procurement transaction testing workpaper",
+        "checkType": "presence",
+        "expected": "Sampled transactions tested for policy and SoD compliance with results recorded"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fhz3808ubkfgzhnqetxhy",
+    "roles": [
+      { "roleId": "cmqsck0rn03rsmbk8cr7zj5ho", "rel": "Owner" },
+      { "roleId": "cmqsck0rq03w6mbk85tqv0dtz", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "bfba64d7-d43a-45d4-aac3-342683c98f2f", "use": "performed" },
+      { "appId": "cmqsck0z103yombk8hd1ppdcy", "use": "performed" }
+    ],
+    "standards": ["cmqscp1zj1n2imbk8iolmq0sk", "cmqscpcjw1nlsmbk8rm9clavs"],
+    "regs": [],
+    "checklistGeneric": [
+      "Confirm the analysis or test result is documented with supporting data",
+      "Confirm findings were reported to the appropriate compliance or leadership stakeholder"
+    ],
+    "checklistSpecific": [
+      "Draft the revised control (e.g., additional approval step, system edit check) to address the identified exception root cause",
+      "Route the control update through Procurement Manager and Compliance for approval",
+      "Publish the updated control and confirm it is configured in the procurement system"
+    ],
+    "testing": [
+      {
+        "system": "GRC platform (Archer/ServiceNow GRC)",
+        "location": "procurement control library",
+        "checkType": "presence",
+        "expected": "Updated control approved, published and configured in the procurement system"
+      }
+    ]
+  }
+]
