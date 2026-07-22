@@ -21,7 +21,14 @@ export function registerTemplateRoutes(router: Router): void {
         orderBy: [{ kind: 'asc' }, { sortOrder: 'asc' }],
         include: {
           keys: { orderBy: { sortOrder: 'asc' } },
-          _count: { select: { nodeLinks: true, standardLinks: true, regulationLinks: true } },
+          _count: {
+            select: {
+              nodeLinks: true,
+              standardLinks: true,
+              regulationLinks: true,
+              complianceLinks: true,
+            },
+          },
         },
       });
       res.json({
@@ -43,6 +50,7 @@ export function registerTemplateRoutes(router: Router): void {
             tasks: t._count.nodeLinks,
             standards: t._count.standardLinks,
             regulations: t._count.regulationLinks,
+            compliance: t._count.complianceLinks,
           },
         })),
       });
@@ -265,6 +273,31 @@ export function registerTemplateRoutes(router: Router): void {
           },
         });
       }
+      if (type === 'compliance') {
+        // Regulation + jurisdiction filters for the compliance register:
+        // jurisdictions come from the L3 source rows linked to any register
+        // regulation (an item covers a jurisdiction through its parent).
+        const [regs, jurRows] = await Promise.all([
+          prisma.complianceRegulation.findMany({
+            where: { companyId },
+            orderBy: { regCode: 'asc' },
+            select: { id: true, regCode: true, name: true },
+          }),
+          prisma.regulatoryRequirement.findMany({
+            where: { companyId, complianceRegulationId: { not: null } },
+            select: { jurisdiction: { select: { id: true, name: true } } },
+            distinct: ['jurisdictionId'],
+          }),
+        ]);
+        return res.json({
+          facets: {
+            regulations: regs.map((r) => ({ id: r.id, name: `${r.regCode} · ${r.name}` })),
+            jurisdictions: jurRows
+              .map((r) => r.jurisdiction)
+              .sort((a, b) => a.name.localeCompare(b.name)),
+          },
+        });
+      }
       const rows = await prisma.regulatoryRequirement.findMany({
         where: { companyId, status: 'ACTIVE' },
         select: { regime: true, jurisdiction: { select: { id: true, name: true } } },
@@ -354,6 +387,55 @@ export function registerTemplateRoutes(router: Router): void {
             id: s.id,
             name: s.name,
             path: [s.department, s.category].filter(Boolean).join(' › '),
+          })),
+          meta: { total, matching },
+        });
+      }
+      if (type === 'compliance') {
+        // Compliance items in execution order (itemCode = REG-###-C## — the
+        // C-sequence is the order the steps take place). Jurisdiction filter
+        // walks through the parent regulation's L3 source rows. The register
+        // is a bounded 4,089-row set of slim rows, so the picker loads it in
+        // FULL (grouped + collapsible client-side) — no truncated "first 50".
+        const takeAll = Math.min(Number(req.query.take) || 5000, 5000);
+        const regulationId = str('regulationId');
+        const complianceJur = str('jurisdictionId');
+        const where = {
+          companyId,
+          ...(regulationId ? { regulationId } : {}),
+          ...(complianceJur
+            ? { regulation: { requirements: { some: { jurisdictionId: complianceJur } } } }
+            : {}),
+          ...(q
+            ? {
+                OR: [
+                  { name: { contains: q, mode: 'insensitive' as const } },
+                  { itemCode: { contains: q, mode: 'insensitive' as const } },
+                  { regulation: { name: { contains: q, mode: 'insensitive' as const } } },
+                ],
+              }
+            : {}),
+        };
+        const [items, matching, total] = await Promise.all([
+          prisma.complianceItem.findMany({
+            where,
+            orderBy: { itemCode: 'asc' },
+            take: takeAll,
+            select: {
+              id: true,
+              itemCode: true,
+              name: true,
+              regulation: { select: { regCode: true, name: true } },
+            },
+          }),
+          prisma.complianceItem.count({ where }),
+          prisma.complianceItem.count({ where: { companyId } }),
+        ]);
+        return res.json({
+          subjects: items.map((i) => ({
+            id: i.id,
+            name: `${i.itemCode.replace(`${i.regulation.regCode}-`, '')} — ${i.name}`,
+            path: `${i.regulation.regCode} · ${i.regulation.name}`,
           })),
           meta: { total, matching },
         });

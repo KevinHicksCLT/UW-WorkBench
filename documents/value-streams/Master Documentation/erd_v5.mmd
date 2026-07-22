@@ -400,6 +400,28 @@ erDiagram
     boolean suppressed
     int sortOrder
   }
+  ComplianceItemWorkTemplate {
+    string status "NEW — compliance-item plan pattern selection"
+    string id PK
+    string companyId FK
+    string complianceItemId FK
+    string templateId FK
+  }
+  ComplianceItemTemplateAnswer {
+    string status "NEW — per-compliance-item value (same shape)"
+    string id PK
+    string companyId FK
+    string complianceItemId FK
+    string templateKeyId FK "nullable"
+    string customKey
+    string kind "CHECKLIST | TEST (custom step block)"
+    string value
+    string applicationId FK
+    string roleId FK
+    string deliverableId FK
+    boolean suppressed
+    int sortOrder
+  }
   NodeStandardEvidence {
     string status "NEW — task-local checklist/test steps for an inherited standard"
     string id PK
@@ -1266,6 +1288,10 @@ erDiagram
   WorkTemplateKey |o--o{ StandardTemplateAnswer : ""
   RegulatoryRequirement ||--o{ RegulationTemplateAnswer : ""
   WorkTemplateKey |o--o{ RegulationTemplateAnswer : ""
+  ComplianceItem ||--o{ ComplianceItemWorkTemplate : ""
+  WorkTemplate ||--o{ ComplianceItemWorkTemplate : ""
+  ComplianceItem ||--o{ ComplianceItemTemplateAnswer : ""
+  WorkTemplateKey |o--o{ ComplianceItemTemplateAnswer : ""
   ProcessNode ||--o{ NodeStandardEvidence : ""
   Standard ||--o{ NodeStandardEvidence : ""
   ProcessNode ||--o{ NodeRegulationEvidence : ""
@@ -1489,6 +1515,8 @@ erDiagram
   style NodeTemplateAnswer fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style StandardTemplateAnswer fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style RegulationTemplateAnswer fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style ComplianceItemWorkTemplate fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style ComplianceItemTemplateAnswer fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style NodeStandardEvidence fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style NodeRegulationEvidence fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style Tenant fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A

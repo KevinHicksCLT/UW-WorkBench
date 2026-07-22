@@ -48,6 +48,11 @@ export function anchorY(r: DOMRect): number {
   return r.top + Math.min(r.height / 2, HEADER_ANCHOR_Y);
 }
 
+/** Gap (unscaled canvas px) left between an arrowhead and the target anchor, so
+ *  the head lands just outside the card in the gutter instead of overrunning
+ *  its border or text. */
+const TARGET_STANDOFF = 6;
+
 function anchorPoint(
   el: Element,
   side: Side,
@@ -94,9 +99,13 @@ export function useEdges(
         const b = find(s.to);
         if (!a || !b) continue;
         const p0 = anchorPoint(a, s.fromSide ?? 'right', origin, scale);
-        const p1 = anchorPoint(b, s.toSide ?? 'left', origin, scale);
+        const toSide = s.toSide ?? 'left';
+        const p1 = anchorPoint(b, toSide, origin, scale);
         p0.y += s.y0Offset ?? 0;
         p1.y += s.y1Offset ?? 0;
+        // Stop the arrowhead a few px shy of the target so it lands in the
+        // gutter, never on the card border or the element text behind it.
+        p1.x += toSide === 'left' ? -TARGET_STANDOFF : TARGET_STANDOFF;
         next.push({
           id: s.id,
           x0: p0.x,
@@ -113,13 +122,30 @@ export function useEdges(
       setEdges(next);
     };
     compute();
+    // Row alignment settles over several ResizeObserver passes (a deep concept
+    // row can shift hundreds of px as its band levels up). A synchronous measure
+    // can therefore read stale, pre-alignment geometry — the connector then
+    // floats at the old position and never travels to where the card actually
+    // lands (the Rental-Reimbursement floating-arrow symptom). Re-measure after
+    // the browser has laid out the settled pads so the endpoints track the cards.
+    let raf1 = 0;
+    let raf2 = 0;
+    raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(compute);
+    });
     const ro = new ResizeObserver(compute);
     ro.observe(container);
     // Anchors can move without the container resizing (a section collapses while
-    // another grows) — observe the column roots too.
-    for (const child of Array.from(container.children)) ro.observe(child);
+    // another grows). Observe the column roots AND their inner rows so a band
+    // levelling deep inside one column still triggers a connector re-measure.
+    for (const child of Array.from(container.children)) {
+      ro.observe(child);
+      for (const grandchild of Array.from(child.children)) ro.observe(grandchild);
+    }
     window.addEventListener('resize', compute);
     return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
       ro.disconnect();
       window.removeEventListener('resize', compute);
     };

@@ -233,14 +233,20 @@ function LayerSlot({
           style={{
             borderTop: '1px solid #d1fae5',
             background: '#fff',
-            padding: '6px 10px 8px 26px',
+            // Left padding kept small so each floor row's connector anchor sits
+            // at the card edge — the per-row arrowhead then stops in the gutter
+            // at the box, matching the Products board, instead of running into
+            // the row text. The visual indent lives on the rows (paddingLeft).
+            padding: '6px 10px 8px 10px',
             display: 'flex',
             flexDirection: 'column',
             gap: 5,
           }}
         >
           {inCount === 0 && (
-            <span style={{ fontSize: 10.5, color: '#a3a3a3' }}>Nothing lands on this floor.</span>
+            <span style={{ fontSize: 10.5, color: '#a3a3a3', paddingLeft: 16 }}>
+              Nothing lands on this floor.
+            </span>
           )}
           {floorRows.map(({ key, e, f }) =>
             e ? (
@@ -251,6 +257,7 @@ function LayerSlot({
                   display: 'flex',
                   alignItems: 'baseline',
                   gap: 6,
+                  paddingLeft: 16,
                   marginTop: rowPads?.[`${anchor}:${key}`] || undefined,
                 }}
               >
@@ -279,6 +286,7 @@ function LayerSlot({
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 1,
+                  paddingLeft: 16,
                   marginTop: rowPads?.[`${anchor}:${key}`] || undefined,
                 }}
               >

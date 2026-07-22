@@ -386,29 +386,67 @@ export function registerComplianceRoutes(router: Router): void {
           },
         });
         if (!item) return res.status(404).json({ error: 'Compliance item not found' });
-        const [sourceRowCount, sourceRows] = await Promise.all([
-          prisma.regulatoryRequirement.count({
-            where: { companyId, complianceRegulationId: item.regulation.id },
-          }),
-          prisma.regulatoryRequirement.findMany({
-            where: { companyId, complianceRegulationId: item.regulation.id },
-            orderBy: [{ jurisdiction: { name: 'asc' } }, { title: 'asc' }],
-            take: 25,
-            select: {
-              id: true,
-              title: true,
-              citation: true,
-              citationUrl: true,
-              jurisdiction: { select: { name: true, code: true } },
-            },
-          }),
-        ]);
+        // Every L3 source row of the parent regulation, deduplicated by
+        // citation text (falling back to the row title) so the drawer can show
+        // the full jurisdiction coverage without repeating identical citations.
+        // Each entry carries a representative requirement text so every
+        // jurisdiction's obligation is readable, not just one state's.
+        const allRows = await prisma.regulatoryRequirement.findMany({
+          where: { companyId, complianceRegulationId: item.regulation.id },
+          orderBy: [{ citation: 'asc' }, { title: 'asc' }],
+          select: {
+            id: true,
+            title: true,
+            requirement: true,
+            citation: true,
+            citationUrl: true,
+            jurisdiction: { select: { name: true, code: true } },
+          },
+        });
+        const byCitation = new Map<
+          string,
+          {
+            citation: string;
+            requirement: string;
+            url: string | null;
+            requirementId: string;
+            jurisdictions: Map<string, string>;
+          }
+        >();
+        for (const r of allRows) {
+          const key = (r.citation ?? r.title).trim();
+          const cur = byCitation.get(key) ?? {
+            citation: key,
+            requirement: r.requirement,
+            url: r.citationUrl,
+            requirementId: r.id,
+            jurisdictions: new Map<string, string>(),
+          };
+          cur.url ??= r.citationUrl;
+          cur.jurisdictions.set(r.jurisdiction.code, r.jurisdiction.name);
+          byCitation.set(key, cur);
+        }
+        const citations = [...byCitation.values()]
+          .map((c) => ({
+            citation: c.citation,
+            requirement: c.requirement,
+            url: c.url,
+            requirementId: c.requirementId,
+            jurisdictions: [...c.jurisdictions.entries()]
+              .map(([code, name]) => ({ code, name }))
+              .sort((a, b) => a.name.localeCompare(b.name)),
+          }))
+          .sort(
+            (a, b) =>
+              (a.jurisdictions[0]?.name ?? '').localeCompare(b.jurisdictions[0]?.name ?? '') ||
+              a.citation.localeCompare(b.citation),
+          );
         res.json({
           ...item,
           selectedRequirements: item.requirementLinks.map((l) => l.requirement),
           requirementLinks: undefined,
-          sourceRowCount,
-          sourceRows,
+          sourceRowCount: allRows.length,
+          citations,
         });
       } catch (e) {
         next(e);

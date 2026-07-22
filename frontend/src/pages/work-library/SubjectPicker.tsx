@@ -1,9 +1,10 @@
 /**
  * Work Library left-hand subject picker — type toggle (Tasks / Standards /
- * Regs), search, per-type filters fed by /work-library/subject-facets
- * (value stream for tasks, area + category for standards, regime +
- * jurisdiction for regulations), match counts, and the result list grouped
- * by its first path segment. Selection and filters live in the URL.
+ * Compliance), search, per-type filters fed by /work-library/subject-facets
+ * (value stream for tasks, area + category for standards, regulation +
+ * jurisdiction for compliance items), match counts, and the result list
+ * grouped by its first path segment. Compliance items list in execution
+ * order (their C-sequence). Selection and filters live in the URL.
  */
 import { useEffect, useState } from 'react';
 import { useApi } from '../../lib/useApi';
@@ -16,11 +17,11 @@ type Facets = {
   l4Subs?: { id: string; name: string }[];
   departments?: string[];
   categories?: string[];
-  regimes?: string[];
+  regulations?: { id: string; name: string }[];
   jurisdictions?: { id: string; name: string }[];
 };
 
-const FILTER_PARAMS = ['vs', 'l3', 'l4', 'dept', 'cat', 'regime', 'jur'] as const;
+const FILTER_PARAMS = ['vs', 'l3', 'l4', 'dept', 'cat', 'reg', 'jur'] as const;
 type FilterKey = (typeof FILTER_PARAMS)[number];
 
 const filterSelect = 'w-full text-[11px] py-1 px-1.5 mb-1.5';
@@ -40,6 +41,8 @@ export function SubjectPicker({
 }) {
   const [q, setQ] = useState('');
   const [debouncedQ, setDebouncedQ] = useState('');
+  // Per-group collapse for the compliance picker (keyed by group label).
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQ(q), 250);
     return () => clearTimeout(t);
@@ -47,6 +50,7 @@ export function SubjectPicker({
   useEffect(() => {
     setQ('');
     setDebouncedQ('');
+    setCollapsedGroups(new Set());
   }, [type]);
 
   const facetQuery = new URLSearchParams({ type });
@@ -60,6 +64,9 @@ export function SubjectPicker({
   const facets = facetsData?.facets ?? {};
 
   const query = new URLSearchParams({ type, q: debouncedQ });
+  // The compliance register is a bounded list — load it whole; the groups
+  // below collapse per regulation so the full set stays navigable.
+  if (type === 'compliance') query.set('take', '5000');
   if (missingOnly && type === 'task') query.set('missing', 'test');
   if (type === 'task') {
     if (filters.vs) query.set('vs', filters.vs);
@@ -70,8 +77,8 @@ export function SubjectPicker({
     if (filters.dept) query.set('department', filters.dept);
     if (filters.cat) query.set('category', filters.cat);
   }
-  if (type === 'regulation') {
-    if (filters.regime) query.set('regime', filters.regime);
+  if (type === 'compliance') {
+    if (filters.reg) query.set('regulationId', filters.reg);
     if (filters.jur) query.set('jurisdictionId', filters.jur);
   }
   const { data: subjectsData, loading } = useApi<{
@@ -114,7 +121,7 @@ export function SubjectPicker({
   return (
     <div className="border-r border-[#e5e5e5] p-2.5 overflow-auto">
       <div className="flex gap-0.5 rounded-md bg-[#f0f1f3] p-0.5 mb-2">
-        {(['task', 'standard', 'regulation'] as const).map((t) => (
+        {(['task', 'standard', 'compliance'] as const).map((t) => (
           <button
             key={t}
             onClick={() =>
@@ -132,13 +139,13 @@ export function SubjectPicker({
                 : 'text-[#6b7785]')
             }
           >
-            {t === 'task' ? 'Tasks' : t === 'standard' ? 'Standards' : 'Regs'}
+            {t === 'task' ? 'Tasks' : t === 'standard' ? 'Standards' : 'Compliance'}
           </button>
         ))}
       </div>
       <input
         className="w-full rounded-md border border-[#e2e6ea] px-2 py-1.5 text-[12px] mb-1.5 focus:border-[#7aa7d9] focus:outline-none"
-        placeholder={`Search ${type === 'task' ? 'tasks' : type === 'standard' ? 'standards' : 'regulations'}`}
+        placeholder={`Search ${type === 'task' ? 'tasks' : type === 'standard' ? 'standards' : 'compliance items'}`}
         value={q}
         onChange={(e) => setQ(e.target.value)}
       />
@@ -209,15 +216,20 @@ export function SubjectPicker({
           </Select>
         </>
       )}
-      {type === 'regulation' && (
+      {type === 'compliance' && (
         <>
           <Select
             className={filterSelect}
-            aria-label="Filter by regime"
-            value={filters.regime}
-            onChange={(e) => setFilter('regime', e.target.value)}
+            aria-label="Filter by regulation"
+            value={filters.reg}
+            onChange={(e) => setFilter('reg', e.target.value)}
           >
-            {optionList(facets.regimes ?? [], 'All regimes')}
+            <option value="">All regulations</option>
+            {(facets.regulations ?? []).map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.name}
+              </option>
+            ))}
           </Select>
           <Select
             className={filterSelect}
@@ -270,30 +282,67 @@ export function SubjectPicker({
           message="No matches — adjust the search or filters."
         />
       )}
-      {sortedGroups.map(([label, items]) => (
-        <div key={label || '·'}>
-          {label && (
-            <div className="px-1.5 pt-1.5 pb-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-[#a3a3a3]">
-              {label}
-            </div>
-          )}
-          {items.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setParam({ id: s.id })}
-              className={
-                'block w-full text-left rounded-md px-2 py-1.5 mb-0.5 text-[12px] leading-snug ' +
-                (selectedId === s.id
-                  ? 'bg-[#eaf2fd] text-[#1d4ed8] font-medium'
-                  : 'text-[#525252] hover:bg-[#fafafa]')
-              }
-            >
-              {s.name}
-              {s.path && <span className="block text-[10px] text-[#a3a3a3]">{s.path}</span>}
-            </button>
-          ))}
-        </div>
-      ))}
+      {sortedGroups.map(([label, items]) => {
+        const isCollapsed = collapsedGroups.has(label);
+        return (
+          <div key={label || '·'}>
+            {label &&
+              (type === 'compliance' ? (
+                // Prominent, collapsible regulation header — the register is
+                // loaded whole, so folding a regulation keeps the list short.
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCollapsedGroups((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(label)) next.delete(label);
+                      else next.add(label);
+                      return next;
+                    })
+                  }
+                  className="w-full flex items-center gap-1.5 rounded-md bg-[#f0f1f3] px-2 py-1.5 mt-1.5 mb-0.5 text-left hover:bg-[#e8eaee]"
+                >
+                  <span
+                    className={
+                      'text-[9px] text-[#6b7785] transition-transform ' +
+                      (isCollapsed ? '-rotate-90' : '')
+                    }
+                  >
+                    ▾
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-[11px] font-bold text-[#374151]">
+                    {label}
+                  </span>
+                  <span className="text-[10px] text-[#8a94a0] tabular-nums">{items.length}</span>
+                </button>
+              ) : (
+                <div className="px-1.5 pt-1.5 pb-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-[#a3a3a3]">
+                  {label}
+                </div>
+              ))}
+            {!(type === 'compliance' && isCollapsed) &&
+              items.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => setParam({ id: s.id })}
+                  className={
+                    'block w-full text-left rounded-md px-2 py-1.5 mb-0.5 text-[12px] leading-snug ' +
+                    (selectedId === s.id
+                      ? 'bg-[#eaf2fd] text-[#1d4ed8] font-medium'
+                      : 'text-[#525252] hover:bg-[#fafafa]')
+                  }
+                >
+                  {s.name}
+                  {/* Compliance rows sit under their regulation header — repeating
+                      the path per row is noise. */}
+                  {s.path && type !== 'compliance' && (
+                    <span className="block text-[10px] text-[#a3a3a3]">{s.path}</span>
+                  )}
+                </button>
+              ))}
+          </div>
+        );
+      })}
     </div>
   );
 }

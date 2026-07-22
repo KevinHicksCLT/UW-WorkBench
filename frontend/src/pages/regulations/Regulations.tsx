@@ -496,7 +496,6 @@ export default function Regulations() {
   const { data: compliance } = useApi<{
     regulations: number;
     items: number;
-    signOff: { confirmed: number };
   }>(
     companyId
       ? withCompany(`/regulations/compliance-register/summary?lens=${LENS_PARAM[tab]}`, companyId)
@@ -529,7 +528,7 @@ export default function Regulations() {
               tone="positive"
               label="Compliance"
               value={compliance.items.toLocaleString()}
-              hint={`items across ${compliance.regulations.toLocaleString()} ${tab.toLowerCase()} regulations · ${compliance.signOff.confirmed.toLocaleString()} confirmed`}
+              hint={`items across ${compliance.regulations.toLocaleString()} ${tab.toLowerCase()} regulations`}
               onClick={() => {
                 // Land the register on the lens the user was looking at.
                 sessionStorage.setItem(COMPLIANCE_LENS_KEY, LENS_PARAM[tab]);

@@ -111,36 +111,19 @@ export type ItemDetail = ItemRow & {
     createdAt: string;
   }[];
   sourceRowCount: number;
-  sourceRows: SourceRow[];
-};
-
-export const DETERMINATION_LABEL: Record<string, string> = {
-  GROUNDED: 'Grounded — pending counsel confirmation',
-  GROUNDED_NON_OFFICIAL: 'Grounded (non-official sources) — verify source then confirm',
-  PARTIAL: 'Partially grounded — regulation-level only; counsel to map',
-  NOT_GROUNDED: 'Not grounded',
-};
-
-export const FREQ_ALIGN_LABEL: Record<string, string> = {
-  MATCH: 'Match',
-  REVIEW: 'Review — differs from template',
-  NO_SIGNAL: 'No signal in source text',
-};
-
-export const SIGN_OFF_LABEL: Record<string, string> = {
-  PENDING: 'Pending',
-  CONFIRMED: 'Confirmed',
-  REJECTED: 'Rejected',
-  NEEDS_RESEARCH: 'Needs research',
+  /** Every distinct citation across the regulation's source rows, with its
+   *  representative requirement text and the jurisdictions that carry it
+   *  (deduplicated server-side). */
+  citations: {
+    citation: string;
+    requirement: string;
+    url: string | null;
+    requirementId: string;
+    jurisdictions: { code: string; name: string }[];
+  }[];
 };
 
 const CONFIDENCE_TONE: Record<string, PillTone> = { HIGH: 'green', MEDIUM: 'amber', LOW: 'red' };
-const SIGN_OFF_TONE: Record<string, PillTone> = {
-  PENDING: 'slate',
-  CONFIRMED: 'green',
-  REJECTED: 'red',
-  NEEDS_RESEARCH: 'amber',
-};
 
 /** Confidence badge — High/Medium/Low mapped onto pill tones. */
 export function ConfidenceBadge({ confidence }: { confidence: string }) {
@@ -150,15 +133,3 @@ export function ConfidenceBadge({ confidence }: { confidence: string }) {
     </StatusPill>
   );
 }
-
-/** Sign-off status badge. */
-export function SignOffBadge({ signOff }: { signOff: string }) {
-  return (
-    <StatusPill tone={SIGN_OFF_TONE[signOff] ?? 'slate'}>
-      {SIGN_OFF_LABEL[signOff] ?? signOff}
-    </StatusPill>
-  );
-}
-
-/** The guardrail label every unconfirmed item carries in the UI. */
-export const GUARDRAIL = 'Determination-ready — pending Legal review';
