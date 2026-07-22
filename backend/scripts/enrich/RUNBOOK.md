@@ -193,6 +193,7 @@ npx tsx --env-file=.env scripts/enrich/remove-empty-templates.ts --domain "Core 
 9. **Link arrays come back in the wrong shape.** Authors emit `regs` (sometimes `apps`) as bare id strings instead of `{regId, rel}` / `{appId, use}`. `load-enrichment` reads `.regId` off a string, gets `undefined`, and SKIPs the row — the load looks clean while quietly dropping links. Always run `node scripts/enrich/normalize-part.mjs <slug> <vs-catalog-slug>` before `build-and-load`, and treat any `SKIP reg undefined` in a dry-run as this bug, not as bad data.
 10. **A killed agent has often already written its file.** An agent that dies to a session/spend limit during its self-validation step still leaves a complete, valid part file. Check `tasks.length` against the seed before re-running it — two Corporate Functions areas were fully authored despite reporting failure.
 11. **Same-named L3 areas across value streams.** Corporate Functions has "Operational Resilience" under both Corporate Operations and Risk, Compliance & Audit. `dump-domain.ts` disambiguates the second one's slug with the value stream; do not assume `slug(area)` is unique.
+12. **Double-numbered step lines.** `load-workplan` already numbers every non-final `sop`/`verify` line, so authored lines must be UNNUMBERED. If the QUALITY BAR example in the Phase-B prompt shows numbered lines, agents copy that style and the Work tab renders `1) 1) Open the JE approval queue`. Keep the example unnumbered, and run `node scripts/enrich/strip-step-numbering.mjs scripts/output/workplan-<slug>.json` before every load — it is idempotent, so it costs nothing on clean files.
 
 ---
 
@@ -250,15 +251,18 @@ Target: `generic_defined = 15.0`, `zero_text = 0`.
 
 ## 8. Scripts (all in `backend/scripts/enrich/`)
 
-| Script                                                        | Purpose                                                      |
-| ------------------------------------------------------------- | ------------------------------------------------------------ |
-| `dump-catalog.ts "<area>" --domain "<D>" [--std-depts "a,b"]` | controlled-vocab catalog + area task list                    |
-| `build-and-load.ts [--dry-run] <slug…>`                       | Phase A: merge parts + coverage-check + idempotent load      |
-| `merge-parts.ts <area> <slug> <part…>`                        | merge per-sub-process Phase-A parts (if you split authoring) |
-| `dump-workplan-seed.ts <slug>`                                | Phase B authoring seed                                       |
-| `load-workplan.ts <workplan-*.json> [--dry-run]`              | Phase B: fill NodeTemplateAnswer (generic + custom steps)    |
-| `remap-generic-keys.mjs <workplan-*.json>`                    | fix non-canonical generic keys (positional → canonical)      |
-| `merge-batches.mjs <slug> "<Area>" <dir> <prefix>`            | salvage fanned-out fragments                                 |
-| `remove-empty-templates.ts --domain "<D>" [--apply]`          | drop empty non-default template blocks                       |
+| Script                                                        | Purpose                                                         |
+| ------------------------------------------------------------- | --------------------------------------------------------------- |
+| `dump-catalog.ts "<area>" --domain "<D>" [--std-depts "a,b"]` | controlled-vocab catalog + area task list                       |
+| `build-and-load.ts [--dry-run] <slug…>`                       | Phase A: merge parts + coverage-check + idempotent load         |
+| `merge-parts.ts <area> <slug> <part…>`                        | merge per-sub-process Phase-A parts (if you split authoring)    |
+| `dump-workplan-seed.ts <slug>`                                | Phase B authoring seed                                          |
+| `load-workplan.ts <workplan-*.json> [--dry-run]`              | Phase B: fill NodeTemplateAnswer (generic + custom steps)       |
+| `remap-generic-keys.mjs <workplan-*.json>`                    | fix non-canonical generic keys (positional → canonical)         |
+| `normalize-part.mjs <slug> [<vs-catalog-slug>]`               | Phase A: coerce string regs/apps to objects, drop unknown ids   |
+| `strip-step-numbering.mjs <workplan-*.json>`                  | Phase B: remove author-emitted "1) " so the loader numbers once |
+| `split-catalog.mjs`                                           | cut the domain catalog into per-value-stream catalogs           |
+| `merge-batches.mjs <slug> "<Area>" <dir> <prefix>`            | salvage fanned-out fragments                                    |
+| `remove-empty-templates.ts --domain "<D>" [--apply]`          | drop empty non-default template blocks                          |
 
 Order: **§1 setup → §2 dump → §3 Phase A (author→load→verify→commit) → §4 Phase B (seed→author→load→verify→commit) → §5 cleanup → §7 final verify → mark PR ready.**
