@@ -266,3 +266,19 @@ Target: `generic_defined = 15.0`, `zero_text = 0`.
 | `remove-empty-templates.ts --domain "<D>" [--apply]`          | drop empty non-default template blocks                          |
 
 Order: **§1 setup → §2 dump → §3 Phase A (author→load→verify→commit) → §4 Phase B (seed→author→load→verify→commit) → §5 cleanup → §7 final verify → mark PR ready.**
+
+---
+
+## 9. Resuming after a limit kill (fail-safe)
+
+Spend/session limits kill authoring agents mid-wave — it has happened twice on the Corporate Functions run. The recovery protocol:
+
+1. **Derive state, don't remember it:**
+   ```bash
+   npx tsx --env-file=.env scripts/enrich/status.ts "Corporate Functions"
+   ```
+   Prints per-area disk + DB state and a NEXT ACTIONS list (`author-A`, `load-A`, `seed-B`, `author-B`, `load-B`, `PARTIAL-*`, `DONE`) with the exact recipes. Trust this over any session summary.
+2. **Loads and seeds cost no model tokens** — run every `load-*`/`seed-B` action even while agents are blocked.
+3. **A killed agent has often already written its file** — `status.ts` flags short files as `PARTIAL`; check counts before re-spawning (see pitfall #10).
+4. **Authoring prompts must say "write the output file INCREMENTALLY"** so an interrupted agent leaves a salvageable fragment instead of nothing.
+5. Commit + push artifacts after every load batch — uncommitted output files are the only state that a machine crash can actually lose.
