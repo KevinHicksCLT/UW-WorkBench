@@ -1,9 +1,10 @@
 /**
  * Work Library left-hand subject picker — type toggle (Tasks / Standards /
- * Regs), search, per-type filters fed by /work-library/subject-facets
- * (value stream for tasks, area + category for standards, regime +
- * jurisdiction for regulations), match counts, and the result list grouped
- * by its first path segment. Selection and filters live in the URL.
+ * Compliance), search, per-type filters fed by /work-library/subject-facets
+ * (value stream for tasks, area + category for standards, regulation +
+ * jurisdiction for compliance items), match counts, and the result list
+ * grouped by its first path segment. Compliance items list in execution
+ * order (their C-sequence). Selection and filters live in the URL.
  */
 import { useEffect, useState } from 'react';
 import { useApi } from '../../lib/useApi';
@@ -16,11 +17,11 @@ type Facets = {
   l4Subs?: { id: string; name: string }[];
   departments?: string[];
   categories?: string[];
-  regimes?: string[];
+  regulations?: { id: string; name: string }[];
   jurisdictions?: { id: string; name: string }[];
 };
 
-const FILTER_PARAMS = ['vs', 'l3', 'l4', 'dept', 'cat', 'regime', 'jur'] as const;
+const FILTER_PARAMS = ['vs', 'l3', 'l4', 'dept', 'cat', 'reg', 'jur'] as const;
 type FilterKey = (typeof FILTER_PARAMS)[number];
 
 const filterSelect = 'w-full text-[11px] py-1 px-1.5 mb-1.5';
@@ -70,8 +71,8 @@ export function SubjectPicker({
     if (filters.dept) query.set('department', filters.dept);
     if (filters.cat) query.set('category', filters.cat);
   }
-  if (type === 'regulation') {
-    if (filters.regime) query.set('regime', filters.regime);
+  if (type === 'compliance') {
+    if (filters.reg) query.set('regulationId', filters.reg);
     if (filters.jur) query.set('jurisdictionId', filters.jur);
   }
   const { data: subjectsData, loading } = useApi<{
@@ -114,7 +115,7 @@ export function SubjectPicker({
   return (
     <div className="border-r border-[#e5e5e5] p-2.5 overflow-auto">
       <div className="flex gap-0.5 rounded-md bg-[#f0f1f3] p-0.5 mb-2">
-        {(['task', 'standard', 'regulation'] as const).map((t) => (
+        {(['task', 'standard', 'compliance'] as const).map((t) => (
           <button
             key={t}
             onClick={() =>
@@ -132,13 +133,13 @@ export function SubjectPicker({
                 : 'text-[#6b7785]')
             }
           >
-            {t === 'task' ? 'Tasks' : t === 'standard' ? 'Standards' : 'Regs'}
+            {t === 'task' ? 'Tasks' : t === 'standard' ? 'Standards' : 'Compliance'}
           </button>
         ))}
       </div>
       <input
         className="w-full rounded-md border border-[#e2e6ea] px-2 py-1.5 text-[12px] mb-1.5 focus:border-[#7aa7d9] focus:outline-none"
-        placeholder={`Search ${type === 'task' ? 'tasks' : type === 'standard' ? 'standards' : 'regulations'}`}
+        placeholder={`Search ${type === 'task' ? 'tasks' : type === 'standard' ? 'standards' : 'compliance items'}`}
         value={q}
         onChange={(e) => setQ(e.target.value)}
       />
@@ -209,15 +210,20 @@ export function SubjectPicker({
           </Select>
         </>
       )}
-      {type === 'regulation' && (
+      {type === 'compliance' && (
         <>
           <Select
             className={filterSelect}
-            aria-label="Filter by regime"
-            value={filters.regime}
-            onChange={(e) => setFilter('regime', e.target.value)}
+            aria-label="Filter by regulation"
+            value={filters.reg}
+            onChange={(e) => setFilter('reg', e.target.value)}
           >
-            {optionList(facets.regimes ?? [], 'All regimes')}
+            <option value="">All regulations</option>
+            {(facets.regulations ?? []).map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.name}
+              </option>
+            ))}
           </Select>
           <Select
             className={filterSelect}

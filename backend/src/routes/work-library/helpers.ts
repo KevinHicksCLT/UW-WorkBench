@@ -6,8 +6,8 @@
 import type { Request, Response } from 'express';
 import { prisma } from '../../db/prisma.js';
 
-export type SubjectType = 'task' | 'standard' | 'regulation';
-export const SUBJECT_TYPES: SubjectType[] = ['task', 'standard', 'regulation'];
+export type SubjectType = 'task' | 'standard' | 'regulation' | 'compliance';
+export const SUBJECT_TYPES: SubjectType[] = ['task', 'standard', 'regulation', 'compliance'];
 
 export function parseType(raw: string, res: Response): SubjectType | null {
   if ((SUBJECT_TYPES as string[]).includes(raw)) return raw as SubjectType;
@@ -21,7 +21,10 @@ export async function activeCompanyId(req: Request, res: Response): Promise<stri
     orderBy: { createdAt: 'asc' },
     select: { id: true },
   });
-  if (!company) { res.status(404).json({ error: 'No company found' }); return null; }
+  if (!company) {
+    res.status(404).json({ error: 'No company found' });
+    return null;
+  }
   return company.id;
 }
 
@@ -37,6 +40,18 @@ export async function findSubject(type: SubjectType, id: string, tenantId: strin
     return prisma.standard.findFirst({
       where: { id, company: { tenantId } },
       select: { id: true, companyId: true, name: true, department: true },
+    });
+  }
+  if (type === 'compliance') {
+    return prisma.complianceItem.findFirst({
+      where: { id, company: { tenantId } },
+      select: {
+        id: true,
+        companyId: true,
+        itemCode: true,
+        name: true,
+        regulation: { select: { regCode: true, name: true } },
+      },
     });
   }
   return prisma.regulatoryRequirement.findFirst({

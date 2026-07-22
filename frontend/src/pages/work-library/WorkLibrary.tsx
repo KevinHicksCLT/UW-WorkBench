@@ -1,6 +1,6 @@
 /**
  * Work Library — checklist/testing plans at the atomic level of work (L5 task
- * ProcessNodes, leaf Standards, Regulations) built from reusable generic
+ * ProcessNodes, leaf Standards, Compliance items) built from reusable generic
  * templates. Plans view: pick a work item, choose its checklist modules + test
  * pattern (dropdowns), fill the key/value matrix; generic keys are grayed and
  * removable (never addable), specific steps are free. Values are entity-backed
@@ -40,7 +40,7 @@ export default function WorkLibrary() {
     l4: params.get('l4') ?? '',
     dept: params.get('dept') ?? '',
     cat: params.get('cat') ?? '',
-    regime: params.get('regime') ?? '',
+    reg: params.get('reg') ?? '',
     jur: params.get('jur') ?? '',
   };
   const { data: templatesData, refetch: refetchTemplates } = useApi<{ templates: Template[] }>(

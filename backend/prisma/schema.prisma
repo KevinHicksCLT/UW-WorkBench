@@ -466,28 +466,29 @@ model Role {
   checklistItems                ChecklistItem[]
   roleDeliverables              RoleDeliverable[]
   nodeRoles                     NodeRole[]
-  reassignedNodeRoles           NodeRole[]                    @relation("NodeRoleReassignedTo")
+  reassignedNodeRoles           NodeRole[]                     @relation("NodeRoleReassignedTo")
   roleStandards                 RoleStandard[]
   roleRegulations               RoleRegulation[]
-  ownedStandards                Standard[]                    @relation("StandardOwnerRole")
+  ownedStandards                Standard[]                     @relation("StandardOwnerRole")
   externalInteractions          ExternalInteraction[]
   metrics                       Metric[]
   auditEntries                  AuditEntry[]
   // Portfolio links
-  ownedPortfolioInitiatives     PortfolioInitiative[]         @relation("PortfolioInitiativeOwner")
-  sponsoredPortfolioInitiatives PortfolioInitiative[]         @relation("PortfolioInitiativeSponsor")
+  ownedPortfolioInitiatives     PortfolioInitiative[]          @relation("PortfolioInitiativeOwner")
+  sponsoredPortfolioInitiatives PortfolioInitiative[]          @relation("PortfolioInitiativeSponsor")
   raidItems                     RaidItem[]
   initiativeResources           InitiativeResource[]
-  rationalizationMicroservices  RationalizationMicroservice[] @relation("RationalizationMicroserviceOwner")
-  rationalizationPlanSteps      RationalizationPlanStep[]     @relation("RationalizationPlanStepOwner")
-  canonicalProductModels        CanonicalProductModel[]       @relation("CanonicalProductModelOwner")
+  rationalizationMicroservices  RationalizationMicroservice[]  @relation("RationalizationMicroserviceOwner")
+  rationalizationPlanSteps      RationalizationPlanStep[]      @relation("RationalizationPlanStepOwner")
+  canonicalProductModels        CanonicalProductModel[]        @relation("CanonicalProductModelOwner")
   // Work Library entity-typed values pointing at this role
   nodeTemplateAnswers           NodeTemplateAnswer[]
   standardTemplateAnswers       StandardTemplateAnswer[]
   regulationTemplateAnswers     RegulationTemplateAnswer[]
+  complianceTemplateAnswers     ComplianceItemTemplateAnswer[]
   nodeStandardEvidences         NodeStandardEvidence[]
   nodeRegulationEvidences       NodeRegulationEvidence[]
-  users                         User[]                        @relation("UserOperatingRole")
+  users                         User[]                         @relation("UserOperatingRole")
 
   @@unique([companyId, dbValue])
   @@index([companyId])
@@ -677,6 +678,7 @@ model Deliverable {
   nodeTemplateAnswers       NodeTemplateAnswer[]
   standardTemplateAnswers   StandardTemplateAnswer[]
   regulationTemplateAnswers RegulationTemplateAnswer[]
+  complianceTemplateAnswers ComplianceItemTemplateAnswer[]
   nodeStandardEvidences     NodeStandardEvidence[]
   nodeRegulationEvidences   NodeRegulationEvidence[]
 
@@ -826,6 +828,7 @@ model Application {
   nodeTemplateAnswers       NodeTemplateAnswer[]
   standardTemplateAnswers   StandardTemplateAnswer[]
   regulationTemplateAnswers RegulationTemplateAnswer[]
+  complianceTemplateAnswers ComplianceItemTemplateAnswer[]
   nodeStandardEvidences     NodeStandardEvidence[]
   nodeRegulationEvidences   NodeRegulationEvidence[]
   rationalizationWorkspaces RationalizationWorkspace[]
@@ -1086,6 +1089,7 @@ model WorkTemplate {
   nodeLinks       NodeWorkTemplate[]
   standardLinks   StandardWorkTemplate[]
   regulationLinks RegulationWorkTemplate[]
+  complianceLinks ComplianceItemWorkTemplate[]
 
   @@index([companyId, kind])
 }
@@ -1104,6 +1108,7 @@ model WorkTemplateKey {
   nodeAnswers       NodeTemplateAnswer[]
   standardAnswers   StandardTemplateAnswer[]
   regulationAnswers RegulationTemplateAnswer[]
+  complianceAnswers ComplianceItemTemplateAnswer[]
 
   @@index([templateId])
 }
@@ -1236,6 +1241,50 @@ model RegulationTemplateAnswer {
   @@index([regId])
   @@index([templateKeyId])
   @@index([companyId, regId])
+}
+
+// Work Library plan tables for the compliance register (SCRUM-46) — one
+// checklist/testing plan per ComplianceItem, same template machinery as
+// tasks/standards/regulations.
+model ComplianceItemWorkTemplate {
+  id               String         @id @default(cuid())
+  companyId        String
+  complianceItemId String
+  complianceItem   ComplianceItem @relation(fields: [complianceItemId], references: [id], onDelete: Cascade)
+  templateId       String
+  template         WorkTemplate   @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([complianceItemId, templateId])
+  @@index([complianceItemId])
+  @@index([templateId])
+  @@index([companyId, complianceItemId])
+}
+
+model ComplianceItemTemplateAnswer {
+  id               String           @id @default(cuid())
+  companyId        String
+  complianceItemId String
+  complianceItem   ComplianceItem   @relation(fields: [complianceItemId], references: [id], onDelete: Cascade)
+  templateKeyId    String?
+  templateKey      WorkTemplateKey? @relation(fields: [templateKeyId], references: [id], onDelete: Cascade)
+  customKey        String?
+  kind             String? // CHECKLIST | TEST — block placement for custom steps (derived from the template for generic keys)
+  value            String?
+  applicationId    String?
+  application      Application?     @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  roleId           String?
+  role             Role?            @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  deliverableId    String?
+  deliverable      Deliverable?     @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  suppressed       Boolean          @default(false)
+  sortOrder        Int              @default(0)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @default(now()) @updatedAt
+
+  @@unique([complianceItemId, templateKeyId])
+  @@index([complianceItemId])
+  @@index([templateKeyId])
+  @@index([companyId, complianceItemId])
 }
 
 // Per-task checklist/testing STEP LISTS for an inherited standard/regulation, so
@@ -2701,6 +2750,8 @@ model ComplianceItem {
   signOffEvents        ComplianceSignOffEvent[]
   requirementLinks     ComplianceItemRequirement[]
   promotedFromVariants ComplianceJurisdictionVariant[]
+  workTemplates        ComplianceItemWorkTemplate[]
+  templateAnswers      ComplianceItemTemplateAnswer[]
 
   @@unique([companyId, itemCode])
   @@index([regulationId])

@@ -5,26 +5,64 @@
  */
 import { useRef, useState } from 'react';
 
-export type SubjectType = 'task' | 'standard' | 'regulation';
+export type SubjectType = 'task' | 'standard' | 'regulation' | 'compliance';
 
 export type Subject = { id: string; name: string; path: string };
-export type TemplateKey = { id: string; key: string; guidance: string | null; valueKind: string; sortOrder: number };
+export type TemplateKey = {
+  id: string;
+  key: string;
+  guidance: string | null;
+  valueKind: string;
+  sortOrder: number;
+};
 export type Template = {
-  id: string; kind: 'CHECKLIST' | 'TEST'; name: string; description: string | null; isDefault: boolean;
-  keys: TemplateKey[]; usage?: { tasks: number; standards: number; regulations: number };
+  id: string;
+  kind: 'CHECKLIST' | 'TEST';
+  name: string;
+  description: string | null;
+  isDefault: boolean;
+  keys: TemplateKey[];
+  usage?: { tasks: number; standards: number; regulations: number; compliance: number };
 };
 export type EntityRef = { id: string; name: string } | null;
 export type Answer = {
-  id: string; templateKeyId: string | null; customKey: string | null; kind: string | null; value: string | null;
-  suppressed: boolean; sortOrder: number; application: EntityRef; role: EntityRef; deliverable: EntityRef;
+  id: string;
+  templateKeyId: string | null;
+  customKey: string | null;
+  kind: string | null;
+  value: string | null;
+  suppressed: boolean;
+  sortOrder: number;
+  application: EntityRef;
+  role: EntityRef;
+  deliverable: EntityRef;
 };
 export type PlanKey = TemplateKey & { answer: Answer | null };
-export type Section = { id: string; kind: 'CHECKLIST' | 'TEST'; name: string; description: string | null; keys: PlanKey[] };
-export type EvidenceRow = {
-  id: string; kind: string; step: string; value: string | null; sortOrder: number;
-  application: EntityRef; role: EntityRef; deliverable: EntityRef;
+export type Section = {
+  id: string;
+  kind: 'CHECKLIST' | 'TEST';
+  name: string;
+  description: string | null;
+  keys: PlanKey[];
 };
-export type TiedItem = { id: string; name: string; source: string | null; direct: boolean; checklist: EvidenceRow[]; testing: EvidenceRow[] };
+export type EvidenceRow = {
+  id: string;
+  kind: string;
+  step: string;
+  value: string | null;
+  sortOrder: number;
+  application: EntityRef;
+  role: EntityRef;
+  deliverable: EntityRef;
+};
+export type TiedItem = {
+  id: string;
+  name: string;
+  source: string | null;
+  direct: boolean;
+  checklist: EvidenceRow[];
+  testing: EvidenceRow[];
+};
 export type Plan = {
   subject: { type: SubjectType; id: string; name: string; path: string };
   assignedTemplateIds: string[];
@@ -34,7 +72,8 @@ export type Plan = {
   regulations: TiedItem[];
 };
 
-export const cellInput = 'w-full text-[12.5px] px-2 py-1.5 rounded-md border border-transparent hover:border-[#d4d4d4] focus:border-[#7aa7d9] focus:outline-none bg-transparent';
+export const cellInput =
+  'w-full text-[12.5px] px-2 py-1.5 rounded-md border border-transparent hover:border-[#d4d4d4] focus:border-[#7aa7d9] focus:outline-none bg-transparent';
 
 // Pointer-based row reorder with live animation: grab the ⋮⋮ handle and the
 // row follows the cursor while the other rows slide out of the way; on release
@@ -82,10 +121,19 @@ export function useSortable(count: number, onMove: (from: number, to: number) =>
     if (!drag) return {};
     const { from, over, dy, rowH } = drag;
     if (index === from) {
-      return { transform: `translateY(${dy}px)`, position: 'relative', zIndex: 5, background: '#f0f6ff', boxShadow: '0 2px 10px rgba(15,40,80,0.15)', transition: 'none' };
+      return {
+        transform: `translateY(${dy}px)`,
+        position: 'relative',
+        zIndex: 5,
+        background: '#f0f6ff',
+        boxShadow: '0 2px 10px rgba(15,40,80,0.15)',
+        transition: 'none',
+      };
     }
-    if (from < over && index > from && index <= over) return { transform: `translateY(-${rowH}px)`, transition: 'transform 140ms ease' };
-    if (from > over && index >= over && index < from) return { transform: `translateY(${rowH}px)`, transition: 'transform 140ms ease' };
+    if (from < over && index > from && index <= over)
+      return { transform: `translateY(-${rowH}px)`, transition: 'transform 140ms ease' };
+    if (from > over && index >= over && index < from)
+      return { transform: `translateY(${rowH}px)`, transition: 'transform 140ms ease' };
     return { transform: 'translateY(0)', transition: 'transform 140ms ease' };
   };
 
@@ -100,7 +148,13 @@ export function moveItem<T>(list: T[], from: number, to: number): T[] {
 }
 
 export const DragHandle = (props: React.HTMLAttributes<HTMLSpanElement>) => (
-  <span {...props} className="cursor-grab touch-none select-none mr-1.5 text-[#94a3b8] hover:text-[#475569]" title="Drag to reorder">⋮⋮</span>
+  <span
+    {...props}
+    className="cursor-grab touch-none select-none mr-1.5 text-[#94a3b8] hover:text-[#475569]"
+    title="Drag to reorder"
+  >
+    ⋮⋮
+  </span>
 );
 
 export function valueText(a: Answer | EvidenceRow | null | undefined): string {
