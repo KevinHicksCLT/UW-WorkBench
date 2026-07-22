@@ -101,23 +101,12 @@ export default function Compliance() {
           (538 / 4,089 / 23,928 = 23,664 + 264). */}
       {summary && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
-          <Tile
-            compact
-            label="Regulations"
-            value={summary.regulations.toLocaleString()}
-            hint="enforced regimes & programs (REG-###)"
-          />
-          <Tile
-            compact
-            label="Compliance items"
-            value={summary.items.toLocaleString()}
-            hint={`${summary.confidence.high} high · ${summary.confidence.medium.toLocaleString()} medium · ${summary.confidence.low.toLocaleString()} low confidence`}
-          />
+          <Tile compact label="Regulations" value={summary.regulations.toLocaleString()} />
+          <Tile compact label="Compliance items" value={summary.items.toLocaleString()} />
           <Tile
             compact
             label="Requirement rows"
             value={summary.requirementRows.total.toLocaleString()}
-            hint={`${summary.requirementRows.binding.toLocaleString()} binding · ${summary.requirementRows.informational} informational`}
           />
         </div>
       )}
