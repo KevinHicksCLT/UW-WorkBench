@@ -8408,6 +8408,1547 @@
           ]
         }
       ]
+    },
+    {
+      "taskId": "4e2bd125-1514-40be-9ead-0d2490fc0dc2",
+      "verifier": "People Analytics / HR Operations Manager",
+      "generic": {
+        "Defined scope/population": "All managers with direct reports in the current effectiveness scoring cycle",
+        "In-scope period": "The current effectiveness scoring cycle by business unit",
+        "Required fields populated and valid": "Engagement score, turnover rate, and composite score populated for each manager",
+        "Control totals or record counts reconcile": "Scored manager count matches the active manager roster count",
+        "Evidence retained with timestamp/version": "Scored roster published to the Manager Effectiveness dashboard with a refresh timestamp",
+        "Exceptions logged with disposition": "Managers below the effectiveness threshold flagged for capability plan follow-up",
+        "Test population": "A sample of scored managers across business units",
+        "Pass/fail thresholds": "Fail if a manager's composite score is missing an engagement or turnover input",
+        "Exception handling path": "HR Business Partner routes flagged managers to the capability plan process",
+        "Documented acceptance criteria": "Composite score computed per manager with below-threshold managers flagged",
+        "Evidence location": "BI/reporting platform Manager Effectiveness dashboard"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull team engagement scores and turnover rate into the effectiveness dashboard",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Open the BI/reporting platform Manager Effectiveness data source.",
+            "Pull the latest team engagement survey scores for each manager's direct reports.",
+            "Pull the current turnover rate for each manager's team.",
+            "Done when engagement and turnover figures are loaded for every manager."
+          ],
+          "verify": [
+            "Spot-check a manager's loaded figures against the source engagement and turnover extracts.",
+            "Pass when the loaded figures match the source data for the sampled manager."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Compute the composite manager effectiveness score",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Apply the approved weighting methodology to each manager's engagement and turnover inputs.",
+            "Calculate the composite effectiveness score for each manager.",
+            "Confirm the calculation matches the documented weighting formula.",
+            "Done when a composite score is computed for every manager in scope."
+          ],
+          "verify": [
+            "Recalculate one manager's score manually against the weighting formula.",
+            "Pass when the recalculated score matches the system-computed score."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Rank managers by composite score within their business unit",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Sort the scored managers within each business unit by composite score.",
+            "Confirm ties are broken using the documented tie-break rule.",
+            "Review the ranked list for any obviously misplaced entry.",
+            "Done when every manager has a rank position within their business unit."
+          ],
+          "verify": [
+            "Check the ranked order against the underlying composite scores for one business unit.",
+            "Pass when the ranking order matches the composite scores exactly."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Flag managers scoring below the effectiveness threshold",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Compare each manager's composite score against the effectiveness threshold.",
+            "Flag every manager scoring below the threshold on the dashboard.",
+            "Note the flagged manager's business unit for capability plan follow-up.",
+            "Done when all below-threshold managers are flagged on the dashboard."
+          ],
+          "verify": [
+            "Recheck a flagged manager's score against the threshold value.",
+            "Pass when every flagged manager's score is genuinely below the threshold."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Publish the scored roster to the Manager Effectiveness dashboard",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Push the finalized scored roster to the Manager Effectiveness dashboard.",
+            "Confirm the dashboard displays rank, score, and flag status for each manager.",
+            "Set the dashboard refresh timestamp to the current publish date.",
+            "Done when the scored roster is live on the dashboard with a current timestamp."
+          ],
+          "verify": [
+            "Open the published dashboard and confirm the timestamp reflects today's publish.",
+            "Pass when the dashboard is current and shows all scored managers."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Route flagged managers to the capability plan process",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Compile the list of below-threshold flagged managers.",
+            "Route each flagged manager's record to the capability plan queue.",
+            "Confirm the HRBP responsible for each flagged manager is notified.",
+            "Done when every flagged manager has an open capability plan referral."
+          ],
+          "verify": [
+            "Check the capability plan queue for each flagged manager's referral.",
+            "Pass when every flagged manager appears in the capability plan queue."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhvmm079skfgz541vcz4b",
+      "verifier": "People Analytics / HR Operations Manager",
+      "generic": {
+        "Defined scope/population": "All business units requiring HRBP coverage assignment in Workday HCM",
+        "In-scope period": "The current HRBP coverage assignment cycle",
+        "Required fields populated and valid": "Assigned HRBP field populated on every business unit org record",
+        "Control totals or record counts reconcile": "Count of covered business units matches the total business unit list",
+        "Evidence retained with timestamp/version": "Updated coverage model published to the HR Business Partnering directory with a version date",
+        "Exceptions logged with disposition": "Business units outside the guideline coverage ratio logged for rebalancing",
+        "Test population": "A sample of business unit org records across divisions",
+        "Pass/fail thresholds": "Fail if any business unit lacks a named HRBP or exceeds the guideline ratio",
+        "Exception handling path": "HR Business Partner escalates ratio breaches to HR leadership for rebalancing",
+        "Documented acceptance criteria": "Every business unit shows an assigned HRBP within the guideline coverage ratio",
+        "Evidence location": "Workday HCM business unit org records and HR Business Partnering directory"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Review the business unit headcount list against current HRBP assignments",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Open the business unit headcount list in Workday HCM.",
+            "Compare each business unit's headcount against its current HRBP assignment.",
+            "Identify business units with no assigned HRBP or a stale assignment.",
+            "Done when every business unit's current assignment status is reviewed."
+          ],
+          "verify": [
+            "Spot-check one business unit's headcount against the Workday HCM org record.",
+            "Pass when the reviewed headcount matches the source org record."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Assign or reassign HRBP coverage for each business unit",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Select the accountable HRBP for each business unit lacking a current assignment.",
+            "Reassign coverage for business units flagged with a stale or missing HRBP.",
+            "Confirm no business unit is left without a named HRBP.",
+            "Done when every business unit has a named HRBP assigned."
+          ],
+          "verify": [
+            "Check the assignment list for any business unit still showing no HRBP.",
+            "Pass when every business unit shows a named HRBP."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm the coverage ratio falls within the guideline range",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Calculate employees per HRBP for each assigned coverage portfolio.",
+            "Compare each ratio against the guideline coverage range.",
+            "Flag any HRBP portfolio exceeding the guideline range.",
+            "Done when every HRBP's coverage ratio is checked against the guideline."
+          ],
+          "verify": [
+            "Recalculate one HRBP's ratio from the underlying headcount figures.",
+            "Pass when the recalculated ratio matches the checked value."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Update the HRBP coverage assignment field in Workday HCM",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Open each business unit's org record in Workday HCM.",
+            "Update the HRBP coverage assignment field with the confirmed HRBP.",
+            "Save the updated org record.",
+            "Done when the assignment field reflects the confirmed HRBP for every business unit."
+          ],
+          "verify": [
+            "Reopen a sample business unit's org record and confirm the saved HRBP field.",
+            "Pass when the saved field matches the confirmed assignment."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Publish the updated coverage model to the HR Business Partnering directory",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Compile the finalized coverage model into the directory format.",
+            "Publish the updated model to the HR Business Partnering directory.",
+            "Set the version date on the published model.",
+            "Done when the updated coverage model is live in the directory."
+          ],
+          "verify": [
+            "Open the published directory and confirm the version date is current.",
+            "Pass when the directory reflects the finalized coverage assignments."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm ratio-breach business units are logged for rebalancing",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Compile any business unit still outside the guideline ratio after assignment.",
+            "Log each ratio breach on the coverage rebalancing tracker.",
+            "Notify HR leadership of the logged breaches.",
+            "Done when all ratio breaches are logged on the rebalancing tracker."
+          ],
+          "verify": [
+            "Check the rebalancing tracker for each logged breach.",
+            "Pass when every breach identified in review is logged on the tracker."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "045547e9-a5e2-4f16-87e0-feb5d2a31352",
+      "verifier": "Learning Development Manager",
+      "generic": {
+        "Defined scope/population": "Managers flagged below the effectiveness threshold requiring a capability plan",
+        "In-scope period": "The current manager effectiveness scoring cycle",
+        "Required fields populated and valid": "Gap areas, assigned courses, and target dates populated on the capability plan",
+        "Control totals or record counts reconcile": "Number of capability plans matches the number of flagged managers",
+        "Evidence retained with timestamp/version": "Capability plan record saved against the manager's development profile with a save date",
+        "Exceptions logged with disposition": "Flagged managers without a saved capability plan logged for HRBP follow-up",
+        "Test population": "A sample of flagged managers assigned a capability plan",
+        "Pass/fail thresholds": "Fail if a flagged manager's plan lacks a target completion or review date",
+        "Exception handling path": "Learning Development Manager escalates unassigned plans to the HRBP",
+        "Documented acceptance criteria": "Capability plan assigned with target completion and follow-up review date for each flagged manager",
+        "Evidence location": "Cornerstone LMS manager development profile records"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Review the manager's effectiveness score and gap areas",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Open the flagged manager's effectiveness score record.",
+            "Identify the specific gap areas driving the below-threshold score.",
+            "Note the gap areas (feedback, coaching, engagement) for course selection.",
+            "Done when gap areas are identified for the flagged manager."
+          ],
+          "verify": [
+            "Cross-check the identified gap areas against the score breakdown.",
+            "Pass when the noted gap areas match the score breakdown."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Select applicable development courses in Cornerstone LMS",
+          "actor": "Learning Development Manager",
+          "sop": [
+            "Open the Cornerstone LMS course catalog for manager development.",
+            "Select courses addressing each identified gap area.",
+            "Confirm the selected courses are available to the manager's role level.",
+            "Done when courses addressing every gap area are selected."
+          ],
+          "verify": [
+            "Recheck each selected course against the manager's identified gap areas.",
+            "Pass when every gap area has a mapped course."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Set a target completion date and follow-up review date",
+          "actor": "Learning Development Manager",
+          "sop": [
+            "Enter a target completion date for the assigned courses.",
+            "Enter a follow-up review date to reassess effectiveness.",
+            "Confirm both dates align with the standard capability plan cadence.",
+            "Done when both dates are set on the capability plan."
+          ],
+          "verify": [
+            "Reopen the plan and confirm both dates are saved.",
+            "Pass when both dates match the standard cadence."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Assign the capability plan to the manager and notify their HRBP",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Assign the finalized capability plan to the flagged manager in Cornerstone LMS.",
+            "Notify the manager's HRBP that the plan has been assigned.",
+            "Confirm the manager receives the course enrollment notification.",
+            "Done when the plan is assigned and the HRBP is notified."
+          ],
+          "verify": [
+            "Check the manager's enrollment status and the HRBP notification log.",
+            "Pass when both the enrollment and HRBP notification are confirmed."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm the capability plan record is saved to the development profile",
+          "actor": "Learning Development Manager",
+          "sop": [
+            "Open the manager's development profile in Cornerstone LMS.",
+            "Confirm the capability plan record appears with courses and dates.",
+            "Verify the save timestamp reflects the assignment date.",
+            "Done when the capability plan is visible on the development profile."
+          ],
+          "verify": [
+            "Reopen the development profile and confirm the plan details match.",
+            "Pass when the saved record matches the assigned plan exactly."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Log any flagged manager missing a saved capability plan",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Cross-reference the flagged manager list against saved capability plans.",
+            "Log any flagged manager without a saved plan for follow-up.",
+            "Notify the HRBP of the logged gap.",
+            "Done when every flagged manager without a plan is logged."
+          ],
+          "verify": [
+            "Recheck the flagged manager list against the capability plan log.",
+            "Pass when every gap identified is logged with an HRBP notification."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "1f50578f-e1ca-4afe-9faa-8da570db8ceb",
+      "verifier": "People Analytics / HR Operations Manager",
+      "generic": {
+        "Defined scope/population": "Division and people leaders covered by the recurring HRBP advisory consultation cadence",
+        "In-scope period": "The current consultation cadence period for each covered leader",
+        "Required fields populated and valid": "Agenda topics, discussion notes, and action items populated on each consultation record",
+        "Control totals or record counts reconcile": "Number of filed consultation notes matches the number of scheduled sessions",
+        "Evidence retained with timestamp/version": "Consultation notes filed in SharePoint with the session date",
+        "Exceptions logged with disposition": "Missed consultations logged and rescheduled with the covered leader",
+        "Test population": "A sample of filed consultation notes across covered leaders",
+        "Pass/fail thresholds": "Fail if a consultation's action items lack an assigned owner or follow-up date",
+        "Exception handling path": "HR Business Partner reschedules or escalates a missed consultation",
+        "Documented acceptance criteria": "Consultation notes with assigned action items filed for each covered leader on the agreed cadence",
+        "Evidence location": "HR Business Partnering SharePoint site consultation notes folder"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Schedule the recurring consultation with each covered leader",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Identify each division or people leader on the recurring consultation cadence.",
+            "Send the calendar invitation for the recurring strategic advisory consultation.",
+            "Confirm each covered leader accepts the scheduled cadence.",
+            "Done when every covered leader has a scheduled recurring consultation."
+          ],
+          "verify": [
+            "Check the calendar for each covered leader's accepted invitation.",
+            "Pass when every covered leader shows an accepted recurring invite."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Prepare the consultation agenda",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Draft the agenda covering workforce plan, engagement, and open people issues.",
+            "Pull the latest relevant metrics for the covered leader's division.",
+            "Attach the agenda to the upcoming consultation invitation.",
+            "Done when the agenda is attached ahead of the consultation."
+          ],
+          "verify": [
+            "Reopen the invitation and confirm the agenda attachment is present.",
+            "Pass when the agenda covers all three required topic areas."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Hold the consultation and document key discussion topics",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Conduct the strategic advisory consultation per the prepared agenda.",
+            "Document the key discussion topics raised during the session.",
+            "Note any open people issues requiring follow-up.",
+            "Done when discussion topics are documented in the consultation notes."
+          ],
+          "verify": [
+            "Reread the documented notes against the agenda topics covered.",
+            "Pass when the notes reflect the topics actually discussed."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record agreed action items with owner and follow-up date",
+          "actor": "HR Business Partner",
+          "sop": [
+            "List each action item agreed during the consultation.",
+            "Assign an accountable owner to each action item.",
+            "Set a follow-up date for each action item.",
+            "Done when every action item has an owner and follow-up date."
+          ],
+          "verify": [
+            "Check each action item entry for a populated owner and date field.",
+            "Pass when every action item has both fields populated."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "File the consultation notes in the HR Business Partnering SharePoint site",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Upload the finalized consultation notes to the SharePoint site.",
+            "Tag the notes with the covered leader's name and session date.",
+            "Confirm the notes are stored in the correct consultation folder.",
+            "Done when the notes are filed and tagged in SharePoint."
+          ],
+          "verify": [
+            "Open the SharePoint folder and confirm the filed notes are tagged correctly.",
+            "Pass when the notes appear in the correct folder with accurate tags."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the consultation cadence is on track for every covered leader",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Review the consultation tracker for all covered leaders.",
+            "Confirm each leader's session occurred within the agreed cadence.",
+            "Flag any leader whose session is overdue for rescheduling.",
+            "Done when the tracker shows every leader's cadence status."
+          ],
+          "verify": [
+            "Recheck the tracker dates against the agreed cadence for a sampled leader.",
+            "Pass when the sampled leader's cadence status is accurate."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhvus07dlkfgzk0webur2",
+      "verifier": "People Analytics / HR Operations Manager",
+      "generic": {
+        "Defined scope/population": "HRBP service-level expectations applicable to all covered business units",
+        "In-scope period": "The current SLA version cycle until the next scheduled review",
+        "Required fields populated and valid": "Response time, escalation path, and resolution target populated in the SLA document",
+        "Control totals or record counts reconcile": "Number of business units communicated matches the covered business unit list",
+        "Evidence retained with timestamp/version": "SLA document dated with superseded versions archived in SharePoint",
+        "Exceptions logged with disposition": "Business units not yet communicated flagged for follow-up",
+        "Test population": "A sample of covered business units confirming SLA communication",
+        "Pass/fail thresholds": "Fail if the SLA document lacks HR leadership approval before publication",
+        "Exception handling path": "HR Business Partner escalates missing leadership approval before publishing",
+        "Documented acceptance criteria": "Approved HRBP service-level expectations published and communicated to covered business units",
+        "Evidence location": "HR Business Partnering SharePoint site SLA document library"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Draft the HRBP service-level expectations",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Draft response time, escalation path, and resolution target expectations.",
+            "Base the draft on current HRBP service demand and prior SLA performance.",
+            "Circulate the draft internally for initial feedback.",
+            "Done when a complete SLA draft is ready for leadership review."
+          ],
+          "verify": [
+            "Reread the draft for all three required expectation categories.",
+            "Pass when the draft covers response time, escalation path, and resolution targets."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Review the draft SLAs with HR leadership for approval",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Present the draft SLA document to HR leadership.",
+            "Incorporate any requested changes from the review.",
+            "Obtain HR leadership's approval sign-off on the final draft.",
+            "Done when HR leadership approval is recorded on the SLA document."
+          ],
+          "verify": [
+            "Check the SLA document for the recorded leadership approval.",
+            "Pass when leadership approval is recorded before publication."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Publish the approved SLAs to the SharePoint site",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Upload the approved SLA document to the HR Business Partnering SharePoint site.",
+            "Set the document version number and publish date.",
+            "Confirm the document is accessible to intended viewers.",
+            "Done when the approved SLA document is live on SharePoint."
+          ],
+          "verify": [
+            "Open the SharePoint site and confirm the published SLA document is accessible.",
+            "Pass when the published document matches the approved draft."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Communicate the SLAs to each covered business unit's leadership team",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Send the published SLA document to each covered business unit's leadership team.",
+            "Confirm each leadership team acknowledges receipt of the SLA.",
+            "Log the communication date for each business unit.",
+            "Done when every covered business unit has been communicated to."
+          ],
+          "verify": [
+            "Check the communication log for each business unit's acknowledgment.",
+            "Pass when every covered business unit shows a logged acknowledgment."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm the SLA document version is dated and prior versions archived",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Confirm the published SLA document carries a version number and date.",
+            "Move any superseded SLA version to the archive folder.",
+            "Verify the archive folder retains the prior version for reference.",
+            "Done when the current version is dated and prior versions are archived."
+          ],
+          "verify": [
+            "Open the archive folder and confirm the superseded version is present.",
+            "Pass when the current document is dated and the prior version is archived."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Log any business unit not yet communicated for follow-up",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Cross-reference the communication log against the full covered business unit list.",
+            "Log any business unit missing a communication acknowledgment.",
+            "Follow up directly with the missing business unit's leadership team.",
+            "Done when every missing business unit is logged and followed up."
+          ],
+          "verify": [
+            "Recheck the communication log after follow-up for the previously missing units.",
+            "Pass when every business unit shows a logged acknowledgment."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "e45b00da-b474-47f6-b073-202f838e26ad",
+      "verifier": "People Analytics / HR Operations Manager",
+      "generic": {
+        "Defined scope/population": "All employees reporting to an in-scope manager for the effectiveness survey",
+        "In-scope period": "The annual engagement survey open and close window",
+        "Required fields populated and valid": "Manager effectiveness question set loaded into the survey instrument",
+        "Control totals or record counts reconcile": "Survey population count matches the in-scope manager direct-report count",
+        "Evidence retained with timestamp/version": "Survey launch and close dates recorded in the HRIS",
+        "Exceptions logged with disposition": "Employees excluded from the survey population logged with a reason",
+        "Test population": "A sample of employees confirmed in the survey population",
+        "Pass/fail thresholds": "Fail if the survey population omits an eligible employee's direct reports",
+        "Exception handling path": "HR Business Partner corrects the population and relaunches to omitted employees",
+        "Documented acceptance criteria": "Survey launched to the full eligible population within the annual engagement survey window",
+        "Evidence location": "HRIS survey administration record for the effectiveness survey"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Load the manager effectiveness question set into the survey instrument",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Open the annual engagement survey instrument configuration.",
+            "Load the manager effectiveness question set into the instrument.",
+            "Confirm the question set displays correctly in a preview.",
+            "Done when the effectiveness questions appear in the survey instrument."
+          ],
+          "verify": [
+            "Preview the survey and confirm every effectiveness question is present.",
+            "Pass when the loaded question set matches the approved set."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the survey population includes all eligible direct reports",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Pull the list of employees reporting to an in-scope manager.",
+            "Load the population into the survey distribution list.",
+            "Cross-check the population count against the source org data.",
+            "Done when the survey population matches the eligible employee list."
+          ],
+          "verify": [
+            "Spot-check a sampled manager's direct reports against the survey population.",
+            "Pass when the sampled reports appear in the survey population."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Launch the survey within the annual engagement survey window",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Confirm the launch date falls within the annual engagement survey window.",
+            "Activate the survey for the loaded population in the HRIS.",
+            "Confirm the launch notification is sent to the population.",
+            "Done when the survey is live and notifications are sent."
+          ],
+          "verify": [
+            "Check the HRIS survey status for Active and the launch notification log.",
+            "Pass when the survey is active with notifications sent."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Monitor the response rate during the open window",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Check the response rate dashboard periodically during the open window.",
+            "Compare the response rate against the target completion benchmark.",
+            "Note any segment with a notably low response rate.",
+            "Done when the response rate is monitored through the open window."
+          ],
+          "verify": [
+            "Reopen the response rate dashboard partway through the window.",
+            "Pass when the dashboard reflects an updated, current response rate."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Send reminders to segments with low response rates",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Identify segments trailing the target response rate.",
+            "Send a reminder notification to the trailing segment.",
+            "Log the reminder send date against the segment.",
+            "Done when reminders are sent to every trailing segment."
+          ],
+          "verify": [
+            "Check the reminder log for each flagged segment.",
+            "Pass when every trailing segment has a logged reminder."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the survey closes on schedule",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Confirm the survey close date matches the planned window end.",
+            "Verify the survey status changes to Closed at the scheduled time.",
+            "Confirm no further responses are accepted after close.",
+            "Done when the survey shows Closed status on schedule."
+          ],
+          "verify": [
+            "Check the HRIS survey status after the scheduled close date.",
+            "Pass when the status reads Closed at the scheduled time."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Release results for scoring",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Confirm the survey is fully closed before releasing results.",
+            "Release the results data set for the manager effectiveness scoring process.",
+            "Confirm the scoring team receives the released results.",
+            "Done when results are released and confirmed received for scoring."
+          ],
+          "verify": [
+            "Check the scoring team's acknowledgment of the released results.",
+            "Pass when the released results are confirmed received."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "c9b293d4-b44f-47bf-b491-30d836d399c8",
+      "verifier": "HR Business Partner",
+      "generic": {
+        "Defined scope/population": "Managers enrolled in the skill-building workshop cohort for the cycle",
+        "In-scope period": "The scheduled workshop delivery window for the enrolled cohort",
+        "Required fields populated and valid": "Attendance and completion status populated for every enrolled manager",
+        "Control totals or record counts reconcile": "Attendance count plus makeup schedule count matches the enrolled cohort size",
+        "Evidence retained with timestamp/version": "Session delivery and attendance records saved in Cornerstone LMS with session date",
+        "Exceptions logged with disposition": "Absent managers logged with a scheduled makeup session",
+        "Test population": "A sample of enrolled managers across the cohort",
+        "Pass/fail thresholds": "Fail if an absent manager has no scheduled makeup session",
+        "Exception handling path": "HR Business Partner follows up directly with an unscheduled absentee",
+        "Documented acceptance criteria": "Workshop delivered with attendance tracked and makeup sessions scheduled for absentees",
+        "Evidence location": "Cornerstone LMS workshop session and attendance records"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Schedule the workshop sessions in Cornerstone LMS",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Open Cornerstone LMS and create the workshop session schedule.",
+            "Set session dates and enrollment capacity for the manager cohort.",
+            "Confirm the sessions appear on the LMS calendar.",
+            "Done when workshop sessions are scheduled in Cornerstone LMS."
+          ],
+          "verify": [
+            "Reopen the LMS calendar and confirm sessions are listed correctly.",
+            "Pass when the scheduled sessions match the planned dates and capacity."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the workshop agenda covers required topics",
+          "actor": "Trainer",
+          "sop": [
+            "Review the workshop agenda for feedback delivery, coaching, and inclusive leadership.",
+            "Confirm each topic has an allotted time block in the agenda.",
+            "Finalize the agenda ahead of the first session.",
+            "Done when the agenda covers all three required topic areas."
+          ],
+          "verify": [
+            "Reread the finalized agenda against the three required topics.",
+            "Pass when all three topics appear with allotted time."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Deliver the workshop sessions to the enrolled cohort",
+          "actor": "Trainer",
+          "sop": [
+            "Conduct each scheduled workshop session per the finalized agenda.",
+            "Confirm enrolled managers can access the session materials.",
+            "Note any session delivery issues for follow-up.",
+            "Done when all scheduled sessions have been delivered."
+          ],
+          "verify": [
+            "Check the LMS for each session's marked delivery status.",
+            "Pass when every scheduled session shows as delivered."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Track attendance and completion status for each manager",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Pull the attendance record from Cornerstone LMS for each session.",
+            "Mark each enrolled manager's completion status accordingly.",
+            "Confirm the completion status is saved to the manager's training record.",
+            "Done when attendance and completion are tracked for every enrolled manager."
+          ],
+          "verify": [
+            "Spot-check a manager's completion status against the session attendance record.",
+            "Pass when the tracked status matches the actual attendance."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Follow up with managers who missed the session",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Identify managers marked absent from their scheduled session.",
+            "Contact each absent manager to schedule a makeup session.",
+            "Record the makeup session date in Cornerstone LMS.",
+            "Done when every absent manager has a scheduled makeup session."
+          ],
+          "verify": [
+            "Check the LMS for a scheduled makeup session against each absentee.",
+            "Pass when every absentee shows a scheduled makeup session."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm final attendance and completion records are complete",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Review the final attendance and completion report for the cohort.",
+            "Confirm no enrolled manager is missing a completion or makeup record.",
+            "File the final report in the workshop training record.",
+            "Done when the final report shows complete records for the full cohort."
+          ],
+          "verify": [
+            "Recheck the final report against the enrolled cohort roster.",
+            "Pass when every enrolled manager has a completion or makeup record."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "ce63147b-d804-4d4c-9e86-0a4a31046c67",
+      "verifier": "People Analytics / HR Operations Manager",
+      "generic": {
+        "Defined scope/population": "Manager-proposed org design or restructuring changes routed through HRBP partnering",
+        "In-scope period": "The current org design change request cycle",
+        "Required fields populated and valid": "Role design, reporting line, and headcount impact populated on the consultation log",
+        "Control totals or record counts reconcile": "Org chart headcount after the change matches the approved headcount impact",
+        "Evidence retained with timestamp/version": "Consultation log entry dated with the org design change decision",
+        "Exceptions logged with disposition": "Unresolved role design questions logged for follow-up before finalization",
+        "Test population": "A sample of finalized org design changes reflected in Workday HCM",
+        "Pass/fail thresholds": "Fail if the org chart does not reflect the finalized change after approval",
+        "Exception handling path": "HR Business Partner escalates unresolved design questions to HR leadership",
+        "Documented acceptance criteria": "Org design change reflected in the org chart with HRBP partnering support documented",
+        "Evidence location": "Workday HCM org chart and HRBP consultation log"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Review the manager's proposed org design change",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Review the manager's proposed team restructuring or org design change request.",
+            "Note the rationale and scope of the proposed change.",
+            "Identify any immediate concerns with the proposal.",
+            "Done when the proposed change is reviewed and understood."
+          ],
+          "verify": [
+            "Recheck the reviewed proposal against the manager's original request.",
+            "Pass when the review accurately reflects the proposed scope."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Assess the workforce planning and headcount impact",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Model the headcount impact of the proposed org design change.",
+            "Assess the change against the current workforce plan.",
+            "Note any budget or headcount constraint affecting the proposal.",
+            "Done when the headcount and workforce planning impact is assessed."
+          ],
+          "verify": [
+            "Recheck the modeled headcount impact against the workforce plan figures.",
+            "Pass when the assessed impact matches the modeled figures."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Advise the manager on role design and change management",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Advise the manager on role design and reporting line options.",
+            "Discuss change management considerations for the affected team.",
+            "Document the guidance provided during the advisory conversation.",
+            "Done when advisory guidance is documented for the manager."
+          ],
+          "verify": [
+            "Reread the documented guidance against the topics discussed.",
+            "Pass when the guidance covers role design and change management."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the finalized change is reflected in Workday HCM",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Confirm the manager submits the finalized org design change in Workday HCM.",
+            "Verify the org chart updates to reflect the new reporting lines.",
+            "Check that headcount figures on the org chart match the approved change.",
+            "Done when the org chart reflects the finalized design change."
+          ],
+          "verify": [
+            "Open the updated org chart and confirm reporting lines match the finalized design.",
+            "Pass when the org chart accurately reflects the approved change."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Document the partnering support on the HRBP consultation log",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Open the HRBP consultation log for the manager's request.",
+            "Record the guidance provided and the final org design outcome.",
+            "Date the log entry to the consultation and decision dates.",
+            "Done when the consultation log entry is complete and dated."
+          ],
+          "verify": [
+            "Reopen the consultation log and confirm the entry is complete.",
+            "Pass when the logged entry matches the guidance and outcome provided."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm no unresolved design questions remain before closing",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Review the consultation for any unresolved role design questions.",
+            "Confirm each unresolved question is addressed or escalated.",
+            "Close the consultation once all questions are resolved.",
+            "Done when the consultation is closed with no unresolved questions."
+          ],
+          "verify": [
+            "Recheck the consultation log for any remaining open question.",
+            "Pass when no unresolved question remains before closure."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "35125a8f-8497-42a0-ade3-93dec053ca87",
+      "verifier": "People Analytics / HR Operations Manager",
+      "generic": {
+        "Defined scope/population": "All active people managers requiring access to the people analytics dashboard",
+        "In-scope period": "The current dashboard refresh and access cycle",
+        "Required fields populated and valid": "Turnover, engagement, and headcount tiles populated on the dashboard",
+        "Control totals or record counts reconcile": "Number of managers granted access matches the active manager roster",
+        "Evidence retained with timestamp/version": "Dashboard refresh timestamp confirms the scheduled cadence was met",
+        "Exceptions logged with disposition": "Managers missing dashboard access logged and granted access",
+        "Test population": "A sample manager's dashboard view checked against source data",
+        "Pass/fail thresholds": "Fail if a manager can view another team's data through row-level security",
+        "Exception handling path": "People Analytics corrects row-level security and revalidates affected managers",
+        "Documented acceptance criteria": "Dashboard accessible to all in-scope managers with row-level security and current data refresh",
+        "Evidence location": "Power BI people analytics dashboard access and refresh logs"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the dashboard includes turnover, engagement, and headcount tiles",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Open the manager-facing people analytics dashboard in Power BI.",
+            "Confirm the turnover, engagement, and headcount tiles are present and populated.",
+            "Note any tile displaying missing or stale data.",
+            "Done when all three required tiles are confirmed present and populated."
+          ],
+          "verify": [
+            "Recheck each tile's data against the source system for one business unit.",
+            "Pass when all three tiles display current, accurate data."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Set manager-level row-level security on the dashboard",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Open the dashboard's row-level security configuration in Power BI.",
+            "Set the security rule so each manager sees only their own team's data.",
+            "Test the rule against two different manager accounts.",
+            "Done when row-level security is configured and tested."
+          ],
+          "verify": [
+            "Log in as a test manager account and confirm only their team's data is visible.",
+            "Pass when the tested account sees only its own team's data."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm the dashboard data refresh runs on the scheduled cadence",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Check the Power BI scheduled refresh configuration for the dashboard.",
+            "Confirm the refresh cadence matches the required data currency standard.",
+            "Note the timestamp of the most recent successful refresh.",
+            "Done when the scheduled refresh cadence is confirmed active."
+          ],
+          "verify": [
+            "Recheck the most recent refresh timestamp against the expected schedule.",
+            "Pass when the refresh occurred within the expected cadence window."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Grant dashboard access to newly appointed managers",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Identify managers newly appointed since the last access review.",
+            "Grant Power BI dashboard access to each newly appointed manager.",
+            "Confirm the row-level security rule applies correctly to the new access grant.",
+            "Done when every newly appointed manager has dashboard access."
+          ],
+          "verify": [
+            "Log in as a newly appointed manager and confirm dashboard access works.",
+            "Pass when the new manager can access the dashboard with correct security."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Spot-check a sample manager's dashboard view for accuracy",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Select a sample manager's dashboard view for review.",
+            "Compare the displayed figures against the source HRIS and engagement system.",
+            "Note any discrepancy found during the spot-check.",
+            "Done when the spot-check is complete for the sampled manager."
+          ],
+          "verify": [
+            "Recheck the discrepancy note, if any, against the source system.",
+            "Pass when the sampled manager's dashboard figures match the source system."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Log and remediate managers missing dashboard access",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Compile the list of active managers without confirmed dashboard access.",
+            "Grant access to each logged manager.",
+            "Confirm each remediated manager can view their dashboard correctly.",
+            "Done when every logged manager has confirmed dashboard access."
+          ],
+          "verify": [
+            "Recheck the access log after remediation for each previously missing manager.",
+            "Pass when every manager on the list now has confirmed access."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fisay0mdpkfgz9kl85ex1",
+      "verifier": "People Analytics / HR Operations Manager",
+      "generic": {
+        "Defined scope/population": "Business units identified as over- or under-covered in the HRBP demand analysis",
+        "In-scope period": "The current coverage rebalancing cycle",
+        "Required fields populated and valid": "Revised coverage assignment and effective date populated on affected org records",
+        "Control totals or record counts reconcile": "Rebalanced coverage ratios fall within guideline range for every affected HRBP",
+        "Evidence retained with timestamp/version": "Updated org records dated with the rebalancing effective date",
+        "Exceptions logged with disposition": "Portfolios still outside guideline range after rebalancing logged for further review",
+        "Test population": "A sample of affected business units after rebalancing",
+        "Pass/fail thresholds": "Fail if an affected business unit lacks a communicated transition plan",
+        "Exception handling path": "HR Business Partner follows up directly with an uncommunicated business unit leader",
+        "Documented acceptance criteria": "Rebalanced coverage assignments updated with transition plan communicated to affected business units",
+        "Evidence location": "Workday HCM business unit org records and rebalancing transition communications"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Review the HRBP service demand analysis",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Open the HRBP service demand analysis for the current period.",
+            "Identify business units flagged as over- or under-covered.",
+            "Note the magnitude of the coverage imbalance for each flagged unit.",
+            "Done when over- and under-covered business units are identified."
+          ],
+          "verify": [
+            "Recheck a flagged business unit's demand figures against the source analysis.",
+            "Pass when the flagged imbalance matches the source data."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Propose a revised coverage assignment",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Draft a revised HRBP coverage assignment addressing the identified imbalances.",
+            "Confirm the proposal redistributes business units to balance HRBP portfolios.",
+            "Circulate the proposal for HR leadership review.",
+            "Done when a revised coverage proposal is drafted and circulated."
+          ],
+          "verify": [
+            "Reread the proposal against the flagged over- and under-covered units.",
+            "Pass when the proposal addresses every flagged imbalance."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm the revised ratio falls within guideline range for every HRBP",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Calculate the revised employees-per-HRBP ratio for each affected portfolio.",
+            "Compare each revised ratio against the guideline range.",
+            "Adjust the proposal if any portfolio still falls outside the range.",
+            "Done when every affected HRBP's revised ratio is within guideline range."
+          ],
+          "verify": [
+            "Recalculate one affected HRBP's revised ratio from the underlying headcount.",
+            "Pass when the recalculated ratio falls within the guideline range."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Update the coverage assignment field in Workday HCM",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Open each affected business unit's org record in Workday HCM.",
+            "Update the coverage assignment field with the rebalanced HRBP.",
+            "Set the effective date of the rebalancing on the record.",
+            "Done when all affected org records show the rebalanced assignment."
+          ],
+          "verify": [
+            "Reopen a sample affected org record and confirm the updated assignment.",
+            "Pass when the sampled record shows the correct rebalanced HRBP."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Communicate the transition plan to affected business unit leaders",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Draft the transition plan communication including the effective date.",
+            "Send the communication to each affected business unit leader.",
+            "Confirm each leader acknowledges the transition plan.",
+            "Done when every affected leader has been communicated to."
+          ],
+          "verify": [
+            "Check the communication log for each affected leader's acknowledgment.",
+            "Pass when every affected leader shows a logged acknowledgment."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Log any portfolio still outside guideline range after rebalancing",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Recheck all affected portfolios' ratios after rebalancing is complete.",
+            "Log any portfolio still outside the guideline range.",
+            "Route logged portfolios to HR leadership for further review.",
+            "Done when any remaining out-of-range portfolio is logged and routed."
+          ],
+          "verify": [
+            "Recheck the logged portfolios against the post-rebalancing ratios.",
+            "Pass when every out-of-range portfolio identified is logged and routed."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "41f8e89d-6113-4f65-94c4-d810e9889713",
+      "verifier": "People Analytics / HR Operations Manager",
+      "generic": {
+        "Defined scope/population": "Monthly people metrics and HRBP activity volume across all HRBP portfolios",
+        "In-scope period": "The closed reporting month ahead of the CHRO monthly deadline",
+        "Required fields populated and valid": "Turnover, engagement, open cases, and activity volume populated by portfolio",
+        "Control totals or record counts reconcile": "Reported activity volume matches the source HRBP case tracking system",
+        "Evidence retained with timestamp/version": "Delivered report logged with the delivery date and version",
+        "Exceptions logged with disposition": "Discrepancies found in the accuracy review corrected before delivery",
+        "Test population": "A sample portfolio's metrics checked against source dashboards",
+        "Pass/fail thresholds": "Fail if the report is delivered after the monthly reporting deadline",
+        "Exception handling path": "HR Business Partner escalates a delivery delay to HR leadership",
+        "Documented acceptance criteria": "Monthly people metrics and HRBP activity report delivered to CHRO by the reporting deadline",
+        "Evidence location": "Power BI monthly CHRO report and delivery log"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Compile monthly people metrics and HRBP activity volume",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Pull turnover, engagement, and open case metrics for the closed month.",
+            "Pull HRBP activity volume by portfolio for the closed month.",
+            "Consolidate the metrics and activity data into the report data set.",
+            "Done when all required metrics and activity data are compiled."
+          ],
+          "verify": [
+            "Spot-check one portfolio's compiled activity volume against the source tracker.",
+            "Pass when the compiled figure matches the source tracker."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Format the summary into the CHRO monthly report template",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Open the CHRO monthly report template.",
+            "Populate the template with the compiled metrics and activity data.",
+            "Confirm the formatting matches the standard template layout.",
+            "Done when the summary is formatted into the report template."
+          ],
+          "verify": [
+            "Reread the formatted report against the template's required sections.",
+            "Pass when all required sections are populated correctly."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Review the draft summary for accuracy against source dashboards",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Compare each figure in the draft report against the source Power BI dashboards.",
+            "Correct any discrepancy found during the review.",
+            "Confirm the draft is accurate before finalizing.",
+            "Done when the draft report is confirmed accurate against source dashboards."
+          ],
+          "verify": [
+            "Recheck one corrected figure against the source dashboard.",
+            "Pass when the corrected figure matches the source dashboard."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Deliver the report to the CHRO by the reporting deadline",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Finalize the report for delivery.",
+            "Send the report to the CHRO ahead of the monthly reporting deadline.",
+            "Confirm the send timestamp is before the deadline.",
+            "Done when the report is delivered before the reporting deadline."
+          ],
+          "verify": [
+            "Check the send timestamp against the monthly reporting deadline.",
+            "Pass when the report was delivered on or before the deadline."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Log the delivery date and confirm receipt",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Log the delivery date against the monthly report record.",
+            "Follow up with the CHRO's office to confirm receipt.",
+            "Record the confirmed receipt on the report log.",
+            "Done when receipt is confirmed and logged against the report."
+          ],
+          "verify": [
+            "Recheck the report log for the confirmed receipt entry.",
+            "Pass when receipt confirmation is logged for the delivered report."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Escalate any delivery delay to HR leadership",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Identify if the delivery deadline was missed for the reporting month.",
+            "Escalate the missed deadline and reason to HR leadership.",
+            "Document the corrective step taken to prevent recurrence.",
+            "Done when any missed deadline is escalated and documented."
+          ],
+          "verify": [
+            "Recheck the escalation log for the documented corrective step.",
+            "Pass when a missed deadline shows a documented escalation and correction."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fis2e0m9vkfgzbwq8o24e",
+      "verifier": "People Analytics / HR Operations Manager",
+      "generic": {
+        "Defined scope/population": "HRBP case volume and consultation requests across all business units for the review period",
+        "In-scope period": "The current HRBP service demand review period",
+        "Required fields populated and valid": "Case volume and consultation counts populated by business unit and HRBP",
+        "Control totals or record counts reconcile": "Total case volume reviewed matches the source case tracking system",
+        "Evidence retained with timestamp/version": "Demand review findings documented with the review period date",
+        "Exceptions logged with disposition": "Business units trending under- or over-served flagged for rebalancing consideration",
+        "Test population": "A sample business unit's demand figures checked against Workday HCM",
+        "Pass/fail thresholds": "Fail if a flagged business unit lacks supporting case volume data",
+        "Exception handling path": "People Analytics corrects the demand figures before routing findings",
+        "Documented acceptance criteria": "Demand reviewed by business unit with under- or over-served units identified for rebalancing",
+        "Evidence location": "Workday HCM HRBP demand review findings document"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull HRBP case volume and consultation request counts",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Open the Workday HCM case tracking data for the review period.",
+            "Pull case volume and consultation request counts by business unit.",
+            "Confirm the data covers the full review period.",
+            "Done when case volume and consultation counts are pulled by business unit."
+          ],
+          "verify": [
+            "Spot-check one business unit's pulled count against the source case tracker.",
+            "Pass when the pulled count matches the source tracker."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Compare demand levels against each HRBP's portfolio size",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Pull each HRBP's current portfolio size from the coverage assignment records.",
+            "Compare the pulled demand levels against each HRBP's portfolio size.",
+            "Note the ratio of demand to portfolio size for each HRBP.",
+            "Done when demand is compared against portfolio size for every HRBP."
+          ],
+          "verify": [
+            "Recheck one HRBP's demand-to-portfolio ratio calculation.",
+            "Pass when the recalculated ratio matches the compared value."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Identify business units trending toward under- or over-served status",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Review the demand-to-portfolio comparison for each business unit.",
+            "Flag business units trending toward under- or over-served status.",
+            "Note the trend direction and magnitude for each flagged unit.",
+            "Done when trending business units are identified and flagged."
+          ],
+          "verify": [
+            "Recheck one flagged business unit's trend against its underlying data.",
+            "Pass when the flagged trend direction matches the underlying data."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Document the demand review findings",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Compile the demand comparison and flagged trends into a findings document.",
+            "Include supporting data references for each flagged business unit.",
+            "Confirm the findings document is complete for the review period.",
+            "Done when the demand review findings document is complete."
+          ],
+          "verify": [
+            "Reread the findings document against the flagged business units.",
+            "Pass when the findings document accurately reflects the flagged units."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Route the findings to HR leadership for coverage model approval",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Send the completed findings document to HR leadership.",
+            "Request approval for the coverage rebalancing decision.",
+            "Confirm HR leadership acknowledges receipt of the findings.",
+            "Done when the findings are routed and acknowledgment is confirmed."
+          ],
+          "verify": [
+            "Check the routing log for HR leadership's acknowledgment.",
+            "Pass when acknowledgment is logged for the routed findings."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the findings are handed off to the rebalancing process",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Confirm the approved findings are passed to the coverage rebalancing task.",
+            "Verify the rebalancing task references the demand review findings.",
+            "Close the demand review record once handoff is confirmed.",
+            "Done when the demand review record is closed with a confirmed handoff."
+          ],
+          "verify": [
+            "Recheck the rebalancing task for the referenced demand review findings.",
+            "Pass when the rebalancing task correctly references the findings."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "c841b9df-603e-4051-95e0-8508768db791",
+      "verifier": "Employee Relations Manager",
+      "generic": {
+        "Defined scope/population": "Complex employee relations situations routed to HRBP for manager coaching support",
+        "In-scope period": "The active ER case from opening through manager acknowledgment",
+        "Required fields populated and valid": "Coaching guidance and manager questions populated on the ER case record",
+        "Control totals or record counts reconcile": "Number of acknowledged coaching sessions matches the number of opened ER cases",
+        "Evidence retained with timestamp/version": "ER case record dated with the coaching session and acknowledgment",
+        "Exceptions logged with disposition": "Cases requiring escalation logged with the escalation path taken",
+        "Test population": "A sample of ER cases with recorded coaching guidance",
+        "Pass/fail thresholds": "Fail if the manager proceeds with action before acknowledging guidance",
+        "Exception handling path": "Employee Relations Manager escalates an unacknowledged case to HR leadership",
+        "Documented acceptance criteria": "Coaching guidance documented and acknowledged by the manager before independent action is taken",
+        "Evidence location": "HRIS ER case record coaching and acknowledgment fields"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Open the ER case record for the complex situation",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Open a new ER case record for the reported employee relations situation.",
+            "Record the situation summary and the manager involved.",
+            "Confirm the case is categorized correctly by situation type.",
+            "Done when the ER case record is open with the situation documented."
+          ],
+          "verify": [
+            "Reopen the case record and confirm the situation summary is accurate.",
+            "Pass when the case record accurately reflects the reported situation."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Coach the manager on documentation standards",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Discuss the appropriate documentation standards for the situation with the manager.",
+            "Provide examples of compliant documentation for similar situations.",
+            "Answer the manager's questions about the documentation expectations.",
+            "Done when the manager is coached on documentation standards."
+          ],
+          "verify": [
+            "Recheck the manager's subsequent documentation against the coached standard.",
+            "Pass when the manager's documentation follows the coached standard."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Advise on the correct escalation path if required",
+          "actor": "Employee Relations Manager",
+          "sop": [
+            "Assess whether the situation requires ER or employment counsel involvement.",
+            "Advise the manager on the correct escalation path if involvement is required.",
+            "Confirm the manager understands when and how to escalate.",
+            "Done when escalation guidance is provided if the situation requires it."
+          ],
+          "verify": [
+            "Recheck the case for whether escalation guidance matches the situation's severity.",
+            "Pass when the escalation guidance provided matches the required path."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record the coaching guidance and manager questions",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Record the coaching guidance provided on the ER case record.",
+            "Record the manager's questions raised during the coaching conversation.",
+            "Confirm the record is saved with a timestamp.",
+            "Done when guidance and questions are recorded on the ER case record."
+          ],
+          "verify": [
+            "Reopen the case record and confirm the guidance and questions are saved.",
+            "Pass when the saved record matches the coaching conversation."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm the manager acknowledges the guidance",
+          "actor": "Employee Relations Manager",
+          "sop": [
+            "Request the manager's acknowledgment of the coaching guidance provided.",
+            "Confirm the acknowledgment is captured on the ER case record.",
+            "Verify the acknowledgment occurs before the manager takes independent action.",
+            "Done when the manager's acknowledgment is captured before action."
+          ],
+          "verify": [
+            "Check the timestamp of the acknowledgment against any subsequent manager action.",
+            "Pass when the acknowledgment precedes any independent action taken."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Close the coaching support and confirm no escalation is outstanding",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Confirm any required escalation was completed or is in progress.",
+            "Close the coaching support entry on the ER case record.",
+            "Note the final outcome of the coaching support provided.",
+            "Done when the coaching support entry is closed with outcome noted."
+          ],
+          "verify": [
+            "Recheck the case record for the closed coaching support entry.",
+            "Pass when the entry is closed with the outcome documented."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cb6f75c3-75a3-4ca9-9ee8-eb4896af0e10",
+      "verifier": "People Analytics / HR Operations Manager",
+      "generic": {
+        "Defined scope/population": "Business unit leaders and managers served by HRBPs for the semi-annual survey",
+        "In-scope period": "The current semi-annual HRBP satisfaction survey cycle",
+        "Required fields populated and valid": "Satisfaction score computed and populated per HRBP and in aggregate",
+        "Control totals or record counts reconcile": "Survey response count meets the minimum threshold for statistical validity",
+        "Evidence retained with timestamp/version": "Published scores dated with the current survey cycle period",
+        "Exceptions logged with disposition": "Below-threshold response rates logged with an extended collection window",
+        "Test population": "A sample of HRBP satisfaction scores across the served population",
+        "Pass/fail thresholds": "Fail if the response rate falls below the minimum statistical validity threshold",
+        "Exception handling path": "People Analytics extends the collection window for a below-threshold response rate",
+        "Documented acceptance criteria": "Satisfaction scores computed per HRBP and tracked against the prior period",
+        "Evidence location": "HRIS HR Business Partnering performance dashboard"
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Deploy the semi-annual HRBP satisfaction survey",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Load the semi-annual HRBP satisfaction survey instrument in the HRIS.",
+            "Confirm the distribution list includes business unit leaders and managers served.",
+            "Launch the survey to the confirmed distribution list.",
+            "Done when the survey is launched to the full served population."
+          ],
+          "verify": [
+            "Check the HRIS for the survey's active status and distribution count.",
+            "Pass when the survey is active with the full served population included."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the response rate meets the minimum validity threshold",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Monitor the survey response rate through the collection window.",
+            "Compare the response rate against the minimum statistical validity threshold.",
+            "Extend the collection window if the threshold is not met.",
+            "Done when the response rate meets or exceeds the validity threshold."
+          ],
+          "verify": [
+            "Recheck the final response rate against the validity threshold.",
+            "Pass when the response rate meets or exceeds the threshold."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Compute the satisfaction score per HRBP and in aggregate",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Aggregate survey responses by individual HRBP.",
+            "Compute each HRBP's satisfaction score using the approved methodology.",
+            "Compute the aggregate satisfaction score across all HRBPs.",
+            "Done when per-HRBP and aggregate scores are computed."
+          ],
+          "verify": [
+            "Recalculate one HRBP's score manually from the underlying responses.",
+            "Pass when the recalculated score matches the computed score."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Compare the current period score against the prior period",
+          "actor": "People Analytics / HR Operations Manager",
+          "sop": [
+            "Pull the prior period's satisfaction scores for comparison.",
+            "Compare the current period score against the prior period per HRBP.",
+            "Note any HRBP with a material change in trend.",
+            "Done when the current period is compared against the prior period."
+          ],
+          "verify": [
+            "Recheck the trend comparison for one HRBP against both period scores.",
+            "Pass when the trend comparison accurately reflects both periods' scores."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Publish the scores to the HR Business Partnering performance dashboard",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Push the computed scores and trend comparison to the performance dashboard.",
+            "Confirm the dashboard displays per-HRBP and aggregate scores.",
+            "Set the dashboard's publish date to the current cycle.",
+            "Done when the scores are published on the performance dashboard."
+          ],
+          "verify": [
+            "Open the published dashboard and confirm the scores and dates are current.",
+            "Pass when the dashboard reflects the current cycle's scores."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Log any HRBP with a material unfavorable trend for follow-up",
+          "actor": "HR Business Partner",
+          "sop": [
+            "Review the trend comparison for any HRBP scoring materially lower.",
+            "Log the flagged HRBP for follow-up discussion.",
+            "Notify HR leadership of the flagged trend.",
+            "Done when material unfavorable trends are logged and HR leadership notified."
+          ],
+          "verify": [
+            "Recheck the log for the flagged HRBP and leadership notification.",
+            "Pass when every material unfavorable trend is logged with notification."
+          ]
+        }
+      ]
     }
   ]
 }
