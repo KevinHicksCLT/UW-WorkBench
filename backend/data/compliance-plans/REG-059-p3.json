@@ -1,0 +1,2848 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-059-C17",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Chief Info Security Officer",
+          "value": "Owns the annual B-13 technology & cyber risk self-assessment and certification; escalation to Chief Risk Officer and the Board Risk Committee"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — OSFI Guideline B-13 (Technology and Cyber Risk Management, 2022) self-assessment requirement, re-read against the current OSFI guideline library entry at certification time"
+        },
+        "In-scope processes": {
+          "value": "Annual technology & cyber risk self-assessment against the B-13 domains (governance, technology operations, technology resilience, cyber security, third-party technology/cyber risk) rolling up to the certification signed by the CISO and filed with the Board"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Self-assessment questionnaire and control ratings recorded in the GRC platform; certification packaged for OSFI's Regulatory Reporting System"
+        },
+        "Compliance procedure documented": {
+          "value": "Annual B-13 Self-Assessment & Certification Procedure — control inventory refresh, domain scoring, gap remediation tracking, CISO sign-off, Board Risk Committee endorsement, RRS submission"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by Chief Risk Officer and the Board Risk Committee; reviewed annually and on any OSFI guideline update"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual — certification finalized and filed within 180 days of fiscal year end per OSFI's reporting instructions"
+        },
+        "Deadline reminders configured": {
+          "value": "GRC platform milestone alerts at T-120/T-60/T-30 days before the 180-day filing deadline"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Self-assessment workpapers, control evidence, Board Risk Committee minutes and the signed certification retained 7 years from filing"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any domain rated below target or any missed sub-deadline logged as an exception with root cause and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "CRO signs off on every remediation plan before the certification is filed"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All B-13 domain self-assessment ratings and supporting control evidence compiled for the current fiscal year certification"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on filing after the 180-day deadline; any domain rated non-compliant without an approved remediation plan is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; test runs once per cycle immediately ahead of Board Risk Committee endorsement, plus a mid-year interim check on open remediation items"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have scored any of the sampled B-13 domains"
+        },
+        "Evidence location for test results": {
+          "value": "Annual B-13 certification test workpaper (population extract, sample, re-performance notes, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Signed certification, self-assessment summary and remediation tracker, presentable to OSFI within 5 business days of request"
+        },
+        "Regulator response path": {
+          "value": "CISO and Chief Risk Officer own the OSFI inquiry response; General Counsel clears any admission of a control gap before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Kick off the annual B-13 self-assessment cycle and pull the prior-year baseline",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Open the GRC platform's B-13 self-assessment module and clone the prior fiscal year's completed assessment as the current-year baseline.",
+            "Update the assessment header with the current fiscal year, target certification date (fiscal year end + 180 days) and the assigned domain owners.",
+            "Notify domain owners (IT Security Manager, Operational Resilience Lead, Third-Party Risk Manager) via the GRC platform's task assignment that the cycle is open.",
+            "Attach the current OSFI Guideline B-13 (Technology and Cyber Risk Management) PDF to the assessment record as the scoring reference."
+          ],
+          "done": "the current-year assessment shell exists in the GRC platform with domain owners assigned and the B-13 reference attached."
+        },
+        {
+          "step": "Refresh the control inventory against the current B-13 domains",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "In the GRC platform, open the control library filtered to the five B-13 domains (Governance & Risk Management, Technology Operations, Technology Resilience, Cyber Security, Third-Party Technology/Cyber Risk).",
+            "Compare each control's description and owner against the current guideline text; retire controls tied to withdrawn requirements and add controls for any new sub-domain.",
+            "Map each control to at least one control owner in the GRC platform's RACI field.",
+            "Flag orphaned controls (no owner) to the CISO for assignment before scoring opens."
+          ],
+          "done": "every control in the library is mapped one-to-one to a current B-13 domain/sub-domain and has an assigned owner."
+        },
+        {
+          "step": "Score each domain and sub-domain against the maturity scale",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "actions": [
+            "For each control, request the current design and operating-effectiveness rating from its owner using the GRC platform's rating scale (Not in Place / Partially in Place / In Place / Optimized).",
+            "Attach the owner's supporting evidence link (policy, scan report, ticket) to each rating.",
+            "Roll sub-domain scores up to a domain-level score using the GRC platform's weighted rollup.",
+            "Where a domain scores below 'In Place', open a gap record referencing the specific control(s) driving the score."
+          ],
+          "done": "every domain has a rolled-up score with owner-attested, evidence-linked ratings underneath it."
+        },
+        {
+          "step": "Gather control evidence from security and IT operations tooling",
+          "by": "IT Security Manager",
+          "role": "IT Security Manager",
+          "app": "CrowdStrike Falcon",
+          "actions": [
+            "Pull the current CrowdStrike Falcon endpoint coverage report and the Qualys / Tenable vulnerability scan summary for the reporting period.",
+            "Export the SIEM/SOAR incident and alert-response metrics covering mean time to detect and mean time to respond.",
+            "Pull access review completion evidence from the IAM platform (SailPoint/Okta/Azure AD).",
+            "Attach each extract to the corresponding control in the GRC platform with the extraction date."
+          ],
+          "done": "every technical control cites a dated extract from the source security tool, not a narrative claim."
+        },
+        {
+          "step": "Identify gaps and open remediation items",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Review the gap records raised during scoring and confirm each cites the specific control, the target maturity level and the current level.",
+            "Prioritize gaps using the enterprise risk taxonomy (High/Medium/Low) based on the CRO's risk appetite thresholds.",
+            "Open a remediation item per gap in the GRC platform's issue module, linked back to the control and domain."
+          ],
+          "done": "every sub-target domain has a prioritized, control-linked remediation item open in the GRC platform."
+        },
+        {
+          "step": "Draft remediation plans with owners and target dates",
+          "by": "Operational Risk Manager",
+          "role": "Operational Risk Manager",
+          "actions": [
+            "For each remediation item, assign an accountable owner from the domain team and a target close date that lands before the certification submission date.",
+            "Where a remediation cannot close before filing, draft a compensating-control statement and an interim risk acceptance for CRO sign-off.",
+            "Load target dates into the GRC platform's remediation tracker with automated overdue alerts."
+          ],
+          "done": "every remediation item has an owner, a target date, and — where it will not close in time — a CRO-ready risk acceptance draft."
+        },
+        {
+          "step": "Validate evidence with control owners before compiling the report",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "actions": [
+            "Walk each domain owner through their scored controls and attached evidence in a validation session.",
+            "Correct any rating where the evidence does not support the score and re-date the rating.",
+            "Lock the assessment record in the GRC platform once the owner confirms accuracy, which timestamps the final scores."
+          ],
+          "done": "every domain owner has confirmed their scores and evidence, and the assessment record is locked."
+        },
+        {
+          "step": "Compile the self-assessment summary report",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Export the locked assessment from the GRC platform into the self-assessment summary template covering domain scores, key gaps, remediation status and residual risk.",
+            "Add the year-over-year trend comparison against the prior certification.",
+            "Route the draft to the Chief Risk Officer and Operational Resilience Lead for technical accuracy review."
+          ],
+          "done": "a complete draft summary report exists with scores, gaps, remediation status and trend, reviewed by CRO and Operational Resilience Lead."
+        },
+        {
+          "step": "Present the assessment to the Chief Risk Officer for review",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Walk the CRO through domain scores, open remediation items and any proposed risk acceptances.",
+            "Capture the CRO's questions and required changes directly on the summary report.",
+            "Obtain the CRO's written endorsement to proceed to Board Risk Committee."
+          ],
+          "done": "the CRO has reviewed the summary and given written endorsement to advance it to the Board Risk Committee."
+        },
+        {
+          "step": "Present to the Board Risk Committee for endorsement",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "board portal",
+          "actions": [
+            "Add the self-assessment summary as an agenda item on the board portal for the next Board Risk Committee meeting.",
+            "Present domain scores, key gaps, remediation plans and any risk acceptances requiring committee approval.",
+            "Record the committee's endorsement, any conditions, and required follow-ups in the board portal's minutes."
+          ],
+          "done": "the Board Risk Committee's endorsement (or conditions) is recorded in the board portal minutes."
+        },
+        {
+          "step": "Incorporate Board feedback and finalize the assessment",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Update the summary report and any risk acceptance language per the committee's recorded conditions.",
+            "Re-circulate the finalized version to the CRO for final sign-off.",
+            "Lock the finalized version as the certification support package in the GRC platform."
+          ],
+          "done": "the finalized package reflects all Board conditions and carries CRO final sign-off."
+        },
+        {
+          "step": "Draft and sign the certification letter",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Draft the certification letter attesting to the entity's compliance status against B-13, referencing the finalized self-assessment package.",
+            "Include named exceptions and their remediation timelines rather than omitting them.",
+            "Sign the certification and route to the Chief Risk Officer for countersignature."
+          ],
+          "done": "the certification letter is drafted, exceptions are named, and both CISO and CRO signatures are on file."
+        },
+        {
+          "step": "Submit the certification through the OSFI Regulatory Reporting System",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Log in to OSFI's Regulatory Reporting System (RRS) and open the current filing period's technology & cyber risk certification submission.",
+            "Upload the signed certification letter and the self-assessment summary as supporting attachments.",
+            "Complete the RRS submission metadata (institution code, fiscal year end, filer contact) and submit before the 180-day deadline.",
+            "Save the RRS confirmation number and submission timestamp to the compliance evidence repository."
+          ],
+          "done": "the certification is submitted in RRS before the 180-day deadline with a saved confirmation number."
+        },
+        {
+          "step": "Confirm submission receipt and log the confirmation",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Check the RRS submission status shows 'Received' or 'Accepted' rather than 'Pending' or 'Rejected'.",
+            "If rejected, read the RRS error detail, correct the submission and resubmit the same business day.",
+            "Log the confirmation number, submission date and status in the regulatory filing/issue tracker against this obligation."
+          ],
+          "done": "the RRS status shows accepted and the confirmation is logged in the filing tracker."
+        },
+        {
+          "step": "Retain the certification evidence for the retention period",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move the locked self-assessment package, certification letter, Board minutes and RRS confirmation into the compliance evidence repository under the current fiscal year.",
+            "Apply the 7-year retention label.",
+            "Confirm the repository index shows the record searchable by fiscal year and RRS confirmation number."
+          ],
+          "done": "the full certification record is filed, labelled for 7-year retention and retrievable by fiscal year and confirmation number."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of B-13 domains and controls scored in the current certification",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Export from the GRC platform every domain, sub-domain and control scored in the current-year self-assessment.",
+            "Reconcile the exported control count to the control library's active-control count for the period.",
+            "Resolve any discrepancy with the Security GRC Analyst before sampling."
+          ],
+          "done": "the population is reconciled to the active control library and signed as complete by the extractor."
+        },
+        {
+          "step": "Reconcile the certification submission to the finalized assessment package",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the certification letter's attested scope and exceptions to the locked self-assessment package.",
+            "Confirm the RRS submission attachments match the Board-endorsed final version exactly.",
+            "List any mismatch (score changed post-Board endorsement without re-approval) as an automatic exception."
+          ],
+          "done": "the RRS submission is confirmed identical to the Board-endorsed package or discrepancies are listed as exceptions."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of domains scoring below 'In Place'.",
+            "Take a random sample of 10 controls from domains scoring 'In Place' or 'Optimized', seeded and reproducible.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers every below-target domain."
+        },
+        {
+          "step": "Re-perform the control rating for each sampled control",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Open the evidence attached to each sampled control in the GRC platform and independently assess whether it supports the recorded rating.",
+            "Reach an independent maturity rating without viewing the owner's conclusion first.",
+            "Compare to the recorded rating; any difference of more than one maturity level is an exception."
+          ],
+          "done": "each sampled control has an independent re-performed rating and a documented comparison."
+        },
+        {
+          "step": "Verify remediation plans and risk acceptances for sampled gaps",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled control with an open gap, confirm a remediation item exists with an owner and target date.",
+            "For any gap open past its certification-cycle target, confirm a CRO-signed risk acceptance exists.",
+            "Flag any gap with neither a remediation plan nor a risk acceptance."
+          ],
+          "done": "every sampled gap has a remediation plan or a signed risk acceptance, or is logged as an exception."
+        },
+        {
+          "step": "Confirm Board Risk Committee endorsement occurred before filing",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "board portal",
+          "actions": [
+            "Pull the Board Risk Committee minutes from the board portal for the meeting where the assessment was presented.",
+            "Confirm the endorsement date precedes the RRS submission date.",
+            "Confirm any committee conditions are reflected in the finalized package."
+          ],
+          "done": "Board endorsement is confirmed to pre-date the filing and conditions are reflected in the final package."
+        },
+        {
+          "step": "Trace the RRS filing to a valid, on-time submission",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Open OSFI's Regulatory Reporting System and pull the submission record using the saved confirmation number.",
+            "Confirm the submission timestamp is on or before fiscal year end + 180 days.",
+            "Confirm the attached certification letter matches the signed copy in the evidence repository.",
+            "Capture the RRS submission detail screen into the workpaper."
+          ],
+          "done": "the RRS record confirms an on-time, matching submission, captured as evidence."
+        },
+        {
+          "step": "Recompute the 180-day deadline and confirm the reminder schedule fired",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute the 180-day deadline from the fiscal year end date independently.",
+            "Compare to the recorded target certification date on the assessment record.",
+            "Confirm the GRC platform's T-120/T-60/T-30 alerts fired and were acted on, using the platform's notification log."
+          ],
+          "done": "the recomputed deadline matches the tracked date and the reminder log shows all three alerts fired."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the control, domain, and what was missed.",
+            "Assign a root cause (evidence gap, rating override, missed reminder, late Board slot) and an owner.",
+            "Set a remediation date and carry open exceptions into the next cycle's test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance late-filing threshold and the rating-accuracy threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer, who scored none of the sampled controls, sign the workpaper.",
+            "Report results to the Board Risk Committee at its next sitting and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate exists, reported to the Board Risk Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-059-C18",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Vendor Manager",
+          "value": "Owns third-party risk oversight for critical service providers; escalation to Third-Party Risk Manager and Chief Risk Officer"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — OSFI Guideline B-10 (Third-Party Risk Management, 2023), contractual-provisions, due-diligence and exit/contingency sections, re-read against the current OSFI guideline library entry at assessment time"
+        },
+        "In-scope processes": {
+          "value": "Third-party risk lifecycle for critical and material service providers — due diligence, contract negotiation, ongoing monitoring, and exit planning — across all outsourced technology, operations and data services"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Vendor risk register, due-diligence questionnaires and contract clause tracking held in the GRC platform; contracts themselves held in the contract lifecycle management repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Third-Party Risk Management Procedure (B-10 aligned) — criticality tiering, due diligence, contract clause checklist, ongoing monitoring cadence, exit/contingency planning"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by Chief Risk Officer; reviewed annually and on any OSFI B-10 update"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per vendor — due diligence and contract review complete before onboarding; annual reassessment for every critical/material vendor tied to the vendor's onboarding anniversary"
+        },
+        "Deadline reminders configured": {
+          "value": "GRC platform milestone alerts at 60/30/15 days before each vendor's annual reassessment due date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Due diligence packages, signed contracts, clause checklists and monitoring reports retained 7 years from contract termination"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any critical vendor missing a required clause or an overdue reassessment logged as an exception with root cause and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Third-Party Risk Manager",
+          "value": "Signs off on every remediated contract amendment or closed monitoring gap before the vendor record is marked current"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All critical and material third-party service providers active in the current fiscal year per the vendor risk register"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any critical vendor contract missing a required B-10 clause, or any overdue annual reassessment, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per-vendor/annual; test runs annually over the full critical/material population"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have performed any sampled vendor's due diligence or reassessment"
+        },
+        "Evidence location for test results": {
+          "value": "Annual third-party risk test workpaper (population extract, sample, contract clause checks, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Vendor risk register export, contract clause checklists and monitoring reports, presentable to OSFI within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Chief Risk Officer owns the OSFI inquiry response; General Counsel clears any admission of a contractual gap before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Tier every third-party relationship by criticality",
+          "by": "Vendor Manager",
+          "role": "Vendor Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Export the full vendor list from the GRC platform's vendor risk register.",
+            "Score each vendor against the criticality framework (impact of failure, data sensitivity, substitutability, regulatory relevance) to classify Critical, Material or Standard.",
+            "Confirm Critical and Material classifications with the Third-Party Risk Manager and the business owner.",
+            "Update the criticality tier field on each vendor record in the GRC platform."
+          ],
+          "done": "every active vendor carries a confirmed criticality tier in the GRC platform."
+        },
+        {
+          "step": "Run due diligence before onboarding any new critical or material vendor",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Send the vendor the due-diligence questionnaire covering financial soundness, security posture, business continuity capability, sub-contracting and data location.",
+            "Request the vendor's SOC 2 Type II report (or equivalent) and independent penetration test summary.",
+            "Score the responses against the GRC platform's risk criteria and record the resulting risk rating.",
+            "Escalate any unacceptable rating to the Chief Risk Officer before contracting proceeds."
+          ],
+          "done": "a completed, scored due-diligence file exists for the vendor before any contract is signed."
+        },
+        {
+          "step": "Negotiate the required B-10 contractual provisions",
+          "by": "Contracts Manager",
+          "role": "Contracts Manager",
+          "app": "Icertis CLM (Contracts)",
+          "actions": [
+            "Pull the B-10 contract clause checklist from the GRC platform (service levels, security requirements, sub-contracting consent, business continuity, audit and OSFI access rights, data location, termination/exit).",
+            "Mark each clause present/absent/negotiated on the draft agreement and route gaps to Legal Counsel for redline.",
+            "Confirm the OSFI regulator-access clause explicitly grants OSFI the right to examine the vendor and its records.",
+            "File the signed agreement in the contract lifecycle management repository, tagged with the vendor's criticality tier."
+          ],
+          "done": "the executed contract carries every required B-10 clause, verified against the checklist and filed in the CLM repository."
+        },
+        {
+          "step": "Register the vendor and link it to the process and application it supports",
+          "by": "Vendor Manager",
+          "role": "Vendor Manager",
+          "actions": [
+            "Create or update the vendor record in the GRC platform with legal entity name, service description, criticality tier and contract reference.",
+            "Link the vendor record to the ProcessNode(s) and Application(s) it services in the operating model.",
+            "Assign a named internal relationship owner and a named Third-Party Risk Manager contact."
+          ],
+          "done": "the vendor record is complete, linked to its supported process/application, and carries named owners."
+        },
+        {
+          "step": "Confirm sub-contractor (fourth-party) visibility",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Request the vendor's current sub-contractor list for any function material to the service.",
+            "Confirm the contract's sub-contracting clause requires notice before any new sub-contractor is engaged.",
+            "Assess each disclosed sub-contractor's criticality using the same tiering framework and record it against the parent vendor."
+          ],
+          "done": "the vendor's sub-contractor list is on file, tiered, and the notice-of-change clause is confirmed active."
+        },
+        {
+          "step": "Set the ongoing monitoring cadence",
+          "by": "Vendor Manager",
+          "role": "Vendor Manager",
+          "actions": [
+            "Set the GRC platform's monitoring cadence per criticality tier — quarterly for Critical, semi-annual for Material.",
+            "Configure monitoring scope: SLA performance, security incident notifications, financial health checks and control attestations.",
+            "Assign the relationship owner as the monitoring task recipient in the GRC platform."
+          ],
+          "done": "every vendor has a cadence, scope and owner configured in the GRC platform's monitoring module."
+        },
+        {
+          "step": "Collect and review the vendor's periodic control attestations",
+          "by": "Vendor Manager",
+          "role": "Vendor Manager",
+          "actions": [
+            "Request the vendor's current SOC 2 Type II report, penetration test summary and BCP test results per the monitoring cadence.",
+            "Review the report for qualified opinions or control exceptions relevant to the services provided.",
+            "Log the review outcome and any follow-up items in the GRC platform against the vendor record."
+          ],
+          "done": "the current-period attestation is reviewed, logged, and any exception has a follow-up item."
+        },
+        {
+          "step": "Run the annual reassessment for every critical/material vendor",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Re-issue the due-diligence questionnaire and re-score the vendor's risk rating against current criteria.",
+            "Compare the new rating to the prior year's and investigate any material deterioration with the vendor.",
+            "Update the vendor's risk rating and reassessment date in the GRC platform before the anniversary deadline."
+          ],
+          "done": "the vendor's reassessment is complete, scored and dated in the GRC platform before its anniversary."
+        },
+        {
+          "step": "Test incident notification and escalation readiness",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Confirm the contract's incident notification clause specifies the notification window (e.g., within 24-72 hours of a material incident).",
+            "Review the vendor's incident history for the period and confirm each notification met the contractual window.",
+            "Log any missed or late notification as a vendor performance exception in the GRC platform."
+          ],
+          "done": "notification timeliness is checked against the contractual window for every incident in the period."
+        },
+        {
+          "step": "Verify business continuity and exit/contingency planning",
+          "by": "Vendor Manager",
+          "role": "Vendor Manager",
+          "actions": [
+            "Request the vendor's current business continuity plan and most recent test results for the service provided.",
+            "Confirm the internal exit plan for this vendor names an alternate provider or in-house fallback and an estimated transition timeline.",
+            "Update the exit plan document with current vendor-specific details and file it alongside the vendor record."
+          ],
+          "done": "current BCP test evidence and an up-to-date, vendor-specific exit plan are on file."
+        },
+        {
+          "step": "Assess concentration risk across the critical vendor portfolio",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Aggregate critical vendors by underlying cloud/data-center provider and by geography in the GRC platform's concentration report.",
+            "Flag any single point of failure serving multiple critical processes.",
+            "Present concentration findings to the Chief Risk Officer with any recommended diversification action."
+          ],
+          "done": "a current concentration report exists and any single point of failure is flagged to the CRO."
+        },
+        {
+          "step": "Escalate unresolved critical-vendor risk findings",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "board portal",
+          "actions": [
+            "Review any vendor risk rating downgraded to unacceptable or any unresolved clause gap past 90 days.",
+            "Decide remediation, contract renegotiation or vendor exit, and record the decision with a target date.",
+            "Report material third-party risk decisions to the Board Risk Committee via the board portal."
+          ],
+          "done": "every unresolved critical finding has an owned decision recorded and reported to the Board Risk Committee."
+        },
+        {
+          "step": "Update the vendor risk register status",
+          "by": "Vendor Manager",
+          "role": "Vendor Manager",
+          "actions": [
+            "Set each vendor's GRC platform status to Current, Reassessment Due, or Remediation In Progress based on this cycle's outcome.",
+            "Attach the completed due-diligence file, clause checklist and monitoring reports as the status evidence.",
+            "Confirm the relationship owner has acknowledged the updated status."
+          ],
+          "done": "every vendor record shows a current status backed by attached evidence, acknowledged by the relationship owner."
+        },
+        {
+          "step": "Log any exceptions with disposition",
+          "by": "Vendor Manager",
+          "role": "Vendor Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for any vendor missing a required clause, an overdue reassessment, or a failed monitoring check.",
+            "Assign a root cause and an owner, and set a remediation date.",
+            "Track the exception to closure in the regulatory filing/issue tracker."
+          ],
+          "done": "every exception has an issue, root cause, owner and remediation date logged."
+        },
+        {
+          "step": "Retain the vendor oversight evidence",
+          "by": "Vendor Manager",
+          "role": "Vendor Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move the due-diligence file, signed contract, clause checklist and monitoring reports into the compliance evidence repository under the vendor name.",
+            "Apply the 7-year-from-termination retention label.",
+            "Confirm the repository index shows the record searchable by vendor name and criticality tier."
+          ],
+          "done": "the vendor oversight record is filed, labelled for 7-year retention and retrievable by vendor name."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of critical and material vendors",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Export every vendor tiered Critical or Material from the GRC platform's vendor risk register.",
+            "Reconcile the count to the contract lifecycle management repository's active-contract count for the same population.",
+            "Resolve any discrepancy with the Vendor Manager before sampling."
+          ],
+          "done": "the population is reconciled to active contracts and signed as complete."
+        },
+        {
+          "step": "Reconcile each vendor to a signed, on-file contract",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each population vendor to a signed agreement in the contract lifecycle management repository.",
+            "Confirm the contract is current (not expired) and covers the services actually in use.",
+            "List any vendor without a matching current contract as an automatic exception."
+          ],
+          "done": "every population vendor matches a current signed contract or is listed as an exception."
+        },
+        {
+          "step": "Select the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of Critical-tier vendors.",
+            "Take a random sample of 10 Material-tier vendors, seeded and reproducible.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers 100% of Critical vendors."
+        },
+        {
+          "step": "Re-check the contract for required B-10 clauses",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "Open each sampled vendor's contract in the contract lifecycle management repository.",
+            "Independently check for the service-level, security, sub-contracting, business continuity, audit/OSFI-access, data-location and exit clauses without viewing the checklist result first.",
+            "Compare to the recorded clause checklist; any missing clause not previously flagged is an exception."
+          ],
+          "done": "each sampled contract has an independent clause check with a documented comparison to the checklist."
+        },
+        {
+          "step": "Verify due diligence and reassessment evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the due-diligence file and most recent reassessment for each sampled vendor.",
+            "Confirm the reassessment date is within the required cadence for the vendor's criticality tier.",
+            "Confirm the SOC 2 / penetration test evidence cited is dated within the current review period."
+          ],
+          "done": "each sampled vendor's due diligence and reassessment timing is confirmed current or logged as an exception."
+        },
+        {
+          "step": "Test incident notification compliance",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the vendor's incident log for the period from the GRC platform.",
+            "For each incident, compare the notification timestamp to the contractual notification window.",
+            "Flag any notification outside the contractual window."
+          ],
+          "done": "every incident in the sample period is checked against the contractual notification window."
+        },
+        {
+          "step": "Verify exit/contingency plan currency",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Open the exit plan for each sampled critical vendor and confirm it names a current alternate provider or fallback.",
+            "Confirm the plan was reviewed or updated within the last 12 months.",
+            "Flag any stale or generic exit plan lacking vendor-specific detail."
+          ],
+          "done": "each sampled critical vendor's exit plan is confirmed current and vendor-specific, or flagged."
+        },
+        {
+          "step": "Recompute concentration risk exposure",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently aggregate sampled critical vendors by underlying infrastructure provider and geography.",
+            "Compare the recomputed concentration to the Third-Party Risk Manager's reported concentration findings.",
+            "Flag any single point of failure omitted from the original report."
+          ],
+          "done": "recomputed concentration matches the reported findings or the difference is logged."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the vendor, clause or control missed.",
+            "Assign a root cause (contract drafting gap, missed cadence, stale exit plan) and an owner.",
+            "Set a remediation date and carry open exceptions into next cycle's test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance missing-clause threshold.",
+            "Write the conclusion with evidence references.",
+            "Have the independent reviewer, who performed none of the sampled due diligence, sign the workpaper.",
+            "Report results to the Board Risk Committee and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate exists, reported to the Board Risk Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-059-C19",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Controller",
+          "value": "Owns preparation of the OSFI-prescribed statutory returns and, where applicable, the NAIC statutory blanks for US-licensed business; escalation to Chief Financial Officer"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — OSFI Life/P&C Annual Return and Quarterly Return instructions (current filing-year edition) and, for US business, the NAIC Annual/Quarterly Statement Instructions, re-read at each preparation cycle"
+        },
+        "In-scope processes": {
+          "value": "Quarterly and annual statutory close — trial balance extraction, statutory adjustments, schedule preparation and return assembly — for the OSFI-regulated entity and any NAIC-licensed affiliate"
+        },
+        "In-scope systems": {
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "value": "Statutory trial balance sourced from the general ledger; statutory adjustments and schedules assembled in the financial reporting repository and Statutory Reporting (NAIC) system"
+        },
+        "Compliance procedure documented": {
+          "value": "Statutory Financial Statement Preparation Procedure — trial balance extract, statutory adjusting entries, schedule build, actuarial reserve tie-out, review and sign-off, filing"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by Chief Financial Officer; reviewed annually and on any OSFI or NAIC instruction update"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Quarterly return due 45 days after quarter end; annual return due 90 days after fiscal year end (OSFI); NAIC statutory statements due per the NAIC filing calendar for any US-licensed affiliate"
+        },
+        "Deadline reminders configured": {
+          "value": "Financial close calendar milestone alerts at T-30/T-15/T-5 days before each quarterly and annual filing deadline"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Trial balance extracts, adjusting entry support, schedules, actuarial certifications and the filed return retained 7 years from filing date"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any schedule missing a tie-out or any late close step logged as an exception with root cause and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Financial Officer",
+          "value": "CFO signs off on every restated schedule or late-close remediation before the return is filed"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All statutory schedules and exhibits comprising the current-period OSFI return and any NAIC statutory blank filed by the entity"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on filing after the regulatory deadline; any schedule failing to tie to the general ledger or actuarial reserve report by more than a de minimis rounding difference is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is quarterly/annual; test runs each quarter over that quarter's return plus a full annual test at year end"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have prepared any sampled schedule"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly/annual statutory statement test workpaper (population extract, sample, tie-out notes, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Filed return, supporting schedules and reconciliations, presentable to OSFI or state regulators within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Controller owns the OSFI/NAIC inquiry response; Chief Financial Officer clears any restatement admission before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Open the statutory close calendar for the period",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Open the financial close calendar in the ERP system and confirm the quarterly (45-day) or annual (90-day) filing deadline is loaded from period end.",
+            "Assign close tasks to the Statutory Reporting Manager, Senior Accountant and Appointed Actuary with due dates backed off the filing deadline.",
+            "Confirm prior-period open items are cleared before the new cycle opens."
+          ],
+          "done": "the close calendar is loaded with deadline-backed task dates and assigned owners."
+        },
+        {
+          "step": "Extract and lock the statutory trial balance",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "In the ERP/General ledger system, run the trial balance extract for the statutory legal entity as of period end.",
+            "Reconcile the extract total to the GL control account and resolve any out-of-balance condition before proceeding.",
+            "Lock the trial balance snapshot and timestamp it in the financial reporting repository."
+          ],
+          "done": "a reconciled, locked trial balance snapshot exists for the period."
+        },
+        {
+          "step": "Post statutory adjusting entries",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "actions": [
+            "Identify GAAP-to-statutory differences (non-admitted assets, statutory reserve basis, deferred tax) using the prior-period adjustment template.",
+            "Post each adjusting entry in the ERP system with a memo citing the statutory basis for the adjustment.",
+            "Route entries above the materiality threshold to the Controller for pre-posting approval."
+          ],
+          "done": "all statutory adjusting entries are posted, referenced to their basis, and material entries carry Controller approval."
+        },
+        {
+          "step": "Obtain the actuarial reserve figures and tie them to the general ledger",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "actions": [
+            "Request the current-period statutory reserve summary from the Appointed Actuary, by line of business and reserve category.",
+            "Compare the actuarial summary total to the reserve liability balance in the trial balance.",
+            "Resolve any difference with the Appointed Actuary and document the resolution before proceeding."
+          ],
+          "done": "the reserve balance in the trial balance ties to the actuarial summary, with any difference resolved and documented."
+        },
+        {
+          "step": "Build the statutory schedules and exhibits",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "In the Statutory Reporting (NAIC) system (or OSFI return template for the Canadian entity), populate each required schedule from the locked trial balance and adjustment entries.",
+            "Cross-foot each schedule and confirm it ties to the corresponding trial balance account grouping.",
+            "Flag any schedule that will not tie without further adjustment to the Statutory Reporting Manager."
+          ],
+          "done": "every required schedule is populated, cross-footed and tied to the trial balance."
+        },
+        {
+          "step": "Assemble the return in the filing system",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "In the Statutory Reporting (NAIC) system, assemble the completed schedules into the current-period Annual/Quarterly Statement (or, for the OSFI entity, the OSFI Return template).",
+            "Run the system's internal validation/edit checks and clear every edit failure before proceeding.",
+            "Generate the draft return package for review."
+          ],
+          "done": "the return package is assembled with all system edit checks cleared."
+        },
+        {
+          "step": "Perform the analytical review",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Compare current-period balances to prior period and budget, by schedule, and investigate variances beyond the documented threshold.",
+            "Confirm investment schedule totals tie to the custodian statement for the period.",
+            "Document variance explanations directly on the review workpaper."
+          ],
+          "done": "every material variance has a documented, investigated explanation."
+        },
+        {
+          "step": "Route the draft return for actuarial and legal review",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Send the reserve and capital-related schedules to the Appointed Actuary for confirmation against the actuarial opinion.",
+            "Send disclosure notes to Legal Counsel for review of contingency and litigation language.",
+            "Incorporate all reviewer comments into the draft before final sign-off."
+          ],
+          "done": "actuarial and legal review comments are incorporated and the draft is ready for final sign-off."
+        },
+        {
+          "step": "Obtain CFO sign-off on the final return",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Review the final draft return, the analytical review workpaper and the actuarial tie-out.",
+            "Sign the statutory certification page attesting to the accuracy of the filing.",
+            "Return the signed package to the Controller for filing."
+          ],
+          "done": "the CFO has signed the statutory certification on the final return package."
+        },
+        {
+          "step": "File the return with the regulator by the deadline",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Upload the final signed return package into the Statutory Reporting (NAIC) filing system (or OSFI's Regulatory Reporting System for the Canadian entity).",
+            "Complete the filing metadata (NAIC company code or OSFI institution code, period, filer contact) and submit before the deadline.",
+            "Save the submission confirmation number and timestamp."
+          ],
+          "done": "the return is filed before the deadline with a saved confirmation number."
+        },
+        {
+          "step": "Confirm filing acceptance",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Check the filing system status shows Accepted rather than Pending or Rejected.",
+            "If rejected, read the system's edit/error detail, correct and resubmit the same business day.",
+            "Log the confirmation number and status in the regulatory filing/issue tracker."
+          ],
+          "done": "the filing status shows accepted and is logged in the tracker."
+        },
+        {
+          "step": "Reconcile the filed return to the general ledger post-filing",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "actions": [
+            "Compare the filed return's key totals (assets, liabilities, surplus) to the final locked trial balance.",
+            "Confirm no unposted adjusting entry exists after the trial balance lock.",
+            "Sign the post-filing reconciliation and file it with the return package."
+          ],
+          "done": "the filed return ties to the locked trial balance with a signed reconciliation on file."
+        },
+        {
+          "step": "Distribute the filed statements to internal stakeholders",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "board portal",
+          "actions": [
+            "Publish the filed return to the financial reporting repository and notify the CFO, Chief Actuary and Board Governance Lead.",
+            "Add the filing to the board portal's regulatory filings summary for the next Audit Committee meeting."
+          ],
+          "done": "the filed return is published internally and listed on the Audit Committee's regulatory filings summary."
+        },
+        {
+          "step": "Log any preparation or filing exceptions",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for any schedule that missed its tie-out deadline or any late filing.",
+            "Assign a root cause and an owner, and set a remediation date.",
+            "Track the exception to closure in the regulatory filing/issue tracker."
+          ],
+          "done": "every exception has an issue, root cause, owner and remediation date logged."
+        },
+        {
+          "step": "Retain the statutory statement evidence",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move the trial balance extract, adjusting entry support, schedules, actuarial tie-out and filed return into the compliance evidence repository under the filing period.",
+            "Apply the 7-year retention label.",
+            "Confirm the repository index shows the record searchable by period and confirmation number."
+          ],
+          "done": "the statutory statement record is filed, labelled for 7-year retention and retrievable by period."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of schedules and exhibits filed in the period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Export the full list of schedules and exhibits from the filed return in the Statutory Reporting (NAIC) system.",
+            "Reconcile the schedule count to the return's table of contents for the period.",
+            "Resolve any discrepancy with the Statutory Reporting Manager before sampling."
+          ],
+          "done": "the population is reconciled to the filed return's table of contents."
+        },
+        {
+          "step": "Reconcile the filed totals to the locked trial balance",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare filed asset, liability and surplus totals to the locked trial balance snapshot.",
+            "Recompute the statutory adjustments from source support and confirm they sum to the recorded adjustment total.",
+            "List any unreconciled difference as an automatic exception."
+          ],
+          "done": "filed totals tie to the trial balance and recomputed adjustments, or differences are listed as exceptions."
+        },
+        {
+          "step": "Select the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of schedules above the materiality threshold set by the Controller.",
+            "Take a random sample of 8 remaining schedules, seeded and reproducible.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers all above-threshold schedules."
+        },
+        {
+          "step": "Re-perform the schedule tie-out for each sampled schedule",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently trace each sampled schedule's totals back to the trial balance account grouping.",
+            "Cross-foot the schedule without reference to the preparer's workpaper.",
+            "Compare to the recorded tie-out; any unresolved difference is an exception."
+          ],
+          "done": "each sampled schedule has an independent re-performed tie-out and comparison."
+        },
+        {
+          "step": "Verify the actuarial reserve tie-out",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Compare the reserve balance in the filed return to the actuarial reserve summary as certified.",
+            "Confirm the actuarial opinion's certified date precedes the filing date.",
+            "Flag any difference between the certified reserve and the filed figure."
+          ],
+          "done": "the filed reserve figure ties to the certified actuarial summary or the difference is flagged."
+        },
+        {
+          "step": "Confirm CFO and required sign-offs are on file",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the signed statutory certification page for the filed return.",
+            "Confirm the signature date precedes the filing submission date.",
+            "Confirm actuarial and legal review sign-offs are attached to the package."
+          ],
+          "done": "all required sign-offs are on file and dated before filing."
+        },
+        {
+          "step": "Trace the filing to a valid, on-time submission",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Pull the filing confirmation record using the saved confirmation number.",
+            "Confirm the submission timestamp is on or before the regulatory deadline (45 days quarterly / 90 days annual).",
+            "Capture the filing system's confirmation screen into the workpaper."
+          ],
+          "done": "the filing record confirms an on-time submission, captured as evidence."
+        },
+        {
+          "step": "Recompute filing deadlines and confirm reminders fired",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute the filing deadline independently from the period end date.",
+            "Compare to the recorded target date on the close calendar.",
+            "Confirm the close calendar's T-30/T-15/T-5 alerts fired, using the calendar's notification log."
+          ],
+          "done": "the recomputed deadline matches the tracked date and the reminder log shows all alerts fired."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the schedule and what was missed.",
+            "Assign a root cause (late GL close, actuarial data delay, missed edit check) and an owner.",
+            "Set a remediation date and carry open exceptions into next quarter's test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance late-filing and tie-out thresholds.",
+            "Write the conclusion with evidence references.",
+            "Have the independent reviewer, who prepared none of the sampled schedules, sign the workpaper.",
+            "Report results to the Audit Committee and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate exists, reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-059-C20",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Owns the master filing calendar and on-time submission of every OSFI, NAIC and state regulatory filing; escalation to Chief Financial Officer"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — OSFI reporting instructions plus NAIC Annual/Quarterly Statement filing deadlines and each state's SERFF/state-portal deadlines, re-read against the current NAIC filing calendar at each cycle"
+        },
+        "In-scope processes": {
+          "value": "End-to-end regulatory filing submission — package assembly, portal upload, confirmation capture — across OSFI's Regulatory Reporting System, NAIC iSite+ and applicable state portals"
+        },
+        "In-scope systems": {
+          "app": "Statutory Reporting (NAIC)",
+          "value": "NAIC iSite+ Financial Data Repository for statement filings; state-specific portals and SERFF for state-level filings; Internal Regulatory System for OSFI submissions"
+        },
+        "Compliance procedure documented": {
+          "value": "Regulatory Filing Submission Procedure — master calendar maintenance, package readiness check, portal submission, confirmation capture, escalation for missed deadlines"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by Chief Financial Officer; reviewed annually and whenever a jurisdiction changes its filing deadline"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Every OSFI, NAIC and state deadline loaded into the master filing calendar with the statutory due date and internal readiness date"
+        },
+        "Deadline reminders configured": {
+          "value": "Master filing calendar alerts at T-15/T-5/T-1 days before every filing deadline, escalating to the Regulatory Reporting Manager if unacknowledged"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Submitted packages, portal confirmation screens and confirmation numbers retained 7 years from filing date"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any filing submitted after its deadline or any rejected submission logged as an exception with root cause and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Signs off on the root-cause and remediation for every late or rejected filing before the calendar entry is closed"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All OSFI, NAIC and state regulatory filings due in the current test period per the master filing calendar"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any filing submitted after its statutory deadline, or any rejected filing not corrected the same business day, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is quarterly/annual per filing; test runs each quarter over that quarter's due filings"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have submitted any sampled filing"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly filing-timeliness test workpaper (population extract, sample, confirmation checks, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Master filing calendar export plus confirmation numbers, presentable to any regulator within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Reporting Manager owns the regulator inquiry response; Regulatory Counsel clears any admission of a late filing before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Build and maintain the master filing calendar",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Pull the current-year filing deadlines from the NAIC filing calendar, OSFI's reporting instructions and each state's SERFF/portal published schedule.",
+            "Load every deadline into the master filing calendar with statutory due date, internal readiness date (deadline minus 5 business days) and assigned preparer.",
+            "Cross-check the calendar against last year's calendar for any dropped or newly added filing obligation."
+          ],
+          "done": "the master calendar carries every applicable filing with a statutory date, readiness date and owner."
+        },
+        {
+          "step": "Confirm the filing package scope for each upcoming deadline",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "For each filing due in the next 30 days, confirm with the Controller or Statutory Reporting Manager which schedules, exhibits or forms are in scope.",
+            "Confirm the correct NAIC company code / OSFI institution code / state license number is attached to the package.",
+            "Flag any package missing a required component to the preparer with the readiness date."
+          ],
+          "done": "every near-term filing has a confirmed scope and identifiers attached."
+        },
+        {
+          "step": "Verify portal access and credentials before the filing window opens",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Confirm active login credentials for NAIC iSite+, SERFF and any state-specific portal used for the upcoming filings.",
+            "Test login and navigate to the correct filing module at least 5 business days before the deadline.",
+            "Escalate any access or credential issue to the IT Service Desk immediately if login fails."
+          ],
+          "done": "portal access is verified working at least 5 business days before each deadline."
+        },
+        {
+          "step": "Assemble the filing package",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Compile the completed schedules, exhibits and certifications from the Statutory Reporting (NAIC) system or OSFI return template into the submission package.",
+            "Run the portal's built-in validation/edit checks against the package before submission.",
+            "Clear every edit failure or document why an edit is a known, accepted exception."
+          ],
+          "done": "the package passes portal validation with all edit failures cleared or documented."
+        },
+        {
+          "step": "Obtain internal sign-off before submission",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Review the assembled package against the analytical review workpaper for the period.",
+            "Confirm the required signatory (Controller or CFO per filing type) has signed the certification page.",
+            "Approve the package for submission in the regulatory filing/issue tracker."
+          ],
+          "done": "the package carries the required internal sign-off before submission is attempted."
+        },
+        {
+          "step": "Submit the filing in NAIC iSite+",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Log in to NAIC iSite+ and open the Financial Data Repository ▸ Annual/Quarterly Statement upload module.",
+            "Select the correct filing type, period and company code, then upload the package file.",
+            "Submit and record the system-generated confirmation number and timestamp."
+          ],
+          "done": "the NAIC filing is submitted with a saved confirmation number and timestamp."
+        },
+        {
+          "step": "Submit any state-specific filing through SERFF or the state portal",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Log in to SERFF (or the state's own portal where the filing is not SERFF-eligible) and open the correct filing type for the state.",
+            "Upload the state-specific package and complete the state's required transmittal fields.",
+            "Submit and record the SERFF tracking number or state confirmation number."
+          ],
+          "done": "each state-specific filing is submitted with a saved tracking or confirmation number."
+        },
+        {
+          "step": "Submit the OSFI-side filing",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Log in to OSFI's Regulatory Reporting System and open the applicable return submission.",
+            "Upload the OSFI-format package and complete the submission metadata.",
+            "Submit and record the RRS confirmation number and timestamp."
+          ],
+          "done": "the OSFI filing is submitted with a saved confirmation number and timestamp."
+        },
+        {
+          "step": "Confirm acceptance for every submitted filing",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Check each portal's submission status shows Accepted/Filed rather than Pending or Rejected, within 24 hours of submission.",
+            "For any rejection, read the error detail, correct the package and resubmit the same business day.",
+            "Log the final status and confirmation number against each calendar entry."
+          ],
+          "done": "every filing's status is confirmed accepted and logged against its calendar entry."
+        },
+        {
+          "step": "Update the master filing calendar with actual submission data",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Record the actual submission date, confirmation number and status against each calendar entry.",
+            "Mark any filing submitted after its statutory deadline as Late and open an exception immediately.",
+            "Close the calendar entry once acceptance is confirmed."
+          ],
+          "done": "every calendar entry shows actual submission data and any late filing has an open exception."
+        },
+        {
+          "step": "Escalate at-risk filings before the deadline",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Review the calendar daily during the filing window for any entry not yet at Ready status by its internal readiness date.",
+            "Escalate at-risk filings to the Controller and Chief Financial Officer with the specific blocker.",
+            "Record the escalation and its resolution in the calendar entry notes."
+          ],
+          "done": "every at-risk filing is escalated before its deadline with a recorded resolution."
+        },
+        {
+          "step": "Reconcile the quarter's filings to the calendar",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "At quarter end, compare the list of filings actually submitted to the master calendar's due list for the quarter.",
+            "Investigate any calendar entry with no matching submission.",
+            "Sign the quarterly reconciliation and file it with the calendar."
+          ],
+          "done": "every due filing for the quarter is accounted for, with a signed reconciliation."
+        },
+        {
+          "step": "Distribute the confirmation summary to stakeholders",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "board portal",
+          "actions": [
+            "Compile the quarter's confirmation numbers and statuses into a summary and circulate to the Controller and Chief Financial Officer.",
+            "Add the summary to the board portal's regulatory filings section for the next Audit Committee meeting."
+          ],
+          "done": "the confirmation summary is circulated and posted for Audit Committee visibility."
+        },
+        {
+          "step": "Log any filing exceptions with disposition",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for any late or rejected filing.",
+            "Assign a root cause and an owner, and set a remediation date.",
+            "Track the exception to closure in the regulatory filing/issue tracker."
+          ],
+          "done": "every exception has an issue, root cause, owner and remediation date logged."
+        },
+        {
+          "step": "Retain the filing evidence",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move the submitted package, portal confirmation screens and confirmation numbers into the compliance evidence repository under the filing period.",
+            "Apply the 7-year retention label.",
+            "Confirm the repository index shows the record searchable by filing type, period and confirmation number."
+          ],
+          "done": "the filing record is filed, labelled for 7-year retention and retrievable by filing type and period."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of filings due in the test period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Export every filing due in the period from the master filing calendar.",
+            "Reconcile the count to the NAIC filing calendar and OSFI reporting instruction schedule for completeness.",
+            "Resolve any discrepancy with the Regulatory Reporting Manager before sampling."
+          ],
+          "done": "the population is reconciled to the regulator-published schedules and signed as complete."
+        },
+        {
+          "step": "Reconcile every due filing to a submission record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each population entry to a submission confirmation number in the compliance evidence repository.",
+            "Compare the submission timestamp to the statutory deadline.",
+            "List any unmatched or late entry as an automatic exception."
+          ],
+          "done": "every population entry is matched to a confirmation or listed as an exception."
+        },
+        {
+          "step": "Select the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of OSFI filings and any filing flagged Late in the calendar.",
+            "Take a random sample of 12 remaining NAIC/state filings, seeded and reproducible.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers all OSFI and late filings."
+        },
+        {
+          "step": "Re-verify each sampled filing's acceptance in the source portal",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Log in to NAIC iSite+, SERFF or OSFI's Regulatory Reporting System as applicable and pull the submission record using the saved confirmation number.",
+            "Independently confirm the status is Accepted/Filed and read the actual submission timestamp.",
+            "Compare to the recorded status and timestamp in the calendar; any mismatch is an exception."
+          ],
+          "done": "each sampled filing's portal status and timestamp are independently confirmed."
+        },
+        {
+          "step": "Confirm the package content matches what was filed",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the archived submitted package in the evidence repository to the version retrieved from the portal.",
+            "Confirm no post-submission edit occurred without a corresponding amended filing.",
+            "Flag any content mismatch."
+          ],
+          "done": "archived and portal-retrieved packages match, or a mismatch is logged."
+        },
+        {
+          "step": "Verify internal sign-off preceded submission",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Pull the sign-off approval timestamp from the regulatory filing/issue tracker for each sampled filing.",
+            "Confirm it precedes the portal submission timestamp.",
+            "Flag any filing submitted before its required sign-off."
+          ],
+          "done": "sign-off timing is confirmed to precede submission for every sampled filing, or flagged."
+        },
+        {
+          "step": "Recompute the statutory deadline for each sampled filing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently determine the statutory deadline from the regulator's published schedule for the filing type and period.",
+            "Compare to the deadline recorded in the master calendar.",
+            "Flag any discrepancy in the calendar's deadline logic."
+          ],
+          "done": "recomputed deadlines match the calendar for every sampled filing, or discrepancies are flagged."
+        },
+        {
+          "step": "Confirm reminder alerts fired as configured",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the master calendar's notification log for each sampled filing.",
+            "Confirm the T-15/T-5/T-1 alerts fired and show an acknowledgment.",
+            "Flag any filing where alerts did not fire or were not acknowledged."
+          ],
+          "done": "reminder firing and acknowledgment are confirmed for every sampled filing, or flagged."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the filing, jurisdiction and what was missed.",
+            "Assign a root cause (portal access issue, late package, missed sign-off) and an owner.",
+            "Set a remediation date and carry open exceptions into next quarter's test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance late-filing threshold.",
+            "Write the conclusion with evidence references.",
+            "Have the independent reviewer, who submitted none of the sampled filings, sign the workpaper.",
+            "Report results to the Audit Committee and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate exists, reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-059-C21",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Controller",
+          "value": "Owns preparation of all required supplemental schedules and exhibits accompanying the annual statutory return; escalation to Chief Financial Officer"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — OSFI Annual Return instructions and, where applicable, NAIC Annual Statement Instructions' supplemental schedule/exhibit list for the current filing year, re-read at the start of each annual cycle"
+        },
+        "In-scope processes": {
+          "value": "Identification, preparation and tie-out of every required supplemental schedule and exhibit (e.g., investment schedules, reinsurance exhibits, actuarial opinion summary) accompanying the annual return"
+        },
+        "In-scope systems": {
+          "app": "Statutory Reporting (NAIC)",
+          "value": "Supplemental schedules built and validated in the Statutory Reporting (NAIC) system; underlying detail sourced from the ERP general ledger and investment/reinsurance sub-ledgers"
+        },
+        "Compliance procedure documented": {
+          "value": "Supplemental Schedule & Exhibit Preparation Procedure — annual requirement checklist refresh, data sourcing, schedule build, cross-schedule tie-out, review, filing"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by Chief Financial Officer; reviewed annually against the current-year instructions"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual — every supplemental schedule/exhibit completed and tied out ahead of the 90-day annual filing deadline"
+        },
+        "Deadline reminders configured": {
+          "value": "Close calendar alerts at T-30/T-15/T-5 days before the annual filing deadline for each schedule owner"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Schedule workpapers, source extracts and tie-out documentation retained 7 years from filing date"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any schedule missing from the required list or failing tie-out logged as an exception with root cause and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Controller",
+          "value": "Controller signs off on every corrected schedule before the annual return is finalized"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All supplemental schedules and exhibits required for the current annual return per the current-year instructions"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any required schedule omitted from the filed return, or failing its cross-schedule tie-out, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; test runs once per annual cycle over the full schedule set"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have prepared any sampled schedule"
+        },
+        "Evidence location for test results": {
+          "value": "Annual supplemental schedule test workpaper (requirement checklist, sample, tie-out notes, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Filed schedules and exhibits with tie-out workpapers, presentable to the regulator within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Controller owns the regulator inquiry response; Chief Financial Officer clears any restatement admission before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Refresh the required-schedule checklist for the current filing year",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Pull the current-year OSFI Annual Return instructions and, where applicable, the NAIC Annual Statement Instructions' schedule/exhibit list.",
+            "Compare against last year's checklist and flag any added, removed or renumbered schedule.",
+            "Assign each schedule a preparer and a data source owner in the close calendar."
+          ],
+          "done": "a current-year checklist exists with every schedule assigned a preparer and source owner."
+        },
+        {
+          "step": "Source the investment schedule detail",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Pull the period-end investment position report from the investment operations platform / custodian statement.",
+            "Reconcile position-level detail to the general ledger investment control account.",
+            "Load the reconciled detail into the Statutory Reporting (NAIC) system's investment schedule template."
+          ],
+          "done": "the investment schedule is populated from a reconciled source and loaded into the filing system."
+        },
+        {
+          "step": "Source the reinsurance schedule/exhibit detail",
+          "by": "Reinsurance Accountant",
+          "role": "Reinsurance Accountant",
+          "actions": [
+            "Pull ceded and assumed treaty balances from the reinsurance administration system for the period.",
+            "Reconcile treaty-level balances to the general ledger reinsurance recoverable/payable accounts.",
+            "Load the reconciled detail into the reinsurance schedule/exhibit template in the filing system."
+          ],
+          "done": "the reinsurance schedule is populated from a reconciled source and loaded into the filing system."
+        },
+        {
+          "step": "Source the actuarial opinion summary exhibit",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Prepare the actuarial opinion summary covering reserve adequacy, methodology and assumptions for the period.",
+            "Confirm the summary's reserve totals match the statutory reserve figures in the trial balance.",
+            "Deliver the signed opinion summary to the Controller for inclusion in the return package."
+          ],
+          "done": "a signed actuarial opinion summary tying to the trial balance is delivered for inclusion."
+        },
+        {
+          "step": "Build each remaining required schedule",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "For each remaining checklist item, extract the relevant sub-ledger or GL detail into the schedule template in the Statutory Reporting (NAIC) system.",
+            "Cross-foot each schedule and confirm subtotals tie to the corresponding trial balance line.",
+            "Flag any schedule that cannot tie without further research to the Controller."
+          ],
+          "done": "every remaining schedule is built, cross-footed and tied, or flagged with a research note."
+        },
+        {
+          "step": "Cross-tie schedules to each other where they share data",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "actions": [
+            "Identify schedule pairs that must agree (e.g., reinsurance exhibit totals to the reinsurance schedule, investment schedule to the general interrogatories).",
+            "Compare the shared totals across each pair and resolve any mismatch.",
+            "Document the cross-tie check on the review workpaper."
+          ],
+          "done": "every schedule pair with shared data is cross-tied and any mismatch is resolved and documented."
+        },
+        {
+          "step": "Run the filing system's internal validation on the schedule set",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Load all completed schedules into the filing system's validation module.",
+            "Run the system's cross-edit checks across the full schedule set.",
+            "Clear every edit failure or document the accepted exception with the Controller's approval."
+          ],
+          "done": "the full schedule set passes system validation with all edit failures cleared or documented."
+        },
+        {
+          "step": "Perform the analytical review of the schedule set",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Compare current-year schedule totals to the prior year and investigate variances beyond the documented threshold.",
+            "Confirm every checklist item has a completed, tied-out schedule with no blank required field.",
+            "Document variance explanations on the review workpaper."
+          ],
+          "done": "every schedule shows a documented variance explanation and the checklist is fully completed."
+        },
+        {
+          "step": "Route schedules for specialist sign-off",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Send investment schedules to the Investment Operations Manager for confirmation.",
+            "Send reinsurance schedules to the Reinsurance Manager for confirmation.",
+            "Incorporate specialist comments before finalizing."
+          ],
+          "done": "each specialist schedule carries a specialist confirmation before finalization."
+        },
+        {
+          "step": "Assemble the finalized schedule set into the annual return",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Attach the finalized, signed-off schedules to the annual return package in the Statutory Reporting (NAIC) system.",
+            "Confirm the table of contents matches the current-year checklist exactly.",
+            "Generate the final package for CFO sign-off."
+          ],
+          "done": "the final package's schedule set matches the checklist exactly and is ready for CFO sign-off."
+        },
+        {
+          "step": "Obtain CFO sign-off on the schedule set",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Review the assembled schedule set and the analytical review workpaper.",
+            "Sign the certification confirming the schedules are complete and accurate.",
+            "Return the signed package for filing with the annual return."
+          ],
+          "done": "the CFO has signed off on the complete schedule set."
+        },
+        {
+          "step": "File the schedules as part of the annual return",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Submit the finalized schedule set together with the annual return through the applicable filing portal.",
+            "Confirm the portal's acknowledgment lists every schedule as received.",
+            "Save the confirmation number and the received-schedule list."
+          ],
+          "done": "the schedule set is filed with the annual return and the portal confirms every schedule as received."
+        },
+        {
+          "step": "Reconcile the filed schedule list to the checklist",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "actions": [
+            "Compare the portal's received-schedule list to the current-year checklist.",
+            "Investigate and correct any discrepancy before the filing window closes.",
+            "Sign the reconciliation and file it with the return package."
+          ],
+          "done": "the filed schedule list matches the checklist exactly, with a signed reconciliation."
+        },
+        {
+          "step": "Log any preparation or filing exceptions",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for any schedule missed from the checklist, or any tie-out failure not resolved before filing.",
+            "Assign a root cause and an owner, and set a remediation date.",
+            "Track the exception to closure in the regulatory filing/issue tracker."
+          ],
+          "done": "every exception has an issue, root cause, owner and remediation date logged."
+        },
+        {
+          "step": "Retain the schedule evidence",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move the checklist, source extracts, tie-out workpapers and specialist sign-offs into the compliance evidence repository under the filing period.",
+            "Apply the 7-year retention label.",
+            "Confirm the repository index shows the record searchable by schedule name and filing period."
+          ],
+          "done": "the supplemental schedule record is filed, labelled for 7-year retention and retrievable by schedule name."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of required schedules for the period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Export the current-year required-schedule checklist.",
+            "Reconcile the checklist count to the current-year OSFI/NAIC instructions' schedule list.",
+            "Resolve any discrepancy with the Controller before sampling."
+          ],
+          "done": "the population is reconciled to the current-year instructions and signed as complete."
+        },
+        {
+          "step": "Reconcile the filed schedule list to the checklist",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the portal's received-schedule list to the required-schedule checklist.",
+            "List any checklist item without a matching filed schedule as an automatic exception.",
+            "List any filed schedule that ties to no checklist item for investigation."
+          ],
+          "done": "the filed and required lists are reconciled or discrepancies are listed as exceptions."
+        },
+        {
+          "step": "Select the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of schedules involving actuarial or reinsurance figures.",
+            "Take a random sample of 8 remaining schedules, seeded and reproducible.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers all actuarial and reinsurance schedules."
+        },
+        {
+          "step": "Re-perform the tie-out for each sampled schedule",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently trace each sampled schedule's totals to its source (GL, investment sub-ledger or reinsurance system).",
+            "Cross-foot the schedule without reference to the preparer's workpaper.",
+            "Compare to the recorded tie-out; any unresolved difference is an exception."
+          ],
+          "done": "each sampled schedule has an independent re-performed tie-out and comparison."
+        },
+        {
+          "step": "Verify cross-schedule tie points",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled schedule with a known cross-tie partner, independently compare the shared totals.",
+            "Confirm the documented cross-tie check matches the independent comparison.",
+            "Flag any unresolved cross-tie mismatch."
+          ],
+          "done": "cross-schedule tie points are independently confirmed for every sampled schedule with a partner."
+        },
+        {
+          "step": "Confirm specialist and CFO sign-offs are on file",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the specialist confirmation (Investment Operations Manager, Reinsurance Manager) for each sampled specialist schedule.",
+            "Confirm the CFO certification date precedes the filing submission date.",
+            "Flag any missing or out-of-sequence sign-off."
+          ],
+          "done": "all required sign-offs are confirmed present and correctly sequenced, or flagged."
+        },
+        {
+          "step": "Trace the filing to the portal's received-schedule confirmation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Pull the filing system's received-schedule acknowledgment using the saved confirmation number.",
+            "Confirm every sampled schedule appears on the received list.",
+            "Capture the acknowledgment screen into the workpaper."
+          ],
+          "done": "every sampled schedule is confirmed received in the filing system, captured as evidence."
+        },
+        {
+          "step": "Recompute the annual filing deadline and confirm reminders fired",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute the 90-day annual deadline independently from fiscal year end.",
+            "Compare to the close calendar's tracked deadline.",
+            "Confirm the T-30/T-15/T-5 reminder alerts fired, using the calendar's notification log."
+          ],
+          "done": "the recomputed deadline matches the calendar and reminders are confirmed fired."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the schedule and what was missed.",
+            "Assign a root cause (data source delay, missed cross-tie, checklist gap) and an owner.",
+            "Set a remediation date and carry open exceptions into next year's test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance omission/tie-out threshold.",
+            "Write the conclusion with evidence references.",
+            "Have the independent reviewer, who prepared none of the sampled schedules, sign the workpaper.",
+            "Report results to the Audit Committee and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate exists, reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-059-C22",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Controller",
+          "value": "Owns coordination of the annual independent audit and filing of audited financial statements; escalation to Chief Financial Officer and the Audit Committee"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — OSFI Corporate Governance Guideline (2018) Oversight Functions provisions on independent audit and Board/Audit Committee oversight, re-read at the start of each audit cycle"
+        },
+        "In-scope processes": {
+          "value": "Annual external audit lifecycle — planning, PBC list fulfillment, fieldwork support, audit committee review, opinion issuance and filing of audited statements"
+        },
+        "In-scope systems": {
+          "app": "AuditBoard",
+          "value": "PBC deliverables sourced from the general ledger and financial reporting repository; audit workpapers, findings and status tracked in AuditBoard"
+        },
+        "Compliance procedure documented": {
+          "value": "Annual Independent Audit Coordination Procedure — auditor engagement confirmation, PBC list management, fieldwork logistics, findings tracking, opinion review, Audit Committee approval, filing"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Audit Committee; reviewed annually before the audit kicks off"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual — audited financial statements filed within the regulator's prescribed window after fiscal year end (typically 90 days for OSFI-regulated entities)"
+        },
+        "Deadline reminders configured": {
+          "value": "Audit project plan milestone alerts at T-60/T-30/T-10 days before the filing deadline"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "PBC deliverables, management representation letter, audit findings log and the signed audit opinion retained 7 years from filing date"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any PBC item delivered late or any unresolved audit finding logged as an exception with root cause and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Financial Officer",
+          "value": "CFO signs off on management's response to every audit finding before the opinion is finalized"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All PBC deliverables and audit findings raised during the current-year independent audit"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on filing audited statements after the regulatory deadline; any significant/material weakness finding without a management response is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; test runs once per audit cycle after the opinion is issued"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Chief Audit Executive",
+          "value": "Reviewer must be independent of the audit coordination team"
+        },
+        "Evidence location for test results": {
+          "value": "Annual audit coordination test workpaper (PBC tracker, findings log, sample checks, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Signed audit opinion, management representation letter and audited financial statements, presentable to the regulator within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Controller and Chief Financial Officer own the regulator inquiry response; General Counsel clears any admission of an unresolved finding before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Confirm the external auditor engagement and independence",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Confirm the Audit Committee's re-appointment (or new appointment) of the external audit firm for the current fiscal year.",
+            "Obtain the auditor's written independence confirmation covering non-audit services performed in the period.",
+            "Sign the engagement letter and file it in the compliance evidence repository."
+          ],
+          "done": "a signed engagement letter and independence confirmation are on file before fieldwork begins."
+        },
+        {
+          "step": "Build and issue the PBC (prepared-by-client) list",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "AuditBoard",
+          "actions": [
+            "Pull the current-year PBC list template from AuditBoard and update it with the auditor's requested items.",
+            "Assign each PBC item to a preparer with a due date backed off the fieldwork start date.",
+            "Distribute the list and confirm receipt with each preparer."
+          ],
+          "done": "a complete PBC list with assigned owners and due dates is issued in AuditBoard."
+        },
+        {
+          "step": "Fulfill each PBC deliverable",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "AuditBoard",
+          "actions": [
+            "Extract the requested support from the ERP general ledger, financial reporting repository or relevant sub-ledger.",
+            "Upload each deliverable to AuditBoard against its PBC line item before the due date.",
+            "Mark each item Ready for Review once uploaded and tie to source confirmed."
+          ],
+          "done": "every PBC item is uploaded and marked ready before its due date, or flagged late with a reason."
+        },
+        {
+          "step": "Coordinate audit fieldwork logistics",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Schedule fieldwork access (system access, workspace, interview slots with process owners) with the auditor's engagement team.",
+            "Set up read-only auditor access to the ERP system and AuditBoard for the fieldwork period.",
+            "Track daily fieldwork status against the audit project plan."
+          ],
+          "done": "fieldwork access is provisioned and status is tracked daily against the plan."
+        },
+        {
+          "step": "Support the auditor's substantive testing requests",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "AuditBoard",
+          "actions": [
+            "Respond to auditor sample requests by pulling the specific transaction or schedule detail requested.",
+            "Log each auditor request and its fulfillment date in AuditBoard.",
+            "Escalate any request the business cannot fulfill within the agreed turnaround to the Controller."
+          ],
+          "done": "every auditor request is logged with a fulfillment date, and unmet requests are escalated."
+        },
+        {
+          "step": "Track and triage audit findings as they are raised",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "AuditBoard",
+          "actions": [
+            "Log each finding raised by the auditor in AuditBoard with its classification (control deficiency, significant deficiency, material weakness).",
+            "Assign an owner and a target response date to each finding.",
+            "Brief the Chief Financial Officer weekly during fieldwork on open findings."
+          ],
+          "done": "every finding is logged, classified, owned and reported weekly."
+        },
+        {
+          "step": "Draft management responses to audit findings",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "AuditBoard",
+          "actions": [
+            "For each finding, draft the root cause and remediation plan in AuditBoard.",
+            "Route significant deficiency and material weakness responses to the Chief Financial Officer for review before submission to the auditor.",
+            "Submit the response to the auditor within the agreed turnaround."
+          ],
+          "done": "every finding has a management response drafted, CFO-reviewed where required, and submitted on time."
+        },
+        {
+          "step": "Obtain the management representation letter sign-off",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Review the auditor's draft management representation letter for accuracy against the final financial statements.",
+            "Sign the representation letter dated as close to the opinion date as the audit plan requires.",
+            "File the signed letter in the compliance evidence repository."
+          ],
+          "done": "a signed, correctly dated management representation letter is on file."
+        },
+        {
+          "step": "Present the audit results to the Audit Committee",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "app": "board portal",
+          "actions": [
+            "Prepare the Audit Committee presentation summarizing the audit scope, key findings and management responses.",
+            "Present via the board portal at the pre-filing Audit Committee meeting.",
+            "Record the committee's approval to proceed to opinion issuance in the meeting minutes."
+          ],
+          "done": "the Audit Committee's approval is recorded in the board portal minutes before the opinion is issued."
+        },
+        {
+          "step": "Receive and review the auditor's opinion",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Receive the draft audit opinion and confirm the opinion type (unqualified/qualified) and scope match the engagement letter.",
+            "Confirm every material weakness or significant deficiency disclosed in the opinion has a corresponding management response on file.",
+            "Route the final opinion to the Chief Financial Officer for acceptance."
+          ],
+          "done": "the opinion is reviewed, matched against management responses, and accepted by the CFO."
+        },
+        {
+          "step": "Finalize the audited financial statements",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "actions": [
+            "Incorporate the signed audit opinion into the final audited financial statement package.",
+            "Confirm the statements reflect any final audit adjustments agreed during fieldwork.",
+            "Generate the final package for filing."
+          ],
+          "done": "the final audited statement package includes the signed opinion and all agreed adjustments."
+        },
+        {
+          "step": "File the audited financial statements with the regulator",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Upload the final audited statement package to OSFI's Regulatory Reporting System (and NAIC iSite+ where applicable for US-licensed business).",
+            "Complete the submission metadata and submit before the regulatory filing deadline.",
+            "Save the confirmation number and timestamp."
+          ],
+          "done": "the audited statements are filed before the deadline with a saved confirmation number."
+        },
+        {
+          "step": "Confirm filing acceptance",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Check the filing system status shows Accepted rather than Pending or Rejected.",
+            "If rejected, correct and resubmit the same business day.",
+            "Log the confirmation in the regulatory filing/issue tracker."
+          ],
+          "done": "the filing status shows accepted and is logged in the tracker."
+        },
+        {
+          "step": "Log any audit coordination exceptions",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for any PBC item delivered late or any finding without a timely management response.",
+            "Assign a root cause and an owner, and set a remediation date.",
+            "Track the exception to closure in the regulatory filing/issue tracker."
+          ],
+          "done": "every exception has an issue, root cause, owner and remediation date logged."
+        },
+        {
+          "step": "Retain the audit evidence",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move the PBC deliverables, findings log, management representation letter and signed opinion into the compliance evidence repository under the fiscal year.",
+            "Apply the 7-year retention label.",
+            "Confirm the repository index shows the record searchable by fiscal year and auditor engagement."
+          ],
+          "done": "the audit coordination record is filed, labelled for 7-year retention and retrievable by fiscal year."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of PBC items and audit findings",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "AuditBoard",
+          "actions": [
+            "Export the full PBC list and findings log from AuditBoard for the current audit cycle.",
+            "Reconcile the PBC count to the auditor's original request list.",
+            "Resolve any discrepancy with the Controller before sampling."
+          ],
+          "done": "the population is reconciled to the auditor's request list and signed as complete."
+        },
+        {
+          "step": "Reconcile PBC delivery dates to due dates",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compare each PBC item's AuditBoard upload timestamp to its assigned due date.",
+            "List any item delivered after its due date without a documented extension as an automatic exception."
+          ],
+          "done": "every PBC item's timeliness is confirmed or listed as an exception."
+        },
+        {
+          "step": "Select the sample",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Take 100% of significant deficiency and material weakness findings.",
+            "Take a random sample of 10 remaining PBC items, seeded and reproducible.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers all significant findings."
+        },
+        {
+          "step": "Re-verify sampled PBC deliverables tie to source",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Independently trace each sampled PBC deliverable back to the ERP general ledger or source system.",
+            "Confirm the uploaded document matches the source without alteration.",
+            "Flag any deliverable that does not tie to source."
+          ],
+          "done": "each sampled PBC deliverable is independently traced to source and confirmed accurate."
+        },
+        {
+          "step": "Verify management responses to sampled findings",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Pull the management response for each sampled significant/material finding.",
+            "Confirm the response includes a root cause, an owner and a target date.",
+            "Confirm CFO review is on file where required."
+          ],
+          "done": "every sampled finding has a complete, CFO-reviewed management response, or the gap is flagged."
+        },
+        {
+          "step": "Confirm the management representation letter and Audit Committee approval",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "board portal",
+          "actions": [
+            "Pull the signed management representation letter and confirm its date relative to the opinion date.",
+            "Pull the Audit Committee minutes confirming approval to proceed to opinion issuance.",
+            "Confirm the approval date precedes the filing date."
+          ],
+          "done": "the representation letter and committee approval are confirmed present and correctly sequenced."
+        },
+        {
+          "step": "Trace the filing to a valid, on-time submission",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Pull the filing confirmation record for the audited statements using the saved confirmation number.",
+            "Confirm the submission timestamp is on or before the regulatory deadline.",
+            "Capture the confirmation screen into the workpaper."
+          ],
+          "done": "the filing record confirms an on-time submission, captured as evidence."
+        },
+        {
+          "step": "Recompute the filing deadline and confirm reminders fired",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Recompute the audited-statement filing deadline independently from fiscal year end.",
+            "Compare to the tracked deadline in the audit project plan.",
+            "Confirm the T-60/T-30/T-10 alerts fired, using the plan's notification log."
+          ],
+          "done": "the recomputed deadline matches the tracked date and reminders are confirmed fired."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the PBC item or finding and what was missed.",
+            "Assign a root cause (late data pull, unresponsive process owner, missed fieldwork slot) and an owner.",
+            "Set a remediation date and carry open exceptions into next year's test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance late-filing and unresolved-finding thresholds.",
+            "Write the conclusion with evidence references.",
+            "Have the independent reviewer, who is independent of the audit coordination team, sign the workpaper.",
+            "Report results to the Audit Committee and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate exists, reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-059-C23",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Owns the master jurisdiction filing calendar and the evidence trail proving on-time submission across every jurisdiction; escalation to Chief Financial Officer"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — OSFI reporting instructions and each jurisdiction's (NAIC/state) published filing calendar, re-read whenever a jurisdiction updates its schedule"
+        },
+        "In-scope processes": {
+          "value": "Continuous filing-calendar governance — new-obligation intake, deadline tracking, readiness monitoring, timeliness evidence capture — across all OSFI, NAIC and state filing obligations"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Master filing calendar maintained in the GRC platform with linked confirmation evidence in the compliance evidence repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Filing Calendar Governance Procedure — obligation intake, calendar maintenance, readiness monitoring, timeliness evidence capture, periodic calendar audit"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by Chief Financial Officer; reviewed annually and whenever a jurisdiction changes its schedule"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Continuous — every OSFI, NAIC and state deadline loaded and kept current in the master calendar as jurisdictions publish updates"
+        },
+        "Deadline reminders configured": {
+          "value": "Calendar alerts at T-30/T-15/T-5/T-1 days before every tracked deadline, escalating if unacknowledged"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Calendar snapshots, confirmation numbers and timeliness evidence retained 7 years from the filing date they support"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any calendar entry missing a jurisdiction update, or any filing without timeliness evidence, logged as an exception with root cause and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Signs off on every corrected calendar entry before it is marked current"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All active filing-calendar entries and the timeliness evidence supporting each completed filing in the test period"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any completed filing lacking timeliness evidence, or any calendar entry with a stale (unupdated) jurisdiction deadline, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous; test runs quarterly over the quarter's completed filings plus a full annual calendar audit"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not maintain the filing calendar"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly filing calendar test workpaper (calendar extract, sample, evidence checks, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Master filing calendar export with linked confirmation evidence, presentable to any regulator within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Reporting Manager owns the regulator inquiry response; Regulatory Counsel clears any admission of a calendar gap before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Establish the master filing calendar structure",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Set up the master filing calendar in the GRC platform with one row per jurisdiction/filing-type/period combination.",
+            "Define required fields: jurisdiction, filing type, statutory deadline, internal readiness date, owner, status, confirmation number.",
+            "Load the current-year OSFI, NAIC and state deadlines from each regulator's published schedule."
+          ],
+          "done": "the calendar is structured with all required fields and populated with current-year deadlines."
+        },
+        {
+          "step": "Monitor jurisdictions for filing-calendar or deadline changes",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Subscribe to OSFI, NAIC and each active state's regulatory bulletin distribution.",
+            "Review each bulletin for filing-calendar changes and log any change on the calendar update log.",
+            "Update the master calendar within 5 business days of a published change."
+          ],
+          "done": "the master calendar reflects every published deadline change within 5 business days."
+        },
+        {
+          "step": "Intake new filing obligations",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "When a new product line, jurisdiction or line of business is added, request the applicable filing requirements from Regulatory Counsel.",
+            "Add the new obligation to the master calendar with its first applicable deadline.",
+            "Assign an owner and readiness date for the new obligation."
+          ],
+          "done": "every new obligation is added to the calendar with an owner before its first deadline."
+        },
+        {
+          "step": "Verify the calendar against each regulator's published schedule quarterly",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Pull the current NAIC filing calendar, OSFI reporting instructions schedule and each state's published deadlines.",
+            "Compare line-by-line to the master calendar and correct any discrepancy.",
+            "Document the verification date and source on the calendar record."
+          ],
+          "done": "the calendar is verified against regulator sources quarterly with a documented verification date."
+        },
+        {
+          "step": "Track readiness status leading into each deadline",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Review the calendar weekly for entries within 30 days of their deadline.",
+            "Confirm each entry's status (Not Started/In Progress/Ready/Submitted) is current based on direct check-in with the preparer.",
+            "Escalate any entry stuck below Ready status past its internal readiness date."
+          ],
+          "done": "every near-term entry's status is current and any stuck entry is escalated."
+        },
+        {
+          "step": "Capture timeliness evidence for every completed filing",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "For each submitted filing, capture the portal confirmation screen and confirmation number.",
+            "Link the evidence to the calendar entry in the GRC platform.",
+            "Confirm the submission timestamp is recorded alongside the statutory deadline for direct comparison."
+          ],
+          "done": "every completed filing's calendar entry links to a captured confirmation with timestamp."
+        },
+        {
+          "step": "Flag and escalate any missed deadline immediately",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Run a daily check for any calendar entry past its statutory deadline without a Submitted status.",
+            "Escalate any missed deadline to the Chief Financial Officer and Regulatory Counsel the same business day.",
+            "Open a late-filing exception record and begin the self-report assessment where required by the jurisdiction."
+          ],
+          "done": "any missed deadline is escalated the same business day with an open exception record."
+        },
+        {
+          "step": "Reconcile the calendar to actual filings monthly",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Compare the month's Submitted-status entries to the actual confirmation numbers on file.",
+            "Compare the month's due entries to filings actually made, regardless of calendar status, to catch off-calendar filings.",
+            "Correct any calendar/reality mismatch and document the correction."
+          ],
+          "done": "the calendar reconciles to actual filing activity each month, with corrections documented."
+        },
+        {
+          "step": "Review the calendar for completeness at each quarter end",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Confirm every jurisdiction the company is licensed or registered in has at least the base set of expected filing types represented on the calendar.",
+            "Cross-check the licensed-jurisdiction list from the producer/entity licensing system against the calendar's jurisdiction list.",
+            "Add any missing jurisdiction/filing-type combination immediately."
+          ],
+          "done": "the calendar covers every licensed jurisdiction's expected filing types, confirmed each quarter."
+        },
+        {
+          "step": "Audit a sample of calendar entries for evidence completeness",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Pull a monthly sample of completed entries and confirm each has linked confirmation evidence and a timestamp.",
+            "Correct any entry missing evidence by retrieving the confirmation from the source portal.",
+            "Log any entry that cannot be evidenced as an exception."
+          ],
+          "done": "the monthly sample confirms evidence completeness, with any gap logged as an exception."
+        },
+        {
+          "step": "Present the calendar status to leadership periodically",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Prepare a calendar status summary (upcoming 90-day deadlines, at-risk entries, missed filings) for the Controller and CFO.",
+            "Present the summary at the regular compliance/regulatory reporting review meeting.",
+            "Record any leadership direction on at-risk items in the meeting notes."
+          ],
+          "done": "a calendar status summary is presented periodically and leadership direction is recorded."
+        },
+        {
+          "step": "Update procedure documentation when the process changes",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Review the Filing Calendar Governance Procedure annually or when a material process change occurs.",
+            "Update the procedure and route to the Chief Financial Officer for re-approval.",
+            "Communicate procedure changes to all calendar owners."
+          ],
+          "done": "the procedure is current, CFO-approved, and communicated to owners."
+        },
+        {
+          "step": "Perform the annual full calendar audit",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Once per year, verify every active calendar entry against its regulator's current published schedule end-to-end.",
+            "Confirm every completed filing in the year has linked timeliness evidence.",
+            "Document the audit outcome and any corrections made."
+          ],
+          "done": "a documented annual audit confirms full calendar accuracy and evidence completeness."
+        },
+        {
+          "step": "Log any calendar exceptions with disposition",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for any stale deadline, missing evidence or missed filing found during monitoring.",
+            "Assign a root cause and an owner, and set a remediation date.",
+            "Track the exception to closure in the regulatory filing/issue tracker."
+          ],
+          "done": "every exception has an issue, root cause, owner and remediation date logged."
+        },
+        {
+          "step": "Retain the calendar and evidence trail",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Snapshot the master calendar quarterly and store it in the compliance evidence repository.",
+            "Apply the 7-year retention label to each snapshot and linked evidence.",
+            "Confirm the repository index shows records searchable by jurisdiction and filing period."
+          ],
+          "done": "quarterly calendar snapshots and linked evidence are filed, labelled for 7-year retention and retrievable."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of completed filings in the test period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Export from the GRC platform every calendar entry marked Submitted in the quarter.",
+            "Reconcile the count to the compliance evidence repository's confirmation records for the same period.",
+            "Resolve any discrepancy with the Regulatory Reporting Manager before sampling."
+          ],
+          "done": "the population is reconciled to the evidence repository and signed as complete."
+        },
+        {
+          "step": "Reconcile the calendar to the licensed-jurisdiction list",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the calendar's jurisdiction list to the current licensed/registered jurisdiction list from the producer/entity licensing system.",
+            "List any licensed jurisdiction missing from the calendar as an automatic exception."
+          ],
+          "done": "the calendar's jurisdiction coverage is confirmed complete or gaps are listed as exceptions."
+        },
+        {
+          "step": "Select the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of any jurisdiction with a filing-calendar change logged in the period.",
+            "Take a random sample of 15 remaining completed filings, seeded and reproducible.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers every jurisdiction with a logged change."
+        },
+        {
+          "step": "Re-verify timeliness evidence for each sampled filing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Open the linked confirmation evidence for each sampled entry and independently read the submission timestamp.",
+            "Compare to the statutory deadline recorded on the calendar entry.",
+            "Flag any entry where the evidence does not support an on-time submission."
+          ],
+          "done": "each sampled entry's timeliness is independently confirmed from evidence, or flagged."
+        },
+        {
+          "step": "Re-verify the deadline against the regulator's current published schedule",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled entry, independently pull the regulator's current published deadline for that filing type and period.",
+            "Compare to the deadline recorded on the calendar.",
+            "Flag any stale or incorrect deadline."
+          ],
+          "done": "each sampled deadline is independently confirmed against the regulator's source, or flagged."
+        },
+        {
+          "step": "Verify reminder alerts fired for sampled entries",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the GRC platform's notification log for each sampled entry.",
+            "Confirm the T-30/T-15/T-5/T-1 alerts fired as configured.",
+            "Flag any entry with a missing or unfired alert."
+          ],
+          "done": "reminder firing is confirmed for every sampled entry, or flagged."
+        },
+        {
+          "step": "Trace missed-deadline entries to a completed escalation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Pull every calendar entry flagged as a missed deadline in the period.",
+            "Confirm each has a same-day escalation record and, where applicable, a completed self-report assessment.",
+            "Flag any missed deadline without a completed escalation trail."
+          ],
+          "done": "every missed-deadline entry traces to a complete escalation record, or is flagged."
+        },
+        {
+          "step": "Recompute the calendar's coverage completeness",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently list the expected filing types for a sample of 5 jurisdictions based on their current regulator instructions.",
+            "Compare to what the calendar actually tracks for those jurisdictions.",
+            "Flag any expected filing type missing from the calendar."
+          ],
+          "done": "coverage completeness is independently confirmed for the sampled jurisdictions, or gaps are flagged."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the jurisdiction, entry and what was missed.",
+            "Assign a root cause (missed bulletin, stale deadline, evidence not captured) and an owner.",
+            "Set a remediation date and carry open exceptions into next quarter's test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance missing-evidence and stale-deadline thresholds.",
+            "Write the conclusion with evidence references.",
+            "Have the independent reviewer, who does not maintain the calendar, sign the workpaper.",
+            "Report results to the Audit Committee and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate exists, reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-059-C24",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Business Continuity Manager",
+          "value": "Owns the business continuity and crisis management plan program for critical operations; escalation to Chief Risk Officer and Operational Resilience Lead"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — OSFI Guideline E-21 (Operational Resilience / Business continuity and crisis management), re-read against the current OSFI guideline library entry at each annual review"
+        },
+        "In-scope processes": {
+          "value": "Business continuity and crisis management planning, testing and impact-tolerance validation for every critical operation across the enterprise"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "BCP/DR plans, test schedules and impact-tolerance results maintained in the GRC platform; recovery run books held in the ITSM platform"
+        },
+        "Compliance procedure documented": {
+          "value": "Business Continuity & Crisis Management Procedure — critical operation identification, impact tolerance setting, plan authoring, scenario testing, gap remediation, annual review"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by Chief Risk Officer and endorsed by the Board Risk Committee; reviewed annually"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual — each critical-operation plan reviewed and each impact tolerance re-validated within the fiscal year; scenario tests scheduled per the test calendar"
+        },
+        "Deadline reminders configured": {
+          "value": "GRC platform alerts at T-60/T-30/T-10 days before each plan's annual review date and each scheduled test"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Plan documents, test scripts, test results, after-action reports and impact-tolerance validation retained 7 years from supersession"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any critical operation without a current plan, or any failed test without a remediation plan, logged as an exception with root cause and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "CRO signs off on every remediation plan arising from a failed or degraded test result"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All critical operations and their business continuity/crisis management plans in scope for the current fiscal year"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any critical operation without a plan reviewed within the last 12 months, or any test showing the operation could not remain within its impact tolerance, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual review, continuous testing per the test calendar; independent test runs annually over the full critical-operation population"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have authored or tested any sampled plan"
+        },
+        "Evidence location for test results": {
+          "value": "Annual BCP/DR test workpaper (critical operation list, sample, test result review, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Plan documents, test results and impact-tolerance validation, presentable to OSFI within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Chief Risk Officer owns the OSFI inquiry response; General Counsel clears any admission of an unmet impact tolerance before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Identify and confirm the list of critical operations",
+          "by": "Business Continuity Manager",
+          "role": "Business Continuity Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Pull the current critical-operations list from the GRC platform's business impact analysis module.",
+            "Validate the list with the Chief Risk Officer against the enterprise's severe-but-plausible disruption scenarios.",
+            "Update the list for any new or retired critical operation and record the change date."
+          ],
+          "done": "a current, CRO-validated critical-operations list exists in the GRC platform."
+        },
+        {
+          "step": "Set or re-validate the impact tolerance for each critical operation",
+          "by": "Operational Resilience Lead",
+          "role": "Operational Resilience Lead",
+          "actions": [
+            "For each critical operation, confirm the maximum tolerable disruption (time, data loss, service level) with the accountable business owner.",
+            "Compare the current impact tolerance to last year's and document any change with rationale.",
+            "Record the validated impact tolerance in the GRC platform against the operation."
+          ],
+          "done": "every critical operation has a current, owner-confirmed impact tolerance recorded."
+        },
+        {
+          "step": "Author or update the business continuity plan for each critical operation",
+          "by": "Business Continuity Analyst",
+          "role": "Business Continuity Analyst",
+          "actions": [
+            "Draft or revise the plan covering recovery strategy, recovery time/point objectives, alternate site/process, and dependency mapping (people, systems, third parties).",
+            "Cross-reference the plan to the operation's linked applications and the third-party vendors supporting it.",
+            "Route the draft to the operation's business owner for review and sign-off."
+          ],
+          "done": "each critical operation has a current, owner-reviewed plan covering recovery strategy and dependencies."
+        },
+        {
+          "step": "Author or update the disaster recovery runbook for supporting systems",
+          "by": "Disaster Recovery Manager",
+          "role": "Disaster Recovery Manager",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "For each critical operation's supporting application, confirm or update the DR runbook in the ITSM platform covering failover steps, RTO/RPO and rollback.",
+            "Confirm the runbook names the current infrastructure/cloud environment and recovery site.",
+            "Link the runbook to the corresponding business continuity plan in the GRC platform."
+          ],
+          "done": "each supporting application has a current, linked DR runbook."
+        },
+        {
+          "step": "Schedule the annual scenario test calendar",
+          "by": "Business Continuity Manager",
+          "role": "Business Continuity Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Build the test calendar in the GRC platform covering tabletop exercises, technical failover tests and full-scale scenario simulations for the year.",
+            "Assign a test type appropriate to the operation's criticality tier — full-scale for the highest tier, tabletop as a minimum for lower tiers.",
+            "Confirm every critical operation is scheduled for at least one test within the fiscal year."
+          ],
+          "done": "a complete test calendar exists covering every critical operation at least once in the year."
+        },
+        {
+          "step": "Conduct the scenario test",
+          "by": "Resilience Engineer",
+          "role": "Resilience Engineer",
+          "actions": [
+            "Execute the scheduled test per its script — invoke the plan, simulate the disruption scenario, and record actual recovery time/data loss achieved.",
+            "Capture participant attendance, decisions made, and any deviation from the documented plan during the test.",
+            "Log raw test results (times, issues encountered) in the GRC platform immediately after the test."
+          ],
+          "done": "the test is executed per script with raw results captured in the GRC platform."
+        },
+        {
+          "step": "Assess the test result against the impact tolerance",
+          "by": "Operational Resilience Analyst",
+          "role": "Operational Resilience Analyst",
+          "actions": [
+            "Compare the actual recovery time/data loss achieved during the test to the operation's validated impact tolerance.",
+            "Classify the result as Met, Degraded or Failed.",
+            "Record the classification and supporting rationale on the test record."
+          ],
+          "done": "every test carries a documented Met/Degraded/Failed classification against the impact tolerance."
+        },
+        {
+          "step": "Write the after-action report and identify gaps",
+          "by": "Business Continuity Analyst",
+          "role": "Business Continuity Analyst",
+          "actions": [
+            "Document what worked, what failed, and root causes for any Degraded or Failed result in the after-action report.",
+            "List specific plan or runbook gaps the test exposed.",
+            "Attach the after-action report to the plan record in the GRC platform."
+          ],
+          "done": "an after-action report with root causes and identified gaps is attached to the plan record."
+        },
+        {
+          "step": "Open and track remediation items for identified gaps",
+          "by": "Business Continuity Manager",
+          "role": "Business Continuity Manager",
+          "actions": [
+            "Open a remediation item per gap in the GRC platform, with an owner and a target close date.",
+            "For any Failed result, require the remediation plan and interim risk acceptance to be reviewed by the Chief Risk Officer.",
+            "Track remediation items to closure and re-test the specific gap where feasible."
+          ],
+          "done": "every identified gap has an owned, dated remediation item, and Failed results carry CRO review."
+        },
+        {
+          "step": "Update the plan and runbook based on test findings",
+          "by": "Business Continuity Analyst",
+          "role": "Business Continuity Analyst",
+          "actions": [
+            "Revise the business continuity plan and DR runbook to close the identified gaps.",
+            "Route the revised documents to the business owner for re-approval.",
+            "Version the updated documents in the GRC platform with a change log entry."
+          ],
+          "done": "the plan and runbook are revised, re-approved and version-controlled with a change log."
+        },
+        {
+          "step": "Perform the annual plan review even where no test gap was found",
+          "by": "Business Continuity Manager",
+          "role": "Business Continuity Manager",
+          "actions": [
+            "For every critical operation, confirm the plan has been reviewed within the last 12 months regardless of test outcome.",
+            "Update the plan for any organizational, system or vendor change since the last review.",
+            "Record the review date and reviewer in the GRC platform."
+          ],
+          "done": "every critical operation's plan shows a review within the last 12 months, recorded in the GRC platform."
+        },
+        {
+          "step": "Report the year's testing results to the Board Risk Committee",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "board portal",
+          "actions": [
+            "Compile the year's test results, impact tolerance outcomes and remediation status into a summary report.",
+            "Present the summary via the board portal at the annual resilience review.",
+            "Record the committee's endorsement or required follow-up in the minutes."
+          ],
+          "done": "the annual resilience summary is presented and the committee's response is recorded in the minutes."
+        },
+        {
+          "step": "Escalate any critical operation that cannot meet its impact tolerance",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "For any operation with a persistent Failed classification, escalate to the Board Risk Committee with root cause and options (investment, process redesign, tolerance re-set).",
+            "Record the decision and its funding/owner in the GRC platform.",
+            "Track the decision to implementation."
+          ],
+          "done": "every persistent Failed operation has an escalated, owned decision recorded and tracked."
+        },
+        {
+          "step": "Log any BCP/DR program exceptions",
+          "by": "Business Continuity Manager",
+          "role": "Business Continuity Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for any critical operation missing a current plan, an overdue test, or an unremediated Failed result.",
+            "Assign a root cause and an owner, and set a remediation date.",
+            "Track the exception to closure in the regulatory filing/issue tracker."
+          ],
+          "done": "every exception has an issue, root cause, owner and remediation date logged."
+        },
+        {
+          "step": "Retain the BCP/DR evidence",
+          "by": "Business Continuity Analyst",
+          "role": "Business Continuity Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move the plan, runbook, test scripts, results and after-action reports into the compliance evidence repository under the operation name.",
+            "Apply the 7-year-from-supersession retention label.",
+            "Confirm the repository index shows the record searchable by operation name and test date."
+          ],
+          "done": "the BCP/DR record is filed, labelled for 7-year retention and retrievable by operation name."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of critical operations and their current-year tests",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Export the critical-operations list and the current-year test calendar from the GRC platform.",
+            "Reconcile the operation count to the business impact analysis module's approved list.",
+            "Resolve any discrepancy with the Business Continuity Manager before sampling."
+          ],
+          "done": "the population is reconciled to the approved BIA list and signed as complete."
+        },
+        {
+          "step": "Reconcile every critical operation to a current plan and a completed test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each operation to a plan reviewed within the last 12 months and a test completed within the fiscal year.",
+            "List any operation missing a current plan or a completed test as an automatic exception."
+          ],
+          "done": "every operation is matched to a current plan and test, or listed as an exception."
+        },
+        {
+          "step": "Select the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of operations with a Degraded or Failed test result.",
+            "Take a random sample of 8 remaining operations with a Met result, seeded and reproducible.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers every Degraded/Failed operation."
+        },
+        {
+          "step": "Re-verify the test result classification for each sampled operation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Open the raw test results and the recorded impact tolerance for each sampled operation.",
+            "Independently reclassify the result as Met/Degraded/Failed without viewing the recorded classification first.",
+            "Compare to the recorded classification; any difference is an exception."
+          ],
+          "done": "each sampled operation has an independent re-classification and a documented comparison."
+        },
+        {
+          "step": "Verify remediation plans for sampled gaps",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled Degraded/Failed operation, confirm a remediation item exists with an owner and target date.",
+            "For Failed results, confirm CRO review is on file.",
+            "Flag any gap without a remediation item or required CRO review."
+          ],
+          "done": "every sampled gap has a verified remediation item and, where required, CRO review."
+        },
+        {
+          "step": "Confirm plan and runbook currency",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the plan and DR runbook for each sampled operation reflect the current organizational structure, systems and vendors.",
+            "Check the plan's dependency mapping against the current application/vendor inventory.",
+            "Flag any stale reference (retired system, departed vendor, old org structure)."
+          ],
+          "done": "plan and runbook currency is confirmed for every sampled operation, or staleness is flagged."
+        },
+        {
+          "step": "Trace the after-action report to the recorded test evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Pull the after-action report and the raw test log for each sampled operation.",
+            "Confirm the after-action report's conclusions are supported by the raw test data.",
+            "Capture the test log screen into the workpaper."
+          ],
+          "done": "each after-action report is confirmed supported by its raw test data, captured as evidence."
+        },
+        {
+          "step": "Recompute the annual review cadence and confirm reminders fired",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute the 12-month review window independently from the last recorded review date for each sampled operation.",
+            "Compare to the tracked next-review date in the GRC platform.",
+            "Confirm the T-60/T-30/T-10 reminder alerts fired, using the platform's notification log."
+          ],
+          "done": "the recomputed review window matches the tracked date and reminders are confirmed fired."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the operation and what was missed.",
+            "Assign a root cause (stale plan, missed test, unremediated failure) and an owner.",
+            "Set a remediation date and carry open exceptions into next year's test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance stale-plan and unmet-tolerance thresholds.",
+            "Write the conclusion with evidence references.",
+            "Have the independent reviewer, who authored and tested none of the sampled plans, sign the workpaper.",
+            "Report results to the Board Risk Committee and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate exists, reported to the Board Risk Committee."
+        }
+      ]
+    }
+  ]
+}

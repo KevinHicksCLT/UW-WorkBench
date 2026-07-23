@@ -1,0 +1,2918 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-063-C01",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Controller",
+          "value": "Owns the internal control framework over tax-affecting general ledger accounts (reserves, DAC capitalization, premium/loss recognition) feeding the IRC Subchapter L computations"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 26 U.S.C. §§ 831(b), 846(e), 848(a) re-read against the current Internal Revenue Code and cross-checked to the most recent Treasury regulations and IRS Rev. Proc. inflation-adjustment notice at each annual control refresh"
+        },
+        "In-scope processes": {
+          "value": "Close-to-tax-provision process: premium/loss recognition, loss reserve discounting under §846, DAC capitalization under §848, and (where elected) §831(b) captive premium/diversification tracking"
+        },
+        "In-scope systems": {
+          "app": "SAP S/4HANA (GL)",
+          "value": "General ledger tax-relevant accounts, feeding OneStream (FP&A) for the tax provision consolidation"
+        },
+        "Compliance procedure documented": {
+          "value": "Tax ICFR Narrative and Control Matrix covering the §807/§846/§848 computations, with control objective, control activity, frequency and control owner per line"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Financial Officer and Tax Director; refreshed annually and on any material change to the chart of accounts or tax computation methodology"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Continuous — controls operate throughout the year but must be walked-through and attestation-ready ahead of the Form 1120-L due date (15th day of the 4th month after year end, or the extended due date on Form 7004)"
+        },
+        "Deadline reminders configured": {
+          "value": "Control matrix refresh reminder 60 days before fiscal year-end; walkthrough completion reminder 30 days before the tax provision close"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Control matrix, walkthrough narratives and control-owner sign-offs retained 7 years in the compliance evidence repository, aligned to the IRC §6501 assessment period plus buffer"
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "Any control gap identified in a walkthrough is logged with root cause, compensating control (if any) and remediation owner in the SOX/tax control tracker"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Financial Officer",
+          "value": "CFO signs off closure of any tax-control deficiency before the next quarter-end close"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All tax-relevant control points in the control matrix active during the fiscal year, plus every general ledger entry touching §846 discounted reserves, §848 DAC capitalization and (if elected) §831(b) captive premium tracking"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any control operating design gap or a control failure with no compensating control is a fail; failure of any key control drives a material-weakness assessment with the CFO"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Controls are continuous; the control matrix and walkthroughs are tested annually ahead of the tax provision close, consistent with the Annual obligation frequency"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer has no control-execution responsibility over the tested tax accounts"
+        },
+        "Evidence location for test results": {
+          "value": "Annual tax ICFR walkthrough workpaper in the compliance evidence repository, cross-referenced to AuditBoard"
+        },
+        "Regulator-ready documentation": {
+          "value": "Control matrix, walkthrough results and remediation log, presentable to the IRS on examination or to external auditors within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "Tax Director coordinates the IRS examination response; Controller and General Counsel review before any control documentation is released"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Inventory every tax-relevant control point across §807, §831(b), §846 and §848 computations",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Pull the prior-year control matrix from the compliance evidence repository and the current chart of accounts extract from SAP S/4HANA (GL).",
+            "Walk the close checklist with the Tax Manager to identify every account and computation feeding reserve discounting (§846), DAC capitalization (§848), and if applicable the §831(b) captive premium/diversification test.",
+            "Add or retire control lines so the matrix matches the current legal entity structure and elections on file.",
+            "Tag each control line with its control objective, frequency and control owner."
+          ],
+          "done": "the control matrix lists every account and computation touching §807/§831(b)/§846/§848 with an owner and frequency assigned."
+        },
+        {
+          "step": "Document the control activity narrative for each control point",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "For each control line, write the control activity narrative: what is checked, against what source, and what evidence is produced.",
+            "For the §846 discounting control, describe how the applicable federal interest rate and loss payment pattern are sourced and applied to unpaid losses.",
+            "For the §848 control, describe how net premiums are multiplied by the specified capitalization percentage (2.09%/2.45%/9.20% by line) and amortized.",
+            "Route the draft narrative to the Controller for review and to the Tax Director for technical sign-off."
+          ],
+          "done": "every control line has an approved narrative describing the check, its source data and the evidence it produces."
+        },
+        {
+          "step": "Assign control owners and confirm segregation of duties",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "List the preparer and reviewer for each control line and confirm no individual both prepares and reviews the same computation.",
+            "Cross-check preparer/reviewer assignments against the Identity & Access (shared authorization) role list for the GL and tax provision systems.",
+            "Escalate any segregation-of-duties conflict to the CFO for a compensating control decision.",
+            "Record the final owner assignments in the control matrix header."
+          ],
+          "done": "every control line shows a distinct preparer and reviewer with no unresolved segregation-of-duties conflict."
+        },
+        {
+          "step": "Configure system access and change controls around the tax-relevant GL accounts",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "In SAP S/4HANA (GL) review the authorization roles that can post to the reserve-discounting, DAC and captive-premium accounts.",
+            "Confirm posting access is limited to Accounting and Tax personnel named on the control matrix.",
+            "Request IT Security remove any access held by personnel outside the named list.",
+            "Capture the access review screenshot and file it with the control matrix."
+          ],
+          "done": "GL posting access to tax-relevant accounts matches the named control owners with no unauthorized access."
+        },
+        {
+          "step": "Run the annual §831(b) premium ceiling and diversification check where the election is in effect",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "Pull net written premium for each electing captive/affiliate from the ceded accounting platform for the tax year.",
+            "Compare total net written premium to the current-year §831(b) inflation-adjusted ceiling published by the IRS.",
+            "Test the diversification requirement (no more than 20% of net written premium from any one policyholder, absent the relatedness safe harbor) using the policyholder premium breakdown.",
+            "Record pass/fail and the underlying figures on the control matrix line for the year."
+          ],
+          "done": "the §831(b) ceiling and diversification test is computed and recorded for every electing entity, with pass/fail stated."
+        },
+        {
+          "step": "Perform the walkthrough of each control with the control owner",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Schedule a walkthrough session with each control owner and observe the control being performed on a live period's data.",
+            "Request the underlying support (rate tables, capitalization percentage schedule, premium extracts) used in the computation.",
+            "Note any deviation between the documented narrative and what was actually performed.",
+            "Log walkthrough notes in AuditBoard against the corresponding control line."
+          ],
+          "done": "every control line has a completed walkthrough note in AuditBoard, dated and cross-referenced to supporting evidence."
+        },
+        {
+          "step": "Test the design of the segregation of duties and system access controls",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Re-pull the current GL posting access list and compare it to the control matrix's named preparer/reviewer list.",
+            "Flag any mismatch as a design or operating gap.",
+            "Confirm password/access review evidence exists for the review period.",
+            "Record results in the walkthrough workpaper."
+          ],
+          "done": "access matches the control matrix, or every mismatch is logged as a gap."
+        },
+        {
+          "step": "Evaluate identified gaps for materiality and compensating controls",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "For every gap logged by Internal Audit, assess whether a compensating control exists and document it.",
+            "Where no compensating control exists, classify the gap as a control deficiency, significant deficiency, or material weakness using the CFO's severity framework.",
+            "Route material weaknesses to the CFO and Chief Audit Executive immediately, not at quarter-end.",
+            "Record the classification and rationale in the deficiency log."
+          ],
+          "done": "every gap has a documented materiality classification and, where applicable, a named compensating control."
+        },
+        {
+          "step": "Build and approve remediation plans for open deficiencies",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "For each open deficiency, define the remediation action, target completion date and evidence that will demonstrate closure.",
+            "Get the Controller's sign-off on the remediation plan before work begins.",
+            "Track plan status weekly until closure; escalate any plan slipping past its target date to the CFO.",
+            "Update the SOX/tax control tracker with plan status."
+          ],
+          "done": "every open deficiency has an approved remediation plan with a target date tracked to closure."
+        },
+        {
+          "step": "Re-test remediated controls before closing them",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Re-perform the walkthrough for each remediated control using a period after the fix date.",
+            "Confirm the fix addresses the root cause, not just the symptom flagged originally.",
+            "Close the deficiency in the tracker only after the re-test passes.",
+            "File the re-test evidence in AuditBoard against the original deficiency record."
+          ],
+          "done": "every remediated control has a passing re-test on file before the deficiency is closed."
+        },
+        {
+          "step": "Brief the CFO and Tax Director on the year's control results",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Prepare a control summary memo: control count, walkthrough results, deficiencies identified, deficiencies closed, and open items with target dates.",
+            "Present the memo to the CFO and Tax Director ahead of the tax provision close.",
+            "Capture any directed changes to the control matrix for the next cycle.",
+            "File the signed memo in the compliance evidence repository."
+          ],
+          "done": "a signed control summary memo exists and any directed changes are logged for the next cycle."
+        },
+        {
+          "step": "Update the control matrix for legal-entity and election changes",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "Confirm with Legal and Tax Director whether any §831(b) elections were made, revoked or affiliates added/removed during the year.",
+            "Update the control matrix scope to reflect new or removed entities.",
+            "Re-run the segregation-of-duties check for any newly added control lines.",
+            "Version the control matrix and note the change reason in its revision log."
+          ],
+          "done": "the control matrix reflects the current legal-entity and election structure with a versioned revision log entry."
+        },
+        {
+          "step": "Reconcile control matrix scope to the tax provision workpapers",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "app": "OneStream (FP&A)",
+          "actions": [
+            "In OneStream (FP&A) open the current tax provision workpaper and list every line item computed.",
+            "Cross-check each provision line item traces back to a control line in the matrix.",
+            "Flag any provision line with no corresponding control and add it to the matrix.",
+            "Sign off the reconciliation and attach it to the annual control package."
+          ],
+          "done": "every tax provision line item traces to a control matrix line with no unmatched items."
+        },
+        {
+          "step": "Retain the annual control package for the required period",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Assemble the control matrix, walkthrough notes, deficiency log and remediation evidence for the year into one package.",
+            "File the package in the compliance evidence repository under the tax year and legal entity.",
+            "Apply a 7-year retention label from the year-end date.",
+            "Confirm the package is indexed and retrievable by tax year and entity."
+          ],
+          "done": "the annual control package is filed, labelled for 7-year retention and retrievable by year and entity."
+        },
+        {
+          "step": "Attest to control effectiveness ahead of the tax provision close",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Review the control summary memo, deficiency log and remediation status.",
+            "Sign the annual internal control attestation covering the tax-relevant accounts and computations.",
+            "Route the signed attestation to the Controller for filing with the control package.",
+            "Communicate any residual open item to the Audit Committee before the provision close."
+          ],
+          "done": "a signed CFO attestation covering the tax control environment is filed with the control package before the provision close."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of tax-relevant controls in scope for the year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Extract the full control matrix as of fiscal year-end from the compliance evidence repository.",
+            "Reconcile the control count to the prior-year matrix plus any documented additions/retirements.",
+            "Resolve any unreconciled difference with the Controller before sampling."
+          ],
+          "done": "the control population is reconciled to the year's documented matrix changes and signed as complete."
+        },
+        {
+          "step": "Select the control sample and document the method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Select 100% of key controls (§846 discounting, §848 capitalization, §831(b) ceiling/diversification where elected).",
+            "Select a random, reproducible sample of remaining non-key controls, minimum 10 or 25% of the remainder, whichever is greater.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers 100% of key controls."
+        },
+        {
+          "step": "Re-perform the §846 loss reserve discounting computation independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Pull the unpaid loss triangle and the applicable federal interest rate and loss payment pattern used for the year.",
+            "Independently recompute the discounted unpaid losses using the published discount factors.",
+            "Compare the independent result to the amount reported in the tax provision workpaper; a variance beyond rounding is an exception.",
+            "File the recomputation worksheet in the test evidence folder."
+          ],
+          "done": "the independent discounting recomputation matches the reported figure or the variance is logged as an exception."
+        },
+        {
+          "step": "Re-perform the §848 DAC capitalization computation independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull net premiums written by specified insurance contract category for the year.",
+            "Apply the correct statutory capitalization percentage (2.09% annuity, 2.45% group life/health, 9.20% other) and the 10-year (15-year for pre-2018-method changes where applicable) amortization schedule.",
+            "Compare the independently computed capitalized amount and amortization to the tax provision workpaper.",
+            "Log any mismatch as an exception with the affected line of business."
+          ],
+          "done": "the independent §848 computation reconciles to the workpaper for every sampled line of business, or is logged as an exception."
+        },
+        {
+          "step": "Re-perform the §831(b) ceiling and diversification test for sampled electing entities",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull net written premium by policyholder for each sampled electing entity from the ceded accounting platform.",
+            "Recompute total net written premium against the current-year inflation-adjusted ceiling.",
+            "Recompute the largest single-policyholder premium percentage against the 20% diversification threshold.",
+            "Compare to the control matrix's recorded pass/fail and log any disagreement."
+          ],
+          "done": "the independent §831(b) test agrees with the recorded result for every sampled electing entity, or a disagreement is logged."
+        },
+        {
+          "step": "Verify segregation of duties on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull current GL and tax-system access listings for each sampled control's preparer and reviewer.",
+            "Confirm no individual holds both preparer and reviewer access for the same control.",
+            "Log any conflict found as an exception with the affected control line."
+          ],
+          "done": "no sampled control shows a preparer/reviewer access conflict, or every conflict is logged."
+        },
+        {
+          "step": "Trace sampled control evidence to source data",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled control, trace the evidence filed in the control package to the underlying source system extract (GL, actuarial platform, ceded accounting platform).",
+            "Confirm dates and figures on the evidence match the source extract.",
+            "Log any untraceable or altered evidence as an exception."
+          ],
+          "done": "every sampled control's evidence traces to its source system, or the exception is logged."
+        },
+        {
+          "step": "Assess deficiency classification and remediation closure evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the deficiency log and confirm each logged gap has a materiality classification and, where remediated, closure evidence with a re-test result.",
+            "Recompute the exception rate for the current test population.",
+            "Flag any deficiency closed without a documented re-test as an exception."
+          ],
+          "done": "every deficiency has a classification and, if closed, a documented re-test; unsupported closures are logged as exceptions."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Raise a tracker issue for each exception identified during testing with the control line, what failed, and the financial-statement/tax impact.",
+            "Assign a root cause and an owner from the Controller's team.",
+            "Set a remediation date and add the item as a mandatory retest for the next cycle.",
+            "Notify the CFO of any exception touching a key control."
+          ],
+          "done": "every test exception has an issue, root cause, owner, remediation date and mandatory retest flag."
+        },
+        {
+          "step": "Conclude, sign and report the test to the Audit Committee",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the overall exception rate and compare it against the zero-tolerance threshold for key controls.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the underlying workpapers.",
+            "Have an independent reviewer who performed none of the sampled re-performance sign the workpaper.",
+            "Present results to the Audit Committee and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is filed and reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-063-C02",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Internal Auditor",
+          "value": "Owns the annual key-control test plan for the §807/§831(b)/§846/§848 tax computations and drives remediation tracking to closure"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 26 U.S.C. §§ 831(b), 846(e), 848(a) re-checked against the current Code and the annual IRS inflation-adjustment revenue procedure before the test plan is finalized"
+        },
+        "In-scope processes": {
+          "value": "Annual key-control testing over the tax provision process: loss reserve discounting, DAC capitalization, and (where elected) §831(b) captive premium ceiling/diversification"
+        },
+        "In-scope systems": {
+          "app": "AuditBoard",
+          "value": "Test plan, workpapers and issue tracking maintained in AuditBoard; source data pulled from SAP S/4HANA (GL) and the actuarial modeling platform"
+        },
+        "Compliance procedure documented": {
+          "value": "Annual Tax Control Testing Plan — scope, sample methodology, re-performance steps and deficiency escalation thresholds"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Audit Executive; refreshed annually before fieldwork begins"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Testing must complete and be reported to the Audit Committee before the tax provision close supporting Form 1120-L"
+        },
+        "Deadline reminders configured": {
+          "value": "Fieldwork kickoff reminder 90 days before provision close; Audit Committee reporting reminder 15 days before close"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Test plan, workpapers, deficiency log and Audit Committee reporting retained 7 years in the compliance evidence repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "Every test exception logged in AuditBoard with root cause, owner and remediation date; unresolved key-control exceptions escalate to the CFO"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Audit Executive",
+          "value": "Chief Audit Executive signs off closure of every remediated deficiency after a passing re-test"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All key and non-key tax controls active in the control matrix during the fiscal year under test"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any key-control failure is a fail requiring immediate CFO notification; non-key control failure rate above 10% of the sample drives an expanded sample"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Annual, matching the Annual obligation frequency, with interim walkthroughs at mid-year for high-risk controls"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Chief Audit Executive",
+          "value": "Reviews and signs off testing performed by Internal Audit staff who have no control-execution responsibility"
+        },
+        "Evidence location for test results": {
+          "value": "AuditBoard test workpapers, cross-referenced to the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Test plan, results summary and remediation log, retrievable within 10 business days for an IRS examination or external audit request"
+        },
+        "Regulator response path": {
+          "value": "Chief Audit Executive coordinates with Tax Director and General Counsel before any test result is shared externally"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Scope the annual key-control test plan from the current control matrix",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the current-year control matrix from the compliance evidence repository maintained by the Controller.",
+            "Classify each control line as key or non-key based on its financial-statement/tax impact and prior-year deficiency history.",
+            "Draft the test plan listing scope, sample sizes, and re-performance procedures per control line.",
+            "Route the draft plan to the Chief Audit Executive for approval before fieldwork starts."
+          ],
+          "done": "an approved test plan exists naming every key control, its sample size and re-performance procedure."
+        },
+        {
+          "step": "Confirm access to source systems needed for re-performance",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Request read-only access to SAP S/4HANA (GL), the actuarial modeling platform and the ceded accounting platform through the IAM platform (SailPoint/Okta/Azure AD).",
+            "Confirm access is provisioned before fieldwork start date and scoped to read-only, no posting rights.",
+            "Log the access grant in AuditBoard with the requester and approval date."
+          ],
+          "done": "read-only access to every source system in the test plan is provisioned and logged before fieldwork begins."
+        },
+        {
+          "step": "Pull the population of transactions/computations for each key control",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "For the §846 discounting control, pull the full unpaid loss triangle by line of business for the tax year from the actuarial modeling platform.",
+            "For the §848 control, pull net premiums written by specified insurance contract category from the GL.",
+            "For §831(b) where elected, pull net written premium by policyholder from the ceded accounting platform.",
+            "Reconcile each pulled population to the amount reported in the tax provision workpaper before sampling."
+          ],
+          "done": "each key control's population is pulled and reconciled to the tax provision workpaper."
+        },
+        {
+          "step": "Select the test sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Select 100% of key-control computations given the low population count typical of these controls.",
+            "Select a random, reproducible sample of at least 25% of non-key control instances.",
+            "Record the seed, population size and selection rationale in the AuditBoard workpaper."
+          ],
+          "done": "the sample is documented with method, seed and population size in AuditBoard."
+        },
+        {
+          "step": "Re-perform the §846 discounting computation for the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Open the actuarial modeling platform and re-derive the discount factors from the published applicable federal interest rate and the prescribed loss payment pattern for the line of business.",
+            "Apply the factors to the unpaid loss triangle and compute the discounted reserve independently.",
+            "Compare to the amount in the tax provision workpaper; note any variance beyond a de minimis rounding threshold.",
+            "Screenshot the computation into the AuditBoard workpaper."
+          ],
+          "done": "an independent discounted-reserve figure is computed and compared to the workpaper for every sampled line of business."
+        },
+        {
+          "step": "Re-perform the §848 DAC capitalization computation for the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Apply the statutory capitalization percentage for the contract category to the sampled net premium figure.",
+            "Recompute the amortization schedule using the applicable statutory useful life.",
+            "Compare the independent result to the tax provision workpaper and note any variance.",
+            "File the recomputation in AuditBoard."
+          ],
+          "done": "an independent DAC capitalization figure is computed and compared to the workpaper for every sampled category."
+        },
+        {
+          "step": "Re-perform the §831(b) ceiling and diversification test where elected",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute total net written premium against the current-year inflation-adjusted ceiling.",
+            "Recompute the largest single-policyholder premium share against the 20% threshold, applying the relatedness safe harbor rules where relevant.",
+            "Compare the independent result to the control matrix's recorded pass/fail.",
+            "Log any disagreement as an exception."
+          ],
+          "done": "the independent §831(b) test result is compared to the recorded result for every sampled electing entity."
+        },
+        {
+          "step": "Test operating effectiveness of segregation of duties on the sample",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Pull the current access listing for each sampled control's preparer and reviewer.",
+            "Confirm the preparer and reviewer are distinct individuals with distinct system roles.",
+            "Log any conflict as an exception."
+          ],
+          "done": "no sampled control shows a segregation-of-duties conflict, or every conflict is logged."
+        },
+        {
+          "step": "Evaluate and classify every exception found",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Group exceptions by root cause: data source error, wrong rate/percentage applied, manual override, or access conflict.",
+            "Assess materiality using the CFO's severity framework and classify each as deficiency, significant deficiency, or material weakness.",
+            "Route material weaknesses to the Chief Audit Executive and CFO within one business day of discovery.",
+            "Record classifications in the AuditBoard deficiency log."
+          ],
+          "done": "every exception is classified with a documented root cause and materiality rating."
+        },
+        {
+          "step": "Agree remediation owners and target dates with the Controller",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Meet with the Controller and Tax Manager to assign a remediation owner and target date for each deficiency.",
+            "Confirm the remediation plan addresses the root cause, not just the symptom.",
+            "Log the agreed plan in AuditBoard against the deficiency.",
+            "Set a follow-up checkpoint at the midpoint of the target timeline."
+          ],
+          "done": "every deficiency has an agreed owner, target date and root-cause-addressing remediation plan logged in AuditBoard."
+        },
+        {
+          "step": "Track remediation progress to closure",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Check remediation status against target dates weekly.",
+            "Escalate any plan slipping past its target date to the Chief Audit Executive.",
+            "Request evidence of the remediation action from the control owner as each plan nears completion.",
+            "Update status fields in AuditBoard."
+          ],
+          "done": "remediation status is current in AuditBoard with no unescalated overdue plan."
+        },
+        {
+          "step": "Re-test remediated key controls before closing them",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Re-perform the original test procedure on a period after the remediation fix date.",
+            "Confirm the re-test passes before marking the deficiency closed.",
+            "File the re-test evidence against the original deficiency record in AuditBoard.",
+            "Notify the Chief Audit Executive of closure."
+          ],
+          "done": "every remediated key control has a passing re-test filed before closure."
+        },
+        {
+          "step": "Prepare the annual test results summary",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Summarize population, sample size, exceptions found, exceptions closed, and open items by control.",
+            "Compute the overall exception rate for key and non-key controls separately.",
+            "Draft the conclusion narrative referencing the underlying workpapers.",
+            "Route the draft to the Chief Audit Executive for review."
+          ],
+          "done": "a draft results summary with exception rates and a conclusion narrative is ready for Chief Audit Executive review."
+        },
+        {
+          "step": "Present results to the Audit Committee before the provision close",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Present the annual key-control test results, open deficiencies and remediation status to the Audit Committee.",
+            "Obtain committee acknowledgment of any material weakness before the tax provision closes.",
+            "Record committee questions and any directed follow-up action.",
+            "File the presentation and minutes in the compliance evidence repository."
+          ],
+          "done": "the Audit Committee has reviewed the year's results and any directed follow-up is logged before provision close."
+        },
+        {
+          "step": "Retain the annual test package for the required period",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Assemble the test plan, workpapers, deficiency log, remediation evidence and committee materials into one package.",
+            "File the package in the compliance evidence repository under the tax year.",
+            "Apply the 7-year retention label.",
+            "Confirm the package is indexed and retrievable by tax year and control line."
+          ],
+          "done": "the annual test package is filed, labelled for 7-year retention and retrievable by year and control."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of control tests performed during the year",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Extract the full list of controls tested from the year's AuditBoard test plan.",
+            "Reconcile the tested-control count to the approved test plan scope.",
+            "Resolve any scope gap (a planned control not tested) before proceeding."
+          ],
+          "done": "the tested population reconciles to the approved test plan with no unexplained scope gap."
+        },
+        {
+          "step": "Select a quality-assurance sample of completed tests",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Select 100% of key-control tests and a random 25% sample of non-key control tests for independent QA review.",
+            "Record the seed and selection date in the QA workpaper.",
+            "Confirm the selected sample covers every control classified as key in the current-year test plan."
+          ],
+          "done": "the QA sample is drawn and documented, covering 100% of key-control tests."
+        },
+        {
+          "step": "Independently re-perform a subset of the re-performance procedures",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "For each QA-sampled key control, independently redo the re-performance (discount factor, capitalization percentage, or §831(b) test) using the source data cited in the original workpaper.",
+            "Compare the QA result to the original tester's conclusion.",
+            "Log any disagreement as a QA exception with the original tester named."
+          ],
+          "done": "the QA re-performance agrees with the original test conclusion for every sampled key control, or a QA exception is logged."
+        },
+        {
+          "step": "Trace workpaper evidence to source system extracts",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "For each QA-sampled test, confirm the source data screenshot or extract in the workpaper matches a live pull from the system of record.",
+            "Confirm dates on the evidence are consistent with the test period.",
+            "Log any untraceable evidence as an exception."
+          ],
+          "done": "every QA-sampled workpaper's evidence traces to its source system, or the gap is logged."
+        },
+        {
+          "step": "Verify sample selection methodology on the underlying tests",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Confirm each underlying test recorded a seed, population size and selection date consistent with a reproducible method.",
+            "Attempt to re-draw one sample using the recorded seed and confirm it matches the original sample.",
+            "Log any non-reproducible sample as a methodology exception."
+          ],
+          "done": "sample selection is reproducible for the QA-sampled tests, or the exception is logged."
+        },
+        {
+          "step": "Recompute the exception and closure rates reported for the year",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Recompute the key- and non-key-control exception rates from the underlying deficiency log.",
+            "Compare the recomputed rates to the rates presented to the Audit Committee.",
+            "Log any discrepancy as a reporting exception and correct the reported figure."
+          ],
+          "done": "reported exception rates reconcile to the underlying deficiency log or are corrected."
+        },
+        {
+          "step": "Verify remediation closures had a passing re-test on file",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Pull every deficiency marked closed during the year.",
+            "Confirm a re-test result exists and passed before the closure date.",
+            "Log any closure without a passing re-test as an exception and reopen the deficiency."
+          ],
+          "done": "every closed deficiency has a passing re-test on file, or is reopened as an exception."
+        },
+        {
+          "step": "Confirm segregation between testers and control owners",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Confirm no Internal Audit tester on the sample also serves as a control preparer or reviewer for the same control.",
+            "Check reporting lines for any conflict of interest not otherwise disclosed.",
+            "Log any conflict as an independence exception."
+          ],
+          "done": "no independence conflict exists between testers and control owners on the sample, or it is logged."
+        },
+        {
+          "step": "Log every QA exception with root cause, owner and remediation date",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Raise a tracker issue for each QA exception naming the original test, what was wrong, and the impact on the reported conclusion.",
+            "Assign a root cause and an owner within Internal Audit.",
+            "Set a remediation date and require the correction flow through to the Audit Committee reporting if the conclusion changes."
+          ],
+          "done": "every QA exception has an issue, root cause, owner and remediation date."
+        },
+        {
+          "step": "Conclude on the reliability of the year's key-control testing and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the QA exception rate and compare against the acceptable threshold for testing reliability.",
+            "Write the conclusion on whether the year's key-control test results can be relied upon as reported.",
+            "Have an independent reviewer outside the original test team sign the QA workpaper.",
+            "Report the QA conclusion to the Audit Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed QA workpaper with a stated reliability conclusion is filed and reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-063-C03",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Chief Audit Executive",
+          "value": "Owns the annual auditor-independence assessment and engagement-team-rotation tracking for the external auditor performing the statutory and tax-basis audit work"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — independence expectations checked against AICPA/PCAOB independence rules and, where the audit report supports the IRC Subchapter L tax positions, against Circular 230 practitioner-conduct standards, re-verified at each engagement acceptance"
+        },
+        "In-scope processes": {
+          "value": "External auditor engagement acceptance/renewal, lead- and concurring-partner rotation tracking, and pre-approval of any non-audit tax services the auditor proposes to perform"
+        },
+        "In-scope systems": {
+          "app": "AuditBoard",
+          "value": "Independence letters, rotation tracker and non-audit-service pre-approval log maintained in AuditBoard"
+        },
+        "Compliance procedure documented": {
+          "value": "Auditor Independence and Rotation Policy — annual independence letter requirement, 5-year lead-partner/7-year concurring-partner rotation limits, non-audit-service pre-approval gate"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Audit Committee (via the Chief Audit Executive as secretariat); reviewed at each engagement renewal"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per engagement — independence letter and rotation confirmation obtained before the engagement letter is signed each audit cycle"
+        },
+        "Deadline reminders configured": {
+          "value": "Rotation-tracker alert at year 4 of a lead partner's tenure and year 6 of a concurring partner's tenure to plan the mandatory rotation"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Independence letters, rotation tracker extracts and non-audit-service pre-approvals retained 7 years in the compliance evidence repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "Any independence impairment or missed rotation is logged with root cause and disposition (remediation, restated opinion assessment, or auditor change) in the AuditBoard issue log"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Audit Executive",
+          "value": "Chief Audit Executive confirms remediation and reports to the Audit Committee before the audit opinion is relied upon"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All external audit and non-audit engagements with the incumbent audit firm during the fiscal year, plus the lead/concurring partner rotation history"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any missed rotation deadline or unapproved non-audit tax service is a fail requiring Audit Committee notification within 5 business days"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Per engagement — tested at each annual audit engagement acceptance/renewal, matching the Per engagement obligation frequency"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Board Governance Lead",
+          "value": "Reviewer is independent of the engagement-acceptance process and reports directly to the Audit Committee"
+        },
+        "Evidence location for test results": {
+          "value": "AuditBoard independence workpaper, cross-referenced to the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Independence letters, rotation history and pre-approval log, retrievable within 5 business days for a PCAOB or state DOI market conduct inquiry"
+        },
+        "Regulator response path": {
+          "value": "Chief Audit Executive coordinates the response with General Counsel and the Audit Committee chair"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Obtain the annual written independence letter from the incumbent audit firm",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Request a written independence confirmation letter from the audit engagement partner ahead of the current-year engagement letter signature.",
+            "Confirm the letter addresses AICPA/PCAOB independence rules including financial interests, employment relationships and non-audit services performed.",
+            "Log the letter's receipt date in AuditBoard against the engagement record.",
+            "Escalate to the Audit Committee chair if the letter is not received before fieldwork start."
+          ],
+          "done": "a dated, signed independence letter from the engagement partner is filed in AuditBoard before fieldwork starts."
+        },
+        {
+          "step": "Pull and update the lead/concurring partner rotation tracker",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Open the AuditBoard rotation tracker and add the current year's tenure count for the lead and concurring engagement partners.",
+            "Confirm lead partner tenure has not exceeded 5 consecutive years and concurring partner tenure has not exceeded 7 consecutive years, per the applicable rotation rule.",
+            "Flag any partner approaching the rotation limit within the next two audit cycles.",
+            "Route flagged partners to the Chief Audit Executive for succession planning with the audit firm."
+          ],
+          "done": "the rotation tracker is current for the year and any partner nearing the limit is flagged for succession planning."
+        },
+        {
+          "step": "Inventory all non-audit services proposed or performed by the audit firm",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Request from the Controller and Tax Director a list of any non-audit tax services (tax return preparation assistance, tax planning, tax opinion work) the incumbent firm proposes or has performed.",
+            "Cross-check each proposed service against the prohibited-services list (e.g., contingent-fee tax services, bookkeeping, appraisal/valuation for the client).",
+            "Flag any prohibited or borderline service for Audit Committee pre-approval before it is engaged.",
+            "Log the inventory and its disposition in AuditBoard."
+          ],
+          "done": "every non-audit service proposed or performed is inventoried and dispositioned against the prohibited-services list."
+        },
+        {
+          "step": "Route non-audit tax service requests through Audit Committee pre-approval",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Prepare a pre-approval memo for each non-audit tax service request, describing the service, estimated fee and independence impact analysis.",
+            "Submit the memo to the Audit Committee (or its delegated chair, subject to ratification at the next full committee meeting) before the service begins.",
+            "Record the approval or denial decision and date in AuditBoard.",
+            "Notify the Tax Director of the outcome before the auditor is engaged for the service."
+          ],
+          "done": "every non-audit tax service has a dated Audit Committee pre-approval or denial on file before work begins."
+        },
+        {
+          "step": "Assess financial and employment relationships for independence impairment",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Confirm no audit engagement team member holds a financial interest in the company per the independence letter representations.",
+            "Check whether any former audit firm employee joined the company in a financial-reporting oversight role within the applicable cooling-off period (commonly one year).",
+            "Cross-check new senior finance hires against the incumbent audit firm's alumni list for the relevant period.",
+            "Log any identified relationship for Chief Audit Executive review."
+          ],
+          "done": "financial-interest and cooling-off-period checks are completed and any finding is logged for review."
+        },
+        {
+          "step": "Confirm the audit committee pre-approves the annual audit fee and scope",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "actions": [
+            "Present the proposed annual audit fee, scope letter and any fee changes from the prior year to the Audit Committee.",
+            "Obtain committee approval before the engagement letter is countersigned.",
+            "Record the approved fee and scope in the board portal minutes.",
+            "File the approved engagement letter in AuditBoard."
+          ],
+          "done": "the Audit Committee's approval of fee and scope is recorded in the minutes before the engagement letter is signed."
+        },
+        {
+          "step": "Verify the audit firm's own quality-control and PCAOB inspection status",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Request the audit firm's most recent PCAOB inspection report summary or peer review letter.",
+            "Confirm no unresolved quality-control finding materially affects the engagement team assigned to this audit.",
+            "Note the inspection date and outcome in the engagement acceptance memo.",
+            "Escalate any material finding to the Audit Committee before engagement renewal."
+          ],
+          "done": "the audit firm's current inspection/peer-review status is documented in the engagement acceptance memo."
+        },
+        {
+          "step": "Document engagement acceptance decision and rationale",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Draft the engagement acceptance memo summarizing the independence letter, rotation status, non-audit service disposition and inspection status.",
+            "Route the memo to the Audit Committee chair for review ahead of the committee meeting.",
+            "Incorporate any committee comments before finalizing.",
+            "File the final memo in AuditBoard."
+          ],
+          "done": "a finalized engagement acceptance memo covering all independence factors is filed before the engagement letter is signed."
+        },
+        {
+          "step": "Get Audit Committee approval of engagement acceptance/renewal",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "actions": [
+            "Present the engagement acceptance memo to the full Audit Committee at its scheduled meeting.",
+            "Obtain a documented vote or consensus approving the engagement.",
+            "Record the approval in the board portal minutes with the meeting date.",
+            "Notify the Chief Audit Executive to proceed with engagement letter execution."
+          ],
+          "done": "the Audit Committee's approval of the engagement is minuted before the engagement letter is executed."
+        },
+        {
+          "step": "Execute the engagement letter and file it centrally",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Route the final engagement letter for signature by the CFO and the audit firm's engagement partner.",
+            "Confirm the letter references the current-year scope, fee and any pre-approved non-audit services.",
+            "File the signed letter in AuditBoard and cross-reference it to the independence letter and committee approval."
+          ],
+          "done": "the signed engagement letter is filed and cross-referenced to its supporting independence and approval evidence."
+        },
+        {
+          "step": "Monitor independence throughout the engagement period",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Send a mid-cycle independence attestation reminder to the audit engagement partner at the engagement midpoint.",
+            "Review any new non-audit service request that arises during the engagement against the pre-approval process.",
+            "Log any change in engagement team composition and screen new members for independence.",
+            "Report any mid-cycle finding to the Chief Audit Executive immediately."
+          ],
+          "done": "a mid-cycle independence check is completed and any new finding is escalated promptly."
+        },
+        {
+          "step": "Assess and disposition any identified independence impairment",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Where an impairment is identified, determine whether it is material to the audit opinion's reliability with input from General Counsel.",
+            "Decide the disposition: remediate and continue, restrict the impaired individual from the engagement, or reassess the audit opinion.",
+            "Document the disposition rationale and get Audit Committee concurrence.",
+            "Log the impairment, disposition and concurrence date in AuditBoard."
+          ],
+          "done": "every identified impairment has a documented disposition concurred by the Audit Committee."
+        },
+        {
+          "step": "Track rotation succession planning with the audit firm",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "For any partner flagged as nearing the rotation limit, request the audit firm's succession plan and proposed replacement partner's background.",
+            "Review the proposed replacement's independence letter and experience with the company's tax and actuarial matters.",
+            "Present the succession plan to the Audit Committee for concurrence at least one cycle ahead of the mandatory rotation.",
+            "Log the succession plan and concurrence date in the rotation tracker."
+          ],
+          "done": "a concurred succession plan exists in the rotation tracker at least one audit cycle before any mandatory rotation."
+        },
+        {
+          "step": "Retain independence and rotation records for the required period",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Assemble the independence letter, rotation tracker extract, non-audit-service log and engagement acceptance memo for the year.",
+            "File the package in the compliance evidence repository under the audit engagement year.",
+            "Apply the 7-year retention label.",
+            "Confirm the package is indexed and retrievable by engagement year and partner name."
+          ],
+          "done": "the independence and rotation package is filed, labelled for 7-year retention and retrievable by year and partner."
+        },
+        {
+          "step": "Report independence status to the Audit Committee at least annually",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "actions": [
+            "Present a summary of independence letters received, rotation status, non-audit services approved, and any impairments identified during the year.",
+            "Obtain committee acknowledgment of the summary.",
+            "Record any directed follow-up action in the minutes.",
+            "File the presentation and minutes in the compliance evidence repository."
+          ],
+          "done": "an annual independence status report is presented to and acknowledged by the Audit Committee, with minutes filed."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of audit and non-audit engagements for the year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Extract every audit and non-audit engagement with the incumbent firm from the AuditBoard engagement log for the fiscal year.",
+            "Reconcile the extract to the fees paid per the accounts payable ledger for the audit firm.",
+            "Resolve any unreconciled engagement or fee before sampling."
+          ],
+          "done": "the engagement population reconciles to accounts payable records and is signed as complete."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of non-audit service engagements given typically low volume.",
+            "Take a random sample of at least 5 audit-related engagement decisions (acceptance, renewal, scope change) from the year.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers 100% of non-audit engagements."
+        },
+        {
+          "step": "Verify each sampled non-audit service had documented pre-approval",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the pre-approval memo and Audit Committee decision for each sampled non-audit service.",
+            "Confirm the approval date pre-dates the service start date.",
+            "Confirm the service was not on the prohibited-services list.",
+            "Log any unapproved or prohibited service as an exception."
+          ],
+          "done": "every sampled non-audit service has a pre-dated, documented approval, or the exception is logged."
+        },
+        {
+          "step": "Recompute lead/concurring partner tenure against the rotation limits",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the engagement partner history for the past 8 years from the rotation tracker and audit firm confirmations.",
+            "Recompute consecutive tenure for the lead partner (5-year limit) and concurring partner (7-year limit).",
+            "Compare the recomputed tenure to the tracker's recorded value.",
+            "Log any discrepancy or missed rotation as an exception."
+          ],
+          "done": "recomputed partner tenure matches the tracker and no rotation limit was exceeded, or the exception is logged."
+        },
+        {
+          "step": "Confirm independence letters were obtained before each engagement letter signature",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the independence letter date to the engagement letter signature date for the sampled year(s).",
+            "Confirm the independence letter addresses the specific engagement team assigned.",
+            "Log any engagement letter signed before the independence letter was received as an exception."
+          ],
+          "done": "every sampled engagement letter was preceded by a dated independence letter, or the exception is logged."
+        },
+        {
+          "step": "Test cooling-off-period compliance for former audit firm employees",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the list of finance/accounting hires during the year from HRIS (Workday/SuccessFactors).",
+            "Cross-check against the audit firm's alumni list obtained by the Chief Audit Executive.",
+            "Confirm no hire into a financial-reporting oversight role violated the cooling-off period.",
+            "Log any violation as an exception."
+          ],
+          "done": "no cooling-off-period violation is found among the year's finance hires, or a violation is logged."
+        },
+        {
+          "step": "Trace Audit Committee approvals to the board portal minutes",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Open the board portal and locate the minutes for the meeting approving each sampled engagement or non-audit service.",
+            "Confirm the minutes reflect the approval and the date matches the AuditBoard record.",
+            "Log any unminuted approval as an exception."
+          ],
+          "done": "every sampled approval traces to board portal minutes with a matching date, or the exception is logged."
+        },
+        {
+          "step": "Verify remediation of any prior-year independence finding",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull any independence finding logged in the prior year's issue log.",
+            "Confirm the remediation action described was completed and evidenced.",
+            "Log any unremediated or unevidenced prior finding as a repeat exception."
+          ],
+          "done": "every prior-year finding is confirmed remediated with evidence, or logged as a repeat exception."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Raise a tracker issue for each exception with the engagement, what was missed, and the independence impact.",
+            "Assign a root cause and an owner from the Chief Audit Executive's office.",
+            "Set a remediation date and, for any material independence impairment, require a self-report assessment with General Counsel.",
+            "Carry every open exception into the next cycle's test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and mandatory retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test to the Audit Committee",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the exception rate against the zero-unapproved-service and zero-missed-rotation thresholds.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have an independent reviewer who did not perform the sampled testing sign the workpaper.",
+            "Report results to the Audit Committee and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is filed and reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-063-C04",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Controller",
+          "value": "Owns preparation and filing of audited GAAP/statutory financial statements and coordination of auditor communications supporting the tax positions taken under IRC Subchapter L"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — filing content checked against 26 U.S.C. § 801 (Form 1120-L filing requirement) and § 807(d)(1) reserve reporting, cross-referenced to the NAIC Annual Statement Instructions for the same fiscal year"
+        },
+        "In-scope processes": {
+          "value": "Year-end close, audited statutory/GAAP financial statement preparation, auditor communication letters (management representation, SAS 114/AU-C 260 communication), and filing of the audited package with regulators"
+        },
+        "In-scope systems": {
+          "app": "Statutory Reporting (NAIC)",
+          "value": "Audited annual statement filed via NAIC systems; underlying workpapers in BlackLine (Close) and SAP S/4HANA (GL)"
+        },
+        "Compliance procedure documented": {
+          "value": "Year-End Audited Financial Statement Filing Procedure — close calendar, audit PBC list, management representation letter process, filing checklist by jurisdiction"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the CFO; reviewed annually ahead of the year-end close kickoff"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Audited statutory annual statement due June 1 following year-end (domiciliary state, per NAIC Annual Statement Instructions); Form 1120-L due the 15th day of the 4th month after year-end or the extended due date"
+        },
+        "Deadline reminders configured": {
+          "value": "Close calendar milestones at T-45/T-30/T-15/T-5 days to each filing deadline, tracked in the filing tracker with automated alerts"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Audited financial statements, auditor communication letters and filing confirmations retained 7 years in the compliance evidence repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "Any late filing or auditor-identified misstatement logged as an exception with root cause and CFO-approved disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Financial Officer",
+          "value": "CFO signs off on remediation of any filing delay or restatement before the next filing cycle"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All audited financial statement filings and auditor communication letters issued during the fiscal year across every filing jurisdiction"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any filing submitted after its statutory due date without an approved extension is a fail; any unresolved auditor-identified material misstatement is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Annual, matching the Annual obligation frequency, tested against each year's filing cycle"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer has no role in preparing the audited statements or the filings under test"
+        },
+        "Evidence location for test results": {
+          "value": "Annual filing-timeliness test workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Filed audited statements, filing confirmations and auditor communication letters, retrievable within 5 business days for a state DOI or IRS request"
+        },
+        "Regulator response path": {
+          "value": "Controller coordinates the response with Regulatory Reporting Manager and General Counsel"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Build the year-end close and audit calendar",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Draft the close calendar working back from the June 1 statutory annual statement due date and the Form 1120-L due date.",
+            "Include audit fieldwork start/end dates agreed with the external auditor's engagement letter.",
+            "Circulate the calendar to Tax, Actuarial and Regulatory Reporting for input on their dependent deliverables.",
+            "Load the calendar milestones into the filing tracker with T-45/T-30/T-15/T-5 reminders."
+          ],
+          "done": "an approved close and audit calendar with all filing deadlines and reminders is loaded into the filing tracker."
+        },
+        {
+          "step": "Prepare and issue the audit prepared-by-client (PBC) list",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "BlackLine (Close)",
+          "actions": [
+            "In BlackLine (Close) open the year-end task list and tag each item required by the auditor's PBC request.",
+            "Assign an owner and due date to every PBC item, covering GL reconciliations, reserve support, DAC capitalization workpapers and §831(b) test support where applicable.",
+            "Distribute the PBC list to Tax, Actuarial and Accounting teams with the audit fieldwork start date as the hard deadline.",
+            "Track PBC completion status daily during the two weeks before fieldwork."
+          ],
+          "done": "the PBC list is fully assigned, tracked in BlackLine, and complete before audit fieldwork begins."
+        },
+        {
+          "step": "Close the general ledger and prepare the trial balance",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "Run the year-end close in SAP S/4HANA (GL): post final adjusting entries, lock the prior period, and generate the trial balance.",
+            "Reconcile every material GL account, including reserve, DAC and captive-premium accounts, in BlackLine (Close).",
+            "Route unreconciled items to the Controller for resolution before the trial balance is released to audit.",
+            "Sign off the close checklist in BlackLine."
+          ],
+          "done": "the GL is closed, the trial balance is reconciled with no material unresolved item, and the close checklist is signed off."
+        },
+        {
+          "step": "Prepare draft audited financial statements and footnote disclosures",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Draft the statutory and/or GAAP financial statements from the closed trial balance, including the tax footnote disclosing the §831(b), §846 and §848 positions taken.",
+            "Cross-check reserve figures in the footnotes to the Appointed Actuary's signed opinion.",
+            "Route the draft statements to the CFO for review before sending to the external auditor.",
+            "Log the draft version and date in the compliance evidence repository."
+          ],
+          "done": "draft audited financial statements with tax footnote disclosures are CFO-reviewed and sent to the auditor."
+        },
+        {
+          "step": "Support audit fieldwork and respond to auditor requests",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "actions": [
+            "Assign a daily point of contact to triage new auditor requests during fieldwork.",
+            "Log every request and its response date in the PBC tracker.",
+            "Escalate any request requiring Tax Director or Appointed Actuary input within one business day of receipt.",
+            "Maintain a running list of open audit questions until fieldwork close-out."
+          ],
+          "done": "all fieldwork requests are logged, responded to, and no request remains open past fieldwork close-out without an escalation record."
+        },
+        {
+          "step": "Review and resolve proposed audit adjustments",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Log every proposed audit adjustment (PAJE) with its dollar impact and the affected account.",
+            "Assess each PAJE with the Tax Manager for tax-position impact, particularly on reserve and DAC accounts.",
+            "Decide to book or waive each PAJE, with the CFO's sign-off on any waived adjustment above the audit's posted materiality threshold.",
+            "Update the trial balance for booked adjustments and re-reconcile affected accounts."
+          ],
+          "done": "every proposed audit adjustment has a booked/waived disposition signed off at the appropriate authority level."
+        },
+        {
+          "step": "Obtain and review the draft management representation letter",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Request the auditor's draft management representation letter template for the current engagement.",
+            "Review each representation against the actual facts known to management, flagging any representation that cannot be truthfully made.",
+            "Route flagged items to General Counsel and the CFO for resolution before signature.",
+            "Confirm the letter's date will match the audit report date."
+          ],
+          "done": "the management representation letter is reviewed, any flagged item resolved, and dated to match the audit report."
+        },
+        {
+          "step": "Obtain the auditor's communication to those charged with governance",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Request the auditor's SAS 114/AU-C 260 communication covering significant accounting policies, estimates (including reserve discounting and DAC capitalization), and any disagreement with management.",
+            "Review the communication for any item requiring Audit Committee discussion.",
+            "Schedule the communication for the Audit Committee's pre-filing meeting.",
+            "File the communication letter in AuditBoard."
+          ],
+          "done": "the auditor's governance communication is obtained, reviewed and scheduled for Audit Committee discussion before filing."
+        },
+        {
+          "step": "Present the audited financial statements to the Audit Committee for approval",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Present the final audited statements, PAJE disposition summary and auditor communication letter to the Audit Committee.",
+            "Obtain committee approval to file the audited statements.",
+            "Record the approval and meeting date in the board portal minutes.",
+            "Notify the Controller and Regulatory Reporting team to proceed with filing."
+          ],
+          "done": "the Audit Committee's approval to file is minuted before the statements are submitted to regulators."
+        },
+        {
+          "step": "Sign and issue the management representation letter",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Sign the finalized management representation letter alongside the Controller and CEO as required by the engagement letter.",
+            "Deliver the signed letter to the audit engagement partner by the date the audit report is to be dated.",
+            "File a copy in AuditBoard cross-referenced to the audit engagement."
+          ],
+          "done": "the signed management representation letter is delivered to the auditor and filed before the audit opinion is issued."
+        },
+        {
+          "step": "File the audited statutory annual statement with the domiciliary regulator",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "In the NAIC statutory filing system, upload the audited annual statement package (Jurat page, audited financial statements, actuarial opinion, auditor's report) for the domiciliary state.",
+            "Confirm the filing is submitted by June 1 following year-end, or that an approved extension is on file.",
+            "Download the filing confirmation/receipt and attach it to the filing tracker.",
+            "Repeat the filing for every state requiring a copy per its holding company/annual statement filing requirements."
+          ],
+          "done": "the audited annual statement is filed with the domiciliary regulator (and copy states) by the deadline, with confirmations on file."
+        },
+        {
+          "step": "File Form 1120-L with the IRS reflecting the audited reserve and DAC positions",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "Reconcile the tax return's reserve, DAC and taxable income figures to the audited financial statements' tax footnote.",
+            "File Form 1120-L (and consolidated return schedules if applicable) through the IRS Modernized e-File system by the due date or the Form 7004 extended due date.",
+            "Retain the e-file acknowledgment (accepted/rejected status) and attach it to the filing tracker.",
+            "Notify the Controller once the return is accepted."
+          ],
+          "done": "Form 1120-L is filed and accepted by the IRS by the due date or extended due date, with the e-file acknowledgment on file."
+        },
+        {
+          "step": "Communicate any restatement or material weakness disclosed by the audit to regulators",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Where the audit identifies a restatement or material weakness, confirm with General Counsel whether a regulatory notification obligation is triggered.",
+            "Draft the notification identifying the issue, financial impact and remediation plan.",
+            "Route the draft to the CFO and General Counsel for approval before submission.",
+            "Submit the notification through the applicable regulator channel and log the submission date."
+          ],
+          "done": "any triggered restatement/material-weakness notification is approved and submitted to the regulator with the submission date logged."
+        },
+        {
+          "step": "Reconcile filed figures across the audited statements, annual statement and Form 1120-L",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "Build a reconciliation schedule tying reserve, DAC and net income figures across the audited GAAP statements, the statutory annual statement, and Form 1120-L, explaining every M-1/M-3 style book-tax difference.",
+            "Route the reconciliation to the Controller for review.",
+            "File the signed reconciliation in the compliance evidence repository."
+          ],
+          "done": "a reviewed reconciliation ties figures across all three filings and is filed as supporting evidence."
+        },
+        {
+          "step": "Retain the full audited-filing package for the required period",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Assemble the audited statements, management representation letter, auditor communication letter, PAJE log, filing confirmations and reconciliation schedule.",
+            "File the package in the compliance evidence repository under the fiscal year.",
+            "Apply the 7-year retention label.",
+            "Confirm the package is indexed and retrievable by fiscal year and filing type."
+          ],
+          "done": "the full audited-filing package is filed, labelled for 7-year retention and retrievable by year and filing type."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of audited financial statement filings for the year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Extract every audited statement filing (statutory annual statement, Form 1120-L, any state copy filings) made during the fiscal year from the filing tracker.",
+            "Reconcile the extract to the close calendar's planned filings.",
+            "Resolve any unreconciled or missing filing before sampling."
+          ],
+          "done": "the filing population reconciles to the close calendar and is signed as complete."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of statutory annual statement and Form 1120-L filings given typically low annual volume.",
+            "Take a random sample of at least 5 copy-state filings where applicable.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers 100% of the primary annual filings."
+        },
+        {
+          "step": "Verify each sampled filing was submitted by its statutory deadline",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Open the NAIC statutory filing system and pull the submission timestamp for each sampled annual statement filing.",
+            "Compare the timestamp to the June 1 statutory deadline or any approved extension.",
+            "For Form 1120-L, confirm the IRS e-file acknowledgment date against the due date or extended due date.",
+            "Log any late filing without an approved extension as an exception."
+          ],
+          "done": "every sampled filing's submission date is compared to its deadline, with any late filing logged as an exception."
+        },
+        {
+          "step": "Trace filed figures to the underlying audited trial balance",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled filing, trace the reported net income, reserve and DAC figures back to the closed and reconciled trial balance in BlackLine (Close).",
+            "Confirm the figures agree, allowing for documented book-tax reconciling items.",
+            "Log any unexplained variance as an exception."
+          ],
+          "done": "filed figures trace to the trial balance for every sampled filing, or the variance is logged and explained."
+        },
+        {
+          "step": "Confirm the management representation letter was signed before the audit report date",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the signed management representation letter and the audit report for the sampled year.",
+            "Compare the representation letter's signature date to the audit report date.",
+            "Log any representation letter signed after the audit report date as an exception."
+          ],
+          "done": "the representation letter pre-dates or matches the audit report date for every sampled year, or the exception is logged."
+        },
+        {
+          "step": "Verify proposed audit adjustments were properly dispositioned",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the PAJE log for the sampled year and confirm every proposed adjustment has a booked/waived disposition.",
+            "Confirm any waived adjustment above the posted materiality threshold carries CFO sign-off.",
+            "Recompute the cumulative waived-adjustment impact and compare to the materiality threshold.",
+            "Log any missing disposition or unsigned waiver as an exception."
+          ],
+          "done": "every PAJE has a documented, properly authorized disposition, or the gap is logged as an exception."
+        },
+        {
+          "step": "Verify Audit Committee approval preceded filing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Pull the board portal minutes approving the audited statements for the sampled year.",
+            "Compare the approval date to the actual filing submission date.",
+            "Log any filing submitted before Audit Committee approval as an exception."
+          ],
+          "done": "every sampled filing was submitted after a minuted Audit Committee approval, or the exception is logged."
+        },
+        {
+          "step": "Reconcile figures across audited statements, annual statement and Form 1120-L",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently rebuild the cross-filing reconciliation schedule for the sampled year.",
+            "Compare the independent reconciliation to the Tax Manager's filed reconciliation.",
+            "Log any unexplained difference as an exception."
+          ],
+          "done": "the independent reconciliation agrees with the filed reconciliation, or the difference is logged as an exception."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Raise a tracker issue per exception with the filing, what was missed, and the regulatory/tax impact.",
+            "Assign a root cause and an owner from the Controller's team.",
+            "Set a remediation date and, for late filings, confirm whether a penalty or self-report obligation applies.",
+            "Carry every open exception into next year's test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and mandatory retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compute the exception rate against the zero-late-filing threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the underlying workpapers.",
+            "Have an independent reviewer who performed none of the sampled testing sign the workpaper.",
+            "Report results to the Audit Committee and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is filed and reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-063-C05",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Appointed Actuary",
+          "value": "Owns the §807(d)(1) federally prescribed tax reserve computation — greater of net surrender value or 92.81% of the applicable NAIC method reserve — for every non-variable life contract"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 26 U.S.C. § 807(d)(1) and the cross-referenced §§ 805, 807, 832, 846, 848 re-checked against the current Code and any post-2017 Tax Cuts and Jobs Act guidance (the 92.81% factor and applicable NAIC method definitions) at each valuation cycle"
+        },
+        "In-scope processes": {
+          "value": "Quarterly estimated tax reserve roll-forward and annual final tax reserve computation for every non-variable life, annuity and long-duration health contract"
+        },
+        "In-scope systems": {
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "value": "Statutory reserve run feeds the tax reserve overlay computation; results loaded to SAP S/4HANA (GL) for the tax provision"
+        },
+        "Compliance procedure documented": {
+          "value": "Federal Tax Reserve Computation Procedure — net surrender value pull, applicable NAIC method identification per contract form, 92.81% factor application, greater-of comparison and roll-forward"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Appointed Actuary and Tax Director; reviewed annually and on any NAIC valuation manual update"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Quarterly reserve roll-forward due ahead of each estimated tax payment date; annual final computation due ahead of the Form 1120-L filing deadline"
+        },
+        "Deadline reminders configured": {
+          "value": "Reserve computation milestone reminders at T-20 days before each quarterly estimate and T-45 days before the annual Form 1120-L due date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Reserve computation workpapers, contract-form NAIC method mapping and roll-forward schedules retained 7 years in the compliance evidence repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "Any contract form using an outdated or unsupported NAIC reserve method is logged as an exception with root cause and correction date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Appointed Actuary",
+          "value": "Appointed Actuary signs off correction of any reserve methodology exception before the next quarterly estimate"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All non-variable life insurance, annuity and long-duration health contract forms in force during the tax year, grouped by NAIC reserve method"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any contract form reserved under an unsupported or superseded NAIC method, or any greater-of comparison computed incorrectly, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Tested quarterly for the roll-forward and annually for the final computation, matching the Quarterly/Annual obligation frequency"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Reserving Actuary",
+          "value": "Reviewer did not prepare the sampled contract-form reserve computations"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly/annual tax reserve test workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Reserve computation workpapers and NAIC method mapping, retrievable within 10 business days for an IRS examination"
+        },
+        "Regulator response path": {
+          "value": "Tax Director coordinates with the Appointed Actuary and General Counsel before releasing any reserve methodology support to the IRS"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Extract in-force non-variable contract data by form and reserve basis",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "In the actuarial modeling platform run the in-force extract as of the valuation date, filtered to exclude variable contracts under separate account.",
+            "Group the extract by contract form number and current statutory reserve method.",
+            "Pull net surrender value by contract from the policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP) for the same valuation date.",
+            "Reconcile total contract count and reserve amount to the statutory annual statement Exhibit 5/8 (or quarterly equivalent) before proceeding."
+          ],
+          "done": "the in-force extract is grouped by form and method, net surrender values are attached, and totals reconcile to the statutory exhibit."
+        },
+        {
+          "step": "Map each contract form to its applicable NAIC reserve method under §807(d)(2)",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "For each contract form, identify the applicable NAIC method: the Standard Valuation Law method in effect when the contract was issued, per the §807(d)(2) prescribed method table.",
+            "Confirm the mapping against the NAIC Valuation Manual (VM-20 or the pre-VM-20 method in force at issue, as applicable).",
+            "Flag any form where the statutory method used in the valuation platform differs from the applicable federal tax method.",
+            "Document the mapping and any flagged difference in the method-mapping workbook."
+          ],
+          "done": "every contract form has a documented applicable-NAIC-method determination, with differences from the statutory basis flagged."
+        },
+        {
+          "step": "Compute the 92.81% factor reserve for each contract form",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Take the reserve computed under the applicable NAIC method (statutory-annual-statement basis, adjusted for any flagged method difference) for each contract form.",
+            "Multiply by 92.81%, the statutory federally prescribed reserve percentage under §807(d)(1).",
+            "Load the computed figures into the tax reserve workbook by form and reporting segment."
+          ],
+          "done": "the 92.81%-of-NAIC-method reserve is computed and loaded for every contract form."
+        },
+        {
+          "step": "Compute the greater-of comparison against net surrender value",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "For each contract, compare the net surrender value to the contract's share of the 92.81% NAIC-method reserve.",
+            "Select the greater amount as the deductible federal tax reserve for that contract, per §807(d)(1).",
+            "Aggregate the greater-of amounts by contract form and reporting segment.",
+            "Flag any contract form where net surrender value exceeds the 92.81% reserve for more than a threshold percentage of contracts, for Appointed Actuary review of the method mapping."
+          ],
+          "done": "the greater-of comparison is computed and aggregated by form, with any anomalous form flagged for review."
+        },
+        {
+          "step": "Roll forward the quarterly tax reserve estimate",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "Take the prior quarter's tax reserve balance and roll forward for new business, terminations, and reserve strengthening/releasing during the quarter.",
+            "Compare the rolled-forward estimate to a fresh computation from the current quarter's in-force extract.",
+            "Investigate and document any variance beyond the roll-forward tolerance (commonly 1-2% of reserve balance).",
+            "Load the quarterly estimate into the estimated tax payment workpaper."
+          ],
+          "done": "the quarterly roll-forward reserve estimate is computed, variance-checked against a fresh run, and loaded to the payment workpaper."
+        },
+        {
+          "step": "Compute the annual final tax reserve and the change in reserve for taxable income",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Compute the year-end federal tax reserve by form using the year-end in-force extract.",
+            "Compute the increase or decrease in reserve from the prior year-end (net of reinsurance ceded per §807(a)(2)) as the deductible/includible reserve change for the year.",
+            "Reconcile the reserve change to the reserve line in the tax provision workpaper.",
+            "Route the final computation to the Appointed Actuary for review."
+          ],
+          "done": "the annual final tax reserve and year-over-year change are computed and reconciled to the tax provision workpaper."
+        },
+        {
+          "step": "Review reinsurance ceded/assumed adjustments to the tax reserve",
+          "by": "Reinsurance Accountant",
+          "role": "Reinsurance Accountant",
+          "actions": [
+            "Pull ceded and assumed reserve credits by treaty from the reinsurance administration system.",
+            "Confirm each treaty qualifies for reserve credit under the applicable tax reinsurance rules (risk transfer, proper treaty documentation).",
+            "Net the ceded/assumed reserve credits against the gross tax reserve computed by the Reserving Actuary.",
+            "Flag any treaty lacking proper documentation for Tax Director review before the credit is taken."
+          ],
+          "done": "reinsurance reserve credits are verified against treaty documentation and netted into the tax reserve computation."
+        },
+        {
+          "step": "Prepare the reserve method-mapping and computation workpaper",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Assemble the method mapping, 92.81% computation, greater-of comparison and reinsurance adjustment into one workpaper.",
+            "Cross-reference each figure to its source extract and computation date.",
+            "Route the assembled workpaper to the Appointed Actuary for technical review."
+          ],
+          "done": "a complete, source-referenced workpaper covering method mapping through final tax reserve is ready for Appointed Actuary review."
+        },
+        {
+          "step": "Have the Appointed Actuary review and approve the computation",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Review the method mapping against the applicable NAIC Valuation Manual provisions and the greater-of computation for reasonableness.",
+            "Spot-check a sample of contract-level greater-of comparisons against the underlying policy data.",
+            "Sign off the workpaper or return it with review comments for correction.",
+            "Log the approval date in the tax reserve workbook."
+          ],
+          "done": "the Appointed Actuary has signed off the workpaper or returned it with documented comments, with the outcome logged."
+        },
+        {
+          "step": "Hand the approved reserve figures to Tax for the provision and return",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "Load the Appointed Actuary-approved reserve change into the tax provision workpaper in OneStream (FP&A).",
+            "Cross-check the reserve figure against the GAAP/statutory reserve for the book-tax difference schedule (Schedule M-3 equivalent).",
+            "Confirm the figure ties to what will be reported on Form 1120-L, Schedule of reserves."
+          ],
+          "done": "the approved reserve figure is loaded into the tax provision and reconciled for the book-tax difference schedule."
+        },
+        {
+          "step": "Update the method mapping for any new contract form or product launch",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "actions": [
+            "For every new life/annuity/long-duration health product filed during the year, determine the applicable NAIC reserve method at issue.",
+            "Add the new form to the method-mapping workbook before its first in-force valuation date.",
+            "Notify the Reserving Actuary of the new form and its method so the extract grouping is current."
+          ],
+          "done": "every new contract form has a method-mapping entry before its first valuation cycle."
+        },
+        {
+          "step": "Investigate and resolve any flagged reserve anomaly",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Pull the detail behind any contract form flagged for an anomalous net-surrender-value-exceeds-reserve pattern.",
+            "Determine whether the anomaly reflects a data issue, a method-mapping error, or a genuine product feature (e.g., a return-of-premium rider).",
+            "Document the root cause and, if a correction is needed, direct the Reserving Actuary to rerun the affected form.",
+            "Log the resolution in the tax reserve workbook."
+          ],
+          "done": "every flagged anomaly has a documented root cause and, where needed, a corrected computation."
+        },
+        {
+          "step": "Reconcile the quarterly estimates to the final annual computation",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "Compare the sum of quarterly roll-forward estimates to the final annual computation.",
+            "Document the drivers of any material difference (true-up items, late-reported business, in-force data corrections).",
+            "Route the reconciliation to the Tax Manager for review before the annual return is finalized."
+          ],
+          "done": "quarterly estimates reconcile to the final annual figure with documented drivers for any material difference."
+        },
+        {
+          "step": "File the method mapping and computation workpapers in the evidence repository",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Assemble the extract, method mapping, computation, reinsurance adjustment and Appointed Actuary sign-off for the tax year.",
+            "File the package in the compliance evidence repository under the tax year and reporting segment.",
+            "Apply the 7-year retention label.",
+            "Confirm the package is indexed and retrievable by tax year and contract form."
+          ],
+          "done": "the reserve computation package is filed, labelled for 7-year retention and retrievable by year and form."
+        },
+        {
+          "step": "Brief the Tax Director on the annual reserve computation before filing",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Present the final tax reserve figure, method-mapping summary and any anomalies resolved during the year.",
+            "Confirm the Tax Director has what is needed to support the reserve line on Form 1120-L on examination.",
+            "Record the briefing date and attendees.",
+            "File the briefing summary with the computation package."
+          ],
+          "done": "the Tax Director is briefed on the final reserve computation before it is used in the Form 1120-L filing, with the briefing logged."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of contract forms in scope for the year",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "actions": [
+            "Extract the full list of non-variable contract forms in force during the tax year from the actuarial modeling platform.",
+            "Reconcile the form count and total reserve to the statutory annual statement exhibit.",
+            "Resolve any unreconciled form or reserve difference before sampling."
+          ],
+          "done": "the contract-form population reconciles to the statutory exhibit and is signed as complete."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "actions": [
+            "Select 100% of contract forms representing more than 5% of total reserve.",
+            "Select a random, reproducible sample of at least 10 additional forms from the remaining population.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers 100% of material contract forms."
+        },
+        {
+          "step": "Independently re-derive the applicable NAIC method for each sampled form",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Pull the contract form's issue date and product filing documentation from the product filing/issue tracker.",
+            "Independently determine the applicable NAIC reserve method under §807(d)(2) using the Valuation Manual provisions in force at issue.",
+            "Compare the independent determination to the method-mapping workbook.",
+            "Log any disagreement as an exception."
+          ],
+          "done": "the independently derived method agrees with the mapping workbook for every sampled form, or the disagreement is logged."
+        },
+        {
+          "step": "Re-perform the 92.81% and greater-of computation on a contract-level sub-sample",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "For 25 contracts selected from the sampled forms, pull the statutory reserve and net surrender value independently from the actuarial modeling platform and policy administration system.",
+            "Recompute 92.81% of the applicable NAIC-method reserve and compare to net surrender value to select the greater amount.",
+            "Compare the independent result to the figure in the tax reserve workbook.",
+            "Log any variance beyond a de minimis rounding threshold as an exception."
+          ],
+          "done": "the independent contract-level recomputation matches the workbook for every sub-sampled contract, or the variance is logged."
+        },
+        {
+          "step": "Verify reinsurance reserve credits taken against treaty documentation",
+          "by": "Reinsurance Accountant",
+          "role": "Reinsurance Accountant",
+          "actions": [
+            "Pull the treaty documentation for each sampled form's reinsurance reserve credit.",
+            "Confirm the treaty was in force for the valuation date and meets risk-transfer requirements for tax reserve credit.",
+            "Recompute the ceded reserve credit and compare to the amount netted in the tax reserve computation.",
+            "Log any unsupported or miscomputed credit as an exception."
+          ],
+          "done": "every sampled reinsurance credit is supported by treaty documentation and correctly computed, or the exception is logged."
+        },
+        {
+          "step": "Recompute the quarterly roll-forward against the annual final figure",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "actions": [
+            "Pull each quarter's roll-forward estimate and the year-end final computation for the tax year.",
+            "Recompute the cumulative roll-forward and compare to the final figure.",
+            "Confirm any true-up was documented with a driver explanation.",
+            "Log any unexplained variance as an exception."
+          ],
+          "done": "the roll-forward reconciles to the final figure with documented drivers, or the unexplained variance is logged."
+        },
+        {
+          "step": "Confirm Appointed Actuary review evidence exists for the sampled forms",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "actions": [
+            "Pull the Appointed Actuary's sign-off and any review comments for the tax year's computation.",
+            "Confirm the sign-off date pre-dates the return filing date.",
+            "Confirm any review comment noted was addressed before finalization.",
+            "Log any missing sign-off or unaddressed comment as an exception."
+          ],
+          "done": "Appointed Actuary review evidence exists and pre-dates filing for the tested year, or the gap is logged."
+        },
+        {
+          "step": "Trace the final reserve figure to the tax provision and Form 1120-L",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "Trace the approved reserve change figure from the workbook into the OneStream (FP&A) tax provision and then into the filed Form 1120-L reserve schedule.",
+            "Confirm the figures agree at each step.",
+            "Log any unexplained break in the trace as an exception."
+          ],
+          "done": "the reserve figure traces consistently from the workbook through the provision to the filed return, or the break is logged."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Raise a tracker issue per exception with the contract form, what was wrong, and the reserve dollar impact.",
+            "Assign a root cause (method misclassification, stale in-force data, computation error) and an owner.",
+            "Set a remediation date and require any material reserve restatement be flagged to the Tax Director for return-impact assessment.",
+            "Carry every open exception into next cycle's test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and mandatory retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Compute the exception rate and the aggregate reserve dollar impact of exceptions found.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the underlying workpapers.",
+            "Have the Appointed Actuary, as independent reviewer of the testing (having performed none of the sampled re-performance), sign the workpaper.",
+            "Report results to the Tax Director and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and reserve impact is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-063-C06",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Appointed Actuary",
+          "value": "Owns preparation and signature of the statutory Actuarial Opinion and supporting Actuarial Memorandum covering reserves that also underpin the §807(d)(1) federal tax reserve"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — opinion content checked against the NAIC Standard Valuation Law/Actuarial Opinion and Memorandum Regulation (Model #822) requirements and cross-referenced to §807(d)(1) so the tax reserve basis and the statutory opinion basis are consistent"
+        },
+        "In-scope processes": {
+          "value": "Year-end reserve adequacy analysis, actuarial opinion drafting and signature, and actuarial memorandum documentation supporting the opinion and the tax reserve computation"
+        },
+        "In-scope systems": {
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "value": "Reserve adequacy models and opinion support run in the actuarial modeling platform; opinion document managed via Microsoft 365 / SharePoint"
+        },
+        "Compliance procedure documented": {
+          "value": "Actuarial Opinion and Memorandum Preparation Procedure — reserve data pull, adequacy testing scope, opinion qualification criteria, memorandum content checklist per Model #822"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Actuary; reviewed annually against the current NAIC Actuarial Opinion and Memorandum Regulation"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Actuarial opinion signed and dated no later than the statutory annual statement due date (March 1 for most states, prior to the June 1 audited statement deadline); memorandum available within required timeframe upon regulator request (commonly 60 days)"
+        },
+        "Deadline reminders configured": {
+          "value": "Opinion drafting milestone reminders at T-45/T-20/T-5 days before the March 1 statutory filing date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Signed opinion, memorandum and supporting adequacy analysis retained 7 years in the compliance evidence repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "Any qualified opinion or adequacy shortfall identified is logged with root cause, disposition and Chief Actuary sign-off"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Actuary",
+          "value": "Chief Actuary signs off any remediation of an opinion qualification before the next valuation cycle"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All reserve segments and contract forms covered by the year's actuarial opinion and memorandum"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any opinion signed without complete supporting memorandum documentation, or any adequacy shortfall not disclosed, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Annual, matching the Annual obligation frequency, tested against each year's opinion cycle"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Reserving Actuary",
+          "value": "Reviewer did not participate in drafting the opinion or memorandum under test"
+        },
+        "Evidence location for test results": {
+          "value": "Annual actuarial opinion test workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Signed opinion and full memorandum, retrievable within the regulator's requested timeframe (commonly 60 days) upon request"
+        },
+        "Regulator response path": {
+          "value": "Chief Actuary coordinates the response with Tax Director and General Counsel"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Scope the year's actuarial opinion coverage",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Confirm the legal entities, lines of business and reserve segments requiring an opinion for the current statutory annual statement.",
+            "Identify whether the opinion will be qualified as to any segment based on preliminary reserve adequacy indications.",
+            "Confirm the opinion type required (asset adequacy analysis opinion vs. formula reserve opinion) per the domiciliary state's regulation.",
+            "Document the scope decision in the opinion planning memo."
+          ],
+          "done": "an opinion planning memo names every entity, line of business and opinion type required for the year."
+        },
+        {
+          "step": "Pull the year-end reserve data and confirm it reconciles to the annual statement",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Extract year-end statutory reserves by line of business and reserve segment from the actuarial modeling platform.",
+            "Reconcile the extract to the Exhibit 5/8/9 reserve totals in the draft statutory annual statement.",
+            "Resolve any unreconciled difference with the Statutory Reporting Manager before opinion work begins.",
+            "Document the reconciliation and file it with the opinion support."
+          ],
+          "done": "reserve data used for the opinion reconciles to the draft annual statement exhibits."
+        },
+        {
+          "step": "Perform the asset adequacy analysis supporting the opinion",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Run the cash-flow-testing or gross premium valuation models required for each reserve segment under the domiciliary state's opinion requirements.",
+            "Test reserve adequacy under the required scenarios (interest rate scenarios, moderately adverse conditions) per the applicable Actuarial Standards of Practice.",
+            "Identify any segment showing an adequacy shortfall and quantify the additional reserve needed.",
+            "Route results to the Appointed Actuary for review."
+          ],
+          "done": "asset adequacy testing is complete for every reserve segment with any shortfall quantified and routed for review."
+        },
+        {
+          "step": "Reconcile the statutory reserve basis to the federal tax reserve basis",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "Compare the statutory reserve figures underlying the opinion to the §807(d)(1) tax reserve computation prepared separately.",
+            "Confirm the applicable NAIC method used in the tax computation matches the method the opinion relies on for each contract form.",
+            "Document any intentional difference (e.g., the 92.81% haircut) so it is not mistaken for an error.",
+            "Route the reconciliation to the Appointed Actuary and Tax Director."
+          ],
+          "done": "a documented reconciliation ties the opinion's statutory reserve basis to the tax reserve basis, explaining every intentional difference."
+        },
+        {
+          "step": "Draft the actuarial opinion document",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Draft the opinion using the current NAIC Annual Statement Instructions opinion language template for the applicable opinion type.",
+            "State the scope, reserve amounts opined on, and the opinion conclusion (reserves make good and sufficient provision, or qualified language with the specific exception named).",
+            "Include the required actuarial standards of practice reference (ASOP 22 for asset adequacy, applicable ASOPs for formula reserves).",
+            "Route the draft to the Chief Actuary for technical review."
+          ],
+          "done": "a draft opinion citing the correct scope, conclusion and ASOP references is ready for Chief Actuary review."
+        },
+        {
+          "step": "Draft the supporting actuarial memorandum",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Draft the memorandum per the Model #822 content checklist: reserve methodology, assumptions, data sources, testing methodology, and the sensitivity/scenario results.",
+            "Include a summary reconciling the memorandum's reserve figures to the opinion and to the annual statement exhibits.",
+            "Include disclosure of any Appointed Actuary reliance on other experts (e.g., an outside asset adequacy testing vendor) with their qualifications.",
+            "Route the draft memorandum to the Appointed Actuary for review."
+          ],
+          "done": "a draft memorandum covering methodology, assumptions, results and reliance disclosures is ready for review."
+        },
+        {
+          "step": "Resolve any adequacy shortfall before the opinion is finalized",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Review any shortfall identified in adequacy testing with the Reserving Actuary and Tax Director.",
+            "Decide whether to strengthen reserves, adjust assumptions with documented support, or issue a qualified opinion disclosing the shortfall.",
+            "Document the decision rationale in the opinion working file.",
+            "Notify the CFO of any reserve strengthening that will affect the tax provision."
+          ],
+          "done": "every identified shortfall has a documented resolution decision before the opinion is finalized."
+        },
+        {
+          "step": "Have an independent peer review the opinion and memorandum",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "actions": [
+            "Assign a peer reviewer who did not participate in preparing the opinion or memorandum.",
+            "Confirm the reviewer checks the opinion language against the current NAIC template, the memorandum's completeness against the Model #822 checklist, and the reserve-to-exhibit reconciliation.",
+            "Log review comments and confirm each is resolved before finalization.",
+            "File the peer review sign-off with the opinion working papers."
+          ],
+          "done": "a peer review is completed with all comments resolved and the sign-off filed."
+        },
+        {
+          "step": "Route the opinion and memorandum for Chief Actuary approval",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Review the final opinion and memorandum against the peer review comments and the shortfall resolution decision.",
+            "Confirm the reserve figures still tie to the final draft annual statement exhibits.",
+            "Approve the documents for the Appointed Actuary's signature or return with further comments.",
+            "Log the approval date."
+          ],
+          "done": "the Chief Actuary has approved the final opinion and memorandum or returned them with documented comments."
+        },
+        {
+          "step": "Sign the actuarial opinion",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Sign and date the final actuarial opinion, confirming the signature date is on or before the statutory filing deadline.",
+            "Confirm the Appointed Actuary's credentials (FSA/MAAA membership status) are current as of the signature date.",
+            "File the signed opinion in the compliance evidence repository.",
+            "Notify the Statutory Reporting Manager that the signed opinion is ready for filing."
+          ],
+          "done": "the opinion is signed, dated on or before the deadline, with current credentials confirmed and filed."
+        },
+        {
+          "step": "Finalize and file the memorandum ready for regulator request",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Finalize the memorandum incorporating all approved changes.",
+            "Confirm the memorandum is available to produce within the domiciliary state's required response timeframe (commonly 60 days) if requested.",
+            "File the finalized memorandum alongside the signed opinion in the compliance evidence repository.",
+            "Log the finalization date."
+          ],
+          "done": "the finalized memorandum is filed and ready to produce within the regulator's required timeframe."
+        },
+        {
+          "step": "Communicate the opinion conclusion and any qualification to the Audit Committee",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Present the opinion conclusion, any qualification, and the shortfall resolution (if any) to the Audit Committee ahead of the statutory filing.",
+            "Answer committee questions on the reserve adequacy testing methodology.",
+            "Record the presentation and any committee direction in the board portal minutes.",
+            "File the minutes with the opinion working papers."
+          ],
+          "done": "the Audit Committee has been briefed on the opinion conclusion before filing, with minutes filed."
+        },
+        {
+          "step": "Provide the reconciled tax reserve basis to Tax for the provision",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "Take the final reserve figures underlying the signed opinion and apply the §807(d)(1) 92.81%/net-surrender-value greater-of adjustment.",
+            "Load the resulting tax reserve into the tax provision workpaper.",
+            "Confirm the figure is consistent with the separately performed §807(d)(1) computation under the related control item.",
+            "Log the hand-off date to Tax."
+          ],
+          "done": "the reconciled tax reserve figure is handed to Tax and loaded into the provision, consistent with the separate §807(d)(1) computation."
+        },
+        {
+          "step": "Retain the opinion and memorandum package for the required period",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "actions": [
+            "Assemble the signed opinion, memorandum, peer review sign-off, adequacy testing results and Chief Actuary approval.",
+            "File the package in the compliance evidence repository under the tax/statutory year.",
+            "Apply the 7-year retention label.",
+            "Confirm the package is indexed and retrievable by year and reserve segment."
+          ],
+          "done": "the opinion and memorandum package is filed, labelled for 7-year retention and retrievable by year and segment."
+        },
+        {
+          "step": "Track and close any post-filing regulator inquiry on the opinion",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Log any regulator follow-up question on the opinion or memorandum in the regulatory filing/issue tracker.",
+            "Prepare and route the response through the Chief Actuary and General Counsel before submission.",
+            "Confirm the response is submitted within the regulator's requested timeframe.",
+            "File the closed inquiry with the opinion package."
+          ],
+          "done": "every regulator inquiry on the opinion is logged, responded to within the requested timeframe, and filed."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of reserve segments covered by the year's opinion",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "actions": [
+            "Extract the list of reserve segments and contract forms covered by the signed opinion.",
+            "Reconcile the segment list to the statutory annual statement exhibits for completeness.",
+            "Resolve any segment missing from the opinion scope before sampling."
+          ],
+          "done": "the segment population reconciles to the annual statement exhibits and is signed as complete."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "actions": [
+            "Select 100% of segments representing more than 5% of total reserves.",
+            "Select a random, reproducible sample of remaining segments, minimum 5.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers 100% of material reserve segments."
+        },
+        {
+          "step": "Re-perform the reserve-to-exhibit reconciliation for sampled segments",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Independently pull year-end reserves for each sampled segment from the actuarial modeling platform.",
+            "Compare to the amount disclosed in the memorandum and the annual statement exhibit.",
+            "Log any unreconciled difference as an exception."
+          ],
+          "done": "reserves for every sampled segment reconcile across the model, memorandum and exhibit, or the difference is logged."
+        },
+        {
+          "step": "Independently re-check the adequacy testing methodology and results",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Review the scenarios and assumptions used in the adequacy testing for each sampled segment against the requirements of the applicable ASOP.",
+            "Re-run a reduced-scenario version of the testing where feasible and compare directional results.",
+            "Confirm any disclosed shortfall's dollar amount and resolution are consistent with the memorandum.",
+            "Log any methodology gap or unreconciled shortfall as an exception."
+          ],
+          "done": "adequacy testing methodology and shortfall disclosure are independently checked for every sampled segment, or the gap is logged."
+        },
+        {
+          "step": "Verify the opinion signature date and Appointed Actuary credentials",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "actions": [
+            "Confirm the signed opinion's date is on or before the statutory filing deadline for the tested year.",
+            "Verify the Appointed Actuary's FSA/MAAA membership status was current as of the signature date via the professional body's public directory.",
+            "Log any late signature or lapsed credential as an exception."
+          ],
+          "done": "the opinion signature date and credential status are verified for the tested year, or the exception is logged."
+        },
+        {
+          "step": "Confirm the reconciliation between the statutory and federal tax reserve basis",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Pull the reconciliation prepared between the opinion's statutory reserve and the §807(d)(1) tax reserve for sampled segments.",
+            "Independently recompute the 92.81%/net-surrender-value comparison for a sub-sample of contract forms within the segment.",
+            "Compare to the filed reconciliation and log any discrepancy."
+          ],
+          "done": "the statutory-to-tax reserve reconciliation is independently checked for sampled segments, or the discrepancy is logged."
+        },
+        {
+          "step": "Verify peer review and Chief Actuary approval evidence",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "actions": [
+            "Pull the peer review sign-off and Chief Actuary approval for the tested year.",
+            "Confirm the peer reviewer was independent of the opinion's preparation team.",
+            "Confirm approval dates pre-date the opinion signature date.",
+            "Log any missing or out-of-sequence approval as an exception."
+          ],
+          "done": "peer review and Chief Actuary approval are confirmed independent and pre-dated, or the gap is logged."
+        },
+        {
+          "step": "Confirm memorandum completeness against the Model #822 checklist",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "actions": [
+            "Compare the finalized memorandum's contents section-by-section against the current Model #822 content checklist.",
+            "Flag any required section that is missing or materially incomplete.",
+            "Log the completeness result in the test workpaper."
+          ],
+          "done": "the memorandum's completeness is checked against the Model #822 checklist for the tested year, with any gap logged."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Raise a tracker issue per exception with the segment, what was wrong, and the reserve/opinion impact.",
+            "Assign a root cause and an owner from the Actuarial team.",
+            "Set a remediation date and require any material finding be flagged to the Chief Actuary for opinion-impact assessment.",
+            "Carry every open exception into next cycle's test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and mandatory retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Compute the exception rate and assess whether any exception would have changed the opinion conclusion.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the underlying workpapers.",
+            "Have an independent reviewer who performed none of the sampled re-performance sign the workpaper.",
+            "Report results to the Chief Actuary and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is filed and reported to the Chief Actuary."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-063-C07",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Owns filing the signed actuarial opinion alongside the statutory annual statement and coordinating the Form 1120-L federal income tax return filing that relies on the same reserve figures"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 26 U.S.C. § 801 (Form 1120-L requirement) and § 807(d)(1) re-checked against the current Code, and the NAIC Annual Statement Instructions checked for the current opinion-filing-with-annual-statement requirement, at each filing cycle"
+        },
+        "In-scope processes": {
+          "value": "Statutory annual statement filing (with the signed actuarial opinion attached) to the domiciliary and copy-state regulators, and the separate Form 1120-L federal income tax return filing to the IRS built on the same reserve basis"
+        },
+        "In-scope systems": {
+          "app": "Statutory Reporting (NAIC)",
+          "value": "Annual statement and opinion filed through the NAIC statutory filing system; Form 1120-L filed through the IRS Modernized e-File system"
+        },
+        "Compliance procedure documented": {
+          "value": "Annual Statement and Tax Return Filing Procedure — opinion attachment checklist, per-state filing requirements, Form 1120-L e-file submission steps and acknowledgment tracking"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Regulatory Reporting Manager and Tax Director; reviewed annually ahead of the filing season"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Statutory annual statement (with opinion attached) due March 1 to the domiciliary state; Form 1120-L due the 15th day of the 4th month after year-end, or the Form 7004 extended due date"
+        },
+        "Deadline reminders configured": {
+          "value": "Filing tracker alerts at T-30/T-15/T-5 days before each of the March 1 annual statement and the Form 1120-L due dates"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Filing confirmations, e-file acknowledgments and the filed opinion/return package retained 7 years in the compliance evidence repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "Any filing submitted without the opinion attached, or any late Form 1120-L filing, is logged as an exception with root cause and disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Regulatory Reporting Manager signs off correction of any incomplete or late filing before the next cycle"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All statutory annual statement filings (domiciliary and copy states) and the Form 1120-L federal return filed during the tax year"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any annual statement filed without the signed opinion attached, or any Form 1120-L filed after its due date without an approved extension, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Annual, matching the Annual obligation frequency, tested against each year's filing cycle"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer has no role in preparing or submitting the filings under test"
+        },
+        "Evidence location for test results": {
+          "value": "Annual filing-completeness test workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Filed annual statements with opinion attachments and the Form 1120-L e-file acknowledgment, retrievable within 5 business days for an IRS or state DOI request"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Reporting Manager coordinates the response with Tax Director and General Counsel"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Confirm the signed actuarial opinion is ready before the annual statement is assembled",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Check with the Appointed Actuary that the signed opinion and memorandum are complete per the opinion sign-off tracker.",
+            "Confirm the opinion's signature date is on or before the intended annual statement submission date.",
+            "Pull the final signed opinion PDF into the annual statement assembly folder.",
+            "Flag any delay to the CFO immediately, since the annual statement cannot be filed without the attached opinion."
+          ],
+          "done": "the signed opinion PDF is confirmed complete and staged in the annual statement assembly folder before submission."
+        },
+        {
+          "step": "Assemble the full statutory annual statement package",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "actions": [
+            "Compile the Jurat page, all required exhibits and schedules, the signed actuarial opinion, and the general interrogatories into the filing package.",
+            "Cross-check the reserve figures in the exhibits against the figures underlying the signed opinion for consistency.",
+            "Run the NAIC's electronic filing validation checks and resolve any flagged edit failures before submission.",
+            "Route the assembled package to the CFO for final sign-off."
+          ],
+          "done": "the full annual statement package, opinion attached, passes NAIC validation checks and has CFO sign-off."
+        },
+        {
+          "step": "Submit the annual statement with opinion to the domiciliary regulator",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Log in to the NAIC statutory filing system and upload the complete annual statement package including the attached signed opinion.",
+            "Submit the filing to the domiciliary state by the March 1 statutory deadline.",
+            "Download the submission confirmation/receipt and verify the opinion attachment is listed among the filed documents.",
+            "File the confirmation in the filing tracker."
+          ],
+          "done": "the annual statement with opinion attached is submitted by March 1 and the confirmation lists the opinion as filed."
+        },
+        {
+          "step": "File copies with every additional state requiring the annual statement",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Pull the list of states requiring a copy filing from the holding company/annual statement filing requirement matrix.",
+            "Submit the identical package (with opinion) to each required state's filing channel.",
+            "Track submission status per state in the filing tracker.",
+            "Escalate any state rejecting the filing to the Regulatory Reporting Manager same-day."
+          ],
+          "done": "the annual statement is filed with every required copy state, tracked to completion in the filing tracker."
+        },
+        {
+          "step": "Build the Form 1120-L return using the reconciled reserve and DAC figures",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "Pull the final §807(d)(1) reserve figure and §848 DAC capitalization figure from the Tax team's computation workpapers.",
+            "Compute life insurance company taxable income (life insurance gross income less allowable deductions) per §801 and populate Form 1120-L and its supporting schedules.",
+            "Reconcile the return's reserve and income figures to the signed actuarial opinion and the audited financial statements.",
+            "Route the draft return to the Tax Director for review."
+          ],
+          "done": "a draft Form 1120-L is built with reserve/DAC figures reconciled to the opinion and audited statements, ready for Tax Director review."
+        },
+        {
+          "step": "Review the draft return for consistency with the opinion and annual statement",
+          "by": "Tax Director",
+          "role": "Tax Director",
+          "actions": [
+            "Compare the return's reported reserves line-by-line to the figures underlying the signed opinion.",
+            "Confirm the DAC capitalization and §831(b) positions (where elected) are consistent with the control computations performed earlier in the year.",
+            "Resolve any discrepancy with the Tax Manager before the return is finalized.",
+            "Sign off the reviewed return."
+          ],
+          "done": "the Tax Director's review confirms consistency with the opinion and annual statement, with sign-off recorded."
+        },
+        {
+          "step": "Route the return for CFO and General Counsel review before filing",
+          "by": "Tax Director",
+          "role": "Tax Director",
+          "actions": [
+            "Present the finalized return and its key positions (reserve method, DAC capitalization, any §831(b) election) to the CFO.",
+            "Have General Counsel review any position with elevated audit risk or uncertain tax position disclosure implications.",
+            "Obtain CFO sign-off to file.",
+            "Log the sign-off date."
+          ],
+          "done": "CFO sign-off to file is obtained and logged before the return is submitted."
+        },
+        {
+          "step": "File Form 1120-L through the IRS Modernized e-File system",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "Submit Form 1120-L and all supporting schedules through the IRS Modernized e-File (MeF) system by the due date, or file Form 7004 for an automatic extension beforehand.",
+            "Retain the e-file submission ID and the IRS acceptance acknowledgment.",
+            "If rejected, correct the identified error and resubmit within the IRS's resubmission window.",
+            "File the accepted acknowledgment in the filing tracker."
+          ],
+          "done": "Form 1120-L is accepted by the IRS e-file system by the due date or extended due date, with the acknowledgment on file."
+        },
+        {
+          "step": "Reconcile the filed return to the filed annual statement",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "Build a line-by-line reconciliation of reserves, DAC and net income between the filed Form 1120-L and the filed annual statement exhibits.",
+            "Document every book-tax difference with its statutory basis.",
+            "Route the reconciliation to the Tax Director for sign-off.",
+            "File the signed reconciliation with both filings."
+          ],
+          "done": "a signed reconciliation ties the filed return to the filed annual statement, with every difference explained."
+        },
+        {
+          "step": "Confirm the opinion attachment and return filing dates satisfy every applicable deadline",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Compare the annual statement submission date and the Form 1120-L acceptance date against their respective statutory deadlines.",
+            "Confirm any extension filed (Form 7004, or a state's annual statement extension) is on file and was itself timely.",
+            "Log the confirmed compliance status in the filing tracker.",
+            "Notify the Tax Director and CFO of confirmed on-time status or of any exception."
+          ],
+          "done": "on-time filing status (or a documented, timely-filed extension) is confirmed and logged for both filings."
+        },
+        {
+          "step": "Respond to any regulator or IRS follow-up on the filed opinion or return",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Log any follow-up inquiry received from a state DOI or the IRS in the regulatory filing/issue tracker.",
+            "Route the inquiry to the Tax Director (for return matters) or the Appointed Actuary (for opinion matters) for a technical response.",
+            "Have General Counsel review the response before submission.",
+            "Submit the response within the regulator's stated timeframe and log the submission date."
+          ],
+          "done": "every follow-up inquiry is logged, technically reviewed, and responded to within the regulator's timeframe."
+        },
+        {
+          "step": "Monitor for any post-filing amendment need",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "Track any subsequent reserve restatement, opinion correction, or audit adjustment identified after the original filing.",
+            "Assess with the Tax Director whether an amended Form 1120-L or an amended annual statement filing is required.",
+            "Where required, prepare and file the amendment following the same review chain as the original filing.",
+            "Log the amendment and its filing date in the filing tracker."
+          ],
+          "done": "any post-filing change is assessed for amendment need, and any required amendment is filed and logged."
+        },
+        {
+          "step": "Reconcile filing confirmations against the filing tracker at year end",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Pull every filing confirmation and e-file acknowledgment obtained during the year.",
+            "Cross-check each against the filing tracker's planned filing list to confirm nothing was missed.",
+            "Resolve any tracker entry without a matching confirmation before year-end close."
+          ],
+          "done": "every planned filing has a matching confirmation on file, with no unresolved gap at year-end."
+        },
+        {
+          "step": "Retain the full filing package for the required period",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Assemble the filed annual statement, signed opinion, Form 1120-L, e-file acknowledgment, and the reserve/DAC reconciliation.",
+            "File the package in the compliance evidence repository under the filing year.",
+            "Apply the 7-year retention label.",
+            "Confirm the package is indexed and retrievable by filing year and filing type."
+          ],
+          "done": "the full filing package is filed, labelled for 7-year retention and retrievable by year and filing type."
+        },
+        {
+          "step": "Certify overall filing completeness to the CFO",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Prepare a completeness certification listing every required filing for the year, its submission date, and confirmation status.",
+            "Present the certification to the CFO for sign-off.",
+            "File the signed certification with the filing package.",
+            "Communicate certification completion to the Audit Committee at its next scheduled meeting."
+          ],
+          "done": "a CFO-signed completeness certification exists and is communicated to the Audit Committee."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of required filings for the tax year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Extract the full list of required annual statement filings (domiciliary plus copy states) and the Form 1120-L filing from the filing tracker.",
+            "Reconcile the extract to the holding company filing requirement matrix for completeness.",
+            "Resolve any unreconciled required filing before sampling."
+          ],
+          "done": "the filing population reconciles to the requirement matrix and is signed as complete."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of the domiciliary annual statement filing and the Form 1120-L filing.",
+            "Take a random sample of at least 5 copy-state filings.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers 100% of the domiciliary and federal filings."
+        },
+        {
+          "step": "Confirm the opinion was attached to every sampled annual statement filing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Open the NAIC statutory filing system and pull the list of attached documents for each sampled filing.",
+            "Confirm the signed actuarial opinion appears among the attachments.",
+            "Confirm the opinion's signature date is on or before the filing submission date.",
+            "Log any missing attachment or out-of-sequence date as an exception."
+          ],
+          "done": "the opinion attachment and its date are verified for every sampled annual statement filing, or the exception is logged."
+        },
+        {
+          "step": "Verify each sampled filing was submitted by its statutory deadline",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the submission timestamp for each sampled filing and compare to the March 1 (annual statement) or Form 1120-L due date/extended due date.",
+            "Confirm any extension claimed was itself filed timely.",
+            "Log any late filing without a timely extension as an exception."
+          ],
+          "done": "every sampled filing's timeliness is verified, or the exception is logged."
+        },
+        {
+          "step": "Trace the Form 1120-L reserve and DAC figures to the signed opinion and audited statements",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the reserve and DAC figures reported on the filed Form 1120-L.",
+            "Trace them to the figures underlying the signed opinion and the audited financial statements.",
+            "Log any unexplained difference as an exception."
+          ],
+          "done": "Form 1120-L figures trace to the opinion and audited statements, or the difference is logged as an exception."
+        },
+        {
+          "step": "Confirm the e-file acknowledgment reflects acceptance, not rejection",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the IRS MeF acknowledgment for the sampled Form 1120-L filing.",
+            "Confirm the status is Accepted, not Rejected or Pending.",
+            "For any rejection, confirm a timely corrected resubmission and acceptance exists.",
+            "Log any unresolved rejection as an exception."
+          ],
+          "done": "acceptance is confirmed for the sampled return, or any rejection is confirmed timely resolved, else logged as an exception."
+        },
+        {
+          "step": "Confirm CFO sign-off preceded each sampled filing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the CFO sign-off record for the return and the annual statement package.",
+            "Compare the sign-off date to the actual submission date.",
+            "Log any filing submitted before CFO sign-off as an exception."
+          ],
+          "done": "CFO sign-off pre-dates submission for every sampled filing, or the exception is logged."
+        },
+        {
+          "step": "Verify copy-state filings match the domiciliary package content",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the sampled copy-state filing package to the domiciliary filing package for the same year.",
+            "Confirm the opinion and exhibit content are identical (allowing for state-specific cover sheets).",
+            "Log any material content difference as an exception."
+          ],
+          "done": "sampled copy-state filings match the domiciliary package content, or the difference is logged."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the filing, what was missed, and the regulatory impact.",
+            "Assign a root cause and an owner from the Regulatory Reporting team.",
+            "Set a remediation date and, for any late federal filing, assess penalty exposure with the Tax Director.",
+            "Carry every open exception into next year's test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and mandatory retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compute the exception rate against the zero-missing-attachment and zero-late-filing thresholds.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the underlying workpapers.",
+            "Have an independent reviewer who performed none of the sampled testing sign the workpaper.",
+            "Report results to the CFO and Audit Committee and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is filed and reported to the CFO and Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-063-C08",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Valuation Actuary",
+          "value": "Owns the asset adequacy analysis and cash-flow testing documentation supporting the actuarial opinion and the §807(d)(1) reserve basis it feeds into"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — testing scope checked against the NAIC Actuarial Opinion and Memorandum Regulation (Model #822) and ASOP 22 (Statements of Opinion Based on Asset Adequacy Analysis), cross-referenced to §807(d)(1) so tax reserve figures are consistent with the tested statutory basis"
+        },
+        "In-scope processes": {
+          "value": "Annual cash-flow testing / gross premium valuation across interest rate and moderately adverse scenarios for every reserve segment subject to asset adequacy analysis"
+        },
+        "In-scope systems": {
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "value": "Cash-flow testing models run in the actuarial modeling platform; scenario assumptions and results archived in the model governance repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Asset Adequacy Analysis / Cash-Flow Testing Procedure — segment scoping, scenario set construction, assumption-setting governance, documentation retention checklist per ASOP 22"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Actuary; reviewed annually against the current ASOP 22 and Model #822 requirements"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Testing must complete and be documented ahead of the March 1 actuarial opinion signature deadline that relies on its results"
+        },
+        "Deadline reminders configured": {
+          "value": "Testing milestone reminders at T-60/T-30/T-10 days before the opinion signature deadline"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Cash-flow testing model files, assumption support, scenario results and the AAT report retained 7 years in the compliance evidence repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "Any segment failing adequacy testing without a documented resolution (reserve strengthening or qualified opinion) is logged as an exception"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Actuary",
+          "value": "Chief Actuary signs off resolution of any adequacy shortfall before the opinion relying on the testing is signed"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All reserve segments subject to asset adequacy analysis for the year, and the full scenario set run against each"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any segment where the AAT report's documented scenario results cannot be reproduced from the underlying model file is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Annual, matching the Annual obligation frequency, tested against each year's AAT cycle"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "ALM / Asset-Liability Actuary",
+          "value": "Reviewer did not build the cash-flow testing models or set the assumptions under test"
+        },
+        "Evidence location for test results": {
+          "value": "Annual AAT documentation test workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "The AAT report, model documentation and assumption support, retrievable within 60 days of a domiciliary regulator request per Model #822"
+        },
+        "Regulator response path": {
+          "value": "Chief Actuary coordinates the response with the Appointed Actuary and General Counsel"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Scope the segments and scenario set for the year's cash-flow testing",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Confirm with the Appointed Actuary which reserve segments require asset adequacy analysis for the current opinion cycle.",
+            "Select the interest rate scenario set (the New York 7 scenarios or an equivalent stochastic set) and any additional moderately adverse scenarios per ASOP 22.",
+            "Document the scoping rationale, including any segment excluded and why.",
+            "Route the scoping memo to the Chief Actuary for approval before modeling begins."
+          ],
+          "done": "an approved scoping memo names every tested segment and the scenario set to be applied."
+        },
+        {
+          "step": "Assemble and validate the asset and liability model inputs",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Extract the year-end asset portfolio (book/market value, cash flows, credit ratings) from the investment accounting system for the tested segments.",
+            "Extract the year-end policy liability data (reserves, cash flow projections, lapse/mortality/morbidity assumptions) from the actuarial modeling platform.",
+            "Reconcile total assets and liabilities loaded into the model to the general ledger and reserve exhibits.",
+            "Resolve any unreconciled difference before running scenarios."
+          ],
+          "done": "asset and liability model inputs are loaded and reconciled to the GL and reserve exhibits for every tested segment."
+        },
+        {
+          "step": "Document and get sign-off on key actuarial assumptions",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Document the source and rationale for lapse, mortality, morbidity, expense and reinvestment/disinvestment assumptions used in the model.",
+            "Compare current-year assumptions to the prior year and explain any material change.",
+            "Route the assumption set to the Chief Actuary for sign-off before scenarios are run.",
+            "File the signed assumption memo with the testing documentation."
+          ],
+          "done": "assumptions are documented, changes from the prior year explained, and Chief Actuary sign-off obtained before scenarios run."
+        },
+        {
+          "step": "Run the full scenario set for each tested segment",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Execute each interest rate and moderately adverse scenario against the loaded assets and liabilities for every tested segment.",
+            "Confirm model runs complete without error and produce the projected surplus/deficiency by scenario and duration.",
+            "Save the run output files with a version-controlled naming convention in the model governance repository.",
+            "Flag any scenario producing a projected deficiency for review."
+          ],
+          "done": "every scenario is run for every segment with output files version-controlled and any deficiency flagged."
+        },
+        {
+          "step": "Analyze results and identify any reserve adequacy shortfall",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Review the projected surplus/deficiency results across all scenarios for each segment.",
+            "Identify the worst-case scenario result and compare against the segment's held reserve.",
+            "Where a deficiency is projected, quantify the additional reserve amount needed to eliminate it.",
+            "Route the analysis to the Chief Actuary and Appointed Actuary."
+          ],
+          "done": "results are analyzed for every segment with any shortfall quantified and routed for review."
+        },
+        {
+          "step": "Decide the resolution for any identified shortfall",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Review the shortfall quantification with the Valuation Actuary and Tax Director.",
+            "Decide whether to strengthen statutory reserves, refine assumptions with documented support, or accept a qualified opinion for the segment.",
+            "Document the decision rationale in the AAT working file.",
+            "Notify the CFO of any reserve strengthening's impact on the tax provision."
+          ],
+          "done": "every identified shortfall has a documented resolution decision approved by the Chief Actuary."
+        },
+        {
+          "step": "Draft the AAT report documenting methodology, assumptions and results",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Draft the AAT report covering scope, methodology, scenario set, assumptions, results by segment and any shortfall resolution.",
+            "Include enough detail that an independent actuary could reproduce the results from the report and the underlying model files.",
+            "Cross-reference the report's reserve figures to the annual statement exhibits and the actuarial opinion.",
+            "Route the draft to the Chief Actuary for review."
+          ],
+          "done": "a draft AAT report with reproducible methodology detail is ready for Chief Actuary review."
+        },
+        {
+          "step": "Have an independent peer reviewer check the AAT report and model files",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "actions": [
+            "Assign a reviewer who did not build the models or set the assumptions under review.",
+            "Confirm the reviewer can reproduce the reported worst-case scenario result from the archived model file.",
+            "Log review comments and confirm each is resolved before the report is finalized.",
+            "File the peer review sign-off with the AAT documentation."
+          ],
+          "done": "a peer review confirms reproducibility and all comments are resolved before finalization."
+        },
+        {
+          "step": "Finalize and approve the AAT report",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Review the final AAT report against the peer review comments and the shortfall resolution decision.",
+            "Confirm the report's reserve figures still tie to the final annual statement exhibits.",
+            "Approve the report for use as opinion support.",
+            "Log the approval date."
+          ],
+          "done": "the Chief Actuary approves the finalized AAT report before it is used to support the opinion."
+        },
+        {
+          "step": "Hand the AAT results to the Appointed Actuary for the opinion",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Provide the approved AAT report and its conclusion to the Appointed Actuary ahead of opinion drafting.",
+            "Confirm the opinion's reserve adequacy language matches the AAT report's conclusion.",
+            "Flag any inconsistency for resolution before the opinion is signed."
+          ],
+          "done": "the AAT report is handed to the Appointed Actuary and its conclusion matches the opinion language before signature."
+        },
+        {
+          "step": "Version-control and archive the model files used to produce the reported results",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "app": "model governance repository",
+          "actions": [
+            "Lock and archive the final model files (input data, assumption tables, scenario definitions, output) used to produce the reported results.",
+            "Tag the archive with the tax/statutory year and segment.",
+            "Confirm the archived files are read-only and cannot be altered after archiving.",
+            "Log the archive location in the AAT documentation."
+          ],
+          "done": "final model files are locked, archived read-only, and logged against the AAT documentation."
+        },
+        {
+          "step": "Reconcile AAT reserve figures to the §807(d)(1) tax reserve computation",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "Compare the reserve figures underlying the AAT report to the separately computed §807(d)(1) tax reserve for the same segments.",
+            "Confirm the applicable NAIC method and any intentional adjustment (the 92.81% factor) are consistently applied.",
+            "Document any discrepancy and route it to the Valuation Actuary and Tax Director for resolution."
+          ],
+          "done": "AAT and tax reserve figures are reconciled with any discrepancy documented and resolved."
+        },
+        {
+          "step": "Present the AAT results and any shortfall resolution to the Audit Committee",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Present the year's AAT scope, results and any shortfall resolution to the Audit Committee ahead of opinion signature.",
+            "Answer committee questions on methodology and assumption changes.",
+            "Record the presentation in the board portal minutes.",
+            "File the minutes with the AAT documentation."
+          ],
+          "done": "the Audit Committee is briefed on AAT results before the opinion is signed, with minutes filed."
+        },
+        {
+          "step": "Retain the AAT documentation package for the required period",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Assemble the scoping memo, assumption sign-off, scenario output, AAT report, peer review sign-off and archived model file references.",
+            "File the package in the compliance evidence repository under the tax/statutory year.",
+            "Apply the 7-year retention label.",
+            "Confirm the package is indexed and retrievable by year and segment."
+          ],
+          "done": "the AAT documentation package is filed, labelled for 7-year retention and retrievable by year and segment."
+        },
+        {
+          "step": "Confirm the documentation can be produced within the regulator's requested timeframe",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Confirm the archived model files can be reopened and rerun without error as a readiness check.",
+            "Confirm the AAT report and supporting workpapers are indexed for rapid retrieval.",
+            "Log the readiness check date and outcome in the AAT documentation.",
+            "Notify the Chief Actuary of any readiness gap for remediation before the next request cycle."
+          ],
+          "done": "a readiness check confirms the AAT package can be produced within the regulator's requested timeframe, logged for the year."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of tested segments and scenario runs for the year",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "actions": [
+            "Extract the list of segments and the full scenario set run for the year from the AAT documentation.",
+            "Reconcile the segment list to the scoping memo and the annual statement exhibits.",
+            "Resolve any unreconciled segment or scenario before sampling."
+          ],
+          "done": "the tested-segment population reconciles to the scoping memo and exhibits, signed as complete."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "actions": [
+            "Select 100% of segments where the AAT report disclosed a shortfall or a qualification.",
+            "Select a random, reproducible sample of remaining segments, minimum 3.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers 100% of segments with a disclosed shortfall or qualification."
+        },
+        {
+          "step": "Reproduce the worst-case scenario result from the archived model file",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Reopen the archived, locked model file for each sampled segment.",
+            "Rerun the worst-case scenario identified in the AAT report without changing any input.",
+            "Compare the reproduced result to the figure reported in the AAT report.",
+            "Log any inability to reproduce or any material variance as an exception."
+          ],
+          "done": "the worst-case result is reproduced from the archived model for every sampled segment, or the exception is logged."
+        },
+        {
+          "step": "Verify assumption sign-off and change documentation",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "actions": [
+            "Pull the assumption memo and Chief Actuary sign-off for each sampled segment.",
+            "Confirm any assumption change from the prior year has a documented rationale.",
+            "Confirm the sign-off date pre-dates the scenario run date.",
+            "Log any missing sign-off or unexplained change as an exception."
+          ],
+          "done": "assumption sign-off and change documentation are verified for every sampled segment, or the exception is logged."
+        },
+        {
+          "step": "Confirm asset and liability inputs reconcile to source records",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "actions": [
+            "Pull the asset and liability data loaded into the sampled segment's model.",
+            "Independently trace total assets to the investment accounting system and total liabilities to the reserve exhibit.",
+            "Log any unreconciled difference as an exception."
+          ],
+          "done": "model inputs reconcile to source records for every sampled segment, or the difference is logged."
+        },
+        {
+          "step": "Verify shortfall resolution decisions were properly authorized",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "actions": [
+            "Pull the Chief Actuary's resolution decision for every sampled segment with a disclosed shortfall.",
+            "Confirm the resolution (reserve strengthening, assumption refinement, or qualified opinion) was implemented as decided.",
+            "Log any undocumented or unimplemented resolution as an exception."
+          ],
+          "done": "every disclosed shortfall's resolution is confirmed authorized and implemented, or the gap is logged."
+        },
+        {
+          "step": "Verify peer review evidence and reviewer independence",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "actions": [
+            "Pull the peer review sign-off for each sampled segment.",
+            "Confirm the reviewer named did not build the model or set assumptions for that segment.",
+            "Confirm review comments logged were resolved before finalization.",
+            "Log any independence conflict or unresolved comment as an exception."
+          ],
+          "done": "peer review independence and comment resolution are confirmed for every sampled segment, or the exception is logged."
+        },
+        {
+          "step": "Reconcile AAT reserve figures to the §807(d)(1) tax reserve and the opinion",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Independently compare the AAT report's reserve figures for sampled segments to the §807(d)(1) tax reserve computation and the signed opinion.",
+            "Confirm consistency, allowing for the documented 92.81% adjustment.",
+            "Log any unexplained inconsistency as an exception."
+          ],
+          "done": "AAT, tax reserve and opinion figures are consistent for every sampled segment, or the inconsistency is logged."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Raise a tracker issue per exception with the segment, what was wrong, and the reserve/opinion impact.",
+            "Assign a root cause and an owner from the Actuarial team.",
+            "Set a remediation date and require any non-reproducible result be flagged to the Chief Actuary for opinion-impact assessment.",
+            "Carry every open exception into next cycle's test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and mandatory retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Compute the exception rate and assess whether any exception would change the AAT conclusion or the opinion.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the underlying workpapers.",
+            "Have an independent reviewer who performed none of the sampled reproduction sign the workpaper.",
+            "Report results to the Chief Actuary and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is filed and reported to the Chief Actuary."
+        }
+      ]
+    }
+  ]
+}

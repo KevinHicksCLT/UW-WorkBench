@@ -1,0 +1,1959 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-022-C01",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Claims Director / Manager",
+          "value": "Owns FROI/SROI filing timeliness across all 30 IAIABC EDI jurisdictions; the Claims Operations EDI desk keys and releases transactions, escalation to Regulatory Counsel on any missed statutory clock (rep jurisdiction: Florida Division of Workers' Compensation)"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Florida Insurance Code (F.S. 440.185 reporting duties) read together with the Florida DWC Claims EDI Release 3.1 Implementation Guide and its Element Requirement Table; Kansas K.S.A. Chapter 40 and Kentucky KRS Chapter 304 re-read at each state's own EDI release adoption date"
+        },
+        "In-scope processes": {
+          "value": "WC claim intake → FROI trigger on first knowledge of injury → indemnity/medical payment, benefit change, suspension, denial, reinstatement and final-payment events → SROI trigger, for every lost-time and medical-only claim in the 30 EDI jurisdictions"
+        },
+        "In-scope systems": {
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "value": "ClaimCenter EDI event rules populate the IAIABC Release 3.1 FROI/SROI outbound queue through the EDI translator; transmission images and AKC acknowledgments are archived against the claim file"
+        },
+        "Compliance procedure documented": {
+          "value": "WC Claims EDI Filing Procedure — MTC selection matrix (FROI 00/01/02/04/AU/UR, SROI IP/EP/CA/CB/SA/SB/RB/PY/AN/FN/04), per-jurisdiction statutory clock table, DN element completion rules, ack disposition and resubmission rules"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Claims Officer and the Head of Compliance; re-approved on every IAIABC release adoption (R3.0 → R3.1) and on each state EDI bulletin that changes an element requirement or a clock"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per event, per jurisdiction — Florida FROI 00 within 14 days of the carrier's knowledge of the injury, FROI/SROI 04 denial within 14 days of the denial decision, SROI IP within 14 days of the first indemnity payment; California WCIS FROI within 10 business days of knowledge; each jurisdiction's clock held in the EDI clock table"
+        },
+        "Deadline reminders configured": {
+          "value": "ClaimCenter activities fire at day 3 and day 7 of the FROI clock and at day 7 of the SROI IP clock; the EDI desk supervisor works the 'FROI/SROI overdue' queue every morning before 10:00 local"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Outbound FROI/SROI transaction images, the returned acknowledgment showing TA/TE/TR and any DN error numbers, and the resubmission chain, retained on the claim file for the life of the claim plus 5 years"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any FROI/SROI released after the jurisdiction clock, or left with no acknowledgment for more than 5 business days, is raised with claim number, jurisdiction, MTC, day count and estimated penalty exposure (Florida late-filing penalties run per report)"
+        },
+        "Remediation sign-off captured": {
+          "role": "Compliance Officer",
+          "value": "Signs off every late-filing remediation plan and any voluntary disclosure of an unfiled FROI to the Florida Division of Workers' Compensation"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every WC claim with a reportable event (first knowledge, first indemnity payment, benefit change, suspension, denial, reinstatement, final payment) in the test month, pulled from the claims system event log across the 30 EDI jurisdictions"
+        },
+        "Pass/fail thresholds": {
+          "value": "≥99% of FROI transmitted inside the jurisdiction clock and ≥98% of SROI; any single reportable event with no transmission at all, and any TR-rejected transaction unresolved past the state's correction window, is an automatic fail regardless of rate"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per event; the test runs monthly over the prior month's event population, with 100% coverage of Florida lost-time claims and of any jurisdiction that issued a penalty notice in the last 12 months"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer sits outside Claims Operations and must not have keyed, corrected or released any sampled FROI/SROI transaction"
+        },
+        "Evidence location for test results": {
+          "value": "Monthly WC EDI timeliness workpaper (event extract, transmission-to-acknowledgment reconciliation, sample re-performance notes, day-count recomputation, exception log) filed in the compliance evidence repository under WC-EDI/<yyyy-mm>"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per-claim EDI transmission history showing MTC, transmission date/time, jurisdiction claim number, ack code and DN error numbers, exportable as a Florida DWC claims-EDI audit response within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "The Regulatory Reporting Manager answers the state EDI coordinator and any DWC penalty notice; Regulatory Counsel clears any admission of a missed or late filing and any penalty settlement before it leaves the building"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Detect the reportable event and raise the EDI filing task",
+          "by": "Claims Intake Rep",
+          "role": "Claims Intake Rep",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "Take the loss notice from the employer, broker or state hotline and open the claim in ClaimCenter with Line = Workers' Compensation.",
+            "Record Date of Injury (DN0031), Date Employer Had Knowledge (DN0038) and Date Claim Administrator Had Knowledge (DN0041) exactly as reported — these three dates start every statutory clock.",
+            "Set Jurisdiction (DN0005) from the state of the employee's exposure/employment, not the employer's headquarters state.",
+            "Confirm the claim triggers an EDI filing task in the 'FROI due' queue; if no task appears, raise a ticket to the Production Support Analyst before touching anything else."
+          ],
+          "done": "the claim carries the three knowledge/injury dates, a jurisdiction code, and an open FROI task with a due date on it."
+        },
+        {
+          "step": "Confirm the jurisdiction's governing EDI release and clock",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Open the WC EDI jurisdiction table and read the row for the claim's jurisdiction: IAIABC release in force (R3.0 or R3.1), accepted transmission mode, and the FROI/SROI statutory day counts.",
+            "For Florida, confirm the FROI 00 clock is 14 days from the carrier's knowledge date and that the DWC is on Claims EDI Release 3.1.",
+            "Check the bulletin log for any state notice issued since the last table refresh that moved a clock or added a required element; if one exists, hand it to the Business Systems Analyst the same day.",
+            "Stamp the release version and the computed due date onto the claim's EDI task."
+          ],
+          "done": "the EDI task shows the governing release version and a computed statutory due date derived from the knowledge date."
+        },
+        {
+          "step": "Select the FROI Maintenance Type Code",
+          "by": "Claims Analyst",
+          "role": "Claims Analyst",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "Choose MTC 00 (Original) for the first report of a newly reported injury on a policy this carrier wrote.",
+            "Choose MTC AU (Acquired/Unallocated) or AQ where the claim arrived through a book transfer or TPA takeover rather than a first report.",
+            "Choose MTC 04 (Denial) where coverage or compensability is denied before any indemnity payment, and MTC 02 (Change) where a previously accepted FROI element changed.",
+            "Use MTC 01 (Cancel) only to retract a report filed on the wrong claim or wrong jurisdiction — never to fix a data error.",
+            "Write the chosen MTC and the one-line reason onto the claim note so the ack can be interpreted later."
+          ],
+          "done": "the FROI carries a single MTC with a recorded justification consistent with the claim's compensability position."
+        },
+        {
+          "step": "Complete the jurisdiction's mandatory data elements",
+          "by": "Claims Analyst",
+          "role": "Claims Analyst",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "Open the EDI data panel and work the Element Requirement Table for that jurisdiction and MTC, filling every element flagged M (mandatory) and MC (mandatory conditional).",
+            "Key the employee identifiers — SSN (DN0042), date of birth, gender, wage amount and wage period, employment status — from the DWC-1 / employer first report, not from memory.",
+            "Key Nature of Injury, Part of Body and Cause of Injury using the IAIABC code lists, and the Accident/Injury Description in free text (DN0037).",
+            "Key Claim Administrator Claim Number (DN0015), Claim Administrator FEIN (DN0187) and Insurer FEIN (DN0074) from the trading-partner profile, never typed by hand.",
+            "Ask the Policy Administration Analyst to confirm the policy number and effective dates as they were reported on proof of coverage, so the state can match the claim to a policy."
+          ],
+          "done": "every M and MC element for the jurisdiction/MTC pair is populated and the policy identifiers match the filed proof-of-coverage record."
+        },
+        {
+          "step": "Run the pre-submission edit check and clear the errors",
+          "by": "Claims Processor",
+          "role": "Claims Processor",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "Run the EDI validation job on the draft transaction and read the returned DN error list.",
+            "Fix data at source in the claim record — never in the outbound file — so the correction survives the next transaction.",
+            "Where an element is genuinely unavailable (e.g. employee refuses SSN), apply the jurisdiction's permitted default or exception value from the implementation guide and note the guide section relied on.",
+            "Re-run validation until zero errors remain, then mark the transaction 'ready to release'."
+          ],
+          "done": "the draft transaction passes internal validation with zero DN errors and any defaulted element cites its guide section."
+        },
+        {
+          "step": "Release the FROI and start the acknowledgment clock",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Release the transaction from the outbound queue to the jurisdiction (or to the state's contracted EDI clearinghouse) over the registered SFTP/AS2 channel for that trading-partner ID.",
+            "Record transmission date and time, batch/interchange control number and sender ID against the claim's EDI history.",
+            "Compare the transmission date to the statutory due date and mark the filing on-time or late on the spot — a late filing is logged now, not at month end.",
+            "Set the acknowledgment watch to 5 business days; anything unacknowledged past that goes to the reject/aging process."
+          ],
+          "done": "the FROI is transmitted with a recorded control number and timestamp, flagged on-time or late, and an ack watch is running."
+        },
+        {
+          "step": "File SROI IP when the first indemnity payment issues",
+          "by": "Claims Adjuster",
+          "role": "Claims Adjuster",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "On issuing the first indemnity payment, take the payment date, Benefit Type Code (e.g. 050 temporary total), Benefit Period Start/Through dates, Benefit Amount Paid and Average Weekly Wage from the payment transaction.",
+            "Raise SROI MTC IP (Initial Payment), or EP where the employer paid the first benefit, or AP on an acquired claim.",
+            "Populate the Benefit and Payment segments and the paid-to-date buckets (indemnity, medical, expense) from the claim financials — not from a manual tally.",
+            "Release the SROI inside the jurisdiction clock (Florida: 14 days from the first indemnity payment) and record the transmission against the claim."
+          ],
+          "done": "the SROI IP is transmitted within the jurisdiction clock with benefit type, period, amount and AWW tied to the actual payment transaction."
+        },
+        {
+          "step": "File SROI on benefit changes, suspensions and reinstatements",
+          "by": "Claims Adjuster",
+          "role": "Claims Adjuster",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "Raise SROI CA/CB when the benefit type or the weekly amount changes, carrying the new Benefit Type Code and effective date.",
+            "Raise SROI SA/SB on suspension and select the correct suspension reason code (return to work, medical release, claimant non-cooperation, benefits exhausted, death).",
+            "Raise SROI RB on reinstatement with the reinstatement date and the resumed benefit type.",
+            "Confirm the maximum/minimum compensation rate applied matches the jurisdiction's rate table for the year of injury before releasing.",
+            "Give the Medical / Nurse Case Manager notice of any suspension driven by a medical release so the file narrative and the EDI record agree."
+          ],
+          "done": "every benefit change, suspension and reinstatement has a matching SROI with the correct code and effective date inside the state clock."
+        },
+        {
+          "step": "File the denial transaction when compensability or coverage is declined",
+          "by": "Claims Examiner",
+          "role": "Claims Examiner",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "Record the denial decision date and the denial reason code (no coverage, not in course and scope, late notice, idiopathic, statute of limitations) on the claim.",
+            "Raise FROI 04 where no FROI has yet been accepted, or SROI 04 where the claim is already on file with the state.",
+            "Attach the denial letter issued to the employee and employer to the claim file and confirm the mail date is on or before the EDI transmission date.",
+            "Release the denial transaction within the Florida 14-day denial clock (or the sampled jurisdiction's equivalent) and diary the state's dispute window."
+          ],
+          "done": "the denial transaction is transmitted within the jurisdiction's denial clock and matches the dated denial letter on the claim file."
+        },
+        {
+          "step": "Capture the acknowledgment and reconcile it to the transmission",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Pull the day's inbound acknowledgment files from the jurisdiction mailbox and load them against the outbound control numbers.",
+            "Read the application acknowledgment code per transaction: TA (accepted), TE (accepted with errors) or TR (rejected), plus any DN error numbers and error message codes.",
+            "Write the jurisdiction claim number returned on an accepted FROI back onto the claim — later SROIs will be rejected without it.",
+            "Reconcile counts: transactions released today versus acknowledgments received; list anything unmatched for the reject/aging process."
+          ],
+          "done": "every released transaction has a matched acknowledgment with its code recorded, or sits on the unmatched list with an owner."
+        },
+        {
+          "step": "Correct and resubmit TE and TR transactions inside the state's correction window",
+          "by": "Claims Analyst",
+          "role": "Claims Analyst",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "Open each TE/TR item, translate the DN error number against the jurisdiction's error message table, and identify the failing element.",
+            "Correct the underlying claim data and re-release: a TR transaction is not on file at all, so the original MTC is re-sent, while a TE is fixed by an MTC 02 change transaction.",
+            "Track the correction against the state's correction window and, where the original clock has already run, treat the filing as late and log it.",
+            "Hand any error appearing on three or more claims in a week to the Business Systems Analyst as a suspected mapping or edit-table defect."
+          ],
+          "done": "every TE/TR is corrected and re-acknowledged as accepted, with recurring error patterns handed to IT."
+        },
+        {
+          "step": "File the periodic and final SROI reports the jurisdiction demands",
+          "by": "Claims Adjuster",
+          "role": "Claims Adjuster",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "Work the diary for SROI PY (payment report) and SROI AN (annual report) where the jurisdiction requires periodic paid-to-date reporting on open claims.",
+            "On final payment, raise SROI FN with the final paid-to-date indemnity, medical and expense figures and the claim closure date.",
+            "Reconcile the paid-to-date figures on the SROI to the claim payment ledger before release — a mismatch here reappears in the unit-statistical report.",
+            "Confirm any settlement or lump-sum award is reported with the correct benefit type and award date."
+          ],
+          "done": "periodic and final SROI reports are filed on diary with paid-to-date figures that tie to the claim payment ledger."
+        },
+        {
+          "step": "Work the daily timeliness dashboard and escalate slipping clocks",
+          "by": "Claims Director / Manager",
+          "role": "Claims Director / Manager",
+          "app": "Power BI",
+          "actions": [
+            "Open the WC EDI timeliness dashboard each morning and read three tiles: FROI due in 3 days, FROI past due, SROI IP past due — each split by jurisdiction.",
+            "Reassign any past-due item to a named adjuster with a same-day filing instruction.",
+            "Escalate to the Head of Compliance any jurisdiction showing more than two past-due FROIs in a rolling week.",
+            "Record the daily review as a dated dashboard export so the control has evidence of operation."
+          ],
+          "done": "the dashboard is reviewed and exported daily, with every past-due item reassigned and named-jurisdiction breaches escalated."
+        },
+        {
+          "step": "Log late or missed filings and prepare the regulator position",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise an issue per late or missed filing with claim number, jurisdiction, MTC, statutory due date, actual transmission date and the day count over.",
+            "Assign a root cause (late employer report, wrong jurisdiction coded, missing policy match, translator outage, adjuster backlog) and an owner.",
+            "Where a Florida DWC penalty notice arrives, assemble the transmission history and route the response through Regulatory Counsel before filing it.",
+            "Carry every open issue into the next month's test as a mandatory retest row."
+          ],
+          "done": "every late or missed filing has an issue with root cause, owner, remediation date and a retest commitment."
+        },
+        {
+          "step": "Retain the transmission and acknowledgment evidence on the claim file",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "claim file/document repository",
+          "actions": [
+            "Archive the outbound transaction image, the acknowledgment with its code and DN errors, and the full resubmission chain against the claim in the document repository.",
+            "Apply the retention label 'life of claim + 5 years' so the record survives claim closure.",
+            "Index each record by jurisdiction, claim administrator claim number, jurisdiction claim number and transmission date so an examiner request can be answered by any of them.",
+            "Spot-check ten archived claims a month to confirm the images are readable and the index returns them."
+          ],
+          "done": "transmission and acknowledgment evidence is archived, retention-labelled and retrievable by jurisdiction claim number."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of reportable events for the month",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Extract from the claims event log every WC claim in the 30 EDI jurisdictions with a first-knowledge date, first indemnity payment, benefit change, suspension, reinstatement, denial or final payment dated in the month.",
+            "Add medical-only claims for jurisdictions that require FROI on medical-only, so a filing category cannot fall out of scope.",
+            "Record population counts by jurisdiction and event type and sign the extract as complete with the extraction query and run date."
+          ],
+          "done": "the population is extracted by jurisdiction and event type, counted, and signed as complete by the extractor."
+        },
+        {
+          "step": "Reconcile the population to the claim payment ledger and the intake register",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Reconcile first-indemnity-payment events to the payment ledger's first indemnity disbursement per claim for the month and explain every difference.",
+            "Reconcile new-claim counts to the intake register (loss notices received) so claims opened but never event-flagged are exposed.",
+            "Confirm the jurisdiction on each claim against the employee's state of employment recorded on the claim, not the employer's mailing state.",
+            "List any claim present in the ledger or register but absent from the event population as an automatic exception."
+          ],
+          "done": "population, payment ledger and intake register agree, with every difference explained or raised as an exception."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of Florida lost-time claims and 100% of claims in any jurisdiction that issued a penalty notice in the last 12 months.",
+            "Take 40 further events selected at random with a recorded seed, stratified so each event type (FROI 00, FROI 04, SROI IP, SROI SA, SROI FN) appears at least five times.",
+            "Record the seed, population size, strata and selection date in the workpaper so the sample can be re-drawn identically."
+          ],
+          "done": "the sample is drawn, reproducible, stratified across event types and covers Florida lost-time in full."
+        },
+        {
+          "step": "Re-perform the MTC selection on each sampled event",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "Read the claim narrative, compensability decision and payment history and reach your own MTC conclusion before opening the EDI history.",
+            "Compare to the MTC actually transmitted; a denial reported as an MTC 02 change, or a benefit change reported as an IP, is an exception.",
+            "Check MTC 01 (Cancel) was not used to patch a data error rather than to retract a wrongly-filed report.",
+            "Record the independent conclusion, the transmitted MTC and the difference on the workpaper line."
+          ],
+          "done": "each sampled event carries an independent MTC conclusion and any disagreement with the transmitted MTC is logged."
+        },
+        {
+          "step": "Re-perform data element accuracy against the source documents",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "claim file/document repository",
+          "actions": [
+            "For each sampled transaction, compare Date of Injury, employer knowledge date, wage amount and period, Nature/Part/Cause of Injury and employment status back to the employer's first report and the wage statement in the claim file.",
+            "Compare Insurer FEIN, Claim Administrator FEIN and policy number to the trading-partner profile and to the filed proof-of-coverage record for that policy.",
+            "Confirm every element the jurisdiction's Element Requirement Table marks M or MC for that MTC was actually populated.",
+            "Treat a populated-but-wrong element the same as a missing one — the state matched a claim to the wrong policy either way."
+          ],
+          "done": "each sampled transaction's mandatory elements are traced to source documents with differences listed element by element."
+        },
+        {
+          "step": "Trace each sampled transmission to an accepted acknowledgment",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Search the EDI history by batch/interchange control number and confirm an acknowledgment exists for the sampled transaction.",
+            "Read the final disposition: TA, TE with DN errors, or TR, and confirm any TE/TR was followed by a re-transmission that reached TA.",
+            "Confirm the jurisdiction claim number returned on the accepted FROI was written back onto the claim record.",
+            "Capture the acknowledgment detail screen into the workpaper as the trace evidence."
+          ],
+          "done": "every sampled transaction traces to a final accepted acknowledgment with the jurisdiction claim number recorded."
+        },
+        {
+          "step": "Recompute the statutory day counts",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each sampled FROI recompute elapsed days = transmission date − claim administrator knowledge date and compare to the jurisdiction clock (Florida 14 days).",
+            "For each sampled SROI IP recompute elapsed days = transmission date − first indemnity payment date against the same clock.",
+            "Apply the jurisdiction's own convention on calendar versus business days and on whether the clock runs from employer or carrier knowledge — a wrong convention understates lateness across the whole file.",
+            "Recompute the reported timeliness percentage from the sample and compare it to the operational dashboard figure for the month."
+          ],
+          "done": "day counts are independently recomputed, the clock convention is confirmed per jurisdiction, and the recomputed timeliness rate is reconciled to the dashboard."
+        },
+        {
+          "step": "Test closure of rejected transactions inside the correction window",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Extract all TR and TE acknowledgments for the month and age each one from acknowledgment date to accepted re-transmission date.",
+            "Compare that age to the jurisdiction's correction window and list anything still open or corrected late.",
+            "Confirm the correction was applied to the claim record at source, by re-reading the element on the claim rather than in the outbound file.",
+            "Confirm no transaction was closed administratively without an accepted acknowledgment."
+          ],
+          "done": "every rejected transaction is shown corrected and re-accepted within the correction window, or listed as an open exception."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception carrying claim number, jurisdiction, MTC, event date, statutory due date, actual transmission date and days over.",
+            "Assign a root cause from the fixed list (late employer report, wrong jurisdiction, missing policy match, translator outage, adjuster backlog, edit-table defect) and a named owner.",
+            "Quantify penalty exposure per jurisdiction and flag any claim where a missed FROI may have delayed a benefit to the injured worker.",
+            "Open a self-report assessment with Regulatory Counsel for any wholly unfiled reportable event."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and a quantified penalty exposure."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compute FROI and SROI timeliness rates from the sample and compare to the 99%/98% thresholds and the zero-unfiled rule.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) citing the workpaper references behind each exception.",
+            "Have the independent reviewer, who keyed or released none of the sampled transactions, sign the workpaper.",
+            "Report the result and any open unfiled events to the Compliance Committee at its next sitting and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with timeliness rates, a stated conclusion and a committee reporting date exists in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-022-C02",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Head of IT",
+          "value": "Owns the EDI trading-partner registrations and the jurisdiction edit tables across the 30 IAIABC jurisdictions; the WC EDI integration team maintains them, with Regulatory Reporting signing the regulatory content (rep jurisdiction: Alabama Department of Labor, Workers' Compensation Division)"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Alabama Insurance Code (Title 27, Code of Alabama) with the Alabama WC Division's EDI trading-partner requirements and its Claims EDI Implementation Guide; Arkansas Insurance Code and Title 20 of the Arizona Revised Statutes re-read whenever either state issues a new trading-partner profile form"
+        },
+        "In-scope processes": {
+          "value": "Trading-partner registration and renewal, sender/receiver ID and transmission-channel setup, state test-and-certification cycles, and the per-jurisdiction edit table (element requirement, MTC validity and error-code tables) that gates every outbound FROI/SROI"
+        },
+        "In-scope systems": {
+          "app": "Internal Regulatory System",
+          "value": "The WC EDI translator's jurisdiction configuration — trading-partner profiles, sender IDs, SFTP/AS2 endpoints and credentials, and versioned edit tables — with the configuration source held in the CI/CD repository"
+        },
+        "Compliance procedure documented": {
+          "value": "WC EDI Trading Partner and Edit Table Maintenance Procedure — registration and renewal steps per state, certification test sequence, edit-table release process, credential rotation and emergency fallback"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of IT and the Regulatory Reporting Manager jointly; re-approved on each IAIABC release adoption and after every failed state certification"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per change — a state's element or MTC change must be in production by that state's stated implementation date; Alabama trading-partner profile updates go in before any change of claim administrator FEIN, sender ID or contact takes effect, and renewals are diarised on the state's own cycle"
+        },
+        "Deadline reminders configured": {
+          "value": "Change-calendar reminders at 90, 60 and 30 days before each published state EDI implementation date, and at 60 days before each trading-partner registration expiry, routed to the WC EDI integration queue"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Signed trading-partner agreements and profile forms, state certification/approval letters, dated edit-table versions with their release notes and approvals, retained 7 years from the date the configuration was superseded"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "value": "Any transmission attempted under a lapsed or unregistered trading-partner ID, or any edit table found behind a state's current release, is raised as a configuration compliance exception with jurisdiction, table version and exposure window"
+        },
+        "Remediation sign-off captured": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Signs off every edit-table release into production and every trading-partner registration change before it is transmitted to the state"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All 30 jurisdiction configurations in force at the test date, plus every trading-partner and edit-table change promoted to production during the period, from the CI/CD release log"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any active jurisdiction without a current regulator-acknowledged trading-partner registration, or any edit table behind the state's mandated release on its implementation date, is a fail; more than two unapproved configuration promotions in a period escalates to the CIO"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per change; the test runs quarterly over that quarter's promotions plus a standing 100% review of all 30 registrations against the state's published trading-partner list"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must hold no write access to the EDI translator configuration and must not have authored or approved any sampled change"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly WC EDI configuration workpaper (registration inventory, certification letters, edit-table version diff, change-ticket sample) in the compliance evidence repository under WC-EDI-CONFIG/<yyyy-Qn>"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per-state pack of the signed trading-partner agreement, the state's acknowledgment or approval letter, the sender ID in use and the edit-table version history, producible for an Alabama WC Division EDI review within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "The Regulatory Reporting Manager is the named EDI contact on every state profile and answers state EDI coordinators; the Head of IT provides transmission logs, and Regulatory Counsel clears any statement about a lapsed registration"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Inventory every jurisdiction the book requires EDI reporting in",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Pull the list of states where WC policies are in force from the policy administration in-force extract and compare it to the 30 registered EDI jurisdictions.",
+            "For each state, record the reporting programme in force: claims EDI (FROI/SROI), proof of coverage, and medical bill EDI where mandated.",
+            "Flag any state with in-force premium but no registration as an immediate gap and raise it to the Head of IT the same day.",
+            "Publish the jurisdiction inventory with an as-at date into the regulatory register."
+          ],
+          "done": "the jurisdiction inventory reconciles state-by-state to the in-force policy extract with no unregistered writing state."
+        },
+        {
+          "step": "Obtain and complete each state's trading-partner profile and agreement",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "document management repository",
+          "actions": [
+            "Download the current trading-partner profile and trading-partner agreement forms from the state WC division's EDI page — for Alabama, the WC Division's EDI trading-partner packet.",
+            "Complete the insurer and claim administrator legal names, FEINs, NAIC company codes, sender ID, postal code and the named EDI technical and business contacts with direct phone and email.",
+            "Declare the IAIABC release and transaction sets being sent (Claims R3.1 FROI/SROI) and the transmission mode requested.",
+            "Route the agreement for authorised officer signature, then file the signed original in the document repository under WC-EDI/<state>/registration."
+          ],
+          "done": "a signed, current profile and agreement exist for the state with named contacts, FEINs, sender ID and declared transaction sets."
+        },
+        {
+          "step": "Register the sender identifiers and reconcile them to the claim systems",
+          "by": "Integration Engineer",
+          "role": "Integration Engineer",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Enter the state-assigned trading-partner ID, sender ID and receiver ID into the EDI translator's jurisdiction profile.",
+            "Cross-check the Insurer FEIN (DN0074) and Claim Administrator FEIN (DN0187) held in the translator against the values on the signed agreement — a single-digit difference rejects every transaction.",
+            "Confirm the same FEINs and NAIC codes are the ones the Policy Administration Analyst reports on proof of coverage, so claim and policy records match at the state.",
+            "Lock the identifier fields so they can only be changed through a reviewed change ticket."
+          ],
+          "done": "translator identifiers match the signed agreement and the proof-of-coverage identifiers character for character."
+        },
+        {
+          "step": "Stand up and secure the transmission channel",
+          "by": "Integration Engineer",
+          "role": "Integration Engineer",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Configure the channel the state accepts — SFTP to the division's mailbox, AS2, or upload to the state's contracted EDI clearinghouse — with the endpoint host, port and directory paths from the state guide.",
+            "Store keys and passwords in the credential vault, never in the translator config, and record the rotation date.",
+            "Ask the Infrastructure / Network Engineer to allow-list the state endpoint on both directions and to confirm the inbound acknowledgment mailbox is polled on a schedule.",
+            "Prove a round trip by sending a zero-record structural file and confirming the acknowledgment mailbox receives the response."
+          ],
+          "done": "an outbound and inbound round trip completes over the state-accepted channel with credentials held in the vault."
+        },
+        {
+          "step": "Complete the state's structure and content certification tests",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Work the state's test script in order: structural/syntax test file, then the content test scenarios the state prescribes (original FROI, change, cancel, denial, initial payment, suspension, final).",
+            "Send each test batch to the state's test mailbox and record the acknowledgment code returned per test transaction.",
+            "Correct any DN error the state returns, re-run the failing scenario, and keep every cycle's file and acknowledgment as the test record.",
+            "Do not request production status until every prescribed scenario returns TA."
+          ],
+          "done": "every prescribed test scenario returns an accepted acknowledgment and the full test cycle is retained."
+        },
+        {
+          "step": "Obtain and file the state's production approval",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "document management repository",
+          "actions": [
+            "Request production status from the state EDI coordinator, citing the completed test scenarios and dates.",
+            "File the state's written approval or production-status notice under WC-EDI/<state>/registration and record the production start date.",
+            "Switch the jurisdiction profile from test to production only after the written approval is on file — never on a verbal go-ahead.",
+            "Notify the Claims Director / Manager of the production start date so filings are released from that date, not before."
+          ],
+          "done": "written state production approval is on file and the jurisdiction profile flips to production on the approved date."
+        },
+        {
+          "step": "Load the jurisdiction element requirement table into the edit tables",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Take the state's Element Requirement Table from its implementation guide and load, per MTC, which DN elements are M (mandatory), MC (mandatory conditional), and the conditions that make MC apply.",
+            "Load the state's valid MTC list and its event table so an MTC the state does not accept cannot be released at all.",
+            "Load the state's error message and DN error-number table so acknowledgments can be translated automatically for the Claims Operations desk.",
+            "Have the Regulatory Reporting Analyst read the loaded table back against the published guide page by page and sign the comparison."
+          ],
+          "done": "element, MTC and error tables for the jurisdiction match the published implementation guide with a signed page-by-page comparison."
+        },
+        {
+          "step": "Version-control the configuration and release it through change control",
+          "by": "Release Coordinator",
+          "role": "Release Coordinator",
+          "app": "source code/CI-CD repository",
+          "actions": [
+            "Hold all jurisdiction profiles and edit tables as versioned files in the repository — no direct edits in the production translator console.",
+            "Raise a change ticket per release naming the jurisdiction, the state notice driving the change, the table version and the state's implementation date.",
+            "Require the Regulatory Reporting Manager's approval on the ticket before the pipeline promotes to production.",
+            "Record the deployed version number against the jurisdiction so any transaction can be tied to the table version that validated it."
+          ],
+          "done": "every configuration change is a versioned, approved release with the deployed version recorded against the jurisdiction."
+        },
+        {
+          "step": "Subscribe to and triage IAIABC and state EDI change notices",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Microsoft Teams / Email",
+          "actions": [
+            "Subscribe the shared WC EDI mailbox to IAIABC release notices and to every state WC division's EDI bulletin distribution list.",
+            "Triage each notice within two business days: record the jurisdiction, the elements or MTCs affected, and the state's implementation date.",
+            "Raise a change ticket for anything requiring a table or mapping change and set the 90/60/30-day reminders against the implementation date.",
+            "Close notices requiring no action with a written 'no impact' rationale, not silently."
+          ],
+          "done": "every notice is triaged within two business days into either a dated change ticket or a written no-impact rationale."
+        },
+        {
+          "step": "Regression-test edit table changes before release",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "app": "Azure DevOps",
+          "actions": [
+            "Run the standing regression pack — a fixed set of FROI 00, FROI 04, SROI IP, SROI SA and SROI FN scenarios per jurisdiction — against the new table version.",
+            "Confirm previously valid transactions still validate and that the newly required elements now fail when absent.",
+            "Re-run the state's own test scenarios in the state test mailbox where the state requires re-certification for the release.",
+            "Attach the regression results to the change ticket; a red pack blocks the promotion."
+          ],
+          "done": "the regression pack and any state re-certification pass on the new table version and are attached to the change ticket."
+        },
+        {
+          "step": "Maintain registration currency, contacts and credentials",
+          "by": "Systems Administrator",
+          "role": "Systems Administrator",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Run the quarterly currency check: registration expiry or renewal date per state, named contact still employed, credential rotation date, endpoint certificate expiry.",
+            "File an updated trading-partner profile with the state whenever a contact, FEIN, sender ID, address or claim administrator changes — before the change takes effect operationally.",
+            "Rotate SFTP keys and AS2 certificates on schedule and confirm a successful round trip after each rotation.",
+            "Record each currency check with its date and the states touched."
+          ],
+          "done": "every state registration is current with live contacts, unexpired credentials and a dated quarterly currency check."
+        },
+        {
+          "step": "Oversee the EDI vendor or clearinghouse used in the states that require one",
+          "by": "Vendor Manager",
+          "role": "Vendor Manager",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "List the states where transmissions route through a contracted clearinghouse rather than direct to the division, and hold the current contract for each.",
+            "Confirm the contract names the carrier as the responsible party for filing accuracy and requires the vendor to pass acknowledgments through unaltered within one business day.",
+            "Review the vendor's monthly transmission and acknowledgment statistics against the internal transmission log and challenge any gap.",
+            "Confirm the vendor's own state registration is current before each renewal is signed."
+          ],
+          "done": "each clearinghouse state has a current contract, pass-through acknowledgment terms, and a reconciled monthly vendor statistic."
+        },
+        {
+          "step": "Prove the EDI channel survives an outage",
+          "by": "Business Continuity Analyst",
+          "role": "Business Continuity Analyst",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Document the fallback route per state (secondary endpoint, manual upload to the state portal, or paper first report where the state still permits one).",
+            "Run a tabletop each half-year on a 72-hour translator outage and record how the statutory clocks would still be met.",
+            "Set the incident priority for an EDI transmission failure to reflect the statutory clock — an outage during a filing window is a P1, not a P3.",
+            "Record the tested recovery time against the shortest statutory clock in the book (Alaska and California business-day clocks)."
+          ],
+          "done": "a tested fallback exists per state and the recovery time is shorter than the tightest statutory filing clock."
+        },
+        {
+          "step": "Reconcile the configuration against the state's published trading-partner status",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Each quarter, ask each state EDI coordinator (or check the state's published trading-partner list where one exists) to confirm the registered sender ID, claim administrator FEIN and production status held on their side.",
+            "Compare their answer to the translator jurisdiction profile field by field.",
+            "Correct any difference by filing an updated profile with the state and by raising a change ticket internally on the same day.",
+            "File the state's confirmation as the quarter's evidence of registration currency."
+          ],
+          "done": "each state's own record of the trading partner is confirmed in writing and agrees with the translator profile."
+        },
+        {
+          "step": "Retain the registration and configuration evidence",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Archive per state: signed trading-partner agreement and profile, certification test files and acknowledgments, production approval letter, and each dated edit-table version with its release note and approver.",
+            "Apply a 7-year-from-supersession retention label so a superseded configuration is still producible for a look-back review.",
+            "Index by state, sender ID, table version and effective date range so any historic transaction can be tied to the configuration that validated it.",
+            "Confirm quarterly that the index resolves at least one archived version per active jurisdiction."
+          ],
+          "done": "registration and configuration evidence is archived, retention-labelled and indexed so any transaction maps to its governing table version."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of jurisdictions and configuration changes",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "source code/CI-CD repository",
+          "actions": [
+            "List all 30 jurisdiction profiles active at the test date from the translator configuration export.",
+            "Extract every trading-partner and edit-table change promoted to production in the quarter from the release log, with version, promoter, approver and deploy timestamp.",
+            "Add any change applied directly in the production console — these are exceptions by definition and must still enter the population.",
+            "Sign the population as complete with the export queries and run date."
+          ],
+          "done": "the population lists every active jurisdiction and every production configuration change in the quarter, signed as complete."
+        },
+        {
+          "step": "Reconcile the jurisdiction list to the in-force policy footprint",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Extract the WC in-force policy list by coverage state at the test date and by state with any claim opened in the quarter.",
+            "Compare that state list to the registered jurisdiction list and identify any state with exposure but no registration.",
+            "Confirm each registered jurisdiction shows production status rather than test status in the translator profile.",
+            "Treat any writing state with no production registration as an automatic fail, whatever the claim volume."
+          ],
+          "done": "every state with in-force WC exposure or claim activity has a production-status registration, or is raised as a fail."
+        },
+        {
+          "step": "Draw and document the sample of configuration changes",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of trading-partner registration changes and 100% of changes driven by a state implementation date in the quarter.",
+            "Take 15 edit-table changes at random with a recorded seed from the remaining promotions.",
+            "Add every direct production-console change identified in the population, regardless of count.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is reproducible and covers all registration changes, all deadline-driven changes and any console-applied change."
+        },
+        {
+          "step": "Re-perform the edit table against the state's published guide",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For Alabama and two further sampled states, download the current Claims EDI implementation guide and take the Element Requirement Table for FROI 00 and SROI IP.",
+            "Compare, element by element, the M/MC flags in the deployed edit table to the guide and note every disagreement with its DN number.",
+            "Check the valid MTC list in the table against the state's event table — an MTC the state does not accept but the table permits is a live rejection risk.",
+            "Screenshot the guide pages relied on into the workpaper with their publication date."
+          ],
+          "done": "the deployed element and MTC tables are compared element by element to the current published guide, with differences listed by DN number."
+        },
+        {
+          "step": "Verify registrations and certification evidence per state",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "document management repository",
+          "actions": [
+            "For each sampled state, open the signed trading-partner agreement and confirm it is signed by both parties and not superseded.",
+            "Confirm a written state production approval or acknowledgment exists and pre-dates the first production transmission for that state.",
+            "Compare the Insurer FEIN, Claim Administrator FEIN and sender ID on the agreement to the values in the deployed jurisdiction profile.",
+            "List any state relying on a verbal or undated approval as an exception."
+          ],
+          "done": "each sampled state has a countersigned agreement, a dated production approval pre-dating first transmission, and matching identifiers."
+        },
+        {
+          "step": "Test change control on the sampled promotions",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Azure DevOps",
+          "actions": [
+            "For each sampled change, open the change ticket and confirm it names the state notice or IAIABC release that drove it.",
+            "Confirm the Regulatory Reporting Manager's approval is recorded and pre-dates the production deploy timestamp.",
+            "Confirm the regression pack results are attached and green, and that promoter and approver are different people.",
+            "Treat any deploy with approval timestamped after the deploy as an exception, whatever the outcome."
+          ],
+          "done": "every sampled promotion has a dated pre-deploy approval by a second person with green regression evidence attached."
+        },
+        {
+          "step": "Recompute renewal, expiry and implementation-date maths",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each of the 30 registrations, recompute days remaining to renewal or credential/certificate expiry from the state's stated cycle and today's date.",
+            "For each state implementation date published in the quarter, compare the deployed table's production date to the state's mandated date and compute days early or late.",
+            "Confirm the 90/60/30-day reminders were actually raised for each implementation date rather than assumed.",
+            "List any registration inside 60 days of expiry with no renewal ticket open."
+          ],
+          "done": "renewal and implementation-date maths is independently recomputed with every late deploy and unrenewed registration listed."
+        },
+        {
+          "step": "Test that transmissions could not run under a lapsed or test-mode profile",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Sample 10 production transmissions from the quarter and tie each to the jurisdiction profile version and table version in force at its transmission timestamp.",
+            "Confirm that profile was in production status with a current registration on that date.",
+            "Attempt, in the test environment, to release a transaction under a disabled jurisdiction profile and confirm the translator blocks it.",
+            "Confirm identifier fields are locked against edit outside a change ticket by checking the console permission set."
+          ],
+          "done": "every sampled transmission maps to a current production profile, and the control blocking lapsed-profile transmission is demonstrated."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Raise an issue per exception with the jurisdiction, the configuration item, the table or profile version, and the exposure window in days.",
+            "Assign a root cause (notice not triaged, approval bypassed, console edit, credential lapse, vendor change unnotified) and a named owner.",
+            "For any state found transmitting under a lapsed registration, quantify the transactions sent in the exposure window and route the position to Regulatory Counsel.",
+            "Carry every open issue into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date, exposure window and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare results to the zero-tolerance thresholds: no unregistered active jurisdiction, no table behind a state implementation date, no unapproved promotion.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with workpaper references for each exception.",
+            "Have the independent reviewer, who holds no write access to the translator configuration, sign the workpaper.",
+            "Report to the Compliance Committee and the IT change board, and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception list and dual reporting to the compliance and change forums exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-022-C03",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Policy Admin Ops Lead",
+          "value": "Owns proof-of-coverage reporting for every WC policy event across the 30 jurisdictions; Policy Administration builds and releases the POC records, with Regulatory Reporting owning the state relationship (rep jurisdiction: Alaska Workers' Compensation Division)"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Title 21 of the Alaska Statutes together with the Alaska Workers' Compensation Division's proof-of-coverage filing requirements and the IAIABC POC/WCPOLS record layout; Alabama Insurance Code (Title 27) and the Arkansas Insurance Code re-read at each state's POC release change"
+        },
+        "In-scope processes": {
+          "value": "WC policy issuance, renewal, cancellation, non-renewal, reinstatement and endorsements that change named insured, FEIN, coverage state or coverage dates — every one of which is a POC-reportable event in the 30 jurisdictions"
+        },
+        "In-scope systems": {
+          "app": "Policy Administration Platform",
+          "value": "PolicyCenter policy-event triggers feeding the WCPOLS-format POC extract through the EDI translator; POC acknowledgments written back to the policy record"
+        },
+        "Compliance procedure documented": {
+          "value": "WC Proof of Coverage Reporting Procedure — event-to-record-type mapping (new, renewal, cancellation, reinstatement, endorsement), required WCPOLS elements, the 30-day filing clock, and rejection handling"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Policy Admin Ops Lead and the Head of Compliance; re-approved on each state POC release change and whenever a state moves POC collection between the division and NCCI"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per policy event — POC filed within 30 days of the policy effective date for new and renewal business, and cancellations reported within the state's cancellation-notice period (Alaska cancellation notice runs to the division as well as the insured); each state's clock held in the POC jurisdiction table"
+        },
+        "Deadline reminders configured": {
+          "value": "PolicyCenter POC queue alerts at day 10 and day 20 of the 30-day clock, plus a same-day alert on any cancellation or reinstatement transaction, worked by the policy operations desk each morning"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "POC record images, the state or NCCI acknowledgment with its accept/reject code and error list, and the resubmission chain, retained on the policy record for the policy term plus 7 years"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any policy event with no POC transmission inside its clock, or a rejected POC left uncorrected, is raised with policy number, state, event type, day count and the coverage-verification risk it creates for the employer"
+        },
+        "Remediation sign-off captured": {
+          "role": "Compliance Officer",
+          "value": "Signs off every late POC remediation and any correction to a state coverage database that showed an employer as uninsured"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All WC policy transactions (new, renewal, cancellation, non-renewal, reinstatement, POC-relevant endorsement) with a transaction effective date in the quarter, across the 30 jurisdictions, from the policy transaction register"
+        },
+        "Pass/fail thresholds": {
+          "value": "≥99.5% of POC events filed inside the state clock; any policy in force with no accepted POC record at the state, and any cancellation not reported, is an automatic fail — an employer showing uninsured on a state lookup is a reportable breach"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per policy event; the test runs quarterly over that quarter's transactions, with a monthly automated in-force-versus-state-coverage reconciliation feeding it"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer sits outside Policy Administration and must not have keyed or released any sampled POC record"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly WC POC workpaper (transaction extract, in-force-to-state reconciliation, sample re-performance, 30-day recomputation, exception log) in the compliance evidence repository under WC-POC/<yyyy-Qn>"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per-policy POC history showing record type, transmission date, acknowledgment code and the coverage dates on file at the state, producible for an Alaska Workers' Compensation Division coverage audit within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "The Regulatory Reporting Manager answers state coverage-verification enquiries and NCCI POC queries; Regulatory Counsel clears any position on a period where a covered employer appeared uninsured on the state database"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Identify the POC-reportable policy events for the day",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Open the daily policy transaction register filtered to Line = Workers' Compensation and Status = Bound/Issued.",
+            "Select the reportable event types: new business, renewal, cancellation, non-renewal, reinstatement, and endorsements changing named insured, FEIN, coverage state or coverage dates.",
+            "Exclude non-reportable endorsements (premium-only, billing plan, mailing address) and record the exclusion reason on the register.",
+            "Push the reportable set into the POC queue with the transaction effective date carried through."
+          ],
+          "done": "the day's reportable events sit in the POC queue with effective dates, and every excluded transaction carries a written reason."
+        },
+        {
+          "step": "Map each event to its POC record type and state clock",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Open the POC jurisdiction table and read the state's row: collecting body (state division direct or NCCI on the state's behalf), accepted POC release, and filing clock.",
+            "Map the transaction to the WCPOLS record type: new/renewal policy record, cancellation record, reinstatement record, or policy change record.",
+            "For Alaska, confirm the record routes to the Alaska Workers' Compensation Division and apply the 30-day-from-effective-date clock.",
+            "Stamp the record type, collecting body and computed due date onto the POC queue item."
+          ],
+          "done": "each queue item shows record type, collecting body and a computed due date derived from the transaction effective date."
+        },
+        {
+          "step": "Assemble the required coverage elements from the policy record",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Populate the carrier fields: insurer name, Insurer FEIN and NAIC company code of the writing company that actually issued the policy — not the group parent.",
+            "Populate the insured fields: legal entity name, all trading/DBA names, FEIN, and the physical address of every covered location in the state.",
+            "Populate policy number, effective date, expiration date, and the 3A coverage states listed on the information page.",
+            "Populate the governing class codes and any state-specific endorsements affecting coverage, taking them from the issued information page rather than the quote."
+          ],
+          "done": "the POC record carries writing-company identifiers, insured legal name/DBA/FEIN, locations, coverage dates and 3A states from the issued information page."
+        },
+        {
+          "step": "Validate the insured FEIN and legal name against source",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "Enterprise Reference Data (MDM/RDM)",
+          "actions": [
+            "Compare the FEIN on the POC record to the FEIN captured on the signed application and on the premium audit record.",
+            "Reject a nine-digit FEIN that is all zeroes, a repeated digit, or the producer's own FEIN — these pass format edits and fail state matching.",
+            "Where the insured has multiple FEINs across entities, confirm the FEIN reported is the one employing the workers in that coverage state.",
+            "Correct at source in the customer master so the next transaction inherits the fix."
+          ],
+          "done": "every POC record's FEIN and legal name are traced to the application or audit record and corrected at master-data source where wrong."
+        },
+        {
+          "step": "Run POC edit validation and clear errors before release",
+          "by": "Policy Data Entry Clerk",
+          "role": "Policy Data Entry Clerk",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Run the POC validation job and read the returned element errors against the state's POC element requirement table.",
+            "Check date logic: expiration after effective, cancellation date within the policy term, reinstatement date after the cancellation date.",
+            "Check the coverage state on the record is one the policy's 3A item actually lists — a mismatch creates a coverage record the state cannot match to an employer.",
+            "Fix in the policy record, re-run validation to zero errors, and mark 'ready to release'."
+          ],
+          "done": "the POC record passes validation with zero element errors and consistent date and coverage-state logic."
+        },
+        {
+          "step": "Transmit the new and renewal POC records inside the 30-day clock",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Release the day's POC batch to the state division or to NCCI on the state's behalf over the registered trading-partner channel.",
+            "Record transmission date, batch control number and record count against each policy.",
+            "Compare transmission date to the 30-day due date and mark each record on-time or late immediately.",
+            "Confirm the batch record count released equals the queue count selected — a short batch is a silent non-filing."
+          ],
+          "done": "the POC batch is transmitted with a recorded control number, record counts reconciled, and each record flagged on-time or late."
+        },
+        {
+          "step": "Report cancellations and non-renewals on their own clock",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "On issuing a cancellation or non-renewal notice, take the cancellation effective date, the reason code (non-payment, insured request, underwriting) and the notice mail date.",
+            "Build the POC cancellation record with the cancellation effective date, not the notice date, and release it inside the state's cancellation-reporting period.",
+            "Confirm the notice actually mailed to the insured on the recorded date by checking the print-and-mail vendor confirmation.",
+            "Where the cancellation is later rescinded, release a reinstatement record the same day so the state does not carry the employer as uninsured."
+          ],
+          "done": "every cancellation, non-renewal and reinstatement has a matching POC record filed on its own clock with dates tied to the issued notice."
+        },
+        {
+          "step": "Report POC-relevant endorsements as policy change records",
+          "by": "Endorsement Processor",
+          "role": "Endorsement Processor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Screen each endorsement for POC relevance: named insured change, FEIN change, added or deleted 3A coverage state, added covered location, coverage date change.",
+            "Build a policy change record carrying both the prior and the new value of the changed element so the state can match to the existing coverage record.",
+            "Add a new state to the POC feed on the endorsement effective date — a state added mid-term with no POC record leaves employees uncovered on the state database.",
+            "Note the endorsement number and effective date on the POC record for traceability."
+          ],
+          "done": "every POC-relevant endorsement produces a change record showing prior and new values and referencing the endorsement number."
+        },
+        {
+          "step": "Capture the POC acknowledgment and write it back to the policy",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Poll the POC inbound mailbox daily and load acknowledgments against the outbound batch control numbers.",
+            "Read the per-record disposition (accepted, accepted with errors, rejected) and the returned error codes.",
+            "Write the accepted status, the acknowledgment date and any state-assigned coverage identifier back onto the policy record.",
+            "Reconcile records released to records acknowledged and list any unmatched record for follow-up within two business days."
+          ],
+          "done": "every released POC record has a matched acknowledgment written back to the policy, or sits on a dated follow-up list."
+        },
+        {
+          "step": "Correct and resubmit rejected POC records",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Open each rejected record, translate the state's error code, and identify the failing element — most rejections are FEIN mismatch, unknown carrier code or an out-of-term date.",
+            "Correct the underlying policy or customer-master data, then rebuild and re-release the record rather than editing the outbound file.",
+            "Where the original 30-day clock has already run, log the filing as late and record the days the employer sat unmatched at the state.",
+            "Escalate any error appearing on more than five policies in a week to the Business Systems Analyst as a mapping defect."
+          ],
+          "done": "every rejected POC record is corrected at source, re-released and accepted, with recurring errors escalated as defects."
+        },
+        {
+          "step": "Reconcile the in-force book to the state coverage database monthly",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Extract the WC in-force policy list by coverage state as at month end from policy administration.",
+            "Pull the coverage records the state or NCCI holds for the carrier's FEIN and compare policy number, effective and expiration dates and insured FEIN.",
+            "Investigate three break types separately: in force with us but absent at the state, present at the state but cancelled with us, and date or FEIN mismatches.",
+            "Clear each break with a corrective POC record and record the days the break was open."
+          ],
+          "done": "the monthly in-force-to-state reconciliation is complete, with every break cleared by a corrective record and its open days recorded."
+        },
+        {
+          "step": "Answer state and employer coverage-verification enquiries",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Take coverage-verification enquiries from the state division, an employer, or a claim adjuster who cannot match a claim to a policy at the state.",
+            "Pull the policy's POC transmission history and the state's held coverage record and identify which side is wrong.",
+            "Answer the enquirer within two business days with the policy number, coverage dates and the corrective POC record reference where one was needed.",
+            "Log every enquiry — a rising count is the leading indicator of a POC feed defect."
+          ],
+          "done": "every coverage-verification enquiry is answered within two business days with a documented cause and any corrective record referenced."
+        },
+        {
+          "step": "Report POC performance to the operating forum monthly",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "app": "Power BI",
+          "actions": [
+            "Publish the monthly POC pack: records released, on-time percentage against the 30-day clock, rejection rate by error code, open reconciliation breaks by state and age.",
+            "Call out any state where on-time performance fell below 99.5% and name the owner and the fix.",
+            "Review the oldest open break in every state and set a closure date in the meeting.",
+            "Export the pack with its date as the evidence the review happened."
+          ],
+          "done": "a dated monthly pack is published and reviewed, with named owners and closure dates against every sub-threshold state and aged break."
+        },
+        {
+          "step": "Log late or missed POC filings and assess the employer impact",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise an issue per late or missed POC event with policy number, state, event type, effective date, due date and days over.",
+            "Assign a root cause (event not flagged, FEIN rejection, batch short-shipped, endorsement not screened, state release change) and an owner.",
+            "For any period where an insured employer showed as uninsured on the state database, record the exposure days and route the notification position through Regulatory Counsel.",
+            "Carry each open issue into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "every late or missed POC event has an issue, root cause, owner, remediation date and a recorded employer-exposure assessment."
+        },
+        {
+          "step": "Retain the POC records and acknowledgments",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Archive the POC record image, the acknowledgment with its disposition and error codes, and the correction chain against the policy record.",
+            "Apply the 'policy term + 7 years' retention label so records survive policy expiry and audit look-backs.",
+            "Index by state, policy number, insured FEIN and transmission date so a state coverage query can be answered from any of them.",
+            "Spot-check ten archived policies a quarter to confirm images open and the index returns them."
+          ],
+          "done": "POC records and acknowledgments are archived, retention-labelled and retrievable by policy number and insured FEIN."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of POC-reportable policy transactions",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Extract every WC policy transaction with an effective date in the quarter across the 30 jurisdictions: new, renewal, cancellation, non-renewal, reinstatement and endorsement.",
+            "Classify each as POC-reportable or not using the state's own event rules, independently of the flag the business set.",
+            "Reconcile transaction counts to the policy administration transaction register and the written-premium ledger for the quarter.",
+            "Sign the population as complete with the extraction query and run date."
+          ],
+          "done": "the population covers every WC policy transaction in the quarter, independently classified and reconciled to the transaction register."
+        },
+        {
+          "step": "Reconcile the in-force book to the state coverage records",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Take the WC in-force listing at quarter end by coverage state and match it to the coverage records held by each state division or by NCCI for the carrier FEIN.",
+            "List policies in force with us but absent at the state — each is an employer the state would report as uninsured.",
+            "List coverage records live at the state for policies we cancelled, and any effective/expiration date or FEIN mismatch.",
+            "Confirm the operational monthly reconciliation identified the same breaks; breaks it missed are control exceptions in their own right."
+          ],
+          "done": "the independent in-force-to-state match is complete and every break is either already on the operational log or raised as a missed-detection exception."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of Alaska transactions and 100% of cancellations and reinstatements in the quarter.",
+            "Take 30 further transactions at random with a recorded seed, stratified so new business, renewal and POC-relevant endorsement each appear at least eight times.",
+            "Add every policy on the in-force-to-state break list regardless of count.",
+            "Record the seed, population size, strata and selection date so the sample can be re-drawn."
+          ],
+          "done": "the sample is reproducible, covers Alaska and all cancellations in full, and includes every reconciliation break."
+        },
+        {
+          "step": "Re-perform the record type and reportability call",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For each sampled transaction, read the state's POC requirements and reach your own conclusion on reportability and record type before opening the POC history.",
+            "Compare to what was actually filed; an endorsement adding a coverage state that was treated as non-reportable is an exception.",
+            "Confirm the collecting body used (state division direct versus NCCI) matches what the state currently mandates.",
+            "Record your conclusion, the filed record type and any difference on the workpaper line."
+          ],
+          "done": "each sampled transaction carries an independent reportability and record-type conclusion with differences logged."
+        },
+        {
+          "step": "Trace POC content back to the issued policy documents",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "document management repository",
+          "actions": [
+            "Open the issued information page for each sampled policy and compare insured legal name, DBA, FEIN, policy number and effective/expiration dates to the transmitted POC record.",
+            "Compare the 3A coverage states on the information page to the coverage states on the POC record and list any state present on one and not the other.",
+            "For cancellations, compare the POC cancellation date to the cancellation notice and the print-and-mail confirmation date.",
+            "Treat a FEIN that is the producer's, the parent's, or a placeholder as a content failure rather than a formatting note."
+          ],
+          "done": "every sampled POC record's insured, policy and coverage-state content is traced to the issued information page or cancellation notice."
+        },
+        {
+          "step": "Trace each sampled record to an accepted acknowledgment",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Search the POC history by batch control number and confirm an acknowledgment exists for each sampled record.",
+            "Read the final disposition and confirm that any rejection was followed by a corrected re-release that was accepted.",
+            "Confirm the accepted status and any state-assigned coverage identifier were written back onto the policy record.",
+            "Capture the acknowledgment detail into the workpaper as trace evidence."
+          ],
+          "done": "every sampled POC record traces to a final accepted acknowledgment recorded against the policy."
+        },
+        {
+          "step": "Recompute the 30-day clock and the cancellation-reporting clock",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Recompute elapsed days = transmission date − policy effective date for each sampled new and renewal record and compare to the state's 30-day requirement (Alaska rep).",
+            "Recompute cancellation reporting days = transmission date − cancellation effective date and compare to the state's cancellation-reporting period.",
+            "Confirm calendar-day versus business-day treatment per state; the wrong convention understates lateness across the whole population.",
+            "Recompute the on-time percentage from the sample and reconcile it to the monthly POC pack figure."
+          ],
+          "done": "clocks are independently recomputed per state convention and the recomputed on-time rate is reconciled to the published monthly pack."
+        },
+        {
+          "step": "Test rejection closure and the correction-at-source rule",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Extract every rejected POC record in the quarter and age each from rejection to accepted re-release.",
+            "Confirm the correction was made in the policy or customer master by re-reading the element on the policy record, not just in the resent file.",
+            "Confirm no rejected record was closed without an accepted acknowledgment.",
+            "Test that a re-corrected FEIN persisted into the next transaction on the same policy."
+          ],
+          "done": "every rejection is shown corrected at source, re-accepted, and the correction is proven to persist to the next transaction."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and employer exposure",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise an issue per exception with policy number, state, event type, effective date, due date, days over and acknowledgment status.",
+            "Assign a root cause (event not flagged, endorsement not screened, FEIN rejection, short batch, state release change) and a named owner.",
+            "For every period an insured employer was absent from the state coverage database, record the exposure days and any downstream effect on a claim that could not be matched to a policy.",
+            "Carry every open issue into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and a quantified employer-exposure period."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compute the POC on-time rate and compare to the 99.5% threshold and the zero-unfiled-in-force rule.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with workpaper references behind each exception.",
+            "Have the independent reviewer, who keyed or released none of the sampled records, sign the workpaper.",
+            "Report the result and any employer-uninsured exposure to the Compliance Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with the on-time rate, a stated conclusion and a committee reporting date exists in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-022-C04",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Claims Director / Manager",
+          "value": "Owns daily acknowledgment reconciliation and rejection clearance for all outbound FROI/SROI across the 30 jurisdictions; the Claims Operations EDI desk works the reject queue, with IT owning systemic defects (rep jurisdiction: Alabama Department of Labor, Workers' Compensation Division)"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Alabama Insurance Code (Title 27, Code of Alabama) with the Alabama WC Division's Claims EDI acknowledgment and error-code tables; Title 20 of the Arizona Revised Statutes and the Colorado Insurance Code re-read whenever either state republishes its correction-window rules"
+        },
+        "In-scope processes": {
+          "value": "Daily acknowledgment retrieval, transmission-to-acknowledgment reconciliation, TE/TR error triage by DN number, correction at source, re-transmission, aging of unacknowledged transactions, and defect feedback into the edit tables"
+        },
+        "In-scope systems": {
+          "app": "Internal Regulatory System",
+          "value": "The EDI translator's inbound acknowledgment mailbox and reject queue, with corrections made in the claims system and exceptions tracked in the issue tracker"
+        },
+        "Compliance procedure documented": {
+          "value": "WC EDI Rejection Management Procedure — daily reconciliation run, DN error triage matrix, correction-at-source rule, re-transmission MTC selection, aging thresholds and escalation ladder"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Claims Officer and the Head of Compliance; re-approved whenever a jurisdiction republishes its error-code table or changes its correction window"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Daily — acknowledgments pulled and reconciled every business morning; a TR-rejected transaction is not on file at the state, so the original statutory clock (Alabama FROI, Florida 14-day) keeps running and corrections are targeted inside 2 business days, with anything unacknowledged after 5 business days chased with the state EDI coordinator"
+        },
+        "Deadline reminders configured": {
+          "value": "Reject queue aging alerts at 2, 5 and 10 business days from acknowledgment date, plus an unacknowledged-transmission alert at 5 business days, routed to the EDI desk supervisor and copied to the Claims Director / Manager at 10 days"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Daily reconciliation report, the acknowledgment file with TA/TE/TR codes and DN error numbers, the correction note, and the accepted re-transmission, retained on the claim file for the life of the claim plus 5 years"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Every rejected transaction open past its correction target, and every transmission with no acknowledgment after 5 business days, is logged with claim number, jurisdiction, DN error number, age in business days and the statutory clock still running behind it"
+        },
+        "Remediation sign-off captured": {
+          "role": "Compliance Officer",
+          "value": "Signs off closure of any rejection open beyond 10 business days and any case where the underlying statutory filing clock expired while the transaction sat rejected"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All outbound FROI/SROI transmissions in the test month and all inbound acknowledgments received, from the EDI translator transmission and acknowledgment logs across the 30 jurisdictions"
+        },
+        "Pass/fail thresholds": {
+          "value": "100% of transmissions must carry a matched acknowledgment; ≥95% of TE/TR items cleared to accepted within 5 business days; any rejection open beyond 10 business days, or any rejection whose statutory clock expired while open, is an automatic fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation runs daily; the control is evidenced daily and independently tested monthly over the full month's transmission and acknowledgment logs"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer sits outside Claims Operations and must not have corrected or re-released any sampled rejected transaction"
+        },
+        "Evidence location for test results": {
+          "value": "Monthly WC EDI rejection workpaper (transmission-to-ack reconciliation, aging analysis, DN error root-cause table, sample re-performance) in the compliance evidence repository under WC-EDI-REJECT/<yyyy-mm>"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per-claim rejection and correction chain showing the original transmission, the acknowledgment with DN errors, the correction made and the accepted re-transmission date, producible for an Alabama WC Division EDI review within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "The Regulatory Reporting Manager raises unresolved or disputed rejections with the state EDI coordinator; Regulatory Counsel clears any position where a statutory clock expired because a transaction sat rejected"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Pull and load the day's acknowledgment files",
+          "by": "Production Support Analyst",
+          "role": "Production Support Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Poll each jurisdiction's inbound mailbox before 08:00 local and download the acknowledgment files awaiting collection.",
+            "Load each file into the translator against its outbound batch and interchange control numbers.",
+            "Confirm the load count equals the file's record count; a partial load is escalated to the Integration Engineer before the desk starts work.",
+            "Publish the loaded acknowledgment set into the EDI desk's work queue with a load timestamp."
+          ],
+          "done": "all jurisdiction mailboxes are polled and loaded before the desk opens, with record counts reconciled to the files received."
+        },
+        {
+          "step": "Reconcile transmissions released against acknowledgments received",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Run the daily reconciliation report: transactions released in the prior 24 hours by jurisdiction versus acknowledgments matched.",
+            "List unmatched outbound transactions with their transmission date and age in business days.",
+            "Verify totals by jurisdiction rather than in aggregate — one silent mailbox hides behind a healthy group total.",
+            "Save the dated reconciliation report as the day's evidence that the control operated."
+          ],
+          "done": "a dated per-jurisdiction reconciliation report exists showing matched, unmatched and aged transmissions."
+        },
+        {
+          "step": "Classify every acknowledgment by disposition code",
+          "by": "Claims Analyst",
+          "role": "Claims Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Split the day's acknowledgments into TA (accepted), TE (accepted with errors) and TR (rejected) buckets.",
+            "For TA, confirm the jurisdiction claim number returned has been written back to the claim record — later SROIs reject without it.",
+            "For TE, record which DN elements the state accepted under protest and the correction it expects on the next transaction.",
+            "For TR, mark the claim as having no report on file at the state and re-arm the original statutory clock on the filing task."
+          ],
+          "done": "every acknowledgment is classified, jurisdiction claim numbers are written back, and every TR claim shows its statutory clock still running."
+        },
+        {
+          "step": "Triage rejections by DN error number",
+          "by": "Claims Analyst",
+          "role": "Claims Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Translate each returned DN error number and error message code against the jurisdiction's published error table.",
+            "Bucket each error: claim data error (wrong date, missing wage), identity error (FEIN, policy number, jurisdiction claim number), sequencing error (SROI sent before an accepted FROI), or format/mapping error.",
+            "Route claim data and identity errors to the owning adjuster; route sequencing and format errors to the Business Systems Analyst.",
+            "Set a correction target of 2 business days on every item at triage."
+          ],
+          "done": "every rejected transaction carries a translated error, an assigned bucket, a named owner and a 2-business-day correction target."
+        },
+        {
+          "step": "Correct claim data errors at source in the claims system",
+          "by": "Claims Adjuster",
+          "role": "Claims Adjuster",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "Open the claim, go to the element the DN error names, and correct it against the source document — employer first report, wage statement, medical report or payment transaction.",
+            "Never patch the outbound file: a file-only fix reappears on the next transaction for the same claim.",
+            "Where the source document itself is wrong or missing, request a corrected document from the employer or provider and note the request date on the claim.",
+            "Record the correction and its source on the claim note so the auditor can retrace it."
+          ],
+          "done": "the failing element is corrected in the claim record against a named source document, with the correction noted."
+        },
+        {
+          "step": "Fix identity and policy-match rejections with Policy Administration",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "For 'policy not found' or 'employer not on file' rejections, compare the policy number, insurer FEIN and insured FEIN on the transaction to the filed proof-of-coverage record.",
+            "Ask the Policy Administration Analyst to confirm whether the POC record for that policy and coverage state was accepted at the state, and to file a corrective POC where it was not.",
+            "Hold the claim transaction until the POC is accepted, then re-release — resending against a missing coverage record just rejects again.",
+            "Record the linked POC correction reference on the claim's EDI history."
+          ],
+          "done": "identity rejections are resolved by proving an accepted POC record exists, with the corrective POC reference recorded on the claim."
+        },
+        {
+          "step": "Re-release the corrected transaction with the right MTC",
+          "by": "Claims Processor",
+          "role": "Claims Processor",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "For a TR item, re-send the original MTC — the state holds no report, so an MTC 02 change would itself reject.",
+            "For a TE item, send an MTC 02 change transaction carrying the corrected element.",
+            "Re-run pre-submission validation to zero errors before release and record the new batch control number against the claim.",
+            "Compare the re-release date to the original statutory due date and flag the filing late where the clock has already run."
+          ],
+          "done": "the corrected transaction is re-released with the correct MTC, validated clean, and marked on-time or late against the original clock."
+        },
+        {
+          "step": "Chase transmissions with no acknowledgment",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Work the unacknowledged list daily and age each item from its transmission date.",
+            "At 5 business days, confirm with the Integration Engineer that the file left the gateway and reached the state endpoint, then email the state EDI coordinator quoting the batch control number, sender ID and transmission timestamp.",
+            "Where the state confirms non-receipt, re-transmit the batch the same day and log the original as a failed transmission, not as a filed report.",
+            "Record every chase, the date and the state's answer against the claim."
+          ],
+          "done": "no transmission sits unacknowledged past 5 business days without a logged chase and a documented state answer."
+        },
+        {
+          "step": "Escalate rejections that are aging past target",
+          "by": "Claims Director / Manager",
+          "role": "Claims Director / Manager",
+          "app": "Power BI",
+          "actions": [
+            "Read the reject aging tile each morning: items at 2, 5 and 10 business days by jurisdiction and error bucket.",
+            "Reassign anything at 5 days to a named senior adjuster with a same-day clearance instruction.",
+            "Escalate anything at 10 days to the Head of Compliance with the claim number, the DN error and the statutory clock status.",
+            "Record the daily review as a dated dashboard export."
+          ],
+          "done": "the aging tile is reviewed and exported daily, with 5-day items reassigned and 10-day items escalated to Compliance."
+        },
+        {
+          "step": "Run root-cause analysis on the week's error pattern",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Build the weekly Pareto of DN error numbers by jurisdiction and count, and take the top five.",
+            "For each, decide whether the cause is a mapping defect, a stale edit table, a claims data-capture gap or an adjuster training gap.",
+            "Raise a change ticket for mapping and edit-table causes and hand data-capture and training causes to the Claims Quality Assurance / Training Manager.",
+            "Track each top-five error's count into the following week to prove the fix worked."
+          ],
+          "done": "the weekly top-five DN errors each have a named cause, a raised ticket or training action, and a tracked count in the following week."
+        },
+        {
+          "step": "Feed edit-table and mapping defects into change control",
+          "by": "Integration Engineer",
+          "role": "Integration Engineer",
+          "app": "source code/CI-CD repository",
+          "actions": [
+            "Convert each confirmed mapping or edit-table defect into a versioned configuration change with the jurisdiction and DN element named in the commit.",
+            "Add a regression scenario reproducing the rejection so the defect cannot return silently.",
+            "Route the change for the Regulatory Reporting Manager's approval before promotion, as required by the configuration procedure.",
+            "Report the deployed version back to the reject queue so open items can be re-released against the fixed table."
+          ],
+          "done": "each confirmed defect is a versioned, approved, regression-covered change with its deployed version fed back to the reject queue."
+        },
+        {
+          "step": "Maintain the daily exception log",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log each rejection open past its 2-day target and each unacknowledged transmission past 5 days with claim number, jurisdiction, DN error, age and statutory clock status.",
+            "Update the age and status on every open item daily rather than at month end.",
+            "Close an item only against an accepted acknowledgment reference — never on 'resent' alone.",
+            "Export the log daily so the aging population can be rebuilt for any past date."
+          ],
+          "done": "the exception log is updated daily, closed only against accepted acknowledgments, and exported so any historic day can be rebuilt."
+        },
+        {
+          "step": "Report rejection performance to the claims governance forum monthly",
+          "by": "Claims Director / Manager",
+          "role": "Claims Director / Manager",
+          "app": "Power BI",
+          "actions": [
+            "Publish the monthly pack: transmissions released, acknowledgment match rate, TE/TR rate by jurisdiction, clearance within 5 business days, and items aged past 10 days.",
+            "Name every jurisdiction below the 95% five-day clearance threshold with its owner and remediation date.",
+            "Present the count of claims where a statutory clock expired while a transaction sat rejected — this is the number that becomes a penalty.",
+            "Export the dated pack as evidence the review took place."
+          ],
+          "done": "a dated monthly pack is reviewed showing match rate, clearance rate, aged items and clock-expiry counts with named owners."
+        },
+        {
+          "step": "Track state penalty notices arising from rejected filings",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log each state penalty or non-compliance notice with the jurisdiction, claim number, cited statute and the amount assessed.",
+            "Pull the claim's rejection and correction chain and determine whether the filing was late because of the rejection or because of the original release.",
+            "Route the response through Regulatory Counsel before it is filed with the state, including any request for penalty mitigation based on the correction record.",
+            "Link the notice to the underlying root cause so recurrence is visible."
+          ],
+          "done": "every penalty notice is logged, tied to a rejection chain and a root cause, and answered through Regulatory Counsel."
+        },
+        {
+          "step": "Retain the reconciliation, rejection and correction evidence",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Archive the daily reconciliation report, the acknowledgment files, the exception log export and the weekly Pareto for each month.",
+            "Archive the per-claim correction chain (original transmission, acknowledgment with DN errors, correction note, accepted re-transmission) against the claim file.",
+            "Apply the 'life of claim + 5 years' retention label to claim-level records and a 7-year label to the daily reconciliation reports.",
+            "Confirm quarterly that a chosen claim's full chain can be reassembled from the archive alone."
+          ],
+          "done": "daily reconciliations and per-claim correction chains are archived, retention-labelled, and provably reassemblable from the archive."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of transmissions and acknowledgments",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Extract every outbound FROI/SROI transmission in the test month from the translator log with jurisdiction, claim number, MTC, batch control number and timestamp.",
+            "Extract every inbound acknowledgment with its disposition code, DN error numbers and receipt timestamp.",
+            "Count both sides by jurisdiction and day so a silent mailbox or a missing day is visible before sampling.",
+            "Sign the population as complete with the extraction queries and run date."
+          ],
+          "done": "outbound and inbound populations are extracted, counted by jurisdiction and day, and signed as complete."
+        },
+        {
+          "step": "Reconcile the two populations independently of the daily report",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match transmissions to acknowledgments on batch and interchange control number and list every unmatched transmission.",
+            "Compare your unmatched list to the operational daily reconciliation reports for the same days; anything you found that the daily report did not is a control-failure exception.",
+            "Confirm the daily reconciliation report exists and is dated for every business day in the month — a missing day means the control did not operate.",
+            "Reconcile the total transmission count to the claims system's EDI release log so transmissions dropped before the translator are exposed."
+          ],
+          "done": "an independent match is complete, missing daily reports are identified, and every detection gap in the operational report is raised."
+        },
+        {
+          "step": "Draw and document the sample of rejected transactions",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of TR rejections in Alabama and 100% of any rejection aged past 10 business days in any jurisdiction.",
+            "Take 30 further TE/TR items at random with a recorded seed, stratified across the top five DN error numbers for the month.",
+            "Add every unmatched transmission from the reconciliation step.",
+            "Record the seed, population size, strata and selection date so the sample can be re-drawn identically."
+          ],
+          "done": "the sample is reproducible, covers Alabama rejections and all 10-day-plus items in full, and spans the top five error codes."
+        },
+        {
+          "step": "Re-perform the DN error interpretation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For each sampled item, take the DN error number and message code and look it up in the jurisdiction's current published error table yourself.",
+            "Reach your own conclusion on which element failed and why, before reading the desk's triage note.",
+            "Compare to the assigned error bucket and owner; a claim data error routed to IT as a mapping defect, or vice versa, is an exception because it delays the real fix.",
+            "Screenshot the error-table page relied on into the workpaper with its publication date."
+          ],
+          "done": "each sampled rejection has an independent error interpretation captured against the published error table, with mis-triage logged."
+        },
+        {
+          "step": "Verify the correction was made at source, not in the file",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "Open the claim record for each sampled item and read the element the DN error named as it now stands.",
+            "Trace the corrected value to the source document cited on the claim note — employer first report, wage statement, payment transaction or corrected POC record.",
+            "Confirm the corrected value also appears on the next transaction released for that claim, proving the fix persisted.",
+            "Treat a claim record still holding the wrong value while the state holds a corrected one as an exception in its own right."
+          ],
+          "done": "each sampled correction is proven in the claim record, traced to a source document, and shown to persist on the next transaction."
+        },
+        {
+          "step": "Trace re-releases to an accepted acknowledgment",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For each sampled item, find the re-release, confirm the MTC used matches the rule (original MTC after TR, MTC 02 after TE), and read its acknowledgment.",
+            "Confirm the final disposition is accepted; an item closed on the tracker without an accepted acknowledgment is an exception.",
+            "Check the jurisdiction claim number returned was written back to the claim where the re-release was a FROI.",
+            "Capture the acknowledgment detail into the workpaper."
+          ],
+          "done": "every sampled rejection traces to an accepted re-release with the correct MTC and, for FROIs, a recorded jurisdiction claim number."
+        },
+        {
+          "step": "Recompute clearance ages and the statutory clock impact",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Recompute clearance age in business days = accepted re-release date − acknowledgment date for every TE/TR item in the month.",
+            "Recompute the five-business-day clearance rate and compare it to the 95% threshold and to the figure in the monthly pack.",
+            "For each TR item, recompute whether the original statutory clock (Alabama FROI, Florida 14-day, California 10-business-day) had expired by the accepted re-release date.",
+            "List every claim where the clock expired while the transaction sat rejected — these are penalty exposures, not test findings."
+          ],
+          "done": "clearance ages and the five-day rate are independently recomputed and every clock-expiry-while-rejected case is listed."
+        },
+        {
+          "step": "Test the unacknowledged-transmission chase process",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take every transmission unmatched after 5 business days and look for a logged chase with a date and the state's answer.",
+            "Confirm gateway evidence exists showing the file reached the state endpoint, and that a re-transmission followed where the state confirmed non-receipt.",
+            "Confirm no unmatched transmission was quietly reclassified as filed without an acknowledgment.",
+            "Age the remaining open unmatched items at the test date and report the oldest by jurisdiction."
+          ],
+          "done": "every aged unacknowledged transmission has a documented chase, gateway evidence and either an acknowledgment or a re-transmission."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise an issue per exception with claim number, jurisdiction, DN error number, acknowledgment date, clearance date, age and clock status.",
+            "Assign a root cause from the fixed list (claim data capture, identity/POC mismatch, sequencing, mapping defect, stale edit table, desk backlog, mailbox outage) and a named owner.",
+            "Open a Regulatory Counsel review for every claim where the statutory clock expired while the transaction was rejected.",
+            "Carry every open exception into the next month's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and — where a clock expired — a counsel review reference."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare results to the thresholds: 100% acknowledgment match, ≥95% cleared within 5 business days, nothing open past 10 business days.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with workpaper references behind each exception.",
+            "Have the independent reviewer, who corrected or re-released none of the sampled transactions, sign the workpaper.",
+            "Report the result and every clock-expiry exposure to the Compliance Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with match rate, clearance rate, a stated conclusion and a committee reporting date exists in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-022-C05",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Statutory Reporting Manager",
+          "value": "Owns unit-statistical reporting to NCCI and the independent bureaus across the 30 jurisdictions; Actuarial / Stat Reporting builds and files the unit reports, with Claims and Premium Audit supplying valued data (rep jurisdiction: California, where the WCIRB is the statistical agent)"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Title 10, Chapter 5 of the California Code of Regulations with the WCIRB California Uniform Statistical Reporting Plan and Unit Statistical Reporting Guide; for NCCI states, the NCCI Statistical Plan for Workers Compensation and Employers Liability Insurance and the current WCSTAT record layout, re-read at each plan amendment"
+        },
+        "In-scope processes": {
+          "value": "Policy expiry → unit report due-date calendar → 18-month first-report valuation and the 30/42/54/66-month subsequent valuations → exposure, premium and claim data assembly → WCSTAT/USR build → bureau submission → criticism and correction cycle, for every WC policy in the 30 jurisdictions"
+        },
+        "In-scope systems": {
+          "app": "Enterprise data warehouse/lakehouse",
+          "value": "The statistical reporting mart holding valued policy exposure and premium from policy administration and valued claim indemnity/medical from the claims system, feeding the WCSTAT/USR build and the bureau submission channel (NCCI Data Manager; WCIRB Connect for California)"
+        },
+        "Compliance procedure documented": {
+          "value": "WC Unit Statistical Reporting Procedure — due-date calendar derivation, valuation cut rules, exposure and premium reconciliation to the general ledger, claim valuation rules, correction report rules and criticism clearance"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Actuary and the Statutory Reporting Manager; re-approved on each NCCI Statistical Plan amendment, each WCIRB reporting-plan change and any change of statistical agent in a state"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per schedule — first unit report valued at 18 months after policy effective date and due at 20 months; subsequent reports valued at 30, 42, 54 and 66 months and due three months after each valuation date; corrections due within the bureau's correction window after a criticism is issued"
+        },
+        "Deadline reminders configured": {
+          "value": "Statistical calendar reminders at 60, 30 and 10 days before each policy's unit report due date, and a same-week alert on every criticism file received from NCCI or the WCIRB"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Submitted WCSTAT/USR files, bureau receipt and acceptance confirmations, criticism files and correction reports, and the premium and loss reconciliations to the general ledger, retained 7 years from the last valuation reported on the policy"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any unit report filed after its due date, rejected and left uncorrected, or filed with premium or losses that do not reconcile to the ledger, is logged with policy number, state, report level, valuation date and days late"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Actuary",
+          "value": "Signs off every late or restated unit report and any correction that moves a reported experience modification"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every WC policy with a unit report due in the quarter (first report at 20 months and subsequent reports at 33/45/57/69 months from policy effective date) across the 30 jurisdictions, from the statistical due-date calendar"
+        },
+        "Pass/fail thresholds": {
+          "value": "100% of due unit reports filed by the bureau due date and accepted; premium reported must reconcile to the ledger within 0.5% per state and losses within 1%; any policy with no unit report on file, or an open criticism past the bureau's correction window, is an automatic fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per report on the bureau schedule; the test runs quarterly over that quarter's due population, with 100% coverage of California WCIRB submissions and of any policy carrying an experience modification"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer sits outside Actuarial / Stat Reporting and must not have built, submitted or corrected any sampled unit report"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly unit-statistical workpaper (due-date population, ledger reconciliations, sample re-performance of valuations, criticism ageing, exception log) in the compliance evidence repository under WC-USR/<yyyy-Qn>"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per-policy unit report pack — submitted file, bureau acceptance, valuation-date evidence, premium and loss reconciliation and any correction report — producible for a WCIRB or NCCI data audit within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "The Statutory Reporting Manager answers NCCI and WCIRB data-quality contacts and hosts bureau data audits; the Chief Actuary approves any restatement and Regulatory Counsel clears any position affecting a policyholder's experience modification"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Build the unit report due-date calendar from the policy master",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Extract every WC policy with its effective date, expiration date, writing company, coverage states and cancellation status.",
+            "Compute the first report valuation date at 18 months from policy effective date and the due date at 20 months.",
+            "Compute subsequent valuations at 30, 42, 54 and 66 months with each due date three months after its valuation date, and stop the schedule where the bureau's plan stops.",
+            "Split the calendar by statistical agent: NCCI states, California to the WCIRB, and the other independent bureaus, since each takes its own file.",
+            "Publish the calendar with 60/30/10-day reminders per report."
+          ],
+          "done": "every WC policy has its full valuation and due-date schedule computed, split by statistical agent, with reminders armed."
+        },
+        {
+          "step": "Confirm the reporting plan and record layout in force per bureau",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Read the current NCCI Statistical Plan and WCSTAT record layout, and the WCIRB California Uniform Statistical Reporting Plan for California policies.",
+            "Record the plan version and effective date against each state row in the statistical jurisdiction table.",
+            "List every layout change since the last submission — new fields, revised injury type or claim status codes, changed exposure rules — and hand them to the ETL Developer.",
+            "Note the bureau's own edit package version so the internal validation mirrors what they will run."
+          ],
+          "done": "the plan and layout version in force is recorded per bureau, with layout changes handed to development and the edit package version noted."
+        },
+        {
+          "step": "Freeze the exposure and premium data at the valuation date",
+          "by": "Premium Auditor",
+          "role": "Premium Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Take the final audited payroll by class code and state for the policy term, including any endorsement changes, from the completed premium audit.",
+            "Where a premium audit is still open at the valuation date, escalate to the Premium Audit supervisor — an estimated exposure on a unit report drives a wrong experience modification.",
+            "Capture the premium build: manual premium by class, experience modification applied, schedule rating, expense constant, terrorism and catastrophe charges, and standard premium.",
+            "Freeze the extract as at the valuation date and label it with the policy, report level and valuation date."
+          ],
+          "done": "audited exposure by class code and the full premium build are frozen as at the valuation date with open audits escalated."
+        },
+        {
+          "step": "Freeze the claim data valued at the valuation date",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "Extract per claim on the policy: incurred indemnity and incurred medical (paid plus case outstanding) valued exactly at the valuation date, with no later development bleeding in.",
+            "Capture claim status (open/closed), injury type code (fatal, permanent total, major/minor permanent partial, temporary, medical only), accident date and jurisdiction.",
+            "Capture recoveries — subrogation, second-injury fund, deductible reimbursement — under the bureau's rules on gross versus net reporting.",
+            "Reconcile the claim-level total to the reserving system's valued triangle for that policy year and state before releasing the extract."
+          ],
+          "done": "claim indemnity, medical, status and injury type are frozen at the valuation date and tie to the valued reserving triangle."
+        },
+        {
+          "step": "Reconcile reported premium and losses to the general ledger",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Roll the unit-report premium by state and policy year and compare it to written premium in the ledger for the same state and year.",
+            "Roll the unit-report incurred losses and compare them to the loss and LAE balances behind the statutory Schedule P by state and accident year.",
+            "Investigate any state variance over 0.5% on premium or 1% on losses down to the policy causing it — do not net offsetting variances.",
+            "Sign the reconciliation and attach it to the submission pack."
+          ],
+          "done": "premium and loss totals reconcile to the ledger within tolerance by state, with every out-of-tolerance state traced to a named policy."
+        },
+        {
+          "step": "Build the WCSTAT/USR file",
+          "by": "ETL Developer",
+          "role": "ETL Developer",
+          "app": "Data pipeline orchestrator (Airflow/Dagster/Prefect)",
+          "actions": [
+            "Run the unit report build for the due population, generating header, exposure, loss and total records per the bureau's record layout.",
+            "Populate the header with carrier code, policy number as reported on proof of coverage, policy effective date, report level and valuation date.",
+            "Map class codes, injury type codes and claim status codes to the current bureau code lists — an outdated code list is the most common rejection cause.",
+            "Write the build run id, input extract labels and record counts into the run log so the file can be rebuilt identically."
+          ],
+          "done": "the file builds cleanly with a logged run id, reconciled record counts and current bureau code lists applied."
+        },
+        {
+          "step": "Run the bureau's edit package before submission",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Run the internal replica of the bureau edit package and read the returned edit codes by severity.",
+            "Clear every fatal edit and give a written explanation for each warning edit that will be submitted as-is.",
+            "Check the standing sense tests: losses on a class code with no exposure, an open claim with zero incurred, a closed indemnity claim with zero paid indemnity, exposure with no premium.",
+            "Re-run to a clean fatal list and attach the edit report to the submission pack."
+          ],
+          "done": "the file passes the replica edit package with zero fatal edits and every retained warning explained in writing."
+        },
+        {
+          "step": "Submit the unit reports to each bureau on schedule",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Submit NCCI-state unit reports through NCCI's Data Manager submission channel under the carrier code, and California reports to the WCIRB through its data submission channel.",
+            "Submit each independent-bureau state (for example the New York, Pennsylvania, New Jersey and Wisconsin bureaus) in its own required format and channel.",
+            "Record the submission date, file name, record count and bureau confirmation reference against each policy in the calendar.",
+            "Compare the submission date to the due date and mark each report on-time or late immediately."
+          ],
+          "done": "every due unit report is submitted to the right bureau with a recorded confirmation reference and an on-time/late flag."
+        },
+        {
+          "step": "Confirm bureau acceptance and record the rejected units",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Retrieve the bureau's processing response and split units into accepted, accepted-with-criticism, and rejected.",
+            "For rejected units, read the rejection reason — usually policy not on file, duplicate report level, or a valuation date outside the permitted window.",
+            "Where the rejection is 'policy not on file', check with the Policy Administration Analyst whether the policy's proof-of-coverage or policy data was reported to the bureau at all, and correct that first.",
+            "Re-submit rejected units and confirm acceptance before the due date wherever the window still allows it."
+          ],
+          "done": "every submitted unit is confirmed accepted, or its rejection reason is recorded with a dated re-submission."
+        },
+        {
+          "step": "Work the bureau criticism file inside the correction window",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Load the criticism file from NCCI or the WCIRB and list each criticism by policy, criticism code and the field questioned.",
+            "Investigate each against the frozen source extracts — audited payroll, claim valuation, class assignment — rather than against today's values.",
+            "Answer with either a correction report carrying the amended value or a written response defending the reported value with its evidence.",
+            "Track each criticism to closure inside the bureau's correction window and record the closure date."
+          ],
+          "done": "every criticism is answered with a correction report or a documented defence and closed inside the bureau's correction window."
+        },
+        {
+          "step": "File correction reports when reported data later proves wrong",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Raise a correction report where a premium audit is reopened, a claim is reclassified (for example medical-only reclassified as indemnity), or a class code assignment changes after submission.",
+            "Report the correction against the same policy, report level and valuation date as the original — never as a new report level.",
+            "Assess whether the correction moves the policyholder's experience modification and, if so, notify the Underwriting Director / Manager so renewal pricing is corrected.",
+            "Record the correction, its driver and its modification impact on the policy's statistical history."
+          ],
+          "done": "each correction is filed at the original report level and valuation date, with any experience-modification impact assessed and notified."
+        },
+        {
+          "step": "Monitor the bureau's data quality scoring",
+          "by": "Data Quality Manager",
+          "role": "Data Quality Manager",
+          "app": "Power BI",
+          "actions": [
+            "Track the bureau's data quality measures per submission cycle: timeliness, criticism rate per 100 units, and rejected-unit rate by state.",
+            "Compare each cycle to the bureau's published performance standard and to the prior cycle.",
+            "Where a state falls below standard, run a root-cause pass on that state's criticisms and raise the fix as a build or source-data change.",
+            "Publish the scorecard to the statistical reporting forum each cycle with named owners against every below-standard state."
+          ],
+          "done": "a per-cycle bureau data-quality scorecard is published with root causes and named owners for every below-standard state."
+        },
+        {
+          "step": "Reconcile unit-statistical data to the statutory and financial calls",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Compare aggregate unit-report premium and losses by state to the bureau financial call submissions for the same period.",
+            "Compare the same figures to the statutory Annual Statement state page and Schedule P for the state and accident year.",
+            "Investigate and document every difference above tolerance, distinguishing genuine definitional differences (net versus gross of deductible reimbursements) from errors.",
+            "Attach the three-way reconciliation to the quarter's statistical reporting pack."
+          ],
+          "done": "unit-statistical, financial call and Annual Statement figures are reconciled three ways with every difference explained in writing."
+        },
+        {
+          "step": "Escalate late, missing or restated unit reports",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise an issue per unit report filed after its due date, rejected and unrecovered, or restated after acceptance, with policy, state, report level, valuation date and days late.",
+            "Assign a root cause (premium audit open, claim valuation not frozen, policy not on bureau file, code list stale, calendar not built) and an owner.",
+            "For any late filing that could attract a bureau penalty or affect an experience modification, route the position through the Chief Actuary and Regulatory Counsel.",
+            "Carry every open issue into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "every late, missing or restated report has an issue, root cause, owner, remediation date and an assessed modification impact."
+        },
+        {
+          "step": "Retain the submission pack for the full retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Archive per policy and report level: the submitted WCSTAT/USR file, the bureau confirmation, the edit report, the ledger reconciliation, the criticism file and any correction report.",
+            "Apply the 7-year-from-last-valuation retention label so the record survives the full 66-month reporting cycle plus audit look-back.",
+            "Index by state, carrier code, policy number, report level and valuation date so a WCIRB or NCCI data audit request resolves directly.",
+            "Confirm each quarter that a chosen policy's full five-level history can be reassembled from the archive alone."
+          ],
+          "done": "each policy's unit report pack is archived, retention-labelled and provably reassemblable by report level and valuation date."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of unit reports due in the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Independently recompute the due population from the policy master: every WC policy whose 20-month first-report due date or 33/45/57/69-month subsequent due date falls in the quarter.",
+            "Reconcile your recomputed population to the operational statistical calendar and list every policy the calendar missed.",
+            "Include cancelled and short-term policies, which still carry unit reporting obligations, and policies written in run-off states.",
+            "Sign the population as complete with the recomputation logic and run date."
+          ],
+          "done": "an independently recomputed due population exists and every policy missing from the operational calendar is listed."
+        },
+        {
+          "step": "Reconcile the due population to the in-force and expired policy master",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Reconcile the policy count in the due population to the count of WC policies with the corresponding effective-date months in the policy master.",
+            "Confirm each policy's writing company carrier code and coverage state match what the bureau holds, using the bureau's policy data on file.",
+            "Identify any policy in the master with no unit report at any level — these are silent non-filers, the worst outcome in this obligation.",
+            "Explain every difference before sampling."
+          ],
+          "done": "the due population reconciles to the policy master by effective-date cohort and every never-reported policy is identified."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of California WCIRB submissions in the quarter and 100% of policies carrying an experience modification.",
+            "Take 25 further policies at random with a recorded seed, stratified so first reports and each subsequent report level appear at least four times.",
+            "Add every policy identified as a silent non-filer or as missing from the operational calendar.",
+            "Record the seed, population size, strata and selection date so the sample can be re-drawn identically."
+          ],
+          "done": "the sample is reproducible, covers California and all experience-rated policies in full, and spans every report level."
+        },
+        {
+          "step": "Re-perform the valuation and due-date maths",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each sampled policy, recompute valuation date = policy effective date + 18/30/42/54/66 months and due date = valuation date + 2 months for the first report and + 3 months for subsequent reports, per the bureau plan in force.",
+            "Compare the recomputed valuation date to the valuation date carried in the submitted file header — a report valued a month early understates losses across the whole file.",
+            "Compare the recomputed due date to the actual submission date and compute days early or late.",
+            "List every report submitted outside the bureau's permitted valuation window as an exception even if it was accepted."
+          ],
+          "done": "valuation and due dates are independently recomputed per policy and every off-window valuation or late submission is listed."
+        },
+        {
+          "step": "Re-perform the premium reconciliation to the ledger",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "For each sampled policy, trace reported audited payroll by class code back to the completed premium audit worksheet.",
+            "Recompute standard premium: manual premium by class times the experience modification, plus schedule rating and expense constant, and compare to the reported figure.",
+            "Roll the sampled state's reported premium and compare to written premium in the ledger for that state and policy year, applying the 0.5% tolerance.",
+            "Flag any policy reported on estimated rather than audited exposure — the modification derived from it is wrong."
+          ],
+          "done": "reported premium is traced to the audit worksheet, recomputed, and reconciled to the ledger within tolerance per state."
+        },
+        {
+          "step": "Re-perform the claim valuation trace",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "For each sampled policy, take five claims and re-value indemnity and medical (paid plus case outstanding) as at the report's valuation date using the claim's transaction history.",
+            "Compare to the incurred amounts on the submitted unit report and list every difference.",
+            "Re-perform the injury type and claim status coding from the claim file — a medical-only claim reported as indemnity distorts the experience modification directly.",
+            "Confirm subrogation and deductible recoveries were treated on the bureau's gross/net basis, not the internal management basis."
+          ],
+          "done": "sampled claim values, injury types and statuses are re-performed at the valuation date and every difference is listed."
+        },
+        {
+          "step": "Verify bureau acceptance and criticism closure",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For each sampled report, open the bureau confirmation and confirm the unit was accepted, not merely submitted.",
+            "Pull the criticism file entries for that policy and confirm each was closed by a correction report or a documented defence inside the bureau's correction window.",
+            "Age any open criticism at the test date and report the oldest by state.",
+            "Confirm rejected units were re-submitted and accepted, and that a 'policy not on file' rejection was cured by correcting the bureau policy data first."
+          ],
+          "done": "each sampled report is confirmed accepted with every criticism closed in window, and open criticisms are aged and reported."
+        },
+        {
+          "step": "Test correction reports and their downstream pricing effect",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Extract every correction report filed in the quarter and confirm each was filed at the original report level and valuation date rather than as a new level.",
+            "For corrections that moved reported premium or losses materially, confirm the experience-modification impact was assessed and that Underwriting was notified where a renewal was affected.",
+            "Confirm the Chief Actuary's sign-off exists on every restatement.",
+            "List any correction discovered by the bureau rather than internally — that is a detection-control failure, not just a data error."
+          ],
+          "done": "every correction is filed at the correct level with a signed restatement approval and a documented modification impact assessment."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise an issue per exception with policy number, state, bureau, report level, valuation date, due date, submission date and days late.",
+            "Assign a root cause (calendar gap, premium audit open at valuation, unfrozen claim extract, stale code list, policy not on bureau file, criticism unworked) and a named owner.",
+            "Quantify the effect on the policyholder's experience modification for every data exception and flag those needing a modification revision request to the bureau.",
+            "Carry every open exception into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and a quantified experience-modification impact."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare results to the thresholds: 100% of due reports filed and accepted by the due date, premium within 0.5% and losses within 1% of the ledger by state, no open criticism past window.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with workpaper references behind each exception.",
+            "Have the independent reviewer, who built or submitted none of the sampled reports, sign the workpaper.",
+            "Report the result, any never-reported policies and any modification impacts to the Compliance Committee and the Chief Actuary, and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with reconciliation results, a stated conclusion and dual reporting to the committee and Chief Actuary exists in the repository."
+        }
+      ]
+    }
+  ]
+}

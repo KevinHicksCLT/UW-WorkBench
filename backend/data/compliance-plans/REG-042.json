@@ -1,0 +1,1548 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-042-C01",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Tax Manager",
+          "value": "Owns the annual and quarterly retaliatory computation for every foreign-licensed writing company across the 51 premium-tax jurisdictions; escalates disputed comparison items (guaranty-fund offsets, municipal taxes, home-office credits) to the Tax Director"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — each state's retaliatory statute is re-read against the current-year NAIC Retaliation Guide before the workbook is locked. Representative: Ala. Code 27-3-29 (retaliation) read together with 27-4A-3 (Alabama premium tax rate) and 27-4A-1 (municipal license tax preemption). Supporting: Ariz. Rev. Stat. 20-230, Cal. Ins. Code 685, Conn. Gen. Stat. 12-211"
+        },
+        "In-scope processes": {
+          "value": "Annual premium tax computation for each foreign writing company: Schedule T premium allocation, taxable-basis adjustments, taxing-state aggregate burden, domiciliary-state mirror burden, retaliatory excess by state, GL accrual. Domestic-state rows are computed but carry no retaliatory excess by definition"
+        },
+        "In-scope systems": {
+          "app": "Microsoft Excel",
+          "value": "Per-state retaliatory workbook, one tab per writing company per state (Alabama is the control tab), fed from the premium tax engine extract and the NAIC Retaliation Guide rate and fee tables"
+        },
+        "Compliance procedure documented": {
+          "value": "Retaliatory Tax Computation Procedure — domicile determination, taxable-basis build, per-state includable-versus-excludable fee list, domiciliary mirror method, guaranty-fund offset treatment, preparer/reviewer split and workbook lock"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Tax Director and countersigned by the Controller; refreshed every January when the new NAIC Retaliation Guide volumes publish, and on any state rate or fee bulletin issued mid-year"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Computation must be locked 10 business days before each return due date — March 1 for the Alabama, Arizona and Connecticut annual returns, April 1 for California — plus each quarterly prepayment computation date driving the Alabama estimated payments due the last day of the month after each quarter"
+        },
+        "Deadline reminders configured": {
+          "value": "Tax calendar alerts at T-30, T-15 and T-5 business days against each state due date, one row per writing company per state, with a separate T-20 alert for the domiciliary-state rate refresh"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Retaliatory workbook, dated NAIC Retaliation Guide page extracts, Schedule T tie-out and preparer/reviewer sign-offs retained 7 years from the return due date, covering every state assessment window (commonly 3 to 5 years)"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any understated or overstated retaliatory tax discovered after lock is logged with state, writing company, dollar variance, root cause and an amend-or-true-up-next-year disposition decided by the Tax Director"
+        },
+        "Remediation sign-off captured": {
+          "role": "Tax Director",
+          "value": "Signs every amended premium tax return and every retaliatory position that departs from the NAIC Retaliation Guide treatment for that state"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every writing-company and state combination carrying direct premiums written on the current-year Annual Statement Schedule T — all 51 jurisdictions for each foreign-licensed company, plus zero-premium states still holding a certificate of authority"
+        },
+        "Pass/fail thresholds": {
+          "value": "Recomputed retaliatory tax must agree to the workbook within the lower of USD 500 or 0.5 percent of that state's total tax for the company; a wrong domiciliary state, an omitted includable fee, an omitted state, or an excludable special-purpose obligation pulled into the comparison is an automatic fail regardless of dollar size"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual with quarterly prepayment computations; the test runs annually over the full 51-jurisdiction population, plus a quarterly re-performance of 10 states weighted to the largest retaliatory balances"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer may not have prepared or reviewed any sampled state computation and may not report to the Tax Manager"
+        },
+        "Evidence location for test results": {
+          "value": "Annual retaliatory tax test workpaper (population extract, sample selection with seed, re-performance sheets, exception log, sign-offs) in the compliance evidence repository under Tax / Premium Tax / retaliatory / <tax year>"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per-state computation sheet showing statute cite, taxing-state and domiciliary rates and fees with their NAIC Retaliation Guide page reference, Schedule T tie-out and the payment confirmation, producible to a state premium tax examiner within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "Tax Director owns state assessment notices and premium tax audits; Regulatory Counsel clears any protest, voluntary disclosure agreement or amended-return position before it leaves the company"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Freeze the writing-company and domicile inventory for the tax year",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Open the current-year Annual Statement for each writing company and copy from the Jurat page: legal name, NAIC company code, FEIN, state of domicile and the states in which the company is licensed.",
+            "Ask the Regulatory Filing Specialist for the certificate of authority list by state and reconcile it to the Jurat licensed-state list; a state on either list but not the other must be resolved before any computation starts.",
+            "For any alien insurer or U.S. branch, record the state of entry (port of entry) instead of a domicile, because that is the state whose burden the retaliatory comparison mirrors.",
+            "Record any redomestication during the year, with its effective date, and note that the comparison basis changes on that date.",
+            "Write the resulting company / domicile / licensed-state grid onto the control tab of the retaliatory workbook."
+          ],
+          "done": "every writing company has a confirmed domicile (or port of entry), a licensed-state list agreeing to the certificates of authority, and any redomestication is dated."
+        },
+        {
+          "step": "Pull direct premiums written by state and company from Schedule T",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Export Schedule T (Exhibit of Premiums Written Allocated by States and Territories) from the filed Annual Statement for each writing company, by state and by column (direct premiums written, direct premiums earned, dividends, finance and service charges).",
+            "Export the State Page (Exhibit of Premiums and Losses, statutory page 14) for the same companies so line-of-business detail is available for states that tax by line.",
+            "Confirm the Schedule T grand total agrees to the Underwriting and Investment Exhibit direct premium written total and note the difference if it does not.",
+            "Hand the extract to the Tax Analyst as a locked, dated file named schedT-<company>-<tax year>.xlsx and keep the export parameters with it."
+          ],
+          "done": "a dated Schedule T and State Page extract per writing company is delivered to Tax and its grand total ties to the filed statement."
+        },
+        {
+          "step": "Build the taxable premium basis for each state",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Start each state row from Schedule T direct premiums written for that state and writing company.",
+            "Apply the state's own basis rules: subtract return premiums and policyholder dividends where the state allows them, add finance and service charges where the state taxes them, and exclude premium the state does not tax (for example most states exclude annuity considerations and federally-reinsured crop premium).",
+            "Split the basis by line where the state applies different rates (Alabama taxes life at a different rate from all-other business under Ala. Code 27-4A-3), pulling the line split from the State Page.",
+            "Deduct premium written on risks located outside the state or reported to a different state under the state's allocation rule, and document which allocation rule you applied.",
+            "Show every adjustment as its own labelled line so the basis walks visibly from Schedule T to taxable premium."
+          ],
+          "done": "each state row shows a visible walk from Schedule T direct written premium to taxable premium, with every adjustment labelled and sourced."
+        },
+        {
+          "step": "Refresh the rate and fee tables from the current-year NAIC Retaliation Guide",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "Download the current-year NAIC Retaliation Guide (Volume I property/casualty, Volume II life/health) from the NAIC account portal as soon as it publishes in January.",
+            "For each state in scope, transcribe into the rate table: premium tax rate by line, fire marshal or fire department tax, annual statement filing fee, certificate of authority renewal fee, examination and valuation fees, agent appointment and renewal fees, and any special assessments the guide flags as retaliatory-includable.",
+            "Record for each figure the Retaliation Guide page and the statutory cite the guide gives, so the number can be defended without re-research.",
+            "Cross-check the three largest states by premium against the state department of insurance website or a current-year tax bulletin, because the guide lags mid-year rate changes.",
+            "Date-stamp the table <state>-rates-<yyyy-mm-dd> and lock it; any later change is made as a tracked revision, never an overwrite."
+          ],
+          "done": "a dated, page-referenced rate and fee table exists for every in-scope state and the three largest states are corroborated against a primary source."
+        },
+        {
+          "step": "Compute the taxing state aggregate burden — Alabama as the representative state",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "On the Alabama tab, multiply the Alabama taxable premium by the Alabama statutory rate under Ala. Code 27-4A-3 for each line of business and sum to Alabama basic premium tax.",
+            "Add the Alabama fixed impositions the retaliatory statute treats as part of the burden: annual statement filing fee, certificate of authority renewal fee, and agent appointment and renewal fees actually incurred for Alabama.",
+            "Subtract any Alabama credit the statute allows in the burden computation (for example the Alabama office facilities and real property investment credits) and note whether the state's retaliatory rule requires the burden to be measured before or after that credit.",
+            "Total the result as Alabama aggregate burden and label each component with its statutory cite.",
+            "Repeat the same build on every other state tab using that state's own rate table."
+          ],
+          "done": "every state tab shows an aggregate taxing-state burden built from labelled, cited components rather than a single blended rate."
+        },
+        {
+          "step": "Compute the domiciliary state mirror burden for the same premium",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "On each state tab, apply the writing company's domiciliary state rates and fees to that same taxing-state taxable premium, as if a company domiciled in the taxing state were writing that business in the domiciliary state.",
+            "Include in the mirror the domiciliary state's premium tax, fire marshal tax, filing and certificate of authority fees, and agent appointment fees — matching component for component with the taxing-state burden.",
+            "Use the domiciliary rate schedule effective for the tax year, not the current year, and record the effective date beside each figure.",
+            "Where the domiciliary state grants a home-office or investment credit, apply the treatment the taxing state's statute prescribes and quote that sentence on the tab.",
+            "Total the result as domiciliary mirror burden."
+          ],
+          "done": "each state tab carries a component-for-component domiciliary mirror burden using tax-year-effective domiciliary rates."
+        },
+        {
+          "step": "Classify each imposition as includable or an excluded special-purpose obligation",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "Read the taxing state's retaliatory statute and list what it says is compared — most statutes compare taxes, licenses, fees, fines, penalties, deposit requirements and other obligations, and exclude ad valorem taxes on real or personal property and special-purpose obligations or assessments.",
+            "Tag every line on the tab INCLUDABLE or EXCLUDED and paste the statutory phrase relied on next to the tag.",
+            "Treat guaranty association assessments, second injury fund and workers compensation special assessments as excluded unless the state's own guide entry says otherwise, and document the call either way.",
+            "Send any line you cannot resolve from the statute and the guide to Regulatory Counsel with the two candidate treatments and the dollar impact.",
+            "Apply the same classification consistently on both sides of the comparison — an item excluded from the taxing-state burden must also be excluded from the mirror."
+          ],
+          "done": "every imposition on both sides carries an INCLUDABLE or EXCLUDED tag with a quoted statutory basis, applied symmetrically."
+        },
+        {
+          "step": "Apply guaranty fund assessment offsets and premium tax credits",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Pull from the GL the guaranty association assessments paid by state and year and the unused offset carryforward balance from the prior-year workpaper.",
+            "Apply each state's offset rule — many states allow the assessment to be recovered against premium tax in equal instalments over five years at 20 percent per year beginning the year after payment.",
+            "Record the offset taken, the remaining carryforward and the expiry year on a per-state credit schedule.",
+            "Determine whether the state's retaliatory rule measures the burden before or after the offset, and place the offset on the correct side of the comparison.",
+            "Reconcile the total credits claimed on the schedule to the deferred tax credit asset carried in the GL."
+          ],
+          "done": "the credit schedule shows offsets taken, carryforwards and expiries by state and reconciles to the GL credit asset."
+        },
+        {
+          "step": "Compute the retaliatory excess and take the greater of the two burdens",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each state, compute retaliatory tax = domiciliary mirror burden minus taxing-state aggregate burden, floored at zero — a negative result never creates a refund.",
+            "Set total tax due to the taxing state = taxing-state basic premium tax plus the retaliatory excess, and confirm that equals the greater of the two aggregate burdens less the fixed fees billed separately.",
+            "Force the retaliatory line to zero on the company's own domiciliary state tab and add a note that a domestic insurer is not subject to retaliation.",
+            "Flag every state where the retaliatory excess moves more than 10 percent against last year and write a one-line driver (rate change, premium mix shift, domicile change) beside it.",
+            "Roll all state results into a summary tab showing basic tax, retaliatory tax and total by company and by state."
+          ],
+          "done": "every state shows a floored-at-zero retaliatory excess, domestic states show zero, and year-over-year movers above 10 percent carry a written driver."
+        },
+        {
+          "step": "Bring municipal, county and fire marshal taxes into the comparison correctly",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "List the local impositions the company actually paid by state — Kentucky local government premium tax, Louisiana and South Carolina municipal taxes, fire marshal or fire department taxes, and state surcharges.",
+            "For each, check whether the state's retaliatory statute or the NAIC Retaliation Guide entry brings local taxes into the aggregate burden; several states expressly exclude municipal taxes and Alabama preempts municipal license taxes under Ala. Code 27-4A-1.",
+            "Where local taxes are included, source the paid amounts from the local tax filings rather than the GL accrual, and reconcile the two.",
+            "Document each inclusion or exclusion decision on the state tab with the cite that drove it."
+          ],
+          "done": "every local imposition is either in the burden with a paid-amount source or excluded with a cite, on both sides of each comparison."
+        },
+        {
+          "step": "Capture the licensing and appointment fees that feed the burden",
+          "by": "Producer Licensing Coordinator",
+          "role": "Producer Licensing Coordinator",
+          "app": "NIPR (Producer Licensing)",
+          "actions": [
+            "In NIPR Gateway run the appointment and renewal activity report for the tax year, by state and by writing company.",
+            "Total appointment fees, appointment renewal fees and any per-producer state charges paid for each state and hand the totals to the Tax Analyst.",
+            "Add the company-level fees from the state invoices: annual statement filing fee, certificate of authority renewal fee, and any examination or valuation fee billed in the year.",
+            "Reconcile the NIPR totals to the fees expensed in the GL licensing account and explain any difference before the totals are used."
+          ],
+          "done": "a per-state fee total covering appointments, renewals, filing and certificate of authority fees is delivered to Tax and reconciles to the GL."
+        },
+        {
+          "step": "Tie the computed tax to the general ledger accrual",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Pull the premium tax expense and premium tax payable account balances by company and state from the GL trial balance.",
+            "Compare the workbook total tax by state to the accrued balance, and build a reconciling schedule for prepayments already made, prior-year true-ups and credits applied.",
+            "Post the true-up journal entry for the difference, referencing the workbook version and the state, and route it for Controller approval.",
+            "Confirm the resulting payable equals the amount that will be remitted with the return so the filing and the ledger cannot diverge."
+          ],
+          "done": "the workbook total by state agrees to the GL premium tax payable after a documented reconciling schedule and an approved true-up entry."
+        },
+        {
+          "step": "Run the preparer-to-reviewer review and lock the workbook",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "Review each state tab against a fixed checklist: correct domicile, tax-year-effective rates on both sides, symmetric includable classification, floor at zero, credits on the correct side, basis tied to Schedule T.",
+            "Re-perform from scratch the five states with the largest retaliatory balances rather than reviewing the preparer's arithmetic.",
+            "Return every question to the Tax Analyst in writing and require the answer on the tab, not by email only.",
+            "Sign the control tab with preparer name, reviewer name and date, then set the workbook to read-only as version <tax year>-FINAL."
+          ],
+          "done": "the workbook is signed by a preparer and a separate reviewer, the top five states are independently re-performed, and the file is locked as FINAL."
+        },
+        {
+          "step": "Report the retaliatory result to the Controller and Financial Planning",
+          "by": "Tax Director",
+          "role": "Tax Director",
+          "actions": [
+            "Present the summary tab to the Controller: total premium tax, total retaliatory tax, effective tax rate on direct written premium, and the year-over-year bridge.",
+            "Call out the states where a domicile change, a rate change or a premium mix shift moved the retaliatory number materially, so pricing and planning can react.",
+            "Hand FP&A the state-level forecast basis for next year's accrual rate.",
+            "Record the review date and attendees on the control tab."
+          ],
+          "done": "the Controller has accepted the result and the year-over-year bridge, with the review date recorded on the workbook."
+        },
+        {
+          "step": "File the computation evidence for the retention period",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move the locked workbook, the dated NAIC Retaliation Guide extracts, the Schedule T export, the NIPR fee report, the credit schedule and the sign-off page into the repository under Tax / Premium Tax / retaliatory / <tax year>.",
+            "Apply the 7-year retention label measured from the return due date so the record outlives every state assessment window.",
+            "Confirm the index makes the record searchable by writing company, NAIC company code, state and tax year.",
+            "Record the repository link on the tax calendar row for each state so a state examiner request can be answered from the calendar."
+          ],
+          "done": "the complete computation package is filed, labelled for 7-year retention and retrievable by company, state and tax year."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of company and state computations for the tax year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Extract Schedule T for every writing company and list every state carrying direct premiums written, plus every state where the company holds a certificate of authority with zero premium.",
+            "Match that list to the tabs present in the locked retaliatory workbook and list any state present in one and absent from the other.",
+            "Confirm the population covers all 51 jurisdictions for each foreign-licensed company before sampling begins.",
+            "Sign the population extract with the extraction date and the workbook version tested."
+          ],
+          "done": "the population is reconciled tab-for-state against Schedule T, signed and dated, with any missing state already listed as an exception."
+        },
+        {
+          "step": "Reconcile taxable premium and total tax to the statements and the ledger",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Sum workbook taxable premium by company and agree it to Schedule T direct premiums written less the documented basis adjustments.",
+            "Agree total tax by state from the summary tab to the GL premium tax payable and expense balances, using the preparer's reconciling schedule.",
+            "Test every reconciling item over the materiality threshold back to its source document, not to the schedule that asserts it.",
+            "Treat any unexplained residual above USD 500 per state as an exception rather than a rounding difference."
+          ],
+          "done": "workbook premium and tax reconcile to Schedule T and the GL, with every material reconciling item traced to source."
+        },
+        {
+          "step": "Draw a documented, reproducible sample of state computations",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100 percent of states where the retaliatory excess exceeds USD 100,000 or where the excess moved more than 25 percent year over year.",
+            "Take 20 further state rows by seeded random selection from the remainder, with a floor of 35 rows overall.",
+            "Force into the sample every state where the writing company redomesticated during the year and every alien or U.S. branch entity.",
+            "Record the seed, the population size, the stratification rule and the draw date in the workpaper so the sample can be re-drawn identically."
+          ],
+          "done": "the sample is drawn, reproducible from the recorded seed, and covers every large, volatile and redomestication state row."
+        },
+        {
+          "step": "Re-perform the domicile determination for each sampled company",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Open the filed Annual Statement Jurat page and read the state of domicile independently of the workbook.",
+            "For alien insurers and U.S. branches, confirm the port of entry from the certificate of authority rather than assuming the state of the U.S. management office.",
+            "Where a redomestication occurred, confirm the workbook split the year at the effective date and used each domicile's rates for its own period.",
+            "Treat a wrong domicile as an automatic fail — it invalidates the whole comparison for that state."
+          ],
+          "done": "each sampled company's domicile or port of entry is independently confirmed and any redomestication split is verified."
+        },
+        {
+          "step": "Re-perform the taxing state burden from the NAIC Retaliation Guide",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled state, open the tax-year NAIC Retaliation Guide entry and read the premium tax rate, fire marshal tax, filing fee, certificate of authority fee and appointment fees without looking at the workbook first.",
+            "Rebuild the taxing-state aggregate burden on your own schedule using the sampled taxable premium.",
+            "Compare to the workbook figure and investigate any difference above the lower of USD 500 or 0.5 percent of that state's total tax.",
+            "Capture the guide page you relied on into the workpaper with its publication date.",
+            "Verify the sampled rates against the state department of insurance bulletin for the two states with the largest balances."
+          ],
+          "done": "each sampled state has an independently rebuilt taxing-state burden within threshold, with the source guide page captured."
+        },
+        {
+          "step": "Re-perform the domiciliary mirror burden and the excess arithmetic",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Rebuild the domiciliary mirror using the domiciliary state's tax-year-effective rates applied to the same taxable premium, component for component.",
+            "Recompute retaliatory tax = mirror burden minus taxing-state burden, floored at zero, and confirm the workbook did not carry a negative into the total.",
+            "Confirm the retaliatory line is zero on every domiciliary-state tab.",
+            "Recompute total due = basic premium tax plus retaliatory excess and agree it to the amount remitted per the payment confirmation.",
+            "List every difference with its dollar amount and the component that caused it."
+          ],
+          "done": "the mirror burden, the floored excess and the total due are independently recomputed and agree to the workbook and the remittance within threshold."
+        },
+        {
+          "step": "Test includable and excludable classification against the statute",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Read the retaliatory statute for each sampled state as it stood for the tax year, including any amendment effective mid-year.",
+            "Confirm every INCLUDABLE tag is supported by the statutory language and that ad valorem property taxes and special-purpose assessments were excluded.",
+            "Confirm classification is symmetric — the same component treated the same way on both sides of the comparison.",
+            "Treat any line carrying a tag with no quoted statutory basis as a fail, not a documentation gap."
+          ],
+          "done": "every sampled classification is supported by tax-year statutory language and applied symmetrically on both sides."
+        },
+        {
+          "step": "Recompute guaranty fund offsets, credits and carryforwards",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Trace each sampled assessment offset back to the assessment invoice and the cash payment in the GL.",
+            "Recompute the annual instalment under the state's recovery rule (commonly 20 percent per year for five years starting the year after payment) and check the carryforward roll-forward for expiries.",
+            "Confirm the offset sits on the side of the comparison the state's rule requires and was not double-counted in both the burden and the credit schedule.",
+            "Agree total credits claimed to the credit asset carried in the GL."
+          ],
+          "done": "every sampled offset traces to an invoice and payment, the instalment maths and carryforward reconcile, and no credit is double-counted."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise one tracker issue per exception with company, state, dollar variance, the component at fault and whether the tax was understated or overstated.",
+            "Assign a root cause from a fixed list: stale rate table, wrong domicile, asymmetric classification, basis error, credit misapplication, missing state.",
+            "Set an owner and a remediation date, and for understatements record the amend-or-true-up decision made by the Tax Director with its filing deadline.",
+            "Carry every open exception into the next cycle as a mandatory retest row."
+          ],
+          "done": "every exception carries an issue, a root cause, an owner, a remediation date and an amend-or-true-up decision."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the exception rate by state count and by dollar value and compare both to the stated thresholds.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — with the workpaper references that support it.",
+            "Have the Internal Auditor, who prepared and reviewed none of the sampled computations, sign the workpaper.",
+            "Report the result and any understatement above the escalation threshold to the Controller and the Audit Committee at the next sitting, and file the workpaper in the repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, both exception rates and a committee reporting date is filed in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-042-C02",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Tax Manager",
+          "value": "Owns submission of the premium tax and retaliatory return and the matching remittance in each of the 51 jurisdictions, including OPTins account administration and the non-OPTins state portals"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — each state's filing and payment provision is re-read with the state's current-year premium tax return instructions before the first submission of the season. Representative: Ala. Code 27-3-29 with the Alabama Department of Insurance annual premium tax return instructions; supporting Ariz. Rev. Stat. 20-230, Cal. Ins. Code 685, Conn. Gen. Stat. 12-211"
+        },
+        "In-scope processes": {
+          "value": "Return assembly from the locked retaliatory workbook, state form population, OPTins filing and ACH debit submission, non-OPTins portal submission (California CDI, New York DFS, Texas Comptroller Webfile), confirmation capture and payment posting"
+        },
+        "In-scope systems": {
+          "app": "Statutory Reporting (NAIC)",
+          "value": "NAIC OPTins for the states that mandate it, with the state-issued Excel return template attached to each filing; state portals used where OPTins is not accepted"
+        },
+        "Compliance procedure documented": {
+          "value": "Premium Tax Filing and Remittance Procedure — per-state channel matrix, OPTins submission steps and cut-off times, ACH funding, confirmation capture, rejected-filing rework and late-filing escalation"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Tax Director; reviewed each January before filing season opens and whenever a state changes its accepted filing channel or return template"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "One calendar row per state per writing company: Alabama, Arizona and Connecticut annual returns due March 1, California due April 1, with the OPTins submission target set 5 business days ahead of each due date to absorb ACH settlement and rejection rework"
+        },
+        "Deadline reminders configured": {
+          "value": "Tax calendar alerts at T-20, T-10 and T-3 business days per state, plus a same-day alert to the Tax Director for any state still unfiled at 10:00 on the due date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Filed return PDF, OPTins confirmation number and submission timestamp, ACH debit settlement advice and the state acknowledgement letter retained 7 years from the due date"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any late, rejected or short-paid filing is logged with state, due date, actual submission date, days late, penalty and interest assessed, and the disposition (abatement request, penalty paid, process fix)"
+        },
+        "Remediation sign-off captured": {
+          "role": "Tax Director",
+          "value": "Signs every late-filing penalty abatement request and every amended return submitted to correct an original filing"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every premium tax and retaliatory return due in the filing season across all writing companies and 51 jurisdictions, including nil returns for licensed states with no premium"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on timeliness — any return submitted after its statutory due date, or any remittance settling after the due date, is a fail. Remitted cash must equal the return liability to the cent; any difference is a fail regardless of size"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per deadline; the test runs after each filing wave (March, April and each quarterly prepayment wave) over 100 percent of that wave's returns for timeliness and a sample for accuracy of submission"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer may not have prepared, submitted or approved any tested filing or payment"
+        },
+        "Evidence location for test results": {
+          "value": "Filing-season test workpaper (calendar extract, OPTins confirmation register, bank debit tie-out, exception log) in the compliance evidence repository under Tax / Premium Tax / filings / <tax year>"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per-state filing packet — signed return, OPTins confirmation number and timestamp, ACH settlement advice and the underlying computation sheet — producible to a state premium tax examiner within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Tax Director owns notices of late filing, penalty assessments and portal disputes; the NAIC OPTins help desk handles transmission failures; Regulatory Counsel clears any abatement request or admission of late filing before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Build the per-state filing channel and due-date matrix for the season",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "For each of the 51 jurisdictions, record on the matrix: filing channel (OPTins, state portal, paper), return form name and version, statutory due date, whether a nil return is required, and the accepted payment method.",
+            "Confirm each state's channel from that state's current-year premium tax instructions or its page on the NAIC OPTins participating-states list, not from last year's matrix.",
+            "Flag the states that mandate OPTins for both filing and payment separately from those that accept OPTins for payment only.",
+            "Record the non-OPTins exceptions with their portal URLs — for example California CDI for the April 1 return, New York DFS and Texas Comptroller Webfile.",
+            "Circulate the matrix to the Tax Manager and Treasury before the first submission of the season."
+          ],
+          "done": "every jurisdiction has a confirmed channel, form version, due date, nil-return rule and payment method sourced from current-year instructions."
+        },
+        {
+          "step": "Confirm the OPTins account, users and ACH mandate are live before filing season",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Log in to OPTins and open the account administration screen; confirm the company is registered for every state that will be filed and that no state registration has lapsed.",
+            "Check the user list: each preparer has a submitter role, each approver has an approver role, and leavers have been removed.",
+            "Verify the ACH debit bank account and routing number on file with Treasury and confirm the bank's ACH debit block has the OPTins originator ID whitelisted.",
+            "Run a zero-dollar or low-value test filing in a state that permits it, or confirm with the OPTins help desk that the account is in good standing, at least 15 business days before March 1.",
+            "Record the account check date and the OPTins support ticket number, if any, on the filing matrix."
+          ],
+          "done": "the OPTins account is confirmed active for every state to be filed, the user roster is current, and the ACH debit path is proven before the season opens."
+        },
+        {
+          "step": "Assemble the return package from the locked computation",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Open the locked retaliatory workbook version <tax year>-FINAL and pull, per state, taxable premium by line, basic premium tax, retaliatory tax, credits and total due.",
+            "Download the state's current-year return template — for OPTins states this is the state-issued Excel workbook that must be attached to the filing — and confirm the version matches the tax year.",
+            "Populate the template fields exactly: NAIC company code, FEIN, state licence number, premium by line, deductions, tax rate, retaliatory computation schedule and total remittance.",
+            "Attach the retaliatory computation schedule showing both the state and domiciliary burdens where the state's form requires the supporting detail rather than a single figure.",
+            "Save as <state>-<company>-<tax year>-return and never re-key figures by hand between the workbook and the template."
+          ],
+          "done": "each state return template is fully populated from the locked workbook on the current-year form version, with the retaliatory schedule attached."
+        },
+        {
+          "step": "Validate the return against the state's own edit checks before submission",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "Run the state template's built-in validation or totals check and clear every red flag; several state workbooks will not upload with an unresolved edit.",
+            "Confirm the premium reported on the return agrees to Schedule T for that state, since examiners start the audit at that comparison.",
+            "Confirm the total due on the return equals the sum of basic tax plus retaliatory tax less credits and less prepayments already made.",
+            "Check the signature and officer title block is completed with a currently authorised officer.",
+            "Have a second preparer initial the template before it is queued for submission."
+          ],
+          "done": "the return passes the state's edit checks, ties to Schedule T and to the workbook, and carries a second-preparer initial."
+        },
+        {
+          "step": "Obtain the officer review and authorisation to remit",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "Review the completed return against the workbook summary tab for the state and confirm the total due, the credits taken and the prepayment offsets.",
+            "Confirm the officer signing is on the current authorised-signer list held by the Corporate Secretary.",
+            "Approve the remittance amount in writing on the filing matrix row with your name and the approval date.",
+            "Send Treasury the state, amount and target debit date so cash is positioned before the ACH pull."
+          ],
+          "done": "the return and the remittance amount are approved by name and date, and Treasury has the funding instruction."
+        },
+        {
+          "step": "Position the cash for the ACH debit",
+          "by": "Treasury Analyst",
+          "role": "Treasury Analyst",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Load the approved per-state remittance amounts into the daily cash forecast against the target debit dates from the filing matrix.",
+            "Confirm the funding account will hold cleared funds on the debit date, allowing for the ACH settlement lag of one to two business days after OPTins submission.",
+            "Confirm the ACH debit filter on the funding account permits the OPTins originator so the debit cannot be returned.",
+            "Notify the Tax Analyst in writing that funding is in place before submission is released."
+          ],
+          "done": "cleared funds are positioned for every approved remittance and the debit filter is confirmed to permit the state debit."
+        },
+        {
+          "step": "Submit the filing and payment through OPTins",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "In OPTins choose Create Filing, select the state, the filing type (premium tax annual return) and the tax year.",
+            "Upload the populated state return template and any required attachment (retaliatory schedule, Schedule T page, credit schedule) and enter the payment amount to the cent.",
+            "Submit before the state's daily cut-off — submissions after the cut-off carry the next business day and cannot be assumed timely on the due date.",
+            "Send the filing for approval where the state configuration requires a second OPTins user, and confirm the approver releases it the same day.",
+            "Capture the OPTins confirmation number, submission date and timestamp and paste them onto the filing matrix row immediately."
+          ],
+          "done": "the filing shows a Submitted status in OPTins with a confirmation number and timestamp on or before the due date, recorded on the matrix."
+        },
+        {
+          "step": "Submit the states that do not accept OPTins through their own channel",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "For each non-OPTins state, log in to the state's own system — for example the California Department of Insurance premium tax filing portal for the April 1 return, or the Texas Comptroller Webfile for the Texas return — using the registered company credentials.",
+            "Key or upload the return exactly as populated in the template and initiate the payment by the method the state accepts (ACH credit, ACH debit or EFT with the state's payment voucher).",
+            "For any state that still requires paper, send by trackable courier with a return-receipt and file the courier tracking number as the timeliness evidence.",
+            "Record the portal confirmation number, the payment reference and the submission timestamp on the filing matrix row."
+          ],
+          "done": "every non-OPTins state is submitted through its accepted channel with a captured confirmation or courier tracking reference."
+        },
+        {
+          "step": "Confirm the money actually moved and matches the return",
+          "by": "Cash Management Analyst",
+          "role": "Cash Management Analyst",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Pull the bank statement for the funding account for the debit window and match each state debit to a filing matrix row on state, amount and date.",
+            "Investigate any debit that did not appear within three business days of submission — a failed debit leaves the return filed and the tax unpaid, which most states treat as a late payment.",
+            "Investigate any debit whose amount differs from the return total, however small, before it is posted.",
+            "Post the cleared payments against the premium tax payable by state and company in the GL and attach the settlement advice."
+          ],
+          "done": "every submitted filing has a matched, cleared bank debit equal to the return total, posted against the state payable."
+        },
+        {
+          "step": "Clear rejected, returned or unacknowledged filings the same week",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Check the OPTins filing list daily during the season for any filing in Rejected or Pending status and open the state's rejection comment.",
+            "Fix the cause — wrong template version, unbalanced totals, missing attachment, insufficient funds on the debit — and resubmit, keeping both the original and the corrected confirmation numbers.",
+            "Where the rejection pushes submission past the due date, raise the late-filing exception immediately rather than waiting for the state notice.",
+            "Chase any state that has not acknowledged within its normal turnaround by contacting the department's premium tax unit and log the contact date and person."
+          ],
+          "done": "no filing remains in Rejected or Pending status at week end, and every resubmission is logged with both confirmation numbers."
+        },
+        {
+          "step": "File nil returns for licensed states with no premium",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "From the certificate of authority list, identify every state where the company is licensed but wrote no premium in the tax year.",
+            "Check that state's instructions for whether a zero return is still required — most states require one from any licensed insurer and assess a late-filing penalty on a missing zero return.",
+            "Submit the nil return through the state's channel with premium and tax stated as zero and the officer signature completed.",
+            "Record the confirmation number on the matrix so the zero states are visibly complete rather than silently absent."
+          ],
+          "done": "every licensed zero-premium state either has a filed nil return with a confirmation number or a documented instruction that none is required."
+        },
+        {
+          "step": "Handle state notices, assessments and penalty correspondence",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "Log every notice received from a state premium tax unit on the day of receipt with state, notice date, statutory response deadline and amount at issue.",
+            "Compare the state's figure to the filed return and the confirmation evidence before conceding anything.",
+            "Where the company was in fact late, prepare an abatement request citing the confirmation timestamp, the cause and the corrective action, and route it to Regulatory Counsel for clearance.",
+            "Pay undisputed penalties and interest within the notice deadline and post them to the penalty account, not to premium tax expense."
+          ],
+          "done": "every state notice has a logged deadline, a reconciled position and either a cleared abatement request or a paid, correctly coded settlement."
+        },
+        {
+          "step": "Reconcile the filing register to the calendar at wave close",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "At the close of each filing wave, list every calendar row for the wave and confirm each carries a confirmation number, a submission timestamp and a cleared payment reference.",
+            "Report the count filed on time, filed late and unfiled to the Tax Director on the second business day after the wave.",
+            "Escalate any unfiled state to the Tax Director the same day with the exposure and the proposed catch-up date.",
+            "Close the wave only when every row is complete or carries a logged exception."
+          ],
+          "done": "the wave is closed with every calendar row carrying a confirmation, a timestamp and a payment, or a logged exception."
+        },
+        {
+          "step": "Capture the filing evidence packet per state",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "For each state, assemble the packet: signed return PDF, populated state template, OPTins or portal confirmation with timestamp, ACH settlement advice and the state acknowledgement.",
+            "File the packet under Tax / Premium Tax / filings / <tax year> / <state> / <company> and apply the 7-year retention label from the due date.",
+            "Link the packet from the filing matrix row so a state examiner request can be served from the calendar in one step.",
+            "Confirm the packet is searchable by NAIC company code, state, tax year and confirmation number."
+          ],
+          "done": "each state has a complete, linked and retention-labelled filing packet retrievable by company, state and confirmation number."
+        },
+        {
+          "step": "Debrief the season and fix the causes of every late or rejected filing",
+          "by": "Tax Director",
+          "role": "Tax Director",
+          "actions": [
+            "Review the season statistics: filings submitted, days of headroom to the due date by state, rejections by cause, penalties and interest paid.",
+            "For every rejection cause, agree a concrete fix — earlier template download, earlier ACH funding, an added approver, an earlier calendar target.",
+            "Update the filing channel matrix and the procedure with the agreed changes before the next wave.",
+            "Report penalties and interest paid, with causes, to the Controller."
+          ],
+          "done": "every rejection and late filing has an agreed root-cause fix reflected in the updated matrix and procedure, and penalties are reported to the Controller."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of returns due in the filing wave",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Extract the tax calendar for the wave: every writing company and state with a return due, including nil-return states.",
+            "Reconcile the calendar to the certificate of authority list so a licensed state cannot be missing from the calendar altogether.",
+            "Reconcile the calendar to the retaliatory workbook state tabs so a computed state cannot be missing from the filing list.",
+            "Sign the population with the extract date and the wave tested."
+          ],
+          "done": "the population reconciles to both the licence list and the workbook, is signed and dated, and missing states are already exceptions."
+        },
+        {
+          "step": "Test timeliness across 100 percent of the wave",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Export the OPTins filing history for the wave with state, filing type, submission timestamp and status, and gather the portal confirmations for non-OPTins states.",
+            "Compare each submission timestamp to the statutory due date read from that state's current-year instructions, not from the internal calendar.",
+            "Compute days late for every filing after its due date and note whether the state's cut-off time pushed the effective submission to the next business day.",
+            "Treat any filing without a confirmation number as unfiled until proven otherwise."
+          ],
+          "done": "every return in the wave is confirmed submitted on or before its statutory due date, or is quantified as days late."
+        },
+        {
+          "step": "Draw a documented sample for submission accuracy",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100 percent of returns with a retaliatory balance above USD 100,000 and 100 percent of any filing that was rejected or resubmitted.",
+            "Take 20 further returns by seeded random selection across the remaining states, with a floor of 30 returns overall.",
+            "Force in every nil return and every non-OPTins state so both edge paths are covered.",
+            "Record the seed, population size, stratification and draw date so the sample can be re-drawn."
+          ],
+          "done": "the sample is reproducible and covers large balances, rejections, nil returns and every non-OPTins channel."
+        },
+        {
+          "step": "Re-perform the filing in the regulator system for each sampled return",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "In OPTins open the sampled filing and inspect the submitted attachment, not the internal copy.",
+            "Confirm the state, tax year, filing type, NAIC company code and payment amount on the submitted record.",
+            "Confirm the attached return template is the state's current-year version and that the retaliatory schedule was attached where the state requires it.",
+            "Screenshot the OPTins filing detail screen with the confirmation number and timestamp into the workpaper."
+          ],
+          "done": "each sampled filing is inspected as submitted in the regulator system and captured into the workpaper."
+        },
+        {
+          "step": "Trace the return figures back to the locked computation",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Agree taxable premium by line, basic premium tax, retaliatory tax, credits and total due on the submitted return to the locked workbook tab for that state.",
+            "Confirm no figure was re-keyed differently between the workbook and the submitted template.",
+            "Confirm prepayments offset on the return match the payment log for that state and tax year.",
+            "Any difference between the submitted return and the locked computation is an exception regardless of direction."
+          ],
+          "done": "every sampled return agrees line for line to the locked workbook and to the prepayment log."
+        },
+        {
+          "step": "Tie every remittance to a cleared bank debit",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Match each sampled return to a cleared debit on the funding account bank statement on state, amount and date.",
+            "Confirm the settlement date is on or before the state's payment due date, since a timely filing with a late-settling payment is still a late payment in most states.",
+            "Confirm the posted GL entry cleared the correct state and company premium tax payable rather than a suspense account.",
+            "List any short payment, over payment or returned debit as an exception with the dollar amount."
+          ],
+          "done": "every sampled remittance traces to a cleared, correctly dated debit and a correctly posted payable relief."
+        },
+        {
+          "step": "Recompute penalty and interest exposure on late filings",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "For each late filing found, read the state's penalty and interest provision in the current-year instructions and recompute the exposure from the days-late count and the tax due.",
+            "Compare the recomputed figure to any penalty already assessed or accrued and explain the difference.",
+            "Confirm penalties paid were coded to the penalty account and not buried in premium tax expense.",
+            "Confirm an abatement request, where filed, was cleared by Regulatory Counsel before it was sent."
+          ],
+          "done": "penalty and interest exposure is independently recomputed for every late filing, correctly coded and, where contested, counsel-cleared."
+        },
+        {
+          "step": "Test completeness against the licensed-state universe",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take the certificate of authority list by company and confirm every licensed state is either filed or documented as not requiring a return for the year.",
+            "Confirm each zero-premium licensed state has a filed nil return with a confirmation number where the state requires one.",
+            "Confirm no state was dropped from the calendar following a licence surrender without evidence the surrender was effective before the tax year.",
+            "Treat any licensed state with no return and no documented exemption as an unfiled-return breach, not a test exception."
+          ],
+          "done": "every licensed state for every company is accounted for by a filed return or documented evidence that none was due."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise one issue per exception with state, company, due date, actual submission or settlement date, days late and dollars at risk.",
+            "Assign a root cause from a fixed list: late computation lock, template version error, OPTins account or user lapse, ACH funding failure, cut-off time missed, state omitted from calendar.",
+            "Set an owner and a remediation date, and require the calendar or matrix change that prevents recurrence to be evidenced, not just promised.",
+            "Carry every open exception into the next filing wave as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date and an evidenced calendar or matrix fix."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report the wave",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the on-time filing rate, the on-time settlement rate and total penalties and interest for the wave.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — against the zero-tolerance timeliness threshold with workpaper references.",
+            "Have the Internal Auditor, who neither prepared nor approved any tested filing, sign the workpaper.",
+            "Report the result and any unfiled state to the Controller and the Audit Committee, and file the workpaper in the repository."
+          ],
+          "done": "a signed workpaper states the on-time rates, the conclusion and the committee reporting date, and is filed in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-042-C03",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Tax Analyst",
+          "value": "Owns the quarterly prepayment and instalment schedule for every state that requires estimated premium tax, including the retaliatory element, and reports the schedule position to the Tax Manager each quarter"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — each state's estimated-payment provision is re-read against the current-year instructions before the quarter is computed. Representative: Ala. Code 27-4A-3(c) quarterly prepayments read with the retaliatory provision at Ala. Code 27-3-29; supporting Ariz. Rev. Stat. 20-224 instalments, Cal. Ins. Code 685 with the California quarterly prepayment rule, Conn. Gen. Stat. 12-211"
+        },
+        "In-scope processes": {
+          "value": "Quarterly estimate computation per state (safe-harbour or current-year method), instalment calendar maintenance, cash funding, remittance, payment logging and the year-end true-up against the annual return"
+        },
+        "In-scope systems": {
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "value": "Premium tax payable and prepaid tax subledger by state and company, fed from the payment log and cleared against the annual return"
+        },
+        "Compliance procedure documented": {
+          "value": "Premium Tax Prepayment Procedure — state-by-state threshold and method matrix, safe-harbour election rules, instalment due dates, funding lead times, payment logging fields and the underpayment interest recomputation"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Tax Manager and the Treasury Manager (for the funding commitment); reviewed each January and on any state change to instalment thresholds or due dates"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Four instalment rows per applicable state per company: Alabama quarterly prepayments due the last day of the month following each calendar quarter, California prepayments due April 1, June 1, September 1 and December 1 at 25 percent of the prior-year tax, with the annual true-up on the March 1 or April 1 return"
+        },
+        "Deadline reminders configured": {
+          "value": "Instalment calendar alerts at T-15 (compute), T-7 (approve and fund) and T-2 (submit) business days per state per quarter, plus an alert to Treasury at T-5 for the aggregate cash requirement"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Quarterly estimate worksheet, safe-harbour basis evidence, payment log extract, remittance confirmations and bank debit advices retained 7 years from the annual return due date for the year they relate to"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Missed, late or underpaid instalments are logged with state, instalment date, shortfall, computed interest and penalty, and the disposition (catch-up payment date, abatement request, method change)"
+        },
+        "Remediation sign-off captured": {
+          "role": "Tax Manager",
+          "value": "Signs every catch-up payment, every change of estimate method mid-year and every interest or penalty accrual arising from an underpaid instalment"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every state and writing company combination that met a state's estimated-payment threshold in the year, multiplied by that state's instalment count — the full quarterly instalment universe, not just the states that were paid"
+        },
+        "Pass/fail thresholds": {
+          "value": "Each instalment must be at least the state's required minimum (safe harbour or current-year percentage) and must settle on or before its due date; any shortfall against the minimum, or any settlement after the due date, is a fail. Cumulative prepayments must clear to zero against the annual return with no unexplained residual"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is quarterly; the test runs each quarter over 100 percent of instalments due that quarter, with an annual test of the full-year true-up and interest recomputation"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Controls Analyst",
+          "value": "Reviewer may not have computed, approved or funded any tested instalment"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly prepayment test workpaper (instalment universe, threshold determination, recomputation sheets, bank tie-out, exception log) in the compliance evidence repository under Tax / Premium Tax / prepayments / <tax year> / Q<n>"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per-state instalment schedule showing the required minimum with its statutory basis, the amount paid, the confirmation number and the settlement date, reconciled to the annual return prepayment credit line, producible within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Tax Manager owns underpayment interest notices and instalment disputes; Regulatory Counsel clears any abatement or reasonable-cause argument before it is filed"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Determine which states require estimated payments this year and on what basis",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "For each state, read the current-year premium tax instructions and record: whether estimated payments are required, the liability threshold that triggers them (many states trigger at a prior-year tax of USD 2,000 or more), the number of instalments and their due dates.",
+            "Record the permitted computation method for each state: percentage of prior-year total tax (the safe harbour), percentage of current-year estimated tax, or percentage of current-year premium to date.",
+            "Record explicitly whether the state's estimate base includes the retaliatory element or only the basic premium tax, because underpaying the retaliatory share triggers interest just as a basic-tax shortfall does.",
+            "Confirm the trigger test against each company's prior-year total tax from the filed return and mark each state in scope or out of scope for the year.",
+            "Publish the resulting threshold-and-method matrix to the Tax Manager before the first instalment date."
+          ],
+          "done": "every state is marked in or out of scope with a threshold test result, an instalment count, due dates and a permitted method including the retaliatory treatment."
+        },
+        {
+          "step": "Build the instalment calendar for the year",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "Create one calendar row per state per company per instalment with the statutory due date, the method, the computed minimum and the responsible preparer.",
+            "Where a due date falls on a weekend or state holiday, apply the state's own rule for the next business day and record which rule you applied.",
+            "Set the internal targets ahead of each statutory date: compute at T-15, approve and fund at T-7, submit at T-2 business days.",
+            "Load the calendar into the tax calendar tool with the alert schedule and assign each row an owner and a backup."
+          ],
+          "done": "every instalment has a calendar row with a statutory date, an adjusted business-day date, internal targets, an owner and a backup."
+        },
+        {
+          "step": "Compute the safe-harbour minimum from the prior-year return",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Pull the prior-year total tax per state per company from the filed return, including the retaliatory element where the state's estimate base includes it.",
+            "Apply the state's safe-harbour percentage — commonly 25 percent of prior-year total tax per quarter — and record the resulting minimum on the calendar row.",
+            "Where the prior year was a short period, a first year of licensure or included a one-off credit, note that the safe harbour may not be available and compute the current-year alternative instead.",
+            "Show the prior-year figure, the percentage and the product on the worksheet so the minimum can be checked without reopening the prior return."
+          ],
+          "done": "each in-scope instalment carries a safe-harbour minimum showing the prior-year base, the percentage and the product."
+        },
+        {
+          "step": "Compute the current-year estimate as a cross-check on the safe harbour",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Pull direct written premium by state for the quarter from the billing and policy administration extract and annualise it against the plan.",
+            "Apply the current-year rate and the expected retaliatory differential from the latest NAIC Retaliation Guide table to produce a current-year projected tax by state.",
+            "Compare the projected full-year tax to the prior-year base; where growth exceeds 20 percent, flag the state because the safe harbour will leave a large final payment and, in states without a safe harbour, interest.",
+            "Recommend to the Tax Manager, per state, whether to pay the safe-harbour minimum or the higher current-year estimate."
+          ],
+          "done": "each in-scope state has a current-year projection, a growth flag where it exceeds 20 percent and a written pay-method recommendation."
+        },
+        {
+          "step": "Reflect domicile and rate changes that move the retaliatory element mid-year",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "Check with the Regulatory Filing Specialist whether any writing company redomesticated, surrendered or added a licence since the prior return.",
+            "Check the NAIC Retaliation Guide errata and state bulletins for rate or fee changes in either the taxing state or the domiciliary state that alter the retaliatory differential.",
+            "Recompute the affected instalment minimums using the changed rates and document the change with its effective date.",
+            "Alert the Tax Manager where a change raises a quarterly instalment by more than 15 percent so cash planning can absorb it."
+          ],
+          "done": "every domicile, licence or rate change since the prior return is reflected in the instalment minimums with its effective date documented."
+        },
+        {
+          "step": "Approve the quarterly instalment schedule",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "Review the quarter's instalment schedule state by state: threshold result, method chosen, minimum computed, amount to pay and the variance to the prior quarter.",
+            "Challenge any state paying below the safe-harbour minimum and require the current-year support behind it.",
+            "Approve the schedule in writing with your name and date and release it to Treasury as the funding instruction.",
+            "Retain the approved schedule as the control record for the quarter."
+          ],
+          "done": "the quarter's schedule is approved by name and date, with any below-safe-harbour state supported by a current-year computation."
+        },
+        {
+          "step": "Fund the quarter and confirm cleared cash before the debit dates",
+          "by": "Treasury Analyst",
+          "role": "Treasury Analyst",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Load the approved instalment amounts and dates into the cash forecast and total the requirement by debit date.",
+            "Confirm the funding account will hold cleared funds one to two business days before each debit, allowing for ACH settlement.",
+            "Confirm the ACH debit filter permits the state and NAIC OPTins originators so no debit is returned.",
+            "Confirm back to the Tax Analyst in writing that funding is in place for the quarter."
+          ],
+          "done": "cleared funding is confirmed in writing for every instalment date in the quarter and the debit filter is verified."
+        },
+        {
+          "step": "Remit each instalment through the state's accepted channel",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "In OPTins choose Create Filing, select the state and the estimated or prepayment filing type for the quarter and attach the state's prepayment voucher template where one is required.",
+            "Enter the approved amount to the cent and submit before the state's daily cut-off so the submission dates to the intended business day.",
+            "For non-OPTins states, submit through the state portal or EFT with the state's voucher, using the registered credentials.",
+            "Capture the confirmation number, the submission timestamp and the expected settlement date immediately onto the calendar row."
+          ],
+          "done": "every instalment in the quarter is submitted with a captured confirmation number and timestamp on or before its due date."
+        },
+        {
+          "step": "Post each payment to the prepaid tax subledger",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Post each cleared instalment to the prepaid premium tax account tagged with company, state, tax year and instalment number.",
+            "Match the posting to the bank debit advice and attach the OPTins or portal confirmation to the journal.",
+            "Never post an instalment to a generic tax suspense account — a state-untagged prepayment cannot be credited on the annual return.",
+            "Reconcile the prepaid balance by state to the payment log at each month end."
+          ],
+          "done": "every instalment is posted to prepaid tax tagged by company, state and tax year, matched to a bank advice and reconciled to the payment log."
+        },
+        {
+          "step": "Maintain the payment log as the single record of instalment position",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "Keep one log row per instalment with: company, state, tax year, instalment number, statutory due date, required minimum with its method, amount paid, confirmation number, submission timestamp, settlement date and GL posting reference.",
+            "Update the row on the day of submission and again on settlement — an unsettled payment is not a paid instalment.",
+            "Compute paid-to-date against the required-to-date figure per state and show the running shortfall or surplus.",
+            "Circulate the log to the Tax Manager within two business days of each instalment date."
+          ],
+          "done": "the log carries a complete row per instalment with a running paid-versus-required position circulated within two business days."
+        },
+        {
+          "step": "Chase missed, short or failed instalments the same week",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "Review the log for rows with no confirmation, no settlement or an amount below the required minimum.",
+            "For a failed ACH debit, confirm with Treasury whether the cause was funding or a debit block, correct it and resubmit the same week.",
+            "For a shortfall, compute and pay the difference immediately rather than waiting for the next instalment, because most states charge interest from the original due date.",
+            "Raise the exception in the tracker on the day it is identified with the shortfall and the days exposed."
+          ],
+          "done": "no instalment row remains unconfirmed, unsettled or short at week end without a catch-up payment and a logged exception."
+        },
+        {
+          "step": "Recompute underpayment interest exposure each quarter",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "For each state with a shortfall, read the state's underpayment interest rate and computation basis from the current-year instructions.",
+            "Compute interest on the shortfall from the statutory due date to the catch-up payment date and record the figure per state.",
+            "Accrue the computed interest in the GL to the penalty and interest account and notify the Controller where the quarter total exceeds the reporting threshold.",
+            "Recompute the following quarter's minimum to prevent the shortfall repeating."
+          ],
+          "done": "underpayment interest is computed per state from the statutory rate, accrued to the correct account and the causing minimum is corrected."
+        },
+        {
+          "step": "True the prepayments up against the annual return",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "At year end, sum the payment log by state and company and agree it to the prepayment credit line claimed on each annual premium tax return.",
+            "Agree the same total to the prepaid premium tax balance in the GL and clear the prepaid account against the annual liability.",
+            "Investigate any state where prepayments exceed the annual liability and decide, per that state's rule, between a refund claim and a carry-forward credit.",
+            "Document the true-up per state as the closing entry on the payment log."
+          ],
+          "done": "prepayments per the log agree to the return credit line and to the GL prepaid balance, and every overpayment has a refund or carry-forward decision."
+        },
+        {
+          "step": "Report the instalment position to Treasury and the Controller",
+          "by": "Treasury Manager",
+          "role": "Treasury Manager",
+          "actions": [
+            "Report the quarter's total premium tax cash outflow by state against the forecast and explain variances above the reporting threshold.",
+            "Give the Controller the forward view of the next two quarters' instalments so the cash plan holds them.",
+            "Flag states where premium growth will push the final payment materially above the safe-harbour instalments.",
+            "Record the reporting date on the quarter's control record."
+          ],
+          "done": "the quarter's outflow and the two-quarter forward view are reported with variances explained and the reporting date recorded."
+        },
+        {
+          "step": "File the quarter's prepayment evidence",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the approved schedule, the estimate worksheets, the payment log extract, the confirmations and the bank advices under Tax / Premium Tax / prepayments / <tax year> / Q<n>.",
+            "Apply the 7-year retention label measured from the annual return due date for the year the instalments relate to.",
+            "Link the quarter's folder from each calendar row so a state interest notice can be answered from the calendar.",
+            "Confirm the folder is searchable by company, state, tax year and instalment number."
+          ],
+          "done": "the quarter's prepayment evidence is filed, retention-labelled, linked from the calendar and searchable by state and instalment."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the instalment universe for the quarter",
+          "by": "Controls Analyst",
+          "role": "Controls Analyst",
+          "actions": [
+            "Rebuild the list of states requiring estimated payments from the current-year state instructions rather than from the internal matrix.",
+            "Apply each state's threshold test to the prior-year filed return by company to determine which combinations are in scope.",
+            "Compare your list to the instalment calendar and list every state in one and not the other.",
+            "Sign the universe with its build date and the quarter under test."
+          ],
+          "done": "the instalment universe is rebuilt from primary instructions, compared to the calendar, and signed with any omitted state already an exception."
+        },
+        {
+          "step": "Reconcile the payment log to the ledger and the bank",
+          "by": "Controls Analyst",
+          "role": "Controls Analyst",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Sum the payment log for the quarter by state and company and agree it to the prepaid premium tax account movement in the GL.",
+            "Agree the same total to cleared debits on the funding account bank statement for the quarter.",
+            "Investigate any payment sitting in a tax suspense account rather than tagged to a state, since it cannot be credited on the return.",
+            "Treat any unreconciled residual as an exception rather than a timing difference unless the settlement date proves otherwise."
+          ],
+          "done": "the payment log, the prepaid GL movement and the cleared bank debits agree for the quarter, with no state-untagged payments."
+        },
+        {
+          "step": "Draw a documented sample of instalments",
+          "by": "Controls Analyst",
+          "role": "Controls Analyst",
+          "actions": [
+            "Take 100 percent of instalments above USD 250,000 and 100 percent of instalments paid after their due date or below the required minimum.",
+            "Take 15 further instalments by seeded random selection from the remainder, with a floor of 25 overall.",
+            "Force in every state where the method changed mid-year and every company that redomesticated.",
+            "Record the seed, universe size, stratification and draw date so the sample can be re-drawn."
+          ],
+          "done": "the sample is reproducible and covers large, late, short, method-changed and redomestication instalments."
+        },
+        {
+          "step": "Recompute the required minimum for each sampled instalment",
+          "by": "Controls Analyst",
+          "role": "Controls Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Read the state's estimated-payment percentage and base from the current-year instructions without reference to the internal worksheet.",
+            "Recompute the safe-harbour minimum from the prior-year filed return, confirming whether the state's base includes the retaliatory element.",
+            "Where the current-year method was used, recompute it from the quarter's premium extract and the current rate and retaliatory differential.",
+            "Compare to the amount actually paid and quantify any shortfall to the cent."
+          ],
+          "done": "each sampled instalment has an independently recomputed minimum and a quantified shortfall or surplus."
+        },
+        {
+          "step": "Re-perform the threshold determination for out-of-scope states",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Take every state marked out of scope for estimated payments and read the state's own threshold in the current-year instructions.",
+            "Apply the threshold to the prior-year filed total tax including the retaliatory element, which is what pushes several states over the line.",
+            "List any state that should have been in scope and was therefore never paid — this is an unpaid-instalment breach, not a documentation gap.",
+            "Capture the instruction page relied on for each tested state."
+          ],
+          "done": "every out-of-scope state is independently threshold-tested against its own instructions with the source page captured."
+        },
+        {
+          "step": "Verify timeliness and settlement in the regulator system",
+          "by": "Controls Analyst",
+          "role": "Controls Analyst",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Open the OPTins filing history for the quarter and read the submission timestamp and status for each sampled instalment; gather portal confirmations for non-OPTins states.",
+            "Compare the submission timestamp and the bank settlement date to the statutory due date, applying the state's weekend and holiday rule.",
+            "Confirm the filing type submitted was the state's prepayment or estimated type and not an annual return type.",
+            "Screenshot the confirmation detail into the workpaper for each sampled instalment."
+          ],
+          "done": "each sampled instalment is confirmed submitted and settled on or before its statutory due date, with evidence captured."
+        },
+        {
+          "step": "Recompute underpayment interest and penalty exposure",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "For each shortfall or late settlement, read the state's interest rate and basis and recompute interest from the statutory due date to the actual payment date.",
+            "Compare the recomputed figure to the amount accrued in the penalty and interest account and explain the difference.",
+            "Confirm any state notice of underpayment interest was reconciled to the internal computation before it was paid.",
+            "List any exposure that was neither accrued nor disclosed as an exception."
+          ],
+          "done": "interest exposure is independently recomputed for every shortfall and agrees to what was accrued and paid, or is listed as an exception."
+        },
+        {
+          "step": "Test the year-end true-up back to the annual return",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Sum the payment log for the tax year by state and company and agree it to the prepayment credit line on the filed annual return.",
+            "Agree the same total to the prepaid premium tax account cleared at year end and confirm no residual was written off without approval.",
+            "For overpaid states, confirm a refund claim was filed or a carry-forward credit recorded in line with that state's rule.",
+            "Any prepayment claimed on a return but not traceable to a cleared bank debit is an automatic fail."
+          ],
+          "done": "prepayments claimed on every return trace to cleared debits, the prepaid account clears, and every overpayment has an evidenced refund or carry-forward."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise one issue per exception with state, company, instalment number, required minimum, amount paid, days late and computed interest.",
+            "Assign a root cause from a fixed list: threshold missed, wrong base excluding retaliatory tax, stale prior-year figure, funding failure, submission after cut-off, calendar omission.",
+            "Set an owner and a remediation date, and require the corrected minimum to be reflected in the next quarter's schedule before the issue closes.",
+            "Carry every open exception into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "every exception carries an issue, a root cause, an owner, a remediation date and an evidenced correction in the next quarter's schedule."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report the quarter",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the on-time instalment rate, the sufficiency rate against required minimums and total interest exposure for the quarter.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — against the stated thresholds with workpaper references.",
+            "Have the Controls Analyst, who computed, approved and funded none of the tested instalments, sign the workpaper.",
+            "Report the result and any unpaid state to the Tax Director and the Controller, and file the workpaper in the repository."
+          ],
+          "done": "a signed workpaper states both rates, the interest exposure, the conclusion and the reporting date, and is filed in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-042-C04",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Statutory Reporting Manager",
+          "value": "Owns the annual reconciliation of premium taxed on each state return to Schedule T and the State Page of the filed Annual Statement, jointly signed off with the Tax Manager who owns the return side"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — the reconciliation is built against the NAIC Annual Statement Instructions for Schedule T and the Exhibit of Premiums and Losses, read with each state's taxable-basis definition. Representative: Ala. Code 27-3-29 retaliation with the Alabama premium tax basis at 27-4A-3; supporting Ariz. Rev. Stat. 20-230, Cal. Ins. Code 685, Conn. Gen. Stat. 12-211"
+        },
+        "In-scope processes": {
+          "value": "Annual tie-out of taxable premium reported on all 51 jurisdictions' returns to Schedule T direct premiums written, the State Page by line of business, and the general ledger direct written premium, with a documented reconciling-item schedule per state"
+        },
+        "In-scope systems": {
+          "app": "Statutory Reporting (NAIC)",
+          "value": "Filed Annual Statement Schedule T and State Page as the source of record, compared against the premium tax return extracts and the GL direct written premium by state"
+        },
+        "Compliance procedure documented": {
+          "value": "Premium Tax to Statutory Reconciliation Procedure — source hierarchy, permitted reconciling-item categories, per-state basis differences, materiality threshold, evidence for each reconciling item and the dual sign-off"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Controller with the Statutory Reporting Manager and the Tax Manager as joint owners; reviewed annually after the Annual Statement is filed and on any change to the NAIC Annual Statement Instructions for Schedule T"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Reconciliation must be complete and signed within 15 business days of the March 1 Annual Statement filing and before the first premium tax return is submitted — the March 1 Alabama, Arizona and Connecticut returns and the April 1 California return all depend on it"
+        },
+        "Deadline reminders configured": {
+          "value": "Calendar alerts at Annual Statement filing plus 5, 10 and 15 business days, with a blocking alert to the Tax Manager if any state return is queued for submission while its reconciliation row is unsigned"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Reconciliation workbook, Schedule T and State Page extracts, GL premium extract, reconciling-item support and both signatures retained 7 years from the Annual Statement filing date"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any unexplained difference above the materiality threshold, or any return filed on premium that does not reconcile to Schedule T, is logged with state, dollar difference, cause and the amend-or-correct-next-year disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Controller",
+          "value": "Signs off every reconciling item written off above the materiality threshold and every decision to amend a filed return or a filed Annual Statement page"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every state reconciliation row for every writing company for the tax year — one row per state per company covering Schedule T premium, return premium, State Page premium and the GL figure"
+        },
+        "Pass/fail thresholds": {
+          "value": "Each state row must reconcile within the lower of USD 25,000 or 1 percent of that state's direct written premium, with every reconciling item above USD 10,000 supported by source evidence; an unexplained residual, an unsupported item or a return filed before its row was signed is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual, tied to the filed Annual Statement; the test runs annually over the full state population, with an interim review of the largest 10 states at the third-quarter statement to catch basis drift early"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer may not have prepared the Annual Statement schedules, the returns, or any sampled reconciliation row"
+        },
+        "Evidence location for test results": {
+          "value": "Annual premium reconciliation test workpaper (population, sample with seed, re-performed tie-outs, reconciling-item testing, exception log) in the compliance evidence repository under Tax / Premium Tax / reconciliation / <tax year>"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per-state reconciliation sheet walking Schedule T direct premiums written to the taxable premium on the return, each reconciling item labelled with its category and source document, producible to a state premium tax examiner within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Statutory Reporting Manager answers examiner questions on the statement side and the Tax Director on the return side; Regulatory Counsel clears any amended statement page or amended return arising from the reconciliation"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Fix the source of record and the extraction date",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Confirm the Annual Statement has been filed with the NAIC and the domiciliary state, and record the filing date and the statement version being reconciled.",
+            "Export Schedule T by state and column and the State Page (Exhibit of Premiums and Losses) by line of business for each writing company from the filed statement, not from a working draft.",
+            "Lock both extracts as read-only files named schedT-<company>-<tax year>-filed and statepage-<company>-<tax year>-filed with the export date in the file properties.",
+            "Publish to Tax that the filed extracts are available and that no reconciliation may start from a draft."
+          ],
+          "done": "the filed Schedule T and State Page extracts are locked, dated and published as the only permitted starting point."
+        },
+        {
+          "step": "Extract the taxed premium from every filed and pending return",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Build one row per state per company from the return package: gross premium reported, deductions taken, taxable premium, tax rate applied and total tax.",
+            "Take the figures from the submitted state template, not from the workbook, so the reconciliation tests what was actually reported.",
+            "Include every state with a return due, including nil returns, so a missing state shows as a blank row rather than not appearing.",
+            "Timestamp the extract and note which returns are filed and which are still pending submission."
+          ],
+          "done": "a complete return-side extract exists for every state and company, sourced from submitted templates and marked filed or pending."
+        },
+        {
+          "step": "Pull the general ledger direct written premium by state",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Extract direct written premium, return premium and policyholder dividends by state and company from the GL for the tax year, using the state attribute on the premium postings.",
+            "Extract finance and service charges separately, because states differ on whether they are taxable premium.",
+            "Agree the GL total direct written premium to the Underwriting and Investment Exhibit total on the filed statement before the extract is released.",
+            "Hand the extract to the Statutory Reporting Manager with the account ranges and the state-attribute logic used."
+          ],
+          "done": "the GL premium extract by state agrees in total to the filed statement and is released with its account ranges and attribute logic documented."
+        },
+        {
+          "step": "Build the three-way reconciliation grid",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Create one row per state per company with four columns: Schedule T direct premiums written, State Page premium by line, GL direct written premium, and taxable premium per the return.",
+            "Compute the difference between each pair and show it in dollars and as a percentage of Schedule T for that state.",
+            "Apply the materiality threshold — the lower of USD 25,000 or 1 percent of that state's direct written premium — and flag every row above it.",
+            "Confirm the column totals cross-foot: Schedule T total equals the sum of state rows and equals the statement total direct premiums written.",
+            "Lock the grid layout so reconciling items are added as labelled lines rather than by editing a source column."
+          ],
+          "done": "the grid holds a four-source row per state per company, cross-foots to the statement total and flags every row over threshold."
+        },
+        {
+          "step": "Categorise and evidence each reconciling item",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "Assign each difference to a permitted category: return premium and cancellation timing, policyholder dividends, annuity considerations excluded by statute, deposit-type contract deposits, finance and service charges, assumed reinsurance reported outside Schedule T direct, federally-reinsured crop premium, state allocation differences, and cash-basis versus accrual-basis state rules.",
+            "Attach the source document behind every item above USD 10,000 — the dividend register, the cancellation report, the crop premium schedule or the state's own instruction page.",
+            "Never use an Other or Unexplained category; an item that cannot be named must be researched or logged as an exception.",
+            "Confirm the item moves the reconciliation in the right direction and by the right sign before it is accepted."
+          ],
+          "done": "every reconciling item carries a named category, a correct sign and, above USD 10,000, an attached source document."
+        },
+        {
+          "step": "Resolve state-specific basis differences that are not errors",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "For each state flagged over threshold, read that state's taxable-basis definition in the current-year instructions and identify the legitimate basis difference driving the gap.",
+            "Document the difference as a standing basis note on the state row — for example a state taxing on a cash-received basis while Schedule T is written premium, or a state that taxes finance charges.",
+            "Carry the standing note forward year to year and review it annually rather than re-researching it each cycle.",
+            "Escalate to Regulatory Counsel any state where the basis difference cannot be supported from the instructions."
+          ],
+          "done": "every over-threshold state has either a documented, instruction-supported standing basis note or a counsel escalation."
+        },
+        {
+          "step": "Reconcile the retaliatory premium base separately",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "Confirm the premium base used in the retaliatory comparison for each state equals the taxable premium on that state's reconciled row, since the mirror computation must run on the same premium.",
+            "Where the domiciliary mirror was run on a different base because the domiciliary state defines premium differently, document the base used and the reason on the state row.",
+            "Confirm the same premium base was used for both sides of every comparison and correct any state where it was not.",
+            "Flag any state where a premium reallocation after the statement filing would change the retaliatory excess by more than USD 10,000."
+          ],
+          "done": "the retaliatory premium base ties to the reconciled taxable premium for every state, with any deliberate difference documented."
+        },
+        {
+          "step": "Test the state allocation of premium against the risk location rule",
+          "by": "Data Analyst",
+          "role": "Data Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Query written premium by policy with the risk-location state, the insured mailing state and the state coded on the premium transaction for the tax year.",
+            "List policies where the risk-location state and the coded state differ and quantify the premium involved by state pair.",
+            "Confirm the allocation rule applied matches the NAIC Annual Statement Instructions for Schedule T (allocate to the state where the risk is located) rather than to the billing address.",
+            "Hand the mismatched population to the Statutory Reporting Manager as a proposed reallocation with the dollar movement by state."
+          ],
+          "done": "premium coded to a state other than the risk-location state is quantified by state pair and handed over as a proposed reallocation."
+        },
+        {
+          "step": "Correct the source rather than plugging the reconciliation",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "actions": [
+            "For every difference caused by a coding or allocation error, raise the correction in the source system so the following period is right, and record the correction reference on the reconciliation row.",
+            "Decide with the Controller whether the current-year statement page needs amending, applying the statement materiality guidance rather than convenience.",
+            "Decide with the Tax Manager whether any already-filed return needs amending because the taxable premium was wrong.",
+            "Never resolve a difference by adjusting a column in the grid; the grid records, it does not fix."
+          ],
+          "done": "every error-driven difference has a source correction reference and an explicit amend-or-not decision for both the statement and the return."
+        },
+        {
+          "step": "Reconcile tax expense as well as premium",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Agree total premium tax and retaliatory tax per the returns to the premium tax expense and payable accounts by state and company.",
+            "Confirm the prepayments per the payment log clear against the payable and no state is left with an unexplained residual.",
+            "Confirm the retaliatory element is separately identifiable in the ledger or in a supporting schedule, since examiners ask for it split out.",
+            "Post the true-up entry for any difference with a reference to the reconciliation row that supports it."
+          ],
+          "done": "return tax by state agrees to expense and payable, prepayments clear, and the retaliatory element is separately identifiable."
+        },
+        {
+          "step": "Run the dual sign-off before any return is released",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Review the grid: every row within threshold or carrying a categorised, evidenced reconciling item; no Other category; cross-foot to the filed statement proven.",
+            "Require the Statutory Reporting Manager and the Tax Manager to sign the same control sheet, statement side and return side.",
+            "Approve in writing any residual written off above the materiality threshold, naming the amount and the reason.",
+            "Release the returns for submission only once the control sheet is signed, and record the release date."
+          ],
+          "done": "the control sheet carries both owners' signatures and the Controller's approval of any written-off residual, dated before the returns are released."
+        },
+        {
+          "step": "Track reconciling items to closure through the year",
+          "by": "Finance Operations Analyst",
+          "role": "Finance Operations Analyst",
+          "actions": [
+            "Open a tracked item for every recurring reconciling item caused by a system or process defect, with an owner and a target quarter.",
+            "Report the open item list and its ageing to the Controller each quarter, with the dollar value still reconciling.",
+            "Close an item only when a subsequent quarter's grid shows the difference gone, not when the fix is deployed.",
+            "Carry unresolved items into the next annual reconciliation as opening explanations rather than rediscovering them."
+          ],
+          "done": "every recurring reconciling item has an owner, a target quarter and an evidenced closure in a later quarter's grid."
+        },
+        {
+          "step": "Prepare the examiner-facing reconciliation pack",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "For each state, produce a one-page walk from Schedule T direct premiums written to the taxable premium on that state's return, with each reconciling item named and referenced to its source document.",
+            "Add the state's statutory basis citation and the standing basis note so the examiner sees why the two numbers legitimately differ.",
+            "Attach the filed return, the confirmation and the payment evidence to the walk so the state has a self-contained pack.",
+            "Have the Tax Manager review the pack for the five largest states before it is filed as examiner-ready."
+          ],
+          "done": "each state has a self-contained, reviewed one-page walk with citations, item sources and the filed return attached."
+        },
+        {
+          "step": "Feed the reconciliation result back into next year's basis build",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "List the reconciling items that recur across states and turn each into a standing adjustment step in the taxable-basis build.",
+            "Update the per-state basis rules in the computation procedure where this year's reconciliation proved the rule was misapplied.",
+            "Brief the Tax Analyst preparing next year's computation on the changed steps before the next cycle starts.",
+            "Record the procedure version and the effective tax year on the control sheet."
+          ],
+          "done": "recurring items are converted into standing basis-build steps and the computation procedure is reissued with a version and effective year."
+        },
+        {
+          "step": "File the reconciliation evidence for the retention period",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the locked grid, the filed Schedule T and State Page extracts, the GL extract, the return extract, the reconciling-item support and the signed control sheet under Tax / Premium Tax / reconciliation / <tax year>.",
+            "Apply the 7-year retention label measured from the Annual Statement filing date.",
+            "Confirm the record is searchable by writing company, NAIC company code, state and tax year, and link it from each state's filing packet.",
+            "Record the repository link on the control sheet so an examiner request is served in one step."
+          ],
+          "done": "the complete reconciliation package is filed, retention-labelled, linked to the filing packets and searchable by company, state and year."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of state reconciliation rows",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Extract Schedule T from the filed Annual Statement for every writing company and list every state carrying direct premiums written.",
+            "Compare that list to the rows present in the reconciliation grid and list any state present in one and absent from the other.",
+            "Confirm the grid covers every company that filed a premium tax return, including companies in run-off still writing return premium.",
+            "Sign the population with the extraction date and the grid version tested."
+          ],
+          "done": "the population is reconciled state-for-row against the filed Schedule T, signed and dated, with omissions already exceptions."
+        },
+        {
+          "step": "Prove the grid cross-foots to the filed statement",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Sum the Schedule T column in the grid and agree it to the Schedule T grand total on the filed statement.",
+            "Agree that total to the Underwriting and Investment Exhibit direct premiums written and to the GL extract total.",
+            "Confirm the grid was built from the filed extracts and not from a working draft by checking the locked file names and dates.",
+            "Any difference at total level invalidates the state-level work and must be cleared before sampling."
+          ],
+          "done": "the grid totals agree to the filed statement and the GL, and the source files are proven to be the filed versions."
+        },
+        {
+          "step": "Draw a documented sample of state rows",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100 percent of state rows with a difference above the materiality threshold and 100 percent of rows carrying a written-off residual.",
+            "Take 20 further state rows by seeded random selection from the remainder, with a floor of 30 rows overall.",
+            "Force in the five largest states by direct written premium and every state with a standing basis note added this year.",
+            "Record the seed, population size, stratification and draw date so the sample can be re-drawn."
+          ],
+          "done": "the sample is reproducible and covers every over-threshold row, every written-off residual, the largest states and new basis notes."
+        },
+        {
+          "step": "Re-perform the tie-out from Schedule T to the return for each sampled row",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Take Schedule T direct premiums written for the sampled state from the filed statement and the taxable premium from the submitted return template.",
+            "Rebuild the walk between the two using only the reconciling items you can independently evidence.",
+            "Compare your residual to the grid's residual and quantify any difference.",
+            "Capture both source figures with their document references into the workpaper."
+          ],
+          "done": "each sampled row has an independently rebuilt walk from filed Schedule T to submitted return premium with a quantified residual."
+        },
+        {
+          "step": "Test the evidence behind each sampled reconciling item",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the source document for every reconciling item above USD 10,000 on the sampled rows — dividend register, cancellation report, crop schedule or state instruction page.",
+            "Confirm the document supports the amount and the direction, not merely the existence of the category.",
+            "Reject any item categorised as Other or supported only by a preparer note.",
+            "List unsupported items with their dollar value as exceptions."
+          ],
+          "done": "every sampled reconciling item above threshold is supported by a source document that proves both amount and direction."
+        },
+        {
+          "step": "Re-perform the state basis rule behind each standing note",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Read the taxable-basis definition in the sampled state's current-year premium tax instructions and statute.",
+            "Confirm the standing basis note genuinely follows from that text — for example that the state does tax on a cash-received basis, or does tax finance and service charges.",
+            "Confirm the note is applied consistently across all writing companies in that state.",
+            "Treat a standing note with no instruction or statutory support as a fail, because it is masking a real difference."
+          ],
+          "done": "every sampled standing basis note is supported by state text and applied consistently across companies."
+        },
+        {
+          "step": "Test the state allocation of premium independently",
+          "by": "Data Analyst",
+          "role": "Data Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Draw 40 policies across the sampled states and pull risk-location state, insured mailing state and the state coded on the premium transaction.",
+            "Confirm the premium was allocated to the risk-location state per the Schedule T instructions.",
+            "Quantify by state the premium that was misallocated in the sample and extrapolate the exposure to the population.",
+            "Confirm any reallocation raised by the preparer was actually corrected in the source system, not only in the grid."
+          ],
+          "done": "premium allocation is independently tested on 40 policies, misallocation is quantified and extrapolated, and corrections are proven in source."
+        },
+        {
+          "step": "Test the sequencing control that blocks unreconciled returns",
+          "by": "Controls Analyst",
+          "role": "Controls Analyst",
+          "actions": [
+            "Compare the control sheet signature date for each sampled state to the submission timestamp of that state's return.",
+            "List any return submitted before its reconciliation row was signed — the control failed even if the numbers later proved right.",
+            "Confirm both required signatures, statutory side and return side, are present rather than one signer covering both roles.",
+            "Confirm the Controller approved in writing every residual written off above the materiality threshold."
+          ],
+          "done": "every sampled return was submitted after a dual-signed reconciliation row, with written Controller approval for each written-off residual."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise one issue per exception with state, company, dollar difference, the reconciling item at fault and whether taxable premium was overstated or understated.",
+            "Assign a root cause from a fixed list: allocation coding error, unsupported reconciling item, basis rule misapplied, draft statement used as source, return released before sign-off.",
+            "Set an owner and a remediation date, and record the amend-return or amend-statement decision made with the Controller where the difference is material.",
+            "Carry every open exception into next year's reconciliation as a mandatory opening explanation."
+          ],
+          "done": "every exception carries an issue, a root cause, an owner, a remediation date and an amend-or-correct decision."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the proportion of state rows reconciled within threshold and the total unexplained residual across the population.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — against the stated thresholds with workpaper references.",
+            "Have the Internal Auditor, who prepared neither the statement schedules nor the returns nor any sampled row, sign the workpaper.",
+            "Report the result and any material unreconciled state to the Controller and the Audit Committee, and file the workpaper in the repository."
+          ],
+          "done": "a signed workpaper states the reconciliation rate, the total unexplained residual, the conclusion and the reporting date, and is filed in the repository."
+        }
+      ]
+    }
+  ]
+}

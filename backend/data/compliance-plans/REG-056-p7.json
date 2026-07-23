@@ -1,0 +1,2868 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-056-C49",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Policy Admin Ops Lead",
+          "value": "Owns implementation of FCIC-authorized forms, rates and actuarial data in policy admin and rating; escalation to the Insurance Product Manager"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 2026 SRA Section IV(f)(1) (use only FCIC-authorized contracts, forms and procedures), RMA Manual 14 and the Document and Supplemental Standards Handbook (FCIC-24040), re-read at each Actuarial Data Master (ADM) release for the crop year"
+        },
+        "In-scope processes": {
+          "value": "ADM release intake → rating-table load → form edition configuration → premium reconciliation → deployment before the earliest sales closing date, for every crop, county, plan and reinsurance year the AIP writes"
+        },
+        "In-scope systems": {
+          "app": "Policy Administration Platform",
+          "value": "Policy Administration Platform (form editions), Earnix Rating & Pricing (ADM rate tables), change records in the ITSM platform"
+        },
+        "Compliance procedure documented": {
+          "value": "FCIP Forms & Rates Implementation Procedure — RMA bulletin/ADM monitoring, download and control-total checks, staging load, premium reconciliation to RMA expected values, CAB release gate tied to sales closing dates"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Insurance Product Manager and Compliance Manager; re-approved on any SRA amendment or DSSH (FCIC-24040) revision"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per ADM release — production deployment must complete before the earliest state sales closing date for the affected crop/county cells; contract change dates tracked per 7 CFR 457.8"
+        },
+        "Deadline reminders configured": {
+          "value": "ITSM change calendar alerts at T-30/T-14/T-7 days before each earliest sales closing date with an open implementation change"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "System change record, ADM control-total checks, premium reconciliation workpaper and actuarial sign-off retained at least 3 years after the end of the crop year (7 CFR 457.8 sec. 21), extended on FCIC notice"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any quote or policy issued on a non-current ADM release or unauthorized form edition is logged as a compliance exception with root cause, affected policy count and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Compliance Manager",
+          "value": "Compliance Manager signs off every late deployment and every unauthorized-form remediation before the exception closes"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All ADM releases, RMA Manager's/Product Management bulletins and FCIC form-standard changes for the reinsurance year, joined to the ITSM change log for the policy admin and rating systems"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any production premium differing from the RMA ADM-derived premium, any form edition not matching the FCIC-authorized edition, or any deployment after the earliest sales closing date is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per ADM release/filing; test runs annually after the spring ADM cycle over the full release population, with 100% coverage of new plans of insurance"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have configured, tested or approved any sampled release"
+        },
+        "Evidence location for test results": {
+          "value": "Annual FCIP implementation test workpaper (release population, sample, independent premium recomputation, form-edition traces, exceptions) in the compliance evidence repository under the reinsurance year"
+        },
+        "Regulator-ready documentation": {
+          "value": "Change records with ADM version ids, premium reconciliation workpapers and form-edition inventory, presentable to an RMA regional compliance office review within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Compliance Manager owns responses to RMA compliance findings on system implementation; Regulatory Counsel clears any admission that unauthorized rates or forms were used before it is sent to RMA"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Monitor RMA release triggers and open an implementation intake for each",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Check the RMA website's Bulletins and Handbooks pages (Manager's Bulletins, Product Management Bulletins) and the Actuarial Information Browser each week for new releases affecting written states/crops.",
+            "Download the ADM release notice for the crop year and list the affected record categories (base rates, price elections, T-yields, dates, subsidy percentages, Special Provisions).",
+            "Open one ITSM intake per release, keyed by ADM version id and bulletin number, and attach the release notice.",
+            "Record the earliest sales closing date across affected crop/county cells as the hard deployment deadline on the intake."
+          ],
+          "done": "every RMA release affecting written business has an ITSM intake carrying the ADM version id and its earliest sales closing date."
+        },
+        {
+          "step": "Download the ADM files and prove the download is complete",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "actions": [
+            "Pull the full ADM dataset for the crop year from the RMA public download site (pubfs / Actuarial Data Master downloads) for every state/county/crop/plan combination the AIP writes.",
+            "Compare record counts per ADM table against the counts published in the RMA release layout/notice and resolve any difference before loading.",
+            "Compute and store file checksums, and archive the raw ADM files in a versioned staging area named <RY>-<ADM version>.",
+            "Notify the Pricing Actuary that the release is staged and control-totaled."
+          ],
+          "done": "the raw ADM files are archived with checksums and record counts reconciled to the RMA release notice."
+        },
+        {
+          "step": "Verify form editions against FCIC form standards before configuration",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "List every policy document touched by the release: Common Crop Insurance Policy Basic Provisions (7 CFR 457.8), crop provisions, Special Provisions, endorsements and AIP-created forms.",
+            "Compare each AIP-created form against the Document and Supplemental Standards Handbook (FCIC-24040) standards and record the FCIC edition date it must carry.",
+            "Reject any form whose text deviates from the FCIC-authorized wording — SRA Section IV(f)(1) allows no unapproved variation.",
+            "Write the authorized edition list onto the ITSM intake as the configuration target."
+          ],
+          "done": "the intake carries a complete authorized-edition list traced to 7 CFR 457.8 and FCIC-24040."
+        },
+        {
+          "step": "Open the change record and set the release gate",
+          "by": "Release Coordinator",
+          "role": "Release Coordinator",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Convert the intake to a formal change record referencing the ADM version, bulletin numbers and authorized-edition list.",
+            "Back-schedule the plan: staging load, reconciliation, QA regression, actuarial sign-off, CAB approval, production deploy — all completing before the earliest sales closing date.",
+            "Set T-30/T-14/T-7 calendar alerts against that date.",
+            "Name the owner for each task and circulate the plan to the Pricing Actuary, QA Analyst and Policy Admin Ops Lead."
+          ],
+          "done": "a scheduled change record exists with every task owned and dated ahead of the earliest sales closing date."
+        },
+        {
+          "step": "Load the ADM into the rating engine staging environment",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Earnix Rating & Pricing",
+          "actions": [
+            "Map each ADM table (base rates, rate differentials, price elections/projected prices, transitional yields, subsidy factors, unit structure factors) to its rating-engine table.",
+            "Run the loader into staging and capture the load log with per-table row counts.",
+            "Reconcile loaded row counts to the archived ADM control totals; investigate any drop or duplicate.",
+            "Tag the staging configuration with the ADM version id so production can be traced to it later."
+          ],
+          "done": "staging carries the full ADM release with load counts reconciled to the archived control totals."
+        },
+        {
+          "step": "Configure form editions and dates in the policy admin system",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Attach each authorized form edition to the affected plan/crop/state combinations with the correct crop-year effective date.",
+            "Expire the superseded editions so they cannot attach to new business after the contract change date.",
+            "Load the release's key dates (sales closing, acreage reporting, premium billing, end of insurance) into the policy calendar per the ADM dates records.",
+            "Print the configuration diff and attach it to the change record."
+          ],
+          "done": "policy admin staging issues only authorized editions and carries the ADM key dates, with the diff attached to the change record."
+        },
+        {
+          "step": "Reconcile staged premium output to RMA expected values",
+          "by": "Pricing Actuary",
+          "role": "Pricing Actuary",
+          "actions": [
+            "Build a test-case grid covering every written plan of insurance (YP, RP, RP-HPE, ARPI as applicable), representative counties, coverage levels 50-85%, and optional units vs enterprise units.",
+            "Price each test case in staging and independently in the RMA cost estimator / premium calculator using the same ADM version.",
+            "Compare premium, subsidy and producer premium per case at zero tolerance; log every difference as a defect.",
+            "File the reconciliation workpaper on the change record with the pass/fail per cell."
+          ],
+          "done": "every test cell matches the RMA-derived premium exactly, or has an open defect blocking release."
+        },
+        {
+          "step": "Run the QA regression pack across plans and options",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "actions": [
+            "Execute the FCIP regression suite: quote, bind, endorsement, acreage report and premium recompute flows for each plan and option combination.",
+            "Verify form packets render with the authorized edition footer on every page.",
+            "Verify superseded rates/editions are unreachable for the new crop year.",
+            "Log defects with severity; block release on any severity-1 rating or form defect."
+          ],
+          "done": "the regression pack passes with no open severity-1 defects and form footers show authorized editions."
+        },
+        {
+          "step": "Capture actuarial sign-off on the rating implementation",
+          "by": "Pricing Actuary",
+          "role": "Pricing Actuary",
+          "actions": [
+            "Review the reconciliation workpaper and defect log.",
+            "Sign a dated memo stating the staged rating matches ADM version <id> with zero premium differences.",
+            "Attach the memo to the change record — CAB may not approve without it."
+          ],
+          "done": "a dated actuarial sign-off memo naming the ADM version is attached to the change record."
+        },
+        {
+          "step": "Take the release through change approval",
+          "by": "Release Coordinator",
+          "role": "Release Coordinator",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Present the change at CAB with the reconciliation, QA results, actuarial memo and the sales-closing-date deadline.",
+            "Record approver names and the approved deployment window in the change record.",
+            "Confirm a rollback plan exists that restores the prior ADM version and editions."
+          ],
+          "done": "CAB approval, approvers and a tested rollback plan are recorded before deployment."
+        },
+        {
+          "step": "Deploy to production before the earliest sales closing date",
+          "by": "Release Engineer",
+          "role": "Release Engineer",
+          "actions": [
+            "Execute the production deployment in the approved window.",
+            "Verify the production configuration tag matches the staged ADM version id.",
+            "Record deployment start/end timestamps in the change record.",
+            "Confirm the deployment date precedes the earliest sales closing date recorded on the intake."
+          ],
+          "done": "production carries the tagged ADM version with a deployment timestamp ahead of the earliest sales closing date."
+        },
+        {
+          "step": "Validate production quotes post-deployment",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "actions": [
+            "Re-run 20 of the reconciliation test cells directly in production.",
+            "Compare production premium, subsidy and producer premium to the staged and RMA-derived values.",
+            "Spot-check a bound policy's form packet for authorized edition footers.",
+            "Attach the production validation results to the change record."
+          ],
+          "done": "production results match the RMA-derived values and form packets carry authorized editions."
+        },
+        {
+          "step": "Publish the release to agents and internal users",
+          "by": "Insurance Product Manager",
+          "role": "Insurance Product Manager",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Post the updated forms, key dates and plan availability to the agent portal.",
+            "Notify the distribution and underwriting teams of the contract change date and sales closing dates.",
+            "Point agents at the RMA bulletin for producer-facing changes."
+          ],
+          "done": "agents can see the current editions and dates, and the notification is archived."
+        },
+        {
+          "step": "Close the change record with the full evidence set",
+          "by": "Release Coordinator",
+          "role": "Release Coordinator",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Attach the ADM control totals, reconciliation workpaper, QA results, actuarial memo, CAB approval and deployment timestamps.",
+            "Set the change record to Closed-Successful only when every artifact is present.",
+            "Cross-reference the change record id on the regulatory filing/issue tracker entry for the release."
+          ],
+          "done": "the change record is closed with the complete evidence chain from RMA release to production validation."
+        },
+        {
+          "step": "Retain the system change evidence for the crop-year retention period",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Copy the closed change record package into the compliance evidence repository under <reinsurance year>/<ADM version>.",
+            "Apply the retention label: 3 years after the end of the crop year per 7 CFR 457.8 sec. 21, extended if FCIC issues a records notice.",
+            "Confirm the package is retrievable by ADM version, state and crop."
+          ],
+          "done": "the implementation evidence is filed, retention-labelled and retrievable by ADM version, state and crop."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of FCIC releases and system changes for the reinsurance year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Pull every ADM release and Manager's/Product Management bulletin for the reinsurance year from the RMA website affecting written states/crops.",
+            "Extract every policy admin and rating change record for the same period from the ITSM platform.",
+            "Join the two lists on ADM version/bulletin number so releases without a change record cannot hide."
+          ],
+          "done": "a joined population of RMA releases and system changes exists with no unmatched RMA release unexplained."
+        },
+        {
+          "step": "Reconcile the population to the RMA release index",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the population against the RMA Actuarial Information Browser release history for each written state/crop.",
+            "List any RMA release with no corresponding deployment as an automatic exception.",
+            "Sign the population as complete before sampling."
+          ],
+          "done": "every RMA release traces to a deployment or an exception, and the population is signed complete."
+        },
+        {
+          "step": "Draw the sample and document the method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of releases introducing a new plan of insurance or new crop program.",
+            "Randomly select (seeded, reproducible) 25 state/county/crop/plan cells across the remaining releases.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "a reproducible sample covering all new-plan releases plus 25 random cells is documented."
+        },
+        {
+          "step": "Independently recompute premium from the ADM for each sampled cell",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Download the ADM tables for the sampled cell directly from the RMA site — do not reuse the implementation team's staged files.",
+            "Price the cell in the RMA cost estimator / premium calculator at the sampled coverage level and unit structure.",
+            "Quote the identical cell in the production rating engine and compare premium, subsidy and producer premium at zero tolerance.",
+            "Record any difference as an exception with the differing field."
+          ],
+          "done": "every sampled cell's production premium matches the independently ADM-derived premium, or the difference is logged."
+        },
+        {
+          "step": "Trace production form editions to the FCIC-authorized editions",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Generate the form packet for a sampled policy in each sampled cell.",
+            "Compare each form number and edition footer to 7 CFR 457.8, the crop/Special Provisions and the FCIC-24040 authorized-edition list.",
+            "Treat any AIP-created form deviating from FCIC standards as a fail, not a formatting note."
+          ],
+          "done": "every sampled form packet carries only FCIC-authorized editions."
+        },
+        {
+          "step": "Verify deployment beat the earliest sales closing date",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled release, read the production deployment timestamp from the change record.",
+            "Look up the earliest sales closing date for the affected cells in the ADM dates records.",
+            "Recompute the margin in days; any deployment on or after the sales closing date is an exception.",
+            "Check whether any business was quoted between the RMA release effective date and the deployment."
+          ],
+          "done": "every sampled release deployed before its earliest sales closing date, with quote-gap checks documented."
+        },
+        {
+          "step": "Inspect change governance on the sampled releases",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Confirm each sampled change record holds the ADM control totals, reconciliation workpaper, QA results, actuarial sign-off memo and CAB approval.",
+            "Check the actuarial memo names the same ADM version as the production configuration tag.",
+            "Flag any release closed with missing artifacts."
+          ],
+          "done": "each sampled change record carries the complete, version-consistent evidence chain."
+        },
+        {
+          "step": "Test the handling of any late or failed deployment",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull every release deployed late or rolled back during the year.",
+            "Verify each generated a logged exception identifying affected policies and whether any were written on stale rates or superseded forms.",
+            "Confirm affected policies were corrected and the correction evidenced."
+          ],
+          "done": "every late or failed deployment has a logged exception with the affected-policy analysis and correction evidence."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise one tracker issue per exception with the ADM version, cell, what failed and the SRA Section IV(f)(1) impact.",
+            "Assign a root cause (missed bulletin, mapping defect, schedule crush, QA gap) and an owner.",
+            "Set a remediation date and carry open exceptions into next year's test as mandatory retests."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the Internal Auditor — who performed none of the sampled implementations — sign the workpaper.",
+            "File the workpaper in the compliance evidence repository and report results to the Compliance Committee."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-056-C50",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Filing Specialist",
+          "value": "Owns intake and on-time response to FCIC/RMA objections, deficiency notices and data rejections; escalation to the Compliance Manager"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 2026 SRA Sections III(a)(4) and IV(d) (respond to FCIC within 45 days of written notice), and Appendix III weekly transaction cutoff rules for rejected-record resubmission, re-read on each notice"
+        },
+        "In-scope processes": {
+          "value": "Intake of RMA correspondence (Plan of Operations deficiency notices, form/procedure objections, compliance findings) and eDAS edit/rejection reports → deadline computation → response drafting → submission and disposition tracking"
+        },
+        "In-scope systems": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Objection log in the regulatory filing/issue tracker; RMA correspondence mailbox; eDAS edit reports retrieved via USDA eAuthentication"
+        },
+        "Compliance procedure documented": {
+          "value": "FCIC Objection Response Procedure — 1-business-day logging, deadline maths (45 days from FCIC written notice; rejected data by the next weekly transaction cutoff), SME routing, counsel review, receipt capture"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Compliance Manager and Regulatory Counsel; re-approved on any SRA amendment changing notice or cutoff terms"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per notice — 45 days from the FCIC written notice date unless the notice states shorter; eDAS rejected records corrected no later than the transaction cutoff date for the week; Plan of Operations corrections by the date RMA sets, ahead of the April 1 annual filing"
+        },
+        "Deadline reminders configured": {
+          "value": "Tracker alerts at T-20/T-10/T-3 days before each computed response due date, copied to the Compliance Manager at T-10"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Notice, response, submission receipt and RMA disposition retained 3 years after the end of the applicable crop year (7 CFR 457.8 sec. 21), extended on FCIC notice or litigation hold"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any response past its computed due date, or rejected data missing its weekly cutoff, is logged as a compliance exception with root cause and disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Regulatory Counsel",
+          "value": "Counsel signs off every late-response remediation and every response conceding a deficiency before it is closed"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every FCIC/RMA written notice, objection and deficiency letter received in the period (correspondence mailbox export) plus every eDAS edit/rejection batch for the same weeks"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero late responses tolerated — any response after 45 days (or the stated shorter deadline) and any rejected record not resubmitted by the next weekly transaction cutoff is a fail; ≥1 fail escalates to the Head of Compliance"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven; test runs quarterly over that quarter's full notice population plus a sample of weekly eDAS rejection batches"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have drafted or submitted any sampled response"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly objection-response test workpaper (mailbox reconciliation, sample, day-count recomputation, receipt traces, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Objection log export with notice dates, due dates, response dates and RMA dispositions, presentable to an RMA compliance review within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Filing Specialist drafts; Regulatory Counsel clears; the Compliance Manager owns escalation with the RMA regional office when a deadline cannot be met and requests an extension in writing before the due date"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Run a single intake for all FCIC objections and rejections",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Check the designated RMA correspondence mailbox and the company's mail log every business day for FCIC/RMA letters, deficiency notices and findings.",
+            "Log in through USDA eAuthentication and pull the weekly eDAS edit/rejection report for every submitted batch.",
+            "Open one tracker item per notice or rejection batch within 1 business day of receipt, attaching the source document.",
+            "Record the notice date exactly as printed — the response clock runs from it."
+          ],
+          "done": "every notice and rejection batch is in the tracker within 1 business day with its source attached and notice date captured."
+        },
+        {
+          "step": "Compute and record the response deadline on every item",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Read the notice for a stated deadline; where none is stated apply 45 days from the FCIC written notice date per the SRA.",
+            "For eDAS rejections, set the due date to the next weekly transaction cutoff date published in Appendix III.",
+            "Write due date, calculation basis and cite onto the tracker item.",
+            "Set T-20/T-10/T-3 reminders against the due date."
+          ],
+          "done": "every open item shows a due date, the day-count basis and armed reminders."
+        },
+        {
+          "step": "Classify the objection and route it to the right owner",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Tag each item: Plan of Operations deficiency, form/procedure objection, data rejection, compliance finding, or premium/escrow discrepancy.",
+            "Assign the responding owner: Product Filing Specialist for forms, Data Quality Analyst for eDAS rejections, Regulatory Reporting Analyst for financial exhibits, Compliance Analyst for findings.",
+            "Notify the owner and the Compliance Manager of the assignment and due date the same day."
+          ],
+          "done": "each item carries a classification, a named responding owner and a same-day notification."
+        },
+        {
+          "step": "Pull the requirement FCIC relied on and attach it",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Read the cited SRA section, appendix paragraph, handbook (e.g. LASH, FCIC-24040, Manual 14) or 7 CFR provision as currently in force.",
+            "Attach the cited text to the tracker item so the drafter answers the actual requirement.",
+            "Note any ambiguity for Regulatory Counsel before drafting starts."
+          ],
+          "done": "the tracker item holds the current text of every requirement the notice cites."
+        },
+        {
+          "step": "Draft the response against each objection point",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Build a point-by-point response table: FCIC's objection, the company position, the corrective action, and the evidence attached.",
+            "Collect exhibits from the responding owner (corrected forms, revised Plan of Operations pages, reconciliations).",
+            "Where a correction needs more time, draft an extension request stating the reason and a committed date — submitted before the due date, never after.",
+            "Keep the draft in the tracker item with version history."
+          ],
+          "done": "a point-by-point draft with exhibits (or a pre-deadline extension request) exists in the tracker item."
+        },
+        {
+          "step": "Correct and resubmit rejected data records by the weekly cutoff",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "actions": [
+            "Open the eDAS edit report and group rejections by edit code and record type (policy, acreage, loss records per the Appendix III layouts).",
+            "Trace each rejected record to its source in the policy admin system and fix the source field, not just the extract.",
+            "Regenerate and resubmit the corrected batch through eDAS no later than the transaction cutoff date for the week.",
+            "Save the resubmission confirmation and the post-submission edit report showing the records accepted."
+          ],
+          "done": "corrected records are accepted in eDAS by the weekly cutoff with confirmations saved to the tracker item."
+        },
+        {
+          "step": "Route the draft through counsel and compliance review",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Review every draft response for accuracy against the cited requirement and for admissions with SRA remedy exposure (Appendix IV sanctions).",
+            "Confirm any concession of a deficiency is factually supportable and paired with a corrective action.",
+            "Return edits within 5 business days of receiving the draft, leaving submission margin before the due date.",
+            "Stamp the approved version with name and date in the tracker item."
+          ],
+          "done": "the response carries a dated counsel approval and no unreviewed admissions."
+        },
+        {
+          "step": "Submit the response through the channel the notice specifies",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Send the approved response to the address or RMA system the notice names (RMA regional compliance office, Deputy Administrator, or portal upload).",
+            "Capture proof of submission: portal confirmation id, delivery receipt or date-stamped transmittal letter.",
+            "Record the submission date on the tracker item and compare it to the due date.",
+            "File the as-sent package with all exhibits."
+          ],
+          "done": "the response is submitted before the due date with proof of submission on the tracker item."
+        },
+        {
+          "step": "Track FCIC's disposition and any follow-up demand",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Monitor the mailbox for FCIC's acknowledgment, acceptance or follow-up interrogatory.",
+            "Open a linked tracker item for any follow-up with its own 45-day (or stated) deadline.",
+            "Chase RMA in writing if no disposition arrives within 60 days, and log the chase."
+          ],
+          "done": "every submitted response shows an FCIC disposition or a logged, dated chase."
+        },
+        {
+          "step": "Escalate items at risk of missing the deadline",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Review the tracker at each T-10 alert and challenge whether the response will land on time.",
+            "For at-risk items, either compress the plan or have the extension request sent that day.",
+            "Escalate any item still unresolved at T-3 to the Head of Compliance with a written options note."
+          ],
+          "done": "no item passes T-3 without a submitted response, a filed extension request, or a Head-of-Compliance decision."
+        },
+        {
+          "step": "Hold the weekly aging review",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Run the open-items report sorted by days-to-due and days-open.",
+            "Confirm every item has a current owner, next action and date.",
+            "Minute the review and any reassignments."
+          ],
+          "done": "a minuted weekly review shows every open item owned with a dated next action."
+        },
+        {
+          "step": "File Plan of Operations amendments arising from objections",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Where the resolution changes the Plan of Operations (fund designations, forms list, financial exhibits), prepare the amendment pages.",
+            "Submit the amendment to RMA by the date set in the deficiency notice, keeping the April 1 annual filing cycle in view.",
+            "Link the amendment submission receipt to the originating tracker item."
+          ],
+          "done": "every objection-driven Plan of Operations change is amended, submitted on time and linked to its objection."
+        },
+        {
+          "step": "Root-cause recurring objections and rejections",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Quarterly, pivot the tracker by objection type and eDAS edit code.",
+            "For any code recurring 3+ times, open a corrective action naming the process or system fix and its owner.",
+            "Track the corrective action to closure and check the recurrence stops."
+          ],
+          "done": "recurring objection/edit codes each have an owned corrective action with closure evidence."
+        },
+        {
+          "step": "Close the tracker item with full disposition",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Record FCIC's final disposition and the dates: notice, due, submitted, disposed.",
+            "Confirm the item holds notice, requirement text, approved response, receipt and disposition before closing.",
+            "Mark late items Closed-Exception, never Closed-Complete."
+          ],
+          "done": "closed items carry the complete correspondence chain and honest late/on-time status."
+        },
+        {
+          "step": "Retain the correspondence set for the retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "document management repository",
+          "actions": [
+            "Move each closed item's package into the document management repository under <reinsurance year>/FCIC-correspondence.",
+            "Apply the 3-years-after-crop-year retention label with extension on FCIC notice.",
+            "Verify retrievability by notice date, objection type and disposition."
+          ],
+          "done": "every closed objection package is archived, retention-labelled and retrievable."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of notices and rejections for the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Export the RMA correspondence mailbox and the company mail log for the quarter and list every FCIC/RMA notice, objection and finding.",
+            "Pull every weekly eDAS edit/rejection report for the quarter via USDA eAuthentication.",
+            "Merge into one population keyed by notice date / batch week."
+          ],
+          "done": "a merged population of all notices and rejection batches for the quarter exists."
+        },
+        {
+          "step": "Reconcile the tracker to the source population",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Match every population row to a tracker item on notice date and subject.",
+            "List any notice or rejection batch with no tracker item as an automatic exception — unlogged notices are the highest-risk failure.",
+            "Check logging happened within 1 business day of receipt for matched items."
+          ],
+          "done": "every notice and rejection batch matches a tracker item logged within 1 business day, or is an exception."
+        },
+        {
+          "step": "Draw the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of Plan of Operations deficiency notices and compliance findings.",
+            "Randomly select (seeded, reproducible) 15 further items including at least 4 eDAS rejection batches.",
+            "Record seed, population size and selection date in the workpaper."
+          ],
+          "done": "a reproducible sample covering all deficiency notices plus 15 random items is documented."
+        },
+        {
+          "step": "Recompute every sampled deadline and compare to the actual response date",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute the due date from the printed notice date: stated deadline, else 45 days; for rejections, the next weekly transaction cutoff date.",
+            "Compare the recomputed due date to the tracker's due date and to the proof-of-submission date.",
+            "Any response after the recomputed due date without a pre-deadline extension request is a fail.",
+            "Record the day-count maths per item in the workpaper."
+          ],
+          "done": "every sampled item has independent day-count maths and an on-time/late verdict."
+        },
+        {
+          "step": "Assess whether each sampled response actually answered the objection",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Re-read the notice's cited requirement (SRA section, handbook, 7 CFR) as of the notice date.",
+            "Check the response addressed every objection point with evidence, not restatement.",
+            "Flag any response that conceded a deficiency without a corrective action or counsel stamp."
+          ],
+          "done": "each sampled response is judged responsive point-by-point, or the gap is logged."
+        },
+        {
+          "step": "Trace proof of submission and FCIC disposition",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Verify each sampled item holds a portal confirmation id, delivery receipt or date-stamped transmittal.",
+            "Verify the disposition (or a dated chase after 60 days) is recorded.",
+            "Treat a response with no submission proof as unsubmitted — a fail, not a documentation gap."
+          ],
+          "done": "every sampled response traces to dated submission proof and a disposition or chase."
+        },
+        {
+          "step": "Verify rejected data cleared eDAS on resubmission",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For sampled rejection batches, open the post-resubmission eDAS edit report.",
+            "Confirm the previously rejected records show accepted status by the committed cutoff week.",
+            "Check the fix was made in the policy admin source, not only in the extract, by inspecting the source field."
+          ],
+          "done": "sampled rejected records show accepted status in eDAS with source-level fixes evidenced."
+        },
+        {
+          "step": "Test that escalations fired for at-risk items",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For sampled items that came within 10 days of their due date, verify the T-10 alert reached the Compliance Manager.",
+            "For any that reached T-3 unresolved, verify the Head-of-Compliance escalation note exists.",
+            "Verify extension requests were submitted before, not after, the due date."
+          ],
+          "done": "escalation and extension evidence exists for every sampled at-risk item."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise one tracker issue per exception with notice reference, what failed and the SRA exposure.",
+            "Assign root cause (intake miss, day-count error, SME delay, submission channel confusion) and an owner.",
+            "Set remediation dates and carry open exceptions into next quarter's test as mandatory retests."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the late-response rate against the zero-late threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the Internal Auditor — who drafted none of the sampled responses — sign the workpaper.",
+            "File the workpaper in the compliance evidence repository and report to the Compliance Committee."
+          ],
+          "done": "a signed workpaper with a stated conclusion and late-response rate is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-056-C51",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Records Manager",
+          "value": "Owns the FCIC filing archive — approval correspondence, as-filed versions and submission confirmations; escalation to the Compliance Manager"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 2026 SRA Sections IV(d) and III(a)(4) plus 7 CFR 457.8 sec. 21 record-retention terms (3 years after the end of the crop year, extendable by FCIC notice), re-read at each annual archive procedure review"
+        },
+        "In-scope processes": {
+          "value": "Capture and retention of every Plan of Operations as-filed package, FCIC approval letter, form-standard conformity evidence, eDAS submission confirmation and FCIC correspondence, indexed by reinsurance year"
+        },
+        "In-scope systems": {
+          "app": "document management repository",
+          "value": "Document management repository (filing archive), with the filing calendar cross-referenced from the regulatory filing/issue tracker"
+        },
+        "Compliance procedure documented": {
+          "value": "FCIC Filing Archive Procedure — taxonomy by reinsurance year/company/document class, 5-business-day intake SLA, version linkage (filed vs approved vs implemented), retention labelling, legal-hold integration, quarterly completeness reconciliation"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Compliance Manager and Regulatory Counsel; reviewed annually before the April 1 Plan of Operations cycle"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Continuous obligation — intake SLA of 5 business days from receipt of any approval letter or confirmation; quarterly completeness reconciliation against the filing calendar; annual retrieval drill before the reinsurance year start (July 1)"
+        },
+        "Deadline reminders configured": {
+          "value": "Repository intake queue alerts at day 3 and day 5 for unfiled receipts; calendar reminders for the quarterly reconciliation and the annual retrieval drill"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "All filed versions and approvals retained at least 3 years after the end of the applicable crop year per 7 CFR 457.8 sec. 21, extended on FCIC records notices; Plan of Operations approvals kept for the life of the SRA relationship plus 3 years"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any expected archive item missing at the quarterly reconciliation, any premature destruction, and any failed retrieval drill is logged as an exception with disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Compliance Manager",
+          "value": "Compliance Manager signs off reconstruction or re-request of any missing archive item before the exception closes"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All filings, approvals and FCIC correspondence expected for the sampled reinsurance years, built from the filing calendar, the RMA correspondence log and the eDAS submission history"
+        },
+        "Pass/fail thresholds": {
+          "value": "≥98% of expected items retrievable and complete; zero tolerance for missing Plan of Operations approval letters or destroyed items inside their retention period"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous; test runs annually across two reinsurance years (current and one prior), with the quarterly reconciliations reviewed as ongoing monitoring"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not administer the repository or have filed any sampled item"
+        },
+        "Evidence location for test results": {
+          "value": "Annual archive-completeness test workpaper (expected-item list, retrieval results, retention-label checks, access review, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Archive index export plus the sampled as-filed packages with approval letters, producible to an RMA compliance review or SRA Appendix IV records request within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Records Manager produces the records; the Compliance Manager owns the RMA request response; Regulatory Counsel clears any response disclosing a records gap before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Define the archive taxonomy and index standard",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "document management repository",
+          "actions": [
+            "Create the folder taxonomy: <reinsurance year>/<writing company>/<document class> with classes for Plan of Operations, FCIC approvals, forms & conformity evidence, eDAS confirmations, correspondence.",
+            "Define mandatory metadata per item: reinsurance year, state, crop (where applicable), document class, receipt date, source, retention date.",
+            "Publish the standard to everyone who files FCIC documents and lock the taxonomy against ad-hoc folders."
+          ],
+          "done": "the taxonomy and metadata standard is published and enforced in the repository."
+        },
+        {
+          "step": "Capture the Plan of Operations as-filed package every year",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "document management repository",
+          "actions": [
+            "Obtain from the Regulatory Filing Specialist the complete package submitted to RMA by April 1: financial exhibits, projected premium by state and fund, forms list, and the transmittal.",
+            "File it under <reinsurance year>/Plan of Operations with the submission receipt.",
+            "Diff the package against the tracker's submission record to confirm nothing filed is missing from the archive."
+          ],
+          "done": "each reinsurance year holds the complete as-filed Plan of Operations package with its receipt."
+        },
+        {
+          "step": "Capture every FCIC approval letter and disposition",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "actions": [
+            "Collect the FCIC approval of the Plan of Operations (issued ahead of the July 1 reinsurance year start) and any conditional-approval terms.",
+            "Collect approval or objection dispositions for amendments, AIP-created forms and procedure submissions.",
+            "File each within 5 business days of receipt, linked to the filing it approves."
+          ],
+          "done": "every filed item is linked to its FCIC approval or disposition, filed within the 5-day SLA."
+        },
+        {
+          "step": "Archive form editions with their conformity evidence",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "For each crop year, deposit the authorized form editions used (Basic Provisions, crop provisions, Special Provisions, AIP-created forms).",
+            "Attach the FCIC-24040 conformity check and the edition-date inventory produced during implementation.",
+            "Link each form record to the policy admin configuration change record that deployed it."
+          ],
+          "done": "each crop year's form set is archived with conformity evidence and a link to its deployment record."
+        },
+        {
+          "step": "Archive eDAS submission confirmations and settlement correspondence",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Save the weekly eDAS acceptance confirmations and the monthly settlement/escrow correspondence with RMA.",
+            "File by reinsurance year and submission week so a given week's acceptance can be produced on demand.",
+            "Flag any week with no confirmation on file to the Regulatory Filing Specialist the same day."
+          ],
+          "done": "every submission week shows an acceptance confirmation on file or a same-day flag."
+        },
+        {
+          "step": "Maintain version linkage between filed, approved and implemented versions",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "document management repository",
+          "actions": [
+            "For every document class, link the as-filed version, the FCIC-approved version (with conditions) and the implemented version in production.",
+            "Where the approved version differs from the filed version, store both and mark the delta.",
+            "Never overwrite — supersede with a new version and keep the chain."
+          ],
+          "done": "any filing can be walked filed → approved → implemented with no overwritten versions."
+        },
+        {
+          "step": "Apply retention labels at intake",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "document management repository",
+          "actions": [
+            "Set the retention date at intake: 3 years after the end of the applicable crop year per 7 CFR 457.8 sec. 21.",
+            "Extend the date on any FCIC records-retention notice, and record the notice as the reason.",
+            "Set Plan of Operations approvals to life-of-relationship plus 3 years."
+          ],
+          "done": "every archived item carries a computed retention date with its basis."
+        },
+        {
+          "step": "Restrict write access and log every change",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "actions": [
+            "Grant read access to compliance, filing and audit staff; restrict write/delete to named records staff.",
+            "Enable the repository audit trail on the archive folders.",
+            "Review the access list quarterly with the Access Management Analyst and remove leavers."
+          ],
+          "done": "write access is limited to named records staff, audited, and reviewed quarterly."
+        },
+        {
+          "step": "Enforce the 5-business-day intake SLA",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "actions": [
+            "Run the intake queue daily; anything received but unfiled at day 3 gets a reminder, at day 5 an escalation to the Compliance Manager.",
+            "Record receipt date vs filed date on every item.",
+            "Report SLA performance monthly."
+          ],
+          "done": "intake SLA performance is measured and no item sits unfiled past 5 business days without escalation."
+        },
+        {
+          "step": "Reconcile the archive to the filing calendar quarterly",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Build the expected-item list for the quarter from the filing calendar, the tracker and the eDAS submission history.",
+            "Check each expected item exists in the archive with complete metadata.",
+            "Log every gap as an exception and open a re-request to RMA or an internal reconstruction task."
+          ],
+          "done": "a quarterly reconciliation shows every expected item present or excepted with an owner."
+        },
+        {
+          "step": "Integrate legal holds",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "On any litigation, arbitration or FCIC compliance investigation, issue a hold naming the affected reinsurance years and document classes.",
+            "Have the Records Manager suspend disposal on held items in the repository.",
+            "Release holds in writing and re-apply standard retention on release."
+          ],
+          "done": "holds suspend disposal on named items and are released only in writing."
+        },
+        {
+          "step": "Run integrity checks on stored files",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "actions": [
+            "Verify checksums on a rotating sample of archived files each quarter.",
+            "On any format migration, re-verify checksums and re-run a render check on migrated documents.",
+            "Log integrity failures as exceptions with the affected items."
+          ],
+          "done": "quarterly integrity checks pass or every failure is an owned exception."
+        },
+        {
+          "step": "Run the annual retrieval drill",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "actions": [
+            "Before July 1, have the Compliance Manager name 10 items across years and classes without warning.",
+            "Retrieve each with its approval linkage within 1 business day.",
+            "Record retrieval times and misses in the drill log."
+          ],
+          "done": "10 named items are produced within 1 business day, with times logged."
+        },
+        {
+          "step": "Log and disposition archive exceptions",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for every missing item, integrity failure or failed retrieval.",
+            "Assign root cause (never received, misfiled, over-deleted, migration loss) and an owner.",
+            "Close only when the item is recovered, re-requested from RMA, or formally accepted as irrecoverable by the Compliance Manager."
+          ],
+          "done": "every archive exception has an issue, root cause, owner and an evidenced disposition."
+        },
+        {
+          "step": "Review and re-approve the archive procedure annually",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Re-read the SRA record terms and 7 CFR 457.8 sec. 21 for retention changes before the April 1 filing cycle.",
+            "Update the procedure for any new document class (new plans of insurance, new RMA submission channels).",
+            "Sign and date the re-approval."
+          ],
+          "done": "a dated annual re-approval exists reflecting current SRA and CFR retention terms."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the expected-record population for two reinsurance years",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "From the filing calendar, tracker and eDAS submission history, list every filing, approval and correspondence item expected for the current and one prior reinsurance year.",
+            "Include the Plan of Operations packages, FCIC approvals, form conformity sets and weekly confirmations.",
+            "Sign the expected list as complete before sampling."
+          ],
+          "done": "a signed expected-item list exists for both reinsurance years."
+        },
+        {
+          "step": "Reconcile the archive index to the expected list",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "document management repository",
+          "actions": [
+            "Match every expected item to an archive entry with complete metadata.",
+            "List unmatched expected items as exceptions; list archive entries matching nothing as misfiles to investigate.",
+            "Compute the completeness percentage against the 98% threshold."
+          ],
+          "done": "a completeness percentage is computed with every gap and misfile listed."
+        },
+        {
+          "step": "Draw the retrieval sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of Plan of Operations packages and their FCIC approval letters for both years.",
+            "Randomly select (seeded, reproducible) 20 further items across classes, including at least 4 weekly eDAS confirmations and 4 form conformity sets.",
+            "Record seed, population size and selection date."
+          ],
+          "done": "a reproducible sample including all Plan of Operations packages is documented."
+        },
+        {
+          "step": "Retrieve and inspect each sampled item for completeness",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "document management repository",
+          "actions": [
+            "Retrieve each sampled item and time the retrieval.",
+            "Verify the package is complete: filed version, approval/disposition, receipt, and metadata populated.",
+            "Verify documents render and match their checksums."
+          ],
+          "done": "every sampled item is retrieved, timed, complete and readable, or the failure is logged."
+        },
+        {
+          "step": "Trace archived filed versions to what production actually implemented",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "For sampled form sets, compare the archived approved edition dates to the editions configured in the policy admin system for that crop year.",
+            "Any production edition not matching an archived approved version is an exception feeding the C49 implementation test.",
+            "Record the trace per sampled form."
+          ],
+          "done": "sampled archived editions match production configuration or the mismatch is escalated."
+        },
+        {
+          "step": "Test retention labels and the disposal log",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute the retention date for each sampled item from its crop year and compare to the label.",
+            "Inspect the disposal log for the period and verify nothing inside its retention period or under hold was destroyed.",
+            "Verify FCIC extension notices, where issued, moved the affected labels."
+          ],
+          "done": "retention labels recompute correctly and the disposal log shows no premature destruction."
+        },
+        {
+          "step": "Review access rights and the audit trail",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the current access list and verify write/delete is limited to named records staff.",
+            "Check the quarterly access reviews happened and leavers were removed.",
+            "Sample the audit trail for one sampled item and verify changes trace to authorized users."
+          ],
+          "done": "access is appropriately restricted, reviewed quarterly, and the audit trail is intact."
+        },
+        {
+          "step": "Verify the quarterly reconciliations and annual drill ran",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Inspect the four quarterly reconciliation workpapers and the annual retrieval drill log for the year.",
+            "Verify exceptions raised there were tracked to disposition.",
+            "Re-perform one quarter's reconciliation on a spot-check basis."
+          ],
+          "done": "all four reconciliations and the drill are evidenced with exceptions dispositioned."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise one tracker issue per exception with the item, year, class and what is missing or wrong.",
+            "Assign root cause (intake miss, misfile, deletion, migration loss) and an owner.",
+            "Set remediation dates; missing FCIC approvals trigger a written re-request to RMA."
+          ],
+          "done": "every exception has an issue, root cause, owner and remediation date."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compare completeness and retrieval results to the 98% / zero-critical-miss thresholds.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the Internal Auditor — who administers nothing in the repository — sign the workpaper.",
+            "File the workpaper in the compliance evidence repository and report to the Compliance Committee."
+          ],
+          "done": "a signed workpaper with a stated conclusion and completeness rate is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-056-C52",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Capital Management Manager",
+          "value": "Owns the quarterly capital adequacy calculation supporting the SRA Appendix II financial standards and the annual premium authorization; escalation to the Chief Financial Officer"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 2026 SRA Appendix II financial and operational standards (surplus support for the MPCI premium authorized in the Plan of Operations, fund designations and retained-risk terms) plus the NAIC RBC formula the domiciliary state applies, re-read each Plan of Operations cycle"
+        },
+        "In-scope processes": {
+          "value": "Quarterly computation of statutory surplus vs MPCI net retained premium after FCIC cessions by fund and state, private reinsurance overlay, RBC roll-forward, and the resulting headroom against the premium volume authorized in the approved Plan of Operations"
+        },
+        "In-scope systems": {
+          "app": "Statutory Reporting (NAIC)",
+          "value": "Statutory Reporting (NAIC) for surplus and RBC inputs, SAP S/4HANA (GL) tie-outs, Microsoft Excel capital model workbook under version control"
+        },
+        "Compliance procedure documented": {
+          "value": "SRA Capital Adequacy Methodology — data sources, fund-designation mapping from the approved Plan of Operations, FCIC quota-share cession maths, private reinsurance overlay, retained-premium-to-surplus computation, review and sign-off steps"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Financial Officer and the Head of Capital Management; re-approved on any SRA Appendix II amendment or RBC formula change"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Quarterly calc completed within 30 days of quarter close so results feed the RMA quarterly financial submission (within 45 days) and the annual Plan of Operations premium authorization due April 1"
+        },
+        "Deadline reminders configured": {
+          "value": "Close-calendar tasks at quarter close +10/+20/+25 days for the capital calc, plus a February kickoff reminder for the April 1 Plan of Operations inputs"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Capital model workbook, input extracts, tie-outs and sign-offs retained 3 years after the end of the crop year, aligned to the statutory workpaper retention of the annual statement they support"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any quarter where retained premium exceeds the surplus-supported authorization, any unreconciled input, or any late calc is logged as an exception with disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Financial Officer",
+          "value": "CFO signs off the remediation plan for any authorization breach or methodology error before the exception closes"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The four quarterly capital adequacy calculations for the reinsurance year, their input extracts (statutory surplus, eDAS-reported net book premium by state and fund, treaty terms) and the annual RBC filing"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for input tie-out breaks to the statutory statement or GL; recomputed ratio must match the reported ratio within rounding; any undetected authorization breach is a critical fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is quarterly/annual; test runs annually over all four quarters with full re-performance of one quarter"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Model Risk Manager",
+          "value": "Reviewer must not have prepared or peer-reviewed any of the year's capital calcs"
+        },
+        "Evidence location for test results": {
+          "value": "Annual capital-calculation test workpaper (input reconciliations, re-performance, fund-designation traces, exceptions) in the compliance evidence repository under the reinsurance year"
+        },
+        "Regulator-ready documentation": {
+          "value": "Methodology document, quarterly calc workbooks with tie-outs and the RBC filing, producible to RMA financial review or the domiciliary regulator within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Reporting Manager owns responses to RMA financial-condition questions; the CFO approves any response describing capital headroom before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Maintain the documented capital methodology",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "Re-read SRA Appendix II each reinsurance year and update the methodology for changed fund terms, cession rates or reporting requirements.",
+            "Document every input source, formula and judgement (fund mapping, premium recognition point, reinsurance treatment).",
+            "Version the methodology and record CFO/Head of Capital Management approval."
+          ],
+          "done": "a current, approved methodology reflecting this reinsurance year's SRA terms exists under version control."
+        },
+        {
+          "step": "Pull quarter-end statutory surplus and tie it out",
+          "by": "Financial Analyst",
+          "role": "Financial Analyst",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Extract policyholder surplus from the quarterly statutory statement (Liabilities, Surplus and Other Funds page).",
+            "Tie the figure to the SAP S/4HANA GL equity accounts and to the prior quarter's roll-forward.",
+            "Document the tie-out with the extract date and preparer."
+          ],
+          "done": "surplus is extracted and tied to both the statutory statement and the GL with a documented tie-out."
+        },
+        {
+          "step": "Extract MPCI premium by state and fund from reported data",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "app": "enterprise data warehouse",
+          "actions": [
+            "Pull net book premium by state, crop and fund designation from the warehouse tables fed by the weekly eDAS submissions.",
+            "Reconcile the total to the latest eDAS-accepted cumulative premium for the reinsurance year.",
+            "Flag any state where premium is still loading (late acreage reports) and note the estimation basis."
+          ],
+          "done": "premium by state and fund reconciles to eDAS-accepted totals with estimation bases noted."
+        },
+        {
+          "step": "Apply the fund designations from the approved Plan of Operations",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "Load the Assigned Risk Fund and Commercial Fund designations and retained percentages by state exactly as approved in the current Plan of Operations.",
+            "Verify no policy-level designation in the data contradicts the approved plan.",
+            "Record the Plan of Operations version and approval date used."
+          ],
+          "done": "fund designations in the calc match the approved Plan of Operations version cited in the workbook."
+        },
+        {
+          "step": "Compute FCIC cessions and net retained premium",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Apply the SRA quota-share cession to FCIC per fund and state to derive company-retained premium.",
+            "Apply the Appendix II gain/loss sharing structure to understand retained underwriting exposure by fund.",
+            "Summarize retained premium by fund, state and total in the capital workbook."
+          ],
+          "done": "retained premium is computed per fund and state using the current SRA terms, summarized in the workbook."
+        },
+        {
+          "step": "Overlay private reinsurance protection",
+          "by": "Ceded Reinsurance Analyst",
+          "role": "Ceded Reinsurance Analyst",
+          "app": "treaty repository",
+          "actions": [
+            "Pull the executed private stop-loss/quota-share treaties covering the MPCI book from the treaty repository.",
+            "Confirm inception dates, layers, co-participations and any SRA-related warranties against the signed contracts.",
+            "Model the net position after private protection and record treaty references in the workbook."
+          ],
+          "done": "the net retained position reflects executed private treaties with contract references recorded."
+        },
+        {
+          "step": "Compute the retained-premium-to-surplus measure and headroom",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Compute retained MPCI premium relative to statutory surplus and compare against the premium volume the surplus supports under the Appendix II standards and the authorization in the approved Plan of Operations.",
+            "Express headroom in dollars and percentage against the authorized maximum.",
+            "Chart the quarter-on-quarter trend for the CFO pack."
+          ],
+          "done": "the quarter's ratio, authorized maximum and headroom are computed and trended."
+        },
+        {
+          "step": "Roll forward the NAIC RBC position",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "Annually, take the filed RBC (from the annual statement filing) as the anchor; quarterly, estimate movements from premium growth, reserve changes and investment mix.",
+            "Compare the estimated RBC ratio to the company action level and the internal buffer.",
+            "Note crop concentration effects on R5 premium risk in the commentary."
+          ],
+          "done": "an RBC position (filed or estimated) with buffer comparison accompanies each quarterly calc."
+        },
+        {
+          "step": "Reconcile every input before results are used",
+          "by": "Financial Analyst",
+          "role": "Financial Analyst",
+          "actions": [
+            "Tie surplus to the statutory statement, premium to eDAS-accepted totals, and reinsurance terms to executed treaties.",
+            "Clear every reconciling item above the documented threshold before sign-off.",
+            "File the reconciliation tab in the workbook."
+          ],
+          "done": "all three input reconciliations are clean or every break is explained and accepted in writing."
+        },
+        {
+          "step": "Peer-review the calculation",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "Have an actuary who did not prepare the quarter's workbook re-trace formulas, fund mappings and treaty terms.",
+            "Check formula integrity against the prior quarter's version (no silent changes).",
+            "Record reviewer name, date and findings in the workbook sign-off tab."
+          ],
+          "done": "a documented peer review by a non-preparer is recorded with findings cleared."
+        },
+        {
+          "step": "Document assumptions and limitations",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "List estimation points (in-flight acreage, loss development, prevented-planting uncertainty) and their direction of risk.",
+            "State the sensitivity of headroom to the top three assumptions.",
+            "Attach the note to the CFO pack."
+          ],
+          "done": "an assumptions-and-limitations note with sensitivities accompanies the results."
+        },
+        {
+          "step": "Present results to the CFO and Head of Capital Management",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "app": "OneStream (FP&A)",
+          "actions": [
+            "Deliver the quarterly pack: ratio, headroom, RBC position, trend and assumptions within 30 days of quarter close.",
+            "Record decisions (e.g. buy additional private cover, request authorization change) with owners.",
+            "Minute the review."
+          ],
+          "done": "a minuted quarterly review with decisions and owners exists within 30 days of close."
+        },
+        {
+          "step": "Feed the calc into the Plan of Operations premium authorization",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "actions": [
+            "Provide the Regulatory Reporting Manager the surplus-supported premium figure for the Plan of Operations due to RMA by April 1.",
+            "Reconcile the requested authorization to the latest calc and to growth plans.",
+            "Keep the derivation linking calc to request in the workbook."
+          ],
+          "done": "the April 1 authorization request traces arithmetically to the capital calc."
+        },
+        {
+          "step": "Log breaches and calc exceptions",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log any quarter where retained premium approaches or exceeds the authorized/supported level, any late calc, and any material input break.",
+            "Trigger the C53 escalation protocol for genuine breaches the same day.",
+            "Record disposition and CFO sign-off."
+          ],
+          "done": "every breach or exception is logged with same-day escalation where required and CFO-signed disposition."
+        },
+        {
+          "step": "Archive the quarterly workbook and evidence",
+          "by": "Financial Analyst",
+          "role": "Financial Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the locked workbook, input extracts, reconciliations, peer review and minutes under <reinsurance year>/<quarter>.",
+            "Apply the 3-years-after-crop-year retention label.",
+            "Verify retrievability by quarter."
+          ],
+          "done": "each quarter's complete calc package is archived, labelled and retrievable."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of capital calcs and inputs for the year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "List the four quarterly calc packages, the annual RBC filing and the April 1 authorization derivation from the archive.",
+            "Confirm each expected package exists; a missing quarter is an automatic exception.",
+            "Sign the population as complete."
+          ],
+          "done": "all expected calc packages are located or excepted, and the population is signed."
+        },
+        {
+          "step": "Reconcile sampled inputs to source systems",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Independently re-extract surplus from the quarterly statutory statement and premium from the eDAS-accepted totals for two quarters.",
+            "Compare to the workbook inputs at zero tolerance.",
+            "Verify treaty terms in the workbook against the executed contracts in the treaty repository."
+          ],
+          "done": "sampled inputs match statutory, eDAS and treaty sources exactly, or breaks are logged."
+        },
+        {
+          "step": "Re-perform one full quarterly calculation",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Rebuild the selected quarter's calc from the raw inputs without reference to the preparer's workbook.",
+            "Apply the approved methodology: fund designations, FCIC cessions, private overlay, ratio and headroom.",
+            "Compare the recomputed ratio and headroom to the reported figures within rounding.",
+            "Document every difference with its cause."
+          ],
+          "done": "an independent re-performance matches the reported ratio and headroom, or differences are causally explained."
+        },
+        {
+          "step": "Trace fund designations to the approved Plan of Operations",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Open the FCIC-approved Plan of Operations for the reinsurance year from the filing archive.",
+            "Compare the workbook's fund designations and retained percentages by state to the approved plan.",
+            "Any deviation is an exception regardless of direction."
+          ],
+          "done": "workbook fund terms match the approved Plan of Operations state by state."
+        },
+        {
+          "step": "Verify the SRA terms applied are the current year's",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the cession and gain/loss sharing parameters in the workbook to the executed 2026 SRA and its appendices.",
+            "Check no prior-year parameter survived the annual roll.",
+            "Record the comparison in the workpaper."
+          ],
+          "done": "every SRA parameter in the calc matches the executed current-year agreement."
+        },
+        {
+          "step": "Recompute the RBC linkage",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Tie the anchor RBC figures to the filed annual statement RBC pages.",
+            "Re-derive one quarterly RBC estimate from the stated movement drivers.",
+            "Check the buffer comparison used the current company action level."
+          ],
+          "done": "RBC anchors tie to the filing and the sampled estimate re-derives within tolerance."
+        },
+        {
+          "step": "Verify governance on each quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Check each quarter shows a non-preparer peer review, an assumptions note, minutes of the CFO review, and completion within 30 days of close.",
+            "Verify the April 1 authorization request traces to the calc.",
+            "Flag any quarter missing an element."
+          ],
+          "done": "all four quarters evidence peer review, CFO review, timeliness and the authorization trace."
+        },
+        {
+          "step": "Test breach detection with a challenge scenario",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "actions": [
+            "Inject a hypothetical premium uplift that would breach the authorized level into a copy of the workbook.",
+            "Verify the workbook flags the breach and the documented escalation path (C53) would trigger.",
+            "Record the challenge result."
+          ],
+          "done": "the challenge scenario demonstrably triggers the breach flag and escalation path."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise one tracker issue per exception with quarter, input and impact on the reported headroom.",
+            "Assign root cause (stale SRA parameter, tie-out miss, formula drift, late close) and an owner.",
+            "Set remediation dates; a misstated headroom triggers CFO notification the same day."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date, and same-day CFO notice where headroom was misstated."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compare results to the zero-tie-out-break and rounding-match thresholds.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the Model Risk Manager — who prepared none of the year's calcs — sign the workpaper.",
+            "File the workpaper and report to the Compliance Committee and CFO."
+          ],
+          "done": "a signed workpaper with a stated conclusion is filed and reported to the committee and CFO."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-056-C53",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Chief Financial Officer",
+          "value": "Owns continuous monitoring of capital against intervention levels for the MPCI book and escalation of breaches, including notice to FCIC of material adverse financial changes"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 2026 SRA Appendix II financial standards and the SRA notice obligations for events materially affecting financial condition (3-business-day signal), plus NAIC RBC action levels of the domiciliary state, re-read at the annual threshold review"
+        },
+        "In-scope processes": {
+          "value": "Monthly capital monitoring pack, in-season retained-exposure tracking as acreage loads through eDAS (June-October peak), threshold alerting, breach escalation to CFO/board, FCIC notification, and remediation tracking"
+        },
+        "In-scope systems": {
+          "app": "Power BI",
+          "value": "Power BI monitoring dashboard fed from the GL and statutory data; escalations and breach records in the GRC platform"
+        },
+        "Compliance procedure documented": {
+          "value": "Capital Intervention Ladder & Escalation Protocol — internal early-warning buffer above the Appendix II supported level, RBC action levels, alert routing, 1-business-day CFO escalation, 3-business-day FCIC notification for material adverse changes, management action playbook"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the CFO and ratified by the board risk committee; thresholds re-approved annually before the reinsurance year starts July 1"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Continuous — monthly pack by workday 10; internal buffer breach escalated to the CFO within 1 business day; material adverse financial change notified to FCIC within 3 business days; quarterly board reporting"
+        },
+        "Deadline reminders configured": {
+          "value": "Dashboard alert rules on every threshold plus close-calendar tasks at workday 7/9/10 for the monthly pack and a standing 3-business-day clock started on any breach determination"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Monitoring packs, alert logs, escalation notes, FCIC notices and minutes retained 3 years after the end of the crop year, aligned to the statutory records they draw on"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Every threshold breach, missed pack, silent alert or late escalation is logged in the GRC platform with disposition and closure evidence"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Financial Officer",
+          "value": "CFO signs off the management action closing each breach; board risk committee sign-off where the action changes the capital plan"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Twelve monthly monitoring packs for the year, the alert log, all breach/escalation records in the GRC platform, and any FCIC notifications of material financial change"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero missed monthly packs; zero breaches escalated later than 1 business day internally or notified to FCIC later than 3 business days where required; recomputed metrics must match the pack within rounding"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous; test runs annually over the full year of packs with a walkthrough of one real or simulated breach"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not prepare the packs or own any escalated breach"
+        },
+        "Evidence location for test results": {
+          "value": "Annual capital-monitoring test workpaper (pack inventory, metric re-derivations, alert tests, escalation timeline recomputation, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Monitoring pack series, intervention ladder, breach log and FCIC notices, producible to RMA or the domiciliary regulator within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "CFO owns FCIC notification of material adverse changes; Regulatory Counsel clears the notice text; the Regulatory Reporting Manager handles follow-up financial questions from RMA"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Define and approve the intervention ladder",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "actions": [
+            "Set the ladder: internal early-warning buffer above the Appendix II surplus-supported premium level, the authorized premium level itself, and the NAIC RBC company/regulatory action levels.",
+            "Define for each rung: the metric, the trigger value, the required action and the escalation clock.",
+            "Obtain CFO approval and board risk committee ratification before July 1 each reinsurance year."
+          ],
+          "done": "an approved ladder with metrics, triggers, actions and clocks exists for the current reinsurance year."
+        },
+        {
+          "step": "Automate the data feeds behind the monitoring metrics",
+          "by": "BI Developer",
+          "role": "BI Developer",
+          "app": "Power BI",
+          "actions": [
+            "Build feeds from the GL and statutory reporting extracts into the Power BI capital dashboard: surplus, retained MPCI premium, RBC estimate, liquidity.",
+            "Refresh monthly at minimum and weekly during June-October as acreage and premium load through eDAS.",
+            "Alert the Capital Management Manager on any failed refresh the same day."
+          ],
+          "done": "dashboard metrics refresh on schedule with failed refreshes alerted same day."
+        },
+        {
+          "step": "Produce the monthly monitoring pack by workday 10",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "app": "Power BI",
+          "actions": [
+            "Compile surplus, retained premium vs authorization, headroom, RBC estimate and trend charts from the dashboard.",
+            "Annotate drivers: premium growth by state, loss emergence, investment movements.",
+            "Issue the pack to the CFO, Head of Capital Management and Chief Risk Officer by workday 10."
+          ],
+          "done": "a dated pack with metrics, headroom and driver commentary is issued by workday 10 each month."
+        },
+        {
+          "step": "Track in-season retained exposure against capital",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "During the growing season, update retained exposure weekly as acreage reports flow through eDAS submissions.",
+            "Project season-end retained premium and compare to the Plan of Operations authorization.",
+            "Flag to the CFO any projection that erodes the early-warning buffer."
+          ],
+          "done": "weekly in-season projections exist June-October with buffer erosion flagged to the CFO."
+        },
+        {
+          "step": "Configure threshold alerts on every ladder rung",
+          "by": "BI Developer",
+          "role": "BI Developer",
+          "app": "Power BI",
+          "actions": [
+            "Create an alert rule per rung routing to the Capital Management Manager and CFO office.",
+            "Test each rule quarterly by injecting a synthetic breach value in a non-production workspace.",
+            "Log the test results with dates."
+          ],
+          "done": "every rung has a routed alert rule with quarterly synthetic tests logged."
+        },
+        {
+          "step": "Hold the monthly capital review",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Review the pack with the Capital Management Manager and Chief Risk Officer.",
+            "Decide actions on any amber metric and record owners and dates.",
+            "Minute the review and file the minutes with the pack."
+          ],
+          "done": "a minuted monthly review with owned actions exists for every month."
+        },
+        {
+          "step": "Run the breach escalation protocol",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "On any early-warning breach, open a GRC breach record and brief the CFO within 1 business day with the metric, cause and projection.",
+            "On any determination of a material adverse change in financial condition, start the 3-business-day clock for written notice to FCIC.",
+            "Record every timestamp — detection, CFO briefing, determination, notification — in the breach record."
+          ],
+          "done": "every breach shows a timestamped chain from detection to CFO briefing (1 day) and, where required, FCIC notice (3 days)."
+        },
+        {
+          "step": "Send the FCIC notification when triggered",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Draft the written notice to RMA describing the event, quantified impact on surplus and the management response.",
+            "Have Regulatory Counsel clear the text and the CFO approve it.",
+            "Deliver to the RMA contact named in the SRA within 3 business days of the determination and capture proof of delivery."
+          ],
+          "done": "a counsel-cleared, CFO-approved notice reached RMA within 3 business days with delivery proof filed."
+        },
+        {
+          "step": "Maintain the management action playbook",
+          "by": "Head of Capital Management",
+          "role": "Head of Capital Management",
+          "actions": [
+            "Keep pre-agreed actions current: additional private stop-loss purchase, capital injection from the parent, reduction of the requested premium authorization, cession plan changes.",
+            "For each action record trigger conditions, execution lead time and approvers.",
+            "Review the playbook annually alongside the ladder."
+          ],
+          "done": "a current playbook with triggers, lead times and approvers accompanies the ladder."
+        },
+        {
+          "step": "Report to the board risk committee quarterly",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "app": "board portal",
+          "actions": [
+            "Present the capital position, headroom trend, breaches and actions via the board portal pack.",
+            "Record committee challenges and directions in the minutes.",
+            "File the pack and minutes in the archive."
+          ],
+          "done": "quarterly board reporting with minutes exists for every quarter."
+        },
+        {
+          "step": "Track remediation actions to closure",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Track each breach action to its committed date in the GRC platform.",
+            "Verify the metric returned above the trigger and attach the evidencing pack.",
+            "Obtain CFO closure sign-off."
+          ],
+          "done": "every breach action is closed with metric-recovery evidence and CFO sign-off."
+        },
+        {
+          "step": "Review thresholds annually",
+          "by": "Capital Management Manager",
+          "role": "Capital Management Manager",
+          "actions": [
+            "Before July 1, re-derive the ladder from the new SRA terms, the new Plan of Operations authorization and updated RBC parameters.",
+            "Document what changed and why.",
+            "Re-obtain CFO and board risk committee approval."
+          ],
+          "done": "a re-approved ladder aligned to the new reinsurance year exists before July 1."
+        },
+        {
+          "step": "Validate metric derivations annually",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "Re-derive each dashboard metric from source for one month and compare to the displayed value.",
+            "Fix any transformation defect found and re-run.",
+            "Document the validation in the model file."
+          ],
+          "done": "an annual validation shows dashboard metrics re-derive from source within rounding."
+        },
+        {
+          "step": "Coordinate monitoring outputs with regulatory reporting",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Cross-check that any breach disclosed to FCIC is consistently reflected in the quarterly financial submission to RMA (within 45 days) and statutory filings.",
+            "Reconcile figures quoted in notices to the monitoring pack of record.",
+            "Log any inconsistency as an exception before submission."
+          ],
+          "done": "notices, RMA submissions and packs quote consistent figures, or the inconsistency is excepted pre-submission."
+        },
+        {
+          "step": "Retain monitoring evidence",
+          "by": "Financial Analyst",
+          "role": "Financial Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File packs, minutes, alert logs, breach records and FCIC notices under <reinsurance year>/capital-monitoring.",
+            "Apply the 3-years-after-crop-year retention label.",
+            "Verify retrievability by month and by breach."
+          ],
+          "done": "the full year's monitoring evidence is archived, labelled and retrievable."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Inventory the year's monitoring packs and breach records",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "List the twelve expected monthly packs, the weekly in-season projections and every GRC breach record for the year.",
+            "A missing month or missing in-season week during June-October is an automatic exception.",
+            "Sign the inventory as complete."
+          ],
+          "done": "a signed inventory shows every expected pack and projection present or excepted."
+        },
+        {
+          "step": "Re-derive the monitored metrics for sampled months",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "For three sampled months, independently recompute surplus, retained premium vs authorization and headroom from statutory extracts and eDAS-accepted premium.",
+            "Compare to the pack values within rounding.",
+            "Trace the authorization figure to the FCIC-approved Plan of Operations."
+          ],
+          "done": "sampled pack metrics re-derive from source and the authorization traces to the approved plan."
+        },
+        {
+          "step": "Test the alert configuration end to end",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Power BI",
+          "actions": [
+            "Inspect each ladder rung's alert rule: metric, trigger value and recipients against the approved ladder.",
+            "Review the quarterly synthetic-breach test logs for all four quarters.",
+            "Have one synthetic breach re-run in the test workspace and observe the alert arrive."
+          ],
+          "done": "alert rules match the approved ladder and a live synthetic test delivered the alert."
+        },
+        {
+          "step": "Recompute the escalation timeline for every breach",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "For each breach record, read the detection, CFO-briefing, determination and notification timestamps.",
+            "Recompute business-day counts: CFO within 1 business day; FCIC notice within 3 business days of a material-adverse-change determination.",
+            "Any late step is a fail; an undetermined material change with no documented assessment is also a fail."
+          ],
+          "done": "every breach shows recomputed day counts meeting the 1-day and 3-day clocks, or a logged fail."
+        },
+        {
+          "step": "Walk through one breach (real or simulated) end to end",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "If a real breach occurred, walk its full chain: alert → GRC record → CFO brief → determination → notice → action → recovery → CFO closure.",
+            "If none occurred, run a tabletop simulation with the Capital Management Manager and time each step against the protocol.",
+            "Record gaps between protocol and practice."
+          ],
+          "done": "one end-to-end walkthrough or simulation is documented with gaps recorded."
+        },
+        {
+          "step": "Verify FCIC notification content and delivery",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For any notice sent, verify counsel clearance, CFO approval and delivery proof to the RMA contact named in the SRA.",
+            "Reconcile the quantified impact in the notice to the monitoring pack of record.",
+            "Confirm the same event appears consistently in the next quarterly RMA financial submission."
+          ],
+          "done": "each notice is cleared, approved, delivered with proof, and consistent with packs and RMA submissions."
+        },
+        {
+          "step": "Verify governance reviews happened on schedule",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Check monthly review minutes exist for all twelve months and quarterly board packs for all four quarters.",
+            "Verify amber-metric actions carry owners, dates and closure evidence.",
+            "Verify the annual threshold review and metric validation were completed before July 1."
+          ],
+          "done": "all scheduled reviews, the threshold refresh and the metric validation are evidenced."
+        },
+        {
+          "step": "Assess remediation closure quality",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For closed breach actions, verify the metric genuinely recovered above the trigger in the subsequent packs.",
+            "Verify CFO sign-off exists on each closure.",
+            "Reopen as exceptions any closure lacking recovery evidence."
+          ],
+          "done": "every closed breach shows metric recovery and CFO sign-off, or is reopened as an exception."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise one tracker issue per exception with the month/breach, what failed and the SRA or RBC exposure.",
+            "Assign root cause (feed failure, silent alert, clock miss, missing determination) and an owner.",
+            "Set remediation dates; any missed FCIC notice triggers an immediate counsel assessment of corrective disclosure."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date, and counsel assessment where notice was missed."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compare results to the zero-missed-pack and zero-late-escalation thresholds.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the Internal Auditor — who prepares no packs and owns no breaches — sign the workpaper.",
+            "File the workpaper and report to the board risk committee and Compliance Committee."
+          ],
+          "done": "a signed workpaper with a stated conclusion is filed and reported to both committees."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-056-C54",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Owns on-time submission of the Plan of Operations financial package and periodic financial reports to RMA/FCIC; escalation to the Chief Financial Officer"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 2026 SRA Sections III(a)(4) and IV(d) and Appendix II reporting terms: Plan of Operations by April 1 for the reinsurance year beginning July 1, quarterly financial statements within 45 days, annual audited statutory financials; re-read each filing cycle"
+        },
+        "In-scope processes": {
+          "value": "Filing-calendar management, preparation and reconciliation of Plan of Operations financial exhibits (surplus, projected MPCI premium by state and fund, retention plan), CFO certification, submission via the RMA channel under USDA eAuthentication, confirmation capture, and RMA follow-up responses"
+        },
+        "In-scope systems": {
+          "app": "Statutory Reporting (NAIC)",
+          "value": "Statutory Reporting (NAIC) as the source of surplus/RBC figures; exhibits assembled in Microsoft Excel; deadlines and confirmations tracked in the regulatory filing/issue tracker"
+        },
+        "Compliance procedure documented": {
+          "value": "RMA Financial Filing Procedure — calendar, exhibit preparation, tie-outs to the NAIC annual statement and GL, internal review, CFO certification, submission, confirmation capture, 45-day follow-up handling"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the CFO and the Statutory Reporting Manager; re-approved on any SRA reporting-term change"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Plan of Operations to RMA by April 1; FCIC approval expected before the July 1 reinsurance year start; quarterly financial statements within 45 days of quarter end; annual audited statutory financials per the SRA schedule; NAIC annual statement (March 1) as the source filing"
+        },
+        "Deadline reminders configured": {
+          "value": "Tracker alerts at T-60/T-30/T-10 for April 1 and each 45-day quarterly deadline, copied to the CFO office at T-10"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "As-filed packages, certifications, submission confirmations and RMA correspondence retained 3 years after the end of the crop year (7 CFR 457.8 sec. 21), Plan of Operations approvals for the life of the SRA relationship plus 3 years"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any filing after its deadline, any unreconciled exhibit, and any RMA follow-up answered past 45 days is logged as an exception with disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Financial Officer",
+          "value": "CFO signs off the remediation of any late or restated filing before the exception closes"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All RMA financial filings due in the reinsurance year: the April 1 Plan of Operations package, four quarterly financial submissions, the annual audited financials, and every RMA follow-up question received"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero late filings; filed figures must tie to the statutory statement and GL at zero tolerance; every follow-up answered within 45 days"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual with quarterly components; test runs annually over the complete filing population after the April 1 cycle"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have prepared or submitted any filing in the population"
+        },
+        "Evidence location for test results": {
+          "value": "Annual RMA-filings test workpaper (calendar reconciliation, timeliness recomputation, figure tie-outs, confirmation traces, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Filing calendar, as-filed packages with certifications and confirmations, producible to RMA within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Reporting Manager answers RMA financial questions within 45 days; the CFO approves and Regulatory Counsel clears any response addressing a deficiency or restatement"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Maintain the RMA filing calendar for the reinsurance year",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Enter every due date: Plan of Operations by April 1, quarterly financials within 45 days of each quarter end, annual audited financials per the SRA schedule, and the NAIC annual statement (March 1) as the upstream dependency.",
+            "Compute internal milestone dates backwards from each deadline (draft, review, certification, submission).",
+            "Arm T-60/T-30/T-10 alerts with the CFO office copied at T-10."
+          ],
+          "done": "a complete calendar with back-scheduled milestones and armed alerts exists for the reinsurance year."
+        },
+        {
+          "step": "Prepare the Plan of Operations financial exhibits",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Build the exhibits per Appendix II: statutory surplus, projected MPCI premium by state and fund designation, retention plan and supporting schedules.",
+            "Take the projected premium and surplus-supported authorization from the Capital Management Manager's latest calc (C52).",
+            "Assemble the forms list and any required organizational/licensing attachments with the Product Filing Specialist."
+          ],
+          "done": "a complete exhibit set derived from the capital calc and Appendix II requirements exists in draft."
+        },
+        {
+          "step": "Tie every exhibit figure to its source of record",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Tie surplus and balance-sheet figures to the filed NAIC annual statement pages and the SAP S/4HANA GL.",
+            "Tie premium projections to the capital workbook and eDAS-reported actuals for the current year.",
+            "Document each tie-out with preparer and date; clear every break before review."
+          ],
+          "done": "every exhibit figure carries a documented tie-out to statement, GL or capital workbook with zero open breaks."
+        },
+        {
+          "step": "Run the internal review of the filing package",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "actions": [
+            "Review exhibits against the Appendix II checklist and prior-year RMA comments.",
+            "Challenge the premium projection's consistency with the business plan and the requested authorization.",
+            "Record review comments and their clearance in the package."
+          ],
+          "done": "a documented review with cleared comments exists before certification."
+        },
+        {
+          "step": "Obtain the CFO certification",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Review the final package and the tie-out summary.",
+            "Sign the certification/transmittal required for the Plan of Operations submission.",
+            "Return the signed package to the Regulatory Reporting Manager at least 5 business days before April 1."
+          ],
+          "done": "a signed CFO certification exists with at least 5 business days of submission margin."
+        },
+        {
+          "step": "Submit the Plan of Operations by April 1 and capture the confirmation",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Log in to the RMA submission channel via USDA eAuthentication and upload the package to the Plan of Operations intake.",
+            "Capture the confirmation id and timestamp; where any component goes by transmittal letter, keep the date-stamped copy.",
+            "Record the submission date against the April 1 deadline in the tracker and file the as-filed package."
+          ],
+          "done": "the package is submitted on or before April 1 with confirmation and the as-filed copy archived."
+        },
+        {
+          "step": "Prepare and submit the quarterly financial statements within 45 days",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Generate the quarterly statutory statement from the Statutory Reporting (NAIC) system after close.",
+            "Prepare the RMA quarterly submission with any Appendix II supplemental schedules.",
+            "Submit within 45 days of quarter end, capture the confirmation, and log the day count in the tracker."
+          ],
+          "done": "each quarter's submission lands within 45 days with confirmation and day count logged."
+        },
+        {
+          "step": "File the annual audited financials on the SRA schedule",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Obtain the audited statutory financial statements and audit opinion from the Controller.",
+            "Submit to RMA per the SRA schedule and capture the confirmation.",
+            "Reconcile the audited figures to the previously filed quarterly submissions and note any differences for RMA questions."
+          ],
+          "done": "the audited financials are filed on schedule with confirmation and a quarterly-reconciliation note."
+        },
+        {
+          "step": "Track FCIC approval of the Plan of Operations",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Monitor for FCIC's approval or deficiency notice ahead of the July 1 reinsurance year start.",
+            "Route any deficiency notice into the C50 objection process the day it arrives.",
+            "File the approval letter and any conditions in the archive (C51) and circulate conditions to the affected owners."
+          ],
+          "done": "the FCIC approval (or an in-process deficiency response) is on file before July 1 with conditions circulated."
+        },
+        {
+          "step": "Answer RMA follow-up questions within 45 days",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Log each RMA question in the tracker with its 45-day due date computed from the written notice date.",
+            "Draft the response with tie-outs to the filed figures; obtain CFO approval for anything touching capital adequacy.",
+            "Submit through the channel RMA specifies and capture proof of submission."
+          ],
+          "done": "every follow-up shows a logged due date, an approved response and submission proof within 45 days."
+        },
+        {
+          "step": "File amendments when filed information changes materially",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Assess material changes (premium projection, fund designations, financial condition) against the filed Plan of Operations with the Capital Management Manager.",
+            "Prepare and submit the amendment pages to RMA by the applicable deadline.",
+            "Link the amendment to the original filing in the tracker and archive."
+          ],
+          "done": "material changes result in linked, submitted amendments rather than silent drift from the filed plan."
+        },
+        {
+          "step": "Cross-check filings against capital monitoring disclosures",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Before each submission, compare the figures to the latest capital monitoring pack (C53) and any FCIC notices sent.",
+            "Resolve any inconsistency before the filing goes out.",
+            "Document the cross-check in the filing package."
+          ],
+          "done": "each filing carries a documented consistency check against monitoring packs and notices."
+        },
+        {
+          "step": "Archive every as-filed package with its confirmation",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "document management repository",
+          "actions": [
+            "File the as-filed package, certification, confirmation and correspondence under <reinsurance year>/RMA-financial-filings within 5 business days of submission.",
+            "Apply the retention label (3 years after crop year; approvals life-of-relationship plus 3).",
+            "Verify retrievability by filing type and due date."
+          ],
+          "done": "every filing is archived with confirmation inside the 5-day SLA, labelled and retrievable."
+        },
+        {
+          "step": "Log filing exceptions with disposition",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log any late filing, restated exhibit or missed follow-up with the day count and cause.",
+            "Notify the CFO the same day for any late statutory or Plan of Operations filing.",
+            "Record RMA's reaction and the corrective action taken."
+          ],
+          "done": "every filing exception is logged with same-day CFO notice and a recorded corrective action."
+        },
+        {
+          "step": "Review the procedure annually against the current SRA",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Re-read the SRA reporting sections and Appendix II each year for changed deadlines or content requirements.",
+            "Fold in the April 1 cycle debrief points: milestone slippage, tie-out breaks and RMA comments.",
+            "Confirm the calendar template reflects any change before the new reinsurance year.",
+            "Sign and date the annual review."
+          ],
+          "done": "a dated annual review confirms the calendar and procedure match the current SRA terms and absorb the cycle debrief."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of required RMA filings for the year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Derive the required-filing list independently from the 2026 SRA reporting terms: April 1 Plan of Operations, four quarterly submissions, annual audited financials, plus received follow-ups.",
+            "Compare to the company's filing calendar and list any requirement the calendar missed.",
+            "Sign the population as complete."
+          ],
+          "done": "an independently derived filing population is reconciled to the calendar and signed."
+        },
+        {
+          "step": "Recompute timeliness for every filing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Read the submission timestamp or date-stamped transmittal for each filing.",
+            "Recompute against the deadline: April 1, quarter end + 45 days, the SRA audited-financials date, and 45 days for each follow-up.",
+            "Any filing past its date is a fail regardless of RMA reaction."
+          ],
+          "done": "every filing has recomputed day-count maths and an on-time/late verdict."
+        },
+        {
+          "step": "Trace submissions to confirmations",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Verify each filing holds a confirmation id, receipt or date-stamped transmittal in the archive.",
+            "Treat a filing without submission proof as unsubmitted — a fail, not a documentation gap.",
+            "Verify the FCIC approval of the Plan of Operations is on file before July 1."
+          ],
+          "done": "every filing traces to submission proof and the pre-July-1 approval is evidenced."
+        },
+        {
+          "step": "Tie filed figures back to the statutory statement and GL",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "For the Plan of Operations exhibits and two sampled quarterly submissions, re-tie surplus and premium figures to the statutory statement pages, the GL and the capital workbook.",
+            "Apply zero tolerance to tie-out differences.",
+            "Verify the requested premium authorization equals the capital calc's supported figure."
+          ],
+          "done": "sampled filed figures tie exactly to source, and the authorization request traces to the capital calc."
+        },
+        {
+          "step": "Verify certification and review evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the CFO certification is signed and dated before submission on the Plan of Operations.",
+            "Confirm the Statutory Reporting Manager's review comments and clearances exist for each sampled filing.",
+            "Flag any filing submitted without its required sign-offs."
+          ],
+          "done": "every sampled filing shows pre-submission certification and documented review."
+        },
+        {
+          "step": "Sample RMA follow-ups and test the 45-day responses",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Select all follow-ups touching capital adequacy plus a random sample of others.",
+            "Recompute the 45-day clock from each written notice date to the response submission proof.",
+            "Verify CFO approval on capital-related responses and consistency with the filed figures."
+          ],
+          "done": "sampled follow-ups show on-time, approved, figure-consistent responses."
+        },
+        {
+          "step": "Test amendment discipline",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare in-year material changes (from capital packs and board minutes) to the amendments actually filed.",
+            "Any material change to filed information with no amendment is an exception.",
+            "Verify amendments link to their originals in the tracker and archive."
+          ],
+          "done": "every material change traces to a filed, linked amendment or a logged exception."
+        },
+        {
+          "step": "Verify archive completeness for the filing year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "document management repository",
+          "actions": [
+            "Retrieve each population filing from the archive with certification, confirmation and correspondence.",
+            "Check filing-to-archive lag against the 5-business-day SLA.",
+            "Check retention labels."
+          ],
+          "done": "every filing is retrievable complete within SLA with correct retention labels."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise one tracker issue per exception with the filing, deadline, day count and SRA exposure.",
+            "Assign root cause (calendar miss, close delay, certification bottleneck, channel confusion) and an owner.",
+            "Set remediation dates and carry open exceptions into next year's test."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compare results to the zero-late-filings and zero-tie-out-break thresholds.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the Internal Auditor — who prepared and submitted nothing in the population — sign the workpaper.",
+            "File the workpaper and report to the Compliance Committee and CFO."
+          ],
+          "done": "a signed workpaper with a stated conclusion is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-056-C55",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Enterprise Risk Manager",
+          "value": "Owns the annual ORSA/solvency self-assessment covering the MPCI book's concentration and SRA-dependency risks, through board sign-off; escalation to the Chief Risk Officer"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — the NAIC Risk Management and ORSA Model Act (#505) as adopted by the domiciliary state and the ORSA Guidance Manual sections 1-3, read alongside 2026 SRA Appendix II financial standards for the crop-specific capital view; re-read at each annual cycle kickoff"
+        },
+        "In-scope processes": {
+          "value": "Annual ORSA cycle: risk-profile refresh (drought/flood/price concentration, FCIC and private reinsurer counterparty, operational), prospective solvency assessment over the planning horizon, report drafting, ERM committee and CRO challenge, board sign-off, filing with the lead state, and readiness to provide to RMA on request"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Risk register and assessment workflow in the GRC platform; capital projections from the actuarial modeling platform; board sign-off via the board portal"
+        },
+        "Compliance procedure documented": {
+          "value": "ORSA Production Procedure — cycle calendar, section owners, data lineage from capital and stress models (C52/C56), challenge steps, board approval, lead-state filing and retention"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Risk Officer; ratified by the board risk committee at the annual cycle kickoff"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual — ORSA Summary Report filed with the lead state regulator on the timetable it sets; internal milestones back-scheduled so board sign-off precedes the filing date; produced to RMA within any deadline stated in an RMA request"
+        },
+        "Deadline reminders configured": {
+          "value": "Cycle-plan alerts at kickoff, draft-due, committee-review and board dates, plus a T-30 alert before the lead-state filing date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "ORSA report versions, model outputs, challenge logs, board minutes and the filing receipt retained at least 3 years, aligned to the crop-year retention of the SRA evidence they draw on"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "A missed board sign-off, late lead-state filing, or scenario set omitting a material crop catastrophe is logged as an exception with disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "CRO signs off remediation of any ORSA process failure; board risk committee informed where sign-off or filing slipped"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The year's ORSA Summary Report with its data lineage (capital calc, stress results, risk register extracts), the challenge and approval trail, board minutes and the lead-state filing receipt"
+        },
+        "Pass/fail thresholds": {
+          "value": "Report produced and board-signed before filing; capital figures must tie to the C52 calc and C56 stress outputs at zero tolerance; scenario set must include the material drought/flood/price events or the omission justified in writing"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; test runs annually after the filing, reviewing the complete cycle"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have authored any ORSA section or performed the underlying modeling"
+        },
+        "Evidence location for test results": {
+          "value": "Annual ORSA-process test workpaper (lineage traces, tie-outs, governance evidence, filing verification, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "The filed ORSA Summary Report, board approval minutes and supporting model documentation, producible to the lead state or RMA within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Enterprise Risk Manager coordinates regulator questions on the ORSA; the CRO approves responses; Regulatory Counsel clears anything characterizing capital adequacy before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Kick off the annual ORSA cycle with a board-ratified plan",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "actions": [
+            "Publish the cycle calendar: risk refresh, modeling, drafting, ERM committee, CRO challenge, board date, lead-state filing date.",
+            "Name a section owner for each ORSA Guidance Manual section (1: risk management framework, 2: risk exposure assessment, 3: group capital and prospective solvency).",
+            "Present the plan to the board risk committee and record ratification."
+          ],
+          "done": "a ratified cycle plan with section owners and dates exists before work starts."
+        },
+        {
+          "step": "Refresh the risk profile for the MPCI book",
+          "by": "Risk Analyst",
+          "role": "Risk Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Update the risk register: underwriting concentration by state/crop, drought/flood/price catastrophe risk, FCIC counterparty and SRA-renewal dependency, private reinsurer credit, operational and data-reporting risk (eDAS obligations).",
+            "Score inherent and residual positions with the risk owners.",
+            "Extract the top risks for the report with movement commentary versus last year."
+          ],
+          "done": "a refreshed, owner-scored risk register with year-on-year movement commentary exists."
+        },
+        {
+          "step": "Assemble the capital and stress inputs",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Take the latest quarterly capital calc (C52) as the current-position anchor.",
+            "Take the stress and scenario results (C56) — drought replay, flood replay, price collapse, combined — as the stressed view.",
+            "Freeze the input versions and record their ids for lineage."
+          ],
+          "done": "capital and stress inputs are frozen with recorded version ids anchoring the report."
+        },
+        {
+          "step": "Run the prospective solvency assessment",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "Project surplus, retained MPCI premium and RBC over the planning horizon (3 years) under base and stressed paths.",
+            "Overlay planned management actions from the capital playbook (C53) and show pre/post-action positions.",
+            "Document assumptions: growth by state, SRA terms continuity, private reinsurance renewal pricing."
+          ],
+          "done": "a 3-year base-and-stress solvency projection with pre/post-action views and documented assumptions exists."
+        },
+        {
+          "step": "Draft the ORSA Summary Report",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "actions": [
+            "Write sections 1-3 per the ORSA Guidance Manual using the section owners' inputs.",
+            "Show the crop concentration story explicitly: gross vs FCIC-ceded vs net retained exposure by fund and state.",
+            "Reconcile every capital figure in the draft to the frozen inputs."
+          ],
+          "done": "a complete draft with reconciled figures and an explicit crop-concentration assessment exists."
+        },
+        {
+          "step": "Take the draft through ERM committee review",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "actions": [
+            "Present the draft with the scenario results and open risk issues.",
+            "Log every committee comment in the challenge log with its resolution.",
+            "Update the draft and version it."
+          ],
+          "done": "a committee-reviewed draft with a resolved challenge log exists."
+        },
+        {
+          "step": "Run the CRO challenge",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Challenge scenario severity against history (1988 and 2012 droughts, 1993 floods), assumption optimism and the credibility of management actions.",
+            "Require written responses to each challenge point.",
+            "Approve the report for board submission and date the approval."
+          ],
+          "done": "a dated CRO approval with written responses to every challenge point exists."
+        },
+        {
+          "step": "Obtain board review and sign-off",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "board portal",
+          "actions": [
+            "Distribute the report through the board portal ahead of the meeting.",
+            "Present the risk profile, stressed solvency position and management actions to the board/risk committee.",
+            "Capture the board's approval resolution and any directions in the minutes."
+          ],
+          "done": "board approval is minuted with the resolution and directions captured."
+        },
+        {
+          "step": "File the ORSA Summary Report with the lead state",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Submit the board-approved report to the lead state regulator by its set timetable, via the channel it specifies.",
+            "Capture the filing receipt and record the date against the deadline.",
+            "Stand ready to provide the report to RMA on request within the deadline RMA states."
+          ],
+          "done": "the board-approved report is filed on time with the receipt recorded."
+        },
+        {
+          "step": "Convert findings into tracked management actions",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Log each ORSA finding and board direction as an action with owner and date in the GRC platform.",
+            "Link actions to the capital playbook and risk register entries they modify.",
+            "Report action status to the ERM committee quarterly."
+          ],
+          "done": "every finding is an owned, dated, quarterly-reported action in the GRC platform."
+        },
+        {
+          "step": "Update risk appetite where the assessment moved it",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Assess whether stressed results justify changing appetite statements or limits (state concentration caps, retained premium limits).",
+            "Take any change to the board for approval.",
+            "Cascade approved changes into the C53 intervention ladder."
+          ],
+          "done": "appetite changes are board-approved and cascaded into the monitoring ladder, or a no-change rationale is recorded."
+        },
+        {
+          "step": "Validate the key models feeding the ORSA",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "model governance repository",
+          "actions": [
+            "Confirm the capital and stress models used carry current validations in the model governance repository.",
+            "Where validation is stale, record the limitation in the ORSA and schedule the revalidation.",
+            "Attach the validation status summary to the report pack."
+          ],
+          "done": "model validation status is current or disclosed as a limitation, with the summary attached."
+        },
+        {
+          "step": "Version-control the report and its lineage",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "actions": [
+            "Store every draft, the challenge log and the frozen input ids with the final report.",
+            "Ensure the filed version is immutable and clearly marked as-filed.",
+            "Record who changed what between versions."
+          ],
+          "done": "the filed version is immutable with full drafting lineage preserved."
+        },
+        {
+          "step": "Log cycle exceptions with disposition",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log any slipped milestone, late filing or scenario omission with cause.",
+            "Notify the CRO and, for filing slippage, the board risk committee.",
+            "Record the corrective action for next cycle."
+          ],
+          "done": "every cycle exception is logged, escalated and carries a corrective action."
+        },
+        {
+          "step": "Archive the complete ORSA pack",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "document management repository",
+          "actions": [
+            "File the as-filed report, board minutes, challenge logs, model outputs and filing receipt under the cycle year.",
+            "Apply the retention label (minimum 3 years, aligned to SRA evidence retention).",
+            "Verify retrievability by cycle year."
+          ],
+          "done": "the full cycle pack is archived, labelled and retrievable."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Verify the report was produced and its scope is complete",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Obtain the as-filed ORSA Summary Report and confirm sections 1-3 of the Guidance Manual are each addressed.",
+            "Confirm the MPCI concentration, FCIC dependency and private reinsurer risks appear in the risk exposure section.",
+            "A missing section or missing material crop risk is an exception."
+          ],
+          "done": "the filed report covers all required sections and the material crop risks, or gaps are excepted."
+        },
+        {
+          "step": "Trace the governance chain to board sign-off",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Verify the ERM committee review, the CRO approval date and the board resolution in the minutes.",
+            "Confirm the board approval pre-dates the lead-state filing.",
+            "Verify the challenge log shows resolved committee and CRO points."
+          ],
+          "done": "a dated chain — committee, CRO, board, filing — is evidenced in the correct order."
+        },
+        {
+          "step": "Tie report capital figures to the frozen model inputs",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match every capital and stress figure in the report to the frozen C52 calc and C56 stress outputs by version id.",
+            "Apply zero tolerance to differences; an unexplained figure is a fail.",
+            "Verify the pre/post-management-action positions recompute from the playbook assumptions."
+          ],
+          "done": "every reported figure traces to a frozen input version and recomputes, or the break is logged."
+        },
+        {
+          "step": "Assess scenario coverage against the crop book's history",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Check the scenario set includes a severe drought replay (1988/2012 class), a flood replay (1993 class) and a commodity price collapse.",
+            "Where any is absent, verify a written justification approved by the CRO exists.",
+            "Compare scenario severities to the CRO challenge log for evidence of genuine challenge."
+          ],
+          "done": "scenario coverage is complete or justified in writing, with challenge evidence on severity."
+        },
+        {
+          "step": "Verify the lead-state filing and RMA readiness",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Verify the filing receipt and recompute timeliness against the lead state's set date.",
+            "Confirm the as-filed version matches the board-approved version byte-for-byte.",
+            "Confirm the procedure names the path and deadline handling for an RMA request for the report."
+          ],
+          "done": "the filing is on time, version-identical to the approved report, and RMA request handling is defined."
+        },
+        {
+          "step": "Verify model validation status disclosures",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "model governance repository",
+          "actions": [
+            "Check the validation dates of the capital and stress models in the model governance repository.",
+            "Where validation was stale at drafting, confirm the ORSA disclosed it as a limitation.",
+            "Confirm scheduled revalidations happened or remain tracked."
+          ],
+          "done": "model validation status at drafting is verified and disclosures match reality."
+        },
+        {
+          "step": "Test that findings became tracked actions",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Match every finding and board direction in the minutes to a GRC action with owner and date.",
+            "Check quarterly status reporting to the ERM committee happened.",
+            "An unactioned board direction is an exception."
+          ],
+          "done": "every finding and direction traces to an owned, reported action."
+        },
+        {
+          "step": "Verify appetite cascade into monitoring",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Where the ORSA changed appetite or limits, verify the C53 intervention ladder was updated and re-approved.",
+            "Where no change was made, verify the recorded no-change rationale.",
+            "Check consistency between the ORSA's stated limits and the ladder in force."
+          ],
+          "done": "ORSA limits and the monitoring ladder are consistent, with change or no-change evidence."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise one tracker issue per exception with the cycle step, what failed and the governance exposure.",
+            "Assign root cause (calendar slip, lineage break, challenge shortfall, filing miss) and an owner.",
+            "Set remediation dates for the next cycle."
+          ],
+          "done": "every exception has an issue, root cause, owner and remediation date."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compare results to the thresholds: board-signed before filing, zero figure breaks, complete scenario coverage.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the Internal Auditor — who authored no section and ran no model — sign the workpaper.",
+            "File the workpaper and report to the board risk committee and Compliance Committee."
+          ],
+          "done": "a signed workpaper with a stated conclusion is filed and reported to both committees."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-056-C56",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Chief Actuary",
+          "value": "Owns the annual stress and scenario testing of the retained MPCI book under the SRA structure; delivery by the Capital Model Actuary and CAT Modeler; escalation to the Chief Risk Officer"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 2026 SRA Appendix II gain/loss sharing and fund terms (the structure being stressed) and the domiciliary state's ORSA/RBC expectations for prospective stress testing, re-read at each annual scenario-suite approval"
+        },
+        "In-scope processes": {
+          "value": "Annual scenario-suite definition (severe drought replays, Midwest flood replay, commodity price collapse, combined events), exposure build from eDAS-accepted acreage data, application of SRA fund/cession terms and private reinsurance, computation of net retained loss and surplus impact, model-risk review and results governance"
+        },
+        "In-scope systems": {
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "value": "Actuarial modeling platform for the stress engine, Moody's RMS (Cat Model) for event footprints, exposure data staged in the enterprise data warehouse from eDAS-accepted records"
+        },
+        "Compliance procedure documented": {
+          "value": "MPCI Stress & Scenario Testing Procedure — suite definition and approval, exposure snapshot rules (post-acreage-reporting-date), SRA term application by fund and state, private treaty overlay, output validation, review and reporting steps"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Actuary and Chief Risk Officer; scenario suite re-approved annually before the exposure snapshot"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual — exposure snapshot after the acreage reporting data stabilizes in eDAS; results delivered to the ERM committee in time to feed the ORSA cycle (C55) and the pre-July-1 threshold review (C53)"
+        },
+        "Deadline reminders configured": {
+          "value": "Cycle-plan alerts at suite-approval, snapshot, model-run, review and ERM-committee dates, anchored to the ORSA calendar"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Scenario definitions, exposure snapshots, model run logs, results packs and review minutes retained 3 years after the end of the crop year, consistent with the SRA evidence they support"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "A skipped scenario, an exposure snapshot unreconciled to eDAS, or SRA terms applied from the wrong reinsurance year is logged as an exception with disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Actuary",
+          "value": "Chief Actuary signs off remediation of any modeling or parameter error; the CRO is informed where results already reported were affected"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The year's approved scenario suite, the exposure snapshot, all model runs with logs, the results pack and the downstream uses (ORSA, intervention-ladder review)"
+        },
+        "Pass/fail thresholds": {
+          "value": "All approved scenarios executed; exposure snapshot must reconcile to eDAS-accepted records within 1%; SRA parameters must match the executed current-year agreement exactly; an independent re-run of one scenario must reproduce net retained loss within 2%"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; verification test runs annually after the results pack is delivered"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Model Risk Manager",
+          "value": "Reviewer must not have built the scenarios, the exposure set or the model runs"
+        },
+        "Evidence location for test results": {
+          "value": "Annual stress-testing verification workpaper (suite trace, exposure reconciliation, parameter checks, independent re-run, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Scenario definitions, methodology, results pack and governance minutes, producible to the domiciliary regulator or RMA within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Chief Actuary owns technical responses on stress methodology; the CRO approves conclusions about capital resilience; Regulatory Counsel clears responses tied to any open RMA financial review"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Define and approve the annual scenario suite",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "Propose the suite: 1988-class and 2012-class drought replays, a 1993-class Midwest flood replay, a harvest-price collapse (revenue plans), and a combined drought-plus-price event.",
+            "Parameterize each scenario by state/crop yield shocks and price paths, citing the historical source data.",
+            "Add reverse-stress: the loss level that would exhaust the early-warning capital buffer.",
+            "Obtain Chief Actuary and CRO approval of the suite and record the approval date."
+          ],
+          "done": "an approved, parameterized suite including historical replays, price stress and a reverse-stress exists."
+        },
+        {
+          "step": "Build the exposure snapshot from accepted data",
+          "by": "Data Engineer",
+          "role": "Data Engineer",
+          "app": "enterprise data warehouse",
+          "actions": [
+            "Extract policy, unit and acreage records from the warehouse tables fed by eDAS-accepted submissions, snapshotted after the acreage reporting date data stabilizes.",
+            "Include plan of insurance, coverage level, unit structure, share, and fund designation per policy.",
+            "Tag the snapshot with its extraction date and eDAS cumulative batch reference."
+          ],
+          "done": "a tagged exposure snapshot with plan, coverage and fund attributes exists for the crop year."
+        },
+        {
+          "step": "Reconcile the snapshot to eDAS-accepted totals",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "actions": [
+            "Compare snapshot policy counts, net acres and premium by state to the eDAS-accepted cumulative totals for the same batch week.",
+            "Investigate and clear any difference beyond 1% before modeling starts.",
+            "File the reconciliation with the snapshot."
+          ],
+          "done": "the snapshot reconciles to eDAS-accepted totals within 1% with the reconciliation filed."
+        },
+        {
+          "step": "Load exposure and scenarios into the modeling platform",
+          "by": "CAT Modeler",
+          "role": "CAT Modeler",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Load the exposure snapshot and map crops/counties to the model geography.",
+            "Encode each approved scenario's yield and price shocks; for spatial events use the cat model footprint as the shock template.",
+            "Log the model version, data version and run configuration for every run."
+          ],
+          "done": "exposure and all approved scenarios are loaded with versioned run configurations."
+        },
+        {
+          "step": "Apply the current-year SRA terms by fund and state",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "Encode the Assigned Risk and Commercial Fund designations and retained percentages from the FCIC-approved Plan of Operations.",
+            "Apply the Appendix II gain/loss sharing tables of the executed 2026 SRA to gross scenario losses by fund and state.",
+            "Cross-check two hand-computed state/fund cells against the model output before full runs."
+          ],
+          "done": "SRA terms match the executed agreement and approved plan, verified by hand-computed cells."
+        },
+        {
+          "step": "Overlay private reinsurance protection",
+          "by": "Ceded Reinsurance Analyst",
+          "role": "Ceded Reinsurance Analyst",
+          "app": "treaty repository",
+          "actions": [
+            "Apply executed private stop-loss/quota-share terms from the treaty repository to the post-SRA retained loss.",
+            "Model reinstatement premiums and any co-participation.",
+            "Record treaty references and confirm inception dates cover the modeled crop year."
+          ],
+          "done": "private treaty terms from executed contracts are applied with references recorded."
+        },
+        {
+          "step": "Run the scenarios and compute the capital impact",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "Execute every approved scenario and capture gross, FCIC-ceded, privately-ceded and net retained loss.",
+            "Compute the surplus impact and the post-event position against the C53 intervention ladder rungs.",
+            "Compute the reverse-stress answer: the loss multiple that breaches the buffer.",
+            "Archive run logs proving every approved scenario executed."
+          ],
+          "done": "all scenarios ran with gross-to-net waterfalls, surplus impacts and the reverse-stress answer archived."
+        },
+        {
+          "step": "Run sensitivity checks on key judgements",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "Vary the top judgements: yield-shock severity, price path, fund-designation mix, private-treaty exhaustion.",
+            "Show the sensitivity of net retained loss to each.",
+            "Flag any judgement that flips a ladder-rung breach for prominent disclosure."
+          ],
+          "done": "documented sensitivities exist with breach-flipping judgements flagged."
+        },
+        {
+          "step": "Document methodology and assumptions",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "Write the methodology note: data lineage, scenario basis, SRA parameter sources, treaty overlay and limitations.",
+            "State what the model does not capture (prevented planting dynamics, replant costs, quality losses) and the direction of bias.",
+            "Version the note with the run set."
+          ],
+          "done": "a versioned methodology note with limitations accompanies the results."
+        },
+        {
+          "step": "Obtain model-risk review",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "model governance repository",
+          "actions": [
+            "Review the run set against the model's validation scope in the model governance repository.",
+            "Challenge parameter sources and the hand-check evidence for SRA terms.",
+            "Record findings and clearance in the model governance repository."
+          ],
+          "done": "a recorded model-risk review with cleared findings exists for the run set."
+        },
+        {
+          "step": "Present results to the ERM committee and CRO",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Deliver the results pack: waterfalls, surplus impacts, ladder-rung comparisons, reverse-stress and sensitivities.",
+            "Recommend actions where a scenario breaches a rung (more private cover, authorization reduction, concentration limits).",
+            "Minute the committee's decisions and owners."
+          ],
+          "done": "a minuted ERM committee review with decisions and owners exists."
+        },
+        {
+          "step": "Feed results into ORSA and capital monitoring",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "Hand the frozen results (with version ids) to the ORSA cycle (C55) as the stressed view.",
+            "Hand the ladder-rung comparisons to the C53 threshold review before July 1.",
+            "Record both handoffs with dates and version ids."
+          ],
+          "done": "dated, versioned handoffs into the ORSA and the threshold review are recorded."
+        },
+        {
+          "step": "Track management actions arising from results",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Log each committee-agreed action with owner and date.",
+            "Track to closure and verify the mitigating effect in the next run cycle.",
+            "Report status quarterly to the ERM committee."
+          ],
+          "done": "every agreed action is owned, tracked and re-tested in the next cycle."
+        },
+        {
+          "step": "Log testing-cycle exceptions",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log any skipped scenario, reconciliation failure or parameter error with cause and impact on reported results.",
+            "Notify the Chief Actuary; notify the CRO where reported results were affected.",
+            "Record the corrective action and rerun evidence."
+          ],
+          "done": "every exception is logged with escalation and rerun evidence where results changed."
+        },
+        {
+          "step": "Archive the complete run evidence",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "document management repository",
+          "actions": [
+            "File scenario definitions, snapshot, reconciliations, run logs, methodology note, review records and minutes under the crop year.",
+            "Apply the 3-years-after-crop-year retention label.",
+            "Verify retrievability by scenario and crop year."
+          ],
+          "done": "the full cycle evidence is archived, labelled and retrievable."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Verify every approved scenario was executed",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "actions": [
+            "Compare the approved suite (with its approval date) to the archived run logs.",
+            "Any approved scenario without a run log is an automatic exception.",
+            "Verify the reverse-stress run exists."
+          ],
+          "done": "run logs evidence execution of every approved scenario including the reverse-stress."
+        },
+        {
+          "step": "Reconcile the exposure snapshot independently to eDAS",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "enterprise data warehouse",
+          "actions": [
+            "Re-pull policy counts, net acres and premium by state from the eDAS-accepted cumulative totals for the snapshot batch week.",
+            "Compare to the modeled snapshot within the 1% threshold.",
+            "Check the snapshot date falls after the acreage reporting data stabilized."
+          ],
+          "done": "the snapshot independently reconciles to eDAS within 1% with a valid snapshot date."
+        },
+        {
+          "step": "Verify SRA parameters against the executed agreement",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "actions": [
+            "Compare every fund designation, retained percentage and gain/loss sharing parameter in the model configuration to the executed 2026 SRA and the FCIC-approved Plan of Operations.",
+            "Any prior-year parameter or transcription error is a fail.",
+            "Verify the preparer's hand-computed cell checks exist."
+          ],
+          "done": "model SRA parameters match the executed agreement and approved plan exactly."
+        },
+        {
+          "step": "Verify private treaty terms against executed contracts",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "treaty repository",
+          "actions": [
+            "Trace modeled attachment points, limits, co-participations and reinstatements to the signed treaties.",
+            "Confirm treaty periods cover the modeled crop year.",
+            "Flag modeled cover with no executed contract behind it as a fail."
+          ],
+          "done": "all modeled private protection traces to executed, in-period treaties."
+        },
+        {
+          "step": "Independently re-run one scenario",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Select the most severe scenario and re-run it from the archived snapshot and configuration without the preparer.",
+            "Compare gross, ceded and net retained loss to the reported results within the 2% reproduction threshold.",
+            "Investigate any difference to a named cause (seed, version, manual adjustment)."
+          ],
+          "done": "the re-run reproduces reported results within 2% or the difference has a named cause."
+        },
+        {
+          "step": "Recompute the net-retained maths for sampled cells",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Hand-compute the gross-to-net waterfall for three state/fund cells: gross loss, FCIC share under the gain/loss tables, private recovery, net retained.",
+            "Compare to the model output cell by cell.",
+            "Verify the surplus-impact arithmetic against the C52 surplus figure."
+          ],
+          "done": "hand-computed waterfalls match the model and the surplus arithmetic ties to the capital calc."
+        },
+        {
+          "step": "Verify governance and downstream use",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Verify the model-risk review, ERM committee minutes and Chief Actuary sign-off exist and pre-date downstream use.",
+            "Trace the versioned handoffs into the ORSA (C55) and the threshold review (C53).",
+            "Confirm results in those documents match the frozen results pack."
+          ],
+          "done": "governance is evidenced and downstream documents carry the identical frozen results."
+        },
+        {
+          "step": "Check action follow-through from prior cycle",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Pull last cycle's agreed actions and verify closure evidence.",
+            "Verify the current cycle re-tested the mitigated positions.",
+            "An unclosed action with no committee-accepted extension is an exception."
+          ],
+          "done": "prior-cycle actions are closed and re-tested, or excepted with committee acceptance."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise one tracker issue per exception with scenario/cell, what failed and the impact on reported resilience.",
+            "Assign root cause (data lineage, parameter roll, model version, governance skip) and an owner.",
+            "Set remediation dates; where reported results were wrong, require corrected reporting to the ERM committee."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date, and corrected reporting where results changed."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compare results to the thresholds: full suite executed, 1% exposure reconciliation, exact SRA parameters, 2% reproduction.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the Model Risk Manager — who built none of the runs — sign the workpaper.",
+            "File the workpaper and report to the ERM committee and Compliance Committee."
+          ],
+          "done": "a signed workpaper with a stated conclusion is filed and reported to both committees."
+        }
+      ]
+    }
+  ]
+}

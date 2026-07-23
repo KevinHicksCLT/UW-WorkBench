@@ -1,0 +1,2357 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-005-C01",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Policy Forms Specialist",
+          "value": "Owns the cancellation/non-renewal notice template library for all 51 jurisdictions; escalates wording disputes to Regulatory Counsel"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — each jurisdiction's cancellation/non-renewal notice statute re-read at template build time (rep: Alaska AS 21.36.210–.260 for the Alaska Division of Insurance), plus Arizona A.R.S. § 20-1631, California Ins. Code §§ 677.2/678 and Connecticut C.G.S. § 38a-323; DOI bulletin feed checked at each template revision"
+        },
+        "In-scope processes": {
+          "value": "Product/forms change intake → notice template drafting → per-state wording matrix → counsel approval → template publication into policy admin correspondence, for every Alternative Risk and admitted P&C cancellation, non-payment cancellation and non-renewal notice"
+        },
+        "In-scope systems": {
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "value": "Correspondence template library (CANC-NONPAY, CANC-UW, NONRENEW, CONDITIONAL-RENEWAL variants) and the state/LOB template routing table; source documents held in the document management repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Cancellation & Non-Renewal Notice Template Standard — required content blocks (specific reason, effective date and time, statutory notice days, right-to-appeal/review language, FAIR plan or residual market availability, loss-run availability, mailing-proof method) and the per-state wording matrix"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by Head of Compliance with Regulatory Counsel wording sign-off; re-approved on every statute or bulletin change and reconfirmed for all 51 jurisdictions annually"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per change — template revisions must clear counsel and, where the state treats the notice as a filed form, be filed and approved in SERFF before the wording is switched on for that state"
+        },
+        "Deadline reminders configured": {
+          "value": "Template change tickets carry alerts at T-45/T-15 days to the planned production release; the bulletin monitoring subscription raises a 5-business-day template impact assessment task on any DOI notice bulletin"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Form inventory extract, per-state wording matrix, dated statute captures, counsel approvals and template version history retained 7 years from the date the template version is retired"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "A template published without counsel approval, or a state left mapped to a superseded notice version, is logged as a compliance exception with root cause, affected policy count and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Regulatory Counsel",
+          "value": "Counsel signs off each corrected template version and any re-issue of notices sent on defective wording"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All active cancellation/non-renewal correspondence templates by state, LOB and reason code in the policy admin template library, plus every template version published during the test period"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on content — any live template missing a statutorily required content block, or stating notice days shorter than the state minimum, is a fail; ≥1 fail escalates to the Head of Compliance and blocks further template releases"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per change; template content test runs on every release plus a full 51-jurisdiction sweep semi-annually"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Manager",
+          "value": "Reviewer must not have drafted or approved any sampled template version"
+        },
+        "Evidence location for test results": {
+          "value": "Template content test workpaper (library extract, wording matrix comparison, statute captures, exception list) in the compliance evidence repository under REG-005/C01"
+        },
+        "Regulator-ready documentation": {
+          "value": "Form inventory export showing template id, version, states mapped, reason codes and approval date, with specimen notices attached — producible for a market conduct exam form request within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager answers DOI form and specimen requests; Regulatory Counsel clears any statement about defective wording before it leaves the company"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Pull the current notice template inventory out of policy admin",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "In the policy admin Administration ▸ Correspondence Templates screen, filter Category = 'Cancellation / Non-Renewal' and export template id, template name, version, effective date, LOB, mapped states and reason codes to Excel.",
+            "Ask the Policy Admin Ops Lead for the state/LOB template routing table export so you can see which template actually fires for each jurisdiction and reason code.",
+            "Join the two extracts on template id and highlight any of the 51 jurisdictions with no mapped template or with two templates mapped to the same reason code.",
+            "Save the joined file as REG005-form-inventory-<yyyy-mm-dd>.xlsx in the document management repository under Compliance ▸ Notices."
+          ],
+          "done": "the form inventory lists every live cancellation, non-payment and non-renewal template with its version, mapped jurisdictions and reason codes, and every gap or duplicate is highlighted."
+        },
+        {
+          "step": "Read the notice statute for each jurisdiction and capture it dated",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Open the regulatory library entry for REG-005 and pull the current text of each jurisdiction's cancellation/non-renewal statute — representative Alaska AS 21.36.210–.260, plus Arizona A.R.S. § 20-1631, California Ins. Code §§ 677.2 and 678, Connecticut C.G.S. § 38a-323, Mississippi Code § 83-5-28 and Pennsylvania Act 68 (40 P.S. § 1171.5).",
+            "For each jurisdiction record on the wording matrix: minimum advance days for non-payment cancellation, for underwriting cancellation inside and outside the binding/first-60-days window, and for non-renewal.",
+            "Record the mandatory content elements the statute names — specific reason stated in the notice, effective date and hour, right to request the Commissioner's review and the window for it, loss information availability, residual market/FAIR plan availability.",
+            "Print each statute section to PDF as <state>-cancel-nonrenew-statute-<yyyy-mm-dd>.pdf and attach it to the REG-005 regulatory library record."
+          ],
+          "done": "every one of the 51 jurisdictions has a dated statute capture and a matrix row stating its notice days by reason and its mandatory content elements."
+        },
+        {
+          "step": "Build the per-state wording matrix that drives template content",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Create one row per jurisdiction per reason code (non-payment, material misrepresentation, substantial change in risk, loss history, non-renewal, conditional renewal) in the wording matrix workbook.",
+            "On each row enter: statutory notice days, whether the reason must be stated verbatim, the exact appeal/review sentence the state requires, the residual-market sentence, and any prescribed 14-point or bold-type formatting rule.",
+            "Flag rows where the state prescribes a mandated form number rather than free wording (e.g. a DOI-published non-renewal notice) so those states are wired to the prescribed form, not the generic template.",
+            "Have Regulatory Counsel initial each row against the statute capture before the matrix is treated as build-ready."
+          ],
+          "done": "the wording matrix has a counsel-initialled row for every jurisdiction/reason-code combination, with notice days, required sentences and any prescribed form number."
+        },
+        {
+          "step": "Draft or revise the notice templates against the matrix",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "In the correspondence template editor open the CANC-NONPAY, CANC-UW, NONRENEW and CONDITIONAL-RENEWAL base templates and create a new draft version rather than editing the live one.",
+            "Insert the required content blocks as named regions: policy number and named insured, specific reason text, cancellation/non-renewal effective date and hour, statutory notice-day statement, appeal-rights block, residual-market block, loss-run availability block, and lienholder/mortgagee notice block.",
+            "Bind each state-variable region to the wording matrix row through the state conditional so Alaska renders 20-day language for underwriting cancellation and 10-day language for non-payment while Connecticut renders 60-day non-renewal language.",
+            "Set the return address, company name and NAIC co-code fields from the writing-company table so the notice names the correct carrier entity.",
+            "Hand the draft to the Content Specialist for plain-language and readability review before it goes to counsel."
+          ],
+          "done": "each draft template renders every mandatory content block and pulls its state-variable text from the wording matrix rather than hard-coded strings."
+        },
+        {
+          "step": "Proof specimen renders for a representative state set",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Ask the Configuration Engineer to run the template preview in the test environment for Alaska, Arizona, California, Connecticut, Mississippi and Pennsylvania against a seeded Alternative Risk policy for each reason code.",
+            "Save each render as a PDF specimen named <state>-<reason code>-<template version>.pdf.",
+            "Read each specimen line by line against its wording matrix row and mark every required element present/absent on a proofing checklist.",
+            "Check that merge fields resolve — no '<<NAMED_INSURED>>' or blank effective-date lines — and that the stated notice days match the matrix.",
+            "Return any specimen with a missing block or unresolved merge field to the Policy Forms Specialist with the failed element named."
+          ],
+          "done": "a signed proofing checklist exists for every representative state and reason code with no missing content blocks or unresolved merge fields."
+        },
+        {
+          "step": "Run the readability and accessibility pass on the notice text",
+          "by": "Content Specialist",
+          "role": "Content Specialist",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Score the free-text portions of each template for Flesch Reading Ease and record the score per template version; treat anything under the state's plain-language floor as a rework item.",
+            "Confirm any prescribed formatting survives — bold or 14-point appeal-rights language where a state mandates it, and the reason statement not buried below the signature block.",
+            "Check the Spanish-language and large-print variants exist where a jurisdiction or the company's language-access policy requires them, and that they carry the same content blocks.",
+            "Record the scores and variant availability on the template version record."
+          ],
+          "done": "every template version carries a recorded readability score, confirmed prescribed formatting and the required language/large-print variants."
+        },
+        {
+          "step": "Route the drafts to Regulatory Counsel for wording approval",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Review each specimen against its statute capture and the wording matrix row, focusing on the reason statement, the notice-day statement and the appeal-rights sentence.",
+            "Reject any template that paraphrases a sentence the statute requires verbatim, and any that states a notice period shorter than the state minimum.",
+            "Record approval per template version per state block with counsel name and date on the template version record.",
+            "Note in writing which states require the notice to be filed as a form so the Product Filing Specialist can act."
+          ],
+          "done": "no template version is approved without a dated counsel approval covering each state block it serves."
+        },
+        {
+          "step": "File the notice as a form where the jurisdiction treats it as filed",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "For each state counsel flagged, open SERFF ▸ Industry ▸ Filing Rules and confirm whether the notice form is filable under the LOB's TOI/Sub-TOI and under which review method.",
+            "Create the SERFF filing, attach the specimen notice with its form number and edition date in the footer, and a cover letter describing the wording change and its driver.",
+            "Record the SERFF Tracking Number, submission date and disposition on the template version record and hold the state's template activation until disposition or a satisfied deemer.",
+            "Where the state prescribes its own notice form, discard the drafted template for that state and map the prescribed form number instead."
+          ],
+          "done": "every state that requires the notice to be filed has a SERFF tracking number recorded and its template activation gated on disposition."
+        },
+        {
+          "step": "Assign form numbers, edition dates and version identifiers",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "app": "document management repository",
+          "actions": [
+            "Assign each approved template a form number and edition date (MM-YY) and print both in the footer of every page of the render.",
+            "Increment the template version in policy admin and write the change description, matrix rows touched and counsel approval date into the version notes.",
+            "Supersede the prior version in the form inventory rather than deleting it, so an exam can see what was in use on any past date.",
+            "Confirm the inventory record shows effective-from and effective-to dates for each version."
+          ],
+          "done": "every approved template has a form number, edition date, version note and a superseded predecessor with dated effective-from/to."
+        },
+        {
+          "step": "Update the reason-code library so notices can state a specific reason",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Open the cancellation/non-renewal reason code table and confirm each code carries approved customer-facing reason text, not an internal abbreviation.",
+            "Retire codes that would produce an impermissible reason in any jurisdiction (for example a single prior weather-related claim where the state bars it as a sole ground) and record why.",
+            "Map each surviving reason code to the notice-day rule it triggers per state so the template and the timing engine read from the same table.",
+            "Send the revised code list to Underwriting Director / Manager and the Renewal Underwriter group for confirmation that the codes still cover their real decisions."
+          ],
+          "done": "every live reason code has approved customer-facing text, a per-state notice-day mapping and underwriting confirmation that it is still used."
+        },
+        {
+          "step": "Update the downstream correspondence that references the notice",
+          "by": "Correspondence Clerk",
+          "role": "Correspondence Clerk",
+          "app": "OpenText Document Mgmt",
+          "actions": [
+            "Search the correspondence library for lienholder/mortgagee notices, agent copy letters, reinstatement offers and conditional renewal letters that quote the cancellation wording.",
+            "Update each to match the approved template language and the correct notice-day statement.",
+            "Confirm the agent/broker copy letter is wired to send on the same trigger as the insured notice so the producer is not informed late.",
+            "List every correspondence item changed on the template change ticket."
+          ],
+          "done": "every companion letter that quotes cancellation or non-renewal wording is updated to the approved language and listed on the change ticket."
+        },
+        {
+          "step": "Hand the approved templates to IT for configuration",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "app": "Jira",
+          "actions": [
+            "Raise a configuration story per template version containing the approved specimen, the wording matrix rows, the state activation list and any SERFF gating dates.",
+            "State the acceptance criteria in the story: correct template fires per state and reason code, correct notice days computed, correct effective-from date.",
+            "Attach the proofing checklist and counsel approval so the Configuration Engineer builds from approved artefacts only.",
+            "Link the story to the REG-005-C03 configuration epic and set the target release."
+          ],
+          "done": "each approved template version has a linked configuration story carrying the specimen, matrix rows, activation list and acceptance criteria."
+        },
+        {
+          "step": "Publish the template change and record the effective cutover",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Set the new template version effective-from date in the correspondence library and the prior version effective-to date to the day before, leaving no gap or overlap.",
+            "Confirm with the Release Coordinator that the activation date is on or after any SERFF disposition date for gated states.",
+            "Re-run the form inventory extract after the release and compare it to the intended activation list, state by state.",
+            "Circulate the published inventory to Policy Administration, Market Conduct and Internal Audit."
+          ],
+          "done": "the post-release form inventory matches the intended activation list state by state with no gap or overlap in version dates."
+        },
+        {
+          "step": "Log and dispose of any template defect found after publication",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise an exception record naming the template version, states affected, the missing or wrong content element and the date range it was live.",
+            "Ask Policy Administration for the count of notices actually sent on the defective version in that window.",
+            "Decide the remedy with Regulatory Counsel — corrected re-issue with a fresh notice period, reinstatement, or notice withdrawal — and record the decision and its rationale.",
+            "Set a remediation date and a retest commitment for the next template release test."
+          ],
+          "done": "every post-publication defect has an exception record with affected-policy count, a counsel-agreed remedy, an owner and a remediation date."
+        },
+        {
+          "step": "File the template evidence pack for retention",
+          "by": "Document Management Specialist",
+          "role": "Document Management Specialist",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Assemble the pack: form inventory extract, wording matrix with counsel initials, dated statute captures, specimens per state, readability scores, counsel approvals, SERFF tracking numbers and version notes.",
+            "File it under REG-005 ▸ C01 ▸ <template version> and apply the 7-years-from-retirement retention label.",
+            "Confirm the repository index makes the pack searchable by state, form number, template version and effective date range.",
+            "Record the pack location on the template version record so an exam response can find it without asking the author."
+          ],
+          "done": "the template evidence pack is filed, retention-labelled and retrievable by state, form number and effective date range."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of live and released notice templates",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Extract from the correspondence template library every template with Category = 'Cancellation / Non-Renewal' and an effective-to date that is blank or inside the test period, with its mapped states and reason codes.",
+            "Add every template version published during the period from the release notes so a version that was live for one week cannot hide.",
+            "Expand the extract to one row per jurisdiction per reason code so all 51 jurisdictions appear whether or not a template is mapped."
+          ],
+          "done": "the population is one row per jurisdiction per reason code across all live and period-released template versions, with unmapped combinations visible."
+        },
+        {
+          "step": "Reconcile the population to the approved form inventory",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each population row to a form inventory row on template id + version + state.",
+            "Investigate any live template absent from the inventory and any inventory row with no live mapping, and record which record is wrong.",
+            "Confirm the version effective-from/to dates in the library agree with the inventory with no gap or overlap.",
+            "List unmatched and mis-dated rows as automatic exceptions before sampling."
+          ],
+          "done": "every live template reconciles to an inventory row with agreeing version dates, or is listed as an exception."
+        },
+        {
+          "step": "Draw a documented sample of template/state combinations",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Take 100% of the six representative jurisdictions named in the citation set — Alaska, Arizona, California, Connecticut, Mississippi and Pennsylvania — across all reason codes.",
+            "Add 20 further jurisdiction/reason-code rows drawn at random with a recorded seed, minimum 45 rows in total.",
+            "Include every template version published during the period at least once.",
+            "Record the seed, population size, draw date and selection rule in the workpaper so the sample can be re-drawn."
+          ],
+          "done": "the sample is reproducible, covers the six representative jurisdictions in full and touches every version published in the period."
+        },
+        {
+          "step": "Re-read the statute and reach an independent content conclusion",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For each sampled jurisdiction open the current statute text — Alaska AS 21.36.210–.260, Arizona A.R.S. § 20-1631, California Ins. Code §§ 677.2/678, Connecticut C.G.S. § 38a-323, Mississippi § 83-5-28, Pennsylvania Act 68 — without first reading the wording matrix.",
+            "Write your own list of required content elements and minimum notice days per reason code for that state.",
+            "Compare to the wording matrix row; any difference, including a right conclusion resting on a superseded citation, is an exception.",
+            "Attach the dated statute capture you relied on to the workpaper row."
+          ],
+          "done": "each sampled jurisdiction has an independent content conclusion, a captured statute page and a recorded agree/disagree against the matrix."
+        },
+        {
+          "step": "Re-render the sampled templates and inspect the specimen output",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Ask the Configuration Engineer to render each sampled state/reason-code combination in the test environment against a seeded Alternative Risk policy, and take the PDF yourself rather than accepting a supplied specimen.",
+            "Tick off each required content element on the render: named insured and policy number, specific reason text, effective date and hour, notice-day statement, appeal-rights sentence, residual-market sentence, loss-run availability, mortgagee/lienholder block.",
+            "Confirm the stated notice period equals or exceeds the statutory minimum you concluded independently.",
+            "Record any unresolved merge field or truncated block as a content fail, not a cosmetic finding."
+          ],
+          "done": "every sampled render is inspected element by element against the independently derived requirement list."
+        },
+        {
+          "step": "Trace each sampled template version to its approval evidence",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Open the REG-005 ▸ C01 pack for the sampled version and locate the counsel approval covering that state block.",
+            "Confirm the approval date pre-dates the template effective-from date in policy admin.",
+            "Confirm the proofing checklist and readability score exist for the version and name the states you sampled.",
+            "Treat a version live before its approval date as a control failure regardless of the content being correct."
+          ],
+          "done": "every sampled version has a counsel approval, proofing checklist and readability score dated before the version went live."
+        },
+        {
+          "step": "Verify SERFF filing status for states that treat the notice as a filed form",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "For each sampled state counsel flagged as filing-required, search SERFF Filing Access by the recorded tracking number, company NAIC co-code and form number.",
+            "Confirm the filed specimen's form number and edition date match the version mapped live in policy admin.",
+            "Compare the disposition date to the template activation date and flag any activation ahead of disposition or a satisfied deemer.",
+            "Capture the SERFF filing detail screen into the workpaper."
+          ],
+          "done": "every filing-required sampled state traces to a SERFF filing whose specimen and edition date match the live template and whose disposition pre-dates activation."
+        },
+        {
+          "step": "Recompute the notice-day statements the templates print",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each sampled row, take the statutory minimum days you derived independently and compare it to the days the rendered notice states for that reason code.",
+            "Check the template distinguishes the shorter non-payment period from the longer underwriting-cancellation and non-renewal periods rather than printing one number for all reasons.",
+            "Where a state ties the period to the binding window or first 60 days of a new policy, confirm the template carries both variants and the condition that selects between them.",
+            "Any stated period below the statutory minimum is a fail and is escalated the same day."
+          ],
+          "done": "every sampled render states a notice period at or above the statutory minimum for its reason code, with reason-specific and window-specific variants present."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception naming the template version, state, reason code, the defective element and the dates the version was live.",
+            "Obtain from Policy Administration the count of notices issued on the defective version in that window and record it as the exposure.",
+            "Assign a root cause — stale statute capture, matrix row not initialled, conditional wired to the wrong state, activation ahead of SERFF disposition — and an accountable owner.",
+            "Set a remediation date and carry the issue into the next release test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, an exposure count, a root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the content exception rate and compare it to the zero-tolerance threshold for missing statutory elements and short notice periods.",
+            "State the conclusion — effective, effective with exceptions, or ineffective — with the workpaper references that support it.",
+            "Have the independent reviewer, who drafted and approved none of the sampled template versions, sign the workpaper.",
+            "Report the conclusion and any open short-notice defects to the Compliance Committee at its next sitting and file the workpaper under REG-005 ▸ C01."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and committee reporting date is filed in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-005-C02",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Policy Admin Ops Lead",
+          "value": "Owns notice generation, mailing and proof-of-mailing for every cancellation and non-renewal event across the 51 jurisdictions"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — advance-notice day counts and delivery-method rules re-read per event state; representative Alaska AS 21.36.220 (cancellation) and AS 21.36.240 (non-renewal) as enforced by the Alaska Division of Insurance, with Arizona A.R.S. § 20-1631, California Ins. Code §§ 677.2/678 and Connecticut C.G.S. § 38a-323 in the supporting set"
+        },
+        "In-scope processes": {
+          "value": "Underwriting or billing cancellation/non-renewal decision → notice generation → print/mail vendor handoff → proof of mailing → notice log entry → agent, mortgagee and additional-interest copies, for every Alternative Risk and admitted policy event"
+        },
+        "In-scope systems": {
+          "app": "Policy Administration Platform",
+          "value": "Cancellation/non-renewal transaction screens, the correspondence queue, the print/mail vendor interface and the notice log; images archived to the document management repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Notice Generation & Delivery Procedure — reason coding, notice-day computation from the event state's rule, mail-date vs effective-date discipline, proof-of-mailing capture (USPS certificate of mailing PS Form 3877 or certified mail), and the copy-list rule for producer, mortgagee and additional interests"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by Head of Compliance and the Operations Manager for Policy Administration; re-approved annually and on any change to notice-day rules or the mail vendor"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Event-driven — each notice must be mailed on or before (cancellation effective date − statutory advance days); non-payment notices track the shorter statutory period, and MCAS cancellation/non-renewal counts are due to the NAIC by the annual MCAS filing deadline"
+        },
+        "Deadline reminders configured": {
+          "value": "Daily correspondence-queue exception report at 08:00 listing any pending notice whose latest mail date is within 3 business days, escalating to the Policy Admin Ops Lead at T-1"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Notice log, notice image, proof-of-mailing record and returned-mail disposition retained 7 years from the cancellation or non-renewal effective date"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any notice mailed with fewer than the statutory advance days, or with no proof of mailing, is logged as a breach with the remedy applied (rescind and re-issue with a fresh full notice period) and the affected policy number"
+        },
+        "Remediation sign-off captured": {
+          "role": "Compliance Manager",
+          "value": "Signs off every rescind-and-re-issue and every short-notice breach disposition before the file is closed"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All cancellation and non-renewal transactions with an effective date in the test period, from the policy admin transaction log, by writing company, state, LOB and reason code"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on timing — any notice mailed fewer than the statutory advance days before the effective date is a fail; missing proof of mailing on more than 2% of the sample is a control fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven; test runs monthly on the prior month's transactions with a quarterly roll-up to the Compliance Committee"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Officer",
+          "value": "Reviewer must not sit in Policy Administration or have processed any sampled notice"
+        },
+        "Evidence location for test results": {
+          "value": "Monthly notice timeliness workpaper (transaction extract, sample, mail-date recomputation, proof-of-mailing traces, exception list) in the compliance evidence repository under REG-005/C02"
+        },
+        "Regulator-ready documentation": {
+          "value": "Notice log export with policy number, state, reason code, mail date, effective date, computed advance days and proof-of-mailing reference, plus the notice image — producible for a DOI cancellation file request within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Consumer Affairs Manager answers DOI cancellation inquiries with the notice image and mailing proof; Regulatory Counsel clears any response that concedes a short or unmailed notice"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Receive the cancellation or non-renewal decision with a coded reason",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Open the pending-action queue and filter Transaction Type = 'Cancellation' or 'Non-Renewal' and Status = 'Decision received'.",
+            "Confirm the Renewal Underwriter or Billing Operations Manager has supplied a reason code from the approved library — not free text — plus the underwriting or billing evidence behind it.",
+            "For non-payment reasons, confirm from the billing system that the premium due date has passed and the amount outstanding is recorded on the transaction.",
+            "Reject back to the decision maker any request with a retired reason code, a blank effective date, or no supporting evidence attached."
+          ],
+          "done": "the transaction carries an approved reason code, the supporting evidence and a stated intended effective date, or it has been rejected back to the decision maker."
+        },
+        {
+          "step": "Determine the event state and the governing notice rule",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Read the policy's governing jurisdiction from the policy header — state of issue for a single-state policy, or the risk state for a controlling-state multi-state programme — and record which rule you applied.",
+            "Look up the notice-day rule for that state and reason code in the wording matrix maintained under REG-005-C01: for the representative Alaska case, the shorter non-payment period against the longer underwriting-cancellation and 45-day non-renewal periods.",
+            "Check whether the policy is inside the state's initial binding/new-business window, which in several states shortens the permissible grounds and changes the period.",
+            "Write the applicable rule, the source state and the day count onto the transaction before computing any date."
+          ],
+          "done": "the transaction records the governing state, the reason-specific notice-day rule and whether the binding-window variant applies."
+        },
+        {
+          "step": "Compute the latest mail date and set the effective date",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Compute latest mail date = intended effective date − statutory advance days, and add the state's mailing-presumption days where the statute counts from receipt rather than mailing.",
+            "Where the statute counts calendar days, do not convert to business days; where it counts from the date of mailing, use the vendor's mail date and not the generation date.",
+            "If today is already past the latest mail date, push the effective date out rather than shortening the notice — record the pushed date and the reason on the transaction.",
+            "Set the effective time of day exactly as the notice will state it (typically 12:01 a.m. standard time at the mailing address) so the notice and the system agree."
+          ],
+          "done": "the transaction shows a computed latest mail date, an effective date that leaves the full statutory period, and a matching effective time of day."
+        },
+        {
+          "step": "Generate the notice from the approved template",
+          "by": "Policy Issuance Specialist",
+          "role": "Policy Issuance Specialist",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Trigger correspondence generation on the transaction and confirm the system selects the template mapped to that state and reason code, not a default template.",
+            "Open the generated PDF and check the named insured, mailing address, policy number, reason text, effective date and hour and the stated notice period all resolve.",
+            "Confirm the notice names the correct writing company and NAIC co-code for the policy.",
+            "If the wrong template fires or a field is blank, stop the transaction and raise a defect to the Configuration Engineer rather than editing the PDF by hand."
+          ],
+          "done": "a generated notice exists on the transaction from the correct state/reason template with every field resolved and no manual editing."
+        },
+        {
+          "step": "Validate the mailing address against the policy of record",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Compare the notice address to the named insured's last address of record and to any address-change endorsement processed in the last 60 days.",
+            "Run the address through the mail vendor's CASS/NCOA validation and correct only through the policy record so the file and the notice stay identical.",
+            "Where the policy carries an authorised representative, power of attorney or premium finance company, add them to the copy list per the state rule.",
+            "Record the validated address and the validation timestamp on the transaction."
+          ],
+          "done": "the notice address is validated, matches the policy of record and any statutorily required additional recipients are on the copy list."
+        },
+        {
+          "step": "Build the copy list for producer, mortgagee and additional interests",
+          "by": "Correspondence Clerk",
+          "role": "Correspondence Clerk",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Pull the policy's mortgagee/loss payee schedule and additional interest list from the policy header.",
+            "Queue the mortgagee notice on the state's own mortgagee notice period, which commonly differs from the insured's period, and record that period separately.",
+            "Queue the producer copy to the agency of record through the Broker & Agent Portal on the same day the insured notice is released.",
+            "Where a premium finance company issued the cancellation request, queue its confirmation copy and record the finance company's request date."
+          ],
+          "done": "every mortgagee, additional interest, producer and premium finance recipient is queued with its own applicable notice period recorded."
+        },
+        {
+          "step": "Release the notice to the print and mail vendor",
+          "by": "Policy Issuance Specialist",
+          "role": "Policy Issuance Specialist",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Release the correspondence batch to the print/mail vendor interface before the daily cut-off, and confirm the batch id and piece count returned by the vendor.",
+            "Set the mail class the state requires for that reason code — first class with certificate of mailing, or certified mail with return receipt where the statute demands proof of receipt.",
+            "Reconcile the vendor acknowledgement count to the released piece count the same day and chase any shortfall before the queue closes.",
+            "Where a notice fails vendor validation, pull it back into the queue and re-release it with enough days left to preserve the statutory period."
+          ],
+          "done": "the batch is released, the vendor acknowledgement count reconciles to the released count and the mail class matches the state requirement."
+        },
+        {
+          "step": "Capture proof of mailing and the actual mail date",
+          "by": "Document Management Specialist",
+          "role": "Document Management Specialist",
+          "app": "OpenText Document Mgmt",
+          "actions": [
+            "Collect from the vendor the USPS certificate of mailing or PS Form 3877 firm mailing book page, or the certified mail article number and acceptance scan, for each piece.",
+            "Post the actual mail date from the acceptance scan back onto the transaction — this, not the generation date, is the date the statutory clock runs from.",
+            "Archive the notice image and the mailing proof against the policy file so both retrieve together.",
+            "Flag any piece whose acceptance scan is later than the computed latest mail date for immediate escalation."
+          ],
+          "done": "every notice has an archived image, a mailing proof and an actual mail date posted to the transaction, with late acceptances flagged."
+        },
+        {
+          "step": "Write the notice log entry",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Add a notice log row containing policy number, writing company, state, LOB, transaction type, reason code, template id and version, generation date, actual mail date, effective date and hour, computed advance days and the mailing proof reference.",
+            "Add the copy-list rows for producer, mortgagee and additional interests with their own mail dates.",
+            "Confirm the computed advance days field is calculated from mail date to effective date and not entered by hand.",
+            "Leave no blank field — an incomplete log row is treated as an unevidenced notice."
+          ],
+          "done": "the notice log holds a complete row per recipient with computed advance days and a mailing proof reference."
+        },
+        {
+          "step": "Handle returned and undeliverable mail",
+          "by": "Correspondence Clerk",
+          "role": "Correspondence Clerk",
+          "app": "OpenText Document Mgmt",
+          "actions": [
+            "Work the returned-mail queue daily and record the USPS endorsement reason (moved-left-no-address, insufficient address, refused, unclaimed) on the notice log row.",
+            "Where the statute makes proper mailing sufficient, record that the original mailing stands and do not restart the clock; where it requires actual receipt, re-mail to a corrected address and restart the notice period.",
+            "Search for a better address through the policy file, the producer and the billing record before re-mailing, and record the source of the new address.",
+            "Escalate to the Policy Admin Ops Lead any returned notice on a cancellation already effective."
+          ],
+          "done": "every returned notice has a recorded endorsement reason, a documented decision on whether the clock restarts, and a re-mail where the statute requires receipt."
+        },
+        {
+          "step": "Suppress or reverse the transaction when the decision changes",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "When payment arrives or underwriting withdraws the decision before the effective date, process the rescission and issue a rescission or reinstatement letter naming the original notice.",
+            "Update the notice log row disposition to 'Rescinded' with the date and the reason, and keep the original notice image on file.",
+            "Confirm with Billing Operations that any earned premium and reinstatement fee treatment matches the state rule for the reason code.",
+            "Never delete a notice log row — dispositions are recorded, not erased."
+          ],
+          "done": "every withdrawn decision has a rescission letter, a dated log disposition and a preserved original notice image."
+        },
+        {
+          "step": "Work the daily late-risk exception report",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "app": "Power BI",
+          "actions": [
+            "Open the 08:00 notice timeliness dashboard and read the queue of pending notices whose latest mail date falls within 3 business days.",
+            "Assign each to a named analyst with a same-day mail commitment and confirm release before the vendor cut-off.",
+            "For any notice already past its latest mail date, instruct that the effective date be pushed rather than the notice shortened, and open a breach record.",
+            "Record the daily clearance on the ops log so a missed day is visible."
+          ],
+          "done": "the late-risk queue is cleared daily with named owners, and any past-due notice has a pushed effective date and an open breach record."
+        },
+        {
+          "step": "Report short-notice breaches and apply the remedy",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "For each notice mailed with fewer than the statutory advance days, open a breach record with the policy number, state, computed shortfall in days and the reason code.",
+            "Direct the remedy with Regulatory Counsel — rescind the cancellation and re-issue with a full fresh notice period, restoring coverage for the gap.",
+            "Confirm with Claims Director / Manager whether any claim was declined in the gap period and, if so, reopen it.",
+            "Record root cause (late underwriting decision, wrong state rule, vendor mail delay, address rework) and the corrective action owner."
+          ],
+          "done": "every short-notice breach has a rescind-and-re-issue remedy, a gap-period claims check, a root cause and an owner."
+        },
+        {
+          "step": "Reconcile the notice log to the transaction log monthly",
+          "by": "Operations Specialist",
+          "role": "Operations Specialist",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Extract all cancellation and non-renewal transactions with effective dates in the month from the policy admin transaction log.",
+            "Left-join to the notice log on policy number and transaction id and list every transaction with no notice row — these are unnoticed cancellations and are escalated same day.",
+            "Compare the mail-date field against the vendor acceptance file to catch any generation date posted as a mail date.",
+            "Publish the reconciliation with counts to Market Conduct and Internal Audit and file it with the month's evidence."
+          ],
+          "done": "every effective cancellation and non-renewal in the month has a matching notice log row traced to a vendor acceptance scan, or is escalated."
+        },
+        {
+          "step": "Retain the notice evidence for the retention period",
+          "by": "Document Management Specialist",
+          "role": "Document Management Specialist",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the month's notice log export, vendor acceptance files, returned-mail dispositions and reconciliation under REG-005 ▸ C02 ▸ <yyyy-mm>.",
+            "Apply the 7-years-from-effective-date retention label so files survive policy purge.",
+            "Confirm the index makes a notice retrievable by policy number, state, mail date and reason code.",
+            "Spot check five archived policies to confirm the notice image and mailing proof retrieve together in one action."
+          ],
+          "done": "the month's notice evidence is filed, retention-labelled and proven retrievable by policy number in a single lookup."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of cancellation and non-renewal events",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Extract every cancellation and non-renewal transaction with an effective date in the test month, with policy number, writing company, state, LOB, reason code, decision date and effective date.",
+            "Add rescinded and reinstated transactions so a cancellation that was withdrawn after a defective notice cannot drop out of scope.",
+            "Include flat cancellations and mid-term cancellations initiated by premium finance companies.",
+            "Reconcile the row count to the in-force movement report for the month and resolve differences before sampling."
+          ],
+          "done": "the population reconciles to the in-force movement report and includes rescinded, flat and finance-company-initiated events."
+        },
+        {
+          "step": "Reconcile every event to a notice log row and a mailing proof",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each population row to a notice log row on policy number and transaction id.",
+            "Match each notice log row to a vendor acceptance record on the mailing proof reference.",
+            "List every transaction with no notice, and every notice with no mailing proof, as automatic exceptions with no judgement applied.",
+            "Confirm the log's mail date equals the vendor acceptance scan date rather than the generation date."
+          ],
+          "done": "every event traces to a notice row and an independent vendor acceptance record, or is listed as an exception."
+        },
+        {
+          "step": "Draw a documented, risk-weighted sample",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Take 100% of events in the six representative jurisdictions — Alaska, Arizona, California, Connecticut, Mississippi and Pennsylvania.",
+            "Take 100% of non-renewals, which carry the longest statutory periods and the highest complaint risk.",
+            "Add 30 non-payment cancellations drawn at random with a recorded seed, minimum 60 items in total.",
+            "Record the seed, population size, draw date and stratification rule in the workpaper."
+          ],
+          "done": "the sample is reproducible, covers the representative jurisdictions and all non-renewals, and is documented with its seed and stratification."
+        },
+        {
+          "step": "Re-derive the governing state and notice rule for each sampled event",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Read the policy header yourself to determine the governing jurisdiction and, for multi-state programmes, the controlling state rule applied.",
+            "Open the statute for that state — representative Alaska AS 21.36.220 for cancellation and AS 21.36.240 for non-renewal — and derive the required advance days for the event's reason code without reading the transaction's recorded rule.",
+            "Compare your derived day count to the count recorded on the transaction; a difference is an exception even if the actual mailing happened to be early enough.",
+            "Attach the statute capture to the workpaper row."
+          ],
+          "done": "each sampled event has an independently derived governing state and advance-day requirement compared against the recorded rule."
+        },
+        {
+          "step": "Recompute advance days from mail date to effective date",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Compute actual advance days = effective date − vendor acceptance scan date, using calendar days where the statute counts calendar days.",
+            "Add the state's mailing-presumption days where the statute counts from receipt, and note which convention you used.",
+            "Compare actual advance days to the independently derived statutory minimum and record the shortfall in days where short.",
+            "Any event mailed short is a reportable breach and is escalated the day it is found, not held for the report."
+          ],
+          "done": "advance days are recomputed from the vendor scan date for every sampled event and every shortfall is quantified and escalated."
+        },
+        {
+          "step": "Inspect the notice image against the event facts",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "OpenText Document Mgmt",
+          "actions": [
+            "Retrieve the archived notice image by policy number and read the reason text, effective date and hour, notice-day statement and appeal-rights block.",
+            "Confirm the printed reason corresponds to the reason code on the transaction and to the underwriting or billing evidence in the file.",
+            "Confirm the addressee and address match the policy of record on the mail date, including any address-change endorsement processed earlier.",
+            "Flag any notice giving a generic reason such as 'underwriting reasons' where the state requires a specific stated reason."
+          ],
+          "done": "each sampled notice image is inspected for a specific stated reason, correct dates and the correct addressee against the file."
+        },
+        {
+          "step": "Test the mortgagee, additional interest and producer copies",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "For every sampled property policy, pull the mortgagee/loss payee schedule as it stood on the decision date.",
+            "Confirm a notice went to each mortgagee and that its own advance period — often longer than the insured's — was met, recomputing from its mail date.",
+            "Confirm the producer copy released through the Broker & Agent Portal on the same day as the insured notice.",
+            "Log a missing mortgagee notice as a separate exception class, since it creates direct coverage exposure."
+          ],
+          "done": "every sampled policy's mortgagee, additional interest and producer copies are traced with their own advance periods recomputed."
+        },
+        {
+          "step": "Test the returned-mail and rescission dispositions",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Select every sampled event with a returned-mail endorsement and read the recorded decision on whether the clock restarted.",
+            "Confirm the decision matches the state rule — proper mailing sufficient versus receipt required — and that a re-mail happened where receipt is required.",
+            "For rescinded events, confirm a rescission or reinstatement letter exists, the original notice image is retained and the log disposition is dated.",
+            "Confirm no notice log row was deleted by comparing the current log to the prior month's archived export."
+          ],
+          "done": "returned-mail and rescission dispositions match the applicable state rule and no log row has been deleted between exports."
+        },
+        {
+          "step": "Log exceptions with root cause, exposure and owner",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception with policy number, state, reason code, days short or evidence missing, and the coverage exposure created.",
+            "Confirm with Claims Director / Manager whether any claim fell in a gap period created by a short notice and record the claim numbers.",
+            "Assign a root cause — late underwriting decision, wrong governing state, generation date used as mail date, vendor delay, missing mortgagee schedule — and an owner.",
+            "Set a remediation date and make the exception a mandatory retest item in the next monthly test."
+          ],
+          "done": "every exception has an issue, a gap-period claims check, a root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the short-notice rate and the missing-mailing-proof rate and compare them to the zero-tolerance timing threshold and the 2% proof threshold.",
+            "State the conclusion — effective, effective with exceptions, or ineffective — with the workpaper references behind it.",
+            "Have the independent reviewer, who sits outside Policy Administration and processed none of the sampled notices, sign the workpaper.",
+            "Report the results and all open coverage-gap breaches to the Compliance Committee and file the workpaper under REG-005 ▸ C02 ▸ <yyyy-mm>."
+          ],
+          "done": "a signed workpaper with a stated conclusion, both exception rates and a committee reporting date is filed in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-005-C03",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Configuration Engineer",
+          "value": "Owns the policy admin rule set that computes notice days, selects the state template and blocks a short-dated cancellation from processing"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — the configured day counts are traced back to the counsel-initialled wording matrix rows built from the statutes (rep: Alaska AS 21.36.220/.240 for the Alaska Division of Insurance; Arizona A.R.S. § 20-1631, California Ins. Code §§ 677.2/678, Connecticut C.G.S. § 38a-323 in the supporting set); no day count is coded from memory"
+        },
+        "In-scope processes": {
+          "value": "Requirements intake from Compliance → notice rule table configuration → template routing configuration → hard-stop validation build → SIT/UAT across all 51 jurisdictions → release and post-release verification, in the policy administration and correspondence stack"
+        },
+        "In-scope systems": {
+          "app": "Guidewire PolicyCenter",
+          "value": "Cancellation/non-renewal transaction rules, the notice-days rule table, the state/reason template routing table, the correspondence batch job and the print/mail vendor interface"
+        },
+        "Compliance procedure documented": {
+          "value": "Notice Timing & Content Configuration Standard — rule table structure, effective-dated rule versions, mandatory hard stop when computed advance days fall below the state minimum, and the regression suite that must pass before release"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of IT with Compliance Manager sign-off on the rule table content; re-approved on every release that touches notice timing or routing"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per change — a statutory day-count change must be configured and released before its statutory effective date, with the change request opened within 10 business days of the bulletin"
+        },
+        "Deadline reminders configured": {
+          "value": "Change tickets carry alerts at T-30/T-10/T-3 days to the statutory effective date; the release calendar flags any notice-rule change without a scheduled release slot"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Rule table version exports, configuration change tickets, test evidence, approvals and post-release verification results retained 7 years from the date the rule version is superseded"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "value": "Any release that put a wrong day count or wrong template routing into production is logged as a change incident with affected states, notices issued on the bad rule and the rollback or fix-forward decision"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of IT",
+          "value": "Signs off the fix and the post-release verification for every notice-rule incident, with the Compliance Manager countersigning the compliance impact"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every configured rule table row (51 jurisdictions × reason code × transaction type) and every configuration release touching notice timing, routing or the hard stop during the period"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — a single rule row with a day count below the statutory minimum, a state routing to a default template, or a disabled hard stop is a fail and blocks the release"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per change; regression runs on every release touching the notice stack, with a full 51-jurisdiction rule table sweep each quarter"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "QA Analyst",
+          "value": "Reviewer must not have written or peer-reviewed the configuration under test"
+        },
+        "Evidence location for test results": {
+          "value": "Configuration test workpaper (rule table export, expected-vs-actual matrix, hard-stop negative tests, screenshots, defect list) attached to the release record and filed in the compliance evidence repository under REG-005/C03"
+        },
+        "Regulator-ready documentation": {
+          "value": "Effective-dated rule table export showing the day count in force for any past date, with the change ticket and approval, so an examiner can see what the system enforced when a given notice was issued"
+        },
+        "Regulator response path": {
+          "value": "Head of IT supplies system configuration evidence to Market Conduct, which owns the DOI response; Regulatory Counsel clears any statement about a systemic mis-timing"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Take in the configuration requirement from Compliance",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "app": "Jira",
+          "actions": [
+            "Open the configuration story raised under REG-005-C01 or by the bulletin monitoring process and confirm it carries the counsel-initialled wording matrix rows and the approved specimen.",
+            "Reject any story that states a day count without a matrix row and statute citation behind it — configuration never sources day counts from an email.",
+            "Record the statutory effective date of the change as the hard deadline on the ticket and link it to the release calendar.",
+            "Write the acceptance criteria as testable statements: for each affected state and reason code, the computed advance days, the template selected and the hard-stop behaviour."
+          ],
+          "done": "the story carries counsel-initialled matrix rows, a statutory effective date and testable per-state acceptance criteria."
+        },
+        {
+          "step": "Model the notice-days rule table rows",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Guidewire PolicyCenter",
+          "actions": [
+            "Open the notice-days rule table and confirm its key is state + LOB + transaction type + reason code + policy-age window, so a single state can hold different periods for non-payment, underwriting cancellation and non-renewal.",
+            "Enter or amend the rows from the matrix — for the representative Alaska case, the shorter non-payment period, the longer underwriting-cancellation period and the 45-day non-renewal period as separate rows.",
+            "Set the day-count convention flag per row (calendar vs business days, from mailing vs from receipt) and the mailing-presumption days where the state counts from receipt.",
+            "Version the rows with effective-from dates rather than overwriting, so the table can answer what was in force on any past date."
+          ],
+          "done": "the rule table holds effective-dated rows keyed to state, LOB, transaction type, reason code and policy-age window with an explicit day-count convention."
+        },
+        {
+          "step": "Configure the template routing table",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Guidewire PolicyCenter",
+          "actions": [
+            "Map each state and reason code to the approved template id and version published under REG-005-C01, using the same effective-from dates as the template library.",
+            "Remove any fallback that routes an unmapped state to a generic template — an unmapped state must raise an error, not send a default notice.",
+            "Configure the prescribed-form states to reference the DOI-published form rather than the company template.",
+            "Run the routing table completeness report and confirm all 51 jurisdictions are mapped for every live reason code."
+          ],
+          "done": "all 51 jurisdictions are mapped per reason code to a versioned approved template, with no generic fallback route in place."
+        },
+        {
+          "step": "Build the effective-date and latest-mail-date calculation",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Guidewire PolicyCenter",
+          "actions": [
+            "Configure the transaction to compute latest mail date = proposed effective date − rule table days − mailing-presumption days, and display it on the cancellation screen before the user commits.",
+            "Bind the calculation to the vendor mail date on completion so the stored advance days reflect the acceptance scan rather than the generation date.",
+            "Default the effective time of day from the state rule so the system value and the printed notice always agree.",
+            "Expose the applied rule row id on the transaction so an auditor can see which rule produced the date."
+          ],
+          "done": "the transaction shows a computed latest mail date, stores advance days from the vendor scan date, and records the rule row id it applied."
+        },
+        {
+          "step": "Build the hard stop that blocks a short-dated cancellation",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Guidewire PolicyCenter",
+          "actions": [
+            "Add a pre-commit validation that blocks the transaction when proposed effective date − today is less than the rule table days plus the mail lead time.",
+            "Make the block an error, not a warning, and remove any user-level override; permit only a documented supervisor override that writes a reason and an audit record.",
+            "Write the error text so it names the state, the reason code, the required days and the earliest permissible effective date.",
+            "Confirm the same validation fires on batch and API-initiated cancellations, not only on the screen path."
+          ],
+          "done": "a short-dated cancellation is blocked as an error on screen, batch and API paths, with overrides limited to an audited supervisor action."
+        },
+        {
+          "step": "Configure the correspondence batch and vendor interface timing",
+          "by": "Integration Engineer",
+          "role": "Integration Engineer",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Set the correspondence batch schedule so a notice generated on any business day is released to the print/mail vendor before that day's cut-off.",
+            "Configure the vendor interface to return the acceptance scan date and mailing proof reference and to post them back onto the transaction automatically.",
+            "Add a failed-piece feedback path so a vendor rejection re-queues the notice and raises an alert rather than dying silently.",
+            "Set the mail class per reason code and state from configuration, not from operator choice."
+          ],
+          "done": "notices release before the daily cut-off, acceptance scans post back automatically, and vendor rejections re-queue with an alert."
+        },
+        {
+          "step": "Build the daily late-risk exception report",
+          "by": "Report Developer",
+          "role": "Report Developer",
+          "app": "Power BI",
+          "actions": [
+            "Build a dataset of pending cancellation/non-renewal transactions with their computed latest mail dates and current status.",
+            "Publish a dashboard page listing anything within 3 business days of its latest mail date, grouped by state and owner, refreshed at 08:00.",
+            "Add a second page listing completed notices whose stored advance days are below the rule table minimum, so a breach surfaces the day after it happens.",
+            "Subscribe the Policy Admin Ops Lead and the Compliance Manager to the daily delivery."
+          ],
+          "done": "the dashboard publishes daily at 08:00 with a late-risk queue and a below-minimum breach list, delivered to named subscribers."
+        },
+        {
+          "step": "Write the regression test set covering every jurisdiction",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "app": "Azure DevOps",
+          "actions": [
+            "Create one test case per state per reason code stating the seeded policy, the proposed effective date, the expected computed advance days, the expected template id and the expected pass/block outcome.",
+            "Add negative cases: effective date one day short of the minimum must block; unmapped state must error; retired reason code must not be selectable.",
+            "Add boundary cases at exactly the statutory minimum and at the binding-window edge where the period changes.",
+            "Link every case to the counsel-initialled matrix row it verifies so coverage can be proven."
+          ],
+          "done": "the regression set has a linked test case per jurisdiction and reason code plus boundary and negative cases, each traceable to a matrix row."
+        },
+        {
+          "step": "Execute system integration testing with seeded policies",
+          "by": "Test Lead",
+          "role": "Test Lead",
+          "app": "Azure DevOps",
+          "actions": [
+            "Seed test policies per state and LOB, including new-business policies inside the binding window and renewals outside it.",
+            "Run the full regression set and capture, for each case, the computed advance days, the template id selected and the rendered PDF.",
+            "Compare actual to expected in the expected-vs-actual matrix and open a defect for every difference, including a right day count reached with the wrong rule row.",
+            "Block the release while any severity-1 defect on timing or routing is open."
+          ],
+          "done": "the full regression set has run with an expected-vs-actual result recorded per case and no open severity-1 timing or routing defect."
+        },
+        {
+          "step": "Run business acceptance with Compliance and Policy Administration",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Azure DevOps",
+          "actions": [
+            "Walk the six representative jurisdictions — Alaska, Arizona, California, Connecticut, Mississippi and Pennsylvania — end to end from decision to rendered notice in UAT.",
+            "Read each rendered notice against the wording matrix row and confirm the printed notice period equals the configured day count.",
+            "Attempt a short-dated cancellation in each and confirm the hard stop blocks it and names the earliest permissible effective date.",
+            "Record UAT sign-off per state with the tester's name and date."
+          ],
+          "done": "UAT sign-off exists per representative state covering rendered content, computed days and a demonstrated hard stop."
+        },
+        {
+          "step": "Approve the change through the release board",
+          "by": "Change Coordinator",
+          "role": "Change Coordinator",
+          "app": "ServiceNow ITSM",
+          "actions": [
+            "Raise the change record with the rule table diff, routing table diff, test evidence, UAT sign-offs and the statutory effective date.",
+            "Confirm the scheduled release date lands on or before the statutory effective date and, if not, escalate to the Head of IT for an expedited slot.",
+            "Attach the back-out plan naming the prior rule table version to restore and the criteria that trigger a rollback.",
+            "Obtain CAB approval and record the approvers and date on the change."
+          ],
+          "done": "the change is CAB-approved with test evidence, a back-out plan and a release date on or before the statutory effective date."
+        },
+        {
+          "step": "Deploy and verify the configuration in production",
+          "by": "Release Coordinator",
+          "role": "Release Coordinator",
+          "app": "Guidewire PolicyCenter",
+          "actions": [
+            "Deploy in the approved window and immediately export the production rule table and routing table.",
+            "Diff the production exports against the approved diffs on the change record and confirm nothing extra shipped.",
+            "Run three production smoke transactions in a controlled account — one non-payment, one underwriting cancellation, one non-renewal — and confirm the computed days, template and hard stop.",
+            "Post the verification evidence onto the change record and close it only after the smoke results are attached."
+          ],
+          "done": "production rule and routing exports match the approved diffs and three smoke transactions confirm days, template and hard stop."
+        },
+        {
+          "step": "Monitor the first week of live notices on the new configuration",
+          "by": "Production Support Analyst",
+          "role": "Production Support Analyst",
+          "app": "Power BI",
+          "actions": [
+            "Read the below-minimum breach page daily for seven days after release and treat any hit as a P1 incident.",
+            "Compare the count of notices per template version against the expected mix by state to catch a mis-routed jurisdiction.",
+            "Confirm acceptance scans are posting back from the vendor and that no transaction sits with a blank mail date beyond one business day.",
+            "Hand a written post-release observation note to the Configuration Engineer and Compliance Manager at day seven."
+          ],
+          "done": "seven days of live monitoring are complete with a written observation note and no unresolved below-minimum hits."
+        },
+        {
+          "step": "Log and dispose of any configuration incident",
+          "by": "IT Service Delivery Manager",
+          "role": "IT Service Delivery Manager",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Open an incident naming the affected states, the wrong day count or routing, and the window the defect was live in production.",
+            "Get from Policy Administration the count and list of notices issued on the defective rule so Compliance can remediate the policies.",
+            "Decide rollback versus fix-forward with the Head of IT and record the decision, the deployment time and the verification evidence.",
+            "Run a problem review naming root cause — matrix row not carried into configuration, missing test case, unversioned overwrite — and the preventive action."
+          ],
+          "done": "every configuration incident has an affected-notice list, a recorded rollback or fix-forward decision and a problem review with a preventive action."
+        },
+        {
+          "step": "Retain the configuration evidence",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the rule table and routing table exports, the change record, the test evidence, UAT sign-offs and post-release verification under REG-005 ▸ C03 ▸ <release id>.",
+            "Apply the 7-years-from-supersession retention label so an examiner can reconstruct the rule in force on any past notice date.",
+            "Record the release id on the REG-005 control record so the C02 notice log can be tied back to the configuration that produced it.",
+            "Confirm the exports are searchable by state, reason code and effective-from date."
+          ],
+          "done": "the configuration evidence pack is filed, retention-labelled and searchable by state, reason code and effective-from date."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of rule rows and notice-stack releases",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Guidewire PolicyCenter",
+          "actions": [
+            "Export the production notice-days rule table and template routing table with all effective-dated versions active during the period.",
+            "Extract from the change record system every release in the period whose scope touched notice timing, routing, correspondence batch or the hard stop.",
+            "Expand to one row per jurisdiction per reason code per transaction type so unmapped combinations appear as blanks.",
+            "Reconcile the release list to the deployment log so an unticketed configuration change cannot hide."
+          ],
+          "done": "the population covers all 51 jurisdictions by reason code and every notice-stack release, reconciled to the deployment log."
+        },
+        {
+          "step": "Reconcile configured day counts to the counsel-initialled matrix",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Join the rule table export to the REG-005-C01 wording matrix on state, reason code and transaction type.",
+            "List every configured day count that differs from the matrix, and every matrix row with no configured counterpart.",
+            "Check the day-count convention flag matches the matrix (calendar vs business, from mailing vs from receipt) — a right number under the wrong convention is a difference.",
+            "Treat all differences as automatic exceptions before any sampling."
+          ],
+          "done": "every configured row reconciles to a counsel-initialled matrix row on both day count and convention, or is listed as an exception."
+        },
+        {
+          "step": "Draw a documented sample of rule rows and releases",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Take 100% of rows for the six representative jurisdictions and 100% of non-renewal rows across all states.",
+            "Take 100% of releases in the period that changed a day count or the hard stop.",
+            "Add 25 further state/reason-code rows drawn at random with a recorded seed, minimum 55 rows in total.",
+            "Record seed, population size, draw date and stratification in the workpaper."
+          ],
+          "done": "the sample is reproducible and includes every day-count and hard-stop release plus full coverage of the representative jurisdictions."
+        },
+        {
+          "step": "Re-perform the day-count derivation from the statute",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For each sampled state read the current statute — representative Alaska AS 21.36.220/.240, plus Arizona A.R.S. § 20-1631, California Ins. Code §§ 677.2/678, Connecticut C.G.S. § 38a-323 — and derive the minimum days per reason code independently.",
+            "Compare your derived number and counting convention to the configured rule row.",
+            "Record a difference where the configuration is short, where it uses the wrong convention, or where it relies on a superseded citation.",
+            "Attach the dated statute capture to the workpaper row."
+          ],
+          "done": "each sampled rule row has an independently derived statutory minimum and convention recorded against the configured value."
+        },
+        {
+          "step": "Re-execute the transaction in a test environment for sampled rows",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Guidewire PolicyCenter",
+          "actions": [
+            "Ask the Test Lead for auditor credentials to a production-mirrored test instance and drive the cancellation screen yourself for each sampled state and reason code.",
+            "Enter a proposed effective date and record the computed latest mail date and advance days the system returns, plus the rule row id it applied.",
+            "Compare to your independently derived minimum and to the recorded configuration.",
+            "Screenshot the transaction screen showing the computed values into the workpaper."
+          ],
+          "done": "each sampled row is re-executed in the system with the computed days, applied rule row id and screenshot captured."
+        },
+        {
+          "step": "Test the hard stop with deliberately short-dated transactions",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Guidewire PolicyCenter",
+          "actions": [
+            "For each sampled state, attempt a cancellation dated one day inside the statutory minimum and confirm the system blocks it as an error.",
+            "Attempt the same through the batch and API paths and confirm the block also fires there, since a screen-only control is not a control.",
+            "Attempt a user-level override and confirm it is unavailable; where a supervisor override exists, confirm it writes a reason and an audit record.",
+            "Record any state where the transaction committed as a control failure and escalate the same day."
+          ],
+          "done": "the hard stop is proven to block short-dated cancellations on screen, batch and API paths in every sampled state, with overrides audited."
+        },
+        {
+          "step": "Verify template routing resolves to the approved version",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Guidewire PolicyCenter",
+          "actions": [
+            "For each sampled row, read the template id and version the routing table returns and compare it to the approved form inventory from REG-005-C01.",
+            "Confirm no sampled state falls through to a generic or default template and that unmapped combinations error rather than send.",
+            "For prescribed-form states, confirm the routing points at the DOI-published form number.",
+            "Render the notice and confirm the printed notice period equals the configured day count."
+          ],
+          "done": "every sampled row routes to an approved, versioned template whose printed period equals the configured day count, with no default fallback."
+        },
+        {
+          "step": "Trace sampled releases to approval and post-release verification",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ServiceNow ITSM",
+          "actions": [
+            "Open each sampled change record and confirm the rule table diff, test evidence, UAT sign-offs and CAB approval are attached and dated before deployment.",
+            "Compare the attached diff to the actual production table version history and flag anything deployed that was not in the approved diff.",
+            "Confirm the post-release smoke evidence exists and covers a non-payment, an underwriting cancellation and a non-renewal.",
+            "Confirm any release after its statutory effective date carries an escalation record."
+          ],
+          "done": "every sampled release has dated approval, a diff matching production and post-release smoke evidence across all three transaction types."
+        },
+        {
+          "step": "Log exceptions with root cause, affected notices and owner",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Raise one issue per exception naming the state, reason code, the configured versus required day count and the window the defect was live.",
+            "Obtain from Policy Administration the list of notices actually issued under the defective rule and hand it to the REG-005-C02 owner for policy-level remediation.",
+            "Assign a root cause — matrix row not carried across, missing regression case, unversioned overwrite, screen-only validation — and an owner.",
+            "Set a remediation date and add the case to the mandatory regression set for the next release."
+          ],
+          "done": "every exception has an issue, an affected-notice list handed to C02, a root cause, an owner and a new mandatory regression case."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the rule-row exception rate and the hard-stop failure count against the zero-tolerance threshold.",
+            "State the conclusion — effective, effective with exceptions, or ineffective — with the workpaper references behind it.",
+            "Have the independent reviewer, who neither wrote nor peer-reviewed the sampled configuration, sign the workpaper.",
+            "Report the conclusion and any live short-day-count rules to the Compliance Committee and the Head of IT, and file the workpaper under REG-005 ▸ C03."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and committee reporting date is filed in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-005-C04",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Compliance Manager",
+          "value": "Owns the annual cancellation and non-renewal notice curriculum and the completion standard for every in-scope handler"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — course content rebuilt each year from the current statutes and DOI bulletins, representative Alaska AS 21.36.210–.260 as enforced by the Alaska Division of Insurance, with Arizona A.R.S. § 20-1631, California Ins. Code §§ 677.2/678 and Connecticut C.G.S. § 38a-323 used as the multi-state contrast cases"
+        },
+        "In-scope processes": {
+          "value": "Annual training needs analysis → curriculum build → assignment to Policy Administration, Renewal Underwriting, Billing, Contact Centre and Complaints handlers → delivery and assessment → completion chase → refresher on any statutory change"
+        },
+        "In-scope systems": {
+          "app": "Cornerstone LMS",
+          "value": "Course REG-005-CANCEL, its assessment, the audience rules driven from HRIS job codes, and the completion and score reporting"
+        },
+        "Compliance procedure documented": {
+          "value": "Cancellation & Non-Renewal Training Standard — audience definition by job code, 30-day completion window from assignment, 80% assessment pass mark, two re-sit limit then manager escalation, and mandatory refresher within 30 days of any notice-rule change"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and the Learning Development Manager; re-approved annually before the assignment cycle opens"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual — curriculum refreshed and assigned by 31 January, all in-scope staff complete within 30 days of assignment, new joiners complete within 30 days of start date, and ad-hoc refreshers within 30 days of a statutory change"
+        },
+        "Deadline reminders configured": {
+          "value": "LMS reminders at day 7, day 21 and day 28 of the completion window, manager escalation at day 31, and a monthly overdue report to the Policy Admin Ops Lead and Contact Center Ops Manager"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Course content version, assignment list, completion and score records, attestations and manager escalations retained 7 years from the training year"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any handler processing cancellation or non-renewal notices past the 30-day window without completion is logged as an exception with the manager, the days overdue and whether access was suspended"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs off any waiver or extension and confirms remediation for handlers who worked notices while non-compliant"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All employees and contractors in in-scope job codes during the training year, taken from the HRIS active roster including joiners, leavers and internal movers"
+        },
+        "Pass/fail thresholds": {
+          "value": "100% completion of in-scope staff within the 30-day window and an 80% minimum assessment score; any handler who processed a notice while overdue is an automatic fail regardless of later completion"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; completion test runs annually after the cycle closes with a quarterly interim check on joiners and movers"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must sit outside Compliance and Learning & Development and have delivered none of the training"
+        },
+        "Evidence location for test results": {
+          "value": "Annual training completion workpaper (HRIS roster, LMS completion extract, reconciliation, score analysis, exception list) in the compliance evidence repository under REG-005/C04"
+        },
+        "Regulator-ready documentation": {
+          "value": "Course content version with the statutes it covers, the assignment list and a completion register with dates and scores — producible for a market conduct exam training request within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager supplies training registers to the DOI; Head of Compliance clears any statement about untrained handlers"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Define the in-scope audience from HRIS job codes",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Extract the active roster filtered to the job codes that touch cancellation and non-renewal: policy administration analysts and clerks, renewal underwriters, billing and collections staff, contact centre agents and supervisors, complaints specialists and consumer affairs analysts.",
+            "Add contractors and outsourced print/mail liaison staff who key or release notices, since the obligation follows the activity not the employment type.",
+            "Cross-check the roster against the policy admin user list holding the cancellation transaction entitlement and add anyone with the entitlement who is missing from the roster.",
+            "Publish the audience definition and get the Policy Admin Ops Lead and Contact Center Ops Manager to confirm no team is missing."
+          ],
+          "done": "the audience list reconciles to both the HRIS job-code roster and the policy admin cancellation entitlement list, confirmed by the operating leads."
+        },
+        {
+          "step": "Run the training needs analysis from last year's failures",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Pull the prior year's short-notice breaches, complaint root causes and audit exceptions from REG-005-C02, C05 and C06.",
+            "Group them into learning gaps — wrong governing state, generic reason text, generation date used as mail date, mortgagee notice missed, override misuse.",
+            "Rank the gaps by frequency and by consumer harm and write them as the learning objectives for this year's course.",
+            "Record which prior-year exception each objective answers so the curriculum can be shown to be evidence-led."
+          ],
+          "done": "the learning objectives are written and each one is traced to a named prior-year breach, complaint theme or audit exception."
+        },
+        {
+          "step": "Rebuild the course content against the current statutes",
+          "by": "Instructional Designer",
+          "role": "Instructional Designer",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Rewrite the multi-state module from the current statute captures — representative Alaska AS 21.36.210–.260, with Arizona, California, Connecticut, Mississippi and Pennsylvania as contrast cases showing how the day counts and required content differ.",
+            "Build a module on the permissible-grounds rules, including reasons a state bars as a sole ground for non-renewal, using the approved reason-code library.",
+            "Build a module on the mechanics: computing latest mail date, mail date versus generation date, proof of mailing, mortgagee and producer copies, returned mail.",
+            "Have Regulatory Counsel review every legal statement in the deck and record the review date on the content version."
+          ],
+          "done": "the course carries counsel-reviewed multi-state, permissible-grounds and mechanics modules built from dated current statute captures."
+        },
+        {
+          "step": "Build the assessment and the scenario exercises",
+          "by": "Instructional Designer",
+          "role": "Instructional Designer",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Write at least 20 assessment items, weighted to the ranked learning gaps rather than spread evenly across the content.",
+            "Include applied scenarios — an Alaska non-renewal with a target date 20 days out, a Connecticut non-renewal, a Pennsylvania homeowner cancellation for a barred sole ground — where the learner must state the correct action.",
+            "Set the pass mark at 80%, randomise item order and build a second item bank for re-sits so a re-sit is not the same paper.",
+            "Map every item to a learning objective so a low-scoring topic can be traced back to content."
+          ],
+          "done": "a 20-plus item assessment with applied multi-state scenarios, an 80% pass mark and a separate re-sit bank is built and objective-mapped."
+        },
+        {
+          "step": "Add role-specific practical modules",
+          "by": "Trainer",
+          "role": "Trainer",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Build a Policy Administration module walking the cancellation screen, the computed latest mail date field, the hard-stop error and what to do when it fires.",
+            "Build a Contact Centre module on what an agent may and may not say when an insured calls about a cancellation notice, including how to log a complaint rather than argue the reason.",
+            "Build an Underwriting module on stating a specific reason that will survive publication in the notice and in a DOI file request.",
+            "Assign each module to the matching job codes so nobody sits through modules they will never use."
+          ],
+          "done": "each in-scope job family has a practical module assigned that uses its own screens and its own decisions."
+        },
+        {
+          "step": "Load the course and configure assignment rules",
+          "by": "Learning & Development Specialist",
+          "role": "Learning & Development Specialist",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Publish course REG-005-CANCEL with this year's content version and effective date.",
+            "Configure dynamic audience rules from the HRIS job codes so joiners and internal movers are auto-assigned on the day their job code takes effect.",
+            "Set the completion window to 30 days from assignment and configure reminders at day 7, day 21 and day 28.",
+            "Configure manager escalation at day 31 and the monthly overdue report distribution."
+          ],
+          "done": "the course is published with dynamic job-code assignment, a 30-day window, three reminders and day-31 manager escalation."
+        },
+        {
+          "step": "Launch the annual assignment cycle",
+          "by": "Learning Development Manager",
+          "role": "Learning Development Manager",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Assign the course to the full audience by 31 January and record the assignment count against the audience list count.",
+            "Send the launch communication naming the deadline, the pass mark, the re-sit rule and the consequence of non-completion.",
+            "Brief the Policy Admin Ops Lead, UW Operations Manager and Contact Center Ops Manager so they schedule time rather than expecting completion between calls.",
+            "Confirm the assignment count reconciles to the audience list and investigate any shortfall the same week."
+          ],
+          "done": "the assignment count reconciles to the audience list and the launch communication with deadline and consequences has gone out."
+        },
+        {
+          "step": "Deliver instructor-led sessions for the high-risk roles",
+          "by": "Trainer",
+          "role": "Trainer",
+          "app": "Microsoft Teams / Email",
+          "actions": [
+            "Run live sessions for policy administration and renewal underwriting staff, working real anonymised short-notice breaches from the prior year.",
+            "Have attendees compute latest mail dates for Alaska, Connecticut and Pennsylvania scenarios in the session and mark the answers live.",
+            "Capture the attendance register with names, date and session id and load it to the LMS against the course.",
+            "Record the questions raised and hand recurring confusion points to the Instructional Designer for content revision."
+          ],
+          "done": "live sessions are delivered to the high-risk roles with an LMS-loaded attendance register and recorded question themes."
+        },
+        {
+          "step": "Track completion and chase the overdue",
+          "by": "Learning & Development Specialist",
+          "role": "Learning & Development Specialist",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Run the completion report weekly during the cycle showing assigned, completed, in-progress and overdue by team.",
+            "Send the overdue list to each line manager weekly with named individuals and days remaining.",
+            "At day 31 escalate remaining names to the department head and to the Compliance Manager.",
+            "Record every chase action and its date so the escalation trail is evidenced rather than asserted."
+          ],
+          "done": "weekly completion reporting and manager chases are evidenced, with day-31 escalations recorded by name."
+        },
+        {
+          "step": "Suspend the cancellation entitlement for persistent non-completers",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "IAM platform (SailPoint/Okta/Azure AD)",
+          "actions": [
+            "At day 45 overdue, request removal of the policy admin cancellation and non-renewal transaction entitlement from the Access Management Analyst.",
+            "Record the suspension on the exception record with the date, the individual and the manager notified.",
+            "Restore the entitlement only on evidenced course completion and a passing score.",
+            "Review with the Head of Compliance any case where an operational lead asks for the entitlement to be retained, and record the decision."
+          ],
+          "done": "persistent non-completers have the cancellation entitlement removed, with the suspension and any retention decision recorded."
+        },
+        {
+          "step": "Analyse assessment scores and fix weak content",
+          "by": "Instructional Designer",
+          "role": "Instructional Designer",
+          "app": "Power BI",
+          "actions": [
+            "Export item-level assessment results and compute the pass rate per item and per learning objective.",
+            "Identify objectives scoring below 70% and rewrite the corresponding content rather than the question.",
+            "Compare scores across teams to spot a location or shift with a systemic gap and arrange a targeted session.",
+            "Publish the analysis to the Compliance Manager with the content changes proposed for next cycle."
+          ],
+          "done": "item-level scores are analysed by objective and every objective under 70% has a written content remediation plan."
+        },
+        {
+          "step": "Issue ad-hoc refreshers when a notice rule changes",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "On any DOI bulletin or statute change that alters notice days, permissible grounds or required content, build a short refresher naming the state and the change.",
+            "Assign it to the affected job codes with a 30-day window and a shortened five-item assessment.",
+            "Coordinate the refresher release date with the REG-005-C03 configuration release so staff learn the rule the system will enforce.",
+            "Record the bulletin reference on the refresher content version."
+          ],
+          "done": "every notice-rule change has a refresher assigned within 30 days, timed with the configuration release and traced to its bulletin."
+        },
+        {
+          "step": "Capture the annual handler attestation",
+          "by": "HR Coordinator",
+          "role": "HR Coordinator",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "On course completion, present the attestation confirming the handler will not process a cancellation with fewer than the statutory advance days and will escalate rather than override.",
+            "Capture the attestation with name, job code, date and course content version.",
+            "Report any refusal to the Compliance Manager the same day with the individual and the stated reason.",
+            "File the attestation set with the completion register."
+          ],
+          "done": "an attestation with name, job code, date and content version is captured for every completer, with refusals reported same day."
+        },
+        {
+          "step": "Reconcile completion to the roster and close the cycle",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "Power BI",
+          "actions": [
+            "Reconcile the LMS completion extract to the HRIS roster at cycle close, accounting for joiners, leavers and movers by date.",
+            "List every in-scope individual with no completion and confirm whether they processed any notice during the overdue period from the policy admin user activity log.",
+            "Open an exception record for anyone who did, with the notice count and the manager named.",
+            "Present the closing completion rate and open exceptions to the Compliance Committee."
+          ],
+          "done": "the cycle closes with a roster-reconciled completion rate, an exception record for every non-completer who processed notices, and committee reporting."
+        },
+        {
+          "step": "Retain the training evidence",
+          "by": "Learning & Development Specialist",
+          "role": "Learning & Development Specialist",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the content version with its statute captures, the audience definition, assignment list, completion and score register, attendance registers and attestations under REG-005 ▸ C04 ▸ <training year>.",
+            "Apply the 7-year retention label so a market conduct exam can reach back over prior cycles.",
+            "Confirm the register is searchable by individual, job code, completion date and content version.",
+            "Record the pack location on the REG-005 control record."
+          ],
+          "done": "the training evidence pack is filed, retention-labelled and searchable by individual, job code and completion date."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of in-scope staff for the training year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Extract the HRIS roster of everyone who held an in-scope job code at any point in the training year, with start, end and job-code change dates.",
+            "Add contractors and outsourced staff with system access from the vendor roster.",
+            "Add anyone holding the policy admin cancellation entitlement from the entitlement extract, whether or not their job code is in scope.",
+            "Reconcile the three sources and resolve every difference before sampling."
+          ],
+          "done": "the population is the reconciled union of HRIS job-code holders, contractors and cancellation-entitlement holders with dated movements."
+        },
+        {
+          "step": "Reconcile the assigned audience to the population",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Extract the LMS assignment list for course REG-005-CANCEL with assignment dates.",
+            "Match to the population by employee id and list everyone in the population with no assignment.",
+            "Check joiners and internal movers were auto-assigned within one day of their job-code effective date.",
+            "Treat unassigned in-scope individuals as automatic exceptions with no judgement applied."
+          ],
+          "done": "every in-scope individual has a dated assignment or is listed as an exception, and auto-assignment timing for movers is verified."
+        },
+        {
+          "step": "Draw a documented sample of learners",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Take 100% of individuals who processed cancellation or non-renewal notices during the year, from the policy admin user activity log.",
+            "Take 100% of joiners and internal movers into in-scope roles.",
+            "Add 25 further individuals drawn at random with a recorded seed, minimum 50 in total.",
+            "Record the seed, population size, draw date and stratification in the workpaper."
+          ],
+          "done": "the sample is reproducible and covers every active notice processor and every joiner or mover, plus a random tail."
+        },
+        {
+          "step": "Verify course content against the current statutes",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Open the content version in force during the year and read the multi-state module's day counts and required content statements.",
+            "Compare them to the current statutes — representative Alaska AS 21.36.210–.260, plus Arizona A.R.S. § 20-1631, California Ins. Code §§ 677.2/678, Connecticut C.G.S. § 38a-323, Mississippi § 83-5-28 and Pennsylvania Act 68.",
+            "Record any statement that is out of date, that omits a mandatory content element, or that teaches a permissible ground the state has barred.",
+            "Confirm the counsel review date on the content version pre-dates the assignment date."
+          ],
+          "done": "the delivered content is verified statement by statement against current statutes with a counsel review dated before assignment."
+        },
+        {
+          "step": "Re-perform completion and score checks for the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "For each sampled learner open the LMS transcript and record assignment date, completion date, elapsed days and assessment score.",
+            "Recompute elapsed days and compare to the 30-day window; recompute pass/fail against the 80% mark rather than trusting the status flag.",
+            "Check re-sits did not exceed the two-attempt limit and that a different item bank was used.",
+            "Screenshot the transcript for each sampled learner into the workpaper."
+          ],
+          "done": "each sampled learner's window compliance and score are recomputed from the transcript and captured, not taken from the status flag."
+        },
+        {
+          "step": "Test whether overdue handlers were still processing notices",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "For each sampled learner who completed late, extract their cancellation and non-renewal transactions between assignment plus 30 days and their completion date.",
+            "Count the notices processed while non-compliant and list the policy numbers.",
+            "Cross-check those policies against the REG-005-C02 short-notice breach list to see whether untrained handling produced actual harm.",
+            "Treat any notice processed while overdue as an automatic fail regardless of later completion."
+          ],
+          "done": "every late completer has their overdue-period notice activity quantified and cross-checked against actual short-notice breaches."
+        },
+        {
+          "step": "Verify entitlement suspension actually happened",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "IAM platform (SailPoint/Okta/Azure AD)",
+          "actions": [
+            "List sampled learners who passed 45 days overdue and pull their entitlement history for the cancellation transaction role.",
+            "Confirm a removal event exists dated at or before day 45 and a restoration event dated at or after completion.",
+            "Where the entitlement was retained, confirm a Head of Compliance decision record exists with a stated reason.",
+            "Flag any retention with no decision record as a control failure."
+          ],
+          "done": "every 45-day overdue case shows either a dated entitlement removal or a documented Head of Compliance retention decision."
+        },
+        {
+          "step": "Test refresher coverage for the year's rule changes",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "List every notice-rule change made in the year from the REG-005-C03 change records and the regulatory bulletin log.",
+            "For each, confirm a refresher was published, assigned to the affected job codes, and completed within 30 days.",
+            "Compare the refresher release date to the configuration release date and flag any case where the system enforced a rule staff had not been taught.",
+            "Recompute completion rates for each refresher independently of the LMS dashboard."
+          ],
+          "done": "every rule change in the year traces to an assigned refresher with an independently recomputed completion rate and a checked release sequence."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception naming the individual, job code, manager, days overdue and notices processed while non-compliant.",
+            "Assign a root cause — job code not in the audience rule, mover not auto-assigned, manager did not release time, entitlement not suspended — and an owner.",
+            "Set a remediation date and, where notices were processed untrained, require a targeted file review of those policies by REG-005-C06.",
+            "Carry every open exception into the next quarterly interim check as a mandatory retest."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date and, where applicable, a targeted file review commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the completion rate within the 30-day window and the count of notices processed by non-compliant handlers against the 100% and zero thresholds.",
+            "State the conclusion — effective, effective with exceptions, or ineffective — with the workpaper references behind it.",
+            "Have the independent reviewer, who sits outside Compliance and Learning & Development and delivered none of the training, sign the workpaper.",
+            "Report to the Compliance Committee and file the workpaper under REG-005 ▸ C04 ▸ <training year>."
+          ],
+          "done": "a signed workpaper with a stated conclusion, completion rate and committee reporting date is filed in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-005-C05",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "value": "Owns cancellation and non-renewal complaint intake, DOI response and root-cause remediation across the 51 jurisdictions"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — each DOI complaint is answered against that state's notice statute as it read on the notice mail date (rep: Alaska AS 21.36.220/.240 for the Alaska Division of Insurance), with state response-deadline rules and the NAIC Complaints Database System coding checked at intake"
+        },
+        "In-scope processes": {
+          "value": "Complaint intake from DOI portals, NAIC CDS, contact centre, producers and the self-service portal → coding to REG-005 → investigation against the notice log → response inside the state's deadline → root-cause analysis → remediation and trend reporting"
+        },
+        "In-scope systems": {
+          "app": "workflow/case management tool",
+          "value": "Complaint case records with state, DOI file number, notice-related cause code and response due date; source notices retrieved from the Policy Administration Platform and the document management repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Cancellation & Non-Renewal Complaint Handling Procedure — intake channels, cause coding to notice timing vs notice content vs permissible grounds, the state response-deadline table, the evidence pack contents, and the root-cause and remediation route"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and the Consumer Affairs Manager; reviewed annually and on any change to a state's complaint response deadline"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Continuous — each DOI complaint answered inside that state's statutory response window (commonly 15 to 21 days from the department's letter), acknowledgement to the consumer within 10 business days, and cancellation/non-renewal counts reported in the annual NAIC MCAS filing"
+        },
+        "Deadline reminders configured": {
+          "value": "Case alerts at 50% and 80% of the state response window, daily breach-risk queue to the Complaints Manager, and an immediate alert on any case with the response date inside 2 business days"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Complaint case file, DOI correspondence, the notice image and mailing proof relied on, the response letter and the root-cause record retained 7 years from case closure"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Every complaint substantiated against the company on notice timing or content is logged as a compliance exception with the policy remedy applied and the systemic root cause routed to C01, C02 or C03"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs off the root-cause conclusion and remediation plan for every substantiated notice complaint and every DOI response that concedes a defect"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All complaints received in the period coded to cancellation or non-renewal notice causes, across DOI, NAIC CDS, contact centre, producer and portal channels, by state and writing company"
+        },
+        "Pass/fail thresholds": {
+          "value": "100% of DOI complaints answered inside the state window — one late response is a fail; substantiated notice-timing complaints trending upward quarter on quarter triggers mandatory root-cause escalation to the Compliance Committee"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous; case quality and timeliness tested monthly with a quarterly trend and root-cause review"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Officer",
+          "value": "Reviewer must not have handled or approved any sampled complaint response"
+        },
+        "Evidence location for test results": {
+          "value": "Monthly complaint quality workpaper (case extract, deadline recomputation, response re-review, root-cause traces, exception list) in the compliance evidence repository under REG-005/C05"
+        },
+        "Regulator-ready documentation": {
+          "value": "Complaint log export by state with DOI file number, cause code, receipt date, response date, outcome and remedy, plus the notice image and mailing proof relied on — producible for a market conduct exam within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Consumer Affairs Manager signs routine DOI responses; Regulatory Counsel clears any response conceding a short or unmailed notice, and the Head of Compliance approves any offer of reinstatement or coverage restoration"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Sweep every complaint intake channel daily",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Check each state DOI complaint portal inbox and the NAIC Complaints Database System notifications each morning and download new files with their department file numbers.",
+            "Pull contact centre escalations tagged 'cancellation' or 'non-renewal' from the Genesys queue and portal messages from the Customer Self-Service Portal inbox.",
+            "Collect producer-raised complaints forwarded by the Agency Relations Manager and Broker Support Specialist.",
+            "Create a case per complaint within one business day of receipt with the channel, receipt date and department file number recorded."
+          ],
+          "done": "every channel is swept daily and each new complaint has a case created within one business day carrying its channel and file number."
+        },
+        {
+          "step": "Code the complaint to a notice cause and set the response clock",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Set the cause code to the specific notice failure alleged: notice not received, notice too short, reason not stated or too vague, wrong effective date, mortgagee not notified, or grounds not permitted in that state.",
+            "Record the state, writing company, LOB, policy number and the cancellation or non-renewal effective date.",
+            "Look up the state's response deadline in the response-deadline table and set the due date from the department's letter date, not from the day you opened the case.",
+            "Apply the NAIC CDS reason and disposition coding so the internal record and the department record agree."
+          ],
+          "done": "the case carries a specific notice cause code, the policy and event identifiers, a state-derived response due date and matching NAIC CDS coding."
+        },
+        {
+          "step": "Pull the notice evidence pack for the policy",
+          "by": "Consumer Affairs Analyst",
+          "role": "Consumer Affairs Analyst",
+          "app": "OpenText Document Mgmt",
+          "actions": [
+            "Retrieve the archived notice image, the notice log row and the mailing proof (certificate of mailing, PS Form 3877 page or certified article record) for the policy.",
+            "Retrieve the mortgagee, producer and additional-interest copies with their own mail dates.",
+            "Retrieve the underwriting or billing evidence behind the reason code so the stated reason can be substantiated.",
+            "Assemble the pack in the case file and note any item that cannot be produced — an unproducible mailing proof is treated as no proof."
+          ],
+          "done": "the case file holds the notice image, mailing proof, copy-list notices and the reason evidence, with any unproducible item recorded."
+        },
+        {
+          "step": "Re-perform the timing calculation on the complained-of notice",
+          "by": "Consumer Affairs Analyst",
+          "role": "Consumer Affairs Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Compute actual advance days = cancellation effective date − vendor acceptance scan date using the state's counting convention.",
+            "Read the statutory minimum for that state and reason code from the wording matrix — for the representative Alaska case, the non-payment period against the underwriting-cancellation and 45-day non-renewal periods.",
+            "Record whether the notice met, exceeded or fell short of the minimum and by how many days.",
+            "Where the shortfall is real, escalate to the Complaints Manager and Regulatory Counsel before any response is drafted."
+          ],
+          "done": "the case records a recomputed advance-day figure against the statutory minimum, with any shortfall escalated before drafting."
+        },
+        {
+          "step": "Re-read the notice content against the state's requirements",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Open the statute capture for the state as it read on the mail date and list the content elements it requires.",
+            "Read the archived notice image and tick each element present — specific reason, effective date and hour, appeal-rights sentence, residual-market availability, loss-run availability.",
+            "Check the stated reason is one the state permits as a ground for that action, not merely a true fact about the risk.",
+            "Record the content conclusion and the template version that produced the notice."
+          ],
+          "done": "the case records an element-by-element content conclusion against the statute as it read on the mail date, naming the template version."
+        },
+        {
+          "step": "Take the underwriting or billing account of the decision",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Ask the Renewal Underwriter or Billing Operations Manager for a written account of the decision, the evidence relied on and the date it was made.",
+            "Confirm the reason given to the complainant matches the reason recorded on the transaction and printed in the notice — three different reasons is itself the finding.",
+            "For non-payment cases, obtain the billing history showing the due date, the amount outstanding and any payment received after the notice.",
+            "File the account in the case and record the responder's name and date."
+          ],
+          "done": "a dated written account from the deciding team is on file and the reason given, recorded and printed have been compared."
+        },
+        {
+          "step": "Reach a substantiation decision and set the remedy",
+          "by": "Complaints Manager",
+          "role": "Complaints Manager",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Decide substantiated, partially substantiated or not substantiated on the timing and content findings, and write the reasoning on the case.",
+            "Where substantiated on timing, direct the remedy — rescind the cancellation, restore coverage for the gap and re-issue with a full fresh notice period.",
+            "Where substantiated on content, direct re-issue on the corrected template and check whether other policies received the same defective notice.",
+            "Ask Claims Director / Manager whether any claim was declined in the gap and instruct reopening where it was."
+          ],
+          "done": "the case carries a written substantiation decision, a directed remedy and a gap-period claims check where coverage was affected."
+        },
+        {
+          "step": "Draft the DOI response inside the state's window",
+          "by": "Consumer Affairs Analyst",
+          "role": "Consumer Affairs Analyst",
+          "app": "Microsoft Teams / Email",
+          "actions": [
+            "Draft the response addressing each allegation in the department's letter in order, citing the notice mail date, the mailing proof reference and the statutory period met.",
+            "Attach the notice image, the mailing proof and, where relevant, the reinstatement or rescission letter.",
+            "State plainly any defect found and the remedy applied — do not argue a short notice.",
+            "Submit through the state's complaint portal before the due date and save the submission confirmation with its timestamp to the case."
+          ],
+          "done": "the response is submitted through the state portal before the due date with the notice image, mailing proof and a timestamped confirmation on file."
+        },
+        {
+          "step": "Clear conceding responses through counsel before submission",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Review every draft response that concedes a short notice, a missing notice, an impermissible ground or an unproducible mailing proof.",
+            "Advise on the wording of the concession and on whether the state requires a self-report or a broader remediation offer.",
+            "Confirm the remedy offered restores the consumer's position and matches what the statute would require.",
+            "Record the counsel clearance with name and date on the case before submission."
+          ],
+          "done": "no conceding response leaves the company without a dated counsel clearance and a confirmed remedy."
+        },
+        {
+          "step": "Answer the consumer directly alongside the department",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "app": "Genesys Cloud (Contact Center)",
+          "actions": [
+            "Send the consumer an acknowledgement within 10 business days of receipt naming the case handler and the expected resolution date.",
+            "On closure, write to the consumer in plain language stating what was found, what is being done, and the reinstatement or replacement-coverage position.",
+            "Where coverage was restored, confirm in writing the restored effective date and that no lapse will be reported to any inquiry.",
+            "Log both communications on the case with their dates."
+          ],
+          "done": "the consumer has a dated acknowledgement within 10 business days and a plain-language closure letter stating the finding and the remedy."
+        },
+        {
+          "step": "Assign a root cause and route it to the owning control",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Classify the root cause: template content defect (route to REG-005-C01), operational timing or mailing failure (C02), configuration rule defect (C03), or handler knowledge gap (C04).",
+            "Raise the linked issue on the owning control with the case reference, state and affected template or rule version.",
+            "Ask the owning control whether other policies were affected by the same defect and record the population size.",
+            "Track the remediation to closure from the complaint case rather than handing it off and losing sight of it."
+          ],
+          "done": "every substantiated complaint has a classified root cause, a linked issue on the owning control and a recorded affected-population size."
+        },
+        {
+          "step": "Run the monthly trend review by state and cause",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "Power BI",
+          "actions": [
+            "Build the monthly view of notice complaints by state, cause code, writing company, LOB and substantiation outcome, with complaints per 1,000 cancellations as the normalised measure.",
+            "Compare against the prior three months and flag any state or cause rising two months running.",
+            "Compare the company's cancellation and non-renewal complaint mix against the NAIC complaint index for the same lines to see whether the company is an outlier.",
+            "Present the flagged trends with proposed actions to the Compliance Committee monthly."
+          ],
+          "done": "the monthly trend pack shows normalised complaint rates by state and cause with flagged trends and proposed actions reported to the committee."
+        },
+        {
+          "step": "Feed the MCAS and DOI reporting from the same log",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Reconcile the complaint log's cancellation and non-renewal counts by state to the counts reported in the NAIC Market Conduct Annual Statement.",
+            "Reconcile the company's complaint count to the state's own tally where the DOI publishes it, and investigate any difference before filing.",
+            "Confirm the cancellation and non-renewal transaction counts reported in MCAS reconcile to the policy admin transaction log used in REG-005-C02.",
+            "Record the reconciliation as filing support with the preparer and reviewer names."
+          ],
+          "done": "MCAS complaint and transaction counts reconcile to the complaint log and the policy admin transaction log, with a documented reconciliation on file."
+        },
+        {
+          "step": "Close cases with a completeness check",
+          "by": "Complaints Manager",
+          "role": "Complaints Manager",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Before closure confirm the case holds the notice image, mailing proof, timing recomputation, content conclusion, substantiation decision, DOI response with submission confirmation and consumer closure letter.",
+            "Confirm the remedy is evidenced — the rescission or reinstatement transaction is visible in policy admin, not merely promised.",
+            "Confirm the root-cause issue is raised and linked where the case was substantiated.",
+            "Close the case only when every item is present and record the closure date and the closer."
+          ],
+          "done": "no case closes without the full evidence set, an evidenced remedy and a linked root-cause issue where substantiated."
+        },
+        {
+          "step": "Retain the complaint evidence",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File closed cases under REG-005 ▸ C05 ▸ <state> ▸ <yyyy> with the DOI file number in the record title.",
+            "Apply the 7-years-from-closure retention label.",
+            "Confirm the index makes a case retrievable by DOI file number, policy number, state and cause code.",
+            "Spot check five closed cases per quarter to confirm the notice image and mailing proof retrieve with the case in one action."
+          ],
+          "done": "closed cases are filed, retention-labelled and proven retrievable by DOI file number and policy number in a single lookup."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of notice-related complaints",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Extract all cases in the period with a cancellation or non-renewal cause code, by state, channel, writing company and receipt date.",
+            "Add cases coded elsewhere whose free-text mentions cancellation or non-renewal, so a miscoded complaint is caught.",
+            "Add DOI portal and NAIC CDS receipt lists for the period directly from the source so a complaint never logged is visible.",
+            "Reconcile the case extract to the DOI and NAIC receipt lists and list every unlogged complaint."
+          ],
+          "done": "the population is reconciled to DOI and NAIC receipt lists and includes miscoded and unlogged complaints."
+        },
+        {
+          "step": "Reconcile substantiated complaints to notice log evidence",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Match each complaint to the policy's notice log row and mailing proof on policy number and event date.",
+            "List every complaint whose underlying notice has no log row or no mailing proof as an automatic exception.",
+            "Compare the complaint's recorded cancellation effective date to the transaction record and flag differences.",
+            "Confirm each substantiated case has an evidenced remedy transaction in policy admin."
+          ],
+          "done": "every complaint traces to a notice log row, a mailing proof and, where substantiated, an evidenced remedy transaction."
+        },
+        {
+          "step": "Draw a documented sample of complaint cases",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Take 100% of DOI-originated complaints and 100% of substantiated cases.",
+            "Take 100% of cases in the six representative jurisdictions — Alaska, Arizona, California, Connecticut, Mississippi and Pennsylvania.",
+            "Add 20 non-DOI cases drawn at random with a recorded seed, minimum 45 cases in total.",
+            "Record seed, population size, draw date and stratification in the workpaper."
+          ],
+          "done": "the sample is reproducible and includes all DOI-originated and substantiated cases plus the representative jurisdictions in full."
+        },
+        {
+          "step": "Recompute the response deadline and check timeliness",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each sampled DOI case, take the department letter date from the source document rather than the case field and recompute the due date from the state's response window.",
+            "Compare to the portal submission timestamp and record days early or late.",
+            "Verify the consumer acknowledgement went within 10 business days of receipt.",
+            "Any response submitted after the state deadline is a fail and is reported immediately, not held for the monthly report."
+          ],
+          "done": "response deadlines are recomputed from source letter dates and every late submission is quantified and reported immediately."
+        },
+        {
+          "step": "Re-perform the notice timing conclusion independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For each sampled case, take the vendor acceptance scan date and the cancellation effective date from source and compute advance days yourself.",
+            "Read the state statute as it read on the mail date and derive the minimum without reading the case conclusion.",
+            "Compare to the case's substantiation decision; a not-substantiated case that was in fact short is the highest-severity exception in this test.",
+            "Attach the statute capture and your calculation to the workpaper row."
+          ],
+          "done": "each sampled case has an independent timing conclusion recorded against the case's substantiation decision."
+        },
+        {
+          "step": "Re-review the notice content conclusion",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "app": "OpenText Document Mgmt",
+          "actions": [
+            "Retrieve the archived notice image for each sampled case and list the content elements the state required on the mail date.",
+            "Confirm the stated reason is specific and is a ground the state permits for that action, and that the appeal-rights and residual-market sentences appear.",
+            "Compare to the case's content conclusion and record any element the handler ticked that is not actually present.",
+            "Treat a reason such as 'underwriting reasons' accepted as compliant in a state requiring specificity as a fail."
+          ],
+          "done": "each sampled notice image is independently re-reviewed element by element against the case's recorded content conclusion."
+        },
+        {
+          "step": "Test the DOI response against the case evidence",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Read each sampled response and check it addresses every allegation in the department's letter.",
+            "Confirm every factual assertion in the response — mail date, notice period, mortgagee notification — is supported by a document in the case file.",
+            "Confirm conceding responses carry a dated counsel clearance issued before the submission timestamp.",
+            "Flag any response asserting a mail date that differs from the vendor acceptance scan."
+          ],
+          "done": "every sampled response is traced assertion by assertion to case evidence, with counsel clearance verified before submission on conceding responses."
+        },
+        {
+          "step": "Test root-cause routing and remediation follow-through",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "For each substantiated sampled case, confirm a root-cause issue exists on C01, C02, C03 or C04 with the case reference on it.",
+            "Confirm the affected-population question was asked and answered with a number, not left blank.",
+            "Check the remediation status and whether the same cause code recurred in the state after the stated remediation date — recurrence means the root cause was wrong.",
+            "Recompute the monthly complaints-per-1,000-cancellations measure independently and compare to the published trend pack."
+          ],
+          "done": "every substantiated case has a routed root-cause issue with a quantified population, and recurrence after remediation is identified."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception naming the case, state, DOI file number, the defect (late response, wrong substantiation, unsupported assertion, missing evidence) and its consumer impact.",
+            "Assign a root cause — channel not swept, deadline set from case-open date, mailing proof not retrieved, handler untrained — and an owner.",
+            "Set a remediation date and, where a not-substantiated case was in fact short, require reopening of the case and the consumer remedy.",
+            "Carry every open exception into the next monthly test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date and, where wrongly closed, a case reopening."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the DOI on-time response rate and the wrong-substantiation count against the 100% and zero thresholds.",
+            "State the conclusion — effective, effective with exceptions, or ineffective — with the workpaper references behind it.",
+            "Have the independent reviewer, who handled and approved none of the sampled responses, sign the workpaper.",
+            "Report the conclusion, trend direction and any reopened cases to the Compliance Committee and file the workpaper under REG-005 ▸ C05 ▸ <yyyy-mm>."
+          ],
+          "done": "a signed workpaper with a stated conclusion, on-time rate, trend direction and committee reporting date is filed in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-005-C06",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Chief Audit Executive",
+          "value": "Owns the annual independent audit of cancellation and non-renewal notice content and timing across the 51 jurisdictions"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — audit criteria rebuilt each year directly from the statutes rather than from the business's wording matrix (rep: Alaska AS 21.36.220/.240 for the Alaska Division of Insurance, plus Arizona A.R.S. § 20-1631, California Ins. Code §§ 677.2/678, Connecticut C.G.S. § 38a-323, Mississippi § 83-5-28, Pennsylvania Act 68)"
+        },
+        "In-scope processes": {
+          "value": "Annual audit of the end-to-end notice lifecycle — decision and reason coding, notice-day computation, template content, mailing and proof, copy-list distribution, returned mail, rescissions and complaint outcomes — across all writing companies and jurisdictions"
+        },
+        "In-scope systems": {
+          "app": "AuditBoard",
+          "value": "Audit programme, sample, testing evidence, issues and follow-up; populations drawn from the Policy Administration Platform and notice images from the document management repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Cancellation & Non-Renewal Notice Audit Programme — independently derived criteria per jurisdiction, stratified sampling plan, re-performance steps, rating scale and issue thresholds, and the follow-up verification standard"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Audit Executive and noted by the Audit Committee in the annual audit plan; criteria re-approved each year before fieldwork opens"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual — fieldwork completed and the report issued within the plan year, draft to management within 10 business days of fieldwork close, management responses within 15 business days, and issue follow-up verified within 90 days of the agreed remediation date"
+        },
+        "Deadline reminders configured": {
+          "value": "Audit milestones tracked in the audit platform with alerts at fieldwork close, draft issue, response due and each issue's 90-day follow-up date; overdue issues escalate to the Audit Committee"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Audit programme, population extracts, sampling documentation, re-performance workpapers, notice images tested, issues, management responses and follow-up evidence retained 7 years from report issue"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "AuditBoard",
+          "value": "Every audit finding is raised as a rated issue with the affected-notice population, the agreed action, the owner, the due date and the verified closure evidence"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Audit Executive",
+          "value": "Signs off issue closure only on re-tested evidence; management assertion alone does not close a notice-timing issue"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All cancellation and non-renewal notices issued in the audit year across all writing companies, LOBs and the 51 jurisdictions, taken from the policy admin transaction log rather than the notice log"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on short notices and on missing mailing proof; a content element missing in any sampled notice rates at least Medium, and any systemic short-notice pattern rates High and is reported to the Audit Committee immediately"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; the audit runs once per plan year over the full year's population with continuous-auditing analytics run quarterly between fieldwork cycles"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Chief Audit Executive",
+          "value": "Reviews and signs the workpapers; the auditor performing fieldwork holds no role in Compliance, Policy Administration or IT configuration"
+        },
+        "Evidence location for test results": {
+          "value": "Annual audit file (programme, population, sample, re-performance workpapers, notice images, issues, responses, follow-up) in the audit platform with the report filed in the compliance evidence repository under REG-005/C06"
+        },
+        "Regulator-ready documentation": {
+          "value": "Issued audit report with scope, criteria, sample sizes, findings, ratings and management actions — supplied to a market conduct examiner on request with the underlying sample workpapers within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager releases audit reports to a DOI only with General Counsel clearance; the Chief Audit Executive presents findings if an examiner requests an internal audit interview"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Scope the audit and confirm independence",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "AuditBoard",
+          "actions": [
+            "Confirm REG-005 sits in the approved annual audit plan with cancellation and non-renewal notice timing and content as the stated objective.",
+            "Define the scope: all writing companies, all 51 jurisdictions, all LOBs, the full plan year, covering decision-to-mailing and the copy list.",
+            "Confirm the assigned Internal Auditor and Audit Analyst hold no current or prior-year role in Compliance, Policy Administration or the configuration team, and record the independence confirmation.",
+            "Issue the engagement notification to the Head of Compliance, Policy Admin Ops Lead and Head of IT with the fieldwork dates."
+          ],
+          "done": "the engagement is scoped in the plan, independence is confirmed in writing and the notification with fieldwork dates has issued."
+        },
+        {
+          "step": "Derive the audit criteria from the statutes independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Build the criteria table from the statutes directly — representative Alaska AS 21.36.220 and .240, plus Arizona A.R.S. § 20-1631, California Ins. Code §§ 677.2/678, Connecticut C.G.S. § 38a-323, Mississippi § 83-5-28 and Pennsylvania Act 68 — not from the business's wording matrix.",
+            "For each jurisdiction record the minimum advance days per reason code, the counting convention and the mandatory content elements.",
+            "Have Regulatory Counsel confirm the criteria table without showing them the business matrix, so agreement is not manufactured.",
+            "Attach a dated statute capture to every criteria row."
+          ],
+          "done": "a counsel-confirmed criteria table exists with an independently derived day count, convention and content list plus a dated statute capture per jurisdiction."
+        },
+        {
+          "step": "Extract the audit population from source systems",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Extract every cancellation and non-renewal transaction with an effective date in the plan year from the policy admin transaction log, not from the notice log, so unnoticed cancellations remain visible.",
+            "Join to the notice log, the vendor acceptance file and the document repository index on policy number and transaction id.",
+            "Reconcile the transaction count to the in-force movement report and the MCAS transaction counts and resolve differences before sampling.",
+            "Freeze the population extract with a hash and record the extraction date and query in the workpaper."
+          ],
+          "done": "the frozen population is drawn from the transaction log, joined to notice and mailing evidence, and reconciled to in-force movement and MCAS counts."
+        },
+        {
+          "step": "Run full-population analytics before sampling",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Power BI",
+          "actions": [
+            "Compute advance days for every notice in the population from the vendor acceptance scan date and flag every record below the criteria-table minimum for its state and reason code.",
+            "Flag every transaction with no notice row, no mailing proof, or a mail date equal to the generation date.",
+            "Flag every notice issued on a template version not in the approved form inventory for that state on that date.",
+            "Publish the analytics exception counts by state and reason code as the risk map that drives sample stratification."
+          ],
+          "done": "full-population analytics have flagged every short notice, missing proof and unapproved template use, and the exception map is published."
+        },
+        {
+          "step": "Design and document the stratified sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "AuditBoard",
+          "actions": [
+            "Take 100% of analytics-flagged records — they are tested, not sampled.",
+            "Take 100% of non-renewals in the six representative jurisdictions and a minimum of 5 records per remaining jurisdiction so no state goes untested.",
+            "Add a random tail with a recorded seed to reach the planned sample size, and document the confidence and tolerable-deviation basis for that size.",
+            "Record seed, population size, strata definitions and draw date so the sample can be re-drawn by a reviewer."
+          ],
+          "done": "the sample is documented, reproducible, covers every jurisdiction and takes all analytics-flagged records in full."
+        },
+        {
+          "step": "Re-perform the timing test on each sampled notice",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Take the vendor acceptance scan date and the cancellation effective date from source records, not from the notice log fields.",
+            "Compute advance days using the criteria table's counting convention for that state and reason code, adding mailing-presumption days where the statute counts from receipt.",
+            "Compare against the criteria minimum and record the shortfall in days where short.",
+            "Escalate any short notice to the Chief Audit Executive and the Head of Compliance on the day it is found."
+          ],
+          "done": "advance days are recomputed from source dates for every sampled notice with shortfalls quantified and same-day escalated."
+        },
+        {
+          "step": "Inspect the notice image against the criteria content list",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "OpenText Document Mgmt",
+          "actions": [
+            "Retrieve each sampled notice image by policy number and tick each criteria content element present or absent — specific reason, effective date and hour, notice-period statement, appeal-rights sentence, residual-market availability, loss-run availability, mortgagee block.",
+            "Confirm the printed reason is specific and is a permissible ground in that state for that action.",
+            "Confirm the addressee and address match the policy of record on the mail date.",
+            "Record every absent element on the workpaper row rather than summarising as 'content adequate'."
+          ],
+          "done": "each sampled notice image has an element-by-element content result recorded against the criteria list."
+        },
+        {
+          "step": "Trace mailing proof to an independent source",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled notice open the mailing proof — the USPS certificate of mailing, PS Form 3877 firm mailing book page or certified article record — and read the acceptance date from the proof itself.",
+            "Obtain the vendor acceptance file directly from the print/mail vendor rather than through Policy Administration, so the evidence is independent of the audited team.",
+            "Compare the proof date to the notice log's mail date and flag any difference.",
+            "Treat an unproducible mailing proof as no proof, regardless of the log showing a mail date."
+          ],
+          "done": "every sampled notice's mail date is corroborated by a vendor-sourced mailing proof, and unproducible proofs are recorded as failures."
+        },
+        {
+          "step": "Test the mortgagee, additional interest and producer copies",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "For each sampled property policy pull the mortgagee and additional-interest schedule as it stood on the decision date.",
+            "Confirm a notice went to each and recompute its advance days against that recipient's own statutory period, which frequently exceeds the insured's.",
+            "Confirm the producer copy released on the same day as the insured notice through the Broker & Agent Portal.",
+            "Rate a missing mortgagee notice as at least Medium given the direct coverage exposure it creates."
+          ],
+          "done": "every sampled property policy's copy-list recipients are traced with their own advance periods recomputed and missing copies rated."
+        },
+        {
+          "step": "Test reason coding against the underlying decision evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Underwriting Platform",
+          "actions": [
+            "For each sampled underwriting cancellation or non-renewal, read the underwriting file evidence behind the reason code — loss history, inspection report, misrepresentation finding.",
+            "Confirm the evidence pre-dates the decision date and actually supports the reason printed on the notice.",
+            "Confirm the ground is permitted in that state, including any bar on a single weather-related claim or on age of dwelling as a sole ground.",
+            "Record any case where the printed reason, the coded reason and the file evidence disagree."
+          ],
+          "done": "every sampled underwriting-driven notice has its printed reason traced to pre-dating file evidence and tested against the state's permissible grounds."
+        },
+        {
+          "step": "Test the system controls behind the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Guidewire PolicyCenter",
+          "actions": [
+            "For each sampled state attempt a short-dated cancellation in the production-mirrored test instance and confirm the hard stop blocks it on screen, batch and API paths.",
+            "Pull the supervisor override log for the year and test every override against its recorded reason and the resulting notice.",
+            "Compare the rule table version in force on each sampled notice date to the criteria table and record any period during which the configured minimum was below statute.",
+            "Record control failures separately from transaction exceptions so the report distinguishes design from operation."
+          ],
+          "done": "the hard stop is re-tested per sampled state, all overrides are examined, and any period of a below-statute configured rule is identified."
+        },
+        {
+          "step": "Cross-test against complaints and claims outcomes",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Join the analytics-flagged short-notice records to the REG-005-C05 complaint log and record how many produced a complaint and how many did not.",
+            "Ask Claims Director / Manager for any claim declined with a date of loss inside a gap created by a short or unmailed notice and list the claim numbers.",
+            "Check whether each such claim was reopened and paid following the C05 remedy.",
+            "Quantify the consumer harm as the count of affected policies and the value of claims in gap periods."
+          ],
+          "done": "short-notice records are cross-tested to complaints and gap-period claims with quantified consumer harm and reopening status."
+        },
+        {
+          "step": "Raise rated issues with agreed management actions",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "AuditBoard",
+          "actions": [
+            "Write each finding with condition, criteria (the statute cited), cause, effect quantified in affected notices, and recommendation.",
+            "Rate each issue against the programme's scale — systemic short notices rate High and go to the Audit Committee immediately.",
+            "Agree the action, owner and due date with the Head of Compliance, Policy Admin Ops Lead or Head of IT depending on the cause, and record their written response.",
+            "Reject any management response that commits only to 'reinforce awareness' where the cause is a configuration or template defect."
+          ],
+          "done": "every finding is written with quantified effect, a rating, a cited statute and a written management action with an owner and due date."
+        },
+        {
+          "step": "Issue the report and present to the Audit Committee",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "AuditBoard",
+          "actions": [
+            "Issue the draft to management within 10 business days of fieldwork close and collect responses within 15 business days.",
+            "Issue the final report with the overall opinion, scope, criteria, sample sizes, findings, ratings and management actions.",
+            "Present High-rated notice-timing findings to the Audit Committee at its next sitting with the quantified consumer harm.",
+            "File the report in the compliance evidence repository under REG-005 ▸ C06 ▸ <plan year>."
+          ],
+          "done": "the final report with an overall opinion is issued on the response timetable, presented to the Audit Committee and filed."
+        },
+        {
+          "step": "Verify issue closure on re-tested evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "AuditBoard",
+          "actions": [
+            "At each issue's due date request the closure evidence — corrected rule table export, revised template version, retrained staff register, remediated policy list.",
+            "Re-test a fresh sample of notices issued after the remediation date rather than accepting management's assertion.",
+            "Where the re-test still fails, reopen the issue, escalate the rating and report the overdue issue to the Audit Committee.",
+            "Record verified closure with the re-test sample size, results and the Chief Audit Executive's sign-off."
+          ],
+          "done": "no issue closes without a post-remediation re-test sample, recorded results and Chief Audit Executive sign-off."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of audit records subject to quality review",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "AuditBoard",
+          "actions": [
+            "Extract the audit engagement record with its programme, population extract hash, sampling documentation, workpapers, issues and follow-up records.",
+            "Extract the full year's cancellation and non-renewal transaction population independently from the policy admin transaction log for reperformance.",
+            "List every issue raised in the year with its rating, due date, closure date and closure evidence reference.",
+            "Reconcile the workpaper count to the documented sample size and resolve any missing workpaper before proceeding."
+          ],
+          "done": "the audit record, an independently drawn transaction population and the full issue list are assembled and workpaper completeness is reconciled."
+        },
+        {
+          "step": "Reconcile the audit population to the source of record",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Re-run the population query independently and compare the row count and hash to the frozen extract in the audit file.",
+            "Reconcile both to the in-force movement report and the MCAS cancellation and non-renewal counts.",
+            "Confirm the audit drew from the transaction log rather than the notice log, so unnoticed cancellations were in scope.",
+            "List any transaction class excluded from the audit population — flat cancellations, finance-company cancellations, rescinded events — and confirm the exclusion was justified in writing."
+          ],
+          "done": "the audit population reconciles to an independently drawn extract, the in-force movement report and MCAS counts, with every exclusion justified."
+        },
+        {
+          "step": "Re-draw the sample and check its documentation",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Re-run the documented seed and strata against the frozen population and confirm the same sample emerges.",
+            "Confirm every analytics-flagged record was tested in full rather than sampled, and that every jurisdiction has at least the minimum records.",
+            "Check the sample size documentation states the confidence level and tolerable deviation rate relied on.",
+            "Flag any sample that cannot be reproduced as a workpaper-quality failure."
+          ],
+          "done": "the sample is reproduced from the documented seed, full coverage of flagged records and jurisdictions is confirmed, and the sizing basis is documented."
+        },
+        {
+          "step": "Re-perform the criteria derivation for a subset of jurisdictions",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Independently derive the minimum advance days and mandatory content elements for the six representative jurisdictions from current statute text.",
+            "Compare to the audit's criteria table and record any row where the audit tested against a lower standard than the statute requires.",
+            "Confirm each criteria row carries a dated statute capture and that the capture pre-dates fieldwork.",
+            "Treat an audit that tested against the business's wording matrix instead of the statute as an independence and criteria failure."
+          ],
+          "done": "the audit's criteria are independently re-derived for the representative jurisdictions and every under-stated criterion is recorded."
+        },
+        {
+          "step": "Re-perform timing and content testing on a subset of workpapers",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "OpenText Document Mgmt",
+          "actions": [
+            "Select 15 sampled notices from the audit workpapers, weighted to those the audit passed.",
+            "Retrieve the notice images and vendor acceptance records yourself and recompute advance days and the content element list.",
+            "Compare your conclusion to the auditor's workpaper conclusion and record any notice the audit passed that should have failed.",
+            "Record whether the workpaper shows the evidence relied on or merely a conclusion."
+          ],
+          "done": "15 audit conclusions are independently re-performed from source evidence with every wrongly passed notice identified."
+        },
+        {
+          "step": "Test the independence and evidence sourcing of the engagement",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Read the independence confirmations and check the assigned auditors held no role in Compliance, Policy Administration or configuration in the current or prior year.",
+            "Confirm the vendor acceptance file was obtained directly from the print/mail vendor rather than supplied by Policy Administration.",
+            "Confirm the hard-stop re-testing was performed by the auditor rather than demonstrated by the configuration team.",
+            "Record any evidence sourced through the audited function as an independence limitation on the engagement."
+          ],
+          "done": "auditor independence is confirmed for the current and prior year and every piece of key evidence is traced to an independent source."
+        },
+        {
+          "step": "Test issue quality, rating consistency and quantification",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "AuditBoard",
+          "actions": [
+            "Read each issue and confirm it states condition, cited criteria, cause, quantified effect in affected notices and a recommendation.",
+            "Check ratings against the programme scale and flag any systemic short-notice finding rated below High.",
+            "Confirm each management response commits to a specific action rather than an awareness measure where the cause is a template or configuration defect.",
+            "Confirm High-rated findings were reported to the Audit Committee at the next sitting and not deferred to the annual summary."
+          ],
+          "done": "every issue is checked for quantified effect, rating consistency, a specific management action and timely Audit Committee reporting."
+        },
+        {
+          "step": "Re-test closed issues to confirm they actually closed",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "Guidewire PolicyCenter",
+          "actions": [
+            "Select every issue closed in the period and retrieve the closure evidence referenced in the audit file.",
+            "For configuration issues, export the current rule table and confirm the corrected day counts are live and effective-dated from the remediation date.",
+            "For notice issues, draw 10 notices issued after the remediation date and recompute advance days and content against the criteria table.",
+            "Reopen any issue whose post-remediation sample still fails and report it to the Audit Committee."
+          ],
+          "done": "every closed issue is re-tested on post-remediation notices or live configuration, and failures are reopened and reported."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception naming the audit engagement, the workpaper or issue reference and the defect — under-stated criteria, unreproducible sample, wrongly passed notice, evidence sourced through the audited function, issue closed without re-test.",
+            "Assign a root cause and an owner within Internal Audit, and set a remediation date before the next plan-year fieldwork.",
+            "Where a wrongly passed notice is found, hand the policy list to REG-005-C02 for consumer remediation.",
+            "Carry every open exception into the next annual quality review as a mandatory retest."
+          ],
+          "done": "every exception has an issue, a root cause, an owner within Internal Audit, a remediation date and, where consumers were affected, a handoff to C02."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the reperformance disagreement rate and the count of issues closed without re-test against the zero-tolerance thresholds.",
+            "State the conclusion on the audit's reliability — effective, effective with exceptions, or ineffective — with the workpaper references behind it.",
+            "Have the independent reviewer, who neither performed the fieldwork nor supervised it, sign the quality review workpaper.",
+            "Report the conclusion to the Audit Committee alongside the audit report and file under REG-005 ▸ C06 ▸ <plan year>."
+          ],
+          "done": "a signed quality review workpaper with a stated conclusion, disagreement rate and Audit Committee reporting date is filed in the evidence repository."
+        }
+      ]
+    }
+  ]
+}

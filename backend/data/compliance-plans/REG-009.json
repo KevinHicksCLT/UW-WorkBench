@@ -1,0 +1,1969 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-009-C01",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Distribution Operations Manager",
+          "value": "Owns producer collection of Consumer Profile Information on every Group Annuity case before a recommendation is made; escalates disputed or refused profiles to the Annuity Suitability Analyst"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — NAIC Model 275 Section 5 (Consumer Profile Information definition) and Section 6.A/6.D (care and documentation duties) as adopted by the representative jurisdiction Alaska, re-read at each state adoption effective date; supporting adoptions read for Alabama, Arkansas and Arizona"
+        },
+        "In-scope processes": {
+          "value": "Group Annuity sales solicitation through application submission — every producer-initiated recommendation across the 51 adopting jurisdictions, including plan-sponsor and participant-level Group Annuity recommendations, replacements and exchanges"
+        },
+        "In-scope systems": {
+          "app": "Broker & Agent Portal",
+          "value": "Producer completes the state-correct Consumer Profile Information form in the Broker & Agent Portal annuity application wizard; the signed form set lands on the case in Salesforce FSC and images to the policy administration record"
+        },
+        "Compliance procedure documented": {
+          "value": "Annuity Consumer Profile Collection Procedure — form-edition selection by state, the 13 required profile elements, source-of-funds capture, 60-month exchange history, Appendix B refusal handling, and the no-recommendation path"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and the Head of Distribution; re-approved on every new state adoption of Model 275 and on any change to the profile form edition"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "No regulator filing — the operational deadline is per sale: the completed, signed profile must exist before the recommendation date; deficient profiles must be cured within 5 business days of the new-business deficiency notice or the application is withdrawn"
+        },
+        "Deadline reminders configured": {
+          "value": "Salesforce FSC case alerts fire at day 2 and day 4 of an open profile deficiency; a daily 07:00 exception list of applications received with an incomplete profile goes to the producer's Distribution Specialist and the writing agency principal"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Profile form, Appendix B refusal form, Appendix C no-recommendation form and the exchange-history worksheet retained 6 years after the annuity transaction is completed per Model 275 Section 9, indexed by contract number and producer NPN"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any Group Annuity application recommended without a complete pre-dated profile is logged as a suitability exception with producer NPN, state, root cause and disposition (cured, withdrawn, producer coached, producer terminated)"
+        },
+        "Remediation sign-off captured": {
+          "role": "Producer Compliance Manager",
+          "value": "Signs off every cured deficient profile and every producer corrective-action plan arising from repeat incomplete profiles"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All Group Annuity applications received in the quarter across the 51 jurisdictions, taken from the policy administration new-business register, including declined, withdrawn and not-taken applications"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any of the 13 Consumer Profile Information elements blank, or a profile signed after the recommendation date, is a fail; sample exception rate above 5 percent, or any single fail in a replacement case, escalates to the Head of Compliance"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per sale; testing runs quarterly over that quarter's applications, with 100 percent coverage of replacement/exchange cases and consumers aged 65 and over"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Auditor must not sit in Distribution and must not have worked any sampled case as a suitability reviewer"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly Consumer Profile Completeness workpaper (population extract, reconciliation, seeded sample, element-by-element re-performance grid, exception log) in the compliance evidence repository under Annuity Suitability"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per-contract profile packet (signed profile form, Appendix B/C where used, exchange history) retrievable by contract number within 5 business days of a market conduct exam data call"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager owns the exam data call and the state department inquiry; Regulatory Counsel clears any response that concedes a missing or late profile before it leaves the company"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Open the annuity case and load the state-correct profile form edition",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "In the Broker & Agent Portal open New Business, choose Annuity, and enter the situs state of the Group Annuity contract and the participant's resident state.",
+            "Let the wizard resolve the form edition from the state suitability matrix maintained by Distribution Compliance; do not attach a locally saved PDF copy of an older edition.",
+            "Confirm the header shows the state, the form edition date, the producer NPN and the writing agency, and that the state shown has adopted NAIC Model 275.",
+            "Record the solicitation date on the case — every later signature date is measured against it."
+          ],
+          "done": "the case carries the current state-specific Consumer Profile Information form edition, the producer NPN and a recorded solicitation date."
+        },
+        {
+          "step": "Capture the consumer's identity, age and tax status",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "On the Profile tab enter full legal name, date of birth, computed attained age at contract issue, and marital status.",
+            "Enter federal marginal tax bracket and state tax status, and tick whether the funding money is qualified (401(a), 403(b), 457(b), IRA) or non-qualified — this drives the source-of-funds tests later.",
+            "Where the annuity funds a plan, name the plan sponsor and the plan type on the Group Annuity supplement and get the plan's tax status from the Retirement Operations Administrator.",
+            "Flag the case Senior Review when attained age is 65 or over so the Suitability Desk applies the enhanced review path."
+          ],
+          "done": "age, tax bracket, qualified/non-qualified status and (for plan cases) the sponsor and plan type are recorded, and the senior flag is set where age is 65 or over."
+        },
+        {
+          "step": "Capture annual income and the consumer's financial situation and needs",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Enter gross annual household income, the source of that income (salary, pension, Social Security, required minimum distributions, rental), and whether income is expected to change within the financial time horizon.",
+            "Enter monthly fixed expenses and any debt service so the reviewer can see disposable income against the proposed premium.",
+            "Enter total net worth and, separately, the value of the primary residence so home equity is not double-counted as available money.",
+            "Ask the consumer for the figures rather than estimating them; where the consumer gives a range, record the range and the date given, never a mid-point invented by the producer."
+          ],
+          "done": "income, income source, fixed expenses, debt service and net worth are recorded as consumer-supplied figures with the date supplied."
+        },
+        {
+          "step": "Capture liquid net worth and stated liquidity needs",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Enter liquid net worth as cash, money market, bank deposits, non-qualified brokerage holdings and other assets convertible to cash within 30 days without a surrender penalty.",
+            "Enter the consumer's stated emergency reserve and any known cash need inside the surrender charge period (a house purchase, tuition, medical costs, a planned retirement date).",
+            "Compute and record premium as a percentage of liquid net worth in the wizard's calculated field — the Suitability Desk reads this figure directly.",
+            "Where premium would exceed 50 percent of liquid net worth, tick the concentration flag and write the consumer's explanation in the notes field."
+          ],
+          "done": "liquid net worth, emergency reserve, near-term cash needs and premium-to-liquid-net-worth percentage are recorded, with the concentration flag set where it applies."
+        },
+        {
+          "step": "Inventory existing assets, in-force insurance and existing annuities",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "On the Existing Holdings grid list every investment, life insurance policy and annuity: carrier, product name, contract number, current account value, surrender value and remaining surrender charge period.",
+            "For each in-force annuity record the guaranteed elements the consumer would lose on replacement — guaranteed minimum death benefit, guaranteed living benefit rider, bonus recapture, guaranteed interest floor.",
+            "Ask the consumer to produce the most recent carrier statement for each existing annuity and attach it to the case; note in the field where the consumer cannot produce one.",
+            "Confirm with the New Business Case Manager whether any listed contract is already on our own books so internal exchanges are identified up front."
+          ],
+          "done": "every existing investment, life policy and annuity is listed with values, surrender period and lost-benefit detail, with carrier statements attached where obtainable."
+        },
+        {
+          "step": "Capture financial experience and risk tolerance including non-guaranteed elements",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Record years of experience with each product class the consumer has owned: bank products, mutual funds, individual securities, fixed annuities, indexed annuities, variable annuities.",
+            "Record risk tolerance on the form's scale (conservative / moderate / aggressive) in the consumer's own words as well as the ticked box.",
+            "Record explicitly whether the consumer is willing to accept non-guaranteed elements — index crediting caps and participation rates that the insurer may change, and non-guaranteed interest above the floor.",
+            "Where the consumer marks conservative but the product carries non-guaranteed elements, write the consumer's stated reasoning in the notes field for the Annuity Suitability Analyst to weigh."
+          ],
+          "done": "product-by-product experience, a stated risk tolerance and an explicit yes/no on tolerance for non-guaranteed elements are captured."
+        },
+        {
+          "step": "Capture insurance needs, financial objectives, intended use and time horizon",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Record the consumer's stated financial objectives in priority order (guaranteed lifetime income, principal protection, tax deferral, legacy to beneficiaries, accumulation).",
+            "Record the intended use of the annuity and the intended income start date or annuitization date.",
+            "Record the financial time horizon in years and compare it in the wizard against the product's surrender charge schedule length.",
+            "Record insurance needs already met elsewhere (long-term care coverage, life insurance in force) so the recommendation is not sold as filling a gap that is already filled."
+          ],
+          "done": "objectives in priority order, intended use, income start date, time horizon in years and existing coverage are recorded, with the horizon compared to the surrender schedule."
+        },
+        {
+          "step": "Capture the financial resources being used to fund the annuity",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "On the Source of Funds panel name every account the premium will come from: institution, account type, account value and the dollar amount being moved.",
+            "Tick the funding category — existing annuity surrender, life policy loan or surrender, qualified plan or IRA rollover, brokerage liquidation, bank savings, inheritance, home equity or reverse mortgage proceeds.",
+            "Where funds come from a loan, a reverse mortgage or a life policy surrender, tick the elevated-review flag; those categories go to the Annuity Suitability Analyst regardless of premium size.",
+            "Ask the New Business Case Manager to confirm the incoming transfer paperwork (1035 exchange or trustee-to-trustee rollover form) names the same accounts recorded here."
+          ],
+          "done": "every funding account is named with amount and category, elevated-review flags are set, and transfer paperwork matches the recorded accounts."
+        },
+        {
+          "step": "Complete the replacement and exchange history covering the preceding 60 months",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Ask the consumer whether any annuity was exchanged or replaced in the preceding 60 months and record each one with carrier, date and product.",
+            "For the contract being replaced now, enter the surrender charge dollar amount, the remaining surrender period in years, any market value adjustment, and any bonus recapture.",
+            "Enter the new contract's surrender charge schedule so the form shows the consumer restarting a surrender period, and record the benefit the consumer gains that justifies it.",
+            "Where an exchange occurred inside the last 60 months, write the reason for exchanging again and route the case to the Annuity Suitability Analyst before any recommendation is signed."
+          ],
+          "done": "the 60-month exchange history is answered, surrender charge and lost-benefit figures are entered, and repeat exchanges are routed to the Suitability Desk."
+        },
+        {
+          "step": "Handle a consumer who refuses to give information or declines the recommendation",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "DocuSign",
+          "actions": [
+            "Where the consumer will not supply a profile element, stop and issue the Model 275 Appendix B Consumer Refusal to Provide Information form through DocuSign rather than guessing the value.",
+            "Where the consumer proceeds on their own initiative against or without a recommendation, issue the Appendix C Consumer Decision to Purchase an Annuity Not Based on a Recommendation form.",
+            "Record on the case which elements were refused and note that no recommendation may be made using refused data.",
+            "Tell the consumer in writing that the insurer may decline the application where the profile is incomplete, and file the sent copy on the case."
+          ],
+          "done": "every refusal is covered by a signed Appendix B, every non-recommended purchase by a signed Appendix C, and the refused elements are named on the case."
+        },
+        {
+          "step": "Run the completeness and consistency edits before the form is signed",
+          "by": "New Business Case Manager",
+          "role": "New Business Case Manager",
+          "app": "Salesforce FSC",
+          "actions": [
+            "In Salesforce FSC open the case and run the Suitability Profile Validation rule set.",
+            "Confirm all 13 profile elements return a value and that no free-text field reads 'N/A', 'unknown' or 'see application'.",
+            "Check the internal consistency edits: premium not greater than liquid net worth plus named funding accounts; time horizon not shorter than the surrender charge period without an explanation; risk tolerance consistent with a product carrying non-guaranteed elements.",
+            "Return failed cases to the producer with the specific failing field names rather than a generic rejection."
+          ],
+          "done": "the validation rule set passes with all 13 elements populated and every consistency edit either clear or explained in the notes."
+        },
+        {
+          "step": "Obtain the consumer and producer signatures and date the profile",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "DocuSign",
+          "actions": [
+            "Send the completed profile form set for signature through DocuSign to the consumer and, for plan cases, the authorised plan sponsor representative.",
+            "Confirm the consumer signature date is on or before the recommendation date recorded on the case — a profile signed afterwards does not support the recommendation.",
+            "Sign as producer and enter the NPN and the resident and non-resident licence numbers for the situs state.",
+            "Download the DocuSign certificate of completion showing signer identity, IP and timestamps and attach it to the case."
+          ],
+          "done": "the profile carries dated consumer and producer signatures on or before the recommendation date, with the DocuSign completion certificate attached."
+        },
+        {
+          "step": "Submit the profile into new business and index it to the contract record",
+          "by": "New Business Case Manager",
+          "role": "New Business Case Manager",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Submit the application package and confirm the profile form, Appendix B/C where used, exchange worksheet and carrier statements all image into the annuity contract record.",
+            "Index each image with document type Suitability Profile, contract number, producer NPN, situs state and signature date.",
+            "Set the contract record's Suitability Status to 'Profile complete — pending suitability review' so issue remains blocked until the Suitability Desk clears it.",
+            "Confirm the imaged document count matches the submitted package count and chase any missing image the same day."
+          ],
+          "done": "the whole profile packet is imaged, indexed to the contract and the record shows Suitability Status pending review with issue blocked."
+        },
+        {
+          "step": "Work the daily incomplete-profile deficiency queue",
+          "by": "Distribution Operations Manager",
+          "role": "Distribution Operations Manager",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Open the 07:00 exception list of applications received with a failed or missing profile and assign each to the producer's Distribution Specialist.",
+            "Contact the producer the same business day and record the contact and the missing elements on the case.",
+            "Escalate to the Producer Compliance Manager any case still open at day 5 and any producer with three or more incomplete profiles in a rolling quarter.",
+            "Withdraw the application where the profile cannot be completed and write the withdrawal reason on the case rather than issuing on a partial profile."
+          ],
+          "done": "every deficiency is assigned and contacted the same day, and no case sits past day 5 without escalation or withdrawal."
+        },
+        {
+          "step": "Retain the profile record for the full Model 275 retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move the profile packet into the compliance evidence repository under Annuity Suitability, keyed on contract number, producer NPN and situs state.",
+            "Apply the 6-years-after-transaction-completion retention label required by Model 275 Section 9, and apply the longer label where the situs state's adoption requires more.",
+            "Confirm the repository index returns the packet when searched by contract number, by producer NPN and by signature date.",
+            "Place a legal hold on any packet attached to an open complaint, department inquiry or market conduct exam."
+          ],
+          "done": "the packet is filed, labelled for at least 6 years after transaction completion, retrievable by contract and NPN, and held where litigation or exam applies."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of Group Annuity applications taken in the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Extract from the new-business register every Group Annuity application with a received date inside the quarter, by situs state, producer NPN, premium and disposition.",
+            "Include declined, withdrawn and not-taken applications so cases that were pulled after a bad profile cannot drop out of the population.",
+            "Add the Appendix C non-recommendation cases as a separate stratum, since those must show no recommendation rather than a full profile.",
+            "Record the extract date, filter criteria and row count on the workpaper cover sheet."
+          ],
+          "done": "the population is extracted with dispositions and strata, and the extract parameters are documented."
+        },
+        {
+          "step": "Reconcile the population to the source of record before sampling",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Reconcile the application count to the commission-eligible new-business count for the same quarter and to the Salesforce FSC case count.",
+            "Investigate and clear every variance line by line; an application in Salesforce FSC with no policy administration record is itself a finding.",
+            "Confirm all 51 adopting jurisdictions with in-quarter activity appear, and that no state is missing because of a feed failure.",
+            "Sign the reconciliation and lock the population file before drawing the sample."
+          ],
+          "done": "the three counts agree or every variance is explained, and the locked population is signed as complete."
+        },
+        {
+          "step": "Draw a documented, reproducible sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Take 100 percent of replacement and exchange cases and 100 percent of cases where the consumer was aged 65 or over at issue.",
+            "Take 30 further cases by seeded random selection from the remainder, spread so no single producer supplies more than 3 sampled cases.",
+            "Record the seed, population size, stratum sizes and selection date so the sample can be redrawn identically.",
+            "List the sampled contract numbers on the workpaper before any evidence is requested."
+          ],
+          "done": "the sample covers every replacement and senior case plus 30 seeded random cases, and is reproducible from the recorded seed."
+        },
+        {
+          "step": "Re-perform the 13-element completeness assessment on each sampled profile",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "OpenText Document Mgmt",
+          "actions": [
+            "Retrieve the imaged profile form by contract number and score it on a grid with one column per Model 275 Section 5 profile element.",
+            "Mark an element failed where it is blank, reads 'N/A' or 'unknown', or where a required numeric field holds a placeholder such as zero income.",
+            "Do not read the Suitability Desk's review sheet first — reach the completeness conclusion from the source form alone.",
+            "Attach the scored grid and the retrieved form image to the workpaper."
+          ],
+          "done": "each sampled case has an element-by-element completeness grid scored from the source form image."
+        },
+        {
+          "step": "Prove the profile was signed and dated before the recommendation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "DocuSign",
+          "actions": [
+            "Open the DocuSign certificate of completion for each sampled case and read the consumer signature timestamp.",
+            "Compare it to the recommendation date on the suitability review record and the application signature date.",
+            "Treat any profile signed after the recommendation date as a fail — a back-dated profile cannot support a care obligation already discharged.",
+            "Record the two dates and the day difference on the workpaper for every sampled case."
+          ],
+          "done": "every sampled profile shows a consumer signature timestamp on or before the recommendation date, or is logged as a fail with the day gap."
+        },
+        {
+          "step": "Test that refusal and non-recommendation cases were handled the required way",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Pull every sampled case flagged as an Appendix B refusal and confirm a signed Appendix B exists naming the refused elements.",
+            "Confirm no recommendation was documented for a case where the refused element was material to the recommendation.",
+            "For Appendix C cases, confirm the file shows the consumer initiated the purchase and that no producer recommendation narrative exists on the case.",
+            "Treat a refusal form used to paper over a producer who simply did not ask as a fail, with the producer named."
+          ],
+          "done": "every refusal and non-recommendation case carries the correct signed appendix and shows no recommendation built on refused data."
+        },
+        {
+          "step": "Recompute the 60-month exchange lookback and the surrender charge figures",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "For each sampled replacement case, recompute the months between the prior exchange date and the current application date and check the 60-month question was answered correctly.",
+            "Re-derive the surrender charge, market value adjustment and bonus recapture from the surrendering carrier's statement and compare to the figures recorded on the profile.",
+            "Query our own contract records for the same consumer so an internal exchange recorded as a new sale is caught.",
+            "Note any understated surrender charge as an exception, with the recorded and recomputed amounts side by side."
+          ],
+          "done": "the exchange lookback and every surrender charge figure reconcile to carrier statements and internal records, or the difference is logged."
+        },
+        {
+          "step": "Trace the recorded funding accounts to the actual money movement",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "For each sampled case, compare the source-of-funds accounts on the profile to the 1035 exchange or rollover paperwork and the premium receipt.",
+            "Confirm the funding category recorded (qualified rollover, annuity surrender, brokerage liquidation, loan proceeds) matches the money that actually arrived.",
+            "Check that any case funded by loan, reverse mortgage or life policy surrender carries the elevated-review flag and reached the Suitability Desk.",
+            "Log unflagged elevated-category cases as exceptions and name the producer and agency."
+          ],
+          "done": "every sampled case's recorded funding source matches the premium actually received, and elevated categories were flagged and routed."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception with contract number, situs state, producer NPN, the failed element and the consumer impact.",
+            "Assign a root cause from the fixed list: producer did not ask, wrong form edition, validation rule bypassed, deficiency queue not worked, refusal form misused.",
+            "Assign an owner and a remediation date, and open a producer corrective-action plan where the same NPN appears in three or more exceptions.",
+            "Carry every open exception into the following quarter's test as a mandatory retest row."
+          ],
+          "done": "each exception has an issue, a root cause from the fixed list, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report the results",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the exception rate for each stratum and compare to the 5 percent threshold and the zero-tolerance rule for replacement cases.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with the workpaper references that support it.",
+            "Have the Internal Auditor, who worked no sampled case as a suitability reviewer, sign the workpaper as independent reviewer.",
+            "Report the conclusion, exception rate and producer corrective actions to the Compliance Committee and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper exists with a stated conclusion, per-stratum exception rates and a dated committee reporting entry."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-009-C02",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Annuity Suitability Analyst",
+          "value": "Runs the pre-issue best-interest review of every Group Annuity recommendation on the Suitability Desk; declines or refers cases that fail the care obligation"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — NAIC Model 275 Section 6.A (care obligation, including the replacement and exchange factors) and Section 6.D (documentation of the basis for the recommendation) as adopted by Alaska; Alabama, Arkansas and Arizona adoptions checked for state-specific overlays"
+        },
+        "In-scope processes": {
+          "value": "Suitability Desk pre-issue review gate on every Group Annuity recommendation, replacement and exchange in the 51 adopting jurisdictions, sitting between application submission and contract issue"
+        },
+        "In-scope systems": {
+          "app": "Salesforce FSC",
+          "value": "Suitability review queue, decision record and reasonable-basis narrative in Salesforce FSC; the decision releases or holds the issue gate on the Policy Administration Platform"
+        },
+        "Compliance procedure documented": {
+          "value": "Annuity Best-Interest Review Procedure — care-obligation test set, replacement comparison, liquidity and concentration limits, age-to-surrender-schedule rule, non-guaranteed element test, conflict review and second-level referral triggers"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance with Regulatory Counsel concurrence; re-approved annually and whenever a product with a new surrender schedule or rider set is launched"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "No regulator filing — per sale the review must close before contract issue; the operating standard is a decision within 2 business days of a complete profile, and 1 business day for replacement cases so the free-look and replacement notice clocks are not squeezed"
+        },
+        "Deadline reminders configured": {
+          "value": "Salesforce FSC queue alerts at 24 and 40 hours on any pending review, and an immediate alert to the Compliance Manager on any case where issue was released without a recorded suitability decision"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Review record, the reasonable-basis narrative, replacement comparison worksheet and any decline or referral memo retained 6 years after the transaction is completed per Model 275 Section 9"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Cases issued without an approved suitability decision, or approved with a failed care test, are logged with contract number, reviewer, producer NPN, root cause and disposition (rescinded, free-look refund, producer coached, reviewer retrained)"
+        },
+        "Remediation sign-off captured": {
+          "role": "Compliance Manager",
+          "value": "Signs off every overridden decline, every case reopened after issue and every reviewer corrective action"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All Group Annuity contracts issued in the quarter plus all applications declined or withdrawn on suitability grounds, across the 51 jurisdictions"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for issue without a recorded pre-issue decision; an approved case whose file shows no documented reasonable basis, or a replacement approved with no benefit comparison, is a fail; sample exception rate above 3 percent escalates to the Head of Compliance"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per sale; testing runs quarterly over the quarter's issued contracts, with 100 percent review of replacements, of consumers aged 75 and over, and of every override of a reviewer decline"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Auditor must sit outside the Suitability Desk and must not have decided any sampled case"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly Best-Interest Review test workpaper (population, reconciliation, sample, re-performed care tests, override log, exceptions) in the compliance evidence repository under Annuity Suitability"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per-contract suitability packet (profile, review record, reasonable-basis narrative, replacement comparison) producible for a market conduct exam annuity file review within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager owns exam file reviews and department complaint responses; Regulatory Counsel clears any response conceding an unsuitable sale before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Pick up the case from the suitability review queue and confirm the review inputs are complete",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Open the Suitability Review queue filtered to Status = 'Profile complete — pending suitability review', sorted with replacement cases first.",
+            "Confirm the case carries the signed profile, the illustration or product disclosure, the application, the source-of-funds paperwork and, for replacements, the surrendering carrier statement.",
+            "Return the case to the New Business Case Manager where any input is missing rather than reviewing around it, naming the missing item.",
+            "Record the review start timestamp so the 2-business-day (1 day for replacements) service standard is measurable."
+          ],
+          "done": "the case holds every review input and the review start timestamp is recorded, or the case is returned with the missing item named."
+        },
+        {
+          "step": "Confirm the recommended product is one the producer is authorised and trained to sell in that state",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "agency/producer management system",
+          "actions": [
+            "Look up the producer NPN and confirm an active resident or non-resident life licence for the situs state and an active appointment with the writing company.",
+            "Confirm the general annuity training credit and the product-specific training for this exact product are both recorded as complete before the solicitation date.",
+            "Decline the case straight to the Producer Compliance Manager where either is missing — an untrained solicitation cannot be cured by a good recommendation.",
+            "Paste the licence, appointment and training status with their effective dates onto the review record."
+          ],
+          "done": "licence, appointment and both training records are confirmed effective before the solicitation date, or the case is declined to Distribution Compliance."
+        },
+        {
+          "step": "Test the care obligation against the consumer's objectives and intended use",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Read the stated objectives in priority order and check the recommended product's primary function matches the top objective — do not accept a deferred accumulation product against a stated immediate income need.",
+            "Check the income start date against the product's earliest penalty-free income or annuitization date.",
+            "Check the consumer will actually use the riders being paid for: record each rider, its annual charge in basis points, and the profile fact that justifies it.",
+            "Record a fail on the care test where any rider charge has no matching profile fact, and write which rider and which missing fact."
+          ],
+          "done": "the product's primary function is matched to the top stated objective and every charged rider is tied to a named profile fact."
+        },
+        {
+          "step": "Run the liquidity and concentration tests",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Compute premium as a percentage of liquid net worth and compare to the desk limit of 50 percent; anything above needs a written consumer explanation and second-level review.",
+            "Confirm the consumer retains the stated emergency reserve after the premium leaves, and that no named near-term cash need falls inside the surrender charge period.",
+            "Compare the product's free withdrawal allowance (commonly 10 percent of account value per year after year one) to the consumer's stated annual income need from this money.",
+            "Record a fail where the stated income need exceeds the free withdrawal allowance and no penalty-free income rider covers the gap."
+          ],
+          "done": "premium-to-liquid-net-worth, retained reserve and the free withdrawal allowance versus the stated income need are all computed and recorded against desk limits."
+        },
+        {
+          "step": "Run the age, time horizon and surrender schedule test",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Compare attained age at issue plus the surrender charge period in years against the desk age ceiling and against the consumer's stated time horizon.",
+            "For consumers aged 75 and over, or where age plus surrender period exceeds 90, refer the case to the Compliance Manager for second-level review before any approval.",
+            "Check required minimum distribution timing on qualified funding — confirm distributions can be taken without a surrender charge from age 73 onward.",
+            "Write the computed age-plus-schedule figure and the horizon comparison onto the review record."
+          ],
+          "done": "age plus surrender period and the stated horizon are computed and compared, RMD access is confirmed for qualified money, and senior cases are referred."
+        },
+        {
+          "step": "Run the replacement and exchange comparison where the sale replaces an existing contract",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Build a side-by-side comparison of the surrendering and proposed contracts: account value, surrender value, surrender charge, remaining surrender years, guaranteed floor, index caps and participation rates, rider charges, death benefit and living benefit values.",
+            "Quantify what the consumer loses on surrender in dollars: surrender charge, market value adjustment, bonus recapture and any guaranteed benefit base above account value.",
+            "Quantify the benefit gained and state the break-even period in years for the consumer to recover the loss.",
+            "Check whether the consumer exchanged an annuity within the preceding 60 months and, where they did, require a written justification from the producer before approval."
+          ],
+          "done": "a dollar-quantified side-by-side comparison with a stated break-even period exists, and any exchange inside 60 months carries a written producer justification."
+        },
+        {
+          "step": "Test tolerance for non-guaranteed elements against the recommended product",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "actions": [
+            "List every non-guaranteed element in the product: current interest rate above the guaranteed floor, index cap, participation rate, spread, and any rider charge the insurer may increase.",
+            "Compare that list to the consumer's recorded yes/no on accepting non-guaranteed elements and to the stated risk tolerance.",
+            "Where a conservative consumer is recommended a product with movable caps, require the producer's written explanation of what was disclosed and how the consumer responded.",
+            "Record the guaranteed minimum values the consumer would receive if every non-guaranteed element moved to its contractual worst case."
+          ],
+          "done": "each non-guaranteed element is listed against the recorded tolerance, and the contractual worst-case guaranteed values are on the review record."
+        },
+        {
+          "step": "Review the conflict of interest and compensation picture on the recommendation",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "billing/commission platform",
+          "actions": [
+            "Pull the commission payable on the recommended product and on the two closest alternative products the producer is contracted to sell.",
+            "Where the recommended product pays materially more and the profile does not explain the choice, ask the producer in writing why the alternative was not recommended and file the answer.",
+            "Check for sales-contest, bonus or trip qualification that the sale would count toward within the quarter and record it on the review.",
+            "Confirm the Appendix A producer disclosure delivered to the consumer described the compensation type actually payable."
+          ],
+          "done": "commission on the recommended and comparable products is compared, any contest or bonus exposure is recorded, and unexplained higher-paying choices carry a written producer answer."
+        },
+        {
+          "step": "Apply the state-specific overlays for the situs jurisdiction",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Open the state suitability matrix and read the situs state's adoption notes for the Model 275 variations it made — extra forms, stricter senior thresholds, additional replacement notices.",
+            "Confirm the state has actually adopted Model 275 and, where it has not, apply the pre-2020 suitability standard the state still enforces instead.",
+            "Apply the state's own best-interest rule where it goes further than the model, and record which standard was applied.",
+            "Record the matrix version date read so the review can be re-performed against the same rule text later."
+          ],
+          "done": "the situs state's standard and any overlay are identified, applied and recorded with the matrix version date."
+        },
+        {
+          "step": "Write the reasonable-basis narrative that documents the recommendation",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Write, in the Reasonable Basis field, the specific profile facts relied on, the product features that address them, and why the consumer's alternatives were less suitable.",
+            "State the replacement conclusion in dollars where a replacement is involved, referencing the break-even period computed earlier.",
+            "Name every test that failed and how it was resolved — no narrative may claim a clean review where a test failed.",
+            "Reject boilerplate: a narrative that would read identically for another consumer is sent back to be rewritten."
+          ],
+          "done": "the review record holds a consumer-specific reasonable-basis narrative naming the profile facts, the product features and the resolved failures."
+        },
+        {
+          "step": "Record the decision and release or hold the issue gate",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Set the decision to Approved, Approved with conditions, Referred for second-level review, or Declined, with the reviewer name and timestamp.",
+            "For Approved, release the issue gate on the contract record so underwriting and issue can proceed.",
+            "For Declined, keep the gate closed, write the decline reason and notify the producer and the New Business Case Manager the same day.",
+            "Confirm no contract can be issued while the gate is closed by checking the contract record shows Suitability Status blocking issue."
+          ],
+          "done": "a timestamped decision is recorded and the issue gate state matches it, with declines notified the same day."
+        },
+        {
+          "step": "Refer and resolve second-level review cases",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Take referrals for consumers aged 75 and over, premium above 50 percent of liquid net worth, a second exchange inside 60 months, and loan or reverse-mortgage funding.",
+            "Re-read the profile and the reviewer's narrative, then either confirm the decision or overturn it in writing on the case.",
+            "Where an approval is granted over a failed test, write the compensating facts and sign it personally — an approval over a failed test is never left unsigned.",
+            "Send confirmed declines to the Producer Compliance Manager where the pattern points at producer conduct rather than a one-off case."
+          ],
+          "done": "every referral carries a signed second-level decision, and approvals over a failed test carry named compensating facts."
+        },
+        {
+          "step": "Escalate suspected unsuitable sales that already issued",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Where a review failure is discovered after issue, open a suitability breach issue the same business day with contract number, producer NPN and consumer impact.",
+            "Assess remedy with Regulatory Counsel: rescission with full premium refund, free-look extension, rider removal, or contract reformation.",
+            "Where the consumer is still inside the state free-look period (commonly 10 to 30 days, longer for replacements and seniors), act before it expires and record the expiry date.",
+            "Notify the Complaints Manager so a consumer complaint on the same contract is answered consistently."
+          ],
+          "done": "every post-issue failure has a same-day issue, a counsel-agreed remedy and an action taken before the free-look expiry where one applies."
+        },
+        {
+          "step": "Feed decision data into the supervision reporting set",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Power BI",
+          "actions": [
+            "Publish weekly decision counts by outcome, state, product and producer NPN to the annuity supervision dashboard.",
+            "Track decline rate, override rate and second-level referral rate by reviewer to detect a reviewer approving everything.",
+            "Flag producers whose cases are declined or referred at more than twice the desk average for the Producer Compliance Manager.",
+            "Reconcile the dashboard's issued-contract count to the policy administration issue register each month."
+          ],
+          "done": "the supervision dashboard shows decision, decline, override and referral rates by reviewer and producer, reconciled monthly to issued contracts."
+        },
+        {
+          "step": "Retain the review record for the full retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the review record, reasonable-basis narrative, replacement comparison and any second-level sign-off into the compliance evidence repository keyed on contract number.",
+            "Apply the 6-years-after-transaction-completion label and any longer state label from the situs state's adoption.",
+            "Confirm retrieval by contract number, reviewer name and decision date.",
+            "Apply legal hold to records tied to an open complaint, arbitration or market conduct exam."
+          ],
+          "done": "the review packet is filed, labelled for at least 6 years, retrievable three ways and held where a matter is open."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of contracts issued and applications declined in the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Extract every Group Annuity contract with an issue date inside the quarter, with situs state, producer NPN, premium, product, replacement indicator and consumer age at issue.",
+            "Extract separately every application declined or withdrawn on suitability grounds so the desk cannot be measured only on what it approved.",
+            "Add the second-level referral log and the override log as linked strata.",
+            "Record the extract date, filters and row counts on the workpaper cover sheet."
+          ],
+          "done": "issued, declined and overridden populations are extracted with the strata linked and the extract parameters documented."
+        },
+        {
+          "step": "Reconcile issued contracts to recorded suitability decisions",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Left-join the issued-contract population to the Salesforce FSC suitability decision table on contract number.",
+            "List every issued contract with no decision, and every decision timestamped after the issue date, as automatic exceptions with no sampling judgement.",
+            "Confirm the decision count plus declines equals the reviewed case count reported on the supervision dashboard for the quarter.",
+            "Sign and lock the reconciliation before drawing the sample."
+          ],
+          "done": "every issued contract is matched to a pre-issue decision or listed as an automatic exception, and the counts tie to the dashboard."
+        },
+        {
+          "step": "Draw the sample across risk strata and document the method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Take 100 percent of replacement cases, 100 percent of consumers aged 75 and over, and 100 percent of overrides of a reviewer decline.",
+            "Take 25 further contracts by seeded random selection from the remainder, capped at 3 per reviewer so no reviewer's work is untested.",
+            "Record seed, stratum sizes, population size and selection date.",
+            "Publish the sampled contract numbers before requesting any evidence from the Suitability Desk."
+          ],
+          "done": "the sample covers all replacements, all seniors, all overrides and 25 seeded random contracts, and is reproducible."
+        },
+        {
+          "step": "Re-perform the care-obligation tests independently for each sampled contract",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Work from the profile and product disclosure only, with the reviewer's narrative hidden, and reach an independent approve/decline conclusion.",
+            "Recompute premium as a percentage of liquid net worth, age plus surrender period, and free withdrawal allowance against the stated income need.",
+            "Compare the independent conclusion to the recorded decision; a difference in conclusion, and also a right conclusion resting on the wrong facts, are both exceptions.",
+            "Attach the re-performance sheet with the recomputed figures to the workpaper."
+          ],
+          "done": "each sampled contract carries an independent conclusion with recomputed liquidity, age and withdrawal figures compared to the recorded decision."
+        },
+        {
+          "step": "Re-perform the replacement comparison and the break-even maths",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Take the surrendering carrier's statement and recompute surrender charge, market value adjustment, bonus recapture and any lost guaranteed benefit base in dollars.",
+            "Recompute the break-even period in years from the quantified loss and the claimed benefit gained.",
+            "Compare to the figures on the review record; understated losses or a break-even beyond the consumer's stated time horizon are exceptions.",
+            "Check the 60-month exchange history was tested and that repeat exchanges carry the written producer justification."
+          ],
+          "done": "every sampled replacement has an independently recomputed dollar loss and break-even period reconciled to the review record."
+        },
+        {
+          "step": "Test the quality of the reasonable-basis documentation",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Read each sampled narrative and confirm it names at least three consumer-specific profile facts and ties each to a product feature.",
+            "Run a text-similarity comparison across the quarter's narratives and flag any narrative more than 90 percent identical to another consumer's.",
+            "Confirm every failed test in the review is named and resolved in the narrative rather than omitted.",
+            "Treat boilerplate as a documentation-duty failure under Section 6.D, not as a style comment."
+          ],
+          "done": "every sampled narrative is consumer-specific, names its failed tests, and no near-duplicate narratives survive unexplained."
+        },
+        {
+          "step": "Test the producer licence, appointment and training gate on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "NIPR (Producer Licensing)",
+          "actions": [
+            "Look up each sampled contract's producer NPN in NIPR and read the licence status and appointment for the situs state as at the solicitation date.",
+            "Confirm the general annuity training and product-specific training completion dates pre-date the solicitation date.",
+            "Any sale solicited on a lapsed licence, an appointment effective after the solicitation, or training completed later, is a reportable breach rather than a test exception.",
+            "Capture the NIPR licence detail screen into the workpaper for each sampled producer."
+          ],
+          "done": "licence, appointment and training all pre-date solicitation for every sampled contract, or the gap is raised as a breach with evidence captured."
+        },
+        {
+          "step": "Test every override of a reviewer decline",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Pull every override in the quarter and read the reviewer's decline reason next to the overriding manager's compensating facts.",
+            "Confirm the override is signed by the Compliance Manager and dated before contract issue.",
+            "Assess whether the compensating facts are drawn from the profile rather than from the producer's assertion alone.",
+            "Report any override that reads as sales pressure to the Head of Compliance directly, naming the case and the manager."
+          ],
+          "done": "each override carries a pre-issue signed rationale grounded in profile facts, or is escalated by name."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception with contract number, reviewer, producer NPN, the failed test and the consumer harm assessment.",
+            "Assign a root cause from the fixed list: gate bypassed, test not run, narrative boilerplate, replacement comparison omitted, override unsupported, state overlay missed.",
+            "Set owner and remediation date, and open consumer remediation (free-look extension, rescission, rider removal) where harm is identified.",
+            "Carry open exceptions into the next quarter as mandatory retest rows and require reviewer retraining where the same reviewer appears three or more times."
+          ],
+          "done": "every exception has an issue, fixed-list root cause, owner, remediation date and, where harm exists, a consumer remedy."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report to the committee",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the exception rate per stratum and compare to the 3 percent threshold and the zero-tolerance rule for issue without a decision.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with the workpaper references behind it.",
+            "Have the Internal Auditor, who decided none of the sampled cases, sign as independent reviewer.",
+            "Report the conclusion, exception rates, overrides and consumer remediations to the Compliance Committee and file the signed workpaper."
+          ],
+          "done": "a signed workpaper with per-stratum exception rates, a stated conclusion and a dated committee reporting entry exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-009-C03",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Producer Compliance Manager",
+          "value": "Owns the Model 275 Section 7 producer training gate — general annuity credit, best-interest update credit and product-specific training — before any Group Annuity solicitation in any of the 51 jurisdictions"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — NAIC Model 275 Section 7 (Insurance Producer Training: one-time 4-credit annuity course, the additional 1-credit best-interest course for producers trained under the 2010 model, and insurer product-specific training) as adopted by Alaska; Alabama, Arkansas and Arizona adoptions checked for differing credit hours and transition windows"
+        },
+        "In-scope processes": {
+          "value": "Producer onboarding, appointment and ongoing selling-authorisation for Group Annuities — plus the retraining trigger on every product launch or material product change across the 51 adopting jurisdictions"
+        },
+        "In-scope systems": {
+          "app": "NIPR (Producer Licensing)",
+          "value": "State-approved annuity CE credits verified through NIPR producer records and state CE transcripts; product-specific training delivered and evidenced in Cornerstone LMS and mirrored to the producer record in the agency/producer management system"
+        },
+        "Compliance procedure documented": {
+          "value": "Annuity Producer Training Verification Procedure — state credit matrix, reciprocity rules, product training build and publish, the selling-authorisation gate, daily untrained-solicitation exception and the new-adoption transition window"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and the Head of Distribution; re-approved on each state adoption of Model 275 and on each annual review of the state credit matrix"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Continuous gate, with dated triggers: training complete before first solicitation; product-specific training complete before the product's first sale date; the one-time 1-credit best-interest course completed within 6 months of the state's Model 275 effective date for producers previously trained under the 2010 model"
+        },
+        "Deadline reminders configured": {
+          "value": "Cornerstone LMS reminders at 90, 60, 30 and 7 days before a state transition deadline or product launch date; a daily untrained-solicitation exception list to the Distribution Operations Manager and the agency principal"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "CE certificates, state transcript captures, LMS completion records with timestamps and assessment scores, and the training attestation retained 6 years after the last transaction sold by that producer"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any solicitation by a producer without valid state annuity credit or current product training is logged with NPN, state, product, contract numbers affected and disposition (training completed, selling authority suspended, appointment terminated, contracts remediated)"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Distribution",
+          "value": "Signs off restoration of selling authority after a training suspension and any decision to retain a producer who solicited untrained"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All producers with an active annuity appointment in any of the 51 jurisdictions during the quarter, plus every Group Annuity solicitation recorded in the quarter matched to its producer's training state"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any solicitation dated before the producer's state annuity credit or product training completion date is a fail; any producer selling in a state whose credit is not accepted by reciprocity is a fail; one or more fails escalates to the Head of Distribution and the Head of Compliance"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous; the automated gate runs daily and the independent test runs quarterly, with 100 percent testing of producers newly appointed in the quarter and of every producer selling a product launched in the quarter"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Auditor must sit outside Distribution and Distribution Compliance and must not administer the LMS"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly Producer Training Verification workpaper (appointed-producer population, NIPR reconciliation, sample, transcript re-verification, solicitation date comparison, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per-producer training dossier (state CE certificate, transcript capture, product training completion with score, attestation) producible for a department of insurance producer training data call within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Producer Compliance Manager answers state department training data calls; Regulatory Counsel clears any response disclosing an untrained solicitation and advises on self-reporting to the state"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Maintain the per-state annuity training requirement matrix",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For each of the 51 jurisdictions record: whether Model 275 is adopted, the adoption effective date, the general annuity credit hours required (4 credits under the model), whether the additional 1-credit best-interest course applies, and the transition window for previously trained producers.",
+            "Record whether the state accepts a course completed in another state by reciprocity and whether it requires its own state-approved course.",
+            "Record the state's product-specific training expectation and whether it must be delivered by the insurer.",
+            "Date-stamp each row with the bulletin or regulation read and set an annual re-read reminder."
+          ],
+          "done": "all 51 jurisdictions have a dated matrix row showing credit hours, best-interest course applicability, transition window and reciprocity treatment."
+        },
+        {
+          "step": "Build the insurer product-specific training module for each Group Annuity product",
+          "by": "Instructional Designer",
+          "role": "Instructional Designer",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Take the product specification, contract form, rate sheet and disclosure package from the Insurance Product Manager as the source content.",
+            "Build modules covering: contract mechanics, surrender charge schedule and free withdrawal allowance, index crediting method and non-guaranteed elements, rider charges and benefits, the group/participant structure, and the consumer profile facts that make the product appropriate.",
+            "Add a scored assessment with a pass mark of 80 percent and a maximum of three attempts before a manager conversation is required.",
+            "Have the Product Manager and Compliance Analyst review and sign off the module content before publication."
+          ],
+          "done": "each Group Annuity product has a signed-off LMS module covering mechanics, charges, non-guaranteed elements and profile fit, with an 80 percent scored assessment."
+        },
+        {
+          "step": "Publish the module and set its mandatory-before-sale date",
+          "by": "Learning & Development Specialist",
+          "role": "Learning & Development Specialist",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Publish the module in the LMS catalogue with the product code in the title and assign it to the Annuity Producer learner group.",
+            "Set the mandatory completion date to the day before the product's first sale date so nobody can solicit on launch day untrained.",
+            "Configure the LMS to write completion date, score and attempt count back to the producer record in the agency/producer management system nightly.",
+            "Send the launch communication to producers and agency principals with the completion deadline and the consequence of missing it."
+          ],
+          "done": "the module is published, assigned, deadlined before the first sale date and wired to write completions back to the producer record."
+        },
+        {
+          "step": "Load and refresh the appointed-producer population",
+          "by": "Producer Licensing Coordinator",
+          "role": "Producer Licensing Coordinator",
+          "app": "agency/producer management system",
+          "actions": [
+            "Extract every producer with an active annuity appointment, by NPN, resident state, non-resident states appointed, agency and appointment effective date.",
+            "Reconcile the list to the NIPR appointment feed and correct any producer appointed in NIPR but missing from the internal record.",
+            "Tag producers by which Group Annuity products they are contracted to sell so the right modules are assigned.",
+            "Refresh the population daily so a producer appointed today is training-gated today."
+          ],
+          "done": "the internal appointed-producer population reconciles to the NIPR appointment feed daily and each producer is tagged to their contracted products."
+        },
+        {
+          "step": "Verify the state-approved general annuity credit for each producer",
+          "by": "Producer Licensing Coordinator",
+          "role": "Producer Licensing Coordinator",
+          "app": "NIPR (Producer Licensing)",
+          "actions": [
+            "For each producer, retrieve the CE transcript for the resident state and every appointed non-resident state and locate the state-approved annuity training course completion.",
+            "Record course name, provider, state course approval number, credit hours and completion date on the producer record.",
+            "Check the credit hours meet the state matrix requirement (4 credits under the model) and that the course is annuity-specific rather than general life CE.",
+            "Where the producer holds credit only from another state, apply the matrix reciprocity rule and record whether that credit is accepted in each appointed state."
+          ],
+          "done": "each producer's annuity credit is recorded with course, approval number, hours and date, and reciprocity is resolved per appointed state."
+        },
+        {
+          "step": "Apply the one-time best-interest update requirement to previously trained producers",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Identify producers whose annuity credit pre-dates the situs state's Model 275 effective date — those trained under the 2010 suitability model.",
+            "Assign the state-approved 1-credit best-interest update course with a completion deadline 6 months after the state's Model 275 effective date.",
+            "Track completion state by state; the deadline differs because state adoption dates differ, so run one cohort per state rather than one global cohort.",
+            "Suspend annuity selling authority in that state on the day after the deadline for anyone still outstanding."
+          ],
+          "done": "every legacy-trained producer has a state-specific 1-credit deadline tracked, and selling authority in that state is suspended on the day after it passes."
+        },
+        {
+          "step": "Verify product-specific training completion before first solicitation",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "For each producer-product pair, read the LMS completion date, assessment score and attempt count.",
+            "Confirm the completion date pre-dates the producer's first recorded solicitation of that product.",
+            "Require a re-take where the score is below 80 percent, and record the manager conversation where three attempts were used.",
+            "Reassign the module whenever the product changes materially — new surrender schedule, new rider, new crediting method — and set a new pre-sale deadline."
+          ],
+          "done": "every producer-product pair shows a passing completion dated before first solicitation, with re-training assigned on material product change."
+        },
+        {
+          "step": "Wire the training result into the selling-authorisation gate",
+          "by": "Distribution Operations Manager",
+          "role": "Distribution Operations Manager",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Configure the Broker & Agent Portal so the annuity application wizard reads the producer's licence, appointment, state annuity credit and product training status for the entered situs state.",
+            "Block the wizard from creating an annuity case where any of the four is missing, showing the producer exactly which one failed.",
+            "Prevent manual override by anyone in Distribution; only the Producer Compliance Manager may grant a documented, dated exception and only for a data-correction case.",
+            "Test the gate after every state matrix change by attempting a case as an untrained test producer and confirming the block fires."
+          ],
+          "done": "the portal blocks annuity case creation on any missing licence, appointment, credit or product training, with override limited to Distribution Compliance and the block re-tested after each matrix change."
+        },
+        {
+          "step": "Work the daily untrained-solicitation exception list",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Open the daily exception list matching solicitation dates to producer training states and read every hit.",
+            "Contact the producer and the agency principal the same day, suspend annuity selling authority and record the suspension timestamp.",
+            "Identify every contract already sold by that producer in the affected state and hand the list to the Compliance Manager for consumer remediation assessment.",
+            "Raise a GRC issue naming the NPN, state, product, solicitation dates and the affected contract numbers."
+          ],
+          "done": "every hit is contacted and suspended the same day, affected contracts are listed, and a GRC issue is open."
+        },
+        {
+          "step": "Handle new state adoptions of Model 275",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Monitor state bulletins and adopted regulations for each remaining non-adopting jurisdiction and record the adoption and effective dates when they land.",
+            "Update the state matrix row with the credit hours, the transition window for legacy-trained producers and any state-specific course approval requirement.",
+            "Notify the Producer Compliance Manager and the Learning & Development Specialist at least 90 days before the effective date so cohorts can be assigned.",
+            "Confirm the Broker & Agent Portal gate picks up the new state rule on the effective date by running a test case."
+          ],
+          "done": "each new adoption is recorded with dates and credit rules, cohorts are assigned at least 90 days ahead, and the gate is proven live on the effective date."
+        },
+        {
+          "step": "Verify third-party distributors and their producers meet the same gate",
+          "by": "Agency Relations Manager",
+          "role": "Agency Relations Manager",
+          "app": "Duck Creek Distribution",
+          "actions": [
+            "For each IMO, FMO, broker-dealer or TPA selling our Group Annuities, confirm the distribution agreement carries the Model 275 training verification clause and the right to audit training records.",
+            "Collect the distributor's quarterly training attestation listing NPNs, state credit dates and product training completion.",
+            "Reconcile the attestation against our own NIPR and LMS records and challenge any producer the distributor claims as trained where our records disagree.",
+            "Withhold new business acceptance from any distributor that misses two consecutive attestations."
+          ],
+          "done": "every distributor has a contractual training clause, a current quarterly attestation and a reconciliation against our own NIPR and LMS records."
+        },
+        {
+          "step": "Run the monthly training coverage reconciliation",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "Power BI",
+          "actions": [
+            "Publish coverage by state and by product: appointed producers, producers with valid credit, producers with current product training, and the gap.",
+            "Reconcile producers who sold in the month against producers with valid training for that state and product; the intersection must equal the sellers.",
+            "Investigate every non-zero difference the same week and record the resolution.",
+            "Report coverage and gaps to the Head of Distribution monthly."
+          ],
+          "done": "monthly coverage is published by state and product and the set of sellers equals the set of validly trained producers, or each difference is resolved and recorded."
+        },
+        {
+          "step": "Suspend, remediate and restore selling authority",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "agency/producer management system",
+          "actions": [
+            "Set the producer's annuity selling authority to Suspended in the producer record and confirm the portal gate reflects it within the hour.",
+            "Issue the remediation plan: the specific state credit or module to complete, the deadline, and the review of contracts already sold.",
+            "Restore authority only on evidence of completion, and record the Head of Distribution's sign-off on the restoration.",
+            "Terminate the appointment where the producer solicited untrained twice or refuses the remediation, and file the state termination notice where required."
+          ],
+          "done": "every suspension is effective in the portal within the hour, restored only on evidenced completion with sign-off, and repeat offenders are terminated with notices filed."
+        },
+        {
+          "step": "Report training compliance into the annuity supervision system",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Feed quarterly training coverage, exception counts, suspensions and terminations into the Model 275 Section 6.D supervision report.",
+            "State the coverage percentage per state and name every state below 100 percent with the remediation date.",
+            "Include distributor attestation status so third-party channels are visible to senior management.",
+            "Present to the Compliance Committee alongside the sales-supervision results."
+          ],
+          "done": "the supervision report carries per-state coverage, exceptions, suspensions and distributor attestation status and is presented to the committee."
+        },
+        {
+          "step": "Retain training evidence for the full retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Archive per producer: state CE certificate, dated transcript capture, LMS completion records with score and timestamp, attestations and any suspension or restoration memo.",
+            "Apply a retention label of 6 years after the producer's last annuity transaction, so the record outlives the appointment.",
+            "Confirm retrieval by NPN, by state and by product code.",
+            "Apply legal hold on any producer dossier tied to an open department inquiry or complaint."
+          ],
+          "done": "each producer dossier is archived, labelled for 6 years past their last transaction, retrievable by NPN, state and product, and held where a matter is open."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of appointed producers and their in-quarter solicitations",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "agency/producer management system",
+          "actions": [
+            "Extract every producer with an active annuity appointment at any point in the quarter, with NPN, appointed states, agency, distributor and contracted products.",
+            "Extract every Group Annuity solicitation recorded in the quarter with producer NPN, situs state, product and solicitation date.",
+            "Include producers appointed and terminated inside the quarter so short-tenure producers are not invisible.",
+            "Document extract date, filters and row counts on the workpaper."
+          ],
+          "done": "producer and solicitation populations are extracted including mid-quarter joiners and leavers, with parameters documented."
+        },
+        {
+          "step": "Reconcile the internal producer population to NIPR",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "NIPR (Producer Licensing)",
+          "actions": [
+            "Compare the internal appointment list to the NIPR appointment records for the writing companies, state by state.",
+            "List producers appointed in NIPR but absent internally, and internally active producers with no NIPR appointment, as reconciling items.",
+            "Confirm every state with in-quarter solicitations appears on both sides.",
+            "Sign and lock the reconciled population before sampling."
+          ],
+          "done": "the internal and NIPR appointment populations agree or every difference is itemised, and the population is locked and signed."
+        },
+        {
+          "step": "Draw the sample with full coverage of the highest-risk producers",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Take 100 percent of producers newly appointed in the quarter, 100 percent of producers selling a product launched in the quarter, and 100 percent of producers selling in a state whose Model 275 effective date fell in the last 12 months.",
+            "Take 30 further producers by seeded random selection from the remainder, weighted to include third-party distributor producers.",
+            "Record seed, stratum sizes, population size and selection date.",
+            "Publish the sampled NPN list before requesting evidence from Distribution Compliance."
+          ],
+          "done": "the sample fully covers new appointments, new products and newly adopting states plus 30 seeded random producers, and is reproducible."
+        },
+        {
+          "step": "Re-verify the state annuity credit at source for each sampled producer",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "NIPR (Producer Licensing)",
+          "actions": [
+            "Retrieve the CE transcript for each sampled producer's resident state and each appointed state where they solicited, directly from source rather than from the internal record.",
+            "Confirm an annuity-specific state-approved course of at least the matrix credit hours, and read the course approval number and completion date.",
+            "Compare to the internal producer record; a course recorded internally but absent from the state transcript is an exception, not a data lag.",
+            "Capture the transcript screen into the workpaper for each sampled producer and state."
+          ],
+          "done": "each sampled producer's credit is verified from the state transcript with approval number and date, and internal-versus-source differences are logged."
+        },
+        {
+          "step": "Test reciprocity treatment for non-resident state sales",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For each sampled producer who sold in a non-resident state, read that state's matrix row on whether it accepts an out-of-state annuity course.",
+            "Confirm the internal record applied the same rule the matrix states, and confirm the matrix row's cited bulletin or regulation actually says so.",
+            "Flag any state where the internal system granted reciprocity the state does not offer as a systemic exception affecting every producer in that state.",
+            "Record the matrix version date relied on so the conclusion is re-performable."
+          ],
+          "done": "every non-resident sale is tested against the state's own reciprocity rule, with systemic misapplications flagged across the whole state."
+        },
+        {
+          "step": "Re-perform the product training check against LMS source records",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Pull the LMS completion record for each sampled producer-product pair: completion timestamp, assessment score and attempt count.",
+            "Confirm the score is 80 percent or above and the completion timestamp is real rather than a bulk administrative back-load.",
+            "Investigate any bulk completion loaded for many producers at the same timestamp and obtain the evidence behind it.",
+            "Attach the completion records to the workpaper."
+          ],
+          "done": "every sampled producer-product pair has a genuine LMS completion at or above the pass mark, with bulk back-loads investigated and evidenced."
+        },
+        {
+          "step": "Recompute the solicitation-versus-training date test on real sales",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Join every in-quarter solicitation to its producer's state credit date and product training completion date.",
+            "Compute the day difference and list every solicitation dated before either training date, with the contract numbers attached.",
+            "Recompute the 6-month transition deadline for legacy-trained producers in each state whose effective date falls in the window and list anyone who solicited after their deadline untrained.",
+            "Treat every hit as a reportable breach and quantify the premium and consumer count affected."
+          ],
+          "done": "every solicitation is date-tested against both training dates and the state transition deadline, with breaches quantified by premium and consumer count."
+        },
+        {
+          "step": "Test the selling-authorisation gate by attempting a blocked transaction",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Using a controlled test producer with no product training, attempt to create an annuity case in three states including one that adopted Model 275 most recently.",
+            "Confirm the wizard blocks case creation and names the failing requirement.",
+            "Repeat with an expired licence and with a missing appointment to prove each of the four checks fires independently.",
+            "Screenshot each block into the workpaper and confirm no Distribution user could clear the block without Distribution Compliance."
+          ],
+          "done": "all four gate checks are proven to block independently in three states, with screenshots and confirmed override restriction."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per untrained solicitation with NPN, state, product, solicitation dates, contract numbers and premium.",
+            "Assign a root cause from the fixed list: credit never obtained, credit not accepted in that state, product training missed at launch, transition deadline missed, gate override abused, distributor attestation wrong.",
+            "Assign an owner and remediation date, suspend the producer, and open a consumer remediation assessment with Regulatory Counsel on the affected contracts.",
+            "Carry every open exception into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "each untrained solicitation has an issue, fixed-list root cause, owner, suspension, consumer assessment and retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "compliance evidence repository",
+          "actions": [
+            "State coverage per state and the count of untrained solicitations against the zero-tolerance threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with workpaper references and the premium exposure of any breach.",
+            "Have the Internal Auditor, who neither administers the LMS nor sits in Distribution, sign as independent reviewer.",
+            "Report to the Compliance Committee with the Head of Distribution present, and decide any state self-report with Regulatory Counsel before the meeting closes."
+          ],
+          "done": "a signed workpaper with per-state coverage, a stated conclusion, quantified breach exposure and a recorded self-report decision exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-009-C04",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Distribution Operations Manager",
+          "value": "Owns delivery of the Model 275 Section 6.B disclosure set — the Appendix A producer disclosure, the annuity contract disclosure and buyer's guide, and the replacement notice — at or before the time of the Group Annuity recommendation or application"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — NAIC Model 275 Section 6.B (disclosure obligation and the Appendix A producer disclosure) and Section 6.C (conflict of interest) as adopted by Alaska, read alongside the state's Annuity Disclosure and Replacement model adoptions; Alabama, Arkansas and Arizona adoptions checked for state-specific forms and delivery timing"
+        },
+        "In-scope processes": {
+          "value": "Group Annuity solicitation and application across the 51 adopting jurisdictions — disclosure package assembly, delivery, consumer acknowledgement capture, replacement notice issue to the existing carrier and free-look start"
+        },
+        "In-scope systems": {
+          "app": "DocuSign",
+          "value": "Disclosure package assembled in the Broker & Agent Portal and delivered for signature through DocuSign, with the certificate of completion timestamps imaged to the contract record"
+        },
+        "Compliance procedure documented": {
+          "value": "Annuity Disclosure Delivery Procedure — per-state package composition, Appendix A completion rules including compensation description, delivery timing tests, replacement notice routing and free-look start dating"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance with Regulatory Counsel concurrence; re-approved on any state form revision and on any change to producer compensation structure that alters the Appendix A description"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per sale: Appendix A and the disclosure package delivered at or before the time of recommendation or application signing; the replacement notice copy to the existing carrier within 5 business days of receiving the application; buyer's guide delivered at or before application where the state requires it, otherwise within 5 business days of application with an extended free look"
+        },
+        "Deadline reminders configured": {
+          "value": "Salesforce FSC alerts at day 2 and day 4 of the 5-business-day replacement notice clock, and an immediate alert where an application is received with no matching disclosure delivery receipt"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Signed Appendix A, disclosure and buyer's guide receipts, replacement notice with the existing carrier's transmission proof, and the DocuSign certificate of completion retained 6 years after the transaction is completed"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Missing, late or incomplete disclosures are logged with contract number, state, producer NPN, which document failed and disposition (re-delivered with extended free look, contract rescinded, producer coached, appointment suspended)"
+        },
+        "Remediation sign-off captured": {
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "value": "Signs off every re-delivery with an extended free look and every decision not to rescind a contract sold on a defective disclosure"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All Group Annuity applications taken in the quarter across the 51 jurisdictions, split into replacement and non-replacement strata, including not-taken and withdrawn applications"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for a missing Appendix A or a disclosure signed after the application; a replacement notice sent to the existing carrier later than 5 business days is a fail; sample exception rate above 2 percent escalates to the Head of Compliance"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per sale; testing runs quarterly over the quarter's applications with 100 percent coverage of replacement cases and of any state whose disclosure form changed during the quarter"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Auditor must sit outside Distribution and must not have delivered or processed any sampled disclosure"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly Annuity Disclosure Delivery workpaper (population, reconciliation to issued contracts, sample, timestamp comparison, replacement notice day-count recomputation, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per-contract disclosure packet (Appendix A, buyer's guide receipt, contract disclosure, replacement notice and transmission proof, DocuSign certificate) producible within 5 business days of a market conduct exam request"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager owns disclosure-related exam findings and department complaints; Regulatory Counsel clears any admission of non-delivery and advises on consumer restitution"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Maintain the per-state disclosure package definition",
+          "by": "Marketing Compliance Analyst",
+          "role": "Marketing Compliance Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For each of the 51 jurisdictions list the required documents: Model 275 Appendix A producer disclosure, annuity contract disclosure statement, the state's Buyer's Guide to Annuities, replacement notice, and any state-specific senior or group supplement.",
+            "Record for each document the required delivery timing (at or before recommendation, at or before application, or within a stated number of days) and the free-look length that applies.",
+            "Record the approved form edition and edition date for every document and the state approval or filing reference where one exists.",
+            "Date-stamp the row with the source read and set a re-read reminder on every state bulletin affecting annuity disclosure."
+          ],
+          "done": "each of the 51 jurisdictions has a dated package definition naming every document, its edition, its delivery timing and the applicable free-look length."
+        },
+        {
+          "step": "Complete the Appendix A producer disclosure fields for the case",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Open the Appendix A Insurance Agent (Producer) Disclosure for Annuities and enter producer name, NPN and the licence lines held in the situs state.",
+            "Tick the products the producer is authorised to discuss — fixed, fixed indexed, variable annuities, life insurance, mutual funds and other — matching the actual licences held.",
+            "Tick the insurer band accurately: one insurer, two to three insurers, or four or more insurers, based on the producer's live contracts rather than a default.",
+            "Describe the cash compensation — commission from the insurer, fee from the consumer, or both — and describe the non-cash compensation such as conference qualification, marketing allowances and lead reimbursement."
+          ],
+          "done": "Appendix A carries the producer's real licence lines, the accurate insurer band, and both cash and non-cash compensation described in plain terms."
+        },
+        {
+          "step": "Assemble the full disclosure package for the situs state",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Let the portal pull the state's package definition and attach the current-edition Appendix A, contract disclosure statement, buyer's guide, and — for a replacement — the replacement notice.",
+            "Add the product-specific disclosure showing the surrender charge schedule, free withdrawal allowance, index crediting method with current cap and participation rate, rider charges and the guaranteed minimum values.",
+            "Add the Group Annuity supplement covering the plan structure, participant rights and any plan-level fee.",
+            "Reject any locally saved or superseded form edition — the package must come from the portal so the edition is provably current."
+          ],
+          "done": "the package holds the current edition of every document the state's definition requires, sourced from the portal rather than local copies."
+        },
+        {
+          "step": "Deliver the package at or before the recommendation",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "DocuSign",
+          "actions": [
+            "Send the package through DocuSign to the consumer and, for plan cases, the authorised plan sponsor representative, before presenting the recommendation.",
+            "Where the meeting is in person, deliver paper copies and record the delivery date and method on the case the same day.",
+            "Record the delivery timestamp on the case and check it is on or before the recommendation date and the application signature date.",
+            "Never let the application be signed in the same sitting as first delivery where the state's definition requires delivery in advance."
+          ],
+          "done": "the package delivery timestamp sits on or before the recommendation and application dates, with method and date recorded on the case."
+        },
+        {
+          "step": "Capture the consumer acknowledgement and signatures",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "DocuSign",
+          "actions": [
+            "Obtain the consumer's signature and date on Appendix A and on the disclosure and buyer's guide receipt.",
+            "Obtain the producer's signature on Appendix A confirming the compensation description given.",
+            "Download the DocuSign certificate of completion showing signer identity, IP address, and the timestamp for each document.",
+            "Where a consumer declines to sign a receipt, record the refusal, deliver anyway, and note the delivery method and witness on the case."
+          ],
+          "done": "each disclosure document carries dated consumer and producer signatures with a DocuSign completion certificate, or a documented delivery-without-signature note."
+        },
+        {
+          "step": "Issue the replacement notice and notify the existing carrier",
+          "by": "New Business Case Manager",
+          "role": "New Business Case Manager",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Where the application replaces an existing annuity or life policy, complete the state replacement notice listing every contract being replaced with carrier name, contract number and issue date.",
+            "Give the consumer a signed copy at application and file the signed original on the case.",
+            "Send written notice with a policy summary or ledger to each existing carrier within 5 business days of receiving the application, and store the transmission proof.",
+            "Compute and record the 5-business-day due date on the case at the moment the application is received so the clock is visible from day one."
+          ],
+          "done": "the replacement notice is signed at application, sent to every existing carrier within 5 business days, and the due date and transmission proof are on the case."
+        },
+        {
+          "step": "Set the free-look period and date it from actual delivery",
+          "by": "New Business Case Manager",
+          "role": "New Business Case Manager",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Read the free-look length from the state package definition, applying the longer period the state gives for replacements and for consumers aged 65 and over.",
+            "Set the free-look start date from the contract delivery date evidenced by the delivery receipt, never from the issue date.",
+            "Where a required disclosure was delivered late, extend the free look by the delay and record the extension and its basis.",
+            "Confirm the contract record shows the free-look expiry date so service and the Suitability Desk can both see it."
+          ],
+          "done": "the free-look length, start date from evidenced delivery, any extension and the expiry date are all recorded on the contract record."
+        },
+        {
+          "step": "Validate disclosure completeness before the case can advance",
+          "by": "New Business Case Manager",
+          "role": "New Business Case Manager",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Run the Disclosure Completeness rule set on the case and confirm every document in the state's package definition is present, signed and dated.",
+            "Check the Appendix A insurer band and licence lines against the producer record and reject a mismatch rather than accepting the producer's tick.",
+            "Check that no disclosure signature date falls after the application signature date.",
+            "Return failed cases to the producer naming the specific failing document and field, and hold the case from the Suitability Desk until cured."
+          ],
+          "done": "the rule set passes with every required document present, signed, correctly dated and consistent with the producer record."
+        },
+        {
+          "step": "Image and index the disclosure packet to the contract record",
+          "by": "Document Management Specialist",
+          "role": "Document Management Specialist",
+          "app": "OpenText Document Mgmt",
+          "actions": [
+            "Image the signed Appendix A, receipts, replacement notice, transmission proof and DocuSign certificate to the contract record.",
+            "Index each image with document type, contract number, situs state, producer NPN, form edition date and signature date.",
+            "Confirm the imaged page count matches the delivered package and chase any missing page the same day.",
+            "Make the packet retrievable by contract number, producer NPN and delivery date."
+          ],
+          "done": "the full disclosure packet is imaged, indexed on five attributes and retrievable by contract, producer and delivery date."
+        },
+        {
+          "step": "Handle disclosure defects found after delivery",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Where a disclosure is found missing, late or on a superseded edition, open an issue the same business day with contract number, state and which document failed.",
+            "Re-deliver the correct current-edition document with a written explanation and extend the free look by the length of the delay.",
+            "Assess with Regulatory Counsel whether the defect requires rescission with full premium refund rather than re-delivery.",
+            "Record the disposition on the contract record so the free-look expiry reflects the extension."
+          ],
+          "done": "every defect has a same-day issue, a re-delivery with an extended free look or a counsel-agreed rescission, recorded on the contract."
+        },
+        {
+          "step": "Keep the Appendix A compensation description true to how producers are actually paid",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "billing/commission platform",
+          "actions": [
+            "Each quarter pull the commission schedules, override structures, bonus programmes, conference qualification rules and marketing allowances in force for annuity producers.",
+            "Compare them to the standing Appendix A non-cash compensation wording and identify anything paid that the wording does not describe.",
+            "Have the wording revised and re-approved by Regulatory Counsel where a new incentive is introduced, before the incentive goes live.",
+            "Push the revised edition to the portal so every new case picks it up, and date the edition change."
+          ],
+          "done": "the Appendix A compensation wording matches every cash and non-cash incentive actually in force, with revisions approved before the incentive starts."
+        },
+        {
+          "step": "Monitor daily disclosure delivery exceptions",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Power BI",
+          "actions": [
+            "Run the daily report of applications received with no matching disclosure delivery receipt, and of replacement cases approaching the 5-business-day carrier notice due date.",
+            "Contact the producer and the New Business Case Manager the same day on every hit.",
+            "Escalate to the Distribution Operations Manager any replacement notice reaching day 4 unsent.",
+            "Track repeat producers and refer any producer with three hits in a rolling quarter to the Producer Compliance Manager."
+          ],
+          "done": "every daily hit is contacted the same day, no replacement notice passes day 4 unsent without escalation, and repeat producers are referred."
+        },
+        {
+          "step": "Refresh form editions when a state changes its disclosure requirements",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Monitor state bulletins and adopted regulation changes affecting the annuity buyer's guide, disclosure statement and replacement notice.",
+            "Update the state package definition with the new form edition, its mandatory-use date and any changed delivery timing or free-look length.",
+            "Have the new edition loaded into the portal and confirm the superseded edition is withdrawn on the mandatory-use date.",
+            "Notify Distribution and the Suitability Desk at least 30 days before the mandatory-use date."
+          ],
+          "done": "each state form change is reflected in the package definition, loaded in the portal, with the old edition withdrawn on its mandatory-use date and 30 days notice given."
+        },
+        {
+          "step": "Report disclosure performance into the supervision system",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Feed monthly delivery-on-time percentage, Appendix A completeness rate, replacement notice day-count performance and defect counts into the Section 6.D supervision report.",
+            "Name every state below 100 percent on-time delivery and the remediation owner.",
+            "Include free-look extensions granted and rescissions made as a consumer-harm indicator.",
+            "Present alongside the sales supervision and training results at the Compliance Committee."
+          ],
+          "done": "the supervision report carries delivery timeliness, Appendix A completeness, notice day-counts, extensions and rescissions, and is presented to the committee."
+        },
+        {
+          "step": "Retain the disclosure evidence for the full retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Archive the disclosure packet into the compliance evidence repository keyed on contract number, producer NPN and situs state.",
+            "Apply the 6-years-after-transaction-completion retention label, extended where the situs state's adoption requires longer.",
+            "Confirm the form edition date is searchable so an exam question about a specific edition can be answered by query.",
+            "Apply legal hold on packets tied to an open complaint, arbitration or market conduct exam."
+          ],
+          "done": "the packet is archived, labelled for at least 6 years, searchable by form edition date and held where a matter is open."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of applications taken in the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Extract every Group Annuity application with a received date inside the quarter, with situs state, producer NPN, replacement indicator, consumer age and disposition.",
+            "Split the population into replacement and non-replacement strata and tag applications in any state whose disclosure form edition changed during the quarter.",
+            "Include not-taken and withdrawn applications so cases pulled after a disclosure failure remain visible.",
+            "Record extract date, filters and row counts on the workpaper cover sheet."
+          ],
+          "done": "the population is extracted and stratified by replacement and by mid-quarter form change, including not-taken applications."
+        },
+        {
+          "step": "Reconcile the population to the imaging and delivery records",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Join the application population to the imaged disclosure packets on contract number and to the DocuSign envelope records on case id.",
+            "List every application with no imaged Appendix A and every application with no DocuSign envelope or paper-delivery note as automatic exceptions.",
+            "Confirm the imaged packet count reconciles to the delivery receipt count for the quarter and clear every difference.",
+            "Sign and lock the reconciled population before drawing the sample."
+          ],
+          "done": "every application ties to an imaged packet and a delivery record, or is listed as an automatic exception, and the population is locked."
+        },
+        {
+          "step": "Draw a documented, reproducible sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Take 100 percent of replacement cases and 100 percent of applications in states whose form edition changed during the quarter.",
+            "Take 30 further applications by seeded random selection from the remainder, spread across at least 15 jurisdictions.",
+            "Record seed, stratum sizes, population size and selection date.",
+            "Publish the sampled contract numbers before requesting evidence."
+          ],
+          "done": "the sample covers all replacements and all changed-form states plus 30 seeded random applications across at least 15 jurisdictions."
+        },
+        {
+          "step": "Re-perform the package completeness check against the state definition",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "OpenText Document Mgmt",
+          "actions": [
+            "Retrieve each sampled packet and compare it document by document to that state's package definition as it stood on the application date.",
+            "Confirm each document's form edition date matches the edition mandated on that date, not the edition current today.",
+            "Mark a fail where a document is absent, on a superseded edition, or unsigned.",
+            "Attach the comparison grid and the retrieved images to the workpaper."
+          ],
+          "done": "each sampled packet is scored document by document against the state definition in force on the application date."
+        },
+        {
+          "step": "Test the Appendix A content against the producer's real licences and pay",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "NIPR (Producer Licensing)",
+          "actions": [
+            "Compare the licence lines ticked on each sampled Appendix A to the producer's actual NIPR licence lines for the situs state.",
+            "Compare the insurer band ticked (one, two to three, four or more) to the producer's live carrier contracts on the distributor record.",
+            "Compare the cash and non-cash compensation description to the commission schedule and incentive programmes in force on the application date.",
+            "Flag any overstated licensing or understated compensation as a conflict-disclosure failure under Section 6.B and 6.C."
+          ],
+          "done": "every sampled Appendix A agrees with the producer's real licences, carrier count and compensation in force on the application date."
+        },
+        {
+          "step": "Compare delivery timestamps to the recommendation and application dates",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "DocuSign",
+          "actions": [
+            "Read the DocuSign certificate of completion for each sampled case and record the delivery and signature timestamp per document.",
+            "Compare each to the recommendation date on the suitability record and to the application signature date.",
+            "Treat any disclosure signed after the application, or delivered after the recommendation where the state requires prior delivery, as a fail.",
+            "Record the day difference for every sampled document so the pattern of late delivery is visible by producer."
+          ],
+          "done": "every sampled document has a recorded delivery timestamp compared to the recommendation and application dates, with day differences tabulated by producer."
+        },
+        {
+          "step": "Recompute the 5-business-day replacement notice clock",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "For each sampled replacement, take the application received date and recompute the 5-business-day due date excluding weekends and state holidays.",
+            "Compare it to the transmission proof date on the notice sent to each existing carrier, and to the number of contracts named on the notice.",
+            "List any notice sent late, sent to fewer carriers than the contracts being replaced, or with no transmission proof at all.",
+            "Attach the recomputation and the transmission proofs to the workpaper."
+          ],
+          "done": "every sampled replacement has a recomputed due date matched to dated transmission proof for every existing carrier."
+        },
+        {
+          "step": "Test the free-look start date and any extension granted",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "For each sampled contract, compare the recorded free-look start date to the evidenced contract delivery date rather than the issue date.",
+            "Confirm the free-look length matches the state definition including the longer period for replacements and consumers aged 65 and over.",
+            "Where a disclosure was delivered late, confirm the free look was extended by at least the delay and that the extension is recorded.",
+            "Log any contract whose free look ran from the issue date as an exception affecting the consumer's cancellation right."
+          ],
+          "done": "every sampled free look starts from evidenced delivery, uses the correct state length, and reflects any required extension."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception with contract number, state, producer NPN, which document failed and the consumer impact.",
+            "Assign a root cause from the fixed list: document not delivered, superseded edition used, signed after application, Appendix A misstated, carrier notice late, free look mis-dated.",
+            "Assign an owner and a remediation date, and open re-delivery with an extended free look or, on counsel advice, rescission with full premium refund.",
+            "Carry open exceptions into the next quarter as mandatory retest rows and refer repeat producers for suspension."
+          ],
+          "done": "each exception has an issue, fixed-list root cause, owner, remediation date and a consumer remedy where the right was impaired."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the exception rate per stratum and compare to the 2 percent threshold and the zero-tolerance rules for missing Appendix A and late carrier notice.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with the workpaper references behind it.",
+            "Have the Internal Auditor, who delivered or processed no sampled disclosure, sign as independent reviewer.",
+            "Report the conclusion, exception rates, free-look extensions and rescissions to the Compliance Committee and file the signed workpaper."
+          ],
+          "done": "a signed workpaper with per-stratum exception rates, a stated conclusion and a dated committee reporting entry exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-009-C05",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Head of Compliance",
+          "value": "Owns the Model 275 Section 6.D insurer supervision system for Group Annuities — surveillance, quarterly sample testing, third-party oversight and the annual report to senior management across the 51 jurisdictions"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — NAIC Model 275 Section 6.D (insurer supervision system, including procedures to detect non-compliant recommendations, third-party contracting and the annual senior management report) and Section 8 (compliance mitigation) as adopted by Alaska; Alabama, Arkansas and Arizona adoptions checked for state-specific supervision or reporting additions"
+        },
+        "In-scope processes": {
+          "value": "Annuity sales supervision across all Group Annuity distribution in the 51 adopting jurisdictions — surveillance metric production, quarterly sales sampling, producer conduct review, third-party distributor oversight and the annual senior management certification"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Supervision issues, corrective actions and the annual report are held in the GRC platform; surveillance metrics are produced in Power BI from the policy administration, suitability and commission data in Snowflake"
+        },
+        "Compliance procedure documented": {
+          "value": "Annuity Sales Supervision Procedure — surveillance metric definitions and thresholds, the quarterly sampling plan, producer conduct escalation ladder, third-party oversight cycle and the annual senior management report format"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and ratified annually by the Compliance Committee; re-approved on any change to surveillance thresholds or to the third-party distribution model"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Quarterly supervision report within 30 days of quarter end; the annual senior management report on the supervision system by 31 March for the prior calendar year; the NAIC Market Conduct Annual Statement annuity submission by 30 April for the prior year"
+        },
+        "Deadline reminders configured": {
+          "value": "GRC platform milestones at quarter end plus 10, 20 and 28 days for the quarterly report, and at 60, 30 and 10 days before both the 31 March annual report and the 30 April MCAS annuity submission"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Surveillance outputs, quarterly sampling workpapers, producer conduct files, third-party audit reports and the signed annual senior management report retained 6 years from the report date"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Supervision findings, producer conduct issues and third-party failures logged with quarter, state, producer or distributor, finding type and disposition (coached, suspended, terminated, contracts remediated, self-reported to the state)"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "Signs the annual senior management report on the supervision system and signs off any decision to continue with a distributor after a failed oversight review"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The quarter's supervision cycle itself — every surveillance metric run, every sampled sales case, every producer conduct file opened and every third-party attestation received across the 51 jurisdictions"
+        },
+        "Pass/fail thresholds": {
+          "value": "A quarter with no completed sampling, an unexplained surveillance threshold breach left unworked past 30 days, or an annual report not signed by 31 March is a fail; any producer flagged twice with no conduct action is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is quarterly supervision with an annual report; the independent test runs quarterly on the prior quarter's supervision cycle and annually on the senior management report before it is signed"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Chief Audit Executive",
+          "value": "Internal Audit reviews the supervision function itself and must be outside the Compliance reporting line that runs the supervision cycle"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly Supervision Effectiveness workpaper and the annual supervision system review, filed in the compliance evidence repository under Annuity Supervision with the surveillance extracts attached"
+        },
+        "Regulator-ready documentation": {
+          "value": "Supervision system description, the last four quarterly reports, the signed annual senior management report, sampling workpapers and producer conduct files, producible for a market conduct exam within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager coordinates the exam and the department inquiry; Regulatory Counsel clears self-reports of systemic unsuitable sales and the Chief Risk Officer briefs the board on any exam finding"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Define and maintain the annuity surveillance metric set",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "Power BI",
+          "actions": [
+            "Define the metric set with thresholds: replacement ratio by producer, share of sales to consumers aged 75 and over, premium above 50 percent of liquid net worth, sales funded from qualified plan rollovers, sales of the longest surrender-charge product, free-look cancellation rate and first-year surrender rate.",
+            "Set an amber and a red threshold for each metric against the book average, and record the rationale for the level chosen.",
+            "Have Regulatory Counsel confirm the metric set covers the Section 6.D duty to detect recommendations that are not in compliance.",
+            "Version and date the definition so a later quarter's results can be read against the thresholds in force at the time."
+          ],
+          "done": "each metric has a written definition, amber and red thresholds, a recorded rationale and a dated version."
+        },
+        {
+          "step": "Produce the quarterly surveillance run",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Extract the quarter's issued Group Annuity contracts with producer NPN, state, product, premium, consumer age, replacement flag, funding source and commission paid.",
+            "Compute every metric at producer, agency, distributor, state and product level and load the results to the supervision dashboard.",
+            "Reconcile the contract count and premium to the policy administration issue register before publishing.",
+            "Publish a ranked exception list of every producer and distributor breaching an amber or red threshold."
+          ],
+          "done": "all metrics are computed at five levels, reconciled to the issue register, and a ranked threshold-breach list is published."
+        },
+        {
+          "step": "Work every red-threshold breach to a conclusion",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Open a supervision issue for each red breach naming the producer or distributor, the metric, the value and the book average.",
+            "Pull five of that producer's cases from the quarter and read the profile, suitability review and disclosures end to end.",
+            "Conclude within 30 days of the surveillance run: explained by the producer's book, a training gap, or suspected unsuitable sales practice.",
+            "Escalate suspected unsuitable practice to the Producer Compliance Manager for conduct action the same week the conclusion is reached."
+          ],
+          "done": "every red breach carries a five-case review and a written conclusion within 30 days, with conduct referral where practice is suspected."
+        },
+        {
+          "step": "Draw and document the quarterly sales sample",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Take 100 percent of replacement cases, 100 percent of consumers aged 75 and over, and 100 percent of cases from producers on an open conduct plan.",
+            "Take 40 further contracts by seeded random selection, spread so every state with in-quarter sales and every distributor is represented at least once.",
+            "Record seed, population size, stratum sizes and selection date on the sampling sheet.",
+            "Publish the sampled contract list to the reviewers before the case files are requested."
+          ],
+          "done": "the sample covers all replacements, seniors and conduct-plan producers plus 40 seeded random contracts spanning every active state and distributor."
+        },
+        {
+          "step": "Review each sampled sale end to end against the four Model 275 duties",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Salesforce FSC",
+          "actions": [
+            "For each sampled contract score the care duty (profile complete, product fits objectives, replacement comparison quantified), the disclosure duty (Appendix A and package delivered on time), the conflict duty (compensation described, no unexplained higher-paying choice) and the documentation duty (consumer-specific reasonable basis).",
+            "Score each duty pass, pass with observation, or fail, and write the evidence reference behind each score.",
+            "Refer every fail to the Compliance Manager the same day with a consumer-harm assessment.",
+            "Reviewers may not score their own prior decisions — reassign those cases within the desk."
+          ],
+          "done": "every sampled contract carries a four-duty score with evidence references and same-day referral of every fail."
+        },
+        {
+          "step": "Run the producer conduct escalation ladder",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "agency/producer management system",
+          "actions": [
+            "Apply the ladder: first finding coaching with a documented conversation; second finding a written corrective action plan with 100 percent pre-issue review of that producer's cases for two quarters; third finding suspension of annuity selling authority.",
+            "Record each step with date, the finding that triggered it and the manager who applied it on the producer record.",
+            "For suspension or termination, check whether the state requires a termination-for-cause notice to the department and file it within the state's deadline.",
+            "Review every producer on 100 percent pre-issue review monthly and record whether the enhanced review is actually happening."
+          ],
+          "done": "every finding moves the producer one rung of the ladder with a dated record, and required department notices are filed within the state deadline."
+        },
+        {
+          "step": "Correlate complaints and early cancellations with the surveillance results",
+          "by": "Complaints Manager",
+          "role": "Complaints Manager",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Extract every annuity complaint and department of insurance inquiry received in the quarter with producer NPN, state, allegation type and outcome.",
+            "Extract free-look cancellations and first-year surrenders and match them to producer NPN.",
+            "Join both to the surveillance results and flag any producer appearing in complaints or early cancellations who did not breach a metric threshold — that gap means the metric set is missing something.",
+            "Feed proposed metric changes back to the Compliance Manager for the next definition version."
+          ],
+          "done": "complaints and early cancellations are matched to producers and to the metric results, with metric-set gaps identified and fed back."
+        },
+        {
+          "step": "Oversee third-party distributors and any outsourced supervision",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "app": "Duck Creek Distribution",
+          "actions": [
+            "Confirm each IMO, FMO, broker-dealer and TPA agreement carries the Section 6.D clauses: the insurer retains responsibility, the distributor supplies suitability and training records, and the insurer may audit.",
+            "Collect the quarterly attestation from each distributor covering training coverage, suitability review performance and complaint counts.",
+            "Audit at least the two largest distributors and any distributor with a red surveillance metric each year, on site or by file review.",
+            "Where the distributor performs suitability review under contract, re-perform 10 of their reviews and report the agreement rate."
+          ],
+          "done": "every distributor has the required contract clauses and a current attestation, the largest two and any red-metric distributor are audited annually, and delegated reviews are re-performed."
+        },
+        {
+          "step": "Apply the securities and fiduciary safe harbour where it genuinely applies",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Identify sales made by registered representatives under a broker-dealer's Regulation Best Interest supervision, or by an adviser under a fiduciary standard, that may fall in the Model 275 safe harbour.",
+            "Obtain from the broker-dealer written confirmation that its supervision covers the transaction and that it applies comparable standards.",
+            "Confirm the safe harbour is claimed only where the comparable standard actually applied, and never for a fixed annuity sold outside the broker-dealer's supervision.",
+            "Record the basis on the contract record so an exam can see why our own review was scoped differently."
+          ],
+          "done": "every safe-harbour claim is supported by written broker-dealer confirmation and a recorded basis on the contract."
+        },
+        {
+          "step": "Publish the quarterly supervision report",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Within 30 days of quarter end publish the report: surveillance results and threshold breaches, sampling results by the four duties, producer conduct actions, complaint correlation and distributor oversight status.",
+            "Show the trend against the prior three quarters for each metric so a drift is visible.",
+            "List every open issue with owner and remediation date, and every issue overdue.",
+            "Circulate to the Head of Distribution, the Chief Risk Officer and the Compliance Committee."
+          ],
+          "done": "the quarterly report is published within 30 days of quarter end with trends, open issues and named owners, and circulated to the three recipients."
+        },
+        {
+          "step": "Produce the annual senior management report on the supervision system",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "By 31 March, compile the Section 6.D annual report for the prior calendar year covering the supervision system's design, the reviews performed, findings, corrective actions and system changes made.",
+            "State explicitly whether the system is reasonably designed to achieve compliance with the best-interest standard, and name any deficiency not yet remediated.",
+            "Have the Chief Risk Officer sign the report and record the date and the senior management forum at which it was received.",
+            "File the signed report and its supporting quarterly reports as one exam-ready pack."
+          ],
+          "done": "a Chief Risk Officer signed annual report exists by 31 March with an explicit design conclusion, named deficiencies and a recorded receipt date."
+        },
+        {
+          "step": "Prepare and submit the annuity Market Conduct Annual Statement data",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Assemble the prior calendar year annuity MCAS data by state: contracts issued, replacements, surrenders, complaints, lawsuits and producer counts.",
+            "Reconcile each state's figures to the policy administration issue register, the complaints log and the commission records before entry.",
+            "Submit through the NAIC MCAS application by the 30 April deadline for every state that calls the annuity blank, and retain the submission confirmation.",
+            "Answer state validation queries within the department's stated response window and record each answer."
+          ],
+          "done": "annuity MCAS data is reconciled, submitted for every calling state by 30 April, with confirmations and query answers retained."
+        },
+        {
+          "step": "Decide and execute consumer remediation on systemic findings",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Where sampling shows the same failure across a producer's book or a distributor's channel, scope the full affected population rather than remediating only the sampled cases.",
+            "Agree the remedy with Regulatory Counsel: free-look extension, surrender charge waiver, rider charge refund, or rescission with full premium and interest.",
+            "Execute the remedy, write to every affected consumer, and track acceptance and payment to completion.",
+            "Decide with Regulatory Counsel whether the finding requires self-reporting to the affected state departments and record the decision either way."
+          ],
+          "done": "every systemic finding has a full-population scope, an agreed remedy executed to payment, and a recorded self-report decision."
+        },
+        {
+          "step": "Feed supervision findings back into the controls that caused them",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Map each finding to the upstream control that should have prevented it: profile validation edits, the suitability test set, the disclosure package definition or the training gate.",
+            "Raise a control change request against the owning team with a due date, rather than only fixing the individual case.",
+            "Verify in the following quarter's surveillance that the changed control moved the metric.",
+            "Close the finding only when the control change is live and the metric has moved."
+          ],
+          "done": "each finding is mapped to an upstream control with a change request, and closes only after the control is live and the metric has moved."
+        },
+        {
+          "step": "Retain the supervision evidence for the full retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Archive the surveillance extracts, sampling workpapers, producer conduct files, distributor audit reports, quarterly reports and the signed annual report under Annuity Supervision.",
+            "Apply the 6-year retention label from the report date, and the longer label where a state adoption requires it.",
+            "Confirm retrieval by quarter, by state, by producer NPN and by distributor.",
+            "Apply legal hold on any supervision record connected to an open market conduct exam, department inquiry or litigation."
+          ],
+          "done": "the full supervision record set is archived, labelled for at least 6 years, retrievable four ways and held where a matter is open."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of supervision activity for the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Extract every surveillance run, threshold breach, supervision issue, sampled case review, producer conduct action and distributor attestation recorded for the quarter.",
+            "Extract the underlying issued-contract population for the same quarter from the policy administration issue register as the independent denominator.",
+            "Include the prior quarter's open issues so unremediated items are visible.",
+            "Record extract date, filters and row counts on the workpaper cover sheet."
+          ],
+          "done": "the supervision activity set and the independent contract denominator are both extracted, including carried-forward open issues."
+        },
+        {
+          "step": "Reconcile the surveillance denominator to the issued-contract register",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Compare the contract count, premium and state spread used in the surveillance run to the policy administration issue register for the same quarter.",
+            "Investigate any state, product or distributor missing from the surveillance run — an excluded channel means the metrics understate the risk.",
+            "Confirm third-party distributor sales are inside the denominator and not reported only through the distributor's own attestation.",
+            "Sign and lock the reconciliation before testing the metrics themselves."
+          ],
+          "done": "the surveillance denominator ties to the issue register with every state, product and distributor present, and the reconciliation is signed."
+        },
+        {
+          "step": "Recompute the surveillance metrics from source data",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Independently recompute the replacement ratio, senior sales share, premium-to-liquid-net-worth breach count, free-look cancellation rate and first-year surrender rate from the raw contract, profile and commission tables.",
+            "Compare each recomputed figure to the published dashboard value and investigate any variance above 0.5 percentage points.",
+            "Check the thresholds applied were the version in force during the quarter, not the current version.",
+            "Attach the recomputation script output and the variance table to the workpaper."
+          ],
+          "done": "every metric is independently recomputed, variances above 0.5 points are explained, and the correct threshold version is confirmed."
+        },
+        {
+          "step": "Test that every red threshold breach was actually worked",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "List every red breach from the recomputed metrics and match it to a supervision issue in the GRC platform.",
+            "Check each issue has the five-case review, a written conclusion and a conclusion date within 30 days of the surveillance run.",
+            "Treat a breach with no issue, or an issue closed with no five-case review, as a supervision control failure rather than a documentation gap.",
+            "Read three closed conclusions in full and assess whether the evidence supports the conclusion reached."
+          ],
+          "done": "every red breach has a matching issue with a five-case review and a conclusion inside 30 days, and three conclusions are evidence-tested."
+        },
+        {
+          "step": "Re-perform the quarterly sampling to confirm it was complete and unbiased",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Redraw the sample from the locked population using the recorded seed and confirm it reproduces the same contract list.",
+            "Confirm the mandatory strata were taken at 100 percent: replacements, consumers aged 75 and over, and conduct-plan producers.",
+            "Check every state with in-quarter sales and every distributor is represented, and list any that were not.",
+            "Flag any evidence of sample substitution — a case swapped out after selection is a control failure."
+          ],
+          "done": "the sample is reproducible from the seed, mandatory strata are complete, coverage gaps are listed and no substitution occurred."
+        },
+        {
+          "step": "Re-perform the four-duty scoring on a subset of the reviewed cases",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Take 15 cases already scored by the Suitability Desk and score them independently on care, disclosure, conflict and documentation without reading the desk's scores.",
+            "Compare and compute the agreement rate; any case the desk passed that audit fails is reported individually with the evidence.",
+            "Check no reviewer scored a case they had previously decided, using the reviewer names on both records.",
+            "Attach both score sheets side by side in the workpaper."
+          ],
+          "done": "15 cases are independently re-scored with a computed agreement rate, disagreements reported individually and reviewer independence confirmed."
+        },
+        {
+          "step": "Test the producer conduct ladder was applied on time",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "agency/producer management system",
+          "actions": [
+            "List every producer with a finding in the quarter and read the conduct record for the ladder step applied and its date.",
+            "Confirm a second finding produced a corrective action plan with 100 percent pre-issue review, and check that the enhanced review actually occurred on that producer's subsequent cases.",
+            "Confirm suspensions took effect in the Broker & Agent Portal and that no case was created by a suspended producer afterwards.",
+            "Check any termination for cause was notified to the state department within its deadline and the notice is on file."
+          ],
+          "done": "every finding produced the correct dated ladder step, enhanced reviews are evidenced on later cases, and terminations are notified with proof."
+        },
+        {
+          "step": "Test third-party distributor oversight and the annual report",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "Pull each active distributor agreement and confirm the Section 6.D clauses on retained responsibility, record supply and audit rights are present and executed.",
+            "Confirm a current quarterly attestation exists for every distributor and that missing attestations triggered the new-business withholding.",
+            "Confirm the two largest distributors and any red-metric distributor were audited in the last 12 months, and read one audit report end to end.",
+            "For the annual senior management report, confirm it was signed by the Chief Risk Officer on or before 31 March and that every deficiency named in it traces to an open or closed GRC issue."
+          ],
+          "done": "every distributor agreement, attestation and required audit is evidenced, and the annual report is signed by 31 March with deficiencies traceable to issues."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one audit issue per supervision failure naming the quarter, the metric or process, and the consumer or regulatory exposure.",
+            "Assign a root cause from the fixed list: metric not computed, channel excluded from the denominator, breach not worked, sampling incomplete, ladder step skipped, distributor unaudited, report late.",
+            "Assign an owner and a remediation date, and require the Head of Compliance to respond in writing to each issue within 15 business days.",
+            "Carry every open issue into the next quarter's review and report ageing to the Audit Committee."
+          ],
+          "done": "each supervision failure has an audit issue, a fixed-list root cause, an owner, a remediation date and a written management response inside 15 business days."
+        },
+        {
+          "step": "Conclude on supervision effectiveness, sign and report to the committees",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the supervision exception rate and compare it to the stated fails: no completed sampling, breaches unworked past 30 days, and an unsigned or late annual report.",
+            "Write the conclusion on whether the Section 6.D supervision system is reasonably designed and operating effectively, with the workpaper references behind it.",
+            "Sign as independent reviewer from outside the Compliance reporting line that runs the supervision cycle.",
+            "Report to the Audit Committee and the Compliance Committee, and file the signed workpaper with the surveillance extracts attached in the compliance evidence repository."
+          ],
+          "done": "a signed independent workpaper states whether the supervision system is reasonably designed and operating effectively, with committee reporting dates recorded."
+        }
+      ]
+    }
+  ]
+}

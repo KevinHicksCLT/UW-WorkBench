@@ -1,0 +1,1969 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-013-C65",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Distribution Operations Manager",
+          "value": "Owns fact-find and customer-profile capture at the point of sale across all advised life and annuity channels; escalates incomplete or stale profiles to the Annuity Suitability Analyst and high-risk CDD gaps to the Financial Crime AML Officer"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — IAIS ICP 22 Standard 22.3 (risk-based CDD across customers, products, channels and geographies) and ICP 19 Standard 19.5 read against the current consolidated ICP text, with the local overlays that give the ICP teeth re-read at the same time: EU IDD Art. 20(1) demands-and-needs, NAIC Model 275 Section 6.A consumer profile information, UK ICOBS 5.2, MAS Notice FAA-N16 fact-find annex, FATF Recommendation 10"
+        },
+        "In-scope processes": {
+          "value": "Advised new business quote-to-application for individual life and annuity: fact-find capture, customer due diligence and source-of-funds capture, ML/TF risk tiering, and the pre-recommendation completeness gate — every advised sale in every IAIS-member jurisdiction the group writes in, including bancassurance and broker-introduced business"
+        },
+        "In-scope systems": {
+          "app": "Salesforce FSC",
+          "value": "Salesforce FSC Financial Goals and Fact Find objects hold the profile and the completeness gate flag; the ML/TF risk tier is written back from the AML screening platform; the signed profile PDF is archived to the document management repository against the application number"
+        },
+        "Compliance procedure documented": {
+          "value": "Global Consumer Profile and Fact-Find Standard — mandatory data items by product family, source-of-funds evidence required per risk tier, refusal-to-disclose handling, the 90-day profile staleness rule, and the jurisdiction overlay matrix mapping each ICP 19/22 requirement to the local rule"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved jointly by the Head of Compliance and the Head of Distribution; re-approved annually and within 60 days of any revision to ICP 19 or ICP 22 or to a local best-interest, demands-and-needs or CDD rule in a jurisdiction the group writes in"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "No regulator filing attaches to this obligation — it is a per-sale gate: the profile must be complete, customer-confirmed and dated on or before the date of the recommendation, and must be re-taken if it is more than 90 days old at application submission"
+        },
+        "Deadline reminders configured": {
+          "value": "Salesforce FSC tasks fire to the writing producer at profile age day 60 and day 85; a nightly exception report of applications submitted against a profile older than 90 days or missing a risk tier goes to the Distribution Operations Manager before the next business day's underwriting queue opens"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Customer-confirmed profile form, identity and source-of-funds documents, screening result and the risk-tier decision retained 10 years from policy termination — set to the longest local rule rather than the FATF Recommendation 11 five-year floor (EU AMLD 5+5, Hong Kong IA 7 years)"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any recommendation made on an incomplete, unsigned or stale profile is raised as a conduct exception carrying producer id, agency, jurisdiction, missing data item, root cause and remediation date; enhanced-tier sales missing source of funds are additionally routed to Financial Crime for a suspicious-activity assessment"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs off closure of every incomplete-profile exception and personally approves any decision to let an issued policy stand on a retrospectively re-taken profile"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All advised new-business applications with a submission date inside the quarter, extracted from Salesforce FSC opportunities and reconciled to policies issued in the policy administration system, split by jurisdiction, channel and ML/TF risk tier"
+        },
+        "Pass/fail thresholds": {
+          "value": "At least 98% of sampled applications must carry a complete, customer-confirmed profile dated on or before the recommendation date; zero tolerance on a missing source-of-funds record for an enhanced-risk-tier sale — a single instance fails the test and is escalated to the Financial Crime AML Officer the same day"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "The obligation bites on every sale, so automated completeness monitoring runs nightly on all applications and the sample-based re-performance test runs quarterly over that quarter's population, with 100% coverage of enhanced-risk-tier and high-risk-geography sales"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must sit outside Distribution and must not have collected, reviewed or gated any sampled profile"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly Consumer Profile test workpaper — population extract, reconciliation, seeded sample list, re-performance notes, exception register — filed in the compliance evidence repository under Conduct/ICP-19-ICP-22 by quarter and jurisdiction"
+        },
+        "Regulator-ready documentation": {
+          "value": "Profile completeness dashboard by jurisdiction, the sampled profile PDFs with their customer confirmation timestamps, and the CDD risk-tier rationale, assembled for a local conduct regulator or the group-wide supervisor within 10 business days of request"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager owns local conduct inquiries and thematic reviews; the Head of Compliance fronts the supervisory college and group-wide supervisor, and Regulatory Counsel clears any response that concedes a profile was taken after the recommendation"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Fix the advice scope and the governing jurisdiction before opening a fact-find",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "Salesforce FSC",
+          "actions": [
+            "In Salesforce FSC create the Opportunity and set Advice Basis to Advised or Non-Advised — a non-advised execution-only sale takes a different, shorter data set and must not use the advised path.",
+            "Set Customer Country of Residence, Country of Citizenship and Place of Solicitation on the Account; these three fields drive which jurisdiction overlay the Fact Find record applies.",
+            "Open the jurisdiction overlay matrix on the Fact Find record and read out the mandatory data items for that country and product family (for example NAIC Model 275 Section 6.A items for a US annuity, IDD Art. 20 demands-and-needs for an EEA sale).",
+            "Where residence and solicitation country differ, email Regulatory Counsel for the applicable-law call before any data is collected and paste the answer into the Advice Basis Notes field."
+          ],
+          "done": "the Opportunity shows advice basis, all three country fields and a named jurisdiction overlay, with counsel's applicable-law note attached for any cross-border case."
+        },
+        {
+          "step": "Confirm the producer may lawfully solicit this customer before collecting data",
+          "by": "Producer Licensing Coordinator",
+          "role": "Producer Licensing Coordinator",
+          "app": "NIPR (Producer Licensing)",
+          "actions": [
+            "For US business, run a Producer Database inquiry in NIPR Gateway on the writing producer's NPN and confirm an active resident or non-resident licence plus a live appointment with the writing company in the solicitation state.",
+            "For EEA business, look the intermediary up on the home-state register published under IDD Art. 3 and confirm the passporting notification covers the customer's country.",
+            "Compare the licence lines of authority to the product family — a life-only licence cannot support a variable annuity recommendation.",
+            "Write the NPN or register number, licence expiry and appointment date onto the Opportunity and block the Fact Find record if any is missing or expired."
+          ],
+          "done": "an active licence, an appointment or passport covering the customer's jurisdiction, and the correct line of authority are recorded against the Opportunity."
+        },
+        {
+          "step": "Capture and verify the customer's identity to CDD standard",
+          "by": "AML Analyst",
+          "role": "AML Analyst",
+          "app": "Sanctions screening system (LexisNexis Bridger/FircoSoft)",
+          "actions": [
+            "Collect on the Fact Find: full legal name, date of birth, residential address, nationality, national identifier and occupation, and for entity owners the legal form, registration number and registered address.",
+            "Obtain a government-issued photographic identity document plus one address proof dated within three months, and record the document type, number, issuing country and expiry.",
+            "Identify and record every beneficial owner holding 25% or more of a corporate or trust policyowner, and the intended policy beneficiaries, as required by ICP 22 and FATF Recommendation 10.",
+            "Run the identity through the screening platform and attach the verification result reference to the Fact Find record.",
+            "Reject a recommendation path outright where identity cannot be verified and hand the case to the Financial Crime AML Officer instead of proceeding on partial data."
+          ],
+          "done": "verified identity documents, beneficial owners and beneficiaries are recorded with a screening reference on the Fact Find record."
+        },
+        {
+          "step": "Screen the parties and set the ML/TF risk tier that governs how much profile is required",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "app": "NICE Actimize (AML)",
+          "actions": [
+            "Screen policyowner, insured, payer and beneficiaries against the sanctions, PEP and adverse-media lists in the AML platform and clear or escalate each hit in the alert queue with a written disposition.",
+            "Score the four ICP 22.3 risk dimensions on the risk-tier form — customer (PEP, non-resident, complex ownership), product (single-premium, high cash value, assignable), channel (face-to-face, digital, third-party introducer) and geography (FATF grey/black list, high-corruption index).",
+            "Set the tier to Simplified, Standard or Enhanced and write the tier plus the driving dimension back to the Salesforce FSC Fact Find record.",
+            "For Enhanced, record the additional requirements now due: source of wealth narrative, senior-management approval to onboard, and an ongoing-monitoring review date 12 months out.",
+            "Never let a Simplified tier be applied to a customer resident in a FATF-listed jurisdiction — that combination is blocked and must be reasoned by the Financial Crime AML Officer if overridden."
+          ],
+          "done": "every party is screened and dispositioned, and a documented risk tier with its driving dimension sits on the Fact Find record."
+        },
+        {
+          "step": "Capture the customer's financial situation with tested figures, not estimates",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Enter on the Financial Goals object: annual household income and its source, annual outgoings, total net worth, liquid net worth, existing debts and any expected material change in income within five years.",
+            "Enter the tax situation — marginal rate, tax residence, and any reporting status (FATCA/CRS self-certification reference) that affects product choice.",
+            "Compute and record the proportion of liquid net worth the proposed premium would consume; flag the case for the Annuity Suitability Analyst where it exceeds the product family's liquidity limit.",
+            "Where figures are supplied verbally, read them back to the customer and record the read-back date and time in the Fact Find audit note."
+          ],
+          "done": "income, outgoings, net worth, liquid net worth, debts and tax residence are recorded with a premium-to-liquid-net-worth ratio computed."
+        },
+        {
+          "step": "Record the customer's needs, objectives and time horizon in their own terms",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Record the demands and needs statement required by IDD Art. 20(1) as a free-text narrative in the customer's own words — protection, income in retirement, estate transfer, debt cover — not a picked-list code alone.",
+            "Enter the intended time horizon in years, the earliest date funds may be needed, and whether the customer expects to make withdrawals during any surrender-charge period.",
+            "Record dependants, their ages and any special-needs beneficiary, since these change the appropriate death benefit and settlement option.",
+            "Where the stated horizon is shorter than the product's surrender-charge schedule, raise the mismatch on the record now rather than at the suitability review."
+          ],
+          "done": "a narrative demands-and-needs statement, a time horizon in years and dependants are recorded, with any horizon-to-surrender-period mismatch flagged."
+        },
+        {
+          "step": "Capture risk tolerance, financial experience and financial capacity to bear loss",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Administer the risk-tolerance questionnaire on the Fact Find record and store the individual answers, not only the summary score, so the score can be re-derived later.",
+            "Record prior experience with each relevant instrument type — mutual funds, variable products, indexed products, structured notes — with an approximate holding period for each.",
+            "Record capacity for loss separately from appetite: the maximum reduction in the invested amount the customer could absorb without changing their standard of living.",
+            "Reconcile the tolerance score to the stated objectives and note any contradiction (for example a lowest-tolerance answer set alongside an equity-linked objective) for the reviewer to resolve."
+          ],
+          "done": "individual questionnaire answers, a derived tolerance score, product experience and a stated capacity for loss are on the record, with contradictions flagged."
+        },
+        {
+          "step": "Inventory existing coverage and identify any replacement or surrender",
+          "by": "New Business Case Manager",
+          "role": "New Business Case Manager",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "List every existing life, annuity and long-term-care contract the customer holds: carrier, contract number, issue date, current cash value, death benefit, remaining surrender charge and any living benefit rider.",
+            "Search the group's own policy administration system on the customer's name and national identifier to find in-force contracts the customer forgot to mention.",
+            "Where any existing contract would be surrendered, exchanged or reduced, set the Replacement flag and capture the surrender charge amount, lost rider value and any new contestability or suicide-clause period that restarts.",
+            "Count exchanges in the last 60 months and flag churning risk to the Annuity Suitability Analyst where more than one appears.",
+            "Attach the customer's most recent statement for each replaced contract to the Fact Find record."
+          ],
+          "done": "existing coverage is inventoried against the admin system, and any replacement carries surrender cost, lost benefits and a 60-month exchange count."
+        },
+        {
+          "step": "Obtain source of funds and source of wealth where the risk tier demands it",
+          "by": "AML Analyst",
+          "role": "AML Analyst",
+          "app": "NICE Actimize (AML)",
+          "actions": [
+            "For every sale, record the source of the premium: salary, pension lump sum, property sale, inheritance, business proceeds, or transfer from a named existing contract, plus the paying institution and account country.",
+            "For Enhanced-tier cases, additionally document source of wealth as a narrative covering how the customer's overall wealth was accumulated, corroborated by at least one independent document (audited accounts, sale contract, probate grant, tax return).",
+            "Refuse third-party premium payment unless the payer relationship is documented and approved by the Financial Crime AML Officer.",
+            "Compare the premium against declared income and net worth and raise an alert in the AML platform where the premium is disproportionate to the declared means.",
+            "File corroborating documents to the case and record the document type and date on the Fact Find record."
+          ],
+          "done": "premium source is recorded for every sale and Enhanced-tier cases carry a corroborated source-of-wealth narrative with a proportionality check."
+        },
+        {
+          "step": "Screen for vulnerability, capacity and the need for a trusted contact",
+          "by": "Consumer Affairs Analyst",
+          "role": "Consumer Affairs Analyst",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Work the vulnerability indicators on the Fact Find record — age band, recent bereavement, serious illness, cognitive difficulty, low financial literacy, language other than the sales language.",
+            "Where an indicator is present, record the adjustment made: extended decision time, a second contact, plain-language materials, or a translated illustration.",
+            "Offer and record a trusted contact person (name, relationship, contact details) for older customers, and record the customer's refusal where declined.",
+            "Escalate any doubt about mental capacity to the Distribution Operations Manager and pause the sale rather than proceeding to a recommendation."
+          ],
+          "done": "vulnerability indicators are worked, adjustments recorded, and a trusted contact is captured or an explicit refusal is logged."
+        },
+        {
+          "step": "Handle a customer refusal to provide required profile information",
+          "by": "Distribution Operations Manager",
+          "role": "Distribution Operations Manager",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Record each refused item individually on the Fact Find record with the date and the customer's stated reason — never leave the field blank as though unasked.",
+            "Explain and log that the group cannot make a recommendation without the item, and offer the non-advised execution-only route where the local overlay permits it.",
+            "Where a CDD item is refused, stop the sale outright and refer to the Financial Crime AML Officer for a suspicious-activity assessment; a CDD refusal is not a route to execution-only.",
+            "Obtain the customer's signed acknowledgement that a refusal narrows what may be offered and file it with the profile."
+          ],
+          "done": "each refused item is logged with reason and consequence, and CDD refusals are referred to Financial Crime rather than worked around."
+        },
+        {
+          "step": "Run the pre-recommendation completeness gate",
+          "by": "Distribution Operations Manager",
+          "role": "Distribution Operations Manager",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Trigger the Fact Find completeness validation, which blocks the Recommendation record from being created while any mandatory item for the jurisdiction overlay is empty.",
+            "Check the profile date is on or before today and no more than 90 days old; where older, send it back to the producer for refresh instead of overriding.",
+            "Confirm the risk tier is populated and, for Enhanced, that senior-management onboarding approval is attached.",
+            "Where a gate override is genuinely needed, require a written business reason plus Head of Compliance approval recorded on the Opportunity, and count the override in the monthly conduct metrics.",
+            "Release the Recommendation record only once the gate passes."
+          ],
+          "done": "the recommendation record cannot open until the gate passes, and every override carries a written reason and Head of Compliance approval."
+        },
+        {
+          "step": "Have the customer confirm the profile before it is used",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "DocuSign",
+          "actions": [
+            "Generate the profile summary document from Salesforce FSC and send it for signature through DocuSign to the customer's verified email or postal address.",
+            "Ask the customer to correct anything wrong before signing, and re-issue rather than annotate where a correction is made.",
+            "Capture the DocuSign envelope id, the completion timestamp and the signer IP or authentication method onto the Fact Find record — the timestamp is the evidence that the profile pre-dates the recommendation.",
+            "Give the customer a copy of the signed profile in the same session and record delivery."
+          ],
+          "done": "a customer-signed profile exists with a DocuSign envelope id and a completion timestamp earlier than the recommendation date."
+        },
+        {
+          "step": "Archive the profile and bind it to the application record",
+          "by": "Document Management Specialist",
+          "role": "Document Management Specialist",
+          "app": "document management repository",
+          "actions": [
+            "File the signed profile, identity and source-of-funds documents and the risk-tier decision into the repository indexed by application number, customer identifier, producer NPN and jurisdiction.",
+            "Apply the retention label of 10 years from policy termination so the record survives surrender and death claims.",
+            "Write the repository document id back onto the policy record in the administration system so underwriting and any later complaint handler can retrieve it in one hop.",
+            "Confirm the repository search returns the profile on a search by application number and by producer NPN."
+          ],
+          "done": "the profile set is filed, retention-labelled, cross-linked to the policy record and retrievable by application number and producer."
+        },
+        {
+          "step": "Refresh profiles that go stale on in-force and repeat business",
+          "by": "Distribution Analyst",
+          "role": "Distribution Analyst",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Run the monthly stale-profile report listing customers with an open opportunity, an Enhanced-tier ongoing-monitoring review date now due, or a profile older than 12 months where a further recommendation is planned.",
+            "Issue refresh tasks to the writing producer with a 30-day due date and copy the servicing agency principal.",
+            "Re-run screening on refresh and re-derive the risk tier — a change in residence country or a new PEP status must move the tier before any further sale.",
+            "Report unrefreshed cases past 30 days to the Distribution Operations Manager for producer-level follow-up."
+          ],
+          "done": "stale and monitoring-due profiles are identified monthly, refresh tasks are issued with a 30-day deadline and overdue cases are escalated."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of advised sales made in the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Extract every Opportunity with Advice Basis = Advised and a recommendation date inside the quarter, with customer jurisdiction, product family, producer NPN, risk tier and premium.",
+            "Add applications taken through the bancassurance and broker portals so channels outside the direct sales force cannot fall out of scope.",
+            "Stratify the population by jurisdiction overlay and by risk tier, and record the counts per stratum in the workpaper."
+          ],
+          "done": "a stratified population of advised sales for the quarter exists with counts by jurisdiction and risk tier."
+        },
+        {
+          "step": "Reconcile the population to policies actually issued",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Extract all life and annuity policies issued in the quarter from the administration system and match to the Salesforce FSC population on application number.",
+            "Investigate every issued policy with no matching advised opportunity — these are the sales most likely to carry no profile at all.",
+            "Investigate the reverse direction too: recommendations with no issued policy, to confirm they were declined rather than issued under a different application number.",
+            "Resolve or list every unmatched record before drawing the sample and record the reconciliation in the workpaper."
+          ],
+          "done": "issued policies and advised opportunities are reconciled both ways, with every difference explained or carried as an exception."
+        },
+        {
+          "step": "Draw a documented, reproducible sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of Enhanced-risk-tier sales and 100% of sales to customers resident in FATF grey- or black-listed jurisdictions.",
+            "Take 30 further records at random using a recorded seed, allocated across jurisdictions in proportion to population, with a minimum of 5 per jurisdiction that has any activity.",
+            "Add a judgemental block of sales by producers who appear in the top decile for premium-to-declared-income ratio.",
+            "Record the seed, population size, stratum counts and selection date so the sample can be re-drawn identically."
+          ],
+          "done": "the sample is drawn, reproducible from a recorded seed, and covers all enhanced-tier and high-risk-geography sales."
+        },
+        {
+          "step": "Re-perform the completeness assessment against the jurisdiction overlay",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Open each sampled Fact Find record and, without reading the gate result, work the mandatory item list for that jurisdiction overlay yourself, item by item.",
+            "Score each item present / absent / present-but-unusable (for example net worth entered as a round zero, or objectives entered as a single word).",
+            "Compare your conclusion to the recorded gate pass and treat a gate pass over a blank or unusable mandatory item as an exception.",
+            "Capture the Fact Find screen showing the disputed items into the workpaper."
+          ],
+          "done": "each sampled record has an independent completeness conclusion and a captured screen for every disputed item."
+        },
+        {
+          "step": "Prove the profile pre-dates the recommendation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "DocuSign",
+          "actions": [
+            "Pull the DocuSign envelope completion timestamp for each sampled profile and the recommendation creation timestamp from Salesforce FSC.",
+            "Compute recommendation date minus profile signature date for every sampled record; any negative value is an automatic fail regardless of content quality.",
+            "Compute profile age at application and list every record over the 90-day staleness limit.",
+            "Confirm any record with a negative or over-age result carries the written override reason and Head of Compliance approval the procedure requires."
+          ],
+          "done": "the date arithmetic is recomputed for every sampled record and each back-dated or stale profile is listed with its override status."
+        },
+        {
+          "step": "Re-perform the ML/TF risk tiering",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "app": "NICE Actimize (AML)",
+          "actions": [
+            "For each sampled record, re-score the four ICP 22.3 dimensions from the underlying customer, product, channel and geography data and reach an independent tier.",
+            "Compare to the recorded tier; a tier set lower than your own conclusion is an exception even where the sale itself was unremarkable.",
+            "For Enhanced-tier cases, confirm the source-of-wealth narrative is corroborated by an independent document and that senior-management onboarding approval is attached and dated before issue.",
+            "Re-run screening on the sampled parties against today's list and note any hit that existed at the time of sale but was not dispositioned."
+          ],
+          "done": "each sampled tier is independently re-derived and every under-tiered or uncorroborated enhanced case is listed."
+        },
+        {
+          "step": "Trace the profile to retained evidence and to the identifiers on the policy",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "document management repository",
+          "actions": [
+            "Search the repository by application number for each sampled record and confirm the signed profile, identity documents and source-of-funds evidence are all present.",
+            "Confirm the repository document id is written back onto the policy record and that the retention label reads 10 years from termination.",
+            "Confirm the producer NPN on the profile matches the NPN credited on the policy and on the commission record — a mismatch signals a sale written by someone other than the profile taker.",
+            "List records where evidence exists in Salesforce FSC but was never archived, since those will not survive a regulator request."
+          ],
+          "done": "every sampled profile is located in the repository, correctly labelled, and its producer identifier agrees with the policy and commission records."
+        },
+        {
+          "step": "Test the refusal, vulnerability and override handling",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "Extract all records in the quarter with a logged refusal, a vulnerability indicator or a completeness-gate override and take the whole set where it is under 25, otherwise sample 25.",
+            "Confirm each refusal names the item and the reason and that an advised recommendation did not follow a CDD refusal.",
+            "Confirm each vulnerability indicator has a recorded adjustment and that the sale was not concluded in the same session where extended decision time was recorded as the adjustment.",
+            "Confirm every override carries a written business reason and Head of Compliance approval dated before issue, and count overrides by producer to find repeat users."
+          ],
+          "done": "refusals, vulnerability adjustments and overrides are each verified against the procedure and repeat override users are named."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one GRC issue per exception carrying application number, jurisdiction, producer NPN, the failed item and the customer-harm assessment.",
+            "Assign a root cause from the fixed list — gate overridden, profile back-dated, item unusable, tier under-set, evidence never archived — and name an owner in Distribution.",
+            "Set a remediation date inside 30 days and, where the customer may have been sold an unsuitable contract, open a customer-outcome review including free-look or rescission options.",
+            "Refer any enhanced-tier source-of-funds gap to Financial Crime for a suspicious-activity decision within one business day.",
+            "Carry every open exception into the next quarter as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a root cause from the fixed list, an owner, a 30-day remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Compute the completeness pass rate and compare it to the 98% threshold, and state separately whether any enhanced-tier source-of-funds instance occurred.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — with the workpaper references behind each supporting finding.",
+            "Have the independent reviewer, who sits outside Distribution and gated none of the sampled profiles, sign the workpaper.",
+            "Report the result, the producer-level outliers and any customer-outcome reviews to the Conduct Risk Committee at its next sitting and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, the pass rate against the 98% threshold and a committee reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-013-C66",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Annuity Suitability Analyst",
+          "value": "Runs the second-line suitability desk that approves, queries or declines every advised recommendation before issue; escalates declines overturned by distribution to the Compliance Manager"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — IAIS ICP 19 (Conduct of Business) on fair customer treatment and ICP 22 Standard 22.3 on proportionate risk-based measures, cross-read against the binding local best-interest tests applied by the desk: NAIC Model 275 Section 6.A care, disclosure, conflict-of-interest and documentation obligations, EU IDD Art. 30 suitability assessment, UK FCA Consumer Duty PRIN 2A consumer-outcome rules, Australian Corporations Act Part 7.8A target market determinations"
+        },
+        "In-scope processes": {
+          "value": "Post-fact-find recommendation review for advised life and annuity sales: product-to-need matching, replacement and exchange analysis, cost and surrender-charge assessment, target-market conformity, and the pre-issue approve/query/decline decision"
+        },
+        "In-scope systems": {
+          "app": "workflow/case management tool",
+          "value": "Suitability desk queue holds each case with its scoring sheet, reviewer notes and decision; the recommendation and profile are read from Salesforce FSC and the approval flag is written to the policy administration system as an issue gate"
+        },
+        "Compliance procedure documented": {
+          "value": "Best-Interest Recommendation Review Procedure — the reviewer scoring sheet (need match, horizon match, liquidity, cost, replacement economics, target-market fit, conflict neutrality), the mandatory decline triggers, the query-and-cure loop, and the escalation path for overturned declines"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Compliance Manager and the Chief Risk Officer; the scoring sheet weights and decline triggers are re-approved annually and whenever a new product family, rider or distribution channel is launched"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "No regulator filing — an internal service standard: every case is decided within 2 business days of reaching the desk, and no policy may be issued before an approve decision is recorded; queried cases must be cured within 10 business days or auto-decline"
+        },
+        "Deadline reminders configured": {
+          "value": "Case-management SLA timers at 24 hours and 40 hours of desk age with escalation to the Compliance Manager; queried cases alert the producer at day 5 and auto-decline at day 10 with notice to the agency principal"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Scoring sheet, reviewer rationale, replacement comparison, illustration version reviewed and the dated decision retained 10 years from policy termination, and for the life of any complaint or litigation hold arising from the sale"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Policies issued without a recorded approval, approvals granted despite a mandatory decline trigger, and declines overturned by distribution management are each logged with producer, product, reviewer and outcome"
+        },
+        "Remediation sign-off captured": {
+          "role": "Compliance Manager",
+          "value": "Signs off every overturned decline and every remediation where an issued policy is found unsuitable, including the customer-redress decision"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All advised recommendations decided by the suitability desk in the quarter, joined to policies issued in the quarter so that issued-without-decision cases surface, split by product family, reviewer and producer"
+        },
+        "Pass/fail thresholds": {
+          "value": "At least 95% of sampled approvals must be re-performable to the same decision on the same evidence; zero tolerance on an approval granted over a mandatory decline trigger and on any policy issued with no recorded decision — either fails the quarter outright"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "The obligation applies to every recommendation, so the desk reviews 100% pre-issue and this independent re-performance test runs quarterly, with 100% coverage of replacement sales and of any reviewer whose prior quarter showed an exception"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not be a suitability desk analyst and must not have decided, queried or overturned any sampled case"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly Best-Interest Review test workpaper — population and reconciliation, sample with seed, re-performance scoring sheets, replacement recomputations, exception register — filed in the compliance evidence repository under Conduct/ICP-19-Suitability"
+        },
+        "Regulator-ready documentation": {
+          "value": "Decision log export with reviewer and timestamp, the sampled scoring sheets, replacement cost comparisons and the overturned-decline register, packaged as a market conduct examination or thematic-review response within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager leads examination and thematic responses; Regulatory Counsel clears any response conceding an unsuitable sale, and the Head of Compliance briefs the group-wide supervisor where a pattern crosses jurisdictions"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Receive the case at the desk and confirm it is reviewable",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Take the next case from the suitability queue sorted by desk age and open the linked Salesforce FSC recommendation and Fact Find records.",
+            "Confirm the mandatory pack is attached: signed customer profile, product illustration with its version and run date, application, replacement forms where flagged, and the producer's written rationale.",
+            "Return the case to the producer as Incomplete — not Declined — where any pack item is missing, naming each missing item and starting the 10-business-day cure clock.",
+            "Start the 2-business-day decision SLA timer and record the reviewer name so the case cannot later be decided by the producer's own manager."
+          ],
+          "done": "the case has a complete pack, a named reviewer who is not in the producer's reporting line, and a running decision SLA."
+        },
+        {
+          "step": "Test the recommended product against the recorded need",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Read the demands-and-needs narrative from the Fact Find and write, in your own words on the scoring sheet, what the customer said they were trying to achieve.",
+            "Map each recommended contract feature and rider to a specific stated need — a guaranteed lifetime withdrawal rider must trace to a stated income need, not to a general preference for guarantees.",
+            "Score any feature that maps to no stated need as unjustified and require the producer to either evidence the need or remove the feature.",
+            "Confirm a simpler or cheaper contract in the same product family would not meet the same need, and record why it was rejected."
+          ],
+          "done": "every recommended feature and rider traces to a stated need and the rejection of a simpler alternative is reasoned on the scoring sheet."
+        },
+        {
+          "step": "Test time horizon and liquidity against the surrender-charge schedule",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "actions": [
+            "Read the surrender-charge schedule from the illustration — first-year percentage, duration in years, and the free-withdrawal allowance per year.",
+            "Compare the schedule duration to the customer's stated time horizon and to the earliest date funds may be needed; a horizon shorter than the schedule is a mandatory decline trigger unless the free-withdrawal allowance genuinely covers the stated need.",
+            "Compute premium as a percentage of liquid net worth and compare to the product family's liquidity limit recorded in the procedure.",
+            "Confirm the customer retains an emergency reserve after the premium and record the reserve figure on the scoring sheet."
+          ],
+          "done": "the surrender schedule, horizon, premium-to-liquid-net-worth percentage and remaining emergency reserve are recorded and tested against the stated limits."
+        },
+        {
+          "step": "Test the recommendation against risk tolerance and capacity for loss",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "actions": [
+            "Re-derive the tolerance score from the stored individual questionnaire answers rather than accepting the summary figure.",
+            "Compare the contract's downside profile — index participation caps and floors, subaccount volatility, guarantee strength — to the derived tolerance band and to the stated capacity for loss.",
+            "For variable and indexed contracts, confirm the customer's recorded product experience covers the instrument type or that additional explanation was given and evidenced.",
+            "Record any tolerance-to-product mismatch as a query to the producer with the specific answer that drove it."
+          ],
+          "done": "the tolerance score is re-derived from raw answers and the contract's downside profile sits inside the derived band and the stated capacity for loss."
+        },
+        {
+          "step": "Run the replacement and exchange economics where a contract is being surrendered",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Open the replacement comparison workbook and enter for the existing contract: cash value, surrender charge, remaining charge years, guaranteed rate, living or death benefit rider value, and any bonus subject to recapture.",
+            "Enter the same fields for the proposed contract, including new surrender-charge duration, any premium bonus and its vesting schedule.",
+            "Compute the break-even year — the point at which the proposed contract recovers the surrender charge and lost rider value — and record it on the scoring sheet.",
+            "Decline where the break-even year exceeds the customer's stated horizon, or where a valuable guaranteed benefit is being abandoned without a compensating stated need.",
+            "Confirm the state or local replacement notice and comparison statement were delivered and signed on or before the application date."
+          ],
+          "done": "a computed break-even year, the abandoned guarantees and a signed replacement notice are on file, and the break-even sits inside the customer's stated horizon."
+        },
+        {
+          "step": "Verify the illustration used to sell the contract",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Check the illustration version and run date against the currently approved version list and reject any illustration run on a superseded version.",
+            "Confirm the illustration inputs — age, sex where permitted, premium, rider elections, index allocation — match the application exactly, field by field.",
+            "Confirm non-guaranteed elements are shown alongside guaranteed elements and that no hypothetical rate above the approved maximum was illustrated.",
+            "Confirm the customer-signed illustration copy is on file with the same version identifier as the one reviewed."
+          ],
+          "done": "the illustration is a current approved version, its inputs match the application field by field, and a signed copy with the same version identifier is on file."
+        },
+        {
+          "step": "Confirm the customer sits inside the product's defined target market",
+          "by": "Insurance Product Manager",
+          "role": "Insurance Product Manager",
+          "app": "product roadmap/backlog tool",
+          "actions": [
+            "Open the product's target market statement produced by the product oversight and governance process and read its positive and negative market criteria.",
+            "Test the customer against each criterion — age band, wealth band, objective type, horizon, distribution channel permitted — and record pass or fail per criterion.",
+            "Where the customer falls in a negative target market, decline the recommendation and record the criterion breached; a distribution override is not available.",
+            "Feed every out-of-target sale attempt back to the product committee as distribution feedback, since repeated attempts signal a mis-set target market or a mis-briefed channel."
+          ],
+          "done": "the customer is tested against each target-market criterion with a recorded result, and negative-market cases are declined and fed back to the product committee."
+        },
+        {
+          "step": "Test cost and value, including compensation neutrality",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "billing/commission platform",
+          "actions": [
+            "List the total cost of the recommended contract: mortality and expense charge, administrative fee, rider charges, fund expense ratios and any advisory fee, expressed as an annual percentage.",
+            "Compare that total to the cost of the two nearest alternatives on the approved shelf that would meet the same need and record the comparison.",
+            "Pull the first-year commission percentage payable on the recommendation and on each alternative from the commission platform, and check whether the recommended contract is also the highest-paying option.",
+            "Where the highest-paying option was recommended, require an explicit written justification from the producer and record whether it withstands the cost comparison.",
+            "Record any non-cash incentive, contest qualification or override that could have influenced the recommendation."
+          ],
+          "done": "total annual cost is compared against two alternatives, the commission differential is recorded, and any highest-paying recommendation carries a tested written justification."
+        },
+        {
+          "step": "Check the producer's written rationale actually reasons the choice",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "actions": [
+            "Read the producer's rationale and test it against three questions: does it name the customer's need, does it explain why this contract meets it, and does it explain why the alternatives were rejected.",
+            "Reject template language that would read identically for any customer — a rationale that never mentions this customer's figures is not a rationale.",
+            "Where the rationale contradicts the Fact Find (for example claims a long horizon where the profile records five years), query rather than reconcile it yourself.",
+            "Record the accepted rationale text into the scoring sheet so the decision file stands alone without the producer's system."
+          ],
+          "done": "the rationale names the customer's own figures, reasons the choice and the rejection of alternatives, and is copied into the decision file."
+        },
+        {
+          "step": "Record the approve, query or decline decision",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Set the decision to Approve, Query or Decline with the reviewer name and a timestamp that the case system writes, not one the reviewer types.",
+            "For Approve, record every criterion that passed and any residual concern accepted, so a later reader sees the judgement rather than a tick.",
+            "For Query, list the specific items the producer must supply or correct and set the 10-business-day cure clock with auto-decline at expiry.",
+            "For Decline, name the decline trigger and notify the producer and the agency principal the same day.",
+            "Write the approval flag back to the policy administration system so issue is blocked until it is set."
+          ],
+          "done": "a system-timestamped decision with a named reviewer and reasons exists, and the administration system holds the matching issue gate flag."
+        },
+        {
+          "step": "Work the query-and-cure loop without letting the case drift",
+          "by": "New Business Case Manager",
+          "role": "New Business Case Manager",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Send the query list to the producer through the case system, copying the agency principal, and record the send timestamp.",
+            "Chase at day 5 and warn that auto-decline falls at day 10; a cure supplied after issue is not a cure.",
+            "On receipt, route the cure back to the same reviewer rather than a fresh one, so the second look tests the same concern.",
+            "Where the cure changes the recommendation itself, restart the review from the need-match step rather than approving the amendment in isolation."
+          ],
+          "done": "every query is tracked with send, chase and cure timestamps, routed back to the original reviewer, and auto-declines at day 10 if uncured."
+        },
+        {
+          "step": "Handle a declined case and any attempt to overturn it",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Take every request from distribution management to overturn a decline and require it in writing with the new evidence relied on.",
+            "Re-test the decline trigger yourself against the new evidence; an overturn on the same evidence the reviewer already saw is not permitted.",
+            "Record the overturn decision, the evidence and your name in the GRC platform and count the overturn in the monthly conduct metrics by product and by requesting manager.",
+            "Report any manager with more than two overturn requests in a quarter to the Head of Compliance."
+          ],
+          "done": "every overturn request is written, re-tested against the trigger, logged with the approver's name, and counted by requesting manager."
+        },
+        {
+          "step": "Give the customer the outcome and preserve the cooling-off route",
+          "by": "Life Policy Service Representative",
+          "role": "Life Policy Service Representative",
+          "app": "DocuSign",
+          "actions": [
+            "On approval and issue, send the customer the suitability statement summarising the need, the recommendation and the reason, alongside the contract.",
+            "State the free-look or cooling-off period that applies in the customer's jurisdiction, its length in days and the date it expires, and record that date on the policy record.",
+            "Record the contract delivery date and delivery method, since the free-look clock runs from delivery in most jurisdictions.",
+            "Route any customer objection raised in the free-look window to the Complaints Manager rather than to the writing producer."
+          ],
+          "done": "the customer holds a suitability statement and a dated free-look expiry, and the delivery date is recorded on the policy."
+        },
+        {
+          "step": "Feed reviewer findings back into producer supervision",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "Power BI",
+          "actions": [
+            "Publish the monthly desk dashboard by producer: cases submitted, query rate, decline rate, top three decline triggers and average cure time.",
+            "Place any producer above twice the channel average decline rate onto heightened supervision — 100% pre-issue review plus a coaching session within 15 business days.",
+            "Send the top decline triggers to the Learning & Development Specialist so the next training cycle targets the actual failure modes rather than generic content.",
+            "Report producers who submit repeated out-of-target-market recommendations to the Head of Distribution for channel action."
+          ],
+          "done": "a per-producer desk dashboard is published monthly and outlier producers are on heightened supervision with a dated coaching session."
+        },
+        {
+          "step": "Archive the decision file for the retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the scoring sheet, replacement comparison workbook, illustration reviewed, producer rationale and dated decision into the repository indexed by policy number, producer NPN and reviewer.",
+            "Apply the 10-years-from-termination retention label and mark files under complaint or litigation hold as non-purgeable.",
+            "Confirm retrieval works by policy number, by reviewer and by decline trigger, since exam requests arrive in all three shapes.",
+            "Reconcile the archived file count to the desk decision count each month and chase any decision with no archived file."
+          ],
+          "done": "every decision has an archived, retention-labelled file retrievable by policy, reviewer and decline trigger, reconciled monthly to the decision count."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of recommendations and issued policies",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Extract every suitability desk case decided in the quarter with product family, producer NPN, reviewer, decision, decision timestamp and desk age.",
+            "Extract every life and annuity policy issued in the quarter from the administration system with its application number.",
+            "Join the two on application number and stratify by product family, replacement flag and reviewer."
+          ],
+          "done": "a joined population of desk decisions and issued policies exists, stratified by product family, replacement flag and reviewer."
+        },
+        {
+          "step": "Reconcile issued policies to recorded approvals",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "List every issued policy with no desk decision, with a Query decision, or with a Decline decision — each is an automatic exception with no judgement applied.",
+            "For each, read the issue timestamp against the decision timestamp and list any policy issued before its approval was recorded.",
+            "Check whether the administration system's issue gate flag was set manually rather than written by the case system, since a manual set defeats the control.",
+            "Resolve or list every difference before drawing the sample."
+          ],
+          "done": "every issued policy is matched to a pre-dated approval or listed as an exception, and manually set gate flags are identified."
+        },
+        {
+          "step": "Draw a documented, reproducible sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of replacement and exchange sales and 100% of cases decided by any reviewer who had an exception in the prior quarter.",
+            "Take 30 approvals at random from the remainder using a recorded seed, allocated across product families in proportion to population.",
+            "Add a judgemental block of the ten largest premiums and the ten cases with the shortest desk age, since speed and size both correlate with cursory review.",
+            "Record the seed, stratum counts and selection date in the workpaper."
+          ],
+          "done": "the sample is reproducible from a recorded seed and covers all replacements, repeat-exception reviewers and the largest and fastest cases."
+        },
+        {
+          "step": "Re-perform the best-interest decision on the same evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Work each sampled case from the profile, illustration and application alone, completing a blank scoring sheet before opening the reviewer's sheet.",
+            "Reach your own approve or decline conclusion, then compare; a different conclusion, or the same conclusion reached on a criterion the reviewer never tested, is an exception.",
+            "Test specifically whether any mandatory decline trigger was present and approved over — horizon shorter than the surrender schedule, negative target market, break-even beyond horizon.",
+            "Record your reasoning per criterion so the difference can be discussed on substance rather than on judgement generally."
+          ],
+          "done": "each sampled case carries an independent scoring sheet completed before the reviewer's sheet was opened, with per-criterion reasoning."
+        },
+        {
+          "step": "Recompute the replacement break-even and surrender economics",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Rebuild the break-even calculation independently for every sampled replacement from the source contract statements rather than from the reviewer's workbook.",
+            "Recompute surrender charge, lost rider value, bonus recapture and the new surrender-charge duration, and compare the break-even year to the reviewer's figure.",
+            "Compare the recomputed break-even to the customer's stated horizon and list every case where it exceeds the horizon.",
+            "Check the workbook formulas for hard-coded values overwriting a formula, a common source of favourable break-even results."
+          ],
+          "done": "every sampled replacement has an independently rebuilt break-even, compared to both the reviewer's figure and the customer's horizon."
+        },
+        {
+          "step": "Verify the illustration and application inputs agree",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "For each sampled case, compare the signed illustration's version identifier to the approved version list as it stood on the run date.",
+            "Compare illustration inputs to the application field by field — age, premium, rider elections, index allocation — and list any difference however small.",
+            "Confirm no illustrated non-guaranteed rate exceeds the approved maximum for that product and run date.",
+            "Capture the illustration cover page and the application page into the workpaper for every difference found."
+          ],
+          "done": "illustration version and inputs are checked against the approved list and the application for every sampled case, with captures for each difference."
+        },
+        {
+          "step": "Test target-market conformity and compensation neutrality",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "billing/commission platform",
+          "actions": [
+            "Re-test each sampled customer against the product's target market statement criterion by criterion and list every approval of a negative-market customer.",
+            "Pull the first-year commission actually paid on each sampled sale and on the nearest approved alternatives, and recompute the differential.",
+            "Compute, across the sample, the proportion of approvals landing on the highest-paying available option and compare it to the proportion expected if compensation were neutral.",
+            "List any producer whose sampled recommendations sit exclusively on the highest-paying option for referral to Distribution Compliance."
+          ],
+          "done": "target-market conformity is re-tested per criterion and the highest-paying-option rate is computed for the sample and per producer."
+        },
+        {
+          "step": "Test the query, decline and overturn population in full",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Take 100% of declines and overturns in the quarter rather than a sample, since the control's integrity lives here.",
+            "For each overturn, confirm written new evidence exists, that it is genuinely new, and that the Compliance Manager rather than distribution recorded the decision.",
+            "For each auto-decline at day 10, confirm no policy was subsequently issued on the same application number under a re-submitted case.",
+            "List any case re-submitted to a different reviewer after a decline — reviewer shopping is a control failure even where the second decision is defensible."
+          ],
+          "done": "all declines and overturns are tested, new evidence is verified, and any reviewer shopping or post-decline issue is listed."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and customer-outcome assessment",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a GRC issue per exception with policy number, producer, reviewer, the criterion failed and an assessment of whether the customer is worse off.",
+            "Assign a root cause from the fixed list — decline trigger overridden, break-even miscomputed, target market untested, rationale templated, issued without decision — and an owner.",
+            "Where the customer is worse off, open a redress assessment with Regulatory Counsel covering rescission, fee refund or contract replacement, with a 30-day decision date.",
+            "Carry every open exception into the next quarter as a mandatory retest row and add the responsible reviewer to next quarter's 100% coverage list."
+          ],
+          "done": "every exception has an issue, a fixed-list root cause, an owner, a customer-outcome assessment and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Compute the re-performance agreement rate against the 95% threshold and state separately whether any approval over a mandatory decline trigger or any issue-without-decision occurred.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — with workpaper references behind each finding.",
+            "Have the independent reviewer, who decided none of the sampled cases and does not sit on the suitability desk, sign the workpaper.",
+            "Report the result, the overturn register and any redress assessments to the Conduct Risk Committee and the Board Risk Committee, and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with an agreement rate against the 95% threshold, a stated conclusion and a board committee reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-013-C67",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Producer Compliance Manager",
+          "value": "Owns the pre-solicitation training gate for every producer, broker and bancassurance adviser distributing group products; escalates unqualified-solicitation findings to the Head of Distribution and the Head of Compliance"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — IAIS ICP 19 Standard 19.3 (product oversight and governance, distribution to the identified target market) and Standard 19.8 read against the current ICP text, together with the distributor-competence rules that enforce them locally: NAIC Model 275 Section 7 product-specific and four-hour annuity training, EU IDD Art. 10 and Annex I minimum 15 hours annual professional training, Commission Delegated Regulation 2017/2358 Art. 10 distributor arrangements, FCA SYSC 5.1 and TC competence rules"
+        },
+        "In-scope processes": {
+          "value": "Producer onboarding and ongoing distribution enablement: carrier product training assignment on every product and rider launch or material change, jurisdiction-mandated annuity and suitability training, continuing professional development hours, and the solicitation entitlement gate that switches a producer's ability to quote a given product on or off"
+        },
+        "In-scope systems": {
+          "app": "Cornerstone LMS",
+          "value": "Cornerstone LMS holds the training curricula, completion records and assessment scores; completions feed nightly into the agency/producer management system, which sets the per-product solicitation entitlement used by the quoting portal"
+        },
+        "Compliance procedure documented": {
+          "value": "Distributor Training and Solicitation Entitlement Procedure — curriculum design from the product oversight pack, jurisdiction training matrix, assessment pass mark of 80%, entitlement switch-on and switch-off rules, and the 30-day grace rule for material product changes"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and the Head of Distribution and endorsed by the Product Oversight Committee; the jurisdiction training matrix is re-approved annually and within 30 days of any change to a local producer training requirement"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Training must be completed before the first solicitation of a product — never after; new-product curricula must be published at least 15 business days before launch; material product changes carry a 30-day completion window after which entitlement is withdrawn automatically; jurisdiction CPD hours are tracked against each producer's licence renewal date"
+        },
+        "Deadline reminders configured": {
+          "value": "Cornerstone LMS reminders at 21, 10 and 3 days before a curriculum due date, plus a withdrawal-warning notice on day 25 of a 30-day change window; the agency/producer management system emails agency principals a weekly roster of producers due to lose entitlement"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Course version, completion date and time, assessment score and attempt count, plus the dated entitlement switch record, retained 7 years from the producer's termination of appointment and for the life of any market conduct examination covering the period"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any quote, application or issued policy written by a producer without the product entitlement is logged as an unqualified-solicitation exception with producer, agency, product, jurisdiction, policy count and remediation, including whether affected customers were contacted"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Distribution",
+          "value": "Signs off closure of every unqualified-solicitation exception, including any decision to let affected policies stand, and approves reinstatement of a withdrawn entitlement"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every producer holding a live solicitation entitlement at quarter end, joined to the quarter's quotes, applications and issued policies by producer identifier and product, so that solicitation without entitlement surfaces at transaction level"
+        },
+        "Pass/fail thresholds": {
+          "value": "100% of sampled producers must hold a completed, in-date curriculum for every product they solicited; zero tolerance on an issued policy written without the product entitlement — any single instance fails the quarter and triggers a full-population sweep for that product"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "The gate operates continuously at quote time, so an automated daily entitlement-versus-activity reconciliation runs against the prior day's quotes and this independent test runs quarterly, with 100% coverage of products launched or materially changed during the quarter"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must sit outside Distribution and Learning and Development and must not administer LMS records or entitlement switches"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly Distributor Training test workpaper — entitlement roster, activity join, sample with seed, LMS record traces, exception register — filed in the compliance evidence repository under Conduct/ICP-19-Distribution"
+        },
+        "Regulator-ready documentation": {
+          "value": "Producer training roster by product and jurisdiction with completion dates and assessment scores, the curriculum content pack per product, and the entitlement change log, assembled for a market conduct examination producer-file request within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager answers producer-file and training requests in an examination; the Producer Compliance Manager supplies the underlying LMS and entitlement extracts, and Regulatory Counsel clears any response conceding solicitation without training"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Take the product oversight pack and turn it into a training specification",
+          "by": "Insurance Product Manager",
+          "role": "Insurance Product Manager",
+          "app": "product roadmap/backlog tool",
+          "actions": [
+            "Collect from the Product Oversight Committee the approved pack for the product: target market statement, negative target market, distribution strategy, key risks, charges and rider mechanics.",
+            "Write the training specification listing what a producer must be able to do after training — identify the target market, explain the surrender schedule, describe rider trade-offs, name the disclosures due.",
+            "State the permitted distribution channels and any channel the product must not be sold through, so the curriculum can be assigned by channel.",
+            "Hand the specification to the Instructional Designer at least 25 business days before launch so the course can be built and published 15 business days ahead."
+          ],
+          "done": "an approved training specification with learning outcomes and permitted channels exists and is handed over on the 25-business-day lead time."
+        },
+        {
+          "step": "Build the course and its assessment in the LMS",
+          "by": "Instructional Designer",
+          "role": "Instructional Designer",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Create the course in Cornerstone LMS with a version number tied to the product's approved document set, so a later product change forces a new course version rather than an edit.",
+            "Build the assessment with at least 15 questions covering target market, surrender and withdrawal mechanics, rider trade-offs, replacement rules and mandatory disclosures, with an 80% pass mark and a maximum of three attempts.",
+            "Set the completion record to capture course version, start and completion timestamps, score and attempt count — a bare completion flag will not survive an examination.",
+            "Have the Compliance Analyst review the content against the approved product documents and record the review before publication."
+          ],
+          "done": "a versioned course with a reviewed 15-question assessment, an 80% pass mark and timestamped completion capture is ready to publish."
+        },
+        {
+          "step": "Map the jurisdiction-mandated training on top of the carrier course",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Open the jurisdiction training matrix and, for each jurisdiction the product will be sold in, record the mandated pre-solicitation requirement — for US annuity states the one-time four-hour annuity course plus product-specific training, for EEA the IDD Art. 10 annual hours, for other markets the local competence rule.",
+            "Record which requirements must be satisfied by an approved external provider and which the carrier may deliver itself.",
+            "Create a curriculum per jurisdiction bundling the carrier course, the mandated external course and any refresher, with its own due date rule.",
+            "Flag jurisdictions where the mandated course must be completed before appointment rather than before solicitation, since the gate sits earlier there."
+          ],
+          "done": "each selling jurisdiction has a curriculum bundling carrier and mandated external training, with the correct gate point recorded."
+        },
+        {
+          "step": "Assign curricula to the right producers by channel and appointment",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "agency/producer management system",
+          "actions": [
+            "Extract from the producer management system every producer appointed or contracted for the product's jurisdictions, with channel, agency, licence lines and appointment date.",
+            "Exclude producers in channels the distribution strategy does not permit and record the exclusion so they are not later switched on by default.",
+            "Push the assignment into Cornerstone LMS keyed on the producer identifier used in both systems, and reconcile the assigned count to the extracted count the same day.",
+            "Send agency principals the roster of their assigned producers with the completion due date and the consequence of missing it."
+          ],
+          "done": "every permitted-channel appointed producer holds an LMS assignment, the counts reconcile, and agency principals hold the roster and due date."
+        },
+        {
+          "step": "Verify externally delivered training rather than trusting the certificate",
+          "by": "Producer Licensing Coordinator",
+          "role": "Producer Licensing Coordinator",
+          "app": "NIPR (Producer Licensing)",
+          "actions": [
+            "For US annuity training, query the producer's continuing education transcript through NIPR Gateway or the state CE provider record and confirm the four-hour annuity course sits on the transcript with a completion date.",
+            "Compare the transcript completion date to the certificate the producer supplied and investigate any difference rather than filing both.",
+            "For EEA producers, obtain the home-state register entry or the intermediary's annual training declaration evidencing the 15-hour minimum.",
+            "Record the verification source, date and the verifier's name against the LMS record; a producer-supplied PDF alone is not verification.",
+            "Reject and re-request any certificate without a provider name, course code and completion date."
+          ],
+          "done": "every externally delivered requirement is verified at source with the verification source, date and verifier recorded against the LMS record."
+        },
+        {
+          "step": "Run completions and chase the tail before launch",
+          "by": "Learning & Development Specialist",
+          "role": "Learning & Development Specialist",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Publish the curriculum 15 business days before launch and open the completion dashboard by agency and channel.",
+            "Send the automated reminders at 21, 10 and 3 days before the due date and add a personal chase from the Agency Relations Manager for agencies below 70% completion at day 10.",
+            "Review failed assessment attempts by question to spot content that is failing everyone, and fix the content rather than lowering the pass mark.",
+            "Publish a daily completion percentage to the Head of Distribution in the final week before launch."
+          ],
+          "done": "the curriculum is live 15 business days before launch, reminders and agency-level chases have run, and daily completion reporting is in place."
+        },
+        {
+          "step": "Switch solicitation entitlement on only where the curriculum is complete",
+          "by": "Distribution Operations Manager",
+          "role": "Distribution Operations Manager",
+          "app": "agency/producer management system",
+          "actions": [
+            "Configure the nightly feed so a passed, in-date curriculum plus an active licence and appointment sets the per-product solicitation entitlement to Yes, and nothing else does.",
+            "Confirm the quoting portal reads the entitlement at quote time and returns a hard block, not a warning, when it is No.",
+            "Remove any manual entitlement override capability from agency and sales users, leaving it with the Producer Compliance Manager alone and logged.",
+            "Test the block before launch with a deliberately untrained test producer identifier and record the test result."
+          ],
+          "done": "entitlement is set only by a passed curriculum plus active licence, the portal hard-blocks at quote time, and the block is evidenced by a recorded pre-launch test."
+        },
+        {
+          "step": "Withdraw entitlement automatically when training lapses or a product changes materially",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "agency/producer management system",
+          "actions": [
+            "Set the rule that a licence expiry, appointment termination or lapsed refresher immediately drops the entitlement to No on the next nightly run.",
+            "On a material product change, issue the new course version and open a 30-day completion window; entitlement drops automatically for anyone incomplete on day 31.",
+            "Send a withdrawal-warning notice on day 25 to the producer and the agency principal naming the product and the withdrawal date.",
+            "Record every withdrawal and reinstatement in the entitlement change log with reason, actor and timestamp."
+          ],
+          "done": "lapses and material changes drive automatic withdrawal with a day-25 warning, and every entitlement change is logged with reason and actor."
+        },
+        {
+          "step": "Reconcile yesterday's sales activity against entitlement every day",
+          "by": "Distribution Analyst",
+          "role": "Distribution Analyst",
+          "app": "Power BI",
+          "actions": [
+            "Run the daily reconciliation joining the prior day's quotes, applications and issued policies to the entitlement table on producer identifier and product code.",
+            "List every transaction where entitlement was No or absent at the transaction timestamp — not at today's date, which would hide a later switch-on.",
+            "Route each hit to the Producer Compliance Manager the same morning with producer, agency, product, jurisdiction and premium.",
+            "Track the daily hit count as a control metric and treat a non-zero count on two consecutive days as a control failure rather than a data issue."
+          ],
+          "done": "a daily entitlement-versus-activity reconciliation runs on transaction-time entitlement and every hit is routed the same morning."
+        },
+        {
+          "step": "Investigate and remediate an unqualified solicitation",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Open a GRC issue naming the producer, agency, product, jurisdiction, transaction dates and the number of affected customers.",
+            "Suspend the producer's entitlement across all products pending investigation and notify the agency principal in writing the same day.",
+            "Establish how the transaction passed the gate — portal bypass, manual override, stale entitlement feed, or a paper application routed outside the portal — and fix the route, not just the record.",
+            "Assess customer impact with the Annuity Suitability Analyst and decide whether affected customers must be contacted and offered a free-look extension or rescission.",
+            "Have the Head of Distribution sign the closure and any entitlement reinstatement."
+          ],
+          "done": "each unqualified solicitation has a GRC issue, a suspended entitlement, an identified bypass route, a customer-impact decision and a signed closure."
+        },
+        {
+          "step": "Give distributors the product oversight information they must pass on",
+          "by": "Agency Relations Manager",
+          "role": "Agency Relations Manager",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Publish to the Broker and Agent Portal the target market statement, negative target market, distribution strategy and disclosure pack for each product, with a version and publication date.",
+            "Record each agency's acknowledgement of receipt, since the distributor arrangements rule expects the manufacturer to be able to show what was provided and when.",
+            "Re-issue and re-collect acknowledgements on every material product change, tied to the same 30-day window as the course.",
+            "Chase agencies with no acknowledgement at day 20 and escalate outstanding ones to the Head of Distribution at day 30."
+          ],
+          "done": "every product's oversight pack is published with a version and date and every agency acknowledgement is recorded or escalated."
+        },
+        {
+          "step": "Track continuing professional development hours against licence renewal",
+          "by": "Producer Licensing Coordinator",
+          "role": "Producer Licensing Coordinator",
+          "app": "NIPR (Producer Licensing)",
+          "actions": [
+            "Load each producer's licence renewal date and jurisdiction CPD requirement into the producer management system.",
+            "Query CE transcripts through NIPR Gateway monthly for US producers and compare credited hours to the requirement, including any ethics-hour subcomponent.",
+            "Issue shortfall notices 90 days before renewal listing hours outstanding by category, and copy the agency principal at 45 days.",
+            "Drop entitlement on the day a licence lapses rather than waiting for the renewal outcome."
+          ],
+          "done": "CPD hours are reconciled monthly against each producer's renewal date and shortfall notices are issued at 90 and 45 days."
+        },
+        {
+          "step": "Refresh curricula on a fixed cycle and after conduct findings",
+          "by": "Learning Development Manager",
+          "role": "Learning Development Manager",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Review every product curriculum annually against the current approved product documents and retire any course version referencing withdrawn documents.",
+            "Take the top decline triggers from the suitability desk and the top complaint root causes from the Complaints Manager and build them into the next course version.",
+            "Where a conduct finding names a specific failure mode, issue targeted remedial training to the affected producers with a 15-business-day due date rather than waiting for the annual cycle.",
+            "Record the evidence trail from finding to course change so the improvement loop is demonstrable."
+          ],
+          "done": "curricula are reviewed annually, refreshed from suitability and complaint findings, and remedial training is issued within 15 business days of a conduct finding."
+        },
+        {
+          "step": "Publish the training and entitlement position to governance",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "Power BI",
+          "actions": [
+            "Publish the monthly distribution conduct pack: completion rates by product and agency, entitled producer counts, entitlement withdrawals, unqualified-solicitation count and open remediation.",
+            "Present the pack to the Product Oversight Committee alongside the sales-versus-target-market data, since training and target market fail together.",
+            "Escalate any product where completion is below 90% at launch plus 30 days as a distribution readiness issue.",
+            "Record the committee's decisions and any required distribution restriction in the minutes."
+          ],
+          "done": "a monthly pack with completion, entitlement and unqualified-solicitation metrics is presented and minuted at the Product Oversight Committee."
+        },
+        {
+          "step": "Archive training and entitlement evidence for the retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Export course versions, completion records with scores and attempt counts, external verification records and the entitlement change log into the repository monthly.",
+            "Index by producer identifier, product code, jurisdiction and date so an examiner's producer-file request can be answered without an LMS query.",
+            "Apply the 7-years-from-termination retention label and mark records inside an examination period as non-purgeable.",
+            "Reconcile the archived record count to the LMS completion count each month and chase differences."
+          ],
+          "done": "training and entitlement evidence is archived monthly, indexed by producer and product, retention-labelled and reconciled to LMS counts."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the entitled-producer population and join it to sales activity",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "agency/producer management system",
+          "actions": [
+            "Extract every producer with a live solicitation entitlement at quarter end, by product code, jurisdiction, channel and agency.",
+            "Extract every quote, application and issued policy in the quarter with producer identifier, product code, jurisdiction and transaction timestamp.",
+            "Join the two on producer identifier and product code using entitlement as it stood at the transaction timestamp, not at extract date.",
+            "Record the population counts by product and channel in the workpaper."
+          ],
+          "done": "a joined population of entitlements and transactions exists, evaluated on transaction-time entitlement, with counts recorded by product and channel."
+        },
+        {
+          "step": "Reconcile the entitlement roster to the LMS and licensing source records",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Match every entitled producer to a passed, in-date curriculum record in Cornerstone LMS and list entitlements with no supporting completion.",
+            "Match every entitled producer to an active licence and appointment in the producer management system and list entitlements sitting behind a lapsed licence.",
+            "Compare the LMS assigned count for each product to the appointed-producer count from the previous step and investigate any producer appointed but never assigned.",
+            "Resolve or list every difference before drawing the sample."
+          ],
+          "done": "the entitlement roster is reconciled to LMS completions and to licence status, with every unsupported entitlement listed."
+        },
+        {
+          "step": "Draw a documented, reproducible sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of producers who sold a product launched or materially changed during the quarter, and 100% of producers whose entitlement was manually overridden.",
+            "Take 30 further producers at random from the entitled population using a recorded seed, allocated across channels in proportion to sales volume.",
+            "Add a judgemental block of the ten highest-volume producers, since a training gap there carries the largest customer population.",
+            "Record the seed, stratum counts and selection date so the sample can be re-drawn."
+          ],
+          "done": "the sample is reproducible from a recorded seed and covers all new-product sellers, all manual overrides and the highest-volume producers."
+        },
+        {
+          "step": "Re-perform the training verification at source for each sampled producer",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Open each sampled producer's LMS record and read course version, completion timestamp, assessment score and attempt count for every product they solicited.",
+            "Confirm the course version completed is the version current at the time of the first solicitation, not a superseded one.",
+            "Confirm the score meets the 80% pass mark and that attempts did not exceed three, and list any record showing a pass on a fourth attempt.",
+            "List any producer whose completion timestamp falls after their first quote or application for that product — the ordering is the whole control."
+          ],
+          "done": "each sampled producer's completion is verified for version, score, attempts and, critically, that it pre-dates their first solicitation."
+        },
+        {
+          "step": "Verify externally mandated training independently of the producer's paperwork",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "NIPR (Producer Licensing)",
+          "actions": [
+            "For each sampled US producer, query the CE transcript through NIPR Gateway and confirm the four-hour annuity course is credited with a date before first solicitation.",
+            "For each sampled EEA producer, obtain the register entry or annual training declaration evidencing the minimum annual hours.",
+            "Compare the source record to the certificate held on file and list every difference in provider, course code or completion date.",
+            "Capture the transcript or register screen into the workpaper for each sampled producer."
+          ],
+          "done": "every sampled producer's mandated external training is confirmed at the regulator or register source with a captured screen."
+        },
+        {
+          "step": "Test the entitlement gate by attempting a blocked quote",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Using a controlled test producer identifier with entitlement set to No, attempt to build a quote for each product family in the portal.",
+            "Confirm the portal returns a hard block at the product selection step and does not allow the quote to be saved, printed or emailed.",
+            "Repeat through every alternate route — mobile quoting, agency bulk upload, telephone sales desk and paper application intake — since gates usually leak on the route nobody tests.",
+            "Record the route, the result and a screen capture for each attempt, and raise any route that permitted the quote as a control failure."
+          ],
+          "done": "the block is tested through every sales route with a recorded result and capture, and any permissive route is raised as a control failure."
+        },
+        {
+          "step": "Test the daily reconciliation for completeness rather than trusting its zero",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Power BI",
+          "actions": [
+            "Re-run the quarter's entitlement-versus-activity join yourself from raw extracts and compare your hit count to the daily reconciliation's reported hits.",
+            "Confirm the production reconciliation uses transaction-time entitlement; a join on current entitlement will under-report and must be listed as a design failure.",
+            "Confirm paper and telephone applications enter the reconciliation population, not only portal transactions.",
+            "List any day the reconciliation did not run and confirm the gap was investigated."
+          ],
+          "done": "an independent re-run of the join reconciles to the reported daily hits, with any design or coverage gap in the production reconciliation listed."
+        },
+        {
+          "step": "Trace unqualified-solicitation findings through to customer outcome",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Take 100% of unqualified-solicitation issues raised in the quarter and read each investigation through to closure.",
+            "Confirm the bypass route was identified and fixed, and that the fix was tested rather than asserted.",
+            "Confirm a customer-impact assessment exists for every affected policy and that the free-look or rescission decision was made and communicated where the assessment required it.",
+            "Confirm the Head of Distribution signed each closure and each entitlement reinstatement, and list any reinstatement made before the curriculum was completed."
+          ],
+          "done": "every unqualified-solicitation issue is traced to a fixed bypass route, a customer-impact decision and a signed closure."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a GRC issue per exception naming producer, agency, product, jurisdiction, the number of transactions affected and the customer population involved.",
+            "Assign a root cause from the fixed list — entitlement set without completion, completion after first solicitation, external training unverified, gate bypassed on an alternate route, withdrawal rule not applied — and an owner.",
+            "Set a 30-day remediation date, and where a product-wide gap is indicated, require a full-population sweep of that product before the date.",
+            "Carry every open exception into next quarter as a mandatory retest row and add the affected product to next quarter's 100% coverage list."
+          ],
+          "done": "every exception carries an issue, a fixed-list root cause, an owner, a 30-day remediation date and, where product-wide, a full-population sweep."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "State the sampled completion rate against the 100% requirement and, separately, the number of issued policies written without entitlement.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — with workpaper references behind each finding.",
+            "Have the independent reviewer, who sits outside Distribution and Learning and Development and administers no LMS or entitlement records, sign the workpaper.",
+            "Report the result, the unqualified-solicitation count and any product sweeps to the Product Oversight Committee and the Conduct Risk Committee, and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper stating the completion rate, the unqualified-solicitation count, a conclusion and a committee reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-013-C68",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Distribution Specialist",
+          "value": "The writing producer owns delivery of the full disclosure set at or before the point of sale; the Distribution Operations Manager owns the pre-issue delivery gate and the Marketing Compliance Analyst owns the content of each disclosure document"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — IAIS ICP 19 Standard 19.7 (identify, manage and disclose conflicts of interest including remuneration and ownership links, before or at the point of sale) and Standard 19.8, read alongside the local instruments that specify the documents: EU IDD Art. 17-19 remuneration and conflicts disclosure, Art. 20(5) insurance product information document, PRIIPs Regulation Art. 13 key information document before conclusion, NAIC Model 275 Section 6.A(3) and the Insurance Agent Disclosure for Annuities form, Hong Kong IA important facts statement"
+        },
+        "In-scope processes": {
+          "value": "Point-of-sale disclosure assembly and delivery for advised and non-advised life and annuity sales: producer status and remuneration disclosure, conflicts and ownership-link disclosure, product information document or key information document, illustration, replacement notice, privacy notice and free-look statement — plus the delivery-proof capture that closes the gate"
+        },
+        "In-scope systems": {
+          "app": "DocuSign",
+          "value": "DocuSign envelopes carry the disclosure set and return the signed receipt with a completion timestamp and signer authentication; the envelope id and timestamp are written to Salesforce FSC and the signed pack is archived to the document management repository against the application number"
+        },
+        "Compliance procedure documented": {
+          "value": "Point-of-Sale Disclosure Procedure — the disclosure matrix (document by jurisdiction, product family, channel and advice basis), the timing rule for each document, the delivery-proof standard, the wet-signature and postal fallback, and the escalation for a sale concluded without a receipt"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance with Regulatory Counsel sign-off on the disclosure matrix; the matrix is re-approved annually and within 30 days of any change to a local disclosure instrument or to the group's remuneration structures"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Timing is the obligation: producer status and remuneration disclosure before the customer is bound in any way, conflicts disclosure before or at the point of sale, the product information or key information document in good time before conclusion of the contract, the replacement notice at or before application, and the free-look statement at contract delivery"
+        },
+        "Deadline reminders configured": {
+          "value": "The application cannot be submitted in Salesforce FSC while any matrix-required disclosure lacks a receipt; DocuSign reminders fire at 2 and 5 days on unsigned envelopes and the envelope expires at 14 days, returning the case to the producer rather than issuing without proof"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Signed disclosure pack, the document version delivered, the DocuSign envelope id, completion timestamp and authentication method retained 10 years from policy termination, and for the life of any complaint, ombudsman referral or litigation hold arising from the sale"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Sales issued with a missing disclosure, a superseded document version, or a receipt timestamped after the application date are logged with producer, product, jurisdiction, the specific document and whether the customer was re-served and offered an extended free-look"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs off every late or missing disclosure remediation, including the decision on re-serving the customer, extending the free-look period and whether the case is reportable to the local conduct regulator"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All life and annuity policies issued in the quarter with their application dates, joined to the DocuSign envelope and document-repository records for the disclosure set, split by jurisdiction, channel, advice basis and product family"
+        },
+        "Pass/fail thresholds": {
+          "value": "At least 98% of sampled sales must carry every matrix-required disclosure at the current version with a receipt timestamped on or before the required point; zero tolerance on a missing remuneration or conflicts disclosure and on any key information document delivered after contract conclusion"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "The obligation attaches to every sale, so the delivery gate runs on 100% of applications at submission and this independent test runs quarterly over the quarter's issued policies, with 100% coverage of non-advised digital sales and of any jurisdiction whose disclosure instrument changed in the quarter"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must sit outside Distribution and Marketing and must not have assembled, approved or served any sampled disclosure pack"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly Point-of-Sale Disclosure test workpaper — population and reconciliation, sample with seed, envelope timestamp recomputations, version checks, exception register — filed in the compliance evidence repository under Conduct/ICP-19-Disclosure"
+        },
+        "Regulator-ready documentation": {
+          "value": "Disclosure matrix by jurisdiction with document versions and effective dates, sampled signed packs with envelope timestamps, and the remuneration disclosure text actually served, packaged for a conduct regulator or ombudsman file request within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager owns conduct regulator and ombudsman disclosure requests; Regulatory Counsel clears any response conceding a disclosure was served late, and the Complaints Manager handles individual customer complaints arising from a disclosure failure"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Maintain the disclosure matrix that drives everything downstream",
+          "by": "Marketing Compliance Analyst",
+          "role": "Marketing Compliance Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Maintain one row per jurisdiction, product family, channel and advice basis, listing every document due, its governing instrument, its timing point and the proof standard required.",
+            "Record for each document the current approved version number and effective date, and the date the underlying instrument was last checked.",
+            "Subscribe to the local regulator bulletin feeds for each jurisdiction and open a matrix change request within 5 business days of any instrument change.",
+            "Have Regulatory Counsel sign the matrix and each subsequent amendment before it goes live in the quoting and application systems."
+          ],
+          "done": "a counsel-signed matrix names every required document, its timing point, proof standard and current version for every jurisdiction, product, channel and advice basis."
+        },
+        {
+          "step": "Serve the producer status, remuneration and conflicts disclosure first",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "DocuSign",
+          "actions": [
+            "Before discussing any specific contract, serve the producer status disclosure naming the legal entity, its register or licence number, whether advice is given, and whether the producer represents one insurer, a limited panel or the whole market.",
+            "Serve the remuneration disclosure stating whether the producer is paid by commission, fee, another economic benefit or a combination, and where a fee is charged, the amount or its calculation basis.",
+            "Serve the ownership-link disclosure where the intermediary holds 10% or more of the insurer's voting rights or capital, or the insurer holds the same in the intermediary.",
+            "Disclose any incentive, contest, override or non-cash benefit tied to the volume or mix of business that could bias the recommendation.",
+            "Capture the customer's receipt through DocuSign and record the envelope id and completion timestamp on the Salesforce FSC opportunity before moving to product discussion."
+          ],
+          "done": "status, remuneration, ownership-link and incentive disclosures are served and receipted with a timestamp preceding any product-specific discussion."
+        },
+        {
+          "step": "Assemble the product disclosure pack from the matrix, not from memory",
+          "by": "New Business Case Manager",
+          "role": "New Business Case Manager",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Let the system read jurisdiction, product family, channel and advice basis from the opportunity and generate the required document list from the matrix.",
+            "Pull each document at its current approved version — key information document or product information document, illustration, contract summary, charges schedule, privacy notice, and any jurisdiction-specific important facts statement.",
+            "Stamp every generated document with its version number and generation timestamp in the footer so a later reader can prove what was served.",
+            "Block manual substitution of a document from a producer's own files; only system-generated current versions may enter the pack.",
+            "Record the assembled list on the opportunity as the pack manifest."
+          ],
+          "done": "a system-generated pack manifest lists every matrix-required document at its current stamped version, with no manually substituted files."
+        },
+        {
+          "step": "Deliver the key information or product information document in good time before conclusion",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "DocuSign",
+          "actions": [
+            "Send the key information document or product information document as its own envelope, separate from the application, so its delivery timestamp stands alone.",
+            "Where the customer is not concluding in the same meeting, allow the reflection period the local rule expects and record the elapsed time between delivery and application.",
+            "Where the sale concludes in the same session, record the customer's explicit acknowledgement that the document was provided and read before signing, with the timestamp.",
+            "Never bundle this document inside the application envelope, since that makes it impossible to show it preceded conclusion."
+          ],
+          "done": "the key or product information document has its own receipted envelope with a timestamp demonstrably before contract conclusion."
+        },
+        {
+          "step": "Serve the replacement and exchange notices where an existing contract is affected",
+          "by": "New Business Case Manager",
+          "role": "New Business Case Manager",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Where the Replacement flag is set, generate the jurisdiction's replacement notice and the side-by-side comparison of the existing and proposed contracts.",
+            "Populate the comparison with the surrender charge, lost guaranteed benefits, new surrender-charge duration and the computed break-even year from the suitability review.",
+            "Serve the notice with the application, obtain both the customer's and the producer's signatures, and record the date each signed.",
+            "Where the jurisdiction requires the existing insurer to be notified, generate that notice and record the send date and method."
+          ],
+          "done": "a signed replacement notice and populated comparison exist dated on or before the application, and any existing-insurer notification is sent and dated."
+        },
+        {
+          "step": "Serve the privacy notice and capture the consents the notice relies on",
+          "by": "Data Privacy Steward",
+          "role": "Data Privacy Steward",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Serve the privacy notice covering the categories of personal and health data collected, the purposes, the lawful basis, recipients including reinsurers, cross-border transfers and retention periods.",
+            "Capture separately and affirmatively any consent the processing genuinely relies on — health data for underwriting, marketing contact, automated decision-making — never as a pre-ticked box.",
+            "Record the notice version, the consent scope and the capture timestamp against the customer record so a later withdrawal can be honoured precisely.",
+            "Provide the data subject rights contact details and the supervisory authority the customer may complain to."
+          ],
+          "done": "the privacy notice version is served and each relied-on consent is separately captured with scope and timestamp against the customer record."
+        },
+        {
+          "step": "Read the material terms to the customer where the channel is telephone or digital",
+          "by": "Senior Contact Center Agent",
+          "role": "Senior Contact Center Agent",
+          "app": "Genesys Cloud (Contact Center)",
+          "actions": [
+            "Follow the approved call script that reads out charges, surrender terms, guarantees and exclusions, and obtain a verbal acknowledgement after each block rather than one at the end.",
+            "Confirm the recording is running and tag the call with the application number so the disclosure segment can be retrieved on demand.",
+            "For digital self-service journeys, require an affirmative click-through on each material term screen with the screen version and timestamp logged.",
+            "Post the full written pack immediately after the call or session and record the send timestamp, since a verbal reading does not replace the document."
+          ],
+          "done": "the disclosure segment is scripted, acknowledged block by block, recorded and tagged to the application, and the written pack follows with a send timestamp."
+        },
+        {
+          "step": "Run the pre-submission disclosure gate",
+          "by": "Distribution Operations Manager",
+          "role": "Distribution Operations Manager",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Configure the application submit action to validate every document on the pack manifest against a matching receipt with a timestamp on or before its required point.",
+            "Block submission — not warn — where any document is missing, superseded or receipted late, and name the failing document in the block message.",
+            "Restrict any gate override to the Head of Compliance, require a written reason, and count overrides in the monthly conduct metrics by producer and product.",
+            "Write the gate result and the manifest onto the application record so underwriting inherits the evidence."
+          ],
+          "done": "submission is hard-blocked until every manifest document has an in-time receipt, with overrides restricted, reasoned and counted."
+        },
+        {
+          "step": "Handle wet-signature, postal and interpreter cases without dropping the proof",
+          "by": "Document Management Specialist",
+          "role": "Document Management Specialist",
+          "app": "document management repository",
+          "actions": [
+            "For postal or in-person packs, record the despatch date and method and require the customer's dated signature page returned before submission.",
+            "Scan returned pages the day they arrive, index them to the application number and record the scan date separately from the signature date.",
+            "Where an interpreter or translated pack was used, record the language served, the translation version and the interpreter's name and relationship to the customer.",
+            "Treat an undated customer signature as no proof at all and return the pack for re-execution rather than inferring a date."
+          ],
+          "done": "non-digital packs carry despatch, signature and scan dates, translation details where used, and no undated signature is accepted as proof."
+        },
+        {
+          "step": "Deliver the contract with the free-look statement and start the clock",
+          "by": "Life Policy Service Representative",
+          "role": "Life Policy Service Representative",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Issue the contract with the free-look or cooling-off statement stating the number of days, how to cancel, where to send the cancellation and what will be refunded.",
+            "Record the delivery date and method on the policy record and compute the free-look expiry date from delivery, not from issue.",
+            "Where delivery is electronic, record the customer's prior consent to electronic delivery and the download or open confirmation.",
+            "Set the servicing suppression so no surrender charge or fee can be applied to a cancellation received inside the recorded free-look window."
+          ],
+          "done": "the contract is delivered with a free-look statement, a delivery-dated expiry is on the policy record, and cancellation inside the window is fee-suppressed."
+        },
+        {
+          "step": "Version-control disclosure documents and retire superseded ones hard",
+          "by": "Marketing Compliance Analyst",
+          "role": "Marketing Compliance Analyst",
+          "app": "document management repository",
+          "actions": [
+            "Publish each new document version with an effective date and simultaneously mark the prior version Retired so it cannot be generated from any template.",
+            "Sweep the broker portal, agency shared drives and marketing collateral for retired versions and issue a withdrawal notice to distributors naming the retired version.",
+            "Where a version change is material, decide with Regulatory Counsel whether in-flight applications must be re-served on the new version and record the decision.",
+            "Keep every retired version in the repository with its effective and retirement dates, since exam questions are always about what was current then."
+          ],
+          "done": "each version has effective and retirement dates, retired versions cannot be generated, distributors hold a withdrawal notice, and in-flight treatment is decided and recorded."
+        },
+        {
+          "step": "Archive the served pack and bind it to the policy",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "document management repository",
+          "actions": [
+            "File the signed pack, the manifest, envelope ids, completion timestamps and authentication methods, indexed by policy number, application number, producer identifier and jurisdiction.",
+            "Apply the 10-years-from-termination retention label and mark packs under complaint or litigation hold as non-purgeable.",
+            "Write the repository document id back to the policy record so a complaint handler retrieves the served pack in one hop.",
+            "Reconcile archived pack count to issued policy count monthly and chase any policy with no archived pack."
+          ],
+          "done": "every issued policy has an archived, retention-labelled pack cross-linked to the policy record, reconciled monthly to issued-policy counts."
+        },
+        {
+          "step": "Remediate a late or missing disclosure at customer level",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Open a GRC issue naming the policy, producer, jurisdiction, the missing or late document and the timestamp gap in days.",
+            "Re-serve the correct document version to the customer with a covering explanation and record the new receipt.",
+            "Decide with Regulatory Counsel whether to extend the free-look period from the re-service date and whether the failure is reportable to the local conduct regulator, and record both decisions.",
+            "Where the same document fails across multiple policies, suspend the affected sales route and sweep the full population for that document before reopening it.",
+            "Have the Head of Compliance sign the closure."
+          ],
+          "done": "each failure is re-served, the free-look and reportability decisions are recorded, systemic failures trigger a route suspension and sweep, and closure is signed."
+        },
+        {
+          "step": "Feed disclosure failures into complaint and root-cause analysis",
+          "by": "Complaints Manager",
+          "role": "Complaints Manager",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Tag every complaint whose root cause is a missing, late or misunderstood disclosure with the specific document and jurisdiction.",
+            "Compare the complaint tags to the quarterly test exceptions and report where customers are complaining about documents the test scored as passing — that gap points at content, not delivery.",
+            "Refer recurring comprehension complaints to the Marketing Compliance Analyst for a plain-language redraft and to the Learning & Development Specialist for producer coaching.",
+            "Report disclosure-driven complaint volumes by document and jurisdiction into the monthly conduct pack."
+          ],
+          "done": "disclosure-driven complaints are tagged by document and jurisdiction, compared to test results, and routed to content and training owners."
+        },
+        {
+          "step": "Report the disclosure position to conduct governance",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "Power BI",
+          "actions": [
+            "Publish monthly: gate block counts by document, override counts by producer, late-receipt counts, superseded-version incidents and disclosure-driven complaints, all split by jurisdiction.",
+            "Present the pack to the Conduct Risk Committee with the remediation status of every open systemic failure.",
+            "Escalate any jurisdiction whose matrix has not been re-checked against its governing instrument within 12 months as a compliance risk in its own right.",
+            "Minute the committee's decisions on any distribution restriction or regulator self-report."
+          ],
+          "done": "a monthly disclosure pack by jurisdiction is presented and minuted at the Conduct Risk Committee with open remediation status."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of issued policies and their disclosure records",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Extract every life and annuity policy issued in the quarter with application date, issue date, delivery date, jurisdiction, channel, advice basis and producer identifier.",
+            "Extract the DocuSign envelope records and document-repository pack manifests for the same period keyed on application number.",
+            "Join the two and stratify by jurisdiction, channel, advice basis and replacement flag, recording counts per stratum."
+          ],
+          "done": "a joined, stratified population of issued policies and disclosure records exists with counts recorded per stratum."
+        },
+        {
+          "step": "Reconcile the population to the disclosure matrix requirement set",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For each stratum, derive independently from the matrix the list of documents that should have been served, rather than accepting the system-generated manifest.",
+            "Compare your derived list to the manifest actually generated and list every stratum where the system under-requires a document — a matrix configuration error affects every sale in that stratum.",
+            "List every policy with no pack manifest at all, and every manifest with fewer documents than your derived list.",
+            "Resolve or list every difference before drawing the sample."
+          ],
+          "done": "an independently derived requirement set is reconciled to the generated manifests, with configuration under-requirements listed at stratum level."
+        },
+        {
+          "step": "Draw a documented, reproducible sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of non-advised digital sales and 100% of sales in any jurisdiction whose disclosure instrument or document version changed during the quarter.",
+            "Take 30 further policies at random using a recorded seed, allocated across jurisdictions in proportion to issued volume with a minimum of 5 per active jurisdiction.",
+            "Add a judgemental block of every sale where the gate was overridden and every replacement sale.",
+            "Record the seed, stratum counts and selection date so the sample can be re-drawn."
+          ],
+          "done": "the sample is reproducible from a recorded seed and covers all digital non-advised sales, changed jurisdictions, overrides and replacements."
+        },
+        {
+          "step": "Recompute the delivery timing for every sampled document",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "DocuSign",
+          "actions": [
+            "Pull the envelope completion timestamp for each sampled document and the application, conclusion and delivery timestamps from the policy record.",
+            "Compute, per document, the gap in hours between its receipt and its required timing point from the matrix.",
+            "List every negative gap — remuneration disclosure after product discussion, key information document after conclusion, replacement notice after application — as an automatic exception.",
+            "Confirm the timestamps used are system-generated envelope timestamps and not free-text dates typed by the producer."
+          ],
+          "done": "a per-document timing gap is recomputed for every sampled sale from system timestamps, with every negative gap listed."
+        },
+        {
+          "step": "Verify each served document was the current approved version",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "document management repository",
+          "actions": [
+            "Read the version stamp in the footer of each sampled served document and compare it to the version register's current version as at the service date.",
+            "List every sale served on a version already retired at the service date, and check whether the retirement was communicated to distributors before that date.",
+            "For sales served during a version transition, confirm the in-flight re-service decision recorded by Regulatory Counsel was applied.",
+            "Capture the served document footer and the version register entry into the workpaper for each difference."
+          ],
+          "done": "every sampled document's served version is checked against the register as at the service date, with captures for each superseded-version case."
+        },
+        {
+          "step": "Re-read the remuneration and conflicts disclosure text actually served",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Read the served text for each sampled sale and confirm it states the nature of the remuneration, not merely that remuneration exists.",
+            "Confirm any fee is quantified or its calculation basis given, and that contest, override and non-cash incentive arrangements in force during the quarter are actually named.",
+            "Cross-check the served text against the commission plan documents in force at the sale date to confirm nothing material was omitted.",
+            "Confirm ownership-link disclosure was served for every intermediary meeting the 10% threshold, using the shareholder register rather than the intermediary's assertion."
+          ],
+          "done": "served remuneration and conflicts text is read against the commission plans and shareholder register in force, with every omission listed."
+        },
+        {
+          "step": "Re-perform the disclosure gate against a deliberately incomplete case",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "app": "Salesforce FSC",
+          "actions": [
+            "In the test environment, build applications for each jurisdiction and channel with one matrix-required document deliberately unreceipted and attempt submission.",
+            "Confirm the submit action hard-blocks and names the failing document, and that the block cannot be cleared by any role other than the Head of Compliance.",
+            "Repeat with a receipt timestamped after the required point rather than absent, since a present-but-late receipt is the failure mode a naive gate misses.",
+            "Record the result and a capture for each combination and raise any permissive combination as a control design failure."
+          ],
+          "done": "the gate is re-performed for absent and late receipts across every jurisdiction and channel with recorded results and captures."
+        },
+        {
+          "step": "Test the telephone and digital channel disclosure evidence directly",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "Genesys Cloud (Contact Center)",
+          "actions": [
+            "Retrieve the tagged call recording for each sampled telephone sale and listen to the disclosure segment against the approved script.",
+            "Confirm charges, surrender terms, guarantees and exclusions were each read and separately acknowledged, and note any block read at speed or skipped.",
+            "For digital sales, pull the click-through event log and confirm an affirmative event exists per material term screen with the screen version and timestamp.",
+            "Confirm the written pack followed the call or session and list any case where the recording is missing, untagged or overwritten by retention."
+          ],
+          "done": "every sampled telephone and digital sale has its disclosure evidence listened to or event-logged against the approved script, with gaps listed."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and customer remediation",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a GRC issue per exception naming policy, producer, jurisdiction, the document, the timing gap in days and the customer-harm assessment.",
+            "Assign a root cause from the fixed list — matrix under-configured, version retired late, gate overridden, receipt back-dated, channel evidence missing — and an owner.",
+            "Require re-service to the customer and a free-look extension decision within 30 days, and refer any pattern crossing more than 5% of a jurisdiction's sales to Regulatory Counsel for a self-report assessment.",
+            "Carry every open exception into next quarter as a mandatory retest row and add the affected jurisdiction to next quarter's 100% coverage list."
+          ],
+          "done": "every exception has an issue, a fixed-list root cause, an owner, a re-service and free-look decision, and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Compute the in-time complete-pack rate against the 98% threshold and state separately whether any remuneration or conflicts disclosure was missing and whether any key information document was served after conclusion.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — with workpaper references behind each finding.",
+            "Have the independent reviewer, who sits outside Distribution and Marketing and served no sampled pack, sign the workpaper.",
+            "Report the result, the self-report assessments and open remediation to the Conduct Risk Committee, and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper stating the in-time pack rate against the 98% threshold, the zero-tolerance results, a conclusion and a committee reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-013-C69",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Compliance Manager",
+          "value": "Owns the quarterly sales supervision programme — the surveillance metric set, the risk-based sampling plan, the file reviews and the corrective-action loop back into Distribution — and reports the results into the Conduct Risk Committee"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — IAIS ICP 19 (fair treatment of customers through the product lifecycle) together with ICP 22 Standard 22.3 on applying proportionate, risk-based measures across customers, products, channels and geographies, which is what drives the risk-weighted sampling plan; cross-read against NAIC Model 275 Section 6.C insurer supervision system requirements, EU IDD Art. 25 product oversight monitoring, and FCA SYSC 6.1 compliance monitoring"
+        },
+        "In-scope processes": {
+          "value": "Second-line supervision of the whole advised and non-advised sales process: producer-level surveillance metrics, risk-weighted transaction file review, call and digital journey review, mystery shopping, complaint and lapse root-cause analysis, and the corrective-action and heightened-supervision loop"
+        },
+        "In-scope systems": {
+          "app": "Power BI",
+          "value": "Power BI supervision dashboard reads the sales warehouse for producer metrics; sampled files are reviewed from Salesforce FSC and the document repository, call reviews from the contact centre platform, and findings and corrective actions are tracked in the GRC platform"
+        },
+        "Compliance procedure documented": {
+          "value": "Sales Supervision and Monitoring Programme — the metric definitions and their outlier thresholds, the risk-weighting model that allocates sample across producers and products, the file review scoring sheet, the corrective-action ladder from coaching to termination, and the quarterly reporting pack specification"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and the Chief Risk Officer and noted by the Conduct Risk Committee; metric thresholds and the risk-weighting model are recalibrated annually against the prior year's confirmed findings"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Quarterly cycle with fixed internal dates: population and metrics cut on the 5th business day after quarter end, sample drawn by the 8th, file reviews complete by the 25th, corrective actions issued by the 30th, and the report to the Conduct Risk Committee at its first sitting after month end"
+        },
+        "Deadline reminders configured": {
+          "value": "Case-management milestones fire at each of the five quarterly dates with escalation to the Head of Compliance where a milestone slips by more than 3 business days; corrective actions carry their own 30-day timers with automatic escalation to the Head of Distribution on breach"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Metric extracts, the risk-weighting run, the sample list with its seed, completed review scoring sheets, call review notes, corrective-action records and the quarterly report retained 7 years from the report date and for the life of any examination covering the period"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Each confirmed file-review finding is logged with producer, agency, product, jurisdiction, finding category, customer-harm assessment, corrective action and closure evidence; producers with repeat findings move up the corrective-action ladder automatically"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs the quarterly supervision report and approves every heightened-supervision placement, termination recommendation and customer-redress programme arising from it"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All quotes, applications, issued policies, first-year lapses, surrenders, replacements and complaints in the quarter, by producer, agency, product family and jurisdiction, extracted from the sales warehouse and reconciled to the policy administration system"
+        },
+        "Pass/fail thresholds": {
+          "value": "The programme itself passes only if the full sample was drawn on the approved risk weighting, 100% of drawn files were reviewed within the quarter, and every confirmed finding carries a corrective action closed or on plan; a file-review finding rate above 10% in any product or channel triggers a full-population sweep of that segment"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Sales happen continuously, so surveillance metrics refresh weekly and the supervision cycle itself runs quarterly; this independent verification of the supervision programme is performed by Internal Audit once per quarter over the completed cycle"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Chief Audit Executive",
+          "value": "Verification is owned outside second-line Compliance; the reviewer must not have drawn the sample, reviewed any file or set any corrective action in the cycle under test"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly Supervision Programme verification workpaper — metric re-derivations, sample re-draw, file review re-performance, corrective-action tracing, exception register — filed in the compliance evidence repository under Conduct/ICP-19-Supervision"
+        },
+        "Regulator-ready documentation": {
+          "value": "The quarterly supervision report with its metric appendix, the sampling methodology and seed, the completed review scoring sheets and the corrective-action register, presentable as the insurer's supervision-system evidence in a market conduct examination within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager leads the examination response and supplies the supervision reports; the Chief Audit Executive supplies the independent verification workpapers, and the Head of Compliance briefs the group-wide supervisor where findings cross jurisdictions"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Cut the quarter's sales population and reconcile it before any analysis",
+          "by": "Sales Operations Analyst",
+          "role": "Sales Operations Analyst",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Extract on the 5th business day after quarter end: quotes, applications, issued policies, first-year lapses, surrenders, replacements, free-look cancellations and complaints, each with producer identifier, agency, product code, jurisdiction, premium and dates.",
+            "Reconcile issued-policy counts and premium to the policy administration system's quarterly production report and resolve differences before publishing.",
+            "Confirm every distribution channel is present — direct, agency, broker, bancassurance, digital and telephone — by comparing channel counts to the prior quarter and investigating any channel that disappeared.",
+            "Publish the reconciled dataset with a version stamp so every downstream metric can be traced to one extract."
+          ],
+          "done": "a version-stamped, reconciled sales dataset covering every channel exists by the 5th business day after quarter end."
+        },
+        {
+          "step": "Compute the producer surveillance metrics",
+          "by": "Distribution Analyst",
+          "role": "Distribution Analyst",
+          "app": "Power BI",
+          "actions": [
+            "Compute per producer: replacement rate, first-year lapse rate, free-look cancellation rate, surrender-within-surrender-charge rate, complaints per 1,000 policies, average premium-to-declared-income ratio, and share of sales on the highest-commission product.",
+            "Compute concentration metrics: share of sales to customers over 70, share of single-premium business, and share of business in the top product by commission.",
+            "Compare each producer to their channel and product peer group and compute a z-score per metric rather than judging against a single company-wide number.",
+            "Publish the dashboard with drill-through from the metric to the underlying policy list so a reviewer can see the cases behind a score."
+          ],
+          "done": "per-producer metrics with peer-relative scores and drill-through to underlying policies are published on the supervision dashboard."
+        },
+        {
+          "step": "Run the risk-weighting model and build the sampling plan",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Load the metric z-scores, prior-quarter findings, tenure, complaint history and product mix into the risk-weighting model and produce a risk score per producer.",
+            "Allocate the quarter's review capacity across bands — mandatory full review for the top band, proportionate sampling for the middle, and a random baseline draw across the lowest so no producer has a zero chance of review.",
+            "Overlay the ICP 22.3 risk dimensions so high-risk geographies, high-risk product features and third-party introducer channels are over-sampled regardless of producer score.",
+            "Record the model version, inputs, weights and the resulting allocation in the sampling plan and have the Compliance Manager approve it before drawing."
+          ],
+          "done": "an approved sampling plan exists showing model version, weights, band allocation and the risk overlay, with a non-zero draw probability for every producer."
+        },
+        {
+          "step": "Draw the sample reproducibly and issue the review queue",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Draw the sample by the 8th business day using a recorded seed and record population size, band counts and selection date alongside it.",
+            "Add mandatory categories in full: every replacement sale to a customer over 70, every sale where the suitability gate was overridden, and every policy that lapsed or was surrendered within 12 months.",
+            "Load the drawn cases into the review queue with a reviewer assigned who is independent of the producer's agency and of the original suitability decision.",
+            "Publish the queue with the 25th-business-day completion date and daily burn-down reporting."
+          ],
+          "done": "the sample is drawn from a recorded seed, mandatory categories are included in full, and the queue is loaded with independent reviewers and a completion date."
+        },
+        {
+          "step": "Review each sampled file against the scoring sheet",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Open each case and score the fixed sheet: profile completeness, need-to-product match, horizon and liquidity fit, replacement economics, disclosure timeliness, illustration accuracy, target-market fit and producer training entitlement at the transaction date.",
+            "Score each dimension pass, minor finding or material finding, and write the specific evidence reference — field, document, timestamp — behind every non-pass.",
+            "Assess customer harm separately from control failure, since a paperwork gap and a wrong product need different responses.",
+            "Query the producer through the case system where the file appears incomplete rather than assuming a failure, and record the reply and its date.",
+            "Close each file with a reviewer name and date and route material findings straight to the Compliance Manager rather than holding them to the quarter end."
+          ],
+          "done": "every sampled file has a completed scoring sheet with evidence references behind each non-pass and a separate customer-harm assessment."
+        },
+        {
+          "step": "Review recorded calls and digital journeys behind sampled sales",
+          "by": "Contact Center Supervisor",
+          "role": "Contact Center Supervisor",
+          "app": "Genesys Cloud (Contact Center)",
+          "actions": [
+            "Retrieve the recordings tagged to each sampled telephone sale and score the sales conversation for pressure tactics, guarantee overstatement, understated charges and unaddressed customer objections.",
+            "For digital journeys, replay the event log and check whether material term screens were dwelt on or clicked through in under the reading time the content requires.",
+            "Score the same file dimensions from the call as from the paperwork and report any case where the paperwork passes but the conversation fails — that is the finding that paper-only reviews never catch.",
+            "Escalate any call containing a misrepresentation to the Compliance Manager the same day rather than at the end of the review."
+          ],
+          "done": "every sampled telephone and digital sale is reviewed from the recording or event log, with paperwork-passes-conversation-fails cases reported."
+        },
+        {
+          "step": "Run mystery shopping on the highest-risk channels",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "Commission at least 10 shops per quarter targeted at the channels and products the risk model scored highest, using scripted customer profiles including a vulnerable-customer scenario.",
+            "Score each shop on whether a fact-find was attempted, whether disclosures were offered unprompted, whether charges were stated accurately and whether the target market was respected.",
+            "Debrief findings to the Head of Distribution with the specific producer and agency, and feed the failure modes into the next training cycle.",
+            "Never let a shop conclude in an actual sale, and record the withdrawal point for each shop."
+          ],
+          "done": "at least 10 scored mystery shops covering the highest-risk channels and a vulnerable-customer scenario are completed and debriefed."
+        },
+        {
+          "step": "Run root-cause analysis on lapses, surrenders and complaints",
+          "by": "Consumer Affairs Analyst",
+          "role": "Consumer Affairs Analyst",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Take every first-year lapse, in-charge surrender and free-look cancellation in the quarter and code the reason from the customer contact record — affordability, misunderstanding, better alternative, dissatisfaction with charges, or churn by another producer.",
+            "Cross-tabulate reason codes by producer, product and channel and identify any cell materially above the portfolio average.",
+            "Pull and fully review the files behind any producer or product cell that is an outlier, outside the risk-based sample.",
+            "Compare complaint root causes to file review findings and report where customers complain about something the reviews are not catching."
+          ],
+          "done": "every early lapse, surrender and cancellation is reason-coded and cross-tabulated, with outlier cells fully reviewed outside the sample."
+        },
+        {
+          "step": "Confirm the findings with the producer and their agency before acting",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Send each producer their finding pack with the specific policies, the dimension failed and the evidence reference, and give 10 business days to respond.",
+            "Copy the agency principal and, for broker business, the brokerage's own compliance officer.",
+            "Downgrade or withdraw any finding the producer disproves with evidence, and record the disproving evidence rather than silently deleting the finding.",
+            "Confirm the remaining findings and record the producer's acknowledgement or their disagreement in writing."
+          ],
+          "done": "every finding is put to the producer and agency with evidence, and each is confirmed, downgraded or withdrawn on the record within the 10-day window."
+        },
+        {
+          "step": "Apply the corrective-action ladder",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Map each confirmed finding to the ladder: coaching note for a first minor finding, mandatory remedial training for repeats, heightened supervision with 100% pre-issue review for material findings, and termination recommendation for misrepresentation or repeated material findings.",
+            "Record the action, the owner, the start date and the exit criteria — heightened supervision must state what clean performance ends it, not run indefinitely.",
+            "Issue remedial training assignments through the learning management system with a 15-business-day due date and withdraw solicitation entitlement where they are missed.",
+            "Escalate every termination recommendation to the Head of Distribution and the Head of Compliance jointly with the finding evidence attached."
+          ],
+          "done": "each confirmed finding carries a ladder action with an owner, start date and exit criteria, and terminations are jointly escalated with evidence."
+        },
+        {
+          "step": "Decide and run customer remediation where harm is indicated",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Take every file scored as customer harm and decide the remedy with Regulatory Counsel: free-look extension, rescission with full premium return, charge refund, or contract replacement at no cost.",
+            "Where a producer or product shows a finding rate above 10%, extend the review to the full population for that segment before deciding remedy scope.",
+            "Contact affected customers in writing with a plain explanation, the remedy offered and a response route that does not go through the writing producer.",
+            "Record uptake and residual cases and report the remediation programme to the Conduct Risk Committee until it closes."
+          ],
+          "done": "every harm case has a counsel-agreed remedy, high-finding segments are swept to full population, and affected customers are contacted independently of the producer."
+        },
+        {
+          "step": "Feed the findings back into product oversight and training",
+          "by": "Insurance Product Manager",
+          "role": "Insurance Product Manager",
+          "app": "product roadmap/backlog tool",
+          "actions": [
+            "Present the product-level findings — target-market breaches, feature misunderstandings, early lapse concentration — to the Product Oversight Committee as distribution feedback.",
+            "Decide per product whether to amend the target market statement, restrict a channel, change a feature, or withdraw the product, and record the decision with an owner and date.",
+            "Send the top three failure modes to the Learning Development Manager for the next curriculum version.",
+            "Track each product decision to completion in the product backlog so the loop is visibly closed."
+          ],
+          "done": "product-level findings are presented, a per-product decision with owner and date is recorded, and failure modes are handed to training."
+        },
+        {
+          "step": "Publish the quarterly supervision report",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "Power BI",
+          "actions": [
+            "Write the report by the 30th business day covering population and metrics, sampling methodology and seed, review coverage achieved, finding rates by product, channel and jurisdiction, corrective actions and remediation status.",
+            "Compare finding rates to the prior three quarters so trend, not just level, is visible, and state which segments deteriorated.",
+            "State plainly where coverage was not achieved and why, rather than reporting only the files that were reviewed.",
+            "Have the Head of Compliance sign the report and table it at the next Conduct Risk Committee with the Board Risk Committee receiving the annual roll-up."
+          ],
+          "done": "a signed quarterly report with methodology, coverage achieved, trended finding rates and remediation status is tabled at the Conduct Risk Committee."
+        },
+        {
+          "step": "Recalibrate the metrics and the risk model against confirmed findings",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Once a year, compare each metric's outlier flags to the findings actually confirmed and compute hit rate and false-positive rate per metric.",
+            "Retire metrics that produce no confirmed findings and raise the weight of those that do, recording the evidence for each change.",
+            "Re-baseline peer groups where channel mix has shifted, so a producer is not scored against a peer group they no longer resemble.",
+            "Approve the recalibrated model version and record it in the sampling plan for the next cycle."
+          ],
+          "done": "each metric's hit rate is computed annually, weights are adjusted on that evidence, and a versioned recalibrated model is approved for the next cycle."
+        },
+        {
+          "step": "Archive the cycle evidence for the retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the reconciled extract, metric outputs, sampling plan with model version and seed, completed scoring sheets, call review notes, mystery shop reports, corrective-action records and the signed report.",
+            "Index by quarter, producer identifier, product code and jurisdiction so an examiner's request in any of those shapes can be answered directly.",
+            "Apply the 7-years-from-report-date retention label and mark cycles inside an open examination as non-purgeable.",
+            "Reconcile the archived scoring-sheet count to the drawn sample count and chase any reviewed file with no archived sheet."
+          ],
+          "done": "the full cycle evidence set is archived, indexed four ways, retention-labelled and reconciled to the drawn sample count."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Rebuild the quarter's sales population independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Re-extract quotes, applications, issued policies, lapses, surrenders, replacements and complaints for the quarter from the warehouse without using the Compliance extract.",
+            "Reconcile your counts and premium to the policy administration system production report and to the Compliance dataset, and list every difference.",
+            "Confirm every distribution channel and every writing company is present in the Compliance dataset by comparing entity and channel lists.",
+            "Record your population and the reconciliation in the workpaper before proceeding."
+          ],
+          "done": "an independently rebuilt population is reconciled to both the administration system and the Compliance dataset, with all differences listed."
+        },
+        {
+          "step": "Re-derive the surveillance metrics from source data",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Power BI",
+          "actions": [
+            "Recompute replacement rate, first-year lapse rate, free-look cancellation rate, complaints per 1,000 and the highest-commission-product share for a block of 20 producers directly from transaction data.",
+            "Compare to the published dashboard figures and investigate any difference above a 1 percentage point tolerance.",
+            "Check the metric definitions in the procedure against the dashboard's actual query logic, since a definition that drifted silently will move every producer's score.",
+            "List any producer excluded from the metric set — new joiners, terminated producers, house accounts — and confirm the exclusion is authorised rather than incidental."
+          ],
+          "done": "metrics are recomputed for 20 producers within tolerance, definitions are checked against query logic, and every exclusion is confirmed authorised."
+        },
+        {
+          "step": "Re-draw the sample and prove the plan was followed",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Re-run the risk-weighting model with the recorded version, weights and inputs and confirm the band allocation matches the approved sampling plan.",
+            "Re-draw the sample from the recorded seed and compare, case by case, to the sample actually reviewed.",
+            "List every case added to or removed from the drawn sample after the draw, and obtain the written reason for each — post-draw substitution is the most common way a supervision programme is quietly softened.",
+            "Confirm every mandatory category was taken in full and that no producer had a zero draw probability."
+          ],
+          "done": "the model and draw are reproduced from the recorded version and seed, and every post-draw substitution is listed with its written reason."
+        },
+        {
+          "step": "Re-perform a block of file reviews independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Select 25 reviewed files weighted toward those scored all-pass, since an ineffective review programme shows up as false passes rather than as missed files.",
+            "Score each on a blank sheet before opening the reviewer's sheet, covering the same eight dimensions.",
+            "Compare conclusions dimension by dimension and treat any pass you would have scored a material finding as a review-quality exception attributed to the named reviewer.",
+            "Test whether reviewers scored the entitlement dimension at the transaction date rather than at review date, a common and invisible error."
+          ],
+          "done": "25 files are re-scored blind and every false pass is recorded against the named reviewer as a review-quality exception."
+        },
+        {
+          "step": "Verify review coverage was actually achieved inside the cycle",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Compare drawn cases to completed scoring sheets and list every drawn case never reviewed or reviewed after the 25th-business-day date.",
+            "Check reviewer independence for each completed file — no reviewer inside the producer's agency and none who made the original suitability decision.",
+            "Compute the average review duration per file and flag reviewers whose durations are implausibly short against the scoring sheet's length.",
+            "Confirm the report's stated coverage figure matches the completed count rather than the drawn count."
+          ],
+          "done": "coverage is verified case by case, reviewer independence is checked per file, and the reported coverage figure is proven against completed reviews."
+        },
+        {
+          "step": "Trace confirmed findings through to corrective actions and their exit criteria",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Take every material finding in the cycle and confirm the ladder action applied matches the procedure — no discretionary downgrade without a recorded reason and an approver.",
+            "Confirm each heightened-supervision placement states exit criteria and that anyone exited met them, with the evidence attached.",
+            "Confirm remedial training assignments were completed inside 15 business days and that entitlement was withdrawn where they were not.",
+            "List any finding withdrawn after the producer's response where the disproving evidence is absent from the record."
+          ],
+          "done": "every material finding traces to the correct ladder action with recorded approvals, evidenced exits and completed remedial training."
+        },
+        {
+          "step": "Test the customer remediation actually reached customers",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Take every harm-assessed case and confirm the remedy decided by counsel was executed — trace refunds and rescissions to a payment or endorsement transaction in the administration system.",
+            "Confirm the customer letter was sent, that it did not route responses through the writing producer, and that non-responders were chased at least once.",
+            "Where a segment sweep was triggered by a finding rate above 10%, confirm the sweep covered the full population rather than an enlarged sample.",
+            "List any harm case closed with no remedy and read the recorded justification."
+          ],
+          "done": "every harm case traces to an executed remedy transaction and an independently routed customer letter, and every triggered sweep is confirmed full-population."
+        },
+        {
+          "step": "Test whether supervision output actually changed product and training",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "product roadmap/backlog tool",
+          "actions": [
+            "Take the product-level findings reported in the prior two cycles and trace each to a Product Oversight Committee decision with an owner and date.",
+            "Confirm decisions taken have been implemented — target market amended, channel restricted, feature changed — rather than left open across cycles.",
+            "Trace the top failure modes to the curriculum version that incorporated them and confirm the version was published and assigned.",
+            "List any finding repeated across three consecutive cycles with no product or training change, since that is a broken feedback loop rather than a producer problem."
+          ],
+          "done": "prior-cycle findings are traced to implemented product decisions and published curriculum versions, and repeated unaddressed findings are listed."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a GRC issue per exception naming the cycle, the control step, the reviewer or owner involved and the effect on the reliability of the supervision conclusion.",
+            "Assign a root cause from the fixed list — metric definition drift, post-draw substitution, coverage shortfall, false pass, ladder downgrade without approval, remedy not executed — and an owner in second-line Compliance.",
+            "Set a 30-day remediation date and require the next cycle's sampling plan to carry any recalibration the exception demands.",
+            "Carry every open exception into the next quarter's verification as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a fixed-list root cause, a second-line owner, a 30-day date and a retest commitment in the next cycle."
+        },
+        {
+          "step": "Conclude, sign and report the verification",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "State whether the sample was drawn on the approved risk weighting, the coverage percentage achieved against the 100% requirement, the false-pass rate from the blind re-performance, and whether any product or channel exceeded the 10% finding rate without a sweep.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — with workpaper references behind each finding.",
+            "Have the independent reviewer, who drew no sample, reviewed no file and set no corrective action in the cycle, sign the workpaper.",
+            "Report the conclusion to the Conduct Risk Committee and the Board Audit Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper stating coverage, false-pass rate, sweep compliance, a conclusion and both committee reporting dates exists in the repository."
+        }
+      ]
+    }
+  ]
+}
