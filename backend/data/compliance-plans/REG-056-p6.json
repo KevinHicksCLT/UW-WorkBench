@@ -1,0 +1,2944 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-056-C41",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Owns the monthly and annual settlement reports to FCIC under the SRA; escalation to the Controller for payment disputes"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 2026 SRA Section III(c) & IV(c) (settlement reports and certification), Section IV(d) (records) and Section IV(b)(5)-(6) (payment, netting, 15% simple interest), re-read against the RMA-published 2026 SRA each reinsurance year"
+        },
+        "In-scope processes": {
+          "value": "Monthly and annual settlement reporting to FCIC for all federally reinsured MPCI business: premium/loss data extraction, reconciliation to the general ledger and to eDAS-accepted records, officer certification, submission and remittance by the Company payment date"
+        },
+        "In-scope systems": {
+          "app": "Policy Administration Platform",
+          "value": "Policy Administration Platform (MPCI book of record), eDAS/Data Acceptance System submissions, SAP S/4HANA GL for settlement cash, settlement workpapers in the compliance evidence repository"
+        },
+        "Compliance procedure documented": {
+          "value": "FCIC Settlement Reporting Procedure — monthly close calendar, eDAS-to-ledger reconciliation, netting computation per SRA Section IV(b), certification routing, remittance and 15% interest exposure calculation"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Controller and the Head of Compliance; re-approved each July 1 when the new reinsurance year SRA takes effect"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Monthly settlement report each month per the SRA reporting calendar; annual settlement report by the annual settlement date in the SRA timeline; amounts owed remitted by the Company payment date; corrected data within 3 business days of an FCIC discrepancy notice"
+        },
+        "Deadline reminders configured": {
+          "value": "Regulatory calendar alerts at T-10/T-5/T-1 business days before each monthly settlement due date and the Company payment date, routed to the Regulatory Reporting Analyst and the Controller"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Settlement reports, eDAS acceptance confirmations, certification pages, remittance advices and reconciliations retained at least 3 years after the annual settlement date per SRA Section IV(d) record requirements"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Late settlement reports, unremitted balances accruing 15% simple interest, and FCIC-rejected settlement data are logged with root cause, interest paid and corrective action"
+        },
+        "Remediation sign-off captured": {
+          "role": "Controller",
+          "value": "Controller signs off every late-payment interest computation and every restated settlement report before resubmission to FCIC"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All monthly settlement reports and the annual settlement report submitted to FCIC for the reinsurance year, plus every remittance and netting computation supporting them"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for a missed Company payment date or an uncertified report; settlement-to-GL reconciliation differences above $1,000 unresolved at submission are a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is monthly with an annual settlement; testing runs quarterly over that quarter's monthly reports plus a full-scope annual test after the annual settlement date"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have prepared or certified any settlement report in the tested period"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly FCIC settlement test workpaper (population, reconciliations, re-performed netting, exceptions) filed in the compliance evidence repository under REG-056/C41"
+        },
+        "Regulator-ready documentation": {
+          "value": "Settlement report set with certifications, eDAS confirmations and remittance proofs, producible to an RMA reviewer within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Reporting Manager responds to RMA settlement discrepancy notices within 3 business days; Regulatory Counsel clears any response conceding an underpayment before release"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Stand up the reinsurance-year settlement reporting calendar",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Download the current reinsurance year SRA and its reporting timeline from the RMA website (rma.usda.gov, Policy and Procedure section) and save it to the REG-056 folder.",
+            "In the Internal Regulatory System create one obligation entry per monthly settlement report, one for the annual settlement report, and one per Company payment date, each citing SRA Section III(c) and IV(c).",
+            "Set reminder alerts at T-10, T-5 and T-1 business days addressed to the Regulatory Reporting Analyst, the Controller and the Regulatory Reporting Manager.",
+            "Circulate the calendar to the Controller and Reinsurance Accountant for confirmation of the cash-settlement dates."
+          ],
+          "done": "every monthly and annual settlement due date and payment date for the reinsurance year exists as a tracked obligation with alerts."
+        },
+        {
+          "step": "Extract the month's premium and loss transactions from the book of record",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "In the Policy Administration Platform run the MPCI monthly extract for the settlement month: written premium, premium adjustments, indemnities paid, LAE, and administrative fee transactions by policy, crop, county and fund designation.",
+            "Pull the matching eDAS acceptance file showing which policy and claim records FCIC has accepted through the last weekly transaction cutoff.",
+            "Flag any transaction in the admin extract that has no accepted eDAS counterpart and send the list to the Data Quality Analyst for correction before the settlement cutoff.",
+            "Save both extracts with row counts and dollar totals into the settlement workpaper folder."
+          ],
+          "done": "the monthly extract and the eDAS acceptance file are saved, totalled, and every unmatched transaction is on a correction list."
+        },
+        {
+          "step": "Reconcile settlement data to the general ledger",
+          "by": "Reinsurance Accountant",
+          "role": "Reinsurance Accountant",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "In SAP S/4HANA run the trial balance for the MPCI premium, indemnity and FCIC settlement clearing accounts for the settlement month.",
+            "Tie the admin-system extract totals to the GL balances line by line and document every reconciling item with an aging and an owner.",
+            "Obtain the prior month's FCIC statement of amounts due and confirm the opening balance carried into this month's netting agrees.",
+            "Escalate any unreconciled difference above $1,000 to the Controller before the report is certified."
+          ],
+          "done": "settlement totals tie to the GL with every reconciling item explained and differences above $1,000 cleared or escalated."
+        },
+        {
+          "step": "Compute amounts owed to FCIC and the netting per SRA Section IV(b)",
+          "by": "Reinsurance Accountant",
+          "role": "Reinsurance Accountant",
+          "app": "Microsoft Excel",
+          "actions": [
+            "In the settlement netting workbook compute gross premium due FCIC, risk subsidy, A&O subsidy due the Company, indemnity reimbursements and prior-period adjustments per SRA Section IV(b)(5)-(6).",
+            "Net the amounts to a single settlement figure and identify whether the Company owes FCIC or FCIC owes the Company.",
+            "Where any prior balance to FCIC remains unpaid past its Company payment date, compute 15% simple interest from the payment date to the expected remittance date and add it to the amount due.",
+            "Have the Regulatory Reporting Manager tick the computation against the SRA formula references before it goes to certification."
+          ],
+          "done": "the netted settlement amount, including any 15% simple interest on late balances, is computed, checked and documented."
+        },
+        {
+          "step": "Prepare the monthly settlement report on the FCIC-prescribed format",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Populate the FCIC settlement report format for the month from the reconciled workbook: premium, subsidy, indemnity, fund designations and the netted amount.",
+            "Cross-foot every schedule and agree the report total to the netting workbook to the cent.",
+            "Attach the supporting data files FCIC requires under SRA Section IV(c) so payments can be traced to accepted eDAS records.",
+            "Route the draft to the Regulatory Reporting Manager for review with the reconciliation attached."
+          ],
+          "done": "the settlement report agrees to the netting workbook to the cent and carries its required supporting data."
+        },
+        {
+          "step": "Obtain the accuracy certification from the authorized officer",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "DocuSign",
+          "actions": [
+            "Prepare the certification page stating the report is accurate and complete as required by SRA Section IV(c).",
+            "Send the report, reconciliation and certification to the Controller through DocuSign for signature as the certifying officer.",
+            "Answer any certifying-officer questions in writing and file the exchange with the workpaper.",
+            "File the executed certification in the compliance evidence repository under REG-056/C41 for the settlement month."
+          ],
+          "done": "a signed officer certification for the month's settlement report is on file before submission."
+        },
+        {
+          "step": "Submit the settlement report and data to FCIC/RMA",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Log in to the RMA applications portal with your eAuthentication/Login.gov credential and open the reporting function designated for AIP settlement submissions.",
+            "Upload the certified settlement report and supporting data files, confirming the file naming and format required by Appendix III/M13 conventions.",
+            "Capture the on-screen submission confirmation with date-time stamp and save it as <yyyy-mm>-settlement-confirmation.pdf.",
+            "Record the submission date against the obligation in the Internal Regulatory System to close the deadline."
+          ],
+          "done": "the certified report is submitted with a dated confirmation saved and the tracker obligation closed on time."
+        },
+        {
+          "step": "Remit the net amount owed by the Company payment date",
+          "by": "Treasury Analyst",
+          "role": "Treasury Analyst",
+          "actions": [
+            "Pull the netted settlement amount and the Company payment date from the Reinsurance Accountant's certified workbook.",
+            "Initiate the wire/ACH to the FCIC account per the SRA payment instructions with value date no later than the Company payment date.",
+            "Send the payment confirmation to the Reinsurance Accountant and Regulatory Reporting Manager the same day.",
+            "If payment will miss the date for any reason, notify the Controller immediately so the 15% simple interest accrual is booked and disclosed."
+          ],
+          "done": "the remittance settles by the Company payment date, or the interest accrual is booked and escalated the same day."
+        },
+        {
+          "step": "Accept and verify netted amounts due from FCIC",
+          "by": "Reinsurance Accountant",
+          "role": "Reinsurance Accountant",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "Match each FCIC receipt (A&O subsidy, indemnity reimbursement) to the expected amount in the netting workbook.",
+            "Post the cash application in SAP S/4HANA to the FCIC settlement clearing account and clear the open item.",
+            "Investigate any difference between expected and received amounts and raise it with RMA within 3 business days.",
+            "File the receipt evidence with the month's settlement workpaper."
+          ],
+          "done": "all FCIC receipts are matched, posted and any difference is queried with RMA within 3 business days."
+        },
+        {
+          "step": "Respond to FCIC discrepancy notices within 3 business days",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log every FCIC/RMA settlement discrepancy notice in the regulatory filing/issue tracker on the day received with the response due date computed at 3 business days.",
+            "Assign the Regulatory Reporting Analyst to re-run the affected reconciliation and identify whether the error sits in the report, the eDAS data or FCIC's records.",
+            "Send the correction or supporting evidence back through the RMA portal before the due date and save the transmission confirmation.",
+            "Have Regulatory Counsel review any response that concedes an underpayment before it is sent."
+          ],
+          "done": "every discrepancy notice is logged, answered within 3 business days, and the response evidence is filed."
+        },
+        {
+          "step": "Prepare and submit the annual settlement report",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Roll the twelve monthly settlement workbooks into the annual settlement schedule and reconcile the cumulative totals to eDAS-accepted records for the reinsurance year.",
+            "Confirm all data rejects were corrected before the annual settlement date, since uncorrected records risk denial of reinsurance on those policies.",
+            "Route the annual report through the same certification path (Controller signature via DocuSign) and submit it via the RMA portal by the annual settlement date.",
+            "Save the confirmation and close the annual obligation in the Internal Regulatory System."
+          ],
+          "done": "the certified annual settlement report is submitted by the annual settlement date with confirmation filed."
+        },
+        {
+          "step": "Book and disclose any late-payment interest",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "For every balance paid after its Company payment date, verify the 15% simple interest computation day count from payment date to settlement date.",
+            "Post the interest expense to the designated GL account and include it in the next settlement remittance to FCIC.",
+            "Record the event in the exception log with root cause (data, cash, or process) and the prevention action.",
+            "Report interest paid year-to-date to the Head of Compliance quarterly."
+          ],
+          "done": "all late-payment interest is correctly computed, paid, booked and logged with root cause."
+        },
+        {
+          "step": "Archive the settlement evidence set for the retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move the month's report, certification, confirmations, reconciliations and payment proofs into the compliance evidence repository under REG-056/C41/<reinsurance year>/<month>.",
+            "Apply the retention rule of not less than 3 years after the annual settlement date per SRA Section IV(d).",
+            "Verify the folder is complete against the settlement evidence checklist and mark it locked.",
+            "Confirm to the Regulatory Reporting Manager that the archive is closed for the month."
+          ],
+          "done": "a complete, locked evidence folder exists for the month with the SRA retention rule applied."
+        },
+        {
+          "step": "Run the monthly close review with Compliance",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Walk the Compliance Manager through the month's submission: due date vs actual, netting result, discrepancies open, interest incurred.",
+            "Review the correction list from the eDAS match and confirm items were fixed before the settlement cutoff.",
+            "Agree any process changes needed and enter them in the regulatory filing/issue tracker with owners and dates.",
+            "Minute the review and file it with the month's workpaper."
+          ],
+          "done": "the monthly review is held, minuted, and all agreed actions are tracked with owners."
+        },
+        {
+          "step": "Refresh the procedure at the July 1 reinsurance year turn",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Diff the new reinsurance year SRA against the prior year for changes to Sections III(c), IV(b), IV(c) and IV(d) and the settlement timeline.",
+            "Update the FCIC Settlement Reporting Procedure, the netting workbook formulas and the calendar entries for any changed dates or rates.",
+            "Obtain re-approval from the Controller and Head of Compliance and record the approval date.",
+            "Brief the Regulatory Reporting and Reinsurance Accounting teams on the changes before the first monthly report of the new year."
+          ],
+          "done": "the procedure, workbook and calendar reflect the new SRA and re-approval is documented before the first submission."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Define the test scope and period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Set the test period to the quarter under review plus the annual settlement if it fell in the period.",
+            "List the control assertions: on-time certified submission, accurate netting, on-time remittance, 3-business-day discrepancy responses, retention.",
+            "Confirm the reviewer prepared or certified none of the tested reports.",
+            "Open the test workpaper in the compliance evidence repository under REG-056/C41."
+          ],
+          "done": "a scoped test plan with assertions and an independence confirmation is on file."
+        },
+        {
+          "step": "Build the population of settlement submissions",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Export from the Internal Regulatory System every settlement obligation due in the period with due date, submission date and status.",
+            "Independently list expected reports from the SRA reporting calendar (one per month plus annual) and compare — any expected report missing from the tracker is an immediate finding.",
+            "Record population counts and totals in the workpaper."
+          ],
+          "done": "the population reconciles to the SRA calendar with any gap logged as a finding."
+        },
+        {
+          "step": "Reconcile the population to the source of record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "Agree each report's premium and indemnity totals to the Policy Administration Platform extract and to the SAP S/4HANA settlement clearing accounts.",
+            "Verify the eDAS acceptance file totals used in each month tie to the reported figures.",
+            "Document any unreconciled difference above $1,000 as an exception."
+          ],
+          "done": "every sampled report ties to admin, GL and eDAS sources within the $1,000 threshold."
+        },
+        {
+          "step": "Select the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Test 100% of monthly reports in the quarter (three) and the annual report if in period.",
+            "Within each report, judgmentally select the largest netting components plus any month with a discrepancy notice.",
+            "Document the selection rationale in the workpaper."
+          ],
+          "done": "the sample and rationale are documented with full coverage of submitted reports."
+        },
+        {
+          "step": "Re-perform the netting and interest computations",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Independently rebuild the SRA Section IV(b) netting for each sampled month from the raw extracts, without reference to the preparer's workbook.",
+            "Recompute any 15% simple interest charge using actual day counts from the Company payment date to the value date on the payment confirmation.",
+            "Compare to the submitted figures and log any difference over $100 as an exception."
+          ],
+          "done": "re-performed netting and interest agree with submissions within $100 or exceptions are logged."
+        },
+        {
+          "step": "Verify timeliness against the Company payment dates",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled month compare the portal submission timestamp to the calendar due date and the wire value date to the Company payment date.",
+            "For each discrepancy notice in the period, count business days from receipt to response and test against the 3-business-day standard.",
+            "Log every late event with days late and whether interest was booked."
+          ],
+          "done": "every submission, payment and discrepancy response is dated and tested against its deadline."
+        },
+        {
+          "step": "Trace certifications and approvals",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Open each sampled month's evidence folder and confirm a Controller-signed certification predates the submission timestamp.",
+            "Verify the DocuSign envelope audit trail shows the signer and date.",
+            "Confirm the archive folder is complete and locked with the 3-year retention rule applied."
+          ],
+          "done": "every sampled submission has a pre-dated signed certification and a complete locked archive."
+        },
+        {
+          "step": "Log exceptions with root cause and owner",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Enter each exception in the regulatory filing/issue tracker with severity, root cause category (data, cash, certification, timeliness) and a named remediation owner.",
+            "Agree remediation dates with the Regulatory Reporting Manager.",
+            "Flag any missed Company payment date for immediate escalation to the Controller and Head of Compliance."
+          ],
+          "done": "all exceptions are logged with root cause, owner and date, and payment misses are escalated."
+        },
+        {
+          "step": "Retest prior-period remediations",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull last quarter's open exceptions from the tracker.",
+            "Re-perform the fixed control on a post-remediation month to confirm the fix held.",
+            "Close verified items and re-age any repeat failures as escalated findings."
+          ],
+          "done": "each prior exception is retested and either closed with evidence or escalated as a repeat."
+        },
+        {
+          "step": "Conclude and obtain independent sign-off",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Review the full workpaper and exception log prepared by the Internal Auditor.",
+            "State a written conclusion: settlement reporting compliant / compliant with exceptions / non-compliant, referencing the zero-tolerance payment threshold.",
+            "Sign the workpaper and file it in the compliance evidence repository; report the conclusion to the Head of Compliance and Controller."
+          ],
+          "done": "a signed, dated conclusion on REG-056-C41 is filed and reported to management."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-056-C42",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "value": "Owns the quarterly crop claims-conduct metric pack measured against LASH and SRA standards; escalation to the Chief Claims Officer"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 7 CFR 457.8 section 14 (claim for indemnity requirements), 2026 SRA Section IV(f) and III(a)(4), and the current RMA Loss Adjustment Standards Handbook (LASH), re-checked each crop year for RMA handbook reissues"
+        },
+        "In-scope processes": {
+          "value": "MPCI claim intake through payment: notice-of-loss timeliness, claim form completeness per section 14, loss adjustment per LASH, eDAS claim-record acceptance rates, and April 1 / 45-day corrective deadlines from RMA reviews"
+        },
+        "In-scope systems": {
+          "app": "Guidewire ClaimCenter",
+          "value": "Guidewire ClaimCenter for claim lifecycle data, eDAS reject statistics from the weekly transaction cutoff files, Power BI conduct dashboard"
+        },
+        "Compliance procedure documented": {
+          "value": "Crop Conduct Metrics Procedure — metric definitions (claim cycle time, LASH deviation rate, eDAS reject rate, resubmission timeliness), data lineage, benchmark sources and escalation thresholds"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Claims Officer and Head of Compliance; benchmarks re-baselined annually after RMA publishes updated handbooks"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Quarterly metric pack due 20 business days after quarter end; weekly eDAS transaction cutoff monitored every week; RMA corrective responses within 45 days; Plan of Operations conduct attestations by April 1"
+        },
+        "Deadline reminders configured": {
+          "value": "Internal Regulatory System alerts for each quarterly pack date, weekly cutoff check every Monday, and 45-day countdowns opened on receipt of any RMA finding"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Quarterly metric packs, source extracts and escalation minutes retained at least 3 years after the reinsurance year's annual settlement date per SRA record requirements"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any metric breaching threshold (e.g. eDAS reject rate above tolerance, claims paid off non-conforming forms) is logged with root cause, owner and disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Claims Officer",
+          "value": "Chief Claims Officer signs off closure of every claims-conduct metric breach before it is marked resolved"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All quarterly conduct metric packs for the year plus the underlying MPCI claim population and weekly eDAS reject files used to compute them"
+        },
+        "Pass/fail thresholds": {
+          "value": "Metric pack produced within 20 business days each quarter; recomputed metric values within 2% of reported; any threshold breach without a logged escalation is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is quarterly monitoring; testing is semi-annual over the two most recent packs and their source data"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must be outside Claims and outside the team producing the metric pack"
+        },
+        "Evidence location for test results": {
+          "value": "Semi-annual conduct-metric test workpaper in the compliance evidence repository under REG-056/C42"
+        },
+        "Regulator-ready documentation": {
+          "value": "Four quarters of metric packs with escalation trails, producible to an RMA national program operations review within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager fronts RMA questions on conduct metrics; Regulatory Counsel reviews responses referencing open breaches"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Define the conduct metric set and benchmarks for the crop year",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "List the metrics: claim cycle time from notice of loss to payment, % of claims on FCIC-conforming Company forms per section 14, LASH quality-review deviation rate, eDAS claim-record reject rate, and % of rejects corrected by the next weekly transaction cutoff.",
+            "Pull the benchmark values from the current LASH, SRA Section IV(f) and the Plan of Operations quality commitments, recording the source paragraph for each.",
+            "Set amber and red thresholds for each metric and the escalation route for a red breach.",
+            "Have the Chief Claims Officer approve the metric definitions and thresholds in writing."
+          ],
+          "done": "an approved metric catalogue exists with a cited regulatory source and thresholds for every metric."
+        },
+        {
+          "step": "Build the quarterly claims data extract",
+          "by": "Data Analyst",
+          "role": "Data Analyst",
+          "app": "Guidewire ClaimCenter",
+          "actions": [
+            "In Guidewire ClaimCenter run the quarterly MPCI claim extract: claim number, crop, county, notice-of-loss date, claim form receipt date, form version, adjuster, final adjustment date and payment date.",
+            "Join the extract to the eDAS acceptance/reject files for the quarter's weekly cutoffs, keyed on policy and claim identifiers.",
+            "Validate row counts against the ClaimCenter closed-claim report and document the tie-out.",
+            "Deliver the validated dataset to the Compliance Analyst with the extract log."
+          ],
+          "done": "a validated quarterly dataset joining claim lifecycle and eDAS acceptance data is delivered with tie-outs."
+        },
+        {
+          "step": "Compute the metrics and refresh the dashboard",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Power BI",
+          "actions": [
+            "Load the quarterly dataset into the Power BI conduct dashboard and refresh each metric card.",
+            "Compute claim cycle-time percentiles, the % of indemnities paid on conforming forms, LASH deviation rate from the QA review file, and the eDAS reject and correction-timeliness rates.",
+            "Compare each metric to its amber/red thresholds and to the prior four quarters' trend.",
+            "Export the metric pack to PDF and file it in the compliance evidence repository under REG-056/C42."
+          ],
+          "done": "the quarterly pack is computed, trended, threshold-rated and filed within 20 business days of quarter end."
+        },
+        {
+          "step": "Verify claim forms meet FCIC standards before counting them compliant",
+          "by": "Claims Quality Assurance / Training Manager",
+          "role": "Claims Quality Assurance / Training Manager",
+          "actions": [
+            "Sample 25 paid claims from the quarter and open each claim file's indemnity claim form.",
+            "Check the form is the Company form meeting FCIC standards and contains all information necessary to pay the indemnity per 7 CFR 457.8 section 14: insured signature, crop/unit, cause and date of loss, production evidence and adjuster certification.",
+            "Score each file against the LASH loss-adjustment steps for that crop and record deviations.",
+            "Feed the deviation rate into the metric pack and route individual failures to the Claims Director / Manager for correction."
+          ],
+          "done": "the quarterly form-conformity and LASH deviation rates rest on a documented 25-claim review."
+        },
+        {
+          "step": "Monitor weekly eDAS cutoff performance",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "actions": [
+            "Every Monday pull the prior week's eDAS submission results and count records accepted, rejected, and rejects outstanding beyond one weekly transaction cutoff.",
+            "Trace each aged reject to its owning processor and confirm the corrected record is queued no later than the transaction cutoff date for the current week.",
+            "Log weekly counts into the conduct metric dataset.",
+            "Escalate any reject aged past two cutoffs to the Market Conduct / Consumer Compliance Manager."
+          ],
+          "done": "weekly eDAS acceptance and reject-aging counts are logged and aged rejects are escalated."
+        },
+        {
+          "step": "Hold the quarterly conduct review meeting",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "Present the metric pack to the Chief Claims Officer, Claims Director / Manager and Head of Compliance within 25 business days of quarter end.",
+            "Walk every amber and red metric with its trend and proposed action.",
+            "Agree owners and dates for each action and record them in the regulatory filing/issue tracker.",
+            "Minute the meeting and file the minutes with the pack."
+          ],
+          "done": "the quarterly review is held, minuted, and every threshold breach has an owned action."
+        },
+        {
+          "step": "Log and manage metric breaches to closure",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Open a tracker item for every red metric with the metric value, threshold, affected process and root cause hypothesis.",
+            "Track remediation tasks weekly and update status until the metric returns under threshold for a full quarter.",
+            "Obtain Chief Claims Officer sign-off before closing any claims-conduct breach.",
+            "Summarize open breaches monthly for the Head of Compliance."
+          ],
+          "done": "every breach is tracked from open to signed-off closure with a sustained-recovery check."
+        },
+        {
+          "step": "Reconcile metric results to RMA-visible data",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Quarterly, compare internal claim counts and indemnity totals to the RMA Summary of Business figures published for the Company on rma.usda.gov.",
+            "Investigate any variance above 2% — it usually signals unaccepted eDAS records that will distort both metrics and settlement.",
+            "Document the comparison and variance explanations in the metric pack appendix.",
+            "Send unresolved variances to the Data Quality Analyst as correction items."
+          ],
+          "done": "internal metrics reconcile to RMA-published Summary of Business data within 2% or variances are actioned."
+        },
+        {
+          "step": "Track April 1 and 45-day regulatory deadlines tied to conduct",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Maintain obligations for the April 1 Plan of Operations submission (which carries the quality/conduct commitments) and open a 45-day countdown for every RMA review finding on claims conduct.",
+            "Verify each corrective response is submitted within 45 days of FCIC notification and attach the proof to the obligation.",
+            "Report deadline status in every quarterly pack."
+          ],
+          "done": "all April 1 and 45-day conduct-related deadlines are tracked with submission proof attached."
+        },
+        {
+          "step": "Refresh benchmarks on RMA handbook changes",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "Watch RMA bulletins and handbook reissues (LASH, crop handbooks) each quarter via the RMA website publications page.",
+            "Diff changed loss-adjustment standards against the metric definitions and update thresholds where standards moved.",
+            "Version the metric catalogue and note the effective crop year.",
+            "Brief claims QA staff on changed standards before the next review cycle."
+          ],
+          "done": "metric definitions track the current LASH edition with a versioned, briefed catalogue."
+        },
+        {
+          "step": "Feed conduct results into adjuster training",
+          "by": "Claims Quality Assurance / Training Manager",
+          "role": "Claims Quality Assurance / Training Manager",
+          "app": "learning management system",
+          "actions": [
+            "Translate recurring LASH deviations from the quarterly review into targeted training modules in the learning management system.",
+            "Assign the modules to the adjusters whose files drove the deviations and set a 30-day completion window.",
+            "Report completion rates in the next quarterly pack.",
+            "Retest trained adjusters' files the following quarter to confirm the deviation rate fell."
+          ],
+          "done": "deviation-driven training is assigned, completed within 30 days and its effect is measured next quarter."
+        },
+        {
+          "step": "Verify claims are processed only on complete claims for indemnity",
+          "by": "Claims Examiner",
+          "role": "Claims Examiner",
+          "app": "Guidewire ClaimCenter",
+          "actions": [
+            "Configure the ClaimCenter payment gate so an indemnity cannot issue without the completed Company claim form, production evidence and adjuster certification attached.",
+            "Route any incomplete claim back to the Claims Adjuster with the missing section 14 elements listed.",
+            "Record gate overrides with approver name — overrides feed the conduct metrics.",
+            "Sample the override log monthly and challenge any override without documented justification."
+          ],
+          "done": "the payment gate enforces section 14 completeness and every override is logged and reviewed."
+        },
+        {
+          "step": "Archive the quarterly evidence set",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the pack, source extracts, review minutes, breach tracker export and reconciliation appendix under REG-056/C42/<year>/<quarter>.",
+            "Apply the 3-years-after-annual-settlement retention rule.",
+            "Verify completeness against the metric-pack evidence checklist and lock the folder."
+          ],
+          "done": "a complete, locked quarterly evidence folder exists under the retention rule."
+        },
+        {
+          "step": "Report annually to governance",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Compile the four quarterly packs into an annual conduct summary with trends against benchmarks and all breach closures.",
+            "Present it to the compliance committee before the April 1 Plan of Operations submission so conduct commitments are informed by results.",
+            "Record committee challenge and decisions in the minutes.",
+            "File the annual summary in the compliance evidence repository."
+          ],
+          "done": "an annual conduct summary is presented to governance before April 1 and filed with minutes."
+        },
+        {
+          "step": "Confirm procedure and metric ownership annually",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Re-approve the Crop Conduct Metrics Procedure each crop year, updating owners, data lineage and thresholds.",
+            "Verify each metric still has a named accountable owner and a working data feed.",
+            "Record the approval date and next review date in the procedure header."
+          ],
+          "done": "the procedure carries a current-year approval with confirmed owners and feeds."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Scope the semi-annual test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Select the two most recent quarterly metric packs and their source datasets.",
+            "List assertions: pack timeliness, metric accuracy, threshold escalation, breach closure sign-off, benchmark currency.",
+            "Confirm independence from Claims and from the pack producers.",
+            "Open the workpaper under REG-056/C42."
+          ],
+          "done": "a scoped, independent test plan covering two quarters is documented."
+        },
+        {
+          "step": "Build and reconcile the claim population",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Guidewire ClaimCenter",
+          "actions": [
+            "Independently extract the closed MPCI claims for each tested quarter from Guidewire ClaimCenter.",
+            "Reconcile the count and indemnity total to the dataset used for the pack and to the RMA Summary of Business figures.",
+            "Log any variance above 2% as an exception."
+          ],
+          "done": "the test population reconciles to the pack dataset and RMA-published data within 2%."
+        },
+        {
+          "step": "Draw a documented sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Randomly select 25 claims per quarter, oversampling large indemnities and claims that appeared in the eDAS reject file.",
+            "Record the selection seed and method in the workpaper.",
+            "Pull the full claim file for each sampled claim from the claim file/document repository."
+          ],
+          "done": "a reproducible 25-claim-per-quarter sample with files retrieved is documented."
+        },
+        {
+          "step": "Re-perform the form-conformity judgement",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled claim, independently assess the claim form against 7 CFR 457.8 section 14 and the applicable LASH steps, without reference to QA's scoring.",
+            "Compare conclusions to the QA review and to the metric classification.",
+            "Log every disagreement with the file evidence attached."
+          ],
+          "done": "an independent conformity conclusion exists per sampled claim with disagreements evidenced."
+        },
+        {
+          "step": "Recompute the published metrics",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Recompute cycle time, form-conformity rate, LASH deviation rate and eDAS reject/correction rates from the raw extracts.",
+            "Compare to the pack values and flag any metric off by more than 2%.",
+            "Verify threshold ratings (green/amber/red) were applied per the approved catalogue."
+          ],
+          "done": "recomputed metrics agree with the pack within 2% and ratings match the catalogue."
+        },
+        {
+          "step": "Verify deadline maths on weekly cutoffs and 45-day responses",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For sampled eDAS rejects, count cutoff cycles from reject to accepted resubmission and test against the next-weekly-cutoff standard.",
+            "For any RMA finding in the period, recount the 45 days from FCIC notification to response submission.",
+            "Log any miss with days over."
+          ],
+          "done": "cutoff-cycle and 45-day computations are independently verified for the sample."
+        },
+        {
+          "step": "Test escalation and closure of breaches",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "For every red metric in the tested packs, trace to a tracker item, an owner, and Chief Claims Officer closure sign-off.",
+            "Check closed breaches showed a full quarter back under threshold before closure.",
+            "Flag any red metric with no tracker item as a control failure."
+          ],
+          "done": "every red metric traces to a managed, properly closed tracker item."
+        },
+        {
+          "step": "Trace evidence and retention",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Open the quarterly evidence folders and verify pack, extracts, minutes and reconciliations are present and locked.",
+            "Confirm the retention rule (3 years post annual settlement) is set on each folder.",
+            "Note any missing artifact as an exception."
+          ],
+          "done": "evidence folders for both quarters are complete, locked and under retention."
+        },
+        {
+          "step": "Log exceptions and retest priors",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Record all exceptions in the regulatory filing/issue tracker with root cause and owner.",
+            "Retest the prior test's exceptions on current-period data and close or escalate repeats.",
+            "Agree remediation dates with the Market Conduct / Consumer Compliance Manager."
+          ],
+          "done": "current exceptions are logged and prior exceptions are retested to disposition."
+        },
+        {
+          "step": "Independent reviewer conclusion",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Review the workpaper, sample results and exception log.",
+            "Issue a written conclusion on whether conduct monitoring operates effectively against LASH and SRA standards.",
+            "Sign, date and file the conclusion in the compliance evidence repository and report it to the Head of Compliance and Chief Claims Officer."
+          ],
+          "done": "a signed conclusion on REG-056-C42 is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-056-C43",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "value": "Owns continuous readiness for RMA compliance and performance reviews (NPOR, Appendix IV reviews); escalation to the Head of Compliance"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 2026 SRA Section IV(d) (access to records) and III(a)(4), 7 CFR 457.8 section 14, and Appendix IV review provisions, verified against the RMA-published SRA each reinsurance year"
+        },
+        "In-scope processes": {
+          "value": "Maintenance of exam-ready files for all MPCI operations: policy files, claim files with LASH documentation, training and licensing records for loss adjusters, eDAS submission logs, settlement workpapers and prior review correspondence"
+        },
+        "In-scope systems": {
+          "app": "claim file/document repository",
+          "value": "Claim file/document repository for adjuster worksheets and production evidence, Policy Administration Platform for policy files, compliance evidence repository for the exam-readiness index"
+        },
+        "Compliance procedure documented": {
+          "value": "RMA Exam Readiness Procedure — the standing file index, completeness standards per file type, quarterly self-check, and the intake protocol for an RMA records request under SRA Section IV(d)"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance; reviewed annually before the July 1 reinsurance year start"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Continuous obligation; RMA record requests answered by the date stated in the request; quarterly self-checks completed within 15 business days of quarter end"
+        },
+        "Deadline reminders configured": {
+          "value": "Quarterly self-check reminders in the Internal Regulatory System; a same-day alert protocol when an RMA records request or review notification arrives"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "All policy, claim and settlement records retained at least 3 years after the annual settlement date for the reinsurance year, longer where litigation or an open review requires"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Files failing the quarterly self-check (missing LASH worksheets, unsigned claim forms, absent production evidence) are logged with owner and cure date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Compliance Manager",
+          "value": "Compliance Manager signs off cure of every self-check failure before the item closes"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The exam-readiness index, the four quarterly self-checks for the year, and the underlying policy and claim files they certified"
+        },
+        "Pass/fail thresholds": {
+          "value": "Self-check file-completeness rate at or above 95%; any RMA records request answered late is a fail; index coverage of all required record classes is mandatory"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous; testing runs annually with a surprise mid-year spot check of 10 files"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have performed the quarterly self-checks being tested"
+        },
+        "Evidence location for test results": {
+          "value": "Annual exam-readiness test workpaper in the compliance evidence repository under REG-056/C43"
+        },
+        "Regulator-ready documentation": {
+          "value": "The standing index plus any requested file class deliverable to RMA within the request deadline, with a rehearsed 48-hour first-production capability"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager coordinates RMA review logistics; Regulatory Counsel reviews all outbound productions; General Counsel is notified of any on-site review"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Build and maintain the exam-readiness file index",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Create an index in the compliance evidence repository listing every record class RMA can request under SRA Section IV(d): policy files, claim files, loss adjuster certifications, training logs, eDAS submission logs, settlement workpapers, Plan of Operations and prior review files.",
+            "For each class record the source system, owner role, retention rule and retrieval path.",
+            "Review the index quarterly against the current SRA and Appendix IV and version any change.",
+            "Publish the index location to Claims, Underwriting and Regulatory Reporting owners."
+          ],
+          "done": "a versioned index covers every SRA record class with source, owner and retrieval path."
+        },
+        {
+          "step": "Enforce claim-file completeness at closure",
+          "by": "Claims Examiner",
+          "role": "Claims Examiner",
+          "app": "Guidewire ClaimCenter",
+          "actions": [
+            "Configure the ClaimCenter closure checklist to require: the completed Company claim form per 7 CFR 457.8 section 14, adjuster's LASH appraisal worksheets, production evidence, signed certification and payment record.",
+            "Block closure until every checklist item is attached in the claim file/document repository.",
+            "Route incomplete files back to the Claims Adjuster with the missing items named.",
+            "Report closure-block statistics monthly to the Claims Quality Assurance / Training Manager."
+          ],
+          "done": "no claim closes without the full section 14 and LASH document set attached."
+        },
+        {
+          "step": "Keep loss adjuster qualification records current",
+          "by": "Producer Licensing Coordinator",
+          "role": "Producer Licensing Coordinator",
+          "actions": [
+            "Maintain a roster of loss adjusters with their RMA-required proficiency testing and continuing education status per Appendix IV standards.",
+            "Collect and file each adjuster's annual certification before the crop year's first loss assignments.",
+            "Flag lapsed qualifications to the Claims Director / Manager and suspend assignments until cured.",
+            "File the roster refresh in the exam-readiness index quarterly."
+          ],
+          "done": "every active adjuster has current, filed qualification evidence and lapses block assignments."
+        },
+        {
+          "step": "Run the quarterly file self-check",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Within 15 business days of quarter end, sample 30 files across classes (15 claim, 10 policy, 5 other index classes).",
+            "Score each file against its completeness standard from the readiness procedure.",
+            "Compute the completeness rate and compare to the 95% threshold.",
+            "Log every failed file in the regulatory filing/issue tracker with the missing items, owner and cure date."
+          ],
+          "done": "the quarterly self-check is scored, compared to 95%, and failures are tracked to cure."
+        },
+        {
+          "step": "Cure self-check failures within the quarter",
+          "by": "Claims Coordinator",
+          "role": "Claims Coordinator",
+          "app": "claim file/document repository",
+          "actions": [
+            "For each failed claim file, retrieve the missing worksheet, form or evidence from the adjuster or insured file and attach it in the repository.",
+            "Where a document cannot be recovered, record a file memo stating what is missing, why and the process fix.",
+            "Notify the Compliance Manager when each cure is complete for sign-off.",
+            "Close the tracker item only after Compliance Manager sign-off."
+          ],
+          "done": "every failed file is cured or memo-documented and signed off before quarter close."
+        },
+        {
+          "step": "Maintain the eDAS submission and correction log",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "actions": [
+            "Archive every weekly eDAS submission batch result (accepted/rejected counts by record type) into the exam-readiness index.",
+            "Keep the correction trail linking each reject to its corrected resubmission and acceptance date.",
+            "Verify the archive is complete for the reinsurance year before the annual settlement date.",
+            "Provide the log to Regulatory Reporting for settlement tie-out."
+          ],
+          "done": "a complete weekly eDAS submission and correction archive exists for the reinsurance year."
+        },
+        {
+          "step": "File all RMA correspondence and prior review materials",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File every RMA bulletin response, review notification, finding letter, corrective action plan and closure letter under REG-056/C43/reviews.",
+            "Cross-reference each finding to its remediation item in the regulatory filing/issue tracker.",
+            "Keep the Plan of Operations submissions and FCIC approvals for each reinsurance year in the index.",
+            "Verify nothing in the review file is drafted-but-unsent or unsigned."
+          ],
+          "done": "a complete, cross-referenced review correspondence file exists for every RMA interaction."
+        },
+        {
+          "step": "Define the records-request intake protocol",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "Document the same-day steps when an RMA records request or review notice arrives: log it, notify Head of Compliance and General Counsel, open a production workspace and assign class owners.",
+            "Set the internal standard of first production within 48 hours for indexed classes and full production by the RMA deadline.",
+            "Name a single point of contact for the RMA reviewer.",
+            "Store the protocol with the readiness procedure and brief owners annually."
+          ],
+          "done": "a briefed, documented intake protocol with a 48-hour first-production standard exists."
+        },
+        {
+          "step": "Rehearse a mock records request annually",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Once a year issue an unannounced internal mock request for two record classes (e.g. 20 claim files from a named county and the quarter's eDAS logs).",
+            "Time the retrieval against the 48-hour standard and score the produced files for completeness.",
+            "Debrief gaps with class owners and log fixes in the tracker.",
+            "File the mock-exam report in the readiness index."
+          ],
+          "done": "an annual mock request is executed, timed, scored and its gaps are tracked to fix."
+        },
+        {
+          "step": "Protect records under legal hold and retention",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "document management repository",
+          "actions": [
+            "Apply the 3-years-after-annual-settlement retention rule to all indexed classes in the document management repository.",
+            "Apply legal holds on files subject to open RMA reviews, disputes or litigation on notice from Legal Counsel.",
+            "Run a quarterly report of items approaching disposal and confirm none are under hold or open review before destruction.",
+            "File disposal certificates in the index."
+          ],
+          "done": "retention and holds are enforced systematically with disposal only after hold checks."
+        },
+        {
+          "step": "Verify policy files support insurability decisions",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "For a monthly sample of 10 new/renewal MPCI policies, verify the file holds the signed application by the sales closing date, acreage and production reports by their reporting deadlines, and any required transfer or option forms.",
+            "Confirm dates in the Policy Administration Platform match the document images.",
+            "Log missing or late documents to the tracker with the responsible Agency Relations Manager notified.",
+            "Add results to the quarterly self-check summary."
+          ],
+          "done": "monthly policy-file samples confirm dated, complete underwriting documents or feed the tracker."
+        },
+        {
+          "step": "Keep training evidence exam-ready",
+          "by": "Trainer",
+          "role": "Trainer",
+          "app": "learning management system",
+          "actions": [
+            "Export annual completion records for required crop training (LASH updates, procedure changes, conflict-of-interest) from the learning management system.",
+            "File the exports in the readiness index by crop year with the course curricula attached.",
+            "Chase and document completion for any adjuster or agent under 100% before the crop year peak.",
+            "Provide the file to the Producer Licensing Coordinator for the qualification roster."
+          ],
+          "done": "training completion evidence for the crop year is filed and complete."
+        },
+        {
+          "step": "Report readiness status quarterly",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "Compile self-check scores, cure status, mock-exam results and open RMA interactions into a one-page readiness report.",
+            "Present it to the Head of Compliance within 20 business days of quarter end.",
+            "Escalate any class below 95% completeness with a recovery plan.",
+            "File the report in the readiness index."
+          ],
+          "done": "a quarterly readiness report is presented, escalations raised, and the report filed."
+        },
+        {
+          "step": "Respond to an actual RMA review or records request",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "Execute the intake protocol on the day of receipt: log, notify, open the production workspace, assign owners.",
+            "Produce indexed classes within 48 hours and the full request by the RMA deadline, with Regulatory Counsel review before anything leaves.",
+            "Keep a production log of every document sent, when and to whom.",
+            "After closure, file the complete request-and-production record in the review correspondence file."
+          ],
+          "done": "the request is answered on time with counsel review and a complete production log."
+        },
+        {
+          "step": "Annual procedure refresh",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Before July 1, re-read the new SRA and Appendix IV for record and review changes and update the readiness procedure and index classes.",
+            "Re-approve with the Head of Compliance and record the date.",
+            "Brief all class owners on changes."
+          ],
+          "done": "the procedure and index reflect the new reinsurance year SRA with documented re-approval."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Scope the annual readiness test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Set scope to the four quarterly self-checks, the index, the mock exam and any live RMA request in the year.",
+            "Confirm the reviewer performed none of the self-checks.",
+            "Open the workpaper under REG-056/C43."
+          ],
+          "done": "an independent, scoped test plan is documented."
+        },
+        {
+          "step": "Verify index coverage against the SRA",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently list record classes from SRA Section IV(d) and Appendix IV.",
+            "Compare to the readiness index and flag any uncovered class.",
+            "Check each class's retrieval path actually resolves by opening it."
+          ],
+          "done": "the index demonstrably covers every SRA record class with working retrieval paths."
+        },
+        {
+          "step": "Build the file population and reconcile",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Guidewire ClaimCenter",
+          "actions": [
+            "Extract the year's closed claims from ClaimCenter and in-force policies from the Policy Administration Platform.",
+            "Reconcile counts to the eDAS-accepted record totals for the reinsurance year.",
+            "Document the population and any variance."
+          ],
+          "done": "a reconciled population of claim and policy files exists for sampling."
+        },
+        {
+          "step": "Draw an independent sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Randomly select 25 claim files and 15 policy files, independent of the self-check samples.",
+            "Record the selection method and seed.",
+            "Retrieve each file cold, timing the retrieval."
+          ],
+          "done": "a reproducible 40-file sample is drawn and retrieved with timings."
+        },
+        {
+          "step": "Re-perform the completeness judgement",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "claim file/document repository",
+          "actions": [
+            "Score each sampled file against the completeness standard: section 14 claim form elements, LASH worksheets, production evidence, signatures and dates for claims; application, acreage/production reports and deadlines for policies.",
+            "Compute an independent completeness rate and compare to the self-check's 95% claim.",
+            "Log every incomplete file with the missing items."
+          ],
+          "done": "an independent completeness rate exists and is compared to the self-check results."
+        },
+        {
+          "step": "Verify cure and sign-off of self-check failures",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Trace every self-check failure in the year to its tracker item, cure evidence and Compliance Manager sign-off.",
+            "Reopen any item closed without evidence.",
+            "Check cure timeliness against the committed dates."
+          ],
+          "done": "all self-check failures trace to evidenced, signed-off cures."
+        },
+        {
+          "step": "Test the mock/live request timings",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute the 48-hour first-production timing from the mock-exam log, and the RMA deadline maths for any live request.",
+            "Verify Regulatory Counsel review evidence exists for outbound productions.",
+            "Log any missed timing as an exception."
+          ],
+          "done": "production timings are independently verified against the 48-hour and RMA deadlines."
+        },
+        {
+          "step": "Test retention and hold enforcement",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "document management repository",
+          "actions": [
+            "Sample 10 disposed items from the year's disposal certificates and verify each cleared the 3-year rule and had no hold.",
+            "Sample 5 held items and verify the hold is intact in the document management repository.",
+            "Log violations as high-severity exceptions."
+          ],
+          "done": "disposal and hold enforcement are verified on a documented sample."
+        },
+        {
+          "step": "Log exceptions and retest priors",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Record all exceptions with root cause and owner in the regulatory filing/issue tracker.",
+            "Retest last year's exceptions and close or escalate repeats.",
+            "Agree remediation dates with the Market Conduct / Consumer Compliance Manager."
+          ],
+          "done": "exceptions are logged with owners and prior findings are dispositioned."
+        },
+        {
+          "step": "Independent conclusion and sign-off",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Review the workpaper and exception log.",
+            "Issue a written conclusion on exam readiness, referencing the 95% threshold and timing standards.",
+            "Sign and file the conclusion in the compliance evidence repository and report to the Head of Compliance."
+          ],
+          "done": "a signed annual conclusion on REG-056-C43 is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-056-C44",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Compliance Manager",
+          "value": "Owns remediation of RMA/FCIC review findings within committed timelines; escalation to the Head of Compliance and affected business owners"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 2026 SRA Section IV(f) and IV(d) (compliance with FCIC procedures and access to records), Appendix IV corrective-action provisions, and the 45-day response signals in FCIC notifications, verified per finding letter"
+        },
+        "In-scope processes": {
+          "value": "Intake of RMA review findings (NPOR, Appendix IV performance reviews, data validation findings), corrective action planning, execution, evidence assembly and closure confirmation with RMA"
+        },
+        "In-scope systems": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Regulatory filing/issue tracker as the remediation log of record; corrective evidence in the compliance evidence repository"
+        },
+        "Compliance procedure documented": {
+          "value": "RMA Finding Remediation Procedure — intake and logging on day of receipt, 45-day response planning, corrective action plan format, evidence standards and closure verification"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance; reviewed annually and after any RMA review cycle"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Responses to FCIC findings within 45 days of notification unless the letter states otherwise; corrective milestones per the agreed plan; April 1 Plan of Operations reflects open corrective commitments"
+        },
+        "Deadline reminders configured": {
+          "value": "A 45-day countdown opens automatically on logging a finding, with alerts at day 15, 30 and 40 to the action owner and Compliance Manager"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Finding letters, corrective action plans, execution evidence and RMA closure confirmations retained at least 3 years after the annual settlement date of the reinsurance year concerned"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Missed remediation milestones and late responses to RMA are themselves logged as exceptions with root cause and recovery plan"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Head of Compliance signs off every corrective action plan before it goes to RMA and every closure before the tracker item closes"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All RMA/FCIC findings logged in the tracker for the review period, their corrective action plans, milestones and closure evidence"
+        },
+        "Pass/fail thresholds": {
+          "value": "100% of responses within 45 days (or the letter's stated deadline); 90% of corrective milestones met on time; any closure without evidence is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven; testing runs semi-annually over all findings open or closed in the half-year"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not own any tested corrective action"
+        },
+        "Evidence location for test results": {
+          "value": "Semi-annual remediation test workpaper in the compliance evidence repository under REG-056/C44"
+        },
+        "Regulator-ready documentation": {
+          "value": "The remediation log with plans, evidence and closures, presentable to RMA at any follow-up review without preparation"
+        },
+        "Regulator response path": {
+          "value": "Compliance Manager drafts responses to RMA findings; Regulatory Counsel reviews and the Head of Compliance signs before submission"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Log every RMA finding on the day it arrives",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "On receipt of an RMA finding letter or review report, create a tracker item per finding with the letter reference, SRA/handbook citation, severity and the stated response deadline (default 45 days from FCIC notification).",
+            "Attach the finding letter and route a same-day notification to the Compliance Manager, Head of Compliance and the affected business owner.",
+            "Start the 45-day countdown with alerts at day 15, 30 and 40.",
+            "Confirm receipt to RMA where the letter requests acknowledgement."
+          ],
+          "done": "each finding is a tracked item with letter attached, deadline set and stakeholders notified same day."
+        },
+        {
+          "step": "Assign a corrective action owner and validate the finding",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Assign each finding to a named business owner (e.g. Claims Director / Manager for LASH findings, Regulatory Reporting Manager for data findings).",
+            "Have the owner re-perform the failed control on the cited files to confirm the facts and the extent — is it the sampled files only or systemic.",
+            "Where the Company disputes the finding, gather the contrary evidence and route to Regulatory Counsel for a rebuttal decision within 10 business days.",
+            "Record the validation conclusion on the tracker item."
+          ],
+          "done": "every finding has an owner and a documented validated-or-disputed conclusion within 10 business days."
+        },
+        {
+          "step": "Size the population affected by each finding",
+          "by": "Data Analyst",
+          "role": "Data Analyst",
+          "app": "enterprise data warehouse",
+          "actions": [
+            "Query the enterprise data warehouse to count all policies or claims sharing the failure characteristics beyond RMA's sample (same crop, procedure step, adjuster, county or period).",
+            "Quantify the dollar exposure, including potential denial of reinsurance or A&O subsidy adjustments on affected policies.",
+            "Deliver the sizing memo to the Compliance Manager for the corrective plan.",
+            "Flag exposures requiring financial accrual to the Controller."
+          ],
+          "done": "each finding carries a population and dollar sizing beyond the RMA sample."
+        },
+        {
+          "step": "Draft the corrective action plan",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "For each finding write the plan: root cause, correction of the cited files, remediation of the wider population, the process/system fix, the training fix and milestone dates inside the RMA deadline.",
+            "Name an accountable owner and evidence artifact for every milestone.",
+            "Route the plan to Regulatory Counsel for review and to the Head of Compliance for sign-off.",
+            "File the signed plan on the tracker item."
+          ],
+          "done": "a signed corrective action plan with owned, dated, evidenced milestones exists per finding."
+        },
+        {
+          "step": "Submit the response to RMA within 45 days",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Assemble the response letter: acknowledgement or rebuttal, the corrective action plan and any corrected data or files RMA requested.",
+            "Obtain Head of Compliance signature and send through the channel the finding letter specifies (RMA regional compliance office or the portal named in the letter) before day 45.",
+            "Save the transmission proof and update the tracker item with the sent date.",
+            "Diarize RMA's expected reply and any agreed follow-up review."
+          ],
+          "done": "the signed response with plan is delivered to RMA within 45 days with proof filed."
+        },
+        {
+          "step": "Execute file-level corrections",
+          "by": "Claims Examiner",
+          "role": "Claims Examiner",
+          "app": "Guidewire ClaimCenter",
+          "actions": [
+            "Rework each cited claim or policy file per the plan: re-adjust per LASH where required, correct the claim form deficiencies, and process any indemnity overpayment recovery or underpayment top-up in ClaimCenter.",
+            "Submit corrected records to eDAS no later than the transaction cutoff date for the week the correction completes.",
+            "Attach before/after evidence to the tracker milestone.",
+            "Notify the Reinsurance Accountant of any settlement impact for the next monthly report."
+          ],
+          "done": "cited files are corrected, resubmitted through eDAS by the weekly cutoff, and evidenced."
+        },
+        {
+          "step": "Remediate the wider affected population",
+          "by": "Claims Director / Manager",
+          "role": "Claims Director / Manager",
+          "actions": [
+            "Work the sized population from the data warehouse query through the same correction routine, prioritized by dollar exposure.",
+            "Track completion counts weekly against the plan milestone.",
+            "Report population progress in the Compliance Manager's weekly remediation call.",
+            "Attach the completed population workbook as milestone evidence."
+          ],
+          "done": "the full affected population is corrected with progress tracked to the milestone date."
+        },
+        {
+          "step": "Implement the process and system fix",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Translate the root cause into a system change (validation rule, closure gate, report) in the Policy Administration Platform or ClaimCenter, raised through the change process.",
+            "Update the written procedure and the LASH-aligned work instructions.",
+            "Confirm the change is tested and deployed before the milestone date, attaching the deployment record.",
+            "Hand the changed procedure to the Trainer for the training milestone."
+          ],
+          "done": "the preventing control is deployed and the procedure updated before the milestone date."
+        },
+        {
+          "step": "Deliver the training fix",
+          "by": "Trainer",
+          "role": "Trainer",
+          "app": "learning management system",
+          "actions": [
+            "Build a module covering the corrected procedure and assign it to every affected adjuster, examiner or analyst in the learning management system.",
+            "Set completion inside the plan milestone and chase stragglers weekly.",
+            "Export the completion report and attach it as milestone evidence."
+          ],
+          "done": "targeted training is completed by the milestone with the report attached."
+        },
+        {
+          "step": "Track milestones weekly and escalate slippage",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Run the weekly open-milestone report from the tracker and chase owners on anything due within 10 business days.",
+            "Escalate any milestone forecast to miss to the Compliance Manager immediately, and to the Head of Compliance if it risks the RMA-committed date.",
+            "Where a date must move, document the reason and notify RMA before the original date passes.",
+            "Log every slip as an exception with root cause."
+          ],
+          "done": "milestones are chased weekly, slips are escalated pre-deadline and RMA is notified of any date change."
+        },
+        {
+          "step": "Verify effectiveness before claiming closure",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "After the fix beds in, sample 15 post-remediation transactions and re-perform the originally failed control.",
+            "Require zero repeat failures in the sample; otherwise reopen the plan.",
+            "Document the effectiveness check on the tracker item.",
+            "Obtain Head of Compliance sign-off on the closure."
+          ],
+          "done": "a 15-item post-fix sample shows no repeats and closure is signed off."
+        },
+        {
+          "step": "Confirm closure with RMA",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Send RMA the closure package where the finding letter requires it: completed plan, evidence summary and effectiveness results.",
+            "Obtain and file RMA's closure confirmation or note the passage of the follow-up review without repeat.",
+            "Close the tracker item only after Head of Compliance sign-off and RMA confirmation where applicable."
+          ],
+          "done": "the finding is closed with RMA confirmation (where required) filed on the tracker item."
+        },
+        {
+          "step": "Reflect open commitments in the Plan of Operations",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "actions": [
+            "Before the April 1 Plan of Operations submission, list all open corrective commitments and their status.",
+            "Ensure the Plan of Operations narrative accurately reflects them — RMA cross-checks.",
+            "Have the Head of Compliance verify consistency between the tracker and the Plan text."
+          ],
+          "done": "the April 1 Plan of Operations accurately discloses open corrective commitments."
+        },
+        {
+          "step": "Report the remediation portfolio to governance",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Present open findings, aging against 45-day and milestone deadlines, and closure rates to the compliance committee quarterly.",
+            "Highlight any repeat findings across review cycles as thematic risks.",
+            "Minute decisions and file with the quarterly pack."
+          ],
+          "done": "governance reviews the remediation portfolio quarterly with minutes filed."
+        },
+        {
+          "step": "Archive the finding lifecycle",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "On closure, file the complete lifecycle — letter, plan, evidence, effectiveness check, RMA confirmation — under REG-056/C44/<finding ref>.",
+            "Apply the 3-years-after-annual-settlement retention rule.",
+            "Lock the folder and record the closure date in the index."
+          ],
+          "done": "a complete, locked lifecycle folder exists per closed finding."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Scope the semi-annual remediation test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Set scope to all findings open or closed in the half-year.",
+            "List assertions: same-day logging, 45-day response, milestone delivery, effectiveness checks, evidenced closure.",
+            "Confirm independence from all tested corrective actions.",
+            "Open the workpaper under REG-056/C44."
+          ],
+          "done": "a scoped, independent test plan is documented."
+        },
+        {
+          "step": "Build the finding population",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Export all REG-056 finding items from the tracker for the period.",
+            "Independently reconcile against the RMA correspondence file — every finding letter must have a tracker item.",
+            "Flag any letter without an item as an immediate high-severity exception."
+          ],
+          "done": "the tracker population reconciles one-to-one with RMA finding letters."
+        },
+        {
+          "step": "Sample findings for deep testing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Test 100% of findings if ten or fewer; otherwise sample ten, weighted to high severity and closures.",
+            "Record the selection method.",
+            "Pull the full lifecycle folder for each sampled finding."
+          ],
+          "done": "a documented sample with retrieved lifecycle folders exists."
+        },
+        {
+          "step": "Recompute the 45-day response maths",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled finding, count days from the FCIC notification date on the letter to the dated transmission proof of the response.",
+            "Test against 45 days or the letter's stated deadline.",
+            "Log any late response with days over and whether RMA was pre-notified."
+          ],
+          "done": "response timeliness is independently recomputed for every sampled finding."
+        },
+        {
+          "step": "Trace plans to sign-offs",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Verify each sampled plan carries Regulatory Counsel review and Head of Compliance signature predating submission to RMA.",
+            "Check each milestone has an owner, date and named evidence artifact.",
+            "Flag unsigned or undated plans."
+          ],
+          "done": "every sampled plan is properly signed and structured."
+        },
+        {
+          "step": "Verify milestone delivery against evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "For each sampled milestone, open the attached evidence and confirm it demonstrates the milestone (deployment record, training report, population workbook, eDAS resubmission acceptance).",
+            "Compare completion dates to committed dates and compute the on-time rate against the 90% threshold.",
+            "Reject assertions without artifacts."
+          ],
+          "done": "milestone delivery is evidenced and the on-time rate is computed against 90%."
+        },
+        {
+          "step": "Re-perform the effectiveness check",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Guidewire ClaimCenter",
+          "actions": [
+            "For two closed findings, independently draw a fresh post-remediation sample and re-perform the originally failed control in the source system.",
+            "Compare results to the closure-time effectiveness check.",
+            "Any repeat failure reopens the finding as a test exception."
+          ],
+          "done": "closure effectiveness is independently re-performed on two findings."
+        },
+        {
+          "step": "Check closure integrity",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Verify each sampled closure has Head of Compliance sign-off and RMA confirmation where the letter required it.",
+            "Verify the lifecycle folder is complete and locked under retention.",
+            "Verify Plan of Operations disclosure consistency for findings open at April 1."
+          ],
+          "done": "closures are signed, confirmed, archived and consistently disclosed."
+        },
+        {
+          "step": "Log exceptions and retest priors",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Record exceptions in the tracker with root cause and owner.",
+            "Retest the prior test's exceptions and close or escalate repeats.",
+            "Agree dates with the Compliance Manager."
+          ],
+          "done": "exceptions are logged and prior findings dispositioned."
+        },
+        {
+          "step": "Independent conclusion",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Review the workpaper and exception log.",
+            "Conclude in writing against the 100% response-timeliness and 90% milestone thresholds.",
+            "Sign, file in the compliance evidence repository, and report to the Head of Compliance."
+          ],
+          "done": "a signed semi-annual conclusion on REG-056-C44 is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-056-C45",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Product Filing Specialist",
+          "value": "Owns the pre-use filing/authorization determination for every crop form, rate or rule change; escalation to Regulatory Counsel"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 2026 SRA Section IV(f)(1) (use only FCIC-authorized contracts, forms and procedures), RMA Manual 14 and SRA Appendix IV, plus state law for non-reinsured crop-hail products, re-read at each determination"
+        },
+        "In-scope processes": {
+          "value": "Change intake for all crop products: classifying each change as (a) FCIC-authorized material that may not be modified, (b) a change requiring FCIC approval or a 508(h) submission, or (c) a private/crop-hail product change requiring state filing before use"
+        },
+        "In-scope systems": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Filing determination log kept in the regulatory filing/issue tracker; FCIC actuarial documents pulled from the RMA Actuarial Information Browser; state routes via SERFF"
+        },
+        "Compliance procedure documented": {
+          "value": "Crop Filing Determination Procedure — intake gate, three-way classification (FCIC-authorized / FCIC-approval-needed / state-filed), ADM version checks, 508(h) route, and the no-use-before-authorization rule"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by Regulatory Counsel and the Head of Compliance; reviewed each reinsurance year against the new SRA and Manual 14 reissues"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per change — determinations close before the product build freeze; FCIC-authorized document adoption tracked to RMA release dates and contract change dates; weekly eDAS cutoff governs when re-coded records flow"
+        },
+        "Deadline reminders configured": {
+          "value": "Tracker alerts at T-30/T-15/T-5 days before each crop's contract change date and sales closing date for any open determination touching that crop"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Determination worksheets, ADM version captures, counsel sign-offs and FCIC approval records retained at least 3 years after the annual settlement date of the relevant reinsurance year"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any form, rate or rule used without a determination — especially any unauthorized modification of FCIC materials — is logged as an exception with root cause and remediation"
+        },
+        "Remediation sign-off captured": {
+          "role": "Regulatory Counsel",
+          "value": "Counsel signs off every 'no filing/approval required' call and every remediation of unauthorized use"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All crop product changes implemented in the period per the policy admin and rating change logs, across MPCI and crop-hail books"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any implemented change without a pre-use determination, or any modified FCIC-authorized document, is a fail escalated to the Head of Compliance"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per change (continuous); testing runs quarterly over the quarter's change log"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Officer",
+          "value": "Reviewer must not have authored any tested determination"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly determination test workpaper in the compliance evidence repository under REG-056/C45"
+        },
+        "Regulator-ready documentation": {
+          "value": "The determination log with ADM version evidence and approvals, producible to RMA or a state examiner within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Product Filing Specialist fronts routine questions; Regulatory Counsel clears any admission of unauthorized use before it goes to RMA or a state"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Gate every product change through determination intake",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Open the product change queue filtered to Status = 'Approved for filing determination' and create a determination worksheet per change.",
+            "Copy onto the worksheet: product (MPCI plan code or crop-hail), crop(s), county/state scope, target crop year, and the artifacts touched (form, rate, rule, procedure).",
+            "Ask the Insurance Product Manager for the business driver and the hard date (contract change date, sales closing date, release train) and record it.",
+            "Log the worksheet as an open determination in the regulatory filing/issue tracker."
+          ],
+          "done": "every approved change has a logged determination worksheet with scope and hard dates."
+        },
+        {
+          "step": "Classify each artifact into the three-way crop taxonomy",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Tag each artifact row: FCIC-AUTHORIZED (Common Crop Insurance Policy Basic Provisions, crop provisions, special provisions, actuarial documents — may not be modified per SRA Section IV(f)(1)), FCIC-APPROVAL (new/changed material needing FCIC consent or a 508(h) submission), or STATE-FILED (crop-hail and other non-reinsured private products).",
+            "For FCIC-AUTHORIZED rows record the exact document title, release number and effective crop year.",
+            "For STATE-FILED rows list the affected states and whether the change is form, rate or rule.",
+            "Reject any request that would edit FCIC-authorized text and return it to the requester citing Section IV(f)(1)."
+          ],
+          "done": "every artifact row carries one of the three tags with the supporting identifiers, and edits to FCIC materials are refused."
+        },
+        {
+          "step": "Verify FCIC-authorized versions against the RMA Actuarial Information Browser",
+          "by": "Product Analyst",
+          "role": "Product Analyst",
+          "actions": [
+            "Open the RMA Actuarial Information Browser (webapp.rma.usda.gov/apps/actuarialinformationbrowser) and select the crop year, state, county and crop for each affected combination.",
+            "Download the current actuarial documents (rates, T-yields, special provisions) and record the release date and document identifiers on the worksheet.",
+            "Compare against the versions loaded in the rating engine and Policy Administration Platform; list every mismatch.",
+            "Print the browser pages to PDF as dated evidence and file them in the determination folder."
+          ],
+          "done": "current ADM versions are evidenced and every system mismatch is listed for correction."
+        },
+        {
+          "step": "Route FCIC-APPROVAL changes to the correct federal channel",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "actions": [
+            "For a new product concept, confirm the route is a section 508(h) submission to the FCIC Board of Directors and record the submission window from the Board's published calendar.",
+            "For changes to the Plan of Operations scope (new states, plans or funds), record that the change rides the April 1 Plan of Operations or an interim amendment under Appendix IV.",
+            "For anything ambiguous, email the RMA regional office or product management contact, and log the question, date and answer on the worksheet.",
+            "Set the earliest permissible use date on the worksheet from the channel's approval timing."
+          ],
+          "done": "every FCIC-APPROVAL row has a named federal channel, evidence of the route and an earliest-use date."
+        },
+        {
+          "step": "Determine state filing needs for crop-hail rows",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Log in to SERFF (login.serff.com), open Industry ▸ Filing Rules, and for each affected state select the crop-hail TOI to read the General Instructions and review method.",
+            "Record per state whether the change is prior approval, file-and-use, use-and-file or exempt, quoting the source sentence and citation on the worksheet row.",
+            "Note where NCIS bureau filings cover the rates and only a company adoption filing is needed.",
+            "Print each state's filing-rules page to PDF, dated, into the determination folder."
+          ],
+          "done": "each crop-hail state row has a review method, quoted source and dated SERFF capture."
+        },
+        {
+          "step": "Compute the use-date arithmetic per row",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "For FCIC-AUTHORIZED rows set the use date to the RMA release's effective crop year and the crop's contract change date.",
+            "For STATE-FILED prior-approval rows back the latest submission date off the target effective date using the state's average approval time from SERFF Filing Access history.",
+            "For deemer states compute the deemed-approval date from the filing date plus the statutory review period.",
+            "Write the governing 'may not use before' date on every row and flag any row where the business target date is earlier."
+          ],
+          "done": "every row carries a computed 'may not use before' date and conflicts with business dates are flagged."
+        },
+        {
+          "step": "Close the determination with counsel sign-off",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "app": "DocuSign",
+          "actions": [
+            "Review the worksheet's classifications, evidence and use dates, challenging any 'no filing/approval required' call.",
+            "Sign the determination via DocuSign; the determination is not closed without this signature.",
+            "Return disputed rows to the Product Filing Specialist with the legal basis for the change.",
+            "File the signed worksheet in the compliance evidence repository under REG-056/C45."
+          ],
+          "done": "the determination is counsel-signed and filed before any build or use proceeds."
+        },
+        {
+          "step": "Publish the determination to the build teams",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Send the closed determination to the Insurance Product Manager, Configuration Engineer and UW Operations Manager with the per-row use dates.",
+            "Enter the use dates as gate milestones in the product roadmap/backlog tool so the release plan inherits them.",
+            "Confirm receipt in writing from each recipient.",
+            "Update the tracker item status to 'Determined — awaiting authorization' or 'Determined — clear to use'."
+          ],
+          "done": "build teams hold the determination and the release plan carries the use-date gates."
+        },
+        {
+          "step": "Track RMA releases and bulletins continuously",
+          "by": "Product Analyst",
+          "role": "Product Analyst",
+          "actions": [
+            "Subscribe to RMA news releases, product management bulletins and Manual 14 reissues from rma.usda.gov and review the feed weekly.",
+            "For each release affecting written crops, open a change item so the new actuarial documents and provisions are adopted by their effective crop year.",
+            "Verify adopted changes flow to the rating engine before the crop's earliest sales date.",
+            "Log the weekly review with items raised."
+          ],
+          "done": "a weekly RMA release review runs with adoption items opened for every applicable change."
+        },
+        {
+          "step": "Sweep for changes that bypassed the gate",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Monthly, export the configuration change log from the Policy Administration Platform and rating engine for crop products.",
+            "Match every deployed change to a closed determination in the tracker.",
+            "Log any unmatched change as an exception, quarantine further use, and open remediation with the Product Filing Specialist.",
+            "Report bypass counts to the Head of Compliance monthly."
+          ],
+          "done": "monthly sweeps match deployed changes to determinations and bypasses are quarantined and logged."
+        },
+        {
+          "step": "Remediate any unauthorized use",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "For each bypass, determine the correct classification retrospectively and file or seek FCIC consent immediately.",
+            "Assess policy-level impact: for MPCI, whether non-conforming materials jeopardize reinsurance on affected policies; for crop-hail, whether state remediation filings or refunds are needed.",
+            "Route the remediation memo to Regulatory Counsel for sign-off.",
+            "Record root cause and the gate fix in the exception log."
+          ],
+          "done": "every bypass is remediated, counsel-signed, and root-caused with a gate fix."
+        },
+        {
+          "step": "Maintain the determination log as the register of record",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Keep every determination's status current: open, determined, authorized, in use.",
+            "Reconcile the log quarterly to the product change queue to confirm nothing skipped intake.",
+            "Export the quarterly log snapshot to the compliance evidence repository."
+          ],
+          "done": "the log reconciles quarterly to the change queue with snapshots archived."
+        },
+        {
+          "step": "Brief product and underwriting teams annually",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "actions": [
+            "Before the July 1 reinsurance year, brief Insurance Product Managers and underwriters on the Section IV(f)(1) rule: FCIC materials are used as issued, never modified.",
+            "Cover the 508(h) route, Plan of Operations scope changes and the crop-hail state-filing duty.",
+            "Record attendance in the learning management system."
+          ],
+          "done": "an annual briefing on the authorization rules is delivered with attendance recorded."
+        },
+        {
+          "step": "Keep procedure current with the SRA and Manual 14",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Each reinsurance year, diff the new SRA Section IV(f) and Manual 14 against the Crop Filing Determination Procedure.",
+            "Update classification rules and re-approve with Regulatory Counsel and the Head of Compliance.",
+            "Version and date the procedure."
+          ],
+          "done": "the procedure is re-approved against the current SRA and Manual 14."
+        },
+        {
+          "step": "Archive determinations under retention",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File each closed determination with its ADM captures, SERFF captures and counsel signature under REG-056/C45/<year>.",
+            "Apply the 3-years-after-annual-settlement retention rule.",
+            "Lock completed folders."
+          ],
+          "done": "closed determinations are archived complete and locked under retention."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Scope the quarterly determination test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Set the population to all crop product changes deployed in the quarter.",
+            "List assertions: pre-use determination exists, classification correct, use-date maths correct, counsel signature present, no modified FCIC materials.",
+            "Confirm the reviewer authored none of the determinations.",
+            "Open the workpaper under REG-056/C45."
+          ],
+          "done": "a scoped, independent quarterly test plan is documented."
+        },
+        {
+          "step": "Build the deployed-change population",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Independently export the quarter's crop configuration changes from the Policy Administration Platform and rating engine change logs.",
+            "Reconcile counts to the monthly sweep reports.",
+            "Document totals in the workpaper."
+          ],
+          "done": "an independently built population reconciles to the sweeps."
+        },
+        {
+          "step": "Match population to determinations",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Match every deployed change to a closed, counsel-signed determination in the tracker.",
+            "Any change without a pre-deployment determination is a zero-tolerance fail escalated to the Head of Compliance same day.",
+            "Record the match rate."
+          ],
+          "done": "every deployed change is matched or escalated as a fail."
+        },
+        {
+          "step": "Sample determinations for re-performance",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Select 10 determinations weighted to FCIC-AUTHORIZED adoptions and prior-approval crop-hail states.",
+            "Record selection method and seed.",
+            "Pull each determination folder with its evidence captures."
+          ],
+          "done": "a documented 10-determination sample with folders is ready."
+        },
+        {
+          "step": "Re-perform the classification in the source systems",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "For sampled FCIC rows, reopen the RMA Actuarial Information Browser for the same crop/county/year and confirm the document identifiers and release dates match the worksheet.",
+            "For sampled crop-hail rows, reopen SERFF Filing Rules for the state and TOI and confirm the review method quoted.",
+            "Log any classification disagreement with the evidence."
+          ],
+          "done": "classifications are independently re-performed in the ADM browser and SERFF."
+        },
+        {
+          "step": "Recompute the use-date arithmetic",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Recompute contract change date, deemer and back-off calculations for each sampled row.",
+            "Compare deployment dates to the 'may not use before' dates — any early use is a fail.",
+            "Document the maths in the workpaper."
+          ],
+          "done": "use-date maths are re-verified and early use is flagged."
+        },
+        {
+          "step": "Inspect for modified FCIC materials",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Diff two sampled in-use policy documents against the FCIC-issued text downloaded from RMA.",
+            "Any substantive deviation from FCIC-authorized text is a zero-tolerance fail under SRA Section IV(f)(1).",
+            "Attach the diffs to the workpaper."
+          ],
+          "done": "in-use documents are diffed against FCIC-issued text with results attached."
+        },
+        {
+          "step": "Verify counsel sign-offs and archives",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Confirm each sampled determination carries a counsel DocuSign signature predating deployment.",
+            "Verify the archive folder is complete and locked under retention.",
+            "Log gaps as exceptions."
+          ],
+          "done": "sign-off dating and archive completeness are verified for the sample."
+        },
+        {
+          "step": "Log exceptions and retest priors",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Record exceptions with root cause and owner in the tracker.",
+            "Retest the prior quarter's exceptions and close or escalate repeats.",
+            "Agree remediation dates with the Product Filing Specialist."
+          ],
+          "done": "exceptions are logged and prior items dispositioned."
+        },
+        {
+          "step": "Independent conclusion and reporting",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Review the workpaper and exception log prepared by the Compliance Officer.",
+            "Issue a written conclusion against the zero-tolerance standard.",
+            "Sign, file in the compliance evidence repository, and report to Regulatory Counsel and the Chief Underwriting Officer."
+          ],
+          "done": "a signed quarterly conclusion on REG-056-C45 is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-056-C46",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Product Filing Specialist",
+          "value": "Owns assembly of complete, filing-grade packages for FCIC submissions (508(h), Plan of Operations product scope) and crop-hail state filings; escalation to the Product / Filing Actuary for actuarial content"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 2026 SRA Section IV(f)(1) (FCIC form standards), RMA Manual 14 and SRA Appendix IV (Plan of Operations content), and the FCIC Board's 508(h) submission requirements, checked per package"
+        },
+        "In-scope processes": {
+          "value": "Package build for every determined filing: FCIC-conforming forms, actuarial memoranda with certification, state crop-hail checklists and transmittals, quality review and package sign-off before submission"
+        },
+        "In-scope systems": {
+          "app": "document management repository",
+          "value": "Package assembled in the document management repository; forms sourced from the Policy Administration Platform; rate exhibits from the rating engine; SERFF-ready components staged for the Regulatory Filing Specialist"
+        },
+        "Compliance procedure documented": {
+          "value": "Filing Package Standards — required contents per route (508(h), Plan of Operations, state crop-hail), format rules (text-searchable PDFs, form numbers and edition dates on every page, 3 MB SERFF attachment guidance), and the completeness checklist"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and the Product / Filing Actuary; reviewed each reinsurance year"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Package complete no later than 10 business days before the submission deadline: FCIC Board 508(h) windows, the April 1 Plan of Operations date, and state effective-date back-offs; system loads respect the weekly eDAS transaction cutoff"
+        },
+        "Deadline reminders configured": {
+          "value": "Package milestones at T-30/T-15/T-10 business days before each submission date in the regulatory filing/issue tracker"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Final packages, quality-review checklists and sign-offs retained at least 3 years after the annual settlement date of the relevant reinsurance year"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Packages submitted incomplete, rejected for format, or completed after the T-10 milestone are logged with root cause and disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Product / Filing Actuary",
+          "value": "The Product / Filing Actuary signs the actuarial content and any package rework before resubmission"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All filing packages assembled in the period for FCIC and state routes, per the determination log"
+        },
+        "Pass/fail thresholds": {
+          "value": "100% of packages pass the completeness checklist before submission; more than one regulator format-rejection per quarter is a fail; T-10 readiness met for 90% of packages"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per filing; testing runs quarterly over the quarter's packages"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Officer",
+          "value": "Reviewer must not have assembled or quality-reviewed any tested package"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly package-quality test workpaper in the compliance evidence repository under REG-056/C46"
+        },
+        "Regulator-ready documentation": {
+          "value": "Any submitted package retrievable in final form with its checklist and sign-offs within 2 business days"
+        },
+        "Regulator response path": {
+          "value": "Product Filing Specialist answers package-content questions; the Product / Filing Actuary answers actuarial objections; Regulatory Counsel clears responses on disputed content"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Open the package shell from the closed determination",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "app": "document management repository",
+          "actions": [
+            "Create the package folder in the document management repository named <route>-<product>-<crop year> (route = 508h, PoO, or state code).",
+            "Copy in the signed determination worksheet and read off the route, artifacts and submission deadline.",
+            "Instantiate the route's contents checklist from the Filing Package Standards.",
+            "Set the T-30/T-15/T-10 milestones in the regulatory filing/issue tracker."
+          ],
+          "done": "a package folder exists with determination, checklist and tracked milestones."
+        },
+        {
+          "step": "Collect filing-grade forms from Product Development",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Request print-ready form PDFs from the Insurance Product Dev Lead with form number and edition date printed on every page, plus a redline against the current approved edition.",
+            "For FCIC routes, verify the forms conform to FCIC form standards per SRA Section IV(f)(1) — layout, mandatory clauses and terminology from the Basic Provisions.",
+            "Open every PDF and confirm it is text-searchable, watermark-free and within the 3 MB SERFF attachment guidance where state-bound.",
+            "Reject anything marked DRAFT or missing an edition date and re-request rather than filing around it."
+          ],
+          "done": "conforming, print-ready forms with redlines are in the package and drafts are rejected."
+        },
+        {
+          "step": "Build the actuarial memorandum and rate exhibits",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "app": "Earnix Rating & Pricing",
+          "actions": [
+            "Export the rate exhibits from the rating engine for each state/county/crop combination in scope.",
+            "Draft the actuarial memorandum: data, methodology, rate-level indications, and for 508(h) submissions the expected actuarial soundness demonstration the FCIC Board requires.",
+            "Sign the certification page and date it.",
+            "Deliver memo and exhibits to the package folder with the version noted."
+          ],
+          "done": "a signed actuarial memorandum with matching rate exhibits is in the package."
+        },
+        {
+          "step": "Confirm rate support against FCIC actuarial documents",
+          "by": "Pricing Actuary",
+          "role": "Pricing Actuary",
+          "actions": [
+            "For MPCI-adjacent content, pull the current county actuarial documents from the RMA Actuarial Information Browser and confirm no package figure conflicts with FCIC-published rates or T-yields.",
+            "For crop-hail, confirm whether NCIS bureau loss costs are referenced and that the company deviation is stated and supported.",
+            "Send written confirmation of the checks to the Product / Filing Actuary and file it in the package.",
+            "Flag conflicts for resolution before the T-15 milestone."
+          ],
+          "done": "rate content is confirmed consistent with FCIC/NCIS sources in writing."
+        },
+        {
+          "step": "Complete state checklists and transmittals for crop-hail routes",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "In SERFF open the state's filing-requirements checklist for the crop-hail TOI and complete every line item, citing the page in the package where each requirement is met.",
+            "Prepare the state-specific transmittal and fee calculation from the state's General Instructions.",
+            "Note readability certifications, officer certifications or third-party authorizations the state requires and obtain each.",
+            "File the completed checklists in the package folder."
+          ],
+          "done": "every state checklist is completed with cross-references and required certifications obtained."
+        },
+        {
+          "step": "Assemble the 508(h) or Plan of Operations sections for FCIC routes",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "actions": [
+            "For a 508(h) submission, assemble the FCIC Board's required sections: policy materials, actuarial soundness, underwriting and loss adjustment procedures, and the interest and maintenance provisions.",
+            "For Plan of Operations product-scope changes, prepare the Appendix IV schedules affected and reconcile them to the rest of the April 1 submission.",
+            "Verify section numbering and completeness against the Board's current submission handbook downloaded from rma.usda.gov.",
+            "Place the assembled sections in the package folder."
+          ],
+          "done": "FCIC-route sections are complete against the current Board/Appendix IV requirements."
+        },
+        {
+          "step": "Run the completeness quality review",
+          "by": "Product Analyst",
+          "role": "Product Analyst",
+          "actions": [
+            "Work the route checklist line by line, ticking each item against the actual document in the folder.",
+            "Verify every PDF opens, is text-searchable, carries form numbers/edition dates, and totals cross-foot between memo and exhibits.",
+            "Return defects to the owning contributor with the checklist line cited.",
+            "Record the completed checklist with reviewer name and date."
+          ],
+          "done": "the checklist is fully ticked against real documents with defects returned and cured."
+        },
+        {
+          "step": "Obtain package sign-offs by T-10",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "app": "DocuSign",
+          "actions": [
+            "Route the package summary for signature: Product / Filing Actuary (actuarial content), Insurance Product Manager (business content), Regulatory Counsel (legal content).",
+            "Collect all three signatures via DocuSign no later than 10 business days before the submission deadline.",
+            "File the signed summary in the package folder and update the tracker milestone.",
+            "Escalate to the Head of Compliance if any signature is outstanding at T-10."
+          ],
+          "done": "three sign-offs are collected by T-10 and filed, or the miss is escalated."
+        },
+        {
+          "step": "Stage the package for the submitter",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Hand the final package to the Regulatory Filing Specialist (state routes) or Regulatory Affairs Manager (FCIC routes) with the submission deadline and channel instructions.",
+            "Confirm the handover in the tracker with date and recipient.",
+            "Freeze the package folder — any change after sign-off requires re-approval by the affected signer.",
+            "Verify system-load dependencies are queued to respect the weekly eDAS transaction cutoff where applicable."
+          ],
+          "done": "the frozen, signed package is handed to the submitter with the deadline confirmed."
+        },
+        {
+          "step": "Handle regulator objections and rework",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "On a state objection letter or FCIC Board question, log it in the tracker with the response deadline from the letter.",
+            "Route content questions to the owning contributor and assemble the response package with a change log.",
+            "Obtain re-sign-off from the affected signer (Product / Filing Actuary for actuarial rework) before resubmission.",
+            "File the objection, response and proof of resubmission in the package folder."
+          ],
+          "done": "objections are logged, answered by deadline with re-signed content, and evidenced."
+        },
+        {
+          "step": "Track format rejections and fix root causes",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log every regulator rejection for format or completeness with the rejection text attached.",
+            "Trace each to the checklist line that should have caught it and amend the checklist or standards.",
+            "Report rejection counts against the one-per-quarter threshold to the Head of Compliance.",
+            "Verify the amended checklist is used on the next package."
+          ],
+          "done": "rejections are logged, root-caused into the checklist, and reported against threshold."
+        },
+        {
+          "step": "Maintain the package standards annually",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Each reinsurance year, refresh the Filing Package Standards against the new SRA, Manual 14, the FCIC Board handbook and SERFF general instruction changes.",
+            "Re-approve with the Head of Compliance and Product / Filing Actuary.",
+            "Brief contributors on changes before the April 1 Plan of Operations build."
+          ],
+          "done": "standards are refreshed, re-approved and briefed before the annual filing peak."
+        },
+        {
+          "step": "Archive final packages",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Copy the frozen package, checklist and sign-offs to the compliance evidence repository under REG-056/C46/<package name>.",
+            "Apply the 3-years-after-annual-settlement retention rule.",
+            "Lock the archive folder and index it for 2-business-day retrieval."
+          ],
+          "done": "each final package is archived, locked and retrievable within 2 business days."
+        },
+        {
+          "step": "Coordinate translation to system configuration",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Build the approved forms and rates into the Policy Administration Platform and rating engine exactly as packaged, referencing form numbers and edition dates.",
+            "Route the build through QA comparison against the package documents.",
+            "Do not promote to production until the release gate (C48) confirms authorization.",
+            "Attach the QA comparison to the package folder."
+          ],
+          "done": "system configuration matches the package verbatim and waits on the release gate."
+        },
+        {
+          "step": "Report package pipeline status",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Publish a weekly pipeline report: packages in build, at sign-off, submitted, objected, approved.",
+            "Highlight any package at risk of missing its T-10 milestone or submission window.",
+            "Send to the Insurance Product Manager, Regulatory Affairs Manager and Head of Compliance."
+          ],
+          "done": "a weekly pipeline report with risk flags reaches the named stakeholders."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Scope the quarterly package test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Set the population to all packages finalized in the quarter from the determination log.",
+            "List assertions: checklist completion, signature dating, T-10 readiness, content consistency, rejection handling.",
+            "Confirm independence from package assembly and QA.",
+            "Open the workpaper under REG-056/C46."
+          ],
+          "done": "a scoped, independent test plan is documented."
+        },
+        {
+          "step": "Reconcile the package population",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Export finalized packages from the tracker and reconcile to the determination log — every determination requiring a filing must show a package.",
+            "Flag any determined filing without a package as an exception.",
+            "Record counts."
+          ],
+          "done": "packages reconcile one-to-one to determinations requiring filings."
+        },
+        {
+          "step": "Sample packages",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Select 5 packages covering both FCIC and state routes, including any rejected package.",
+            "Record the selection rationale.",
+            "Retrieve each archived package within the 2-business-day standard, timing the retrieval."
+          ],
+          "done": "a documented cross-route sample is retrieved with timings."
+        },
+        {
+          "step": "Re-perform the completeness checklist",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "document management repository",
+          "actions": [
+            "Independently work the route checklist against the archived package contents.",
+            "Verify PDFs are text-searchable with form numbers and edition dates on every page.",
+            "Log any checklist line ticked without a matching document."
+          ],
+          "done": "an independent checklist pass exists per sampled package with gaps logged."
+        },
+        {
+          "step": "Verify actuarial content consistency",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Cross-foot the actuarial memorandum figures to the rate exhibits for each sampled package.",
+            "Confirm the certification page is signed and dated before package sign-off.",
+            "For one package, re-check a rate figure against the RMA Actuarial Information Browser or NCIS reference."
+          ],
+          "done": "memo, exhibits and certifications are consistent and independently spot-checked."
+        },
+        {
+          "step": "Recompute milestone timeliness",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "For each sampled package count business days from sign-off completion to the submission deadline and test the T-10 standard.",
+            "Compute the quarter's T-10 achievement rate against the 90% threshold.",
+            "Log misses with root cause from the tracker."
+          ],
+          "done": "T-10 maths are recomputed and the quarterly rate is tested against 90%."
+        },
+        {
+          "step": "Test signature integrity",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Verify all three DocuSign signatures exist per package and predate submission.",
+            "Verify any post-sign-off change carries a re-approval from the affected signer.",
+            "Flag any frozen-folder change without re-approval as an exception."
+          ],
+          "done": "signatures and freeze integrity are verified for every sampled package."
+        },
+        {
+          "step": "Test rejection handling",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "For each regulator rejection in the quarter, trace to the tracker item, the checklist amendment and the next package's use of the amended checklist.",
+            "Compare the quarter's rejection count to the one-per-quarter threshold.",
+            "Log gaps in root-cause follow-through."
+          ],
+          "done": "rejections trace to checklist fixes and the threshold comparison is documented."
+        },
+        {
+          "step": "Log exceptions and retest priors",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Record exceptions with root cause and owner in the tracker.",
+            "Retest prior-quarter exceptions and close or escalate repeats.",
+            "Agree remediation dates with the Product Filing Specialist."
+          ],
+          "done": "exceptions are logged and prior items dispositioned."
+        },
+        {
+          "step": "Independent conclusion",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Review the workpaper and exception log.",
+            "Issue a written conclusion against the 100% checklist and 90% T-10 thresholds.",
+            "Sign, file in the compliance evidence repository, and report to the Product / Filing Actuary and Insurance Product Manager."
+          ],
+          "done": "a signed quarterly conclusion on REG-056-C46 is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-056-C47",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Filing Specialist",
+          "value": "Owns submission of crop filings through SERFF (crop-hail/state routes) and the RMA/FCIC channels, and tracking every filing to disposition; escalation to the Product Filing Specialist for content"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — state crop-hail filing law via each state's SERFF General Instructions, and 2026 SRA Section IV(f) / Manual 14 for FCIC-route submissions, re-read at each submission"
+        },
+        "In-scope processes": {
+          "value": "Submission execution: SERFF filing creation, fee payment, objection management and disposition capture for crop-hail; portal/letter submission and Board-calendar tracking for 508(h) and Plan of Operations items"
+        },
+        "In-scope systems": {
+          "app": "Regulatory Filing Portal (SERFF)",
+          "value": "SERFF for state routes; RMA portals for FCIC routes; the regulatory filing/issue tracker as the disposition register"
+        },
+        "Compliance procedure documented": {
+          "value": "Crop Submission and Tracking Procedure — SERFF filing build, EFT fee handling, objection response clock, disposition capture, and the FCIC-route submission and follow-up steps"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance; reviewed each reinsurance year"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Submission by the package deadline; state objection responses by each objection letter's due date; FCIC 508(h) items tracked to the Board meeting calendar; dispositions logged within 2 business days of receipt"
+        },
+        "Deadline reminders configured": {
+          "value": "Tracker alerts on every open filing: T-5 before submission deadline, objection-response countdowns, and weekly aging on any filing pending over 60 days"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "SERFF tracking numbers, acknowledgements, objection correspondence and disposition letters retained at least 3 years after the annual settlement date of the relevant reinsurance year"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Late submissions, missed objection deadlines and dispositions not logged within 2 business days are recorded with root cause"
+        },
+        "Remediation sign-off captured": {
+          "role": "Regulatory Counsel",
+          "value": "Counsel signs off remediation of any missed objection deadline or use-before-disposition event"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All crop filings submitted in the period across SERFF and FCIC routes, per the disposition register"
+        },
+        "Pass/fail thresholds": {
+          "value": "100% of submissions by deadline; 100% of objection responses by their due dates; dispositions logged within 2 business days for 95% of filings"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per filing; testing runs quarterly over the quarter's submissions"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Officer",
+          "value": "Reviewer must not have executed any tested submission"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly submission-tracking test workpaper in the compliance evidence repository under REG-056/C47"
+        },
+        "Regulator-ready documentation": {
+          "value": "The disposition register with SERFF tracking numbers and approval letters, producible within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Filing Specialist manages SERFF objection dialogue; Regulatory Affairs Manager fronts RMA/FCIC follow-ups; Regulatory Counsel clears contested responses"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Create the SERFF filing for each state route",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Log in to SERFF (login.serff.com) under the company instance and select Create Filing.",
+            "Enter the state, Business Type, crop-hail TOI/Sub-TOI, filing type (form/rate/rule) and the writing company with its NAIC co-code from the frozen package.",
+            "Attach the package components to the correct schedule tabs — Form Schedule, Rate/Rule Schedule, Supporting Documentation — keeping each attachment within the state's size rules.",
+            "Complete the state's checklist tab, cross-referencing attachments by name."
+          ],
+          "done": "a complete SERFF filing mirrors the frozen package with all schedules populated."
+        },
+        {
+          "step": "Pay fees and submit",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Compute the state filing fee from the General Instructions and enter the EFT amount on the SERFF Filing Fees tab.",
+            "Run the SERFF validation, cure any red errors, and submit before the package deadline.",
+            "Record the SERFF tracking number, submission date and fee paid in the regulatory filing/issue tracker within 1 business day.",
+            "Save the submission confirmation PDF to the filing folder."
+          ],
+          "done": "the filing is submitted on time with tracking number, fee and confirmation logged."
+        },
+        {
+          "step": "Submit FCIC-route items through the federal channel",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "actions": [
+            "For 508(h) submissions, deliver the package to the FCIC Board per the Board's current submission instructions and calendar downloaded from rma.usda.gov, before the window closes.",
+            "For Plan of Operations items, upload through the RMA-designated channel by April 1.",
+            "Capture the delivery receipt or portal confirmation and log it in the tracker with the expected review timeline.",
+            "Notify the Product Filing Specialist that the submission is in."
+          ],
+          "done": "FCIC-route items are delivered in-window with receipts logged."
+        },
+        {
+          "step": "Acknowledge and triage regulator correspondence daily",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Check the SERFF messages queue and the RMA correspondence inbox every business day.",
+            "Log each objection letter or question in the tracker the day received, with the response due date from the letter.",
+            "Route content questions to the Product Filing Specialist or Product / Filing Actuary immediately.",
+            "Acknowledge receipt where the state or RMA requests it."
+          ],
+          "done": "all regulator correspondence is logged same day with response clocks running."
+        },
+        {
+          "step": "Respond to objections by the stated due date",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Assemble the response with the owning contributor and obtain re-sign-off on any changed content.",
+            "Post the response on the SERFF filing's objection/response tab (or the FCIC channel) before the due date.",
+            "Where more time is needed, request an extension through SERFF before the due date and log the state's answer.",
+            "File the response and proof of posting in the filing folder."
+          ],
+          "done": "every objection is answered or extended before its due date with evidence filed."
+        },
+        {
+          "step": "Track pending filings and chase aging",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Run the weekly pending-filings report from the tracker with days pending per filing.",
+            "For filings pending over 60 days with no state action, send a status inquiry through SERFF and log it.",
+            "For deemer states, compute the deemed-approval date and flag it to the Product Filing Specialist 10 business days ahead.",
+            "Publish the weekly report to the Product Filing Specialist and Insurance Product Manager."
+          ],
+          "done": "a weekly aging report runs with inquiries sent and deemer dates flagged ahead."
+        },
+        {
+          "step": "Capture dispositions within 2 business days",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "On receiving an approval, disapproval or deemed status, download the disposition letter from SERFF or the FCIC decision letter.",
+            "Log the disposition, effective date and any conditions in the tracker within 2 business days.",
+            "Notify the Product Filing Specialist, Configuration Engineer and the release gate owner (C48) the same day.",
+            "File the disposition letter in the filing folder and the compliance evidence repository."
+          ],
+          "done": "dispositions are logged within 2 business days and downstream owners notified same day."
+        },
+        {
+          "step": "Handle disapprovals and withdrawals",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "For a disapproval, convene the Product / Filing Actuary and Regulatory Counsel within 5 business days to decide rework, appeal or withdrawal.",
+            "Execute the chosen path in SERFF (amend, respond or withdraw) and log the decision rationale.",
+            "Confirm no product use occurs in the state while disapproved.",
+            "Track the rework to resubmission under a new determination check."
+          ],
+          "done": "each disapproval has a decided, executed path with use blocked meanwhile."
+        },
+        {
+          "step": "Reconcile the disposition register monthly",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Reconcile the tracker's filing list against SERFF Filing Access exports and the FCIC submission log — every submission must appear once with a current status.",
+            "Chase any register gap to closure within the month.",
+            "Export the monthly reconciliation to the compliance evidence repository.",
+            "Report register accuracy in the monthly compliance dashboard."
+          ],
+          "done": "the register reconciles monthly to SERFF and FCIC records with gaps closed."
+        },
+        {
+          "step": "Maintain submitter credentials and instance settings",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Review SERFF user access quarterly, removing leavers and confirming the EFT account balances for fees.",
+            "Keep the company demographic data (addresses, contacts, NAIC codes) current in the SERFF instance.",
+            "Verify eAuthentication/Login.gov credentials for the RMA channels are active for at least two named users.",
+            "Log the quarterly review in the tracker."
+          ],
+          "done": "portal access, fee accounts and company data are verified quarterly with two active federal credential holders."
+        },
+        {
+          "step": "Escalate deadline risks before they land",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Flag to the Product Filing Specialist any submission at T-5 without a complete package, and any objection response at half its clock without content.",
+            "Escalate to the Head of Compliance where a deadline will be missed, before it passes.",
+            "Log every escalation with the outcome."
+          ],
+          "done": "deadline risks are escalated pre-miss with outcomes logged."
+        },
+        {
+          "step": "Archive completed filing folders",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "On disposition, archive the filing folder — submission confirmation, correspondence, responses, disposition letter — under REG-056/C47/<tracking number>.",
+            "Apply the 3-years-after-annual-settlement retention rule and lock the folder.",
+            "Index the folder for 5-business-day production."
+          ],
+          "done": "each dispositioned filing has a locked, indexed archive folder."
+        },
+        {
+          "step": "Review submission metrics quarterly",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Compile on-time submission rate, objection-response timeliness, disposition-logging timeliness and average days-to-approval by state.",
+            "Review against the 100%/100%/95% thresholds with the Regulatory Filing Specialist.",
+            "Open tracker items for any threshold breach.",
+            "File the quarterly metric summary."
+          ],
+          "done": "quarterly submission metrics are reviewed against thresholds with breaches tracked."
+        },
+        {
+          "step": "Refresh procedure for portal and instruction changes",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Monitor SERFF release notes and state instruction changes each quarter, and RMA channel changes each reinsurance year.",
+            "Update the Crop Submission and Tracking Procedure and brief the team.",
+            "Version and date the procedure with Head of Compliance re-approval annually."
+          ],
+          "done": "the procedure tracks current portal behavior with an annual re-approval."
+        },
+        {
+          "step": "Support the release gate with disposition certainty",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Provide the C48 release gate owner a per-state disposition statement for every product release: approved (with letter), deemed (with date maths), pending (blocked).",
+            "Refuse verbal-only status — every statement references a logged disposition or computed deemer date.",
+            "Answer gate queries within 1 business day."
+          ],
+          "done": "the release gate receives evidenced disposition statements, never verbal status."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Scope the quarterly submission test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Set the population to all filings submitted in the quarter across SERFF and FCIC routes.",
+            "List assertions: on-time submission, same-day correspondence logging, objection timeliness, 2-day disposition capture, register accuracy.",
+            "Confirm independence from submission execution.",
+            "Open the workpaper under REG-056/C47."
+          ],
+          "done": "a scoped, independent test plan is documented."
+        },
+        {
+          "step": "Build the population from the regulator side",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Export the company's quarter submissions from SERFF Filing Access rather than from the tracker.",
+            "Add FCIC-route submissions from delivery receipts.",
+            "This regulator-side list is the test population."
+          ],
+          "done": "a regulator-side population independent of the tracker is built."
+        },
+        {
+          "step": "Reconcile register to population",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Match every population filing to a tracker entry and vice versa.",
+            "Flag unmatched items in either direction as exceptions.",
+            "Record the register accuracy rate."
+          ],
+          "done": "two-way reconciliation is complete with accuracy computed."
+        },
+        {
+          "step": "Sample filings for re-performance",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Select 8 filings including at least one objected, one FCIC-route and one deemer-state filing.",
+            "Record the selection rationale.",
+            "Retrieve each filing folder from the archive."
+          ],
+          "done": "a documented 8-filing sample with folders is ready."
+        },
+        {
+          "step": "Verify submissions in SERFF",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Open each sampled SERFF filing and compare the submitted schedules to the frozen package inventory.",
+            "Verify the submission timestamp against the package deadline.",
+            "Confirm the tracking number in the tracker matches SERFF."
+          ],
+          "done": "submitted content, timing and tracking numbers are verified in SERFF."
+        },
+        {
+          "step": "Recompute objection-response clocks",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "For each objection on sampled filings, compare the letter's due date to the SERFF response posting timestamp.",
+            "Verify extensions were requested before due dates where used.",
+            "Log any late response as a fail against the 100% standard."
+          ],
+          "done": "objection timeliness is recomputed from SERFF timestamps."
+        },
+        {
+          "step": "Recompute deemer maths",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For the deemer-state filing, independently recompute the deemed-approval date from the filing date plus the statutory review period, checking for state tolling on objections.",
+            "Compare to the date the register carries.",
+            "Log any difference as an exception."
+          ],
+          "done": "deemer dates are independently recomputed and compared to the register."
+        },
+        {
+          "step": "Test disposition capture timeliness",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "For each disposition in the quarter, count business days from the disposition letter date to the tracker log date.",
+            "Compute the within-2-days rate against the 95% threshold.",
+            "Verify downstream notification to the release gate occurred same day for sampled items."
+          ],
+          "done": "disposition capture timeliness is computed against 95% with notifications verified."
+        },
+        {
+          "step": "Log exceptions and retest priors",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Record exceptions with root cause and owner in the tracker.",
+            "Retest prior-quarter exceptions and close or escalate repeats.",
+            "Agree remediation dates with the Regulatory Filing Specialist."
+          ],
+          "done": "exceptions are logged and prior items dispositioned."
+        },
+        {
+          "step": "Independent conclusion",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Review the workpaper and exception log.",
+            "Issue a written conclusion against the 100%/100%/95% thresholds.",
+            "Sign, file in the compliance evidence repository, and report to Regulatory Counsel."
+          ],
+          "done": "a signed quarterly conclusion on REG-056-C47 is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-056-C48",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Insurance Product Manager",
+          "value": "Owns the release gate holding crop products until authorization: SRA executed and Plan of Operations approved for the reinsurance year, plus per-state dispositions for crop-hail; escalation to the Chief Underwriting Officer"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 2026 SRA Preamble and Sections IV(f)(2) and IV(l): no reinsurance, A&O subsidy, CAT LAE or risk subsidy until the SRA is executed and the Plan of Operations approved; the SRA is a single-year agreement effective July 1; verified against the executed SRA each year"
+        },
+        "In-scope processes": {
+          "value": "Release gating for all crop product go-lives: MPCI writing for the reinsurance year gated on SRA execution and Plan of Operations approval; state crop-hail releases gated on filing disposition; gate evidence and override control"
+        },
+        "In-scope systems": {
+          "app": "Policy Administration Platform",
+          "value": "Release flags in the Policy Administration Platform and rating engine; gate records in the product roadmap/backlog tool; evidence in the compliance evidence repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Crop Release Gate Procedure — the gate checklist (SRA executed, Plan of Operations approved, state dispositions in hand, configuration QA passed), evidence standards, and the no-override rule without Chief Underwriting Officer and Regulatory Counsel sign-off"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Underwriting Officer and Head of Compliance; reviewed each reinsurance year before the April 1 Plan of Operations submission"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Plan of Operations submitted by April 1; SRA execution and Plan approval confirmed before the July 1 reinsurance year start; per-crop sales closing dates gate state go-lives; no MPCI sales for the new year before both authorizations"
+        },
+        "Deadline reminders configured": {
+          "value": "Countdown alerts at T-60/T-30/T-10 to April 1 for the Plan of Operations and to July 1 for execution/approval confirmation, addressed to the Regulatory Affairs Manager and Insurance Product Manager"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Executed SRA, Plan of Operations approval letter, gate checklists and release records retained at least 3 years after the annual settlement date of the reinsurance year"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any release before authorization, and any gate override, is logged with root cause, financial exposure (lost reinsurance/subsidy) and disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Underwriting Officer",
+          "value": "Chief Underwriting Officer signs off remediation of any premature release together with Regulatory Counsel"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All crop product releases and reinsurance-year go-lives in the period, with their gate records, plus the year's SRA execution and Plan of Operations approval evidence"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any policy written before SRA execution and Plan approval, or any state release before disposition, is a fail; every release must show a completed gate record"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per release with an annual authorization cycle; testing runs annually after the July 1 turn plus per-release spot checks quarterly"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must be outside Product Operations and have approved no tested release"
+        },
+        "Evidence location for test results": {
+          "value": "Annual release-gate test workpaper in the compliance evidence repository under REG-056/C48"
+        },
+        "Regulator-ready documentation": {
+          "value": "The executed SRA, Plan of Operations approval and gate records, producible to RMA within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Affairs Manager fronts RMA on authorization status; Regulatory Counsel clears any disclosure of a premature release before it is made"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Submit the Plan of Operations by April 1",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "actions": [
+            "Assemble the Appendix IV Plan of Operations for the coming reinsurance year: states, plans of insurance, fund designations, financial and operational schedules.",
+            "Reconcile the Plan's state/plan scope to the product roadmap so nothing planned for release is missing from the Plan.",
+            "Upload through the RMA-designated channel by April 1 and save the submission confirmation.",
+            "Log the submission in the Internal Regulatory System and diarize FCIC's review questions window."
+          ],
+          "done": "the Plan of Operations is submitted by April 1 with confirmation logged and scope reconciled to the roadmap."
+        },
+        {
+          "step": "Execute the SRA for the reinsurance year",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Review the new reinsurance year SRA terms against the prior year with the Head of Reinsurance and Chief Financial Officer, noting changed obligations.",
+            "Obtain board or delegated authority approval for execution where required by the governance framework.",
+            "Execute the SRA through the RMA process before the July 1 effective date and obtain the countersigned copy.",
+            "File the executed SRA in the compliance evidence repository and notify the release gate owner."
+          ],
+          "done": "a countersigned SRA for the reinsurance year is filed before July 1 and the gate owner notified."
+        },
+        {
+          "step": "Confirm Plan of Operations approval before writing",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "actions": [
+            "Track FCIC's review of the Plan, answering questions within the timelines FCIC sets.",
+            "Obtain the written Plan of Operations approval and check approved scope (states, plans, funds) against what was requested.",
+            "Where FCIC approves a narrower scope, notify the Insurance Product Manager immediately so out-of-scope releases stay gated.",
+            "File the approval letter and log the approval date in the Internal Regulatory System."
+          ],
+          "done": "written Plan approval is filed, scope differences are flagged, and the approval date is logged."
+        },
+        {
+          "step": "Set the annual gate: no MPCI writing until both authorizations",
+          "by": "Insurance Product Manager",
+          "role": "Insurance Product Manager",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Keep the new reinsurance year's MPCI plans flagged 'blocked' in the Policy Administration Platform until both the executed SRA and the Plan approval letter are filed.",
+            "Verify the block covers quoting and binding across all channels including the agency/producer management system feeds.",
+            "On receiving both evidences, complete the annual gate checklist and lift the block with a dated record.",
+            "Notify Underwriting and Distribution leadership of the go-live with the authorization references."
+          ],
+          "done": "the system block holds until both authorizations are evidenced, and the lift is a dated gate record."
+        },
+        {
+          "step": "Gate each state crop-hail release on disposition",
+          "by": "Insurance Product Manager",
+          "role": "Insurance Product Manager",
+          "app": "product roadmap/backlog tool",
+          "actions": [
+            "For every state release milestone in the product roadmap/backlog tool, attach the disposition statement from the Regulatory Filing Specialist (approval letter or computed deemer date).",
+            "Hold the milestone at 'blocked' until the statement shows approved or deemed status.",
+            "Cross-check the release's forms and rates match the approved filing versions via the Configuration Engineer's QA comparison.",
+            "Record the gate decision with date, decider and evidence links."
+          ],
+          "done": "every state release milestone carries an evidenced disposition and a recorded gate decision."
+        },
+        {
+          "step": "Complete the release gate checklist per go-live",
+          "by": "Release Coordinator",
+          "role": "Release Coordinator",
+          "actions": [
+            "Work the gate checklist for each release: authorization evidence attached, configuration QA passed, effective dates in system match the approved documents, sales closing dates respected, downstream eDAS coding ready.",
+            "Obtain the Insurance Product Manager's approval signature on the completed checklist.",
+            "Schedule the production promotion only after the checklist closes.",
+            "File the checklist in the compliance evidence repository under REG-056/C48."
+          ],
+          "done": "each go-live has a signed, filed gate checklist preceding production promotion."
+        },
+        {
+          "step": "Control gate overrides",
+          "by": "Insurance Product Manager",
+          "role": "Insurance Product Manager",
+          "actions": [
+            "Permit an override of any gate item only with written sign-off from both the Chief Underwriting Officer and Regulatory Counsel stating the basis.",
+            "Log every override in the regulatory filing/issue tracker with the risk accepted and a review date.",
+            "Report overrides to the Head of Compliance monthly — the expected count is zero.",
+            "Never override the SRA/Plan authorization items; those are absolute blocks."
+          ],
+          "done": "overrides are dual-signed, logged and reported, and authorization items are never overridden."
+        },
+        {
+          "step": "Verify no premature writing occurred at the year turn",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "enterprise data warehouse",
+          "actions": [
+            "After July 1, query the enterprise data warehouse for any new reinsurance year MPCI policy with a sales or binding date before both authorization dates.",
+            "Query state crop-hail bind dates against each state's disposition date.",
+            "Log any early policy as a zero-tolerance exception with the financial exposure (uninsured of reinsurance, lost A&O/risk subsidy) quantified with the Controller.",
+            "Report the query results, even when clean, to the Head of Compliance."
+          ],
+          "done": "a post-turn query proves no writing preceded authorization, or exceptions are logged with quantified exposure."
+        },
+        {
+          "step": "Remediate any premature release",
+          "by": "Insurance Product Manager",
+          "role": "Insurance Product Manager",
+          "actions": [
+            "Quarantine further sales on the affected product/state immediately.",
+            "With Regulatory Counsel, determine notification duties to RMA or the state and the policyholder remedy (re-issue, refund, or cure on authorization).",
+            "Execute the remedy and obtain Chief Underwriting Officer and Regulatory Counsel sign-off on closure.",
+            "Root-cause the gate failure and fix the control before the next release."
+          ],
+          "done": "premature releases are quarantined, remedied with counsel, signed off and root-caused."
+        },
+        {
+          "step": "Keep gate calendars aligned to crop dates",
+          "by": "Product Analyst",
+          "role": "Product Analyst",
+          "actions": [
+            "Load each crop's sales closing date, contract change date and earliest sales date from the RMA actuarial documents into the release calendar.",
+            "Alert the Insurance Product Manager when an approval timeline threatens a sales closing date, at least 30 days ahead.",
+            "Reconcile the calendar to the RMA dates each crop year."
+          ],
+          "done": "release calendars carry current RMA crop dates with 30-day risk alerts."
+        },
+        {
+          "step": "Brief distribution before each go-live",
+          "by": "Distribution Operations Manager",
+          "role": "Distribution Operations Manager",
+          "actions": [
+            "On gate lift, notify agencies and producers through the agency/producer management system of what may now be sold, in which states, from which date.",
+            "Withdraw any material referencing blocked products or states.",
+            "Confirm the Broker & Agent Portal shows only released products.",
+            "File the notification evidence with the gate record."
+          ],
+          "done": "distribution channels reflect exactly the released scope with notification evidence filed."
+        },
+        {
+          "step": "Report gate status to governance",
+          "by": "Insurance Product Manager",
+          "role": "Insurance Product Manager",
+          "actions": [
+            "Report quarterly to the Chief Underwriting Officer: releases gated, released, overrides (target zero) and the authorization calendar status for April 1 and July 1.",
+            "Escalate any authorization at risk 60 days ahead.",
+            "Minute the review and file it."
+          ],
+          "done": "quarterly gate reporting reaches the Chief Underwriting Officer with minutes filed."
+        },
+        {
+          "step": "Archive the annual authorization evidence",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the executed SRA, Plan of Operations submission and approval, annual gate checklist and the post-turn verification query under REG-056/C48/<reinsurance year>.",
+            "Apply the 3-years-after-annual-settlement retention rule and lock the folder.",
+            "Index for 5-business-day production to RMA."
+          ],
+          "done": "the reinsurance year's authorization evidence is archived, locked and indexed."
+        },
+        {
+          "step": "Refresh the gate procedure each reinsurance year",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Diff the new SRA's Sections IV(f)(2) and IV(l) and the Preamble for authorization changes.",
+            "Update the gate checklist and re-approve with the Chief Underwriting Officer and Head of Compliance before April 1.",
+            "Brief the Release Coordinator and Product teams on changes."
+          ],
+          "done": "the gate procedure is re-approved against the new SRA before the Plan submission."
+        },
+        {
+          "step": "Test the block mechanics before the year turn",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "In the pre-production environment, attempt to quote and bind a new-year MPCI policy while the gate block is set, across direct and portal channels.",
+            "Confirm every attempt is refused with the correct block message.",
+            "Attach the test evidence to the annual gate checklist.",
+            "Re-run after any system release that touches the binding path."
+          ],
+          "done": "block mechanics are proven by failed bind attempts in every channel before July 1."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Scope the annual gate test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Set scope to the reinsurance year turn plus all product releases in the year.",
+            "List assertions: April 1 and July 1 evidence, block integrity, gate checklists per release, zero premature writing, override control.",
+            "Confirm independence from Product Operations.",
+            "Open the workpaper under REG-056/C48."
+          ],
+          "done": "a scoped, independent annual test plan is documented."
+        },
+        {
+          "step": "Verify the authorization evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Inspect the countersigned SRA and the Plan of Operations approval letter in the archive, checking dates and the reinsurance year.",
+            "Verify the Plan was submitted by April 1 from the submission confirmation.",
+            "Compare the approved scope (states, plans) to what was released in the year."
+          ],
+          "done": "authorization documents are verified authentic, dated and scope-consistent with releases."
+        },
+        {
+          "step": "Build the release population",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "product roadmap/backlog tool",
+          "actions": [
+            "Export all crop release milestones marked done in the year from the product roadmap/backlog tool.",
+            "Reconcile against production deployment logs from the Policy Administration Platform.",
+            "Flag any deployment without a milestone as an exception."
+          ],
+          "done": "the release population reconciles to production deployments."
+        },
+        {
+          "step": "Trace every release to a gate record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each release, retrieve the signed gate checklist and its attached authorization or disposition evidence.",
+            "Any release without a completed checklist is a zero-tolerance fail.",
+            "Record the trace rate."
+          ],
+          "done": "every release traces to a signed gate record or is failed."
+        },
+        {
+          "step": "Re-run the premature-writing query independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "enterprise data warehouse",
+          "actions": [
+            "Write an independent query against the enterprise data warehouse comparing every new-year MPCI sales/binding date to the later of the SRA execution and Plan approval dates.",
+            "Repeat for crop-hail binds against state disposition dates.",
+            "Compare results to the Compliance Analyst's post-turn query and investigate any difference."
+          ],
+          "done": "an independent query confirms (or refutes) zero premature writing."
+        },
+        {
+          "step": "Recompute the deadline maths",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Verify the April 1 submission date and July 1 effective date arithmetic from source timestamps.",
+            "For sampled state releases, recompute deemer dates used at the gate.",
+            "Log any date reliance that does not hold."
+          ],
+          "done": "all gate date arithmetic is independently recomputed."
+        },
+        {
+          "step": "Test override control",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Pull all gate overrides from the tracker and verify each carries both Chief Underwriting Officer and Regulatory Counsel signatures.",
+            "Confirm no override touched the SRA/Plan authorization items.",
+            "Verify monthly override reporting to the Head of Compliance occurred."
+          ],
+          "done": "overrides are fully dual-signed, within permitted scope, and reported."
+        },
+        {
+          "step": "Re-test block mechanics",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Observe or re-perform a blocked-bind attempt in the pre-production Policy Administration Platform with a gated product.",
+            "Verify the QA evidence attached to the annual checklist matches this behavior.",
+            "Log any channel where the block does not hold."
+          ],
+          "done": "block behavior is directly observed and matches the filed QA evidence."
+        },
+        {
+          "step": "Log exceptions and retest priors",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Record exceptions with root cause, quantified exposure and owner in the tracker.",
+            "Retest prior-year exceptions and close or escalate repeats.",
+            "Escalate any premature-writing finding immediately to the Chief Underwriting Officer and Head of Compliance."
+          ],
+          "done": "exceptions are logged with exposure and priors are dispositioned."
+        },
+        {
+          "step": "Independent conclusion",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Review the workpaper, queries and exception log.",
+            "Issue a written conclusion against the zero-tolerance standard on premature release.",
+            "Sign, file in the compliance evidence repository, and report to the Chief Underwriting Officer, General Counsel and Head of Compliance."
+          ],
+          "done": "a signed annual conclusion on REG-056-C48 is filed and reported."
+        }
+      ]
+    }
+  ]
+}
