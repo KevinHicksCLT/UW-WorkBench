@@ -1156,6 +1156,1877 @@
           "done": "a signed workpaper states the breach counts, the conclusion and the committee reporting date and is filed in the repository."
         }
       ]
+    },
+    {
+      "itemCode": "REG-051-C36",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Business Systems Analyst",
+          "value": "IT / Product owns loading the CMS-approved benefit package into the enrollment, claims and billing configuration for each plan year; escalation to the Product Manager and Head of IT"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 42 CFR 422.101(f) and 422.152(g) (SNP model of care with NCQA approval) plus 422.101(a),(b) re-read on eCFR at configuration kickoff so system rules never pay less than the approved PBP or original Medicare"
+        },
+        "In-scope processes": {
+          "value": "Post-approval implementation: CMS-approved PBP/BPT baseline → benefit and cost-sharing configuration → MOOP accumulators → SNP model-of-care triggers (HRA, ICT, care plans) → UAT tick-and-tie → production release before the January 1 plan-year start"
+        },
+        "In-scope systems": {
+          "app": "Policy Administration Platform",
+          "value": "Enrollment/policy admin benefit plans, the claims adjudication benefit rules in the Claims Platform, and premium/rebate amounts in the billing platform — all keyed to the approved PBP version"
+        },
+        "Compliance procedure documented": {
+          "value": "Plan-Year Benefit Configuration Procedure — approved-artifact baseline, field-level requirements traceability to the PBP report, dual-build for claims and enrollment, PBP tick-and-tie UAT, release gate and post-go-live claims verification"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Product Manager and the IT Service Delivery Manager; re-approved each cycle when CMS publishes the final approved PBP and any bid-negotiation changes"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Configuration frozen and UAT-passed before the October 15 Annual Election Period start (materials/enrollment must match the approved design); production cutover completed before the January 1 plan-year effective date"
+        },
+        "Deadline reminders configured": {
+          "value": "Release-plan milestones at T-90/T-60/T-30 to October 15 (AEP readiness) and T-30/T-14/T-7 to the January 1 benefit effective date per plan ID"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Requirements traceability matrix, configuration change records, UAT tick-and-tie workbooks and release approvals retained 10 years per 42 CFR 422.504(d)"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any production benefit value that diverges from the approved PBP, or any SNP trigger not firing, is logged as a compliance exception with member-impact assessment and disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Compliance Officer",
+          "value": "Compliance signs off every configuration defect remediation that touched member cost sharing or SNP care-management triggers, including claim reprocessing"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every benefit plan configured for the contract year across enrollment, claims and billing systems, plus all SNP plan IDs' model-of-care configuration and the first 30 days of production claims"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on member harm — any configured copay/coinsurance/deductible above the approved PBP value or any denied basic benefit is a fail; ≥1 fail triggers claim reprocessing and CMS-disclosure assessment"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Per plan-year implementation: pre-go-live UAT verification in Q4 and a post-implementation claims re-test within 60 days of January 1"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "QA Analyst",
+          "value": "The verifying analyst must not have built any of the sampled configuration; final workpaper is signed by Internal Audit"
+        },
+        "Evidence location for test results": {
+          "value": "Plan-year configuration verification workpaper (traceability matrix, sample, re-adjudication results, exceptions) in the compliance evidence repository under the contract year"
+        },
+        "Regulator-ready documentation": {
+          "value": "Approved PBP report, traceability matrix, UAT sign-offs and post-go-live claim verification results producible within 5 business days for a CMS program audit (ODAG/CDAG universes rely on this configuration)"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Affairs Manager owns any CMS inquiry into benefit administration errors; Regulatory Counsel clears self-disclosures of systemic mis-adjudication before submission"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Baseline the CMS-approved artifacts for the contract year",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Download the final approved PBP report and the post-negotiation BPT for every plan ID from HPMS once CMS issues bid approval (typically late summer).",
+            "Version-lock the approved set in the Internal Regulatory System as <H#>-<PBP#>-<CY>-APPROVED and mark all earlier drafts superseded.",
+            "Diff the approved PBP against the June-submitted version and list every value CMS changed in negotiation.",
+            "Hand the locked baseline and the negotiation-change list to the Business Systems Analyst as the sole configuration source."
+          ],
+          "done": "a version-locked approved baseline and negotiation-change list are published as the single configuration source."
+        },
+        {
+          "step": "Author field-level configuration requirements traced to the PBP",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "app": "requirements repository",
+          "actions": [
+            "For each plan ID, write one requirement row per PBP benefit line: benefit category, in/out-of-network cost share, deductible applicability, authorization rule and visit/day limits, citing the PBP section (e.g., Section B-4a inpatient).",
+            "Add the plan-level rows: premium, Part B premium buydown, combined/split MOOP amounts and the rebate-funded supplemental benefits.",
+            "Trace each row to its target system field in enrollment, claims and billing so nothing is configured from memory.",
+            "Have the Product Manager approve the traceability matrix before any build starts."
+          ],
+          "done": "an approved traceability matrix maps every PBP benefit line to named system fields."
+        },
+        {
+          "step": "Build the plan-year benefit plans in the enrollment/policy admin system",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Create the contract-year benefit plan shells per plan ID with contract number, PBP number, segment and service-area counties from the approved baseline.",
+            "Key premium, effective dates (January 1 start) and enrollment-eligibility parameters from the traceability matrix.",
+            "Attach the plan crosswalk so renewing members map to the correct successor plan ID.",
+            "Peer-review each keyed value against the matrix row and initial the build log."
+          ],
+          "done": "every plan ID exists in policy admin with premium, dates and crosswalk peer-reviewed against the matrix."
+        },
+        {
+          "step": "Configure benefit cost sharing in the claims adjudication rules",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Claims Platform",
+          "actions": [
+            "Build the benefit grid per plan ID in the claims platform: copay/coinsurance per service category, deductible logic, in/out-of-network tiers and benefit limits, keyed only from the traceability matrix.",
+            "Map service categories to procedure/revenue code sets with the Medical Claims Reviewer so each PBP category adjudicates against the right codes.",
+            "Configure cost-sharing no higher than the approved PBP value in every case — a lower value is a pricing error, a higher value is a member-harm compliance defect.",
+            "Record each configured rule id against its matrix row."
+          ],
+          "done": "claims rules exist for every benefit line with rule ids recorded on the matrix and no value above the approved PBP."
+        },
+        {
+          "step": "Configure MOOP accumulators and catastrophic protection",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Claims Platform",
+          "actions": [
+            "Set the in-network and combined maximum out-of-pocket amounts per plan ID exactly as approved in the PBP.",
+            "Configure which cost-sharing amounts accrue to each accumulator per the CMS MOOP service-category rules in the bid instructions.",
+            "Verify the accumulator zeroes member cost sharing on covered Parts A/B services once the MOOP is reached.",
+            "Run three worked examples (below, at, above MOOP) and file the results with the build record."
+          ],
+          "done": "MOOP accumulators match the approved amounts and the three worked examples behave correctly."
+        },
+        {
+          "step": "Configure the SNP model-of-care triggers for each SNP plan",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "app": "workflow/case management tool",
+          "actions": [
+            "From the NCQA-approved model of care, configure the health risk assessment task to trigger within 90 days of each SNP enrollment effective date, per 42 CFR 422.101(f) and the MOC's own committed timeframe.",
+            "Configure individualized care plan creation and interdisciplinary care team assignment workflows to follow HRA completion, matching the MOC's stated intervals.",
+            "Load the target-population eligibility verification step (e.g., chronic-condition or dual-eligibility check) into the enrollment workflow.",
+            "Walk the Medical / Nurse Case Manager through the configured workflow and capture their written confirmation that it matches the approved MOC."
+          ],
+          "done": "HRA, care-plan and ICT workflows fire on the MOC-committed timeframes, confirmed in writing by care management."
+        },
+        {
+          "step": "Configure premiums and rebate-funded amounts in billing",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "billing/commission platform",
+          "actions": [
+            "Key the member premium, any Part B buydown and late-enrollment-penalty handling per plan ID from the approved BPT/PBP baseline.",
+            "Configure premium withhold vs direct-bill options consistent with the plan's CMS election handling.",
+            "Reconcile the keyed premium to the PBP report value for every plan ID and attach the reconciliation to the build record.",
+            "Have the Billing Operations Manager sign the premium configuration."
+          ],
+          "done": "billing premiums reconcile to the approved PBP for every plan ID with a signed build record."
+        },
+        {
+          "step": "Reconcile member materials against the configured benefits",
+          "by": "Product Analyst",
+          "role": "Product Analyst",
+          "actions": [
+            "Tick-and-tie the ANOC/EOC benefit tables for each plan ID against the configured claims benefit grid, value by value.",
+            "Route any mismatch to the Configuration Engineer (if the build is wrong) or the Communications Specialist (if the material is wrong) before the ANOC mail date.",
+            "Record the tie-out result per plan ID in the requirements repository.",
+            "Certify materials-to-configuration agreement to the Compliance Officer before October 15."
+          ],
+          "done": "ANOC/EOC values agree with the configured benefits for every plan ID before the AEP starts."
+        },
+        {
+          "step": "Build the UAT case library from the approved PBP",
+          "by": "Test Lead",
+          "role": "Test Lead",
+          "app": "Jira",
+          "actions": [
+            "Write test cases per plan ID covering every benefit category, both network tiers, deductible interaction, each benefit limit, and MOOP crossover.",
+            "Add SNP cases: enrollment of a target-population member, HRA trigger timing, care-plan task creation and an out-of-population rejection.",
+            "Add negative cases: a basic Part A/B benefit must never deny for a covered enrollee, per 42 CFR 422.101(a).",
+            "Link every case to its traceability-matrix row and load the suite into the test plan."
+          ],
+          "done": "a traceable UAT suite covers all benefit lines, SNP triggers and negative cases."
+        },
+        {
+          "step": "Execute UAT and tick-and-tie results to the PBP report",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "actions": [
+            "Adjudicate the test claims in the claims test environment and record actual member cost sharing per case.",
+            "Compare each result to the approved PBP value on the linked matrix row and mark pass/fail — no tolerance on cost-sharing differences.",
+            "Log every fail as a defect with the configured value, the approved value and the rule id.",
+            "Publish the pass rate and open-defect list to the Test Lead daily during the UAT window."
+          ],
+          "done": "every UAT case shows a pass/fail against the approved PBP value with defects logged."
+        },
+        {
+          "step": "Verify prior-authorization rules do not narrow Medicare coverage",
+          "by": "Medical Claims Reviewer",
+          "role": "Medical Claims Reviewer",
+          "actions": [
+            "List every prior-authorization and step-therapy rule configured for the plan year and map each to the supporting NCD/LCD or internal coverage policy.",
+            "Confirm no rule denies or restricts a service that an applicable NCD/LCD covers, per 42 CFR 422.101(b).",
+            "Confirm approved-authorization validity periods meet the CMS minimum and that service-request decision timeframes are configured (14 calendar days standard, 72 hours expedited).",
+            "File the rule-by-rule review in the compliance evidence repository."
+          ],
+          "done": "every configured authorization rule maps to a coverage source and no rule is more restrictive than an NCD/LCD."
+        },
+        {
+          "step": "Triage defects and gate the release on compliance-relevant fixes",
+          "by": "Test Lead",
+          "role": "Test Lead",
+          "app": "Jira",
+          "actions": [
+            "Classify each defect: member-harm (cost share too high, benefit denied), plan-harm (cost share too low), or cosmetic.",
+            "Block release on any open member-harm defect; document Product Manager risk acceptance for plan-harm items deferred past January 1.",
+            "Retest every fixed defect against its original case and close it with the retest evidence attached.",
+            "Publish the release-readiness summary to the Release Coordinator."
+          ],
+          "done": "zero open member-harm defects and a documented disposition for every other defect."
+        },
+        {
+          "step": "Approve and deploy the plan-year configuration to production",
+          "by": "Release Coordinator",
+          "role": "Release Coordinator",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Raise the change request referencing the UAT sign-off, the traceability matrix version and the approved-baseline id.",
+            "Obtain approvals from the Product Manager, Compliance Officer and IT Service Delivery Manager on the change record.",
+            "Deploy in the cutover window so the configuration is live and verified before January 1, with a documented rollback plan.",
+            "Record deployment evidence (migration logs, smoke-test results) on the change record."
+          ],
+          "done": "an approved, evidenced change record shows the configuration live before January 1 with rollback documented."
+        },
+        {
+          "step": "Verify production behaviour in the first weeks of the plan year",
+          "by": "Production Support Analyst",
+          "role": "Production Support Analyst",
+          "app": "Claims Platform",
+          "actions": [
+            "Sample the first live claims per plan ID in January and compare adjudicated member cost sharing to the approved PBP values.",
+            "Check SNP January enrollments generated HRA tasks with due dates within the MOC-committed 90 days.",
+            "Route any discrepancy immediately to the Configuration Engineer and the Compliance Officer with the affected claim/member ids.",
+            "Report the verification result to the Product Manager by January 31."
+          ],
+          "done": "a January production verification confirms claims and SNP triggers match the approved design, or discrepancies are escalated."
+        },
+        {
+          "step": "Archive the implementation record for 10 years",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the approved baseline, traceability matrix, build records, UAT workbooks, change record and production verification under contract year and plan ID.",
+            "Apply the 10-year retention label per 42 CFR 422.504(d).",
+            "Verify retrieval by plan ID and contract year in the repository index.",
+            "Close the implementation milestone in the release plan."
+          ],
+          "done": "the complete implementation record is archived with 10-year retention and retrievable by plan ID."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of configured plan IDs and benefit lines",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Extract every contract-year benefit plan from the policy admin and claims platforms with its configuration version and deployment date.",
+            "Independently list the plan IDs CMS approved from the HPMS approval records in the Internal Regulatory System.",
+            "Resolve any plan configured-but-not-approved or approved-but-not-configured before sampling — either is an automatic exception."
+          ],
+          "done": "the configured population reconciles one-for-one to the CMS-approved plan list."
+        },
+        {
+          "step": "Reconcile the traceability matrix to the approved PBP",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled plan, count the PBP benefit lines in the approved report and compare to the matrix row count.",
+            "Confirm the matrix cites the APPROVED baseline version, not the June submission, including all negotiation changes.",
+            "Flag any PBP line with no matrix row as a coverage gap in the build."
+          ],
+          "done": "every approved PBP line traces to a matrix row built from the correct baseline."
+        },
+        {
+          "step": "Draw a documented sample of plans and benefit lines",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of SNP plan IDs and all plans with negotiation changes.",
+            "Randomly select (seeded, reproducible) 20 benefit lines per sampled plan, always including inpatient, MOOP and two supplemental benefits.",
+            "Record seed, population and selection date in the workpaper."
+          ],
+          "done": "a reproducible sample covers all SNPs, negotiated changes and the mandatory benefit lines."
+        },
+        {
+          "step": "Re-perform the configuration comparison against the approved PBP",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "app": "Claims Platform",
+          "actions": [
+            "For each sampled benefit line, read the live production rule value directly from the claims platform without consulting the build log.",
+            "Compare to the approved PBP report value; any member cost share above the approved value is a member-harm exception.",
+            "Screenshot the production rule and the PBP line into the workpaper."
+          ],
+          "done": "every sampled line has an independent production-to-PBP comparison with captured evidence."
+        },
+        {
+          "step": "Re-adjudicate test claims through the production configuration",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "app": "Claims Platform",
+          "actions": [
+            "Run a re-adjudication set in the production-mirror environment covering each sampled benefit line and both network tiers.",
+            "Independently compute the expected member liability from the PBP values and compare to the system result.",
+            "Verify a covered Part A/B basic-benefit test claim cannot deny, per 42 CFR 422.101(a)."
+          ],
+          "done": "system-adjudicated liability matches independently computed PBP values on every re-adjudicated claim."
+        },
+        {
+          "step": "Recompute the MOOP accumulator behaviour",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Select members near the MOOP from January–February accumulator data and recompute their accrued cost sharing from claim detail.",
+            "Verify accrual only includes the MOOP-eligible service categories and that post-MOOP claims paid at zero member liability.",
+            "Log any member charged after crossing the approved MOOP as a member-harm exception requiring reprocessing."
+          ],
+          "done": "recomputed accumulators match the system and no post-MOOP member charge exists in the sample."
+        },
+        {
+          "step": "Verify SNP model-of-care triggers fired as approved",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Pull all SNP enrollments effective January 1–31 and trace each to an HRA task due within the MOC-committed 90 days, per 42 CFR 422.101(f) and 422.152(g).",
+            "Trace completed HRAs to care-plan creation and ICT assignment within the MOC intervals.",
+            "List any enrollment with no HRA task as an exception with member id."
+          ],
+          "done": "every sampled SNP enrollment shows timely HRA, care-plan and ICT workflow records."
+        },
+        {
+          "step": "Verify the release gate and deployment evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Inspect the change record for the plan-year release and confirm UAT sign-off, the three approvals and the rollback plan pre-date deployment.",
+            "Confirm deployment completed before January 1 and that no member-harm defect was open at release.",
+            "Trace two fixed defects to retest evidence."
+          ],
+          "done": "the release was approved, evidenced and deployed on time with no open member-harm defects."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise an issue per exception with plan ID, benefit line, configured vs approved value and the member impact.",
+            "For member-harm exceptions, open claim reprocessing with member refunds and assess CMS self-disclosure with Regulatory Counsel.",
+            "Assign root cause (matrix gap, keying error, missed negotiation change) and an owner with a remediation date.",
+            "Carry open items into the 60-day post-implementation retest."
+          ],
+          "done": "every exception has an issue, impact assessment, root cause, owner and remediation date."
+        },
+        {
+          "step": "Conclude, sign and report the verification",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compute the exception rate against the zero-member-harm threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer — who built none of the sampled configuration — sign the workpaper and file it in the compliance evidence repository.",
+            "Report results and any reprocessing totals to the Compliance Committee within 60 days of January 1."
+          ],
+          "done": "a signed workpaper with a stated conclusion and reprocessing totals is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-051-C37",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Filing Specialist",
+          "value": "The filing team owns intake and on-time response for every CMS objection, desk-review question, HPMS memo action item and marketing-material disapproval; escalation to the Regulatory Affairs Manager"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 42 CFR 422.503(b)(4)(vi) (prompt response to detected offenses within the compliance program) and the CMS bid desk-review and marketing-review instructions, re-read each cycle when CMS publishes contract-year guidance"
+        },
+        "In-scope processes": {
+          "value": "Objection lifecycle for MA Part C: daily HPMS monitoring → intake and deadline computation → owner assignment → response drafting with actuarial/legal clearance → HPMS submission → disposition tracking to closure, across bid desk review, marketing review and compliance notices"
+        },
+        "In-scope systems": {
+          "app": "regulatory filing/issue tracker",
+          "value": "CMS HPMS (desk-review threads, marketing module, memos) mirrored into the objection log in the regulatory filing/issue tracker with computed due dates"
+        },
+        "Compliance procedure documented": {
+          "value": "CMS Objection Response Procedure — monitoring rota, deadline table (72-hour desk-review turnarounds, 14-calendar-day service-request decisions, 30/60-day corrective responses), clearance matrix and escalation ladder"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Regulatory Affairs Manager and Regulatory Counsel; reviewed annually against the current CMS bid instructions and marketing guidance"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per objection — CMS desk-review questions commonly allow 72 hours to 5 business days; corrective actions and notices run on 30-day and 60-day clocks per the CMS request letter; each due date is computed at intake from the CMS-stated period"
+        },
+        "Deadline reminders configured": {
+          "value": "Tracker alerts at 50% elapsed, T-2 business days and T-0 on every open objection, with automatic escalation to the Regulatory Affairs Manager at T-2"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Objection log, CMS request text, cleared responses, HPMS submission confirmations and closure evidence retained 10 years per 42 CFR 422.504(d)"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any response submitted after the CMS due date, or any objection discovered outside the intake process, is logged as an exception with root cause and disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Regulatory Counsel",
+          "value": "Counsel signs off the remediation of every late response and clears any response that concedes a compliance deficiency before it is submitted"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every CMS objection, desk-review question, marketing disapproval and corrective-action request received for the contract year, from the HPMS record — not from the internal log"
+        },
+        "Pass/fail thresholds": {
+          "value": "≥98% of responses submitted by the CMS due date; zero unanswered objections; any late response on a bid desk-review item is an automatic escalation to the Head of Compliance"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven; the test runs semi-annually — after the June–September bid desk-review season and again after the fall marketing-review season"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have drafted or cleared any sampled response"
+        },
+        "Evidence location for test results": {
+          "value": "Objection-response timeliness workpaper (HPMS-sourced population, reconciliation, sample, recomputed deadlines, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Objection log export with CMS request ids, due dates, submission timestamps and closure evidence, producible within 5 business days for a CMS program audit"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Affairs Manager is the single voice to the CMS account manager; Regulatory Counsel clears any response admitting a deficiency or committing to corrective action"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Run the daily HPMS monitoring rota",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Microsoft Teams / Email",
+          "actions": [
+            "Each business morning, open HPMS and review the desk-review correspondence threads, the marketing-module status changes and new HPMS memos for every H-contract.",
+            "Check the shared regulatory mailbox for CMS account-manager emails and letters that arrive outside HPMS.",
+            "Post a daily 'CMS intake' note to the regulatory Teams channel listing every new item found, or 'no new items'.",
+            "Name a backup monitor on the rota so no business day goes unmonitored."
+          ],
+          "done": "a dated intake note exists for every business day and names each new CMS item or states none."
+        },
+        {
+          "step": "Log each objection and compute its due date at intake",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Create a tracker row per CMS item the same day it is found: CMS reference id, H-contract/plan ID, request text verbatim, received date and channel.",
+            "Compute the due date from the CMS-stated period (e.g., 72 hours for a desk-review question, 30 days for a corrective response, 60 days of receipt where the letter says so) using calendar vs business days exactly as CMS states them.",
+            "Attach the CMS request document or HPMS thread capture to the row.",
+            "Set the tracker reminders at 50% elapsed and T-2 business days."
+          ],
+          "done": "every CMS item has a same-day tracker row with verbatim request text and a computed, evidenced due date."
+        },
+        {
+          "step": "Classify the objection and assign the accountable owner",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "actions": [
+            "Classify each row: bid/pricing (owner Product / Filing Actuary), benefit design (Product Manager), marketing material (Marketing Compliance Analyst), compliance program or conduct (Compliance Officer).",
+            "Assign the drafting owner and the clearance path from the procedure's clearance matrix within one business day of intake.",
+            "Flag any item that signals a possible deficiency finding and copy Regulatory Counsel immediately.",
+            "Confirm the owner has acknowledged the assignment and the due date on the tracker row."
+          ],
+          "done": "every open item shows a classification, an acknowledged owner and a clearance path within one business day."
+        },
+        {
+          "step": "Pull the source records the response will rely on",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Retrieve the exact filed versions in question — approved PBP report, BPT worksheet, submitted marketing piece or compliance artifact — from the version-locked baseline in the Internal Regulatory System.",
+            "Never reconstruct from working copies; the response must quote the filed version CMS is looking at.",
+            "Hand the source set to the drafting owner with the CMS request text.",
+            "Note the retrieved version ids on the tracker row."
+          ],
+          "done": "the drafting owner holds the version-locked filed records with version ids noted on the row."
+        },
+        {
+          "step": "Draft the response answering exactly what CMS asked",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "actions": [
+            "Answer each CMS question in the order asked, quoting the question and citing the specific worksheet, PBP section or document page that supports the answer.",
+            "For pricing questions, rerun the affected BPT calculation and attach the supporting exhibit rather than describing it.",
+            "Where CMS is right and a correction is needed, state the correction plainly and describe the corrected resubmission being prepared — never argue around an actual error.",
+            "Keep commitments specific: what will change, in which system or document, by what date."
+          ],
+          "done": "a draft answers every CMS question with cited support and specific, dated commitments."
+        },
+        {
+          "step": "Run actuarial peer review on any pricing response",
+          "by": "Pricing Actuary",
+          "role": "Pricing Actuary",
+          "actions": [
+            "Independently rerun the recomputed figures in the draft against the filed BPT and check consistency with the actuarial memorandum.",
+            "Confirm the response does not contradict any certified assumption without flagging the certification impact to the certifying actuary.",
+            "Sign the peer-review note on the tracker row.",
+            "Return discrepancies to the drafter the same day given the short desk-review clocks."
+          ],
+          "done": "every pricing response carries a same-cycle peer-review sign-off consistent with the certified bid."
+        },
+        {
+          "step": "Clear the response through counsel where the matrix requires it",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Review every response that concedes an error, commits to corrective action, or responds to a compliance-program inquiry under 42 CFR 422.503(b)(4)(vi).",
+            "Check commitments are achievable and consistent with positions taken in other open CMS matters.",
+            "Record the clearance decision and any required edits on the tracker row within the clearance window in the procedure.",
+            "Escalate to the General Counsel any response that could trigger enforcement exposure."
+          ],
+          "done": "every matrix-flagged response shows a dated counsel clearance before submission."
+        },
+        {
+          "step": "Submit the response through the correct CMS channel",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Submit desk-review answers in the originating HPMS thread, marketing corrections through the HPMS marketing module, and letter responses to the address/mailbox the CMS letter specifies.",
+            "Submit at least one business day before the due date wherever the material is ready — never ride the deadline on a system-dependent upload.",
+            "Capture the HPMS confirmation screen or delivery receipt immediately after submission.",
+            "Record the submission timestamp on the tracker row."
+          ],
+          "done": "the response is submitted in the CMS-specified channel with a captured receipt and timestamp on the row."
+        },
+        {
+          "step": "Escalate any response at risk of missing its deadline",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "actions": [
+            "At the 50%-elapsed alert, review progress with the owner; at T-2 business days, take over sequencing personally.",
+            "Where the date cannot be met, contact the CMS reviewer through the HPMS thread or the account manager before the due date to request an extension, and record CMS's answer verbatim.",
+            "Never let a due date pass silently — a documented extension request before the deadline is the minimum outcome.",
+            "Log the escalation and outcome on the tracker row."
+          ],
+          "done": "no due date passes without either a submitted response or a pre-deadline documented extension request."
+        },
+        {
+          "step": "Track each objection to CMS disposition and closure",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Monitor the HPMS thread for CMS's acceptance, follow-up question or disposition on every submitted response.",
+            "Treat a CMS follow-up as a new intake row with its own computed due date, linked to the parent.",
+            "Close the row only when CMS confirms acceptance or the underlying filing reaches approved/closed status.",
+            "Record the closure evidence (thread capture or disposition notice) on the row."
+          ],
+          "done": "every row is either open with a live due date or closed with captured CMS disposition evidence."
+        },
+        {
+          "step": "Propagate conceded corrections into the filed baseline",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For every correction committed in a response, create the corrected version in the Internal Regulatory System and link it to the objection row.",
+            "Notify the Business Systems Analyst where the correction changes values that downstream configuration or member materials consume.",
+            "Verify the corrected resubmission was uploaded to HPMS by the committed date.",
+            "Mark the baseline superseded so no one builds from the pre-correction version."
+          ],
+          "done": "every committed correction exists as a linked, resubmitted baseline version and downstream owners were notified."
+        },
+        {
+          "step": "Handle marketing-material disapprovals and withdrawals",
+          "by": "Marketing Compliance Analyst",
+          "role": "Marketing Compliance Analyst",
+          "actions": [
+            "On an HPMS marketing disapproval, instruct the Marketing Manager the same day to pull the piece from every distribution channel and record the pull time.",
+            "Log where the material had already been distributed and assess member impact with the Compliance Officer.",
+            "Correct and resubmit the material through the HPMS marketing module, observing the applicable review or File-and-Use period before any redistribution.",
+            "File the disapproval, pull evidence and resubmission receipt on the objection row."
+          ],
+          "done": "disapproved material is pulled same-day, impact is assessed, and the corrected piece cleared review before redistribution."
+        },
+        {
+          "step": "Review the objection log weekly for aging and risk",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Run the weekly aging view: items past 50% elapsed, items at T-2, and anything unacknowledged by its owner.",
+            "Challenge any item parked in clearance longer than the procedure allows.",
+            "Confirm exceptions (late or missed responses) opened within one business day of the miss.",
+            "Minute the review and file it with the log."
+          ],
+          "done": "a minuted weekly review exists with no unowned or silently aging item."
+        },
+        {
+          "step": "Trend objection causes into the next filing cycle",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Quarterly, categorize closed objections by cause: BPT arithmetic, PBP inconsistency, unsupported benefit, marketing claim, missing compliance element.",
+            "Feed the top causes into the next cycle's package-assembly checklist and reviewer focus areas.",
+            "Report the trend and repeat-cause count to the Compliance Committee.",
+            "Record the resulting checklist changes as evidence the loop closed."
+          ],
+          "done": "a quarterly cause trend exists and drove documented changes to the next cycle's checklist."
+        },
+        {
+          "step": "Archive the objection record for 10 years",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move closed objection rows with their request text, cleared responses, receipts and dispositions into the compliance evidence repository under contract year and H-contract.",
+            "Apply the 10-year retention label per 42 CFR 422.504(d).",
+            "Verify retrieval by CMS reference id and plan ID.",
+            "Confirm the tracker row links to the archived record."
+          ],
+          "done": "every closed objection is archived with 10-year retention and retrievable by CMS reference id."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the objection population from the CMS side, not the log",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Extract every desk-review question, marketing action and memo action item for the period directly from the HPMS threads and modules for each H-contract.",
+            "Add CMS letters and account-manager emails from the shared regulatory mailbox.",
+            "This HPMS-sourced list is the population — the internal log is the thing being tested, never the source."
+          ],
+          "done": "a CMS-sourced population list exists independent of the internal objection log."
+        },
+        {
+          "step": "Reconcile the population to the objection log",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Match every population item to a tracker row on CMS reference id and received date.",
+            "List any CMS item with no tracker row as an intake-failure exception — these are the most serious finding this test can produce.",
+            "Check the tracker received date is the same day as the HPMS posting date for matched items."
+          ],
+          "done": "every CMS item matches a same-day tracker row or is listed as an intake-failure exception."
+        },
+        {
+          "step": "Draw a documented sample of objections",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of items that conceded an error or committed corrective action, and 100% of marketing disapprovals.",
+            "Randomly select (seeded, reproducible) 25% of the remainder, minimum 15 items.",
+            "Record seed, population size and selection date in the workpaper."
+          ],
+          "done": "a reproducible sample covers all concessions and disapprovals plus a random remainder."
+        },
+        {
+          "step": "Recompute every sampled due date from the CMS request text",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Read the verbatim CMS request and independently recompute the due date, applying calendar vs business days exactly as CMS stated (72-hour, 14-calendar-day, 30-day and 60-days-of-receipt clocks).",
+            "Compare to the tracker's computed due date; a wrong computation is an exception even when the response still landed on time.",
+            "Note the recomputation on each sampled row in the workpaper."
+          ],
+          "done": "every sampled due date is independently recomputed and compared to the tracker."
+        },
+        {
+          "step": "Verify submission timestamps against receipts in HPMS",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Open the HPMS thread or module for each sampled item and read the actual submission timestamp from the CMS side.",
+            "Compare to the recomputed due date; any submission after the due date without a pre-deadline documented extension is a fail.",
+            "Capture the HPMS timestamp evidence into the workpaper."
+          ],
+          "done": "every sampled response shows an HPMS-evidenced timestamp on or before its recomputed due date, or a fail is logged."
+        },
+        {
+          "step": "Test the clearance trail on sampled responses",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled pricing response, confirm a Pricing Actuary peer-review sign-off pre-dates submission.",
+            "For each concession or corrective commitment, confirm a dated Regulatory Counsel clearance pre-dates submission.",
+            "A response submitted before its required clearance is an exception regardless of content quality."
+          ],
+          "done": "every sampled response shows the required sign-offs dated before submission."
+        },
+        {
+          "step": "Trace committed corrections to resubmission and downstream systems",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For each sampled commitment, find the corrected baseline version and the HPMS resubmission by the committed date.",
+            "Where the correction changed member-facing values, confirm the Business Systems Analyst was notified and the configuration or materials were updated.",
+            "An unfulfilled commitment to CMS is a reportable breach, not a test exception."
+          ],
+          "done": "every sampled commitment traces to a dated resubmission and completed downstream updates."
+        },
+        {
+          "step": "Verify marketing disapprovals were pulled and re-cleared",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled disapproval, verify the same-day pull evidence and the distribution-impact assessment.",
+            "Confirm the corrected material completed its HPMS review or File-and-Use period before any redistribution.",
+            "Any redistribution before clearance is a reportable marketing violation."
+          ],
+          "done": "every sampled disapproval shows same-day pull, impact assessment and pre-clearance before redistribution."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise an issue per exception with the CMS reference id, what failed (intake, computation, timeliness, clearance, commitment) and the impact.",
+            "Assign root cause (monitoring gap, wrong day-count basis, clearance bottleneck, owner overload) and an owner.",
+            "Set a remediation date; intake failures also trigger a monitoring-rota redesign.",
+            "Carry open exceptions into the next semi-annual test as mandatory retests."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compute on-time percentage against the 98% threshold and count intake failures against the zero tolerance.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer — who drafted or cleared none of the sampled responses — sign the workpaper and file it in the compliance evidence repository.",
+            "Report results and any unfulfilled CMS commitments to the Compliance Committee at its next sitting."
+          ],
+          "done": "a signed workpaper with a stated conclusion and threshold comparison is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-051-C38",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Records Manager",
+          "value": "Compliance Ops owns the continuous MA filing archive — approvals, submitted versions and CMS correspondence — with the Compliance Analyst as day-to-day custodian; escalation to the Head of Compliance"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 42 CFR 422.504(d) (maintain records for 10 years, and longer under a CMS audit hold) and 422.503(b)(4)(vi) (compliance-program documentation), re-read on eCFR at the annual records review"
+        },
+        "In-scope processes": {
+          "value": "Continuous archival across the MA filing lifecycle: bid packages and approved PBPs/BPTs, CMS approval and desk-review correspondence, HPMS submission receipts, marketing-material approvals with their review/File-and-Use evidence, and objection/closure records for every H-contract"
+        },
+        "In-scope systems": {
+          "app": "compliance evidence repository",
+          "value": "Compliance evidence repository as the system of record, fed from the Internal Regulatory System version baselines and the HPMS captures; documents indexed by contract number, plan ID and contract year"
+        },
+        "Compliance procedure documented": {
+          "value": "MA Filing Records Retention Procedure — record-class catalog, capture-at-closure rule, naming and index standard, 10-year retention labels, legal-hold overlay, access model and defensible-disposal workflow"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and Regulatory Counsel; reviewed annually and on any CMS audit notice or record-retention rule change"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Continuous obligation — capture within 10 business days of each filing event closing; retention runs 10 years from the end of the contract period per 42 CFR 422.504(d), extended indefinitely while a CMS audit or investigation hold is open"
+        },
+        "Deadline reminders configured": {
+          "value": "Monthly capture-completeness job comparing closed filing events to archived records; disposal-eligibility report runs annually and holds queue items for counsel release"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "The archive itself is the evidence — filed versions, approval letters, HPMS receipts and correspondence under 10-year labels, plus the capture logs and annual completeness sweeps proving the archive is whole"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any closed filing event with no archived record at the monthly sweep, any premature disposal, and any failed retrieval within the SLA is logged with root cause and disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Regulatory Counsel",
+          "value": "Counsel signs off remediation of every capture gap and personally releases every disposal batch after checking holds"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All filing events closed in the tested year — HPMS bid submissions, CMS approvals, marketing dispositions, objection closures — per H-contract, drawn from HPMS and the Internal Regulatory System, not from the archive"
+        },
+        "Pass/fail thresholds": {
+          "value": "100% of closed filing events archived within 10 business days; zero records disposed inside their 10-year period; 100% of sampled retrievals returned within the 5-business-day regulator SLA"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Continuous obligation tested annually, with the monthly capture-completeness job acting as the ongoing control between tests"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not administer the repository or have performed the tested captures"
+        },
+        "Evidence location for test results": {
+          "value": "Annual filing-archive integrity workpaper (population, reconciliation, sample retrievals, fixity results, exceptions) in the compliance evidence repository under the audit year"
+        },
+        "Regulator-ready documentation": {
+          "value": "Any filed version, approval letter or HPMS receipt retrievable by contract number, plan ID and contract year within 5 business days of a CMS program-audit universe request"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Affairs Manager fields CMS record requests; Records Manager executes retrieval; Regulatory Counsel reviews the production set before release to CMS"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Maintain the record-class catalog for MA filing records",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "actions": [
+            "Keep a catalog row per record class: bid package (PBP/BPT/actuarial certification), CMS approval letters, HPMS submission receipts, desk-review threads, marketing approvals and File-and-Use attestations, objection responses and closures.",
+            "For each class state the trigger event, the capture owner, the naming pattern <H#>-<PBP#>-<CY>-<class>-<date> and the 10-year retention rule from 42 CFR 422.504(d).",
+            "Review the catalog annually against the current CMS program-audit protocol so every universe CMS can request maps to a class.",
+            "Publish the catalog to every filing-team member."
+          ],
+          "done": "a published catalog covers every record class with trigger, owner, naming and retention, reviewed within 12 months."
+        },
+        {
+          "step": "Capture each filing event's record set at closure",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Within 10 business days of a filing event closing (approval received, objection closed, material cleared), pull the final versions from the Internal Regulatory System and the HPMS captures from the tracker row.",
+            "Store them in the repository under contract year → H-contract → plan ID → record class, using the catalog naming pattern.",
+            "Record the capture date and source ids in the capture log.",
+            "Reject partial sets — an approval without its submitted version and receipt is not a captured event."
+          ],
+          "done": "every closed filing event has a complete, catalog-named record set in the repository within 10 business days."
+        },
+        {
+          "step": "Preserve the filed version exactly as submitted",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Archive the byte-identical file that went to CMS — the exported PBP upload files, the validated BPT workbook and the submitted PDFs — never a regenerated copy.",
+            "Compute and store a checksum for each archived file at capture time.",
+            "Where CMS negotiation changed a version, archive both the submitted and the approved versions with a link note explaining the difference.",
+            "Mark archived items read-only."
+          ],
+          "done": "archived files are byte-identical submissions with stored checksums and read-only protection."
+        },
+        {
+          "step": "Apply the 10-year retention label at capture",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Stamp every captured record with a retention end date of 10 years from the end of the relevant contract period per 42 CFR 422.504(d).",
+            "Configure the repository so labelled records cannot be deleted or edited before the end date by any user, including administrators.",
+            "Verify the label on a spot-check of five records after each monthly capture cycle.",
+            "Log label corrections in the capture log."
+          ],
+          "done": "every archived record carries an enforced 10-year retention label verified by monthly spot-checks."
+        },
+        {
+          "step": "Overlay legal and audit holds on affected records",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "On any CMS audit notice, OIG inquiry or litigation touching an H-contract, define the hold scope by contract, plan ID and year range.",
+            "Instruct the Records Manager to apply the hold flag, which suspends disposal eligibility regardless of the retention end date.",
+            "Keep a hold register with matter name, scope, applied date and release conditions.",
+            "Review open holds quarterly and release in writing only when the matter closes."
+          ],
+          "done": "a current hold register exists and every in-scope record carries an active hold flag until written release."
+        },
+        {
+          "step": "Control access to the filing archive",
+          "by": "Access Management Analyst",
+          "role": "Access Management Analyst",
+          "app": "IAM platform (SailPoint/Okta/Azure AD)",
+          "actions": [
+            "Grant read access to the filing, compliance and legal teams by role; restrict write to the named capture custodians; no delete rights for anyone on labelled records.",
+            "Recertify the access list quarterly with the Records Manager as reviewer.",
+            "Enable access-event logging on the repository folders holding the archive.",
+            "Remove leaver access within the joiner-mover-leaver SLA and evidence it."
+          ],
+          "done": "access follows the role model, is recertified quarterly and access events are logged."
+        },
+        {
+          "step": "Run the monthly capture-completeness sweep",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "List every filing event closed in the month from the tracker and the Internal Regulatory System.",
+            "Match each to a complete archived record set and its capture-log entry.",
+            "Raise a tracker exception for any event with no archive or a partial set, due for cure within 10 business days.",
+            "File the sweep result with the capture log."
+          ],
+          "done": "a monthly sweep result exists showing every closed event archived or excepted with a cure date."
+        },
+        {
+          "step": "Verify archive integrity annually with checksum re-runs",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Re-compute checksums on a 10% random sample of archived files plus every file touched by a migration during the year.",
+            "Compare to the capture-time checksums; investigate any mismatch as a potential integrity incident with the Document Management Specialist.",
+            "Confirm files in superseded formats still open, and plan format migration where they do not.",
+            "File the fixity report with the annual records review."
+          ],
+          "done": "an annual fixity report shows sampled checksums match capture values or incidents are opened."
+        },
+        {
+          "step": "Prove the regulator retrieval SLA with drills",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "actions": [
+            "Twice a year, have the Compliance Officer name a surprise request mimicking a CMS program-audit universe: e.g., 'the approved PBP, BPT and approval letter for plan <H#-PBP#> for contract year N-3'.",
+            "Retrieve the full set and measure elapsed time against the 5-business-day SLA.",
+            "Log the drill result and fix any index gap the drill exposes.",
+            "Report drill outcomes at the annual records review."
+          ],
+          "done": "two dated drill results per year show retrieval inside the SLA or fixes for exposed gaps."
+        },
+        {
+          "step": "Capture marketing approvals with their review-period evidence",
+          "by": "Marketing Compliance Analyst",
+          "role": "Marketing Compliance Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "For each marketing material, archive the submitted piece, the HPMS material id, the review outcome or File-and-Use attestation, and the date distribution began.",
+            "Show on the record that distribution started only after the applicable review or File-and-Use period was satisfied.",
+            "Archive withdrawal/pull evidence for any disapproved material alongside the corrected resubmission.",
+            "Index by material id and plan year."
+          ],
+          "done": "every marketing material's archive shows submission, disposition and a compliant distribution start date."
+        },
+        {
+          "step": "Archive delegated-entity filing records the plan relies on",
+          "by": "Vendor Manager",
+          "role": "Vendor Manager",
+          "actions": [
+            "Identify first-tier/downstream entities that prepare or hold records supporting the plan's filings (e.g., a delegated marketing vendor's distribution logs).",
+            "Confirm each contract passes through the 10-year retention and CMS access obligations of 42 CFR 422.504(i).",
+            "Obtain an annual attestation from each entity that the records exist and are retrievable, and file it in the repository.",
+            "Escalate any refusal or failed attestation to the Compliance Officer."
+          ],
+          "done": "every relying delegated entity has a contract with pass-through retention terms and a current attestation on file."
+        },
+        {
+          "step": "Manage migrations without breaking the archive",
+          "by": "Document Management Specialist",
+          "role": "Document Management Specialist",
+          "app": "document management repository",
+          "actions": [
+            "Before any repository migration or upgrade, export the index and checksums as the pre-migration baseline.",
+            "Migrate with retention labels, hold flags and audit trails intact — a migration that strips labels is a compliance incident.",
+            "Re-run checksums on migrated content against the baseline and reconcile counts.",
+            "Have the Records Manager sign the migration reconciliation."
+          ],
+          "done": "a signed migration reconciliation shows counts, checksums, labels and holds survived intact."
+        },
+        {
+          "step": "Run defensible disposal only after retention and holds clear",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "actions": [
+            "Generate the annual disposal-eligibility report: records past their 10-year end date with no active hold.",
+            "Route the batch to Regulatory Counsel, who checks the hold register and releases the batch in writing.",
+            "Dispose via the repository's audited destruction function and retain the destruction certificate.",
+            "Never bulk-delete outside this workflow."
+          ],
+          "done": "disposals happen only from counsel-released batches with destruction certificates on file."
+        },
+        {
+          "step": "Review the retention program annually with governance",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Present the annual records review to the Head of Compliance: sweep results, fixity report, drill outcomes, hold register, disposal certificates and open exceptions.",
+            "Update the procedure for any CMS rule or audit-protocol change identified in the year.",
+            "Minute decisions and assign owners to improvement actions.",
+            "File the review pack in the repository."
+          ],
+          "done": "a minuted annual review pack exists with assigned improvement actions."
+        },
+        {
+          "step": "Log and cure every archive exception",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for each capture gap, integrity mismatch, failed drill or premature-disposal near-miss with root cause and owner.",
+            "Cure capture gaps by locating and archiving the missing record; where it is genuinely lost, document the loss memo with counsel.",
+            "Have Regulatory Counsel sign off each cure.",
+            "Track exception counts as a monthly metric to the Compliance Manager."
+          ],
+          "done": "every exception has an issue, a counsel-signed cure or loss memo, and feeds the monthly metric."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the filing-event population from source systems",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "List every filing event closed in the tested year from HPMS (submissions, approvals, marketing dispositions) and the Internal Regulatory System — never from the archive being tested.",
+            "Include objection closures from the tracker as their own events.",
+            "Sign the population as complete with its source extract dates."
+          ],
+          "done": "a source-system population of closed filing events exists independent of the archive."
+        },
+        {
+          "step": "Reconcile the population to the archive and capture log",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Match every population event to a complete archived record set and a capture-log entry.",
+            "Check the capture date fell within 10 business days of event closure.",
+            "List unmatched events and late captures as exceptions."
+          ],
+          "done": "every event matches a timely, complete archive entry or is listed as an exception."
+        },
+        {
+          "step": "Draw a documented sample of archived record sets",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of bid-package and CMS-approval record sets, plus all records under an active hold.",
+            "Randomly select (seeded, reproducible) 20 further record sets across marketing and objection classes.",
+            "Record seed, population size and selection date in the workpaper."
+          ],
+          "done": "a reproducible sample covers all bid/approval sets, held records and a random remainder."
+        },
+        {
+          "step": "Re-perform retrieval within the regulator SLA",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Request each sampled set from the Records Manager using only contract number, plan ID and contract year, as CMS would.",
+            "Measure elapsed time against the 5-business-day SLA and completeness against the record-class catalog.",
+            "Log any set that cannot be produced complete and on time."
+          ],
+          "done": "every sampled set was retrieved complete within the SLA or logged as a fail."
+        },
+        {
+          "step": "Verify archived files are the versions CMS actually received",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For sampled bid records, compare the archived PBP/BPT files' checksums to the capture-time checksums and the HPMS submission ids on the receipts.",
+            "For sampled approvals, match the approval letter's referenced version to the archived submitted version.",
+            "An archived regenerated copy in place of the submitted original is an integrity exception."
+          ],
+          "done": "sampled archives are checksum-verified originals matching the HPMS submission ids."
+        },
+        {
+          "step": "Test retention labels and immutability",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Read the retention end date on each sampled record and recompute 10 years from the end of the relevant contract period per 42 CFR 422.504(d).",
+            "Attempt an edit and a delete on one sampled record under a test account with custodian rights and confirm both are blocked.",
+            "Log any record whose label is short-dated or editable."
+          ],
+          "done": "sampled labels recompute correctly and labelled records resist edit and delete."
+        },
+        {
+          "step": "Test holds and the disposal workflow",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Trace every record on the hold register to an applied hold flag, and inspect the year's disposal batches for counsel release signatures and destruction certificates.",
+            "Search disposed-item logs for any record destroyed inside its 10-year period or while flagged — either is a reportable breach.",
+            "Verify at least one disposal batch was checked against the hold register before release."
+          ],
+          "done": "holds trace to flags, disposals trace to counsel releases, and no in-period destruction exists."
+        },
+        {
+          "step": "Verify delegated-entity retention attestations",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each relying delegated entity, inspect the contract clause passing through 42 CFR 422.504(i) retention/access obligations and the current-year attestation.",
+            "Request one sample record from one entity through the Vendor Manager and time the response.",
+            "List entities with missing clauses or failed attestations as exceptions."
+          ],
+          "done": "every relying entity shows the contract clause, a current attestation and a successful sample retrieval."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise an issue per exception with record class, event id, what failed and the audit-readiness impact.",
+            "Assign root cause (capture miss, index gap, label error, migration defect, vendor gap) and an owner.",
+            "Set remediation dates; premature destruction also triggers a counsel-led disclosure assessment.",
+            "Carry open exceptions into next year's test as mandatory retests."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compute capture completeness, retrieval SLA performance and integrity results against the 100% thresholds.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer — who administers no part of the repository — sign the workpaper and file it in the compliance evidence repository.",
+            "Report results to the Compliance Committee and fold findings into the annual records review."
+          ],
+          "done": "a signed workpaper with a stated conclusion is filed and reported to governance."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-051-C39",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Financial Crime AML Officer",
+          "value": "The AML / OFAC Officer owns exclusion and sanctions screening for the MA business — employees, board, first-tier/downstream/related entities and precluded providers — with the Sanctions Analyst running daily operations; escalation to the Compliance Officer"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 42 CFR 422.503(b)(4)(vi)(F) (screen against OIG LEIE and exclusion lists at hire/contract and monthly thereafter), 422.504(i) (FDR oversight), 422.222 (preclusion list) and OFAC 31 CFR Part 501 obligations, re-read on eCFR/treasury.gov at the annual program review"
+        },
+        "In-scope processes": {
+          "value": "Pre-hire and pre-contract screening, monthly rescreening of all employees, board members, temporary staff and FDR entities against the OIG LEIE, SAM.gov exclusions and OFAC SDN lists, plus monthly provider/prescriber checks against the CMS preclusion list feeding claims denial"
+        },
+        "In-scope systems": {
+          "app": "Sanctions screening system (LexisNexis Bridger/FircoSoft)",
+          "value": "Screening engine loaded with the monthly OIG LEIE database, SAM.gov exclusion extract and OFAC SDN/consolidated lists; populations fed from the HRIS, the vendor register and the provider data feed"
+        },
+        "Compliance procedure documented": {
+          "value": "Exclusion & Sanctions Screening Procedure — population sources, monthly list-refresh steps, fuzzy-match thresholds, two-level alert adjudication, true-match actions (immediate removal from Medicare-funded work, OFAC blocking/rejection and reporting), preclusion-list claims handling and FDR attestations"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Compliance Officer and reviewed annually against the current CMS program-audit protocol and OFAC guidance"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Screening at hire/contract inception and monthly thereafter per 42 CFR 422.503(b)(4)(vi)(F); OFAC blocked-property reports filed within 10 business days of blocking and the annual blocked-property report by September 30; preclusion-list claim denials applied from the CMS-stated effective date"
+        },
+        "Deadline reminders configured": {
+          "value": "Screening scheduler alerts if any monthly batch has not completed by the 5th business day; list-refresh job alerts when the LEIE, SAM or SDN load is older than its publication cycle; OFAC report clock starts automatically on any blocking action"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Screening batch logs, list versions, alert adjudications, true-match case files, OFAC reports and FDR attestations retained 10 years per 42 CFR 422.504(d) (OFAC records at least 5 years under 31 CFR 501.601 — the 10-year label governs)"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any month a population member was not screened, any alert aged past the adjudication SLA, and any payment or Medicare-funded work by an excluded/precluded party is logged with disposition and repayment assessment"
+        },
+        "Remediation sign-off captured": {
+          "role": "Compliance Officer",
+          "value": "The Compliance Officer signs off every true-match remediation, including removal evidence, overpayment quantification and any OIG self-disclosure decision taken with counsel"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All active employees, board members and temps from the HRIS, all FDR entities from the vendor register, and the contracted provider file, for each month of the tested period, plus every screening alert raised"
+        },
+        "Pass/fail thresholds": {
+          "value": "100% of the population screened every month; zero excluded or precluded parties in Medicare-funded work or paid claims; 100% of alerts adjudicated within the 5-business-day SLA; any missed month is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is monthly/continuous; the independent test runs quarterly over the quarter's twelve monthly batches and alert queue"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have run or adjudicated any tested screening batch"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly screening test workpaper (population reconciliations, re-screening results, alert timing recomputation, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Monthly batch logs with list versions, match dispositions and removal evidence, producible within 5 business days for a CMS program audit or OIG request"
+        },
+        "Regulator response path": {
+          "value": "The Financial Crime AML Officer owns OFAC contact; the Compliance Officer owns CMS/OIG exclusion matters; Regulatory Counsel clears any self-disclosure under the OIG protocol before submission"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Define and maintain the screening population sources",
+          "by": "Sanctions Analyst",
+          "role": "Sanctions Analyst",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Pull the monthly population extract: all active employees, board members and contingent workers from the HRIS with full legal name, DOB and any prior names.",
+            "Pull all first-tier, downstream and related entities from the vendor register with entity name, TIN and key principals per 42 CFR 422.504(i).",
+            "Pull the contracted provider and prescriber file (NPI, name, TIN) from the provider data feed for preclusion-list checks.",
+            "Reconcile each extract's count to its source system and log the counts in the batch record."
+          ],
+          "done": "monthly extracts for staff, FDRs and providers exist with counts reconciled to source systems."
+        },
+        {
+          "step": "Refresh the exclusion and sanctions lists on their publication cycles",
+          "by": "Sanctions Analyst",
+          "role": "Sanctions Analyst",
+          "app": "Sanctions screening system (LexisNexis Bridger/FircoSoft)",
+          "actions": [
+            "Download the updated OIG LEIE database file from oig.hhs.gov/exclusions the week OIG publishes it each month and load it into the screening engine.",
+            "Load the SAM.gov exclusions extract and the OFAC SDN and consolidated lists from treasury.gov/ofac on their update cycles.",
+            "Load the monthly CMS preclusion list file received through the plan's CMS data channel.",
+            "Record each list's version/publication date in the batch record — screening against a stale list invalidates the month."
+          ],
+          "done": "the engine shows current LEIE, SAM, OFAC and preclusion list versions with load dates in the batch record."
+        },
+        {
+          "step": "Calibrate matching rules and thresholds",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "app": "Sanctions screening system (LexisNexis Bridger/FircoSoft)",
+          "actions": [
+            "Set fuzzy-match thresholds for name variants, transpositions and aliases, with DOB/TIN as secondary discriminators, and document the settings.",
+            "Test any threshold change against a seeded file of known excluded names before promoting it — every seeded name must alert.",
+            "Review threshold performance annually using the year's true-match and false-positive rates.",
+            "Keep the settings history so any month's matching logic can be reproduced."
+          ],
+          "done": "documented thresholds pass the seeded-name test and their history is reproducible per month."
+        },
+        {
+          "step": "Screen every new hire and new contract before start",
+          "by": "Sanctions Analyst",
+          "role": "Sanctions Analyst",
+          "actions": [
+            "Wire the pre-hire check into the recruiting workflow so an offer cannot reach start date without a clear screening result against LEIE, SAM and OFAC.",
+            "Wire the pre-contract check into vendor onboarding so no FDR contract is executed before its entity and principals screen clear.",
+            "Return any potential match to the two-level adjudication before the person starts or the contract signs.",
+            "File the pre-start clearance evidence on the HR or vendor record."
+          ],
+          "done": "no start date or contract execution occurs without filed pre-start clearance evidence."
+        },
+        {
+          "step": "Run the monthly screening batch for all populations",
+          "by": "Sanctions Analyst",
+          "role": "Sanctions Analyst",
+          "app": "Sanctions screening system (LexisNexis Bridger/FircoSoft)",
+          "actions": [
+            "Execute the batch against the refreshed lists by the 5th business day each month, covering staff, board, temps, FDR entities and principals per 42 CFR 422.503(b)(4)(vi)(F).",
+            "Verify the batch processed the full reconciled population count — a short batch is a failed batch.",
+            "Export the run log (population count, list versions, alert count, run date) into the batch record.",
+            "Notify the Financial Crime AML Officer of completion and alert volume."
+          ],
+          "done": "a complete monthly batch ran by the 5th business day with a filed run log matching the population count."
+        },
+        {
+          "step": "Adjudicate alerts through two independent levels",
+          "by": "AML Analyst",
+          "role": "AML Analyst",
+          "app": "Sanctions screening system (LexisNexis Bridger/FircoSoft)",
+          "actions": [
+            "Level 1: compare the alert's name, DOB, TIN/NPI and address against the list entry and disposition as false positive or potential match with written rationale, within 5 business days.",
+            "Level 2: the Financial Crime AML Officer reviews every potential match and any false positive on a board member or FDR principal.",
+            "Never let the person's manager or the vendor's relationship owner adjudicate their own alert.",
+            "Record both levels' dispositions and timestamps in the case record."
+          ],
+          "done": "every alert shows a two-level, rationale-backed disposition within the 5-business-day SLA."
+        },
+        {
+          "step": "Act on confirmed exclusion matches immediately",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "On a confirmed LEIE/SAM match, remove the person from all Medicare-funded work the same day — suspend system access to MA processes with the Access Management Analyst and notify HR for employment action.",
+            "For an excluded FDR or principal, suspend the contract's Medicare-related services and invoke the contract's exclusion clause with the Vendor Manager.",
+            "Quantify any federal-program payments made during the exclusion period with the Controller for repayment assessment.",
+            "Open a counsel-led assessment of OIG self-disclosure under the OIG protocol and minute the decision."
+          ],
+          "done": "same-day removal is evidenced, exposure is quantified, and a minuted self-disclosure decision exists."
+        },
+        {
+          "step": "Execute OFAC blocking, rejection and reporting on sanctions matches",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "actions": [
+            "On a confirmed SDN match, block the property or reject the transaction as OFAC rules require and freeze any pending payment with Treasury operations.",
+            "File the blocked-property or rejected-transaction report to OFAC within 10 business days via the OFAC Reporting System.",
+            "Include blocked property in the annual report to OFAC due by September 30.",
+            "Keep full records of the blocking action for the 31 CFR 501.601 retention period within the 10-year archive."
+          ],
+          "done": "blocking/rejection is executed, the 10-business-day OFAC report is filed, and records are archived."
+        },
+        {
+          "step": "Enforce the preclusion list in claims payment",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "app": "Claims Platform",
+          "actions": [
+            "Load each monthly CMS preclusion list into the claims platform so claims from precluded providers deny from the CMS-stated effective date per 42 CFR 422.222.",
+            "Configure the member-protection handling CMS requires, including the applicable advance notice to affected enrollees and hold-harmless for member cost sharing.",
+            "Verify with a test claim that a precluded NPI denies with the correct reason code.",
+            "Log the load date and test result in the batch record."
+          ],
+          "done": "the current preclusion list is live in claims with a passing test denial and logged load evidence."
+        },
+        {
+          "step": "Collect FDR screening attestations and spot-check them",
+          "by": "Vendor Manager",
+          "role": "Vendor Manager",
+          "actions": [
+            "Obtain an annual attestation from each first-tier entity that it screens its own employees and downstream entities monthly against LEIE and SAM, as the FDR oversight duty in 42 CFR 422.504(i) requires.",
+            "Spot-check two FDRs per year by requesting a sample month's screening log through the audit clause.",
+            "Escalate any FDR that cannot evidence monthly screening to the Compliance Officer for corrective action or termination.",
+            "File attestations and spot-check results in the compliance evidence repository."
+          ],
+          "done": "current attestations exist for every FDR and two spot-checks per year are on file."
+        },
+        {
+          "step": "Handle screening of board members and temporary staff explicitly",
+          "by": "Sanctions Analyst",
+          "role": "Sanctions Analyst",
+          "actions": [
+            "Confirm the monthly population extract includes board members (from the Corporate Secretary's register) and agency temps (from the contingent-worker feed) — the two groups most often missed.",
+            "Screen new board appointees before their first meeting and temps before their first day.",
+            "Reconcile the board register and temp roster to the batch population each month.",
+            "Note the reconciliation in the batch record."
+          ],
+          "done": "board and temp rosters reconcile into every monthly batch with pre-start screening evidenced."
+        },
+        {
+          "step": "Monitor batch and alert SLAs with a monthly dashboard",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Power BI",
+          "actions": [
+            "Publish a monthly dashboard: batch completion date vs the 5th-business-day target, population coverage %, alert volume, aging vs the adjudication SLA and open true-match cases.",
+            "Flag any red metric to the Financial Crime AML Officer and Compliance Officer the day the dashboard publishes.",
+            "Keep the dashboard extracts as evidence for the quarterly test.",
+            "Review threshold-worthy trends (rising false positives, aging alerts) at the monthly compliance operations meeting."
+          ],
+          "done": "a monthly dashboard is published, red metrics are escalated same-day, and extracts are retained."
+        },
+        {
+          "step": "Train staff who touch screening decisions",
+          "by": "Learning & Development Specialist",
+          "role": "Learning & Development Specialist",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Assign annual exclusion/sanctions training to the screening team, HR recruiters, vendor managers and claims configuration staff, covering LEIE, SAM, OFAC and preclusion handling.",
+            "Track completion in the LMS and chase non-completers to 100% within the assignment window.",
+            "Refresh the course whenever CMS or OFAC guidance changes the procedure.",
+            "Export the completion report to the compliance evidence repository annually."
+          ],
+          "done": "100% completion is evidenced for the assigned population with the current-year course version."
+        },
+        {
+          "step": "Log and cure every screening exception",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for any missed population member, late batch, aged alert or stale list month, with root cause and owner.",
+            "For a missed member, run a catch-up screen immediately and check the missed months retroactively against the lists as they stood.",
+            "Have the Compliance Officer sign off each cure, including any retroactive true match's remediation.",
+            "Feed exception counts into the monthly dashboard."
+          ],
+          "done": "every exception has an issue, a completed catch-up screen where relevant, and a signed cure."
+        },
+        {
+          "step": "Archive the screening evidence for 10 years",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File monthly batch records (run logs, list versions, reconciliations), alert case files, true-match remediation packs, OFAC reports and FDR attestations by month and year.",
+            "Apply the 10-year retention label per 42 CFR 422.504(d).",
+            "Verify a sample month retrieves completely by month and population type.",
+            "Confirm OFAC case records also satisfy the 31 CFR 501.601 retention requirement."
+          ],
+          "done": "monthly screening evidence is archived under 10-year labels and retrievable by month."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the should-have-been-screened population independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Extract all persons active at any point in each tested month directly from the HRIS, the board register and the contingent-worker feed.",
+            "Extract all active FDR entities and principals from the vendor register and the contracted provider file for the same months.",
+            "This independent extract is the test population — the screening batch files are the thing under test."
+          ],
+          "done": "an independent monthly population exists per group, sourced outside the screening system."
+        },
+        {
+          "step": "Reconcile each monthly batch to the independent population",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare each month's batch input file to the independent population and list every person or entity absent from the batch.",
+            "Verify the batch ran by the 5th business day and used that month's LEIE, SAM, OFAC and preclusion list versions.",
+            "Any unscreened member or stale-list month is an automatic exception."
+          ],
+          "done": "every monthly batch reconciles to the independent population with current list versions, or exceptions are listed."
+        },
+        {
+          "step": "Draw a documented sample of members and alerts",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of true-match cases, all board members and a random (seeded, reproducible) 25 staff and 10 FDR entities per quarter.",
+            "Sample 25 adjudicated alerts across the quarter's months.",
+            "Record seed, population sizes and selection date in the workpaper."
+          ],
+          "done": "a reproducible sample covers all true matches, board members and a random remainder of members and alerts."
+        },
+        {
+          "step": "Re-screen the sample against the period lists",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Sanctions screening system (LexisNexis Bridger/FircoSoft)",
+          "actions": [
+            "Re-run the sampled names through the engine against the archived list versions for the tested months, using the documented thresholds.",
+            "Compare results to the original batch output; a hit the batch missed is a matching-logic exception requiring immediate live re-screen.",
+            "Manually check three sampled names directly on the OIG online LEIE search and the OFAC sanctions search as an engine-independent control."
+          ],
+          "done": "re-screening reproduces the batch results, and the manual checks agree, or exceptions are opened."
+        },
+        {
+          "step": "Re-perform adjudication on sampled alerts",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Read each sampled alert's list entry and the member's identifiers, and reach an independent match/no-match conclusion before reading the analyst's rationale.",
+            "Compare conclusions; a disagreement on a cleared alert escalates to the Financial Crime AML Officer for immediate re-review.",
+            "Recompute alert age from creation to level-2 disposition against the 5-business-day SLA."
+          ],
+          "done": "every sampled alert has an independent re-adjudication and a recomputed SLA result."
+        },
+        {
+          "step": "Trace true matches to removal and remediation evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each true match, verify same-day removal from Medicare-funded work: access suspension logs, HR action records or FDR contract suspension notices.",
+            "Verify the payment-exposure quantification and the minuted self-disclosure decision with counsel involvement.",
+            "Check any excluded party's exposure period against payroll or accounts-payable records for missed payments."
+          ],
+          "done": "every true match traces to same-day removal, quantified exposure and a minuted disclosure decision."
+        },
+        {
+          "step": "Test preclusion enforcement in paid claims",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Claims Platform",
+          "actions": [
+            "Join the quarter's paid-claims extract to the period preclusion lists on NPI/TIN and list any paid claim from a precluded provider on or after its effective date per 42 CFR 422.222.",
+            "Verify the monthly list load dates in the claims platform against the CMS distribution dates.",
+            "Any paid precluded claim is a reportable breach requiring recovery and member cost-sharing refund."
+          ],
+          "done": "the paid-claims join shows zero precluded payments, or breaches are escalated with recovery actions."
+        },
+        {
+          "step": "Verify OFAC reporting deadlines were met",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each blocking or rejection in the period, recompute the 10-business-day clock from the action date to the OFAC report submission evidence.",
+            "Confirm the annual blocked-property report was filed by September 30 where blocked property existed.",
+            "Late OFAC reports are exceptions with counsel notification."
+          ],
+          "done": "every OFAC action traces to an on-time report, or late filings are logged with counsel notified."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise an issue per exception with member/entity id, month, what failed and the program impact.",
+            "Assign root cause (feed gap, threshold miss, adjudication error, load delay) and an owner with a remediation date.",
+            "For any excluded-party payment or precluded claim, open recovery and the OIG/CMS disclosure assessment.",
+            "Carry open exceptions into next quarter's test as mandatory retests."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and any required disclosure assessment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compute coverage %, SLA performance and breach counts against the 100%/zero thresholds.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer — who ran or adjudicated no tested batch — sign the workpaper and file it in the compliance evidence repository.",
+            "Report results, breaches and recovery totals to the Compliance Committee quarterly."
+          ],
+          "done": "a signed workpaper with a stated conclusion and threshold results is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-051-C40",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Financial Crime AML Officer",
+          "value": "The designated AML compliance officer owns the written AML program covering the enterprise's covered insurance products and the fraud-waste-abuse money-movement risks in the MA business, with annual review; escalation to the Compliance Officer and the board audit committee"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 31 CFR 1025.210 (insurer AML program: written program, designated officer, training, independent testing), 31 CFR 1025.320 (SAR filing) and, for the MA plan, 42 CFR 422.503(b)(4)(vi) (compliance-program elements including FWA detection and prompt response), re-read annually at the program review"
+        },
+        "In-scope processes": {
+          "value": "Annual AML program maintenance: covered-product scope determination, enterprise AML risk assessment, written-program refresh, officer designation and board notification, annual training cycle, transaction monitoring calibration, SAR decisioning and FinCEN filing, and independent annual testing"
+        },
+        "In-scope systems": {
+          "app": "NICE Actimize (AML)",
+          "value": "Transaction monitoring and case management in Actimize; SARs filed through the FinCEN BSA E-Filing System; training tracked in the LMS; program documents versioned in the compliance evidence repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Written AML Program — risk assessment methodology, covered-product register, officer mandate, monitoring rule catalog, SAR decisioning and 30-day filing workflow, 314(a)/314(b) handling, OFAC integration and the annual independent-testing charter"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Compliance Officer and acknowledged by the board audit committee at the annual review; interim re-approval on any FinCEN rule change or material product change"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual review completed within 12 months of the prior one; SARs filed within 30 calendar days of initial detection (extendable to 60 days where no subject is identified, per 31 CFR 1025.320); 314(a) responses returned within FinCEN's stated deadline (typically 14 days); independent testing completed annually"
+        },
+        "Deadline reminders configured": {
+          "value": "Program calendar alerts at T-90/T-30 to the annual review anniversary; Actimize case SLA timers start the 30-day SAR clock at initial detection; 314(a) list receipt opens a dated response task"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Program versions, risk assessments, board minutes, training completions and independent test reports retained 10 years per the MA record rule; SARs and supporting documentation retained 5 years from filing per 31 CFR 1025.320 with confidentiality controls"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any late SAR, lapsed officer designation, missed training population or overdue independent test is logged as a program exception with root cause and disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Compliance Officer",
+          "value": "The Compliance Officer signs off remediation of every independent-testing finding and any late-SAR cure, with board audit committee visibility on repeat findings"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The program document set for the year under test, all monitoring alerts and SAR decisions from Actimize, the SAR filings in FinCEN BSA E-Filing, the LMS training assignment for the AML population, and the officer-designation record"
+        },
+        "Pass/fail thresholds": {
+          "value": "Annual review, officer designation and independent test all current; 100% of sampled SARs filed within the 30/60-day windows; ≥95% training completion for the assigned population; any lapsed program element is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation runs on an annual review cycle; independent testing runs annually with a quarterly SAR-timeliness spot-check by the second line"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "The independent tester must be organizationally separate from the AML officer's reporting line, per 31 CFR 1025.210(b)(4)"
+        },
+        "Evidence location for test results": {
+          "value": "Annual AML independent-testing report and quarterly SAR spot-check workpapers in the compliance evidence repository, with SAR detail held in the restricted SAR enclave"
+        },
+        "Regulator-ready documentation": {
+          "value": "The written program, current risk assessment, officer designation, training evidence and test reports producible within 5 business days for an IRS BSA examination or a CMS program audit's FWA element"
+        },
+        "Regulator response path": {
+          "value": "The Financial Crime AML Officer answers FinCEN/IRS BSA inquiries; SAR confidentiality is enforced — no SAR or its existence is disclosed to any subject; Regulatory Counsel clears all responses"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Re-confirm the covered-product scope for the enterprise",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "actions": [
+            "Review the product register annually and mark each product covered/not-covered under 31 CFR 1025.100(b) — permanent life with cash value and annuity contracts are covered; health-only MA products are not, but their premium flows stay in the fraud-monitoring scope under the MA FWA program.",
+            "Document the determination per product with the rule basis and the effective date.",
+            "Route new-product launches through this determination before first sale via the product governance gate.",
+            "File the signed covered-product register with the program documents."
+          ],
+          "done": "a signed, dated covered-product register exists and new products cannot launch without a determination."
+        },
+        {
+          "step": "Refresh the enterprise AML risk assessment",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "actions": [
+            "Score inherent risk by product, customer type, distribution channel and geography, using the year's actual alert, SAR and typology data from Actimize.",
+            "Map controls to each risk and rate residual risk, flagging any high-residual area for a monitoring-rule or procedure change.",
+            "Include MA-specific money-movement risks: premium refund redirection, provider kickback flows and agent premium theft.",
+            "Have the Enterprise Risk Manager challenge the scoring and record the challenge outcome."
+          ],
+          "done": "a challenged, dated risk assessment exists with actions against every high-residual risk."
+        },
+        {
+          "step": "Update the written AML program and version it",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Revise the program document for the year's risk assessment results, FinCEN guidance changes and independent-testing findings.",
+            "Confirm the four pillars are each current: internal controls, designated officer, training, independent testing, per 31 CFR 1025.210(b).",
+            "Version the document in the repository with a change log naming what moved and why.",
+            "Obtain the Compliance Officer's approval signature on the new version."
+          ],
+          "done": "an approved, versioned program document reflects the current year's risks and findings."
+        },
+        {
+          "step": "Confirm the designated officer appointment and board notification",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "board portal",
+          "actions": [
+            "Confirm the designation letter names the current Financial Crime AML Officer with the mandate, authority and resources required by 31 CFR 1025.210(b)(2).",
+            "On any incumbency change, issue a new designation letter within 30 days and notify the board audit committee at its next sitting.",
+            "Present the annual AML report (program state, SAR volumes, findings) to the audit committee and minute the acknowledgment via the board portal.",
+            "File the designation letter and minutes with the program documents."
+          ],
+          "done": "a current designation letter and minuted board acknowledgment exist for the year."
+        },
+        {
+          "step": "Define the training population and assign the annual curriculum",
+          "by": "Learning & Development Specialist",
+          "role": "Learning & Development Specialist",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Build the training population with the Financial Crime AML Officer: covered-product operations, claims and premium finance staff, agents where required, the screening team and senior management.",
+            "Assign the annual AML course (red flags, SAR referral duty, no-tipping-off, OFAC basics) with a completion window of 60 days.",
+            "Auto-assign the course to joiners in the population within 30 days of start.",
+            "Chase non-completers weekly and escalate at 100% of the window to line management."
+          ],
+          "done": "the defined population carries a current-year assignment with joiner auto-assignment active."
+        },
+        {
+          "step": "Evidence training completion to threshold",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Export the completion report at window close and compute the completion rate against the ≥95% threshold.",
+            "List non-completers with their managers and the escalation actions taken.",
+            "File the report and escalation evidence with the program documents.",
+            "Feed persistent non-completion into the compliance scorecard."
+          ],
+          "done": "a filed completion report shows ≥95% or documented escalations for the shortfall."
+        },
+        {
+          "step": "Calibrate transaction monitoring rules annually",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "app": "NICE Actimize (AML)",
+          "actions": [
+            "Review each Actimize rule's alert volume, true-positive rate and SAR conversion for the year.",
+            "Tune thresholds where false positives drown analysts or where a typology from the risk assessment has no covering rule, testing changes on historical data before promotion.",
+            "Document every rule change with rationale and approval in the model governance record.",
+            "Verify data feeds into Actimize (premium, refunds, agent commissions) reconcile to source-system counts monthly."
+          ],
+          "done": "every rule shows an annual calibration record and feeds reconcile monthly."
+        },
+        {
+          "step": "Run SAR decisioning on escalated cases",
+          "by": "Financial Crime Investigator",
+          "role": "Financial Crime Investigator",
+          "app": "NICE Actimize (AML)",
+          "actions": [
+            "Investigate each escalated case in Actimize: transaction history, customer profile, related parties and prior SARs, documenting findings in the case file.",
+            "Present file/no-file recommendations to the Financial Crime AML Officer, who makes the SAR decision and records the rationale — no-file rationales are documented as thoroughly as filings.",
+            "Start the 30-calendar-day filing clock at the initial-detection date recorded on the case, not the decision date.",
+            "Restrict case access to the SAR enclave group."
+          ],
+          "done": "every escalated case shows a documented investigation and a dated, rationale-backed SAR decision."
+        },
+        {
+          "step": "File SARs in the FinCEN BSA E-Filing System within the deadline",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "actions": [
+            "In the FinCEN BSA E-Filing System open Reports ▸ FinCEN SAR, complete Parts I–V including the Part V narrative describing who, what, when, where and why, and submit.",
+            "File within 30 calendar days of initial detection, or 60 days where no subject was identified at detection, per 31 CFR 1025.320.",
+            "Save the BSA E-Filing acknowledgment and BSA Identifier into the restricted case file.",
+            "For continuing activity, file continuing SARs on the 120-day review cycle."
+          ],
+          "done": "each SAR shows an acknowledgment with a BSA Identifier filed inside the computed deadline."
+        },
+        {
+          "step": "Enforce SAR confidentiality and no-tipping-off",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "actions": [
+            "Keep SARs and their existence in the restricted enclave — never in general case notes, board packs name aggregate counts only.",
+            "Brief any employee subpoenaed about a SAR to route the request to Regulatory Counsel, who handles it under the SAR rules.",
+            "Verify enclave access quarterly with the Access Management Analyst.",
+            "Log and investigate any suspected disclosure immediately with counsel."
+          ],
+          "done": "SAR access is enclave-restricted, verified quarterly, and no disclosure incident is unaddressed."
+        },
+        {
+          "step": "Operate 314(a) and 314(b) information sharing",
+          "by": "AML Analyst",
+          "role": "AML Analyst",
+          "actions": [
+            "Download each FinCEN 314(a) request list from the secure portal, search customer and transaction records for the named subjects, and return positive matches within FinCEN's stated deadline (typically 14 days).",
+            "Maintain the 314(b) registration where the program uses voluntary sharing, and document each exchange under the safe harbor.",
+            "Log every 314(a) cycle with search scope, run date and result.",
+            "Keep 314(a) lists confidential and destroy them per FinCEN instructions."
+          ],
+          "done": "every 314(a) cycle shows an on-time, logged search and any 314(b) exchange is documented."
+        },
+        {
+          "step": "Integrate OFAC screening outcomes into the AML program",
+          "by": "Sanctions Analyst",
+          "role": "Sanctions Analyst",
+          "app": "Sanctions screening system (LexisNexis Bridger/FircoSoft)",
+          "actions": [
+            "Feed confirmed OFAC matches and blocking actions from the screening program into Actimize case review for SAR consideration.",
+            "Cross-reference SAR subjects against the SDN list at decision time.",
+            "Reference the screening program's batch evidence in the AML program document rather than duplicating it.",
+            "Reconcile quarterly that every blocking action has a corresponding AML case review."
+          ],
+          "done": "OFAC actions flow into AML case review with a quarterly reconciliation on file."
+        },
+        {
+          "step": "Commission the annual independent test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Scope the test to all four pillars plus SAR timeliness, 314(a) handling and monitoring-rule governance, per the testing charter and 31 CFR 1025.210(b)(4).",
+            "Staff it outside the AML officer's reporting line — internal audit or a qualified external firm.",
+            "Complete fieldwork and issue the report within 12 months of the prior test.",
+            "Deliver findings with severity ratings and management responses to the Compliance Officer and audit committee."
+          ],
+          "done": "an independent test report issued within the annual window covers all pillars with rated findings."
+        },
+        {
+          "step": "Remediate findings on committed dates",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Load every finding into the tracker with owner, severity and committed date from the management response.",
+            "Review progress monthly and escalate slipping high-severity items to the Compliance Officer.",
+            "Evidence each closure (updated procedure, retested rule, refiled training) on the tracker item before closing.",
+            "Report open-finding aging to the audit committee at each sitting."
+          ],
+          "done": "every finding is tracked to an evidenced closure or an escalated, re-committed date."
+        },
+        {
+          "step": "Archive the program evidence with the correct retention split",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File program versions, risk assessments, designation letters, board minutes, training reports and test reports under 10-year labels in the repository.",
+            "Hold SARs and supporting documentation in the restricted enclave for 5 years from filing per 31 CFR 1025.320, access-controlled separately.",
+            "Verify a sample retrieval of each record class annually.",
+            "Log the archive completeness check with the annual review."
+          ],
+          "done": "program records carry 10-year labels, SAR records sit in the 5-year enclave, and a retrieval check passed."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the program-element population for the tested year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "List the required elements from 31 CFR 1025.210: written program version, risk assessment, officer designation, training cycle, independent test, plus the SAR and 314(a) workflows.",
+            "Pull the year's Actimize alert and case extract, the FinCEN BSA E-Filing acknowledgment list from the enclave, and the LMS assignment export.",
+            "Sign the population sources and extract dates into the workpaper."
+          ],
+          "done": "a signed population covers every program element with source extracts."
+        },
+        {
+          "step": "Reconcile SAR cases to FinCEN acknowledgments",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match every filed-SAR decision in Actimize to a BSA E-Filing acknowledgment with a BSA Identifier.",
+            "Match every acknowledgment back to a decisioned case — an acknowledgment with no case file is as serious as a case with no filing.",
+            "List unmatched items in either direction as exceptions."
+          ],
+          "done": "SAR decisions and FinCEN acknowledgments reconcile both ways or exceptions are listed."
+        },
+        {
+          "step": "Draw a documented sample of cases, SARs and trainees",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of filed SARs and all no-file decisions on cases that reached the AML officer.",
+            "Randomly select (seeded, reproducible) 20 closed alerts below the escalation line and 25 members of the training population.",
+            "Record seed, population sizes and selection date in the workpaper."
+          ],
+          "done": "a reproducible sample covers all SARs, all officer no-files and random alerts and trainees."
+        },
+        {
+          "step": "Recompute the SAR deadline on every sampled filing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Read the initial-detection date from each case file and recompute 30 calendar days (or 60 where no subject was identified) per 31 CFR 1025.320.",
+            "Compare to the BSA E-Filing submission timestamp on the acknowledgment.",
+            "Any late filing is a fail with the day-count shown; check continuing-activity SARs hit the 120-day cycle."
+          ],
+          "done": "every sampled SAR shows a recomputed deadline met, or fails are logged with day counts."
+        },
+        {
+          "step": "Re-perform the file/no-file judgement on sampled cases",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "NICE Actimize (AML)",
+          "actions": [
+            "Read each sampled case's transaction history and evidence in Actimize and reach an independent file/no-file view before reading the officer's rationale.",
+            "Escalate any disagreement on a no-file to the Compliance Officer for a fresh decision with a new detection-date assessment.",
+            "Check below-line closed alerts for patterns that should have escalated."
+          ],
+          "done": "every sampled decision has an independent re-performance and disagreements were re-decided."
+        },
+        {
+          "step": "Verify the officer designation and board reporting",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Inspect the designation letter's date, mandate and signature and confirm it covers the whole tested year without a gap on incumbency change.",
+            "Trace the annual AML report to audit-committee minutes in the board portal.",
+            "A designation gap or missing board acknowledgment is a program-element fail."
+          ],
+          "done": "the designation and board acknowledgment cover the full year without gaps."
+        },
+        {
+          "step": "Verify training completion against the defined population",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Independently rebuild the training population from HR data using the program's population definition and compare to the LMS assignment.",
+            "Recompute the completion rate against the ≥95% threshold and verify sampled completion certificates exist.",
+            "Check three joiners were auto-assigned within 30 days of start."
+          ],
+          "done": "the rebuilt population matches the assignment, the threshold is met, and joiner assignment works."
+        },
+        {
+          "step": "Test 314(a) timeliness and monitoring-rule governance",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each 314(a) cycle in the year, compare the search-and-response log dates to FinCEN's stated deadline.",
+            "Inspect two Actimize rule changes for documented rationale, pre-promotion testing and approval in the model governance record.",
+            "Verify the monthly feed reconciliations ran for the sampled months."
+          ],
+          "done": "all 314(a) cycles were on time and sampled rule changes show governed, tested promotion."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise an issue per exception naming the pillar, what failed and the regulatory exposure.",
+            "Assign root cause (clock started late, population gap, governance skip) and an owner with a remediation date.",
+            "For late SARs, document the cure and the decision on proactive FinCEN contact taken with Regulatory Counsel.",
+            "Carry open exceptions into the next annual test as mandatory retests."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and any counsel-cleared cure."
+        },
+        {
+          "step": "Conclude, sign and report the independent test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compute results against the thresholds: program elements current, SAR timeliness, ≥95% training, on-time 314(a).",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer — organizationally separate from the AML officer's line per 31 CFR 1025.210(b)(4) — sign the report.",
+            "File the report in the compliance evidence repository and present it to the Compliance Officer and audit committee with management responses."
+          ],
+          "done": "a signed independent-test report with a stated conclusion is filed and presented to governance."
+        }
+      ]
     }
   ]
 }

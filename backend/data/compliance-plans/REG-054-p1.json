@@ -1,0 +1,2996 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-054-C01",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Appointed Actuary",
+          "value": "Appointed Actuary owns the quarterly/annual reserve valuation; escalation to Chief Actuary and the Board Risk Committee"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Bermuda Insurance Code of Conduct (August 2022) s.6 (Risk Management — reserving) and s.4 (Proportionality Principle), read alongside the Insurance Act 1978 valuation provisions and the BMA Economic Balance Sheet (EBS) technical-provision rules; re-checked each valuation cycle against the BMA website's current Code text"
+        },
+        "In-scope processes": {
+          "value": "Quarterly and annual reserve valuation for all Bermuda-registered Life & Annuity business: policy data extract, assumption setting, best-estimate liability and risk-margin model runs, statutory and EBS bases, movement analysis and sign-off"
+        },
+        "In-scope systems": {
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "value": "Valuation runs in the actuarial modeling platform; source data from the Policy Administration Platform; results posted to SAP S/4HANA (GL)"
+        },
+        "Compliance procedure documented": {
+          "value": "Board-approved Reserving Policy covering valuation methods (gross premium / EBS best estimate + risk margin), assumption governance, data controls, run controls and sign-off chain, per Code s.6"
+        },
+        "Compliance procedure approved": {
+          "value": "Reserving Policy approved by the Board on the Chief Actuary's recommendation; re-approved annually and on any BMA rule change or material product launch"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Quarterly valuation closes by working day 10 after quarter end; annual EBS technical provisions must be final in time for the Statutory Financial Return filed with the BMA within four months of fiscal year end (30 April for a 31 December year end)"
+        },
+        "Deadline reminders configured": {
+          "value": "Valuation timetable in the close calendar with T-20/T-10/T-5 working-day alerts to the Valuation Actuary and Appointed Actuary before each quarter close and the SFR date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Valuation workpapers (data extracts, reconciliations, assumption memos, model run logs, movement analysis, sign-off) retained 10 years in the financial reporting repository per the record-retention schedule"
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "Any unapproved assumption change, failed data reconciliation or late valuation is logged in the regulatory filing/issue tracker; material failures to comply with the Code are assessed for self-report to the BMA"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Actuary",
+          "value": "Chief Actuary signs off closure of every valuation exception; BMA self-report decisions co-signed by the Compliance Officer"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All reserve balances by product line and valuation basis (statutory and EBS) at each quarter end in the review period, tied to the valuation summary and the general ledger"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero unapproved assumption changes; data-to-model reconciliation differences under 0.5% of policy count and reserves; unexplained movement under 1% of opening reserves — any breach fails the cell"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is quarterly/annual; testing runs quarterly over that quarter's valuation, with a deeper annual test before the SFR filing"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Internal Audit reviewer who performed no part of the sampled valuation runs, per the Code's three-lines model"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly reserve-valuation test workpaper (population, sample, re-performance notes, recomputations, exceptions) filed in the compliance evidence repository under REG-054-C01"
+        },
+        "Regulator-ready documentation": {
+          "value": "Valuation report, assumption memos, model change log and reconciliation pack, retrievable for a BMA prudential visit or information request within 14 days"
+        },
+        "Regulator response path": {
+          "value": "Appointed Actuary answers BMA valuation questions; the Regulatory Reporting Manager routes correspondence and the Compliance Officer clears any admission of a Code breach before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Freeze the valuation date and issue the run timetable",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Publish the quarter's valuation timetable: data-extract date, assumption-lock date, model-run window, review dates and the Appointed Actuary sign-off date, backed off working day 10.",
+            "Circulate the timetable to the Reserving Analysts, Data Engineering and Finance close owners and confirm receipt.",
+            "Confirm with the Statutory Reporting Manager that the annual cycle lands ahead of the BMA Statutory Financial Return date (four months after year end).",
+            "Log the timetable in the close calendar with T-20/T-10/T-5 alerts."
+          ],
+          "done": "a dated timetable exists in the close calendar with every owner named and alerts armed."
+        },
+        {
+          "step": "Extract the policy inforce file from the policy administration system",
+          "by": "Data Engineer",
+          "role": "Data Engineer",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Run the valuation extract job against the Policy Administration Platform as at the frozen valuation date, pulling policy number, plan code, issue date, status, face amount, account value, premiums and rider indicators.",
+            "Land the extract in the enterprise data warehouse valuation schema with a run id and row count.",
+            "Hand the Reserving Analyst the control totals: policy count, sum assured and account value by product line.",
+            "Retain the extract job log with the run id in the valuation folder."
+          ],
+          "done": "the inforce extract is landed with a run id and control totals delivered to the Reserving Analyst."
+        },
+        {
+          "step": "Reconcile the extract to admin-system control totals and prior quarter",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Compare extract policy counts and amounts to the Policy Administration Platform's own period-end control report, by product line.",
+            "Roll forward from prior quarter: opening count + new business − terminations = closing count; chase any residual over 0.5% with Policy Administration.",
+            "Document every difference with cause (late-processed claims, backdated issues) on the data reconciliation tab.",
+            "Get the Data Quality Analyst to countersign the reconciliation before model load."
+          ],
+          "done": "counts and amounts reconcile within 0.5% with all differences explained and countersigned."
+        },
+        {
+          "step": "Update and lock the valuation assumptions per the approved basis",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Pull the current approved assumption basis (mortality, lapse, expense, discount/EBS risk-free curve) from the model governance repository.",
+            "Load the BMA-published EBS risk-free discount curves for the valuation date and file the source download.",
+            "List any proposed assumption change with rationale and reserve impact estimate on an assumption memo.",
+            "Lock the assumption set at the assumption-lock date — later changes require Chief Actuary approval in writing."
+          ],
+          "done": "the assumption set is locked, sourced, and any change is documented on a memo awaiting approval."
+        },
+        {
+          "step": "Approve assumption changes through the assumptions committee",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Table each assumption memo at the assumptions committee with the experience-study evidence behind it.",
+            "Approve, reject or defer each change and minute the decision with names and date.",
+            "Ensure any material basis change is flagged for disclosure in the valuation report and, where material to solvency, assessed for BMA notification.",
+            "Return the approved basis to the Valuation Actuary and update the model governance repository."
+          ],
+          "done": "every assumption change carries a minuted committee decision and the repository holds the approved basis."
+        },
+        {
+          "step": "Build and load the model point files",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "FIS Prophet",
+          "actions": [
+            "Transform the reconciled extract into model point files per the documented grouping rules (no grouping for material blocks, per the Reserving Policy).",
+            "Load the model point files into FIS Prophet and record the file names, row counts and checksums in the run log.",
+            "Reconcile model point counts and sums back to the extract control totals; investigate any drop-outs.",
+            "File the load log in the valuation folder."
+          ],
+          "done": "model points are loaded with counts and sums tied back to the extract and a saved load log."
+        },
+        {
+          "step": "Run the best-estimate liability projections",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Execute the locked-basis best-estimate run for each product line in the actuarial modeling platform, using the versioned model release recorded in the model governance repository.",
+            "Capture run ids, model version, assumption set id and runtime warnings into the run log.",
+            "Spot-check seriatim results for five known policies per line against hand calculations.",
+            "Export the best-estimate liability by product line to the results workbook."
+          ],
+          "done": "best-estimate runs complete on the locked basis with run ids logged and seriatim spot-checks passed."
+        },
+        {
+          "step": "Compute the EBS risk margin",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "Compute the risk margin per the BMA EBS rules (cost-of-capital approach on projected capital for non-hedgeable risks) using the current BSCR parameters.",
+            "Document the projection of capital requirements and the cost-of-capital rate applied, with the BMA source for each parameter.",
+            "Reconcile the risk margin movement against prior quarter and explain drivers.",
+            "Hand the risk margin schedule to the Valuation Actuary for inclusion in technical provisions."
+          ],
+          "done": "the risk margin is computed on current BMA parameters with a documented, reconciled schedule."
+        },
+        {
+          "step": "Produce the statutory basis alongside the EBS basis",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Run or derive the statutory-basis reserves required for the Statutory Financial Statements in parallel with EBS technical provisions.",
+            "Tabulate both bases by product line in the results workbook with a bridge explaining basis differences.",
+            "Confirm the aggregate technical provisions equal best-estimate liability plus risk margin on the EBS view.",
+            "Flag any negative reserves or floor breaches for the Appointed Actuary's attention."
+          ],
+          "done": "both bases are tabulated with a documented bridge and flags on any floor issues."
+        },
+        {
+          "step": "Perform the movement analysis",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Roll reserves forward from prior quarter: expected change (unwind, premiums, claims), new business, assumption changes, model changes and experience variance.",
+            "Attribute each movement component by product line and compare against the pre-set 1%-of-opening-reserves unexplained tolerance.",
+            "Investigate any unexplained residual over tolerance down to model point level before sign-off.",
+            "Write the movement commentary into the valuation report draft."
+          ],
+          "done": "the movement analysis explains the quarter's change within tolerance with written commentary."
+        },
+        {
+          "step": "Peer review the runs and results",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Have an actuary who did not execute the runs re-check: assumption set id versus the approved basis, model version versus the governance repository, and results-workbook formulas.",
+            "Re-perform the seriatim spot-checks independently for two policies per line.",
+            "Record review points and their resolution on the peer-review checklist.",
+            "Sign and date the peer-review checklist."
+          ],
+          "done": "a signed peer-review checklist exists with every review point closed."
+        },
+        {
+          "step": "Compile the valuation workpaper pack",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "financial reporting repository",
+          "actions": [
+            "Assemble into one indexed pack: extract logs, reconciliations, assumption memos and approvals, run logs, risk margin schedule, movement analysis, peer-review checklist and the results workbook.",
+            "Name the pack REG-054-C01-<yyyyQx> and file it in the financial reporting repository with the 10-year retention label.",
+            "Cross-reference each pack section to the Reserving Policy control it evidences.",
+            "Confirm the pack index has no empty sections."
+          ],
+          "done": "an indexed, retention-labelled workpaper pack is filed with no gaps."
+        },
+        {
+          "step": "Obtain Appointed Actuary review and sign-off",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Review the workpaper pack, challenge the movement drivers and assumption changes, and confirm the technical provisions comply with the BMA EBS rules and the Reserving Policy.",
+            "Document challenges raised and their resolution in the sign-off memo.",
+            "Sign the valuation summary, dating the sign-off inside the timetable window.",
+            "Release the signed reserves to Finance for ledger posting."
+          ],
+          "done": "the Appointed Actuary's dated sign-off memo and signed valuation summary are in the pack."
+        },
+        {
+          "step": "Post the reserve balances to the general ledger",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "Post the signed reserve balances by product line to the reserve accounts in SAP S/4HANA (GL) using the standard valuation journal template.",
+            "Attach the signed valuation summary to the journal entry as support.",
+            "Reconcile posted balances to the results workbook to the dollar and resolve any difference before close.",
+            "Notify the Statutory Reporting Manager that reserves are final for the statutory returns."
+          ],
+          "done": "GL reserve balances equal the signed valuation summary and Statutory Reporting is notified."
+        },
+        {
+          "step": "Log exceptions and assess BMA self-reporting",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log every valuation exception (unapproved assumption change, reconciliation break above tolerance, late sign-off) in the regulatory filing/issue tracker with root cause and owner.",
+            "Assess with the Appointed Actuary whether any exception is a material failure to comply with the Insurance Code of Conduct requiring self-report to the BMA.",
+            "Where self-report is warranted, draft the notification with remediation plan and route it through the General Counsel before sending.",
+            "Track remediation to closure with Chief Actuary sign-off."
+          ],
+          "done": "every exception is logged with disposition and any material Code breach has a documented self-report decision."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of reserve balances for the period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "financial reporting repository",
+          "actions": [
+            "Pull the signed valuation summaries for each quarter under test from the financial reporting repository.",
+            "List every product line / valuation basis cell with its reserve balance as the test population.",
+            "Confirm no product line present in the policy admin extract is missing from the valuation summary."
+          ],
+          "done": "a complete cell-level population is listed and tied to the signed valuation summaries."
+        },
+        {
+          "step": "Reconcile the population to the general ledger",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "Agree each quarter's total reserves per the valuation summary to the reserve account balances in SAP S/4HANA (GL).",
+            "Trace the posting journal and confirm the signed summary was attached as support.",
+            "List any dollar difference as an automatic exception."
+          ],
+          "done": "valuation summaries agree to the GL to the dollar or differences are logged as exceptions."
+        },
+        {
+          "step": "Draw a documented sample of valuation cells",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Select the three largest product-line cells per quarter plus five random cells drawn with a recorded seed.",
+            "Include at least one cell with an assumption change and one with a model change in the period.",
+            "Record seed, population size and selection date in the workpaper so the sample can be re-drawn."
+          ],
+          "done": "a reproducible sample is documented covering large, changed and random cells."
+        },
+        {
+          "step": "Re-perform a model run for sampled cells",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Re-run the sampled cells in the actuarial modeling platform using the archived model version, model points and locked assumption set from the run log.",
+            "Compare re-run results to the reported reserves; any difference beyond rounding is an exception.",
+            "Capture re-run ids and outputs into the test workpaper."
+          ],
+          "done": "re-runs reproduce reported reserves within rounding for every sampled cell."
+        },
+        {
+          "step": "Verify assumptions trace to the approved basis",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "model governance repository",
+          "actions": [
+            "For each sampled cell, agree the assumption set id in the run log to the approved basis in the model governance repository.",
+            "For any assumption changed in the period, verify a minuted assumptions-committee approval dated before the run date.",
+            "Treat any assumption without an approval trail as a fail, not a documentation gap."
+          ],
+          "done": "every sampled assumption traces to an approved, pre-dated basis."
+        },
+        {
+          "step": "Recompute the risk margin arithmetic",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Recompute the cost-of-capital risk margin from the capital projection schedule using the BMA-published parameters for the valuation date.",
+            "Agree the parameters used to the BMA source documents filed in the pack.",
+            "Compare to the reported risk margin and log any difference over 0.1% as an exception."
+          ],
+          "done": "the recomputed risk margin matches the reported figure on verified BMA parameters."
+        },
+        {
+          "step": "Trace source data through the reconciliation chain",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "For two sampled cells, trace control totals from the Policy Administration Platform period-end report through the warehouse extract to the model point load log.",
+            "Verify the data reconciliation was countersigned by the Data Quality Analyst before model load.",
+            "Confirm residual differences were within the 0.5% tolerance and explained."
+          ],
+          "done": "the data chain is traced end-to-end with countersigned reconciliations inside tolerance."
+        },
+        {
+          "step": "Verify movement analysis and sign-off timing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Check each quarter's movement analysis explains the reserve change with unexplained residual under 1% of opening reserves.",
+            "Verify the Appointed Actuary sign-off date fell inside the timetable and, for year end, ahead of the BMA Statutory Financial Return date.",
+            "Verify the peer-review checklist was signed by a non-performer before sign-off."
+          ],
+          "done": "movement residuals are within tolerance and sign-offs are dated, sequenced and independent."
+        },
+        {
+          "step": "Log exceptions with root cause and owner",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the cell, quarter, control missed and impact on the reported reserves.",
+            "Assign root cause (data, assumption governance, model version, timing) and a named owner with a remediation date.",
+            "Flag any exception that indicates a material Code breach to the Compliance Officer for BMA self-report assessment.",
+            "Carry open exceptions into next quarter's test as mandatory retest cells."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the exception rate against the zero-unapproved-change and reconciliation thresholds.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer — who performed no sampled valuation work — sign the workpaper.",
+            "Report results to the Audit Committee and file the signed workpaper in the compliance evidence repository under REG-054-C01."
+          ],
+          "done": "a signed workpaper with a stated conclusion and committee reporting date is filed."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-054-C02",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Appointed Actuary",
+          "value": "Appointed Actuary authors and signs the annual actuarial opinion and memorandum on the insurance liabilities; escalation to the Chief Actuary and Audit Committee"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Bermuda Insurance Code of Conduct (August 2022) s.6 (Risk Management — reserving: documented reserving policy with independent actuarial review), read with the Insurance Act 1978 approved-actuary provisions; the current Code PDF is re-downloaded from the BMA website each cycle and the section quoted in the opinion file"
+        },
+        "In-scope processes": {
+          "value": "Annual actuarial opinion cycle for the Bermuda legal entity's Life & Annuity liabilities: reliance-data collection, reserving-policy conformity check, opinion drafting, memorandum preparation, peer review and signature ahead of the Statutory Financial Return"
+        },
+        "In-scope systems": {
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "value": "Opinion rests on the signed valuation runs in the actuarial modeling platform; the opinion and memorandum are drafted and archived in the document management repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Actuarial Opinion Procedure: annex to the Reserving Policy defining opinion scope, reliance statements, memorandum contents, peer-review requirement and the signature deadline tied to the BMA filing date"
+        },
+        "Compliance procedure approved": {
+          "value": "Procedure approved by the Chief Actuary and noted by the Audit Committee; reviewed annually alongside the Reserving Policy re-approval"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Opinion signed and dated before the Statutory Financial Return is filed with the BMA — within four months of fiscal year end (30 April for a 31 December year end); internal signature target is 15 working days ahead of filing"
+        },
+        "Deadline reminders configured": {
+          "value": "Close calendar milestones at T-60/T-30/T-15 working days before the SFR filing date alerting the Appointed Actuary, Chief Actuary and Regulatory Reporting Manager"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Signed opinion, actuarial memorandum, reliance letters and peer-review record retained 10 years in the document management repository under the entity and year"
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "A late, qualified or unsigned opinion, or an opinion signed off an unapproved reserving basis, is logged in the regulatory filing/issue tracker and assessed as a potential material Code breach reportable to the BMA"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Actuary",
+          "value": "Chief Actuary signs off remediation of any opinion exception; qualified-opinion handling co-signed by the General Counsel"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All annual actuarial opinions and memoranda signed for the Bermuda entity in the review period, plus the reliance letters and valuation packs they cite"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance: every year must show a signed, dated opinion covering 100% of insurance liabilities, signed before the SFR filing date, with a memorandum meeting the procedure's content list — any miss fails"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; the test runs annually after the SFR filing, covering the just-signed opinion and re-checking the prior year's open exceptions"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Internal Audit reviewer independent of the actuarial function that produced the opinion, consistent with the Code's three-lines model"
+        },
+        "Evidence location for test results": {
+          "value": "Annual actuarial-opinion test workpaper filed in the compliance evidence repository under REG-054-C02 with links to the signed opinion and memorandum"
+        },
+        "Regulator-ready documentation": {
+          "value": "Signed opinion, memorandum and reliance letters retrievable for a BMA request within 14 days; memorandum kept regulator-ready without redaction"
+        },
+        "Regulator response path": {
+          "value": "Appointed Actuary responds to BMA questions on the opinion; correspondence routed via the Regulatory Reporting Manager and cleared by the Compliance Officer before sending"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Open the annual opinion file and confirm scope",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Open the opinion file for the fiscal year and list every liability block in scope: reserves by product line, both statutory and EBS bases, and any ceded/assumed reinsurance balances relied on.",
+            "Confirm scope covers 100% of the entity's insurance liabilities by agreeing the block list to the signed valuation summary.",
+            "Confirm the signature deadline: 15 working days before the BMA Statutory Financial Return date (four months after year end).",
+            "Record scope and deadline in the opinion file index."
+          ],
+          "done": "the opinion file lists every liability block, ties to the valuation summary and carries the signature deadline."
+        },
+        {
+          "step": "Collect reliance data and written representations",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Request from the Controller a written representation that the ledger balances supplied to the valuation are complete and accurate.",
+            "Request from the Data Quality Analyst the year-end data reconciliation pack with its countersignature.",
+            "Request from the Reinsurance Accountant the ceded balances and treaty listing relied on in the reserves.",
+            "File each reliance letter, dated and signed, in the opinion file."
+          ],
+          "done": "signed reliance letters from Finance, Data and Reinsurance are on file for every relied-upon input."
+        },
+        {
+          "step": "Verify the valuation conformed to the approved reserving policy",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Walk the year-end valuation pack against the Reserving Policy clause by clause: methods, assumption governance, data controls, run controls and sign-off chain.",
+            "List any departure from policy with its rationale and materiality on a conformity memo.",
+            "Confirm every assumption change carried a minuted assumptions-committee approval.",
+            "Hand the conformity memo to the Appointed Actuary."
+          ],
+          "done": "a conformity memo confirms policy adherence with every departure listed and assessed."
+        },
+        {
+          "step": "Draft the actuarial opinion",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "app": "document management repository",
+          "actions": [
+            "Draft the opinion in the document management repository using the procedure's template: identification of the actuary and appointment, scope of liabilities, standards applied (BMA EBS rules and the entity's Reserving Policy), reliance statements, and the opinion sentence on the adequacy of the liabilities.",
+            "State the opinion type plainly — unqualified, qualified, adverse or inconclusive — and the reasons for any qualification.",
+            "Quote the reserve amounts opined on to the dollar, agreeing them to the signed valuation summary.",
+            "Version the draft and restrict edit access to the actuarial function."
+          ],
+          "done": "a versioned draft opinion states scope, standards, reliances and an explicit opinion on stated amounts."
+        },
+        {
+          "step": "Prepare the supporting actuarial memorandum",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "document management repository",
+          "actions": [
+            "Write the memorandum to the procedure's content list: data description and reconciliation results, methods by product line, assumption table with change history, risk margin derivation, movement analysis, sensitivity results and areas of judgement.",
+            "Cross-reference each memorandum section to the valuation workpaper pack (REG-054-C01) so every figure is traceable.",
+            "Include the conformity memo findings and how departures were resolved.",
+            "File the memorandum alongside the draft opinion."
+          ],
+          "done": "the memorandum covers the full content list with cross-references into the valuation workpapers."
+        },
+        {
+          "step": "Run sensitivity and adverse-scenario support for the opinion",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Run the procedure's standard sensitivity set in the actuarial modeling platform: mortality +/-10%, lapse +/-20%, expense +10%, and a 100bp discount-curve shift.",
+            "Tabulate the reserve impact of each sensitivity by product line into the memorandum's sensitivity section.",
+            "Flag to the Appointed Actuary any sensitivity that would exhaust the margin in the held reserves.",
+            "Archive the sensitivity run ids alongside the base run log."
+          ],
+          "done": "the standard sensitivity set is run, tabulated in the memorandum and flagged where margins thin."
+        },
+        {
+          "step": "Obtain independent peer review of the opinion and memorandum",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Assign a reviewing actuary who performed none of the year-end valuation runs.",
+            "Review the draft opinion against the memorandum: amounts agree, reliances match the letters on file, opinion type is supported by the conformity memo and sensitivities.",
+            "Record review comments and their resolution on the peer-review log.",
+            "Sign and date the peer-review log before signature is scheduled."
+          ],
+          "done": "an independent peer-review log is signed with all comments resolved."
+        },
+        {
+          "step": "Brief the Chief Actuary and resolve qualification questions",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Review the draft opinion, memorandum, conformity memo and sensitivity table with the Appointed Actuary.",
+            "Where a qualification is contemplated, agree the wording and the remediation expectation, and involve the General Counsel on regulatory consequences.",
+            "Minute the briefing outcome and any conditions attached to signature.",
+            "Confirm the signature date remains ahead of the internal 15-working-day buffer."
+          ],
+          "done": "the briefing is minuted, qualification wording (if any) is settled, and the signature date holds."
+        },
+        {
+          "step": "Sign and date the opinion",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "app": "DocuSign",
+          "actions": [
+            "Execute the final opinion via DocuSign, applying signature and date, and lock the signed PDF against edit.",
+            "Verify the signed version equals the peer-reviewed version (compare document hash or version id).",
+            "Confirm the signature date precedes the BMA Statutory Financial Return filing date.",
+            "Store the signed opinion and final memorandum in the document management repository with the 10-year retention label."
+          ],
+          "done": "a signed, dated, locked opinion matching the peer-reviewed version is archived with retention applied."
+        },
+        {
+          "step": "Deliver the signed opinion to Regulatory Reporting and the Board",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Hand the signed opinion to the Regulatory Reporting Manager for inclusion in the Statutory Financial Return package (filed under REG-054-C03).",
+            "Present the opinion and key memorandum findings to the Audit Committee at its pre-filing meeting.",
+            "Provide the Board with the sensitivity table and any qualification explanation for its minutes.",
+            "Record the delivery dates in the opinion file."
+          ],
+          "done": "Regulatory Reporting holds the signed opinion and the Audit Committee presentation is minuted."
+        },
+        {
+          "step": "Track and close opinion-cycle exceptions",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log in the regulatory filing/issue tracker any missed milestone, missing reliance letter, unresolved peer-review comment or qualification issued.",
+            "Assign each item a root cause, owner and remediation date.",
+            "Route material items to the Compliance Officer for BMA self-report assessment under the Code's consequences-of-non-compliance provisions.",
+            "Close items only on Chief Actuary sign-off."
+          ],
+          "done": "every cycle exception is logged, owned, assessed for reportability and closed with sign-off."
+        },
+        {
+          "step": "Maintain the Appointed Actuary's appointment evidence",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "board portal",
+          "actions": [
+            "Confirm the Board resolution appointing the Appointed Actuary is current and filed in the board portal.",
+            "Verify the actuary's qualification and professional-body membership certificates are on file and unexpired.",
+            "Where the appointment changed in the year, confirm the BMA was notified of the change per the Insurance Act requirements.",
+            "File the appointment evidence reference in the opinion file."
+          ],
+          "done": "current appointment resolution and qualification evidence are on file and referenced."
+        },
+        {
+          "step": "Update the reserving policy from opinion findings",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Review the memorandum's areas-of-judgement and conformity departures for changes the Reserving Policy needs.",
+            "Draft policy amendments and table them for Board re-approval at the next scheduled review.",
+            "Record in the model governance repository any model or assumption-governance changes committed to.",
+            "Link the amendment record back to the opinion file."
+          ],
+          "done": "policy follow-ups from the opinion are drafted, tabled and traceable to the opinion file."
+        },
+        {
+          "step": "Archive the complete opinion file",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "document management repository",
+          "actions": [
+            "Assemble the final file: signed opinion, memorandum, reliance letters, conformity memo, sensitivity runs, peer-review log, briefing minutes and delivery records.",
+            "Index the file and store it in the document management repository under entity/year with the 10-year retention label.",
+            "Verify each index entry opens and the signed opinion PDF is the locked version.",
+            "Notify the Compliance Analyst the file is complete for the annual test."
+          ],
+          "done": "a complete, indexed, retention-labelled opinion file is archived and flagged for testing."
+        },
+        {
+          "step": "Set next year's opinion timetable",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Back-schedule next year's milestones from the next SFR filing date: reliance-letter requests, draft date, peer review, Chief Actuary briefing and signature buffer.",
+            "Load the milestones into the close calendar with T-60/T-30/T-15 alerts.",
+            "Confirm owners for each milestone accept the dates.",
+            "File the timetable in the new opinion file."
+          ],
+          "done": "next year's milestones are calendared with alerts and accepted owners."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of opinions and supporting files",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "document management repository",
+          "actions": [
+            "List every actuarial opinion signed for the entity in the review period from the document management repository.",
+            "Reconcile the list to the fiscal years requiring an opinion — one per year, no gaps.",
+            "Pull each opinion's file index as the test inventory."
+          ],
+          "done": "one opinion per required year is confirmed with file indexes pulled."
+        },
+        {
+          "step": "Reconcile opined amounts to the source of record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "Agree the reserve amounts stated in each opinion to the signed valuation summary and to the year-end reserve balances in SAP S/4HANA (GL).",
+            "Any mismatch between opinion, valuation summary and ledger is an automatic exception.",
+            "Record the tie-out in the workpaper with document references."
+          ],
+          "done": "opined amounts agree to valuation summary and ledger for every year, or exceptions are logged."
+        },
+        {
+          "step": "Verify signature, dating and deadline compliance",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Check each opinion bears the Appointed Actuary's signature and a date preceding the BMA Statutory Financial Return filing date for that year.",
+            "Verify the signed PDF is locked and matches the peer-reviewed version by hash or version id.",
+            "Recompute the four-months-after-year-end filing deadline and confirm the signature preceded it."
+          ],
+          "done": "every opinion is signed, dated, version-verified and pre-dates the recomputed filing deadline."
+        },
+        {
+          "step": "Re-perform the memorandum content check",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Walk the memorandum against the procedure's content list item by item: data reconciliation, methods, assumption change history, risk margin, movement, sensitivities, judgements.",
+            "Mark each item present/absent without reference to any prior checklist.",
+            "Any absent item is an exception."
+          ],
+          "done": "an independent content walk shows every required memorandum section present."
+        },
+        {
+          "step": "Verify reliance letters exist and pre-date signature",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each reliance stated in the opinion, locate the signed letter from Finance, Data or Reinsurance in the opinion file.",
+            "Check each letter's date precedes the opinion signature date.",
+            "A reliance stated without a letter, or a letter dated after signature, is a fail."
+          ],
+          "done": "every stated reliance is backed by a signed, pre-dated letter."
+        },
+        {
+          "step": "Re-perform the conformity judgement on a sample basis",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Independently re-walk three Reserving Policy clauses (assumption governance, data controls, sign-off chain) against the year-end valuation pack without reading the conformity memo first.",
+            "Compare conclusions to the conformity memo; differences, including unlisted departures, are exceptions.",
+            "Document the re-performance notes in the workpaper."
+          ],
+          "done": "independent conformity re-performance matches the memo or differences are logged."
+        },
+        {
+          "step": "Recompute sensitivity support for the opinion type",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Re-foot the sensitivity table and agree two sensitivities to the archived run outputs by run id.",
+            "Assess whether any sensitivity that exhausts reserve margins was flagged and reflected in the opinion type.",
+            "An unqualified opinion sitting on an unaddressed margin-exhausting sensitivity is an exception for escalation."
+          ],
+          "done": "sensitivity arithmetic verifies and the opinion type is consistent with flagged results."
+        },
+        {
+          "step": "Verify peer review independence and resolution",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the peer reviewer named on the log performed none of the year-end valuation runs (check run logs for their id).",
+            "Verify every review comment shows a resolution and the log was signed before the opinion signature date.",
+            "Reviewer overlap with run execution is an independence exception."
+          ],
+          "done": "peer review was independent, fully resolved and pre-dated signature."
+        },
+        {
+          "step": "Log exceptions with root cause and owner",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the year, requirement missed and impact on opinion reliability.",
+            "Assign root cause (timetable, reliance gap, content gap, independence) and a named owner with a remediation date.",
+            "Refer potential material Code breaches to the Compliance Officer for BMA self-report assessment.",
+            "Carry open items into next year's test."
+          ],
+          "done": "each exception is logged with root cause, owner, remediation date and reportability referral."
+        },
+        {
+          "step": "Conclude with independent sign-off and Audit Committee reporting",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "compliance evidence repository",
+          "actions": [
+            "State the conclusion (effective / effective with exceptions / ineffective) against the zero-tolerance threshold with evidence references.",
+            "Have the independent reviewer sign the workpaper confirming segregation from the actuarial function.",
+            "Report the conclusion to the Audit Committee alongside the opinion presentation cycle.",
+            "File the signed workpaper in the compliance evidence repository under REG-054-C02."
+          ],
+          "done": "a signed workpaper with stated conclusion is filed and reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-054-C03",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Regulatory Reporting Manager owns the filing of the signed actuarial opinion with the BMA alongside the Statutory Financial Return; escalation to the Chief Financial Officer"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Insurance Act 1978 statutory-filing provisions and the Bermuda Insurance Code of Conduct (August 2022) governance sections, plus the BMA's current filing instructions for the Statutory Financial Return and Capital and Solvency Return; the BMA instruction pack for the filing year is downloaded and filed with each submission"
+        },
+        "In-scope processes": {
+          "value": "Annual BMA statutory filing assembly for the Bermuda entity: Statutory Financial Return package build, attachment of the signed actuarial opinion, officer certifications, portal submission, confirmation capture and any 14-day follow-up responses to BMA deficiency notices"
+        },
+        "In-scope systems": {
+          "app": "Internal Regulatory System",
+          "value": "Filing package tracked in the Internal Regulatory System; submission through the BMA's electronic filing portal; source documents held in the financial reporting repository"
+        },
+        "Compliance procedure documented": {
+          "value": "BMA Annual Filing Procedure: package checklist (statutory financial statements, SFR schedules, CSR, signed actuarial opinion, declarations), reviewer chain, portal submission steps and deficiency-response handling within 14 days"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Financial Officer; reviewed annually against the BMA's updated filing instructions before the cycle starts"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Statutory Financial Return with the actuarial opinion due to the BMA within four months of fiscal year end (30 April for a 31 December year end); BMA deficiency or information requests answered within 14 days of the initial notification"
+        },
+        "Deadline reminders configured": {
+          "value": "Internal Regulatory System milestones at T-60/T-30/T-10/T-3 days before the filing date, plus an automatic 14-day countdown task opened on receipt of any BMA notice"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Filed package, portal submission confirmation with timestamp, BMA acknowledgements and deficiency correspondence retained 10 years in the financial reporting repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "Late filings, packages filed without the signed opinion, and 14-day response misses are logged in the regulatory filing/issue tracker; material failures are self-reported to the BMA per the Code's consequences-of-non-compliance provisions"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Financial Officer",
+          "value": "CFO signs off remediation of every filing exception; self-report wording cleared by the General Counsel"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All BMA statutory filings made for the entity in the review period, plus every BMA deficiency notice or information request received and its response"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance: any filing after the four-month deadline, any package missing the signed opinion, or any BMA notice answered after 14 days of the initial notification is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual with event-driven follow-ups; the test runs annually after the filing window plus a review of all notices received during the year"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Internal Audit reviewer independent of the Regulatory Reporting team that assembled or submitted the filings"
+        },
+        "Evidence location for test results": {
+          "value": "Annual BMA-filing test workpaper in the compliance evidence repository under REG-054-C03, with portal confirmations attached"
+        },
+        "Regulator-ready documentation": {
+          "value": "Complete filed package with submission confirmation reproducible for the BMA within 14 days; deficiency correspondence indexed by notice date and response date"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Reporting Manager is the BMA contact for filing matters; responses drafted by Regulatory Reporting, actuarial content confirmed by the Appointed Actuary, and cleared by the Compliance Officer before submission"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Confirm the filing deadline and open the filing record",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Compute the filing deadline as four months after the fiscal year end (30 April for a 31 December year end) and verify it against the BMA's current filing instructions.",
+            "Open the year's filing record in the Internal Regulatory System with the deadline and T-60/T-30/T-10/T-3 reminders.",
+            "Record the BMA portal account, the authorised submitters and their access status.",
+            "Attach the BMA instruction pack for the filing year to the record."
+          ],
+          "done": "the filing record carries the computed deadline, reminders, submitter access confirmation and the year's BMA instructions."
+        },
+        {
+          "step": "Download and apply the BMA's current-year filing instructions",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Download the current Statutory Financial Return and Capital and Solvency Return instructions and templates from the BMA website for the entity's licence class.",
+            "Diff the schedule list against last year's package and list every added, removed or changed schedule.",
+            "Circulate the change list to the Statutory Reporting Manager, Appointed Actuary and Capital Model Actuary with owners per schedule.",
+            "File the instruction download with its date in the filing record."
+          ],
+          "done": "current instructions are on file and every schedule change has a named owner."
+        },
+        {
+          "step": "Assemble the statutory financial statements and SFR schedules",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "financial reporting repository",
+          "actions": [
+            "Build the statutory financial statements and SFR schedules from the closed ledger, agreeing every reserve line to the signed valuation summary (REG-054-C01).",
+            "Complete the Economic Balance Sheet schedules with the technical provisions (best estimate plus risk margin) from the valuation pack.",
+            "Run the package checklist from the BMA Annual Filing Procedure and tick each required schedule.",
+            "Store the assembled package in the financial reporting repository with version control."
+          ],
+          "done": "a version-controlled package matches the BMA checklist with reserves agreed to the signed valuation."
+        },
+        {
+          "step": "Attach the signed actuarial opinion to the package",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "document management repository",
+          "actions": [
+            "Retrieve the signed, locked opinion PDF from the document management repository (produced under REG-054-C02).",
+            "Verify the signature and date are present and the opined amounts equal the reserve lines in the SFR schedules to the dollar.",
+            "Insert the opinion into the package at the position the BMA instructions specify.",
+            "Record the opinion version id in the filing record."
+          ],
+          "done": "the signed opinion is in the package, amount-matched to the schedules, with its version id logged."
+        },
+        {
+          "step": "Obtain officer certifications and declarations",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "DocuSign",
+          "actions": [
+            "Route the statutory declarations to the required signatories (directors and officers per the BMA instructions) through DocuSign.",
+            "Track completion daily against the T-10 milestone and chase unsigned declarations.",
+            "Verify signatory names and titles match the current officer register.",
+            "File completed declarations into the package."
+          ],
+          "done": "all required declarations are signed by verified officers and filed in the package."
+        },
+        {
+          "step": "Run the pre-submission quality review",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Review the full package against the checklist: every schedule present, cross-schedule totals consistent, opinion attached, declarations signed.",
+            "Have the Appointed Actuary confirm in writing that the actuarial content (opinion and EBS schedules) is the final signed version.",
+            "Have the Controller confirm the financial statements tie to the closed ledger.",
+            "Sign the pre-submission review sheet and freeze the package version."
+          ],
+          "done": "a signed review sheet confirms completeness and the package version is frozen."
+        },
+        {
+          "step": "Submit the package through the BMA electronic filing portal",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Log in to the BMA's electronic filing portal with the entity's authorised submitter credentials.",
+            "Open the annual filing task for the entity's licence class, upload each schedule and the signed opinion to its designated slot, and complete the portal's declaration fields.",
+            "Resolve any portal validation errors by correcting the source schedule — never by editing figures in the portal alone.",
+            "Submit before the deadline and download the portal's submission confirmation with its timestamp."
+          ],
+          "done": "the portal shows a submitted status and a timestamped confirmation is downloaded."
+        },
+        {
+          "step": "File the submission confirmation and close the deadline milestone",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Attach the portal confirmation and the as-filed package to the filing record in the Internal Regulatory System.",
+            "Mark the deadline milestone met, recording submission date versus deadline date.",
+            "Store the as-filed package and confirmation in the financial reporting repository with the 10-year retention label.",
+            "Notify the CFO, Appointed Actuary and Compliance Officer that the filing is complete."
+          ],
+          "done": "the filing record shows a met deadline with confirmation and the as-filed package archived."
+        },
+        {
+          "step": "Monitor for BMA acknowledgement or deficiency notices",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Check the BMA portal messages and the registered correspondence inbox every business day for 60 days after submission.",
+            "On receipt of any BMA notice, log it same-day in the Internal Regulatory System with the notice date and open a 14-day response countdown task.",
+            "Route the notice immediately to the Regulatory Reporting Manager and, for valuation content, the Appointed Actuary.",
+            "File the notice in the filing record."
+          ],
+          "done": "every BMA notice is logged same-day with a 14-day countdown task and routed to its owner."
+        },
+        {
+          "step": "Answer BMA deficiency notices within 14 days",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Draft the response addressing each deficiency point, pulling corrected schedules from the owning team and actuarial answers from the Appointed Actuary.",
+            "Have the Compliance Officer clear the draft, including any acknowledgement of error, before it is sent.",
+            "Submit the response through the BMA portal or the channel the notice specifies within 14 days of the initial notification, and download proof of submission.",
+            "Log the response date against the countdown task and attach the response to the filing record."
+          ],
+          "done": "the cleared response is submitted with proof inside 14 days of the initial notification and logged."
+        },
+        {
+          "step": "Refile corrected schedules where the BMA requires resubmission",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "actions": [
+            "Correct the deficient schedule in the source package, re-running the cross-schedule consistency checks.",
+            "Where a corrected schedule changes reserve figures, obtain the Appointed Actuary's written confirmation that the opinion still stands or needs re-issue.",
+            "Resubmit through the portal within the window the BMA sets (14 days of the initial notification unless the notice states otherwise) and capture the new confirmation.",
+            "Version the refiled package as an amendment in the financial reporting repository."
+          ],
+          "done": "corrected schedules are refiled in the BMA's window with actuarial confirmation and a versioned amendment archived."
+        },
+        {
+          "step": "Log and remediate filing exceptions",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log any late filing, missing-opinion package, portal failure or 14-day miss in the regulatory filing/issue tracker with root cause and owner.",
+            "Assess with the Compliance Officer whether the failure is a material Code breach requiring self-report to the BMA with a remediation plan.",
+            "Track remediation to closure with CFO sign-off.",
+            "Feed root causes into next year's filing procedure update."
+          ],
+          "done": "every exception is logged, assessed for self-report, remediated and signed off by the CFO."
+        },
+        {
+          "step": "Brief the Board on filing status",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "board portal",
+          "actions": [
+            "Add the filing outcome — submission date versus deadline, notices received, responses made — to the next Board pack in the board portal.",
+            "Minute the Board's notation of the filing and any open BMA correspondence.",
+            "File the minute reference in the filing record."
+          ],
+          "done": "the Board pack and minutes record the filing outcome and open correspondence."
+        },
+        {
+          "step": "Maintain portal access and submitter authorisations",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Review the BMA portal user list quarterly: remove leavers within 5 business days, confirm at least two authorised submitters remain.",
+            "Verify submitter contact details registered with the BMA are current so notices reach the team.",
+            "Record the review in the Internal Regulatory System.",
+            "Coordinate access changes with the Access Management Analyst."
+          ],
+          "done": "a quarterly access review shows current submitters, no leavers and up-to-date BMA contact details."
+        },
+        {
+          "step": "Run the post-cycle debrief and update the procedure",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Hold a debrief with Statutory Reporting, Actuarial and Compliance within 30 days of filing: what slipped, which BMA instruction changes bit, which checks failed.",
+            "Update the BMA Annual Filing Procedure and package checklist with the findings.",
+            "Route the updated procedure to the CFO for re-approval.",
+            "File the debrief note and approved procedure in the compliance evidence repository."
+          ],
+          "done": "a debrief note exists and the re-approved procedure reflects the cycle's lessons."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of filings and BMA notices",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Extract from the Internal Regulatory System every BMA statutory filing record and every logged BMA notice for the review period.",
+            "Reconcile the filing list to the fiscal years requiring a filing — one SFR package per year, no gaps.",
+            "Cross-check the notice log against the registered correspondence inbox for unlogged BMA letters."
+          ],
+          "done": "the population covers every required filing and every BMA notice, with inbox cross-check complete."
+        },
+        {
+          "step": "Reconcile as-filed packages to the archived source of record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "financial reporting repository",
+          "actions": [
+            "Compare the as-filed package in the financial reporting repository to the frozen pre-submission version — same schedules, same figures.",
+            "Confirm the archived portal confirmation timestamp matches the filing record's submission date.",
+            "Any post-freeze figure change without an amendment record is an exception."
+          ],
+          "done": "as-filed packages match frozen versions and confirmations match logged dates."
+        },
+        {
+          "step": "Recompute the filing deadline and test timeliness",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently recompute each year's deadline as four months after fiscal year end from the entity's year-end date.",
+            "Compare the portal confirmation timestamp to the recomputed deadline.",
+            "Any submission after the deadline is a fail regardless of BMA tolerance shown."
+          ],
+          "done": "every filing pre-dates the independently recomputed deadline or is logged as a fail."
+        },
+        {
+          "step": "Verify the signed opinion was inside each filed package",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Open each as-filed package and locate the actuarial opinion at the position the BMA instructions specify.",
+            "Verify it is the signed, dated version by matching its version id to the document management repository record from REG-054-C02.",
+            "Agree the opined amounts to the reserve lines in the filed schedules to the dollar."
+          ],
+          "done": "each filed package contains the signed opinion, version-matched and amount-matched to the schedules."
+        },
+        {
+          "step": "Trace declarations to authorised officers",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each filing, trace every declaration signature to the officer register as at the signature date.",
+            "Verify DocuSign completion certificates exist and pre-date the portal submission.",
+            "A declaration signed by a person not on the register at that date is an exception."
+          ],
+          "done": "all declarations trace to then-current officers with completion certificates pre-dating submission."
+        },
+        {
+          "step": "Re-perform the package completeness check",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Using the BMA's own instruction pack for each filing year (not the internal checklist), independently list the required schedules for the entity's licence class.",
+            "Tick each required schedule against the as-filed package.",
+            "Any schedule the BMA required but the package lacks is an exception, even if the BMA raised no deficiency."
+          ],
+          "done": "an independent completeness check against BMA instructions shows every required schedule filed."
+        },
+        {
+          "step": "Recompute the 14-day clock on every BMA notice",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each logged notice, compute notice date plus 14 days and compare to the evidenced response submission date.",
+            "Verify response proof (portal receipt or transmission record) exists for each response.",
+            "Any response after 14 days of the initial notification, or without proof, is a fail."
+          ],
+          "done": "every notice shows a proven response within the recomputed 14-day window or a logged fail."
+        },
+        {
+          "step": "Verify compliance clearance on outbound responses",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each deficiency response, locate the Compliance Officer's clearance record dated before the response was sent.",
+            "For responses touching valuation content, locate the Appointed Actuary's confirmation.",
+            "An uncleared response is a process exception even where content was accurate."
+          ],
+          "done": "every response shows pre-dated compliance clearance and actuarial confirmation where applicable."
+        },
+        {
+          "step": "Log exceptions with root cause and owner",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the filing year or notice id, the requirement missed and the regulatory exposure.",
+            "Assign root cause (calendar, package assembly, portal access, clearance) and a named owner with a remediation date.",
+            "Refer any late filing or missed 14-day response to the Compliance Officer for BMA self-report assessment.",
+            "Carry open items into next year's test."
+          ],
+          "done": "each exception carries an issue, root cause, owner, remediation date and reportability referral."
+        },
+        {
+          "step": "Conclude with independent sign-off and reporting",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "compliance evidence repository",
+          "actions": [
+            "State the conclusion (effective / effective with exceptions / ineffective) against the zero-tolerance thresholds with evidence references.",
+            "Have the independent reviewer — segregated from Regulatory Reporting — sign the workpaper.",
+            "Report results to the Audit Committee with the filing-cycle debrief.",
+            "File the signed workpaper in the compliance evidence repository under REG-054-C03."
+          ],
+          "done": "a signed workpaper with a stated conclusion is filed and reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-054-C04",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "ALM / Asset-Liability Actuary",
+          "value": "ALM / Asset-Liability Actuary runs the annual asset adequacy / cash-flow testing and produces the AAT report; the Appointed Actuary owns the conclusion; escalation to the Chief Actuary"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Bermuda Insurance Code of Conduct (August 2022) s.5/s.6 (risk management and internal controls over insurance liabilities) and the BMA EBS/BSCR guidance on scenario-based approaches; the current Code and BMA guidance are re-downloaded each cycle and cited in the AAT report's standards section"
+        },
+        "In-scope processes": {
+          "value": "Annual asset adequacy testing for the Bermuda entity's Life & Annuity liabilities: asset and liability data assembly, scenario set definition (including prescribed interest-rate paths), projection runs, reserve-adequacy conclusion, additional-reserve recommendation and AAT report production"
+        },
+        "In-scope systems": {
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "value": "Projections in the actuarial modeling platform; asset holdings and cash-flow data from BlackRock Aladdin; the AAT report archived in the financial reporting repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Asset Adequacy Testing Procedure: annex to the Reserving Policy covering asset segmentation, scenario set (level, up, down, whipsaw and stochastic paths), reinvestment rules, moderately-adverse standard, and the report content list"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Actuary with Board Risk Committee notation; reviewed annually and on any material change to the investment strategy or product mix"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "AAT complete and the report signed before the actuarial opinion is signed (REG-054-C02), which itself precedes the BMA Statutory Financial Return date four months after year end; interim refresh triggered by a 200bp rate move or material portfolio shift"
+        },
+        "Deadline reminders configured": {
+          "value": "Close calendar milestones at T-45/T-30/T-15 working days before the opinion signature date alerting the ALM Actuary and Appointed Actuary; rate-move trigger monitored monthly"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "AAT report, asset and liability extracts, scenario files, projection run logs and the additional-reserve decision retained 10 years in the financial reporting repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "A missed AAT cycle, unsupported scenario set, failed asset-liability reconciliation or an inadequacy left unreserved is logged in the regulatory filing/issue tracker and assessed as a potential material Code breach for BMA self-report"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Actuary",
+          "value": "Chief Actuary signs off remediation of AAT exceptions; additional-reserve postings co-signed by the Chief Financial Officer"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The annual AAT report and its inputs for each year in the review period: asset extracts, liability model points, scenario files, projection outputs and the adequacy conclusion"
+        },
+        "Pass/fail thresholds": {
+          "value": "AAT must cover 100% of interest-sensitive liabilities; asset extract reconciles to the investment accounting records within 0.5%; every scenario in the procedure's set is run; any indicated inadequacy is reserved or formally justified — a miss on any of these fails"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; the test runs annually after the AAT report is signed, before the opinion cycle test closes"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Internal Audit reviewer who performed no AAT modelling; actuarial re-performance assigned to an actuary outside the ALM team"
+        },
+        "Evidence location for test results": {
+          "value": "Annual AAT test workpaper in the compliance evidence repository under REG-054-C04, with run-log references and recomputation schedules"
+        },
+        "Regulator-ready documentation": {
+          "value": "AAT report with scenario results, asset listings and the adequacy conclusion retrievable for a BMA request within 14 days"
+        },
+        "Regulator response path": {
+          "value": "Appointed Actuary answers BMA questions on asset adequacy; the ALM / Asset-Liability Actuary supplies scenario detail; correspondence routed via the Regulatory Reporting Manager"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Scope the testing segments and confirm the timetable",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "actions": [
+            "List the liability segments for testing (annuities, universal life, traditional life, disabled-life reserves) and confirm 100% of interest-sensitive liabilities are covered by agreeing segment reserves to the signed valuation summary.",
+            "Confirm the asset segmentation plan maps each liability segment to its supporting asset portfolio.",
+            "Set the run timetable backed off the opinion signature date with the T-45/T-30/T-15 milestones.",
+            "Record scope and timetable in the AAT file."
+          ],
+          "done": "segments cover 100% of interest-sensitive reserves with a mapped asset plan and a calendared timetable."
+        },
+        {
+          "step": "Extract the supporting asset portfolio",
+          "by": "Investment Analyst",
+          "role": "Investment Analyst",
+          "app": "BlackRock Aladdin",
+          "actions": [
+            "Extract from BlackRock Aladdin the holdings for each supporting portfolio as at the valuation date: CUSIP/ISIN, par, book and market value, coupon, maturity, call schedule, credit rating and asset class.",
+            "Export projected asset cash flows including call/prepayment behaviour under the base curve.",
+            "Deliver the extract with control totals (par, book value by portfolio) to the ALM Actuary.",
+            "File the extract and run parameters in the AAT file."
+          ],
+          "done": "asset extracts with cash flows and control totals are delivered and filed."
+        },
+        {
+          "step": "Reconcile assets to the investment accounting records",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Agree the extract's book values by portfolio to the investment accounting balances in the ledger within the 0.5% tolerance.",
+            "Investigate differences with the Investment Operations Manager — trades in transit, accrual timing — and document each.",
+            "Confirm no asset is double-counted across segments by checking the segment mapping for overlaps.",
+            "Have the Controller countersign the reconciliation."
+          ],
+          "done": "asset extracts reconcile to accounting records within tolerance with a countersigned schedule."
+        },
+        {
+          "step": "Assemble the liability model points and validate against the valuation",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "FIS Prophet",
+          "actions": [
+            "Reuse the year-end valuation model points (REG-054-C01) for the AAT projections, loading them into FIS Prophet's ALM structure.",
+            "Reconcile model point reserves to the signed valuation summary by segment.",
+            "Document any AAT-specific adjustments (aggregation, in-force date shifts) with rationale.",
+            "Log file names, counts and checksums in the run log."
+          ],
+          "done": "liability model points tie to the signed valuation with adjustments documented and logged."
+        },
+        {
+          "step": "Define and approve the scenario set",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "actions": [
+            "Build the deterministic set per the procedure: level rates, gradual up (+300bp over 10 years), gradual down (−300bp floored), pop-up, pop-down and whipsaw paths from the valuation-date curve.",
+            "Generate the stochastic rate scenarios where the procedure requires them, recording generator version and seed.",
+            "Set reinvestment and disinvestment rules (target portfolio, spreads, borrowing limits) per the current investment strategy confirmed with the Portfolio Manager.",
+            "Obtain Chief Actuary approval of the scenario set and file the approval."
+          ],
+          "done": "the full scenario set and reinvestment rules are documented, seeded and approved."
+        },
+        {
+          "step": "Run the projections for every scenario",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Execute the asset-liability projections in the actuarial modeling platform for each scenario and segment, using the approved model version from the model governance repository.",
+            "Capture run ids, scenario ids, model version and warnings in the run log.",
+            "Verify each run completed the full projection horizon (30+ years or to runoff) without truncation.",
+            "Export ending surplus / market value of surplus by scenario and segment to the results workbook."
+          ],
+          "done": "every approved scenario is run to full horizon with logged run ids and exported results."
+        },
+        {
+          "step": "Analyse results and identify inadequacies",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "actions": [
+            "Tabulate ending surplus by scenario and segment and flag every scenario with negative ending surplus.",
+            "Assess adequacy against the moderately-adverse standard in the procedure, documenting the judgement for borderline scenarios.",
+            "Quantify the additional reserve indicated where results fail the standard, with the calculation shown.",
+            "Compare results to prior year and explain material shifts (rate environment, portfolio changes, product mix)."
+          ],
+          "done": "results are tabulated with inadequacies flagged, quantified and year-over-year movements explained."
+        },
+        {
+          "step": "Decide and post any additional reserve",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Review the indicated inadequacy and decide the additional reserve, documenting the decision rationale against the moderately-adverse standard.",
+            "Where no reserve is posted despite adverse scenarios, write the formal justification into the AAT report.",
+            "Instruct the Senior Accountant to post any additional reserve to the ledger before the opinion is signed, with the CFO co-signing the posting.",
+            "Confirm the posted amount flows into the reserve balances the opinion covers."
+          ],
+          "done": "the additional-reserve decision is documented and any posting is in the ledger before opinion signature."
+        },
+        {
+          "step": "Write the AAT report",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "app": "document management repository",
+          "actions": [
+            "Draft the report to the procedure's content list: scope and segments, data and reconciliations, scenario definitions, reinvestment rules, results by scenario, adequacy conclusion, additional-reserve decision and limitations.",
+            "Cross-reference every figure to the results workbook and run log ids.",
+            "Include the asset reconciliation and liability validation as appendices.",
+            "Version the draft in the document management repository."
+          ],
+          "done": "a versioned draft report covers the full content list with traceable figures."
+        },
+        {
+          "step": "Peer review the AAT work",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Assign a reviewing actuary outside the ALM team to re-check scenario construction against the procedure, spot-check projection inputs for two segments, and verify the adequacy conclusion follows from the results.",
+            "Re-foot the additional-reserve calculation independently.",
+            "Record comments and resolutions on the peer-review log and sign it.",
+            "Return the report for finalisation."
+          ],
+          "done": "an independent peer-review log is signed with all comments resolved."
+        },
+        {
+          "step": "Obtain Appointed Actuary sign-off of the AAT report",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Review the final report and challenge the scenario judgements and the moderately-adverse assessment.",
+            "Sign and date the report ahead of the actuarial opinion signature so the opinion can rely on it.",
+            "Reference the AAT report and its conclusion in the actuarial memorandum (REG-054-C02).",
+            "Lock the signed report against edit."
+          ],
+          "done": "the signed AAT report pre-dates the opinion and is referenced in the memorandum."
+        },
+        {
+          "step": "Archive the AAT evidence pack",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "financial reporting repository",
+          "actions": [
+            "Assemble the pack: signed report, asset extracts and reconciliation, model point validation, scenario files with seeds, run logs, results workbook, peer-review log and reserve-posting evidence.",
+            "File it in the financial reporting repository under REG-054-C04/<year> with the 10-year retention label.",
+            "Verify the index is complete and every run id in the report resolves to a logged run.",
+            "Notify Compliance the pack is ready for testing."
+          ],
+          "done": "a complete, indexed, retention-labelled AAT pack is archived."
+        },
+        {
+          "step": "Monitor interim triggers for an off-cycle refresh",
+          "by": "ALM / Asset-Liability Actuary",
+          "role": "ALM / Asset-Liability Actuary",
+          "actions": [
+            "Monitor monthly the trigger conditions: a 200bp move in the reference curve since the last AAT, a material asset reallocation, or a large block transaction.",
+            "Log each monthly check with the observed curve move and portfolio status.",
+            "Where a trigger fires, schedule an off-cycle AAT refresh within 60 days and notify the Chief Actuary.",
+            "File the monitoring log quarterly."
+          ],
+          "done": "monthly trigger checks are logged and any fired trigger has a scheduled refresh."
+        },
+        {
+          "step": "Report AAT results to risk governance",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Present the AAT conclusion, scenario results and any additional reserve to the Board Risk Committee at its pre-filing meeting.",
+            "Highlight scenarios approaching inadequacy and the management actions assumed.",
+            "Minute the committee's notation and file the minute reference in the AAT pack.",
+            "Share results with the Enterprise Risk Manager for the risk register update."
+          ],
+          "done": "the Risk Committee minutes record the AAT results and the risk register is updated."
+        },
+        {
+          "step": "Log and remediate AAT exceptions",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log any missed milestone, reconciliation break, unrun scenario or undocumented judgement in the regulatory filing/issue tracker with root cause and owner.",
+            "Route potential material Code breaches to the Compliance Officer for BMA self-report assessment.",
+            "Track remediation to closure with Chief Actuary sign-off.",
+            "Feed recurring causes into the next procedure review."
+          ],
+          "done": "every exception is logged, assessed, remediated and signed off."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of AAT cycles and inputs",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "financial reporting repository",
+          "actions": [
+            "Pull each year's archived AAT pack from the financial reporting repository for the review period.",
+            "Confirm one signed AAT report exists per required annual cycle plus any trigger-driven refresh.",
+            "List the pack contents against the procedure's evidence list as the test inventory."
+          ],
+          "done": "every required cycle has a signed report and a content-listed pack."
+        },
+        {
+          "step": "Reconcile tested liabilities to the source of record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Agree the segment reserves tested in the AAT to the signed valuation summary and confirm coverage of 100% of interest-sensitive liabilities.",
+            "Identify any liability block excluded from testing and verify a documented exclusion rationale exists.",
+            "An untested interest-sensitive block without rationale is a fail."
+          ],
+          "done": "tested segments reconcile to the valuation with all exclusions documented."
+        },
+        {
+          "step": "Re-verify the asset reconciliation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "Re-agree the asset extract book values to the investment accounting balances in SAP S/4HANA (GL) within the 0.5% tolerance.",
+            "Check the countersigned reconciliation and test two documented differences to support.",
+            "Check the segment mapping for double-counted assets by summing mapped portfolios against total invested assets."
+          ],
+          "done": "asset extracts re-reconcile within tolerance with no double-counting."
+        },
+        {
+          "step": "Draw a sample of scenarios and segments",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Select the two largest segments plus one random segment (recorded seed), and within each, the level, worst adverse and one random scenario.",
+            "Record seed, population and selection date so the sample can be re-drawn.",
+            "Include any scenario that produced negative ending surplus."
+          ],
+          "done": "a reproducible sample covers large segments and every inadequate scenario."
+        },
+        {
+          "step": "Re-perform sampled projection runs",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Re-run the sampled scenario/segment cells in the actuarial modeling platform from the archived model points, scenario files and model version recorded in the run log.",
+            "Compare ending surplus to the results workbook; differences beyond rounding are exceptions.",
+            "Capture re-run ids into the test workpaper."
+          ],
+          "done": "re-runs reproduce reported ending surplus for every sampled cell."
+        },
+        {
+          "step": "Verify the scenario set against the procedure",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "List the scenarios the procedure requires and tick each against the run log — level, up, down, pop-up, pop-down, whipsaw and any required stochastic set.",
+            "Verify the starting curve equals the valuation-date curve from the filed source download.",
+            "Verify stochastic seeds and generator versions were recorded; an unrecorded seed is an exception."
+          ],
+          "done": "every required scenario was run from the correct starting curve with recorded seeds."
+        },
+        {
+          "step": "Recompute the additional-reserve arithmetic and posting",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Re-foot the indicated-inadequacy calculation from the scenario results.",
+            "Where a reserve was posted, trace the journal in the ledger, its CFO co-signature and that posting pre-dated the opinion signature.",
+            "Where no reserve was posted despite adverse results, verify the formal justification exists in the signed report."
+          ],
+          "done": "reserve arithmetic verifies and postings or justifications are evidenced and correctly sequenced."
+        },
+        {
+          "step": "Verify sequencing against the opinion and filing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Check the AAT report signature date precedes the actuarial opinion signature date, which precedes the BMA filing date.",
+            "Verify the actuarial memorandum references the AAT conclusion.",
+            "Check monthly trigger-monitoring logs exist and any fired trigger led to a refresh within 60 days."
+          ],
+          "done": "dates sequence correctly, the memorandum cross-references the AAT, and trigger monitoring is evidenced."
+        },
+        {
+          "step": "Log exceptions with root cause and owner",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the cycle, segment/scenario, control missed and impact on the adequacy conclusion.",
+            "Assign root cause (data, scenario governance, model version, sequencing) and a named owner with a remediation date.",
+            "Refer unreserved-inadequacy findings to the Compliance Officer for BMA self-report assessment.",
+            "Carry open exceptions into next year's test."
+          ],
+          "done": "each exception carries an issue, root cause, owner, remediation date and referral where required."
+        },
+        {
+          "step": "Conclude with independent sign-off and reporting",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "compliance evidence repository",
+          "actions": [
+            "State the conclusion (effective / effective with exceptions / ineffective) against the coverage, reconciliation and scenario thresholds.",
+            "Have the independent reviewer — who performed no AAT modelling — sign the workpaper.",
+            "Report results to the Audit Committee alongside the opinion-cycle test.",
+            "File the signed workpaper in the compliance evidence repository under REG-054-C04."
+          ],
+          "done": "a signed workpaper with a stated conclusion is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-054-C05",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Data Quality Analyst",
+          "value": "Data Quality Analyst owns the quarterly reserve-data-to-policy-admin reconciliation; the Valuation Actuary owns acceptance of the data for valuation; escalation to the Chief Data Officer and Chief Actuary"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Bermuda Insurance Code of Conduct (August 2022) s.6 (Risk Management — reserving data and controls) and the Cyber Risk Management Code of Conduct's three-lines expectations for first-line data controls; sections re-read each quarter when the reconciliation standard is applied"
+        },
+        "In-scope processes": {
+          "value": "Quarterly reconciliation of the valuation data feeding the reserve calculation (REG-054-C01) back to the policy administration source: policy counts, sums assured, account values, premiums and status splits by product line, with movement roll-forward"
+        },
+        "In-scope systems": {
+          "app": "Policy Administration Platform",
+          "value": "Source of record is the Policy Administration Platform; extracts land in the enterprise data warehouse; rules run in the data catalog/quality tool; reconciliation report filed in the financial reporting repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Valuation Data Reconciliation Standard: control totals to compare, 0.5% count/amount tolerance, roll-forward requirement (opening + new business − terminations = closing), break-investigation ladder and countersignature rule before model load"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved jointly by the Chief Data Officer and Chief Actuary; reviewed annually and on any policy-admin migration or new product launch"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Reconciliation complete and countersigned by working day 5 after quarter end, ahead of the model load in the valuation timetable; the Q4 reconciliation feeds the annual cycle ending in the BMA filing four months after year end"
+        },
+        "Deadline reminders configured": {
+          "value": "Close calendar tasks at WD+2 (extract landed), WD+4 (breaks resolved) and WD+5 (countersigned) each quarter, alerting the Data Quality Analyst and Reserving Analyst"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Quarterly reconciliation report, extract logs, break investigations and countersignatures retained 10 years in the financial reporting repository under REG-054-C05/<quarter>"
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "Model loads on an unreconciled or out-of-tolerance extract, and breaks aged past one quarter, are logged in the regulatory filing/issue tracker with root cause and disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Data Officer",
+          "value": "Chief Data Officer signs off closure of data-control exceptions; valuation-impacting items co-signed by the Chief Actuary"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All quarterly valuation-data reconciliations in the review period, the underlying extracts by run id, and the break log entries they generated"
+        },
+        "Pass/fail thresholds": {
+          "value": "Each quarter must show a countersigned reconciliation dated before the model load, residuals within the 0.5% tolerance, and every break dispositioned within one quarter — any miss fails that quarter"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is quarterly; the test runs quarterly one cycle in arrears, with an annual roll-up before the BMA filing"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Internal Audit reviewer independent of the Data and Actuarial teams performing the reconciliation"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly reconciliation test workpaper in the compliance evidence repository under REG-054-C05 with re-performed control-total schedules"
+        },
+        "Regulator-ready documentation": {
+          "value": "Reconciliation reports and break logs demonstrating first-line data controls over reserves, producible for a BMA prudential visit within 14 days"
+        },
+        "Regulator response path": {
+          "value": "Chief Data Officer and Valuation Actuary answer BMA questions on data quality over reserves; routed via the Regulatory Reporting Manager"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Land the quarter-end valuation extract with control totals",
+          "by": "Data Engineer",
+          "role": "Data Engineer",
+          "app": "enterprise data warehouse",
+          "actions": [
+            "Run the valuation extract pipeline from the Policy Administration Platform into the enterprise data warehouse as at quarter end, by working day 2.",
+            "Emit control totals with the run id: policy count, sum assured, account value and annualised premium by product line and status.",
+            "Publish the run id and totals to the Reserving Analyst and Data Quality Analyst.",
+            "Store the pipeline log against the run id."
+          ],
+          "done": "the extract is landed by WD+2 with a run id and published control totals."
+        },
+        {
+          "step": "Pull the admin-system control report for the same date",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Generate the Policy Administration Platform's own period-end inforce control report for the identical as-at date, using the same status definitions as the extract.",
+            "Export counts and amounts by product line and status to the reconciliation workbook.",
+            "Confirm with the Policy Admin Ops Lead that all quarter-end batch processing (terminations, maturities, reinstatements) completed before the report was cut.",
+            "File the report with its generation timestamp."
+          ],
+          "done": "the source control report for the same date and status basis is exported and timestamped."
+        },
+        {
+          "step": "Run the automated data-quality rules on the extract",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "Execute the valuation rule set in the data catalog/quality tool: null checks on plan code/issue date/status, valid-value checks on product codes, duplicate policy detection, and negative-value screens on account values.",
+            "Review the rule results and classify each failure as blocking (fix before load) or non-blocking (document and monitor).",
+            "Return blocking failures to the Data Engineer for re-extract or source correction.",
+            "Attach the rule-run report to the reconciliation workbook."
+          ],
+          "done": "the rule set has run with every failure classified and blocking items returned for fix."
+        },
+        {
+          "step": "Compare control totals and compute differences",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "In the reconciliation workbook, compare extract totals to the admin control report by product line and status: count, sum assured, account value, premium.",
+            "Compute absolute and percentage differences per cell against the 0.5% tolerance.",
+            "Colour-flag every out-of-tolerance cell and list it on the break log with a unique break id.",
+            "Save the versioned workbook to the financial reporting repository."
+          ],
+          "done": "cell-level differences are computed with every out-of-tolerance cell on the break log."
+        },
+        {
+          "step": "Roll the inforce forward from prior quarter",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "actions": [
+            "Build the roll-forward per product line: opening count + new business − deaths − surrenders − maturities − lapses ± reinstatements = closing count.",
+            "Source movement counts from the Policy Administration Platform's transaction summary for the quarter.",
+            "Compare the derived closing count to the extract count and add any residual over tolerance to the break log.",
+            "Record the roll-forward in the reconciliation workbook."
+          ],
+          "done": "the roll-forward reconciles movements to the closing position with residuals within tolerance or logged."
+        },
+        {
+          "step": "Investigate breaks down the resolution ladder",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "actions": [
+            "Work each break id down the ladder: as-at-date mismatch, status-mapping difference, late-processed transactions, extract filter error, then genuine source-data defect.",
+            "For each break record cause, affected policies (drill to policy number where possible), dollar impact and the correcting action.",
+            "Route source-data defects to the Policy Administration Analyst for correction in the admin system, not in the extract.",
+            "Escalate any break unresolved by WD+4 to the Chief Data Officer."
+          ],
+          "done": "every break has a cause, impact, correcting action and owner, with WD+4 escalations made."
+        },
+        {
+          "step": "Quantify the reserve impact of unresolved breaks",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "For breaks that will not clear before model load, estimate the reserve impact using per-policy average reserves for the affected product line.",
+            "Decide accept / adjust / block: accept immaterial breaks with documented rationale, post a valuation adjustment for estimable impacts, block the load for material unquantifiable breaks.",
+            "Record the decision per break id on the break log.",
+            "Notify the Appointed Actuary of any accepted break above 0.1% of line reserves."
+          ],
+          "done": "every unresolved break carries a quantified impact and a documented accept/adjust/block decision."
+        },
+        {
+          "step": "Countersign the reconciliation before model load",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "actions": [
+            "Verify the workbook shows: totals compared, roll-forward complete, rule-run attached, every break dispositioned.",
+            "Countersign the reconciliation with date and time, by working day 5.",
+            "Obtain the Reserving Analyst's counter-signature as the second check.",
+            "Release the extract run id to the Actuarial Analyst for model point build — the load may not start earlier."
+          ],
+          "done": "a dual-signed reconciliation dated by WD+5 releases the extract for model load."
+        },
+        {
+          "step": "Publish the quarterly reconciliation report",
+          "by": "Reserving Analyst",
+          "role": "Reserving Analyst",
+          "app": "financial reporting repository",
+          "actions": [
+            "Compile the reconciliation report: control-total comparison, roll-forward, rule results, break log with dispositions and the dual signatures.",
+            "File it in the financial reporting repository under REG-054-C05/<quarter> with the 10-year retention label.",
+            "Send the report link to the Valuation Actuary, Chief Data Officer and Compliance Analyst.",
+            "Index the report against the extract run id used for the valuation."
+          ],
+          "done": "the filed report is indexed to the run id and distributed to the named recipients."
+        },
+        {
+          "step": "Track aged breaks to closure",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Carry every open break into the regulatory filing/issue tracker with its break id, cause, impact and owner.",
+            "Review open breaks weekly with the Policy Administration Analyst until the source correction lands.",
+            "Verify each closure in the next quarter's extract — the break must not recur for the same policies.",
+            "Flag any break aged past one quarter to the Chief Data Officer for remediation sign-off."
+          ],
+          "done": "open breaks are tracked weekly, verified closed in the next extract, and aged items escalated."
+        },
+        {
+          "step": "Reconcile reserve output back to the data used",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "After the valuation run, reconcile model point counts and amounts in the run log back to the released extract's control totals.",
+            "Confirm no policies were added, dropped or altered between release and model load by comparing checksums.",
+            "Record the end-to-end tie-out (admin report → extract → model points → reserve run) in the valuation workpaper pack.",
+            "Report any post-release change as an incident to the Data Quality Analyst."
+          ],
+          "done": "an end-to-end tie-out shows the reserves were computed on exactly the released, reconciled data."
+        },
+        {
+          "step": "Review status and product mapping tables quarterly",
+          "by": "Data Steward",
+          "role": "Data Steward",
+          "app": "Enterprise Reference Data (MDM/RDM)",
+          "actions": [
+            "Review the product-code and status mapping tables in Enterprise Reference Data (MDM/RDM) against new plan codes launched in the quarter.",
+            "Add mappings for any new plan code before the next extract; an unmapped code must fail the data-quality rules, not silently drop.",
+            "Version the mapping table and record the review date.",
+            "Notify the Data Engineer of mapping changes affecting the pipeline."
+          ],
+          "done": "mapping tables cover every live plan code with a versioned, dated review."
+        },
+        {
+          "step": "Test the pipeline after any admin-system or ETL change",
+          "by": "Data Engineer",
+          "role": "Data Engineer",
+          "app": "Data pipeline orchestrator (Airflow/Dagster/Prefect)",
+          "actions": [
+            "On any Policy Administration Platform release or ETL change, run the extract pipeline against a pre-release copy and compare control totals to the last production run in the data pipeline orchestrator.",
+            "Investigate any shift in totals beyond expected business movement before promoting the change.",
+            "Record the regression comparison in the change ticket.",
+            "Inform the Data Quality Analyst that the change is cleared for the next quarter-end run."
+          ],
+          "done": "every pipeline-affecting change carries a recorded regression comparison before production use."
+        },
+        {
+          "step": "Report reconciliation health to governance",
+          "by": "Data Governance Lead",
+          "role": "Data Governance Lead",
+          "actions": [
+            "Report quarterly to the data governance forum: on-time completion, break counts and aging, tolerance breaches and repeat causes.",
+            "Table systemic fixes (source defects, mapping gaps) with owners and dates.",
+            "Minute the forum's decisions and file the minutes with the reconciliation report.",
+            "Share the summary with the Chief Actuary for the valuation governance pack."
+          ],
+          "done": "governance minutes record the quarter's reconciliation health and systemic fixes with owners."
+        },
+        {
+          "step": "Log exceptions and capture remediation sign-off",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log any model load on unreconciled data, missed WD+5 signature or tolerance breach accepted without rationale in the regulatory filing/issue tracker.",
+            "Assign root cause and owner; obtain Chief Data Officer sign-off on closure, with Chief Actuary co-sign where reserves were affected.",
+            "Assess repeated failures with the Compliance Officer as a potential Code s.6 control weakness for BMA self-report.",
+            "Retain the exception records with the quarterly report."
+          ],
+          "done": "control failures are logged, signed off on closure and assessed for reportability."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of quarterly reconciliations",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "financial reporting repository",
+          "actions": [
+            "Pull every reconciliation report filed under REG-054-C05 for the review period from the financial reporting repository.",
+            "Confirm one report per quarter with no gaps against the valuation calendar.",
+            "List the extract run ids each report covers as the test inventory."
+          ],
+          "done": "a complete quarter-by-quarter population with run ids is inventoried."
+        },
+        {
+          "step": "Reconcile reports to the valuation actually run",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each quarter's released run id to the run id recorded in the valuation run log (REG-054-C01).",
+            "A valuation run on a different or unreleased run id is an automatic exception.",
+            "Record the match table in the workpaper."
+          ],
+          "done": "every valuation traces to the released, reconciled extract or an exception is logged."
+        },
+        {
+          "step": "Draw a documented sample of quarters and cells",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Select two quarters (latest plus one random with recorded seed) and within each, the three largest product lines plus two random cells.",
+            "Include every cell that breached tolerance in the period.",
+            "Record seed, population size and selection date for re-drawability."
+          ],
+          "done": "a reproducible sample covers large lines, random cells and all tolerance breaches."
+        },
+        {
+          "step": "Re-perform the control-total comparison from source",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Independently regenerate the Policy Administration Platform inforce control report for the sampled as-at dates.",
+            "Recompute the differences against the archived extract totals without reference to the filed workbook.",
+            "Compare to the reported differences; any discrepancy in the reconciliation itself is an exception."
+          ],
+          "done": "independently regenerated source totals reproduce the reported differences."
+        },
+        {
+          "step": "Recompute the roll-forward arithmetic",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Re-foot the sampled roll-forwards: opening + new business − terminations ± reinstatements = closing.",
+            "Agree movement counts to the admin system's transaction summary for the quarter.",
+            "Verify residuals were within tolerance or listed on the break log."
+          ],
+          "done": "roll-forward arithmetic verifies against source transaction counts."
+        },
+        {
+          "step": "Test break dispositions to evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For ten sampled break ids (or all, if fewer), verify cause, quantified impact and the accept/adjust/block decision are recorded.",
+            "For source-defect breaks, trace the correction into the admin system and confirm non-recurrence in the following quarter's extract.",
+            "A break accepted without quantified impact or aged past one quarter without CDO escalation is a fail."
+          ],
+          "done": "sampled breaks show evidenced dispositions, source corrections and non-recurrence."
+        },
+        {
+          "step": "Verify signature timing and load sequencing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Check each sampled quarter's dual countersignature is dated by WD+5 and before the model load timestamp in the run log.",
+            "Any load that started before release is a fail regardless of eventual reconciliation outcome.",
+            "Record the date chain (extract → signatures → load) in the workpaper."
+          ],
+          "done": "the date chain proves reconciliation and release preceded every model load."
+        },
+        {
+          "step": "Test the data-quality rule coverage",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "Review the rule set in the data catalog/quality tool against the standard's required checks (nulls, valid values, duplicates, negatives).",
+            "Inspect the sampled quarters' rule-run reports for blocking failures released without fix.",
+            "Verify unmapped plan codes fail the rules by checking a quarter where a new product launched."
+          ],
+          "done": "the rule set matches the standard and blocking failures were never released unfixed."
+        },
+        {
+          "step": "Log exceptions with root cause and owner",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the quarter, cell or break id, control missed and reserve impact.",
+            "Assign root cause (timing, mapping, source defect, discipline) and a named owner with a remediation date.",
+            "Refer systemic control weaknesses to the Compliance Officer for Code s.6 reportability assessment.",
+            "Carry open items into the next quarterly test."
+          ],
+          "done": "each exception is logged with root cause, owner, remediation date and referral where systemic."
+        },
+        {
+          "step": "Conclude with independent sign-off",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "compliance evidence repository",
+          "actions": [
+            "State the conclusion (effective / effective with exceptions / ineffective) against the countersignature, tolerance and aging thresholds.",
+            "Have the independent reviewer — outside Data and Actuarial — sign the workpaper.",
+            "Report quarterly results to the data governance forum and annually to the Audit Committee.",
+            "File the signed workpaper in the compliance evidence repository under REG-054-C05."
+          ],
+          "done": "a signed workpaper with a stated conclusion is filed and reported to governance."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-054-C06",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Appointed Actuary",
+          "value": "Appointed Actuary owns the substance of every BMA valuation inquiry response; the Regulatory Reporting Manager owns intake, tracking and the 14-day clock; escalation to the Chief Actuary and General Counsel"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Bermuda Insurance Code of Conduct (August 2022) business conduct/integrity and cooperation-with-the-Authority provisions, and the Insurance Act 1978 information-request powers; the specific provision cited in each BMA letter is read and filed with the inquiry record"
+        },
+        "In-scope processes": {
+          "value": "Event-driven handling of BMA inquiries touching reserves, EBS technical provisions, the actuarial opinion or AAT: intake and logging, clock-setting, response drafting, actuarial and legal clearance, submission and correspondence-file maintenance"
+        },
+        "In-scope systems": {
+          "app": "Internal Regulatory System",
+          "value": "Inquiries logged and clocked in the Internal Regulatory System; the correspondence file lives in the document management repository; source figures pulled from the archived valuation packs"
+        },
+        "Compliance procedure documented": {
+          "value": "Regulator Inquiry Procedure: same-day logging, 14-day default response clock from the initial notification, single-point-of-contact rule, clearance chain (Appointed Actuary → Compliance Officer → General Counsel where admissions arise) and the correspondence-file standard"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Compliance Officer and General Counsel; reviewed annually and after every BMA interaction that exposed a gap"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Default: respond within 14 days of the initial notification unless the BMA letter states another date; extension requests made before day 7; every inquiry carries a countdown task from the logged notice date"
+        },
+        "Deadline reminders configured": {
+          "value": "Internal Regulatory System auto-tasks at day 3 (draft assigned), day 7 (extension decision), day 10 (clearance) and day 13 (submit) on each open inquiry"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "The full correspondence file — inbound letter, log entry, drafts, clearance records, final response with proof of submission and any follow-ups — retained 10 years in the document management repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "Late responses, uncleared submissions and unlogged BMA contacts are logged in the regulatory filing/issue tracker; a pattern of late responses is assessed as a Code business-conduct issue for self-report"
+        },
+        "Remediation sign-off captured": {
+          "role": "Compliance Officer",
+          "value": "Compliance Officer signs off remediation of inquiry-handling exceptions; content errors in responses co-signed by the Chief Actuary"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every BMA valuation-related inquiry logged in the review period, plus inbox and portal sweeps to catch unlogged contacts"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance: any response after 14 days of the initial notification (absent a granted extension), any submission without actuarial and compliance clearance, or any unlogged BMA contact is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven; the test runs semi-annually over all inquiries received in the half-year"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Internal Audit reviewer independent of Regulatory Reporting and the actuarial function that drafted responses"
+        },
+        "Evidence location for test results": {
+          "value": "Semi-annual inquiry-handling test workpaper in the compliance evidence repository under REG-054-C06 with recomputed clock schedules"
+        },
+        "Regulator-ready documentation": {
+          "value": "The correspondence file per inquiry is regulator-ready by construction — chronological, complete and retrievable within 14 days for any BMA follow-up or prudential visit"
+        },
+        "Regulator response path": {
+          "value": "Single point of contact is the Regulatory Reporting Manager; the Appointed Actuary signs valuation substance; the General Counsel clears anything admitting error or breach before submission"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Log every BMA valuation inquiry on the day it arrives",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "On receipt of a BMA letter, portal message or email touching reserves, the opinion or AAT, create an inquiry record in the Internal Regulatory System the same business day.",
+            "Capture: notice date, channel, BMA reference number, cited statutory provision, questions asked and any stated deadline.",
+            "Set the response deadline: the BMA's stated date, or 14 days from the initial notification where none is stated, and start the countdown task.",
+            "Attach the inbound document to the record and open the correspondence file in the document management repository."
+          ],
+          "done": "the inquiry is logged same-day with deadline, countdown and an opened correspondence file."
+        },
+        {
+          "step": "Route the inquiry to the owning actuary and assemble the team",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Notify the Appointed Actuary and Chief Actuary within one business day with the logged record link.",
+            "Assign a drafting owner per question — Valuation Actuary for reserve mechanics, ALM / Asset-Liability Actuary for AAT, Capital Model Actuary for risk margin/BSCR points.",
+            "Alert the Compliance Officer and, where the letter alleges or implies a breach, the General Counsel immediately.",
+            "Record assignments and the internal draft-due date (day 7) on the inquiry record."
+          ],
+          "done": "owners are assigned with a day-7 internal due date and legal alerted where breach is implied."
+        },
+        {
+          "step": "Freeze and gather the source records the inquiry touches",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "financial reporting repository",
+          "actions": [
+            "Pull from the financial reporting repository the exact archived packs the inquiry concerns: valuation workpapers (REG-054-C01), signed opinion file (REG-054-C02), filed SFR package (REG-054-C03), AAT pack (REG-054-C04).",
+            "Place a legal-hold flag on those records so nothing is edited or purged while the inquiry is open.",
+            "Index the pulled records in the correspondence file.",
+            "Note any record the inquiry needs that cannot be located — escalate that gap to the Compliance Officer the same day."
+          ],
+          "done": "source records are pulled, legal-held and indexed, with any gap escalated same-day."
+        },
+        {
+          "step": "Draft answers from the archived record, not from memory",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Answer each BMA question by citing the archived pack — run ids, workpaper page references and filed schedule lines — so every figure in the draft traces to evidence.",
+            "Reconcile any figure quoted in the response to the filed SFR package to the dollar; explain, never paper over, differences from what was filed.",
+            "Keep the draft to the questions asked; list any volunteered context separately for the clearance chain to rule on.",
+            "Save the draft with version control in the correspondence file by day 7."
+          ],
+          "done": "a day-7 draft answers each question with evidence references and reconciled figures."
+        },
+        {
+          "step": "Decide on an extension before day 7 where the deadline is unachievable",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "At the day-7 checkpoint, assess whether a complete, cleared response will be ready by the deadline.",
+            "Where it will not, draft an extension request stating the reason and a committed date, and have the Compliance Officer approve it.",
+            "Submit the extension request to the BMA before day 7 through the same channel as the inquiry, and log the BMA's answer.",
+            "Update the countdown task to any granted date; a silent or refused extension leaves the 14-day clock in force."
+          ],
+          "done": "the deadline is either achievable or an approved extension request was submitted before day 7 with the outcome logged."
+        },
+        {
+          "step": "Run actuarial review of the draft",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Review the draft for technical accuracy and consistency with the signed opinion and memorandum — the response must not contradict the filed record without saying so explicitly.",
+            "Where the inquiry has exposed a genuine error in filed figures, state the error, its size and the correction plan rather than obscuring it.",
+            "Sign the actuarial clearance on the inquiry record by day 10.",
+            "Return unresolved technical points to the drafting owner with a same-week turnaround."
+          ],
+          "done": "the Appointed Actuary's clearance is recorded by day 10 with any filed-record error explicitly handled."
+        },
+        {
+          "step": "Run compliance and legal clearance",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Review the cleared draft for tone, completeness against every question asked, and consistency with prior BMA correspondence in the file.",
+            "Route to the General Counsel any passage admitting a breach, error or Code non-compliance, and incorporate counsel's wording.",
+            "Confirm the volunteered-context list — include or withhold each item with a recorded reason.",
+            "Sign compliance clearance on the inquiry record by day 10."
+          ],
+          "done": "compliance clearance is recorded by day 10 with legal wording on any admission."
+        },
+        {
+          "step": "Submit the response and capture proof",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Submit the final response through the channel the BMA used or specified — portal upload or addressed letter — by day 13, inside the 14-day window or the granted extension.",
+            "Capture proof of submission: portal receipt, or the transmission record with date and addressee.",
+            "File the as-sent response and proof in the correspondence file and close the countdown task with the actual response date.",
+            "Send the as-sent copy to the Appointed Actuary, Compliance Officer and General Counsel."
+          ],
+          "done": "the response is submitted in-window with proof filed and the countdown closed on the actual date."
+        },
+        {
+          "step": "Handle BMA follow-ups as linked child inquiries",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Log any BMA follow-up question as a child record linked to the parent inquiry, with its own 14-days-from-notification clock.",
+            "Run the same draft-clear-submit chain, reusing the frozen source records.",
+            "Keep the correspondence file chronological across parent and children.",
+            "Close the parent only when the BMA confirms the matter is resolved or 90 days pass with no further contact."
+          ],
+          "done": "follow-ups are clocked and cleared as child records and the parent closes on confirmed resolution."
+        },
+        {
+          "step": "Execute commitments made in responses",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Extract every commitment made to the BMA in the response — corrected schedules, methodology changes, additional reserves, future disclosures — onto a commitment list with owners and dates.",
+            "Track each commitment in the regulatory filing/issue tracker to completion.",
+            "Evidence completion in the correspondence file (for example the refiled schedule confirmation under REG-054-C03).",
+            "Report open commitments monthly to the Compliance Officer until done."
+          ],
+          "done": "every commitment to the BMA is tracked, evidenced complete and reported until closed."
+        },
+        {
+          "step": "Maintain the correspondence file to the standard",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "document management repository",
+          "actions": [
+            "Keep the file chronological and complete: inbound letter, log entry, drafts with versions, clearance records, extension correspondence, as-sent response, proof, follow-ups and the commitment list.",
+            "Apply the 10-year retention label and the REG-054-C06 index tag on closure.",
+            "Verify no document exists outside the file — sweep the team mailbox for stray BMA emails and file them.",
+            "Release the legal hold on source packs once the inquiry closes."
+          ],
+          "done": "a complete chronological file is retention-labelled with the mailbox swept and holds released."
+        },
+        {
+          "step": "Brief governance on open inquiries",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Report open BMA valuation inquiries, deadlines and themes to the quarterly compliance committee and, for material matters, the Audit Committee.",
+            "Flag any inquiry implying a solvency or opinion concern to the Board via the Corporate Secretary without waiting for the cycle.",
+            "Minute the reporting and file the minute reference on each inquiry record."
+          ],
+          "done": "governance minutes record open inquiries with material matters escalated to the Board."
+        },
+        {
+          "step": "Sweep channels for unlogged BMA contacts",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Monthly, sweep the BMA portal message centre, the registered-office correspondence log and the actuarial team mailboxes for BMA contacts not in the Internal Regulatory System.",
+            "Log any find retroactively with its true notice date and treat an already-blown clock as a reportable exception, not a reset.",
+            "Remind staff quarterly that any direct BMA contact must reach the Regulatory Reporting Manager the same day.",
+            "Record each sweep with date and result."
+          ],
+          "done": "monthly sweeps are recorded and any unlogged contact is logged at its true date and flagged."
+        },
+        {
+          "step": "Log and remediate handling exceptions",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log late responses, missed clearances, unlogged contacts and unmet commitments in the regulatory filing/issue tracker with root cause and owner.",
+            "Assess a pattern of lateness as a Code business-conduct issue and decide on BMA self-report with the General Counsel.",
+            "Sign off each remediation on closure, with Chief Actuary co-sign for content errors.",
+            "Feed causes into the annual procedure review."
+          ],
+          "done": "handling exceptions are logged, assessed for reportability and signed off on closure."
+        },
+        {
+          "step": "Run the annual inquiry-readiness drill",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Annually, run a mock BMA valuation inquiry: draft a realistic question set, start the clock and run intake-to-submission against the procedure.",
+            "Time each stage against the day 3/7/10/13 milestones and note failures.",
+            "Debrief with Actuarial, Compliance and Legal and update the procedure with fixes.",
+            "File the drill record in the compliance evidence repository."
+          ],
+          "done": "an annual timed drill is filed with debrief actions in the procedure."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of inquiries including unlogged contacts",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Extract every valuation-related inquiry record from the Internal Regulatory System for the half-year.",
+            "Independently sweep the BMA portal message centre, registered-office log and actuarial mailboxes for BMA contacts absent from the system.",
+            "Add any unlogged contact to the population at its true notice date as an automatic exception."
+          ],
+          "done": "the population covers logged inquiries plus independently discovered contacts."
+        },
+        {
+          "step": "Reconcile correspondence files to the log",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "document management repository",
+          "actions": [
+            "For each inquiry, open the correspondence file in the document management repository and check it against the standard's content list.",
+            "Verify the as-sent response and proof of submission are present.",
+            "A file missing the inbound letter, a clearance record or submission proof is an exception."
+          ],
+          "done": "every inquiry has a complete correspondence file or a logged gap."
+        },
+        {
+          "step": "Recompute every response clock",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each inquiry, compute the deadline independently: the BMA's stated date, else notice date plus 14 days of the initial notification.",
+            "Compare the proven submission date to the recomputed deadline, crediting only extensions granted in writing before day 7.",
+            "Any late response is a fail; a 'granted' extension without the BMA's written answer on file counts as refused."
+          ],
+          "done": "every response is proven in-window against an independently recomputed clock or logged as a fail."
+        },
+        {
+          "step": "Verify same-day logging discipline",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare each record's system creation timestamp to the notice date on the inbound document.",
+            "Flag records created more than one business day after receipt.",
+            "Cross-check the monthly sweep records exist for every month in the period."
+          ],
+          "done": "logging lag is measured for every inquiry and sweep evidence covers all months."
+        },
+        {
+          "step": "Trace response figures to the archived record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "financial reporting repository",
+          "actions": [
+            "Draw a sample of three inquiries (all, if fewer) and trace every figure in each as-sent response to the archived valuation, opinion or AAT pack by run id or page reference.",
+            "Re-agree quoted figures to the filed SFR package to the dollar.",
+            "An untraceable or unreconciled figure in a sent response is a content exception for Chief Actuary review."
+          ],
+          "done": "sampled response figures trace to archived evidence and agree to the filed record."
+        },
+        {
+          "step": "Verify the clearance chain on every response",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Check each response shows Appointed Actuary and Compliance Officer clearances dated before submission.",
+            "For responses containing an admission of error or breach, verify General Counsel wording clearance is on file.",
+            "An uncleared submission is a fail regardless of content accuracy."
+          ],
+          "done": "every submission shows pre-dated clearances, with legal clearance on admissions."
+        },
+        {
+          "step": "Test commitment tracking to completion",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Re-read each as-sent response and independently extract the commitments made to the BMA.",
+            "Match each to a tracker item and verify completion evidence in the correspondence file.",
+            "A commitment absent from the tracker, or past-due without escalation, is an exception."
+          ],
+          "done": "independently extracted commitments all trace to tracked, evidenced completion."
+        },
+        {
+          "step": "Verify follow-up and closure handling",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Check follow-ups were logged as child records with their own recomputed clocks.",
+            "Verify parents closed only on confirmed resolution or the 90-day quiet period.",
+            "Verify legal holds on source packs were applied at intake and released at closure."
+          ],
+          "done": "follow-ups carry their own clocks and closures and holds follow the procedure."
+        },
+        {
+          "step": "Log exceptions with root cause and owner",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the inquiry reference, requirement missed and regulatory exposure.",
+            "Assign root cause (intake, drafting, clearance, submission, tracking) and a named owner with a remediation date.",
+            "Refer lateness patterns and unlogged contacts to the Compliance Officer for Code self-report assessment.",
+            "Carry open items into the next semi-annual test."
+          ],
+          "done": "each exception carries an issue, root cause, owner, remediation date and referral where warranted."
+        },
+        {
+          "step": "Conclude with independent sign-off and reporting",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "compliance evidence repository",
+          "actions": [
+            "State the conclusion (effective / effective with exceptions / ineffective) against the zero-tolerance thresholds.",
+            "Have the independent reviewer — outside Regulatory Reporting and Actuarial — sign the workpaper.",
+            "Report to the compliance committee with the inquiry themes observed.",
+            "File the signed workpaper in the compliance evidence repository under REG-054-C06."
+          ],
+          "done": "a signed workpaper with a stated conclusion is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-054-C07",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "value": "Market Conduct / Consumer Compliance Manager owns the notice/disclosure requirements matrix; the Policy Forms Specialist owns building each disclosure into forms and correspondence; escalation to the Head of Compliance"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Bermuda Insurance Code of Conduct (August 2022) business conduct/integrity provisions on fair treatment and disclosure to policyholders, re-read on every form change; each matrix row quotes the Code paragraph or BMA guidance it implements"
+        },
+        "In-scope processes": {
+          "value": "Per-change control over customer-facing documents for the Bermuda Life & Annuity book: requirements matrix maintenance, disclosure drafting into applications, policy documents, renewal and servicing correspondence, template configuration, version control and the form inventory"
+        },
+        "In-scope systems": {
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "value": "Correspondence templates configured in the policy administration system; masters and the form inventory in OpenText Document Mgmt; requirements matrix in the requirements repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Notice & Disclosure Build Procedure: requirements matrix as the single source, drafting standards (plain language, prominence, placement), dual review (forms + compliance), template configuration and test rule, and the go-live gate blocking unapproved wording"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and the Chief Product Officer; reviewed annually and within 30 days of any Code amendment or BMA conduct guidance"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per change: matrix updated within 10 business days of a new or amended Code requirement; affected templates remediated before the next customer send or within 90 days, whichever is sooner"
+        },
+        "Deadline reminders configured": {
+          "value": "Regulatory-change watch item per Code amendment with 10-day matrix and 90-day remediation countdowns; form inventory review reminder quarterly"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Form inventory, requirements matrix versions, approved masters with redlines, dual-review sign-offs and template release records retained 10 years in OpenText Document Mgmt"
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "Customer documents issued without a required disclosure, or on a superseded template, are logged in the regulatory filing/issue tracker with customer-impact assessment and disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Head of Compliance signs off remediation of disclosure defects, including any corrective customer mailing decision"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The form inventory (every live customer-facing template) plus all template changes released in the review period and the requirements-matrix rows they implement"
+        },
+        "Pass/fail thresholds": {
+          "value": "100% of matrix requirements mapped to at least one live template; zero live templates on superseded wording past the 90-day remediation window; every released change carries dual sign-off — any miss fails"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per change; the test runs semi-annually over the full inventory plus every change released in the half-year"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Internal Audit reviewer independent of the forms and compliance teams that drafted or approved the wording"
+        },
+        "Evidence location for test results": {
+          "value": "Semi-annual disclosure-build test workpaper in the compliance evidence repository under REG-054-C07 with sampled document captures"
+        },
+        "Regulator-ready documentation": {
+          "value": "Requirements matrix, form inventory and per-template approval trail producible for a BMA conduct review within 14 days"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager answers BMA conduct questions on disclosures; correspondence routed via the Regulatory Reporting Manager and cleared by the Head of Compliance"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Maintain the notice/disclosure requirements matrix",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "requirements repository",
+          "actions": [
+            "Keep one matrix row per Code disclosure obligation in the requirements repository: quoted Code paragraph, required content, trigger event (application, issue, renewal, surrender, complaint), timing, prominence rules and the document types that must carry it.",
+            "On any Code amendment or BMA conduct guidance, add or amend rows within 10 business days, versioning the matrix.",
+            "Have the Market Conduct / Consumer Compliance Manager approve every matrix version.",
+            "Publish the current version link to the Policy Forms Specialist and Product teams."
+          ],
+          "done": "an approved, versioned matrix maps every Code disclosure to content, trigger, timing and document types."
+        },
+        {
+          "step": "Build and maintain the form inventory",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "app": "OpenText Document Mgmt",
+          "actions": [
+            "List every live customer-facing template in OpenText Document Mgmt: form id, edition date, document type, products used on, generating system and the matrix rows it satisfies.",
+            "Reconcile the inventory quarterly against the templates actually configured in the policy administration system — anything generating documents but absent from the inventory is added immediately.",
+            "Mark superseded editions as retired with their retirement date.",
+            "Version the inventory and record the quarterly review date."
+          ],
+          "done": "a versioned inventory covers every generating template, reconciled quarterly to the admin system."
+        },
+        {
+          "step": "Map every matrix requirement to carrying templates",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Cross-map each matrix row to the inventory templates that carry it, recording the section/page where the wording sits.",
+            "Flag any matrix row with no carrying template as a coverage gap and open a build task with a due date inside the 90-day window.",
+            "Flag any template carrying stale wording against the current matrix version.",
+            "Review the map with the Market Conduct / Consumer Compliance Manager monthly until gaps close."
+          ],
+          "done": "every matrix row maps to live templates or an open, dated build task; stale wording is flagged."
+        },
+        {
+          "step": "Intake each change that touches customer documents",
+          "by": "Insurance Product Manager",
+          "role": "Insurance Product Manager",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Open a change case in the workflow/case management tool for every product change, Code amendment or correction affecting customer documents.",
+            "Record the driver, affected products, affected templates from the inventory and the matrix rows implicated.",
+            "Set the remediation deadline: before the next customer send of the affected template or 90 days, whichever is sooner.",
+            "Assign the Policy Forms Specialist as drafting owner."
+          ],
+          "done": "every document-affecting change has a case with affected templates, matrix rows and a deadline."
+        },
+        {
+          "step": "Draft the disclosure wording to the standard",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "app": "OpenText Document Mgmt",
+          "actions": [
+            "Draft the wording in the master template in OpenText Document Mgmt, meeting the matrix row's content, prominence and placement rules (font size, position before signature blocks, headed sections).",
+            "Produce a redline against the current approved edition.",
+            "Check plain-language standards — reading level, defined terms, no burying material terms in footnotes.",
+            "Version the draft and link it to the change case."
+          ],
+          "done": "a versioned redlined draft meets the matrix row's content and prominence rules."
+        },
+        {
+          "step": "Obtain wording review from the coverage specialist",
+          "by": "Wordings Coverage Specialist",
+          "role": "Wordings Coverage Specialist",
+          "actions": [
+            "Review the draft for consistency with the policy's coverage terms — the disclosure must not contradict the contract wording.",
+            "Check defined terms match the policy definitions exactly.",
+            "Record review comments on the change case and clear them with the Policy Forms Specialist.",
+            "Sign the wording review on the case."
+          ],
+          "done": "a signed wording review confirms the disclosure is consistent with the contract terms."
+        },
+        {
+          "step": "Obtain compliance approval of the final wording",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "Verify the final draft satisfies the quoted Code paragraph on the matrix row — content, trigger, timing and prominence.",
+            "Confirm the wording works for every product and channel the template serves.",
+            "Sign compliance approval on the change case; no template releases without it.",
+            "Update the matrix map with the new edition reference."
+          ],
+          "done": "compliance approval is signed and the matrix map points at the approved edition."
+        },
+        {
+          "step": "Configure the approved template in the generating system",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Load the approved master into the policy administration system's document templates, mapping merge fields (policy number, values, dates) per the template specification.",
+            "Set the trigger rules so the document generates on the matrix row's trigger event for the in-scope products only.",
+            "Set the effective date and configure the superseded edition to retire on the same date.",
+            "Record the configuration change ticket against the change case."
+          ],
+          "done": "the approved template is configured with correct triggers, merge fields and a same-day retirement of the old edition."
+        },
+        {
+          "step": "Test document generation before release",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "actions": [
+            "In the test environment, generate the document for at least three policy scenarios per product (new issue, mid-term change, renewal or surrender as applicable).",
+            "Compare each output to the approved master: wording verbatim, prominence intact, merge fields populated correctly, no truncation across page breaks.",
+            "Verify the trigger fires on the right events and not on out-of-scope products.",
+            "Attach the test evidence to the change case and sign the test record."
+          ],
+          "done": "signed generation tests show verbatim wording and correct triggers across the scenario set."
+        },
+        {
+          "step": "Release to production through the go-live gate",
+          "by": "Release Coordinator",
+          "role": "Release Coordinator",
+          "actions": [
+            "Verify the gate conditions on the change case: wording review signed, compliance approval signed, generation tests passed, retirement of the old edition configured.",
+            "Schedule the production release and confirm post-release that the first generated documents use the new edition.",
+            "Update the form inventory with the new edition and the old edition's retirement date.",
+            "Close the change case with the release date."
+          ],
+          "done": "the gate held, production generates the new edition, and inventory reflects the change."
+        },
+        {
+          "step": "Sweep for documents issued on superseded wording",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "After each release, query the policy administration system's document log for any document generated on the retired edition after its retirement date.",
+            "List affected customers with document type and send date.",
+            "Pass the list to the Market Conduct / Consumer Compliance Manager for impact assessment and any corrective mailing.",
+            "File the sweep result on the change case."
+          ],
+          "done": "a post-release sweep proves no superseded-edition sends, or affected customers are listed for remediation."
+        },
+        {
+          "step": "Remediate disclosure defects with customer impact",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log each defect (missing disclosure, stale wording, wrong trigger) in the regulatory filing/issue tracker with the affected customer count and period.",
+            "Decide the remediation: corrective mailing with the compliant disclosure, reissue of documents, or documented no-harm rationale.",
+            "Execute corrective mailings within 30 days of the defect being confirmed and retain send evidence.",
+            "Obtain Head of Compliance sign-off on closure and assess material defects for BMA self-report."
+          ],
+          "done": "every defect is logged, remediated or justified, signed off and assessed for reportability."
+        },
+        {
+          "step": "Control ad-hoc correspondence wording",
+          "by": "Correspondence Clerk",
+          "role": "Correspondence Clerk",
+          "actions": [
+            "Use only approved paragraph blocks from the template library for ad-hoc customer letters touching matrix topics (surrender values, charges, complaints handling).",
+            "Route any free-text passage on a matrix topic to the Compliance Analyst for approval before sending.",
+            "Log approved ad-hoc wording so recurring passages get promoted into standard templates.",
+            "Never edit disclosure blocks locally."
+          ],
+          "done": "ad-hoc letters use approved blocks, free-text on matrix topics is pre-approved, and recurring text is promoted."
+        },
+        {
+          "step": "Train forms and servicing staff on the disclosure regime",
+          "by": "Trainer",
+          "role": "Trainer",
+          "app": "learning management system",
+          "actions": [
+            "Run annual training in the learning management system for forms, configuration and servicing staff on the matrix, the build procedure and the no-local-edit rule.",
+            "Include the current year's Code changes and defect lessons.",
+            "Track completion to 100% of in-scope staff within the assignment window and chase non-completers.",
+            "Retain completion records with the training content version."
+          ],
+          "done": "annual training reaches 100% of in-scope staff with retained completion records."
+        },
+        {
+          "step": "Report disclosure-control health to governance",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Report quarterly to the compliance committee: matrix coverage, open gaps and their age, defects found, corrective mailings and remediation status.",
+            "Escalate any gap past its 90-day window with the reason and revised date.",
+            "Minute the reporting and file the minutes in the compliance evidence repository.",
+            "Confirm annually to the Board that customer disclosures comply with the Code."
+          ],
+          "done": "quarterly governance reporting and an annual Board confirmation are minuted and filed."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of templates and released changes",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "OpenText Document Mgmt",
+          "actions": [
+            "Pull the current form inventory from OpenText Document Mgmt and every change case released in the half-year.",
+            "Independently query the policy administration system for all live document templates and reconcile against the inventory.",
+            "Any generating template absent from the inventory joins the population as an automatic exception."
+          ],
+          "done": "the population covers the reconciled inventory plus all released changes, with unlisted templates flagged."
+        },
+        {
+          "step": "Reconcile the matrix to the current Code text",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently read the current Insurance Code of Conduct disclosure provisions and list the obligations.",
+            "Compare the list to the matrix rows; a Code obligation with no matrix row is a coverage exception.",
+            "Verify Code amendments in the period reached the matrix within 10 business days by comparing amendment dates to matrix version dates."
+          ],
+          "done": "the matrix independently covers the current Code with amendment lag inside 10 days."
+        },
+        {
+          "step": "Draw a documented sample of templates and requirements",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Select 10 matrix rows spanning the trigger events (application, issue, renewal, surrender, complaint) plus every row flagged as a gap in the period.",
+            "Select 10 templates: the 5 highest-volume by documents generated plus 5 random (recorded seed).",
+            "Record seed, population size and selection date."
+          ],
+          "done": "a reproducible sample spans triggers, gaps, high-volume and random templates."
+        },
+        {
+          "step": "Re-perform the wording check on generated documents",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "For each sampled template, pull three real documents generated in the period from the policy administration system document log.",
+            "Compare the disclosure wording verbatim to the approved master edition current at the generation date.",
+            "Check prominence rules held in the output — placement, size, no truncation.",
+            "Any deviation from the approved master is an exception."
+          ],
+          "done": "real generated documents carry the approved wording verbatim with prominence intact."
+        },
+        {
+          "step": "Verify trigger correctness against events",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For 5 sampled matrix rows, pull policy events of the trigger type from the period and verify the required document generated for each.",
+            "Run the inverse check: confirm the document did not generate for out-of-scope products.",
+            "A trigger event without its document, or a wrong-product send, is an exception."
+          ],
+          "done": "trigger events produced their documents and out-of-scope products received none."
+        },
+        {
+          "step": "Trace released changes through the approval chain",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "workflow/case management tool",
+          "actions": [
+            "For every change case released in the half-year, verify the chain in the workflow/case management tool: wording review signed, compliance approval signed, generation tests attached, all pre-dating release.",
+            "Verify the old edition's retirement date equals the new edition's effective date.",
+            "A release with any missing or post-dated sign-off is a fail."
+          ],
+          "done": "every release shows a complete, correctly sequenced approval chain and clean edition handover."
+        },
+        {
+          "step": "Recompute remediation windows on gaps and defects",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each coverage gap and defect in the period, recompute the deadline (next customer send or 90 days; corrective mailings 30 days from confirmation).",
+            "Compare actual closure dates to recomputed deadlines.",
+            "Verify superseded-edition sweeps ran after each release and affected-customer lists reached compliance."
+          ],
+          "done": "gap and defect closures meet recomputed windows and post-release sweeps are evidenced."
+        },
+        {
+          "step": "Test ad-hoc correspondence controls",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Sample 10 ad-hoc customer letters from the period touching matrix topics.",
+            "Verify each used approved paragraph blocks or carries a pre-send Compliance Analyst approval.",
+            "Un-approved free-text on a matrix topic is an exception with customer-impact referral."
+          ],
+          "done": "sampled ad-hoc letters used approved wording or pre-send approvals."
+        },
+        {
+          "step": "Log exceptions with root cause and owner",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the template or matrix row, requirement missed and customer impact.",
+            "Assign root cause (matrix lag, mapping, configuration, discipline) and a named owner with a remediation date.",
+            "Refer customer-impacting defects to the Market Conduct / Consumer Compliance Manager for corrective-mailing and self-report assessment.",
+            "Carry open items into the next semi-annual test."
+          ],
+          "done": "each exception is logged with root cause, owner, remediation date and impact referral."
+        },
+        {
+          "step": "Conclude with independent sign-off and reporting",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "compliance evidence repository",
+          "actions": [
+            "State the conclusion (effective / effective with exceptions / ineffective) against the coverage and dual-sign-off thresholds.",
+            "Have the independent reviewer — outside forms and compliance — sign the workpaper.",
+            "Report to the compliance committee with defect themes.",
+            "File the signed workpaper in the compliance evidence repository under REG-054-C07."
+          ],
+          "done": "a signed workpaper with a stated conclusion is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-054-C08",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Policy Admin Ops Lead",
+          "value": "Policy Admin Ops Lead owns timely generation and delivery of every Code-required policyholder notice; the Market Conduct / Consumer Compliance Manager owns the timeliness standard; escalation to the Chief Operating Officer"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Bermuda Insurance Code of Conduct (August 2022) fair-treatment and disclosure provisions requiring timely policyholder communication, mapped per notice type in the notice SLA table; the Code text is re-checked whenever an SLA row is added or changed"
+        },
+        "In-scope processes": {
+          "value": "Event-driven notice generation and delivery for the Bermuda Life & Annuity book: trigger detection in policy administration, batch document generation, print/mail and e-delivery dispatch, delivery-failure handling, and the notice log evidencing every send against its deadline — including 14-day notices where the SLA table sets them"
+        },
+        "In-scope systems": {
+          "app": "Policy Administration Platform",
+          "value": "Triggers and generation in the Policy Administration Platform; document composition and archive in OpenText Document Mgmt; the notice log reported through the BI/reporting platform"
+        },
+        "Compliance procedure documented": {
+          "value": "Notice Generation & Delivery Procedure: the notice SLA table (notice type → trigger event → day count → delivery channel), daily batch controls, failed-delivery workflow, address-quality rules and the notice-log completeness standard"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Operating Officer and the Market Conduct / Consumer Compliance Manager; reviewed annually and on any SLA-table change"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per the notice SLA table — event-driven day counts from the trigger date (14 days from the triggering event for notice types the table sets at 14 days; others per their statutory or contractual day count), tracked per notice on the notice log"
+        },
+        "Deadline reminders configured": {
+          "value": "Daily batch-control report flags any pending notice at 50% of its day count; aging alerts to the Policy Admin Ops Lead at 80%; breach alerts to the Market Conduct / Consumer Compliance Manager same-day"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Notice log entries, archived document copies, dispatch manifests and delivery-failure records retained 10 years in OpenText Document Mgmt"
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "Late, missed or undeliverable notices are logged in the regulatory filing/issue tracker with customer impact and disposition; systemic misses assessed for BMA self-report as a Code fair-treatment failure"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Operating Officer",
+          "value": "COO signs off remediation of notice-timeliness failures; customer-impact remediations co-signed by the Market Conduct / Consumer Compliance Manager"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All trigger events in the review period from the policy administration transaction log, matched against the notice log of generated and dispatched notices"
+        },
+        "Pass/fail thresholds": {
+          "value": "99.5% of notices dispatched within their SLA day count and zero notices never sent; any trigger event with no matching notice-log entry is a fail; sustained breach of the 99.5% line escalates to the COO"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven and continuous; the test runs quarterly over the full quarter's trigger population"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Internal Audit reviewer independent of Policy Administration operations"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly notice-timeliness test workpaper in the compliance evidence repository under REG-054-C08 with the trigger-to-notice match table"
+        },
+        "Regulator-ready documentation": {
+          "value": "Notice log with per-notice trigger date, send date, day count and delivery evidence, producible for a BMA conduct review within 14 days"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager answers BMA questions on notice timeliness; operational detail supplied by the Policy Admin Ops Lead; routed via the Regulatory Reporting Manager"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Maintain the notice SLA table",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "requirements repository",
+          "actions": [
+            "Keep one SLA row per notice type in the requirements repository: trigger event, day count from trigger (14 days where the Code or the procedure sets 14; contractual counts elsewhere), delivery channel rules and the template id from the form inventory (REG-054-C07).",
+            "Source each day count to the Code paragraph or policy provision it comes from, quoted on the row.",
+            "Version the table and approve every change before configuration.",
+            "Publish the current version to the Policy Admin Ops Lead and Configuration Engineer."
+          ],
+          "done": "an approved, versioned SLA table sources every notice type's day count and channel to its requirement."
+        },
+        {
+          "step": "Configure trigger detection for every SLA row",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Configure the Policy Administration Platform so each SLA-table trigger event (premium due, lapse warning, surrender confirmation, maturity, assignment, complaint acknowledgement) raises a notice task automatically with the trigger date stamped.",
+            "Map each trigger to the current approved template id and the SLA day count.",
+            "Test each trigger in the pre-production environment with event injection and verify the stamped trigger date equals the event date.",
+            "Record the configuration against the SLA table version."
+          ],
+          "done": "every SLA row has a tested automatic trigger stamping the true event date."
+        },
+        {
+          "step": "Run the daily notice generation batch",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Run (or verify the schedule ran) the daily notice generation batch in the Policy Administration Platform, composing documents for all open notice tasks.",
+            "Review the batch completion report: tasks in, documents composed, failures out.",
+            "Requeue composition failures the same day after fixing the cause (missing data field, template error).",
+            "Post the day's control totals to the batch-control log."
+          ],
+          "done": "the daily batch is verified complete with failures requeued same-day and totals logged."
+        },
+        {
+          "step": "Verify address and channel quality before dispatch",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "actions": [
+            "Screen the day's dispatch file against address-quality rules: no blank or known-bad postal addresses, valid e-mail for e-delivery consents, returned-mail flags respected.",
+            "Divert failures to the exception queue and task the Life Policy Service Representative to obtain a corrected address within 5 business days.",
+            "Never silently drop a notice for address failure — the SLA clock keeps running and the exception stays open until delivered.",
+            "Record diverted counts on the batch-control log."
+          ],
+          "done": "the dispatch file is screened, failures are diverted with tasks, and no notice is silently dropped."
+        },
+        {
+          "step": "Dispatch by the customer's delivery channel and capture evidence",
+          "by": "Document Management Specialist",
+          "role": "Document Management Specialist",
+          "app": "OpenText Document Mgmt",
+          "actions": [
+            "Release print/mail files to the mail house and e-delivery files to the customer portal/email service per each customer's recorded channel election.",
+            "Capture the dispatch manifest: notice id, policy number, channel, dispatch timestamp.",
+            "Archive the exact document copy sent into OpenText Document Mgmt linked to the notice id.",
+            "Import mail-house confirmation files and e-delivery send receipts daily."
+          ],
+          "done": "every notice has a manifest entry, an archived copy and a channel confirmation."
+        },
+        {
+          "step": "Write every notice to the notice log with its day count",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "BI/reporting platform",
+          "actions": [
+            "Feed the notice log daily: notice id, type, policy number, trigger date, SLA day count, composition date, dispatch date and computed days-taken.",
+            "Compute the SLA flag per row (met / breached) in the BI/reporting platform.",
+            "Reconcile daily log inserts to the batch-control totals — composed minus failures equals logged.",
+            "Publish the daily aging view (pending notices at 50%/80% of day count) to the Policy Admin Ops Lead."
+          ],
+          "done": "the log carries every notice with computed days-taken and reconciles to batch totals daily."
+        },
+        {
+          "step": "Work the aging queue before day counts expire",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "actions": [
+            "Review the 50% and 80% aging alerts each morning and assign every pending notice a same-day action.",
+            "Prioritise 14-day notice types past day 7 and any notice within 3 days of its deadline.",
+            "Clear blockers directly with the Configuration Engineer (template faults) or Life Policy Service Representative (address chases).",
+            "Record actions on the aging queue so the trail shows intervention before breach."
+          ],
+          "done": "aging alerts are actioned daily with documented interventions ahead of deadlines."
+        },
+        {
+          "step": "Handle returned mail and failed e-delivery",
+          "by": "Life Policy Service Representative",
+          "role": "Life Policy Service Representative",
+          "actions": [
+            "Work the returned-mail and bounced-email queue daily: trace a better address via the policy file, recent payments or the agent of record.",
+            "Redispatch the notice to the corrected address within 5 business days of the failure and record the redispatch on the notice log.",
+            "After two failed attempts, apply the undeliverable procedure — flag the policy, hold non-essential mail, and record the diligence trail.",
+            "Update the customer record so future notices use the corrected address."
+          ],
+          "done": "delivery failures are chased, redispatched inside 5 days, and undeliverables carry a diligence trail."
+        },
+        {
+          "step": "Escalate and remediate SLA breaches same-day",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "On any breach flag, dispatch the late notice immediately — lateness never converts to abandonment.",
+            "Log the breach in the regulatory filing/issue tracker with notice type, days late, cause and customer impact.",
+            "Notify the Market Conduct / Consumer Compliance Manager same-day for impact assessment (for example a lapse notice sent late must extend the customer's remedy window accordingly).",
+            "Track the remediation to closure with COO sign-off for systemic causes."
+          ],
+          "done": "every breach is dispatched late-but-sent, logged, impact-assessed and remediated with sign-off."
+        },
+        {
+          "step": "Reconcile trigger events to notices weekly",
+          "by": "Business Analyst",
+          "role": "Business Analyst",
+          "app": "enterprise data warehouse",
+          "actions": [
+            "Weekly, extract all SLA-table trigger events from the policy administration transaction data in the enterprise data warehouse.",
+            "Match each event to a notice-log entry; list unmatched events as missed-notice candidates.",
+            "Investigate candidates within 2 business days — misconfigured trigger, suppressed task, data gap — and generate the missing notice immediately.",
+            "File the weekly reconciliation with its unmatched count and resolutions."
+          ],
+          "done": "a weekly event-to-notice reconciliation exists with every unmatched event resolved and dispatched."
+        },
+        {
+          "step": "Re-test triggers after every admin-system release",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "actions": [
+            "After each Policy Administration Platform release, re-run the trigger injection tests for every SLA row in pre-production.",
+            "Verify trigger firing, date stamping, template selection and day-count mapping are unchanged.",
+            "Block promotion of any release that breaks a trigger until fixed.",
+            "Attach test evidence to the release ticket."
+          ],
+          "done": "post-release trigger tests pass for every SLA row with evidence on the release ticket."
+        },
+        {
+          "step": "Manage e-delivery consent records",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "actions": [
+            "Verify each e-delivery customer holds a recorded, dated consent before any notice goes electronic-only.",
+            "Honour consent withdrawals within 5 business days by reverting the channel to post.",
+            "Sample 10 e-delivery sends monthly and confirm consent pre-dated the send.",
+            "Record the monthly sample result on the batch-control log."
+          ],
+          "done": "e-delivery runs only on pre-dated consents with withdrawals honoured inside 5 days."
+        },
+        {
+          "step": "Report notice-timeliness KPIs to governance",
+          "by": "Operations Manager",
+          "role": "Operations Manager",
+          "app": "BI/reporting platform",
+          "actions": [
+            "Publish the monthly scorecard from the BI/reporting platform: volumes by notice type, SLA attainment against the 99.5% line, breach causes, undeliverable counts and aging.",
+            "Review with the Market Conduct / Consumer Compliance Manager and agree corrective actions on any metric below the line.",
+            "Escalate two consecutive misses of the 99.5% line to the COO with a recovery plan.",
+            "File the scorecard in the compliance evidence repository."
+          ],
+          "done": "a monthly scorecard is published, reviewed, actioned and filed, with escalation on repeat misses."
+        },
+        {
+          "step": "Retain notice evidence to the standard",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "OpenText Document Mgmt",
+          "actions": [
+            "Apply the 10-year retention label to notice-log extracts, archived document copies, dispatch manifests and delivery confirmations in OpenText Document Mgmt.",
+            "Verify quarterly by retrieving five random notices end-to-end: log entry, archived copy, manifest, confirmation.",
+            "Fix any retrieval failure as a records incident with root cause.",
+            "Record the quarterly retrieval check."
+          ],
+          "done": "retention is applied and quarterly retrieval checks prove end-to-end evidence for random notices."
+        },
+        {
+          "step": "Assess systemic failures for BMA self-report",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Review breach and missed-notice patterns quarterly against the Code's fair-treatment expectations.",
+            "Where a systemic failure materially affected policyholders (for example a class of lapse notices never sent), prepare a self-report to the BMA with the remediation plan, cleared by the General Counsel.",
+            "Record the assessment and decision each quarter, including 'no report required' conclusions with reasons.",
+            "Track any self-report commitments to completion."
+          ],
+          "done": "a quarterly reportability assessment is recorded and any self-report is made with tracked commitments."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the trigger-event population independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "enterprise data warehouse",
+          "actions": [
+            "Extract all SLA-table trigger events for the quarter directly from the policy administration transaction data in the enterprise data warehouse — not from the notice log.",
+            "Total events by notice type as the independent population.",
+            "Reconcile the extract to the operations team's weekly reconciliations and investigate count differences."
+          ],
+          "done": "an independent trigger population is built from source data and reconciled to operations' counts."
+        },
+        {
+          "step": "Match every trigger event to a notice-log entry",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "BI/reporting platform",
+          "actions": [
+            "Join the trigger population to the notice log on policy number, notice type and trigger date.",
+            "List every unmatched event as a missed notice — an automatic fail, no materiality screen.",
+            "Verify each miss was subsequently dispatched and impact-assessed."
+          ],
+          "done": "every trigger event matches a logged notice or is listed as a fail with its remediation status."
+        },
+        {
+          "step": "Recompute the day count on the full quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Recompute days-taken (dispatch date minus trigger date) for every logged notice and compare to each type's SLA day count from the approved table version in force at the trigger date.",
+            "Recompute the quarter's attainment rate and compare to the reported 99.5% scorecard figure.",
+            "A scorecard overstating attainment is itself an exception."
+          ],
+          "done": "independently recomputed attainment matches the scorecard and breaches are fully enumerated."
+        },
+        {
+          "step": "Draw a sample and trace to delivery evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "OpenText Document Mgmt",
+          "actions": [
+            "Sample 25 notices (recorded seed) stratified across notice types, plus all breached notices up to 25.",
+            "For each, retrieve the archived document copy, dispatch manifest entry and mail-house or e-delivery confirmation from OpenText Document Mgmt.",
+            "Verify the archived copy is the approved template edition current at the send date (cross-check REG-054-C07 inventory).",
+            "Missing evidence at any link is an exception."
+          ],
+          "done": "sampled notices trace end-to-end to archived copy, manifest and delivery confirmation on the right edition."
+        },
+        {
+          "step": "Verify trigger date integrity",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "For 10 sampled notices, compare the stamped trigger date to the underlying transaction date in the Policy Administration Platform.",
+            "A trigger date later than the true event date shortens the customer's window and is a fail even if the SLA 'passed'.",
+            "Record the comparison table in the workpaper."
+          ],
+          "done": "stamped trigger dates equal true event dates for the sample."
+        },
+        {
+          "step": "Test the failed-delivery workflow",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Sample 10 returned-mail or bounced-email cases from the quarter.",
+            "Verify address tracing, redispatch within 5 business days and the log update for each.",
+            "For undeliverables after two attempts, verify the diligence trail and policy flag exist.",
+            "A silently dropped notice is a fail with customer-impact referral."
+          ],
+          "done": "sampled delivery failures show timely redispatch or a documented diligence trail."
+        },
+        {
+          "step": "Test e-delivery consent coverage",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Sample 10 electronic-only notices and verify a dated consent pre-dating each send.",
+            "Sample consent withdrawals in the quarter and verify channel reversion within 5 business days.",
+            "An electronic-only send without pre-dated consent is a fail."
+          ],
+          "done": "electronic-only sends all carry pre-dated consents and withdrawals reverted on time."
+        },
+        {
+          "step": "Verify breach escalation and impact handling",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "For every breach in the quarter, verify a tracker entry with cause, customer impact and same-day compliance notification.",
+            "Verify remedy-window extensions were applied where late notices shortened customer rights (for example late lapse warnings).",
+            "Verify the quarterly reportability assessment exists and covers the quarter's breach pattern."
+          ],
+          "done": "breaches show logged impact handling, remedy extensions where due, and a quarterly reportability assessment."
+        },
+        {
+          "step": "Log exceptions with root cause and owner",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the notice id or event, requirement missed and customer impact.",
+            "Assign root cause (trigger config, batch, address quality, consent, evidence) and a named owner with a remediation date.",
+            "Refer systemic patterns to the Compliance Officer for the BMA self-report assessment.",
+            "Carry open items into next quarter's test as mandatory retests."
+          ],
+          "done": "each exception is logged with root cause, owner, remediation date and systemic referral."
+        },
+        {
+          "step": "Conclude with independent sign-off and reporting",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "compliance evidence repository",
+          "actions": [
+            "State the conclusion (effective / effective with exceptions / ineffective) against the 99.5% and zero-missed-notice thresholds with the recomputed figures.",
+            "Have the independent reviewer — outside Policy Administration operations — sign the workpaper.",
+            "Report quarterly results to the compliance committee and the COO.",
+            "File the signed workpaper in the compliance evidence repository under REG-054-C08."
+          ],
+          "done": "a signed workpaper with recomputed metrics and a stated conclusion is filed and reported."
+        }
+      ]
+    }
+  ]
+}
