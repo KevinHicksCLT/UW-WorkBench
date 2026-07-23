@@ -1,0 +1,2860 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-062-C09",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Reserving Actuary",
+          "value": "Owns the quarterly tie-out between policy administration extracts and the actuarial valuation model; escalates unresolved breaks to the Appointed Actuary."
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — ICA s.369 (duty to report material matters) and s.368 (report to directors on financial condition) re-read at each quarter-end, since unreconciled reserve data is itself a material-matter trigger (rep: Canada, federally regulated life/P&C)."
+        },
+        "In-scope processes": {
+          "value": "Quarter-end in-force, premium and claims extract from policy administration through load into the actuarial valuation model to reserve tie-out, across Life and Property & Casualty books written by the federally regulated entity."
+        },
+        "In-scope systems": {
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "value": "Source extract system; reconciled against the actuarial modeling platform used to produce reserves for the Appointed Actuary Report and DCAT."
+        },
+        "Compliance procedure documented": {
+          "value": "Reserve Data Reconciliation Procedure — extract pull, field mapping, control-total tie-out, variance investigation, sign-off before reserves are locked for quarter-end."
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Appointed Actuary; reviewed annually and on any policy admin data-model change."
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Reconciliation must close before the quarter-end valuation lock, and before the annual Appointed Actuary Report and OSFI Annual Return filing that depend on the year-end run."
+        },
+        "Deadline reminders configured": {
+          "value": "Valuation calendar milestone alerts at T-10/T-5/T-1 business days before quarter-end lock; the year-end run carries an additional T-21-days-before-annual-meeting checkpoint tied to the actuary's report to directors."
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Reconciliation workpaper, control-total schedule and variance log retained 7 years from the valuation date in the compliance evidence repository."
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any unresolved variance above tolerance at lock is logged as a data-quality exception with root cause and remediation owner."
+        },
+        "Remediation sign-off captured": {
+          "role": "Appointed Actuary",
+          "value": "Appointed Actuary signs off that residual variances are immaterial to the reported reserves before the valuation is released."
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All quarter-end and year-end reserve-to-policy-admin reconciliations completed in the test period, across every writing company and line of business."
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for an unresolved above-tolerance variance at lock; one or more fails on a year-end reconciliation escalates to the CFO."
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is quarterly; testing covers every quarter in the period with 100% coverage of year-end runs."
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have performed or signed off any sampled reconciliation."
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly reconciliation test workpaper (population extract, sample, re-performance notes, exceptions) in the compliance evidence repository."
+        },
+        "Regulator-ready documentation": {
+          "value": "Reconciliation test summary plus the underlying workpapers, presentable as an OSFI examination response within 5 business days."
+        },
+        "Regulator response path": {
+          "value": "Appointed Actuary owns any OSFI inquiry into reserve data quality; Regulatory Counsel clears any written response referencing a filed Annual Return."
+        }
+      },
+      "checklist": [
+        {
+          "step": "Pull the quarter-end policy admin extract",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "In the policy administration system open Reporting > Extracts and run the quarter-end in-force, premium and claims extract for every writing company and line of business.",
+            "Confirm the extract's as-of date matches the valuation date requested by the Reserving Actuary before downloading.",
+            "Save the extract to the reconciliation folder named <company>-<line>-<quarter-end date> and record the row count and control totals (premium, reserve base, policy count) on the reconciliation worksheet.",
+            "Notify the Policy Administration Analyst if the extract job fails or the row count looks materially off from the prior quarter."
+          ],
+          "done": "the extract is pulled, named, and its control totals are recorded on the worksheet."
+        },
+        {
+          "step": "Load the extract into the actuarial modeling platform and map fields",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "In the actuarial modeling platform open the data import module and load the policy admin extract against the current model point mapping template.",
+            "Confirm every policy admin field required by the valuation model (plan code, issue date, face amount/sum insured, reserve basis) maps to a model input with no unmapped columns.",
+            "Flag and hold out any records with mapping errors or missing required fields into a suspense file for the Data Quality Analyst.",
+            "Re-run the import after suspense items are corrected and confirm the suspense file is empty before proceeding."
+          ],
+          "done": "the extract is loaded with a clean field mapping and an empty suspense file, or all suspense items are documented as out-of-scope."
+        },
+        {
+          "step": "Run the automated control-total tie-out",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Run the platform's control-total report comparing loaded policy count, premium and reserve base to the policy admin extract totals recorded in step 1.",
+            "Compare the reserve roll-forward (prior quarter closing reserve plus premium minus claims minus expected reserve release) to the current quarter opening position.",
+            "Set the variance tolerance at the lesser of 0.5% of reserve base or the materiality threshold set in the DCAT report, and flag any line item outside tolerance.",
+            "Record the tie-out result (pass/variance) per line of business on the reconciliation worksheet."
+          ],
+          "done": "the tie-out is run, tolerance is applied, and each line of business carries a recorded pass/variance result."
+        },
+        {
+          "step": "Investigate and clear variances above tolerance",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "actions": [
+            "For each flagged variance, trace the difference to a specific cause: late policy admin batch, reinsurance cession timing, currency conversion, or a plan-code mapping gap.",
+            "Pull the underlying policy-level detail from the policy administration system to confirm the root cause with the Policy Administration Analyst.",
+            "Correct the mapping or request a corrected extract; re-run the tie-out in step 3 and confirm the variance clears.",
+            "Where the cause is a genuine data timing lag rather than an error, document the adjustment and get the Reserving Actuary's agreement to carry it forward."
+          ],
+          "done": "every above-tolerance variance is traced to a root cause and either corrected or documented as an accepted timing adjustment."
+        },
+        {
+          "step": "Reconcile ceded reinsurance data feeding net reserves",
+          "by": "Reinsurance Accountant",
+          "role": "Reinsurance Accountant",
+          "app": "Reinsurance administration system",
+          "actions": [
+            "In the reinsurance administration system pull the quarter-end ceded reserve credit by treaty and line of business.",
+            "Compare the ceded reserve credit to the gross-to-net adjustment applied in the actuarial model.",
+            "Confirm treaty terms (quota share percentage, retention limits) used in the model match the current treaty repository record.",
+            "Log any mismatch between ceded bordereaux and the model's reinsurance assumption as a variance for the Ceded Reinsurance Analyst to resolve."
+          ],
+          "done": "ceded reserve credit in the model ties to the reinsurance administration system, or the mismatch is logged and assigned."
+        },
+        {
+          "step": "Confirm currency conversion for internationally written business",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Identify policy admin extract records booked in a currency other than the reporting currency.",
+            "Confirm the FX rate applied in the actuarial model matches the OSFI-prescribed period-end rate (or the rate set in the corporate FX policy) for the valuation date.",
+            "Recompute the converted reserve base for a sample of non-domestic records and compare to the model output.",
+            "Log any rate mismatch to the reconciliation worksheet and correct before lock."
+          ],
+          "done": "FX rates used in the model match the prescribed period-end rate for every non-domestic record sampled."
+        },
+        {
+          "step": "Document data lineage and control totals on the reconciliation workpaper",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Complete the reconciliation workpaper template: source extract, load date, control totals, tie-out result, variances and their disposition.",
+            "Attach the policy admin extract file, the model import log and the suspense-file resolution notes.",
+            "Cross-reference each disposed variance to the investigation note from step 4."
+          ],
+          "done": "the workpaper is complete with source files attached and every variance cross-referenced to its disposition."
+        },
+        {
+          "step": "Get Valuation Actuary sign-off on data adequacy",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Review the completed workpaper, the tie-out result and the disposition of every variance.",
+            "Confirm no unresolved variance remains above the materiality threshold used in the DCAT report.",
+            "Sign and date the workpaper's data adequacy attestation, or return it to the Reserving Actuary with named deficiencies."
+          ],
+          "done": "the workpaper carries a dated Valuation Actuary sign-off, or is returned with named deficiencies for rework."
+        },
+        {
+          "step": "Release reconciled data into the reserve calculation run",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Lock the reconciled data set in the actuarial modeling platform and tag it with the valuation date and workpaper reference.",
+            "Kick off the quarter-end reserve calculation run (and, at year-end, the DCAT and LICAT/MCT input feed) against the locked data set.",
+            "Confirm the run log references the locked data set version, not an unreconciled intermediate load."
+          ],
+          "done": "the reserve calculation run is executed against the locked, reconciled data set with a version reference in the run log."
+        },
+        {
+          "step": "Escalate unresolved variances to the Appointed Actuary before lock",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Compile any variance still open at the lock deadline into a one-page escalation summarizing amount, line of business and root cause status.",
+            "Send the escalation to the Appointed Actuary and, for year-end runs, copy the CFO.",
+            "Record the Appointed Actuary's decision (hold the lock, proceed with a disclosed estimate, or apply a manual adjustment) on the workpaper."
+          ],
+          "done": "every variance still open at lock has a recorded Appointed Actuary decision before the reserve run proceeds."
+        },
+        {
+          "step": "Update the recurring data-quality issue log",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log any variance that recurred for a second consecutive quarter as a systemic data-quality issue in the tracker, tagged to the source system and field.",
+            "Assign an owner (Policy Administration Analyst or IT) and a target fix date ahead of next quarter's extract.",
+            "Link the issue to the reconciliation workpapers in which it appeared."
+          ],
+          "done": "recurring variances are logged as tracked issues with an owner and target fix date."
+        },
+        {
+          "step": "File the reconciliation report and control-total schedule",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the signed workpaper, control-total schedule and variance log to the compliance evidence repository under the quarter-end valuation folder.",
+            "Apply the 7-year retention label measured from the valuation date.",
+            "Confirm the folder is indexed as searchable by line of business and quarter."
+          ],
+          "done": "the reconciliation package is filed in the repository, retention-labelled and indexed."
+        },
+        {
+          "step": "Notify downstream valuation consumers that data is unblocked",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Notify the Valuation Actuary and, at year-end, the Appointed Actuary that reconciled data is available for the reserve and DCAT runs.",
+            "Attach the workpaper reference and any accepted timing adjustments so downstream users do not re-investigate resolved items.",
+            "Confirm receipt of the notification from each downstream consumer before the reserve run in step 9 proceeds."
+          ],
+          "done": "downstream valuation owners are notified with the workpaper reference and any accepted adjustments flagged."
+        },
+        {
+          "step": "Confirm the reconciliation feeds the annual Appointed Actuary Report and OSFI Annual Return",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "At year-end, confirm the reconciled reserve figures used in the DCAT report and Appointed Actuary Report match the locked data set from step 9.",
+            "Confirm the same figures flow into the OSFI Annual Return prepared for filing through the OSFI Regulatory Reporting System.",
+            "Note the workpaper reference in the Appointed Actuary Report's data-sourcing section."
+          ],
+          "done": "the Appointed Actuary Report and Annual Return figures are traced to the same locked, reconciled data set."
+        },
+        {
+          "step": "Schedule the next quarter's reconciliation and flag any upcoming source-system change",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Add the next quarter-end reconciliation to the valuation calendar with the standard T-10/T-5/T-1 reminders.",
+            "Ask the Policy Administration Analyst whether any policy admin release between now and next quarter-end changes the extract layout or field definitions.",
+            "If a change is planned, schedule a mapping-template update and a test load before the live quarter-end extract."
+          ],
+          "done": "the next reconciliation is scheduled and any pending source-system change has a mapping-update task assigned."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of reconciliations performed in the test period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Extract from the evidence repository every reconciliation workpaper filed for the test period, by quarter and line of business.",
+            "Cross-check the count against the valuation calendar to confirm no scheduled quarter-end reconciliation is missing.",
+            "Add any year-end DCAT/Appointed Actuary Report reconciliation as a required population item even if its quarter overlaps a regular quarter-end."
+          ],
+          "done": "the population is reconciled to the valuation calendar with no missing quarter."
+        },
+        {
+          "step": "Reconcile each workpaper's control totals to the source extract independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "For each sampled workpaper, pull a fresh extract from the policy administration system for the same as-of date.",
+            "Compare policy count, premium and reserve base on the fresh extract to the control totals recorded in the workpaper.",
+            "Log any mismatch as an exception, including cases that are immaterial by the tolerance but undocumented."
+          ],
+          "done": "each sampled workpaper's control totals independently reconcile to a freshly pulled extract, or the mismatch is logged."
+        },
+        {
+          "step": "Draw the test sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of year-end (Q4) reconciliations, since they feed the Appointed Actuary Report and Annual Return.",
+            "Take a seeded random sample of 8 additional quarter-end reconciliations from the remaining population.",
+            "Record the seed and population size in the workpaper so the sample is reproducible."
+          ],
+          "done": "the sample includes every year-end reconciliation plus a reproducible random draw of interim quarters."
+        },
+        {
+          "step": "Re-perform the tie-out for sampled workpapers",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Independently re-run the control-total tie-out in the actuarial modeling platform using the same locked data set referenced in the workpaper.",
+            "Apply the same tolerance threshold and compare the re-performed result to the recorded pass/variance disposition.",
+            "Any difference between the re-performed result and the recorded disposition is an exception."
+          ],
+          "done": "the tie-out is independently re-performed for every sampled workpaper with results compared to the recorded disposition."
+        },
+        {
+          "step": "Verify variance root causes and their clearance",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For every above-tolerance variance in the sample, confirm the documented root cause is supported by evidence (policy-level detail, treaty terms, FX rate source).",
+            "Confirm the variance was actually cleared or accepted with a named sign-off before the data was locked.",
+            "Flag any variance closed without supporting evidence as an exception."
+          ],
+          "done": "every sampled variance has a supported root cause and a documented clearance before lock."
+        },
+        {
+          "step": "Recompute FX conversion on a sample of non-domestic records",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For 10 non-domestic policy records across the sample, independently source the period-end FX rate from the corporate FX policy or OSFI-prescribed rate.",
+            "Recompute the converted reserve base and compare to the model output referenced in the workpaper.",
+            "Log any rate or computation mismatch as an exception."
+          ],
+          "done": "FX conversion is recomputed and matches the workpaper for the sampled non-domestic records, or the mismatch is logged."
+        },
+        {
+          "step": "Confirm Appointed Actuary escalations were resolved as recorded",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "For every workpaper showing an escalation to the Appointed Actuary, pull the recorded decision and confirm it is dated before the reserve run in step 9 of the checklist.",
+            "Confirm the decision (hold, proceed with disclosed estimate, manual adjustment) is reflected in the actual reserve figures published.",
+            "Log as an exception any escalation with no dated decision or a decision not reflected downstream."
+          ],
+          "done": "every sampled escalation has a dated, actioned Appointed Actuary decision reflected in the published reserves."
+        },
+        {
+          "step": "Trace year-end figures to the Appointed Actuary Report and OSFI Annual Return",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Take the locked, reconciled reserve figures for the year-end sample and trace them into the Appointed Actuary Report and the OSFI Annual Return as filed through the Regulatory Reporting System.",
+            "Confirm the figures match to the reporting currency and rounding convention used in the filing.",
+            "Log any figure that does not trace cleanly as an exception requiring a self-identified filing correction."
+          ],
+          "done": "year-end reserve figures trace cleanly from the locked data set into the filed Appointed Actuary Report and Annual Return."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for every exception identified across steps 2 through 8, naming the workpaper, the specific figure and the compliance impact.",
+            "Assign a root cause category (source data error, mapping gap, tolerance misapplied, sign-off missing) and an owner.",
+            "Set a remediation date and carry any exception touching a filed Annual Return into the self-report assessment with Regulatory Counsel."
+          ],
+          "done": "every exception has a tracker issue, root cause, owner, remediation date and, where a filing is affected, a self-report assessment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "board portal",
+          "actions": [
+            "Compute the exception rate against the population and compare to the pass/fail threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the workpapers and exceptions log.",
+            "Have an independent reviewer who performed none of the sampled re-performances sign the workpaper.",
+            "Report the conclusion and any Annual Return-affecting exceptions to the Audit Committee via the board portal at its next sitting."
+          ],
+          "done": "a signed conclusion with exception rate is filed and reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-062-C10",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Appointed Actuary",
+          "value": "Owns the substantive response to any OSFI inquiry touching reserve adequacy, valuation assumptions or the Appointed Actuary Report; coordinates with the CFO on capital impact."
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — ICA s.369 (duty to report material matters) and s.368 (report to directors) re-read against the specific inquiry, since an OSFI valuation inquiry can itself be a triggering material matter (rep: Canada)."
+        },
+        "In-scope processes": {
+          "value": "Intake of any written or verbal OSFI query on reserves, DCAT results, valuation assumptions or the Appointed Actuary Report, through drafted response, internal sign-off and submission."
+        },
+        "In-scope systems": {
+          "app": "Internal Regulatory System",
+          "value": "Correspondence and inquiry tracking; response drafts staged with supporting actuarial workpapers before submission."
+        },
+        "Compliance procedure documented": {
+          "value": "Regulator Valuation Inquiry Response Procedure — intake, triage by severity, draft assignment, actuarial and legal review, CFO/CEO notification threshold, submission and logging."
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Actuary; reviewed annually and after any OSFI supervisory letter."
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per inquiry — the OSFI-stated response date (typically 10-20 business days) or, absent a stated date, an internal 10-business-day response target from receipt."
+        },
+        "Deadline reminders configured": {
+          "value": "Correspondence tracker milestone alerts at 5 and 2 business days before the OSFI-stated or internal response deadline."
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Inquiry, all drafts, review sign-offs and the final submitted response retained 7 years from submission in the compliance evidence repository."
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any missed response deadline or response submitted without a required sign-off is logged as an exception with root cause and CEO notification."
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Actuary",
+          "value": "Chief Actuary signs off the final response before submission; General Counsel co-signs where the inquiry touches a filed statement."
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All OSFI valuation inquiries received and closed in the test period, including verbal inquiries evidenced by a call note."
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for a missed response deadline or an under-called s.369 materiality assessment; any fail escalates to the CEO."
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven; testing covers 100% of material inquiries plus a sample of routine ones each period."
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have drafted or signed off any sampled response."
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly inquiry-response test workpaper in the compliance evidence repository, cross-referenced to the Internal Regulatory System correspondence record."
+        },
+        "Regulator-ready documentation": {
+          "value": "Inquiry-and-response package with dated sign-offs, presentable to OSFI within 5 business days of request."
+        },
+        "Regulator response path": {
+          "value": "Chief Actuary owns any OSFI follow-up on the tested responses; Regulatory Counsel clears any written reply."
+        }
+      },
+      "checklist": [
+        {
+          "step": "Log the inquiry on receipt",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "On receipt of any OSFI letter, email or call touching valuation, reserves or the Appointed Actuary Report, open a new inquiry record in the Internal Regulatory System with received date, channel, OSFI contact name and subject.",
+            "Scan and attach the original inquiry (or a call note for verbal inquiries, countersigned by whoever took the call) to the record.",
+            "Classify the inquiry severity: routine clarification, targeted follow-up on a filed return, or a matter suggesting supervisory concern.",
+            "Notify the Appointed Actuary and Chief Actuary within one business day of logging."
+          ],
+          "done": "the inquiry is logged with received date, channel, severity and the original correspondence attached, and the Appointed Actuary is notified within one business day."
+        },
+        {
+          "step": "Confirm the response deadline",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "actions": [
+            "Read the inquiry for a stated response date; where none is stated, apply the internal 10-business-day default from the date received.",
+            "Enter the deadline into the correspondence tracker and confirm it against the inquiry record.",
+            "Where the deadline is unreasonable given the analysis required, request an extension from the OSFI contact in writing and log the outcome."
+          ],
+          "done": "a response deadline is recorded in the tracker, confirmed or extended in writing where needed."
+        },
+        {
+          "step": "Assign the technical lead and scope the analysis",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Assign a technical lead (Valuation Actuary or Reserving Actuary) based on the reserve line or assumption the inquiry concerns.",
+            "Scope the analysis required: which model runs, sensitivity tests or data reconciliations must be reproduced to answer the inquiry.",
+            "Set interim checkpoints so the draft is ready at least 3 business days before the deadline for review."
+          ],
+          "done": "a technical lead is assigned with a scoped analysis plan and interim checkpoints against the deadline."
+        },
+        {
+          "step": "Reproduce the underlying actuarial analysis",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Re-run the specific model output(s) the inquiry references (reserve run, DCAT scenario, sensitivity test) from the version used in the original filing.",
+            "Confirm the reproduced output matches the originally filed figure; if it does not, treat the mismatch itself as a finding requiring escalation.",
+            "Document assumptions, data vintage and model version used in the reproduction."
+          ],
+          "done": "the referenced analysis is reproduced from the filed model version and reconciled to the originally filed figure."
+        },
+        {
+          "step": "Draft the substantive response",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Draft a point-by-point response addressing each question in the inquiry, citing the specific workpaper, model run or filed schedule that supports each answer.",
+            "State any limitation or assumption plainly rather than implying more precision than the analysis supports.",
+            "Route the draft to the Appointed Actuary for technical review."
+          ],
+          "done": "a point-by-point draft exists, addressed to every question, with citations to supporting workpapers."
+        },
+        {
+          "step": "Get Appointed Actuary technical review",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Review the draft against the reproduced analysis for technical accuracy and completeness.",
+            "Confirm the response does not overstate certainty or omit a known limitation.",
+            "Return the draft with tracked comments or approve it to proceed to legal review."
+          ],
+          "done": "the draft carries a dated Appointed Actuary technical approval or a returned set of comments."
+        },
+        {
+          "step": "Route for legal review where the inquiry touches a filed statement",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Where the inquiry references a filed Annual Return, Annual Statement or Appointed Actuary Report, route the draft to Regulatory Counsel.",
+            "Counsel checks the response is consistent with prior representations to OSFI and does not create an unintended admission.",
+            "Counsel signs off or returns the draft with required changes."
+          ],
+          "done": "legal review is completed and signed off for any response touching a filed statement."
+        },
+        {
+          "step": "Assess the CEO/CFO/board notification threshold",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Assess whether the inquiry or the response itself constitutes a material matter under ICA s.369 requiring notification to the CEO and CFO.",
+            "Where it does, brief the CEO and CFO before the response is submitted, per the s.368/369 reporting chain.",
+            "Record the notification date and the CEO/CFO's input, if any, on the inquiry record."
+          ],
+          "done": "the s.369 materiality assessment is documented, and any required CEO/CFO notification is dated on the record."
+        },
+        {
+          "step": "Finalize and format the response",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "actions": [
+            "Incorporate all technical and legal sign-off comments into the final response document.",
+            "Format the response to the OSFI correspondence template, referencing the original inquiry's reference number.",
+            "Attach any supporting schedules or workpapers the response cites, redacted only where OSFI-permitted."
+          ],
+          "done": "the final response is formatted to the OSFI template, cross-referenced to the inquiry number, with supporting schedules attached."
+        },
+        {
+          "step": "Get final sign-off before submission",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Confirm all technical, legal and (where required) CEO/CFO sign-offs are on file.",
+            "Sign the final response as the accountable owner.",
+            "Route to the CEO for countersignature where the inquiry or response was assessed as material."
+          ],
+          "done": "the final response carries the Chief Actuary's sign-off and, where material, the CEO's countersignature."
+        },
+        {
+          "step": "Submit the response through the correct channel",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Submit the response via the same channel OSFI used (relationship manager email, formal letter, or the OSFI portal where applicable), never a channel the inquiry did not specify.",
+            "Log the submission date, method and confirmation of receipt in the Internal Regulatory System.",
+            "File a copy of the as-sent response, including any attachments, against the inquiry record."
+          ],
+          "done": "the response is submitted through the specified channel with submission date, method and receipt confirmation logged."
+        },
+        {
+          "step": "Track any OSFI follow-up to closure",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "actions": [
+            "Monitor for an OSFI acknowledgement or follow-up question within 10 business days of submission.",
+            "Log any follow-up as a new linked inquiry rather than a standalone record.",
+            "Close the original inquiry record only once OSFI confirms no further questions or a defined follow-up path is agreed."
+          ],
+          "done": "the inquiry record remains open until OSFI acknowledgement or follow-up closure is logged."
+        },
+        {
+          "step": "Log any deadline miss or process gap as an exception",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Where the response deadline was missed or a required sign-off was skipped, raise a tracker issue with root cause and owner.",
+            "Notify the CEO of any missed OSFI deadline the same business day it is identified.",
+            "Set a remediation date and a process fix to prevent recurrence."
+          ],
+          "done": "any deadline miss or skipped sign-off is logged as a tracker exception with a same-day CEO notification where a deadline was missed."
+        },
+        {
+          "step": "File the complete correspondence package",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the inquiry, all drafts, review sign-offs, the final response and OSFI's acknowledgement to the compliance evidence repository.",
+            "Apply the 7-year retention label from the submission date.",
+            "Index the package by OSFI reference number and inquiry topic."
+          ],
+          "done": "the complete correspondence package is filed, retention-labelled and indexed by OSFI reference number."
+        },
+        {
+          "step": "Brief the board or Audit Committee where the inquiry was material",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "app": "board portal",
+          "actions": [
+            "For any inquiry assessed as material under s.369, prepare a summary for the next board or Audit Committee meeting via the board portal.",
+            "Include the inquiry, the response and any resulting action items.",
+            "Record the board's acknowledgement or direction in the minutes."
+          ],
+          "done": "material inquiries are briefed to the board or Audit Committee with the response and any board direction minuted."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of OSFI valuation inquiries in the test period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Extract every inquiry record tagged valuation/reserve/Appointed Actuary Report from the Internal Regulatory System for the test period.",
+            "Cross-check the count against the Chief Actuary's inquiry log and OSFI relationship manager correspondence to confirm none is missing.",
+            "Include verbal inquiries evidenced only by a call note."
+          ],
+          "done": "the population is reconciled to the correspondence log with no missing inquiry."
+        },
+        {
+          "step": "Reconcile deadlines to OSFI's stated dates",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each inquiry, compare the recorded deadline to the OSFI-stated date on the original correspondence, or confirm the 10-business-day default was correctly applied.",
+            "Recompute business days for any extension granted.",
+            "Log any deadline miscalculation as an exception."
+          ],
+          "done": "every sampled inquiry's deadline is independently confirmed against the original correspondence."
+        },
+        {
+          "step": "Select the test sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of inquiries assessed as material under s.369.",
+            "Take a seeded random sample of 5 additional routine inquiries.",
+            "Record the seed and population size."
+          ],
+          "done": "the sample covers every material inquiry plus a reproducible random draw of routine ones."
+        },
+        {
+          "step": "Re-perform the underlying actuarial reproduction",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Independently re-run the model output referenced in each sampled response from the filed model version, working with the Valuation Actuary for platform access.",
+            "Compare the re-performed figure to both the originally filed figure and the figure quoted in the response.",
+            "Log any discrepancy as an exception."
+          ],
+          "done": "the cited analysis independently reproduces the figures quoted in each sampled response."
+        },
+        {
+          "step": "Verify sign-off completeness",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm each sampled response carries Appointed Actuary technical sign-off, Regulatory Counsel sign-off where a filed statement was referenced, and Chief Actuary final sign-off.",
+            "Confirm CEO countersignature exists for every response assessed as material.",
+            "Log any missing sign-off as an exception regardless of response accuracy."
+          ],
+          "done": "every sampled response carries the required sign-off chain, or the gap is logged."
+        },
+        {
+          "step": "Trace submission and receipt confirmation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Confirm the as-sent response on file matches the version that received final sign-off, with no post-signoff edits.",
+            "Confirm submission date, channel and OSFI receipt confirmation are logged.",
+            "Flag any response sent by a channel other than the one OSFI specified."
+          ],
+          "done": "the filed as-sent response matches the signed version and submission/receipt are evidenced."
+        },
+        {
+          "step": "Test the s.369 materiality assessment",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "For each sampled inquiry, independently assess whether it meets the s.369 material-matter threshold using the same criteria as the Chief Actuary's assessment.",
+            "Compare the independent assessment to the recorded materiality call and CEO/CFO notification.",
+            "Log any under-called materiality as a reportable exception, not a routine finding."
+          ],
+          "done": "materiality calls are independently tested, with any under-call reported as a compliance exception."
+        },
+        {
+          "step": "Confirm board/Audit Committee briefing for material inquiries",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "For each sampled material inquiry, confirm it appears in board or Audit Committee minutes via the board portal.",
+            "Confirm the minuted summary matches the actual inquiry and response, not a generalized description.",
+            "Log any material inquiry missing from board minutes as an exception."
+          ],
+          "done": "every sampled material inquiry is traceable to a board/Audit Committee minute matching its actual content."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception found in steps 2 through 8, naming the inquiry, the gap and the compliance impact.",
+            "Assign a root cause and owner, and a remediation date.",
+            "Carry any deadline-miss or under-called materiality exception into next period's testing as a mandatory retest."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "board portal",
+          "actions": [
+            "Compute the exception rate against the sample and compare to the zero-tolerance threshold for missed deadlines and under-called materiality.",
+            "Write the conclusion with evidence references.",
+            "Have an independent reviewer who performed none of the sampled reproductions sign the workpaper.",
+            "Report the conclusion to the Audit Committee at its next sitting."
+          ],
+          "done": "a signed conclusion with exception rate is filed and reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-062-C11",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Policy Forms Specialist",
+          "value": "Owns the inventory of ICA-required notices/disclosures embedded in policy forms and corporate correspondence templates (annual meeting notice, participating account/dividend notice, assignment notice)."
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — ICA s.515(1) (capital/liquidity adequacy disclosure basis) and ss.492-495 / Investment Limits (Insurance Companies) Regulations re-read against each form template at build or change time (rep: Canada)."
+        },
+        "In-scope processes": {
+          "value": "Form and correspondence template intake through identification of ICA-required notice content, drafting, legal review, and publication into the policy admin template library, across Life and P&C lines."
+        },
+        "In-scope systems": {
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "value": "Template library where notice content is embedded into issued forms and correspondence."
+        },
+        "Compliance procedure documented": {
+          "value": "Statutory Notice Build Procedure — trigger identification (new form, corporate event, capital event), required-content checklist per notice type, legal review, template publication and inventory update."
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by General Counsel; reviewed annually and on any ICA amendment affecting notice content."
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per change — new/amended notice content must be published before the next triggering event (e.g. the annual meeting notice must issue at least 21 days before the meeting date, per corporate governance practice under the ICA)."
+        },
+        "Deadline reminders configured": {
+          "value": "Form inventory milestone alerts at T-45/T-30/T-21 days ahead of the annual meeting date, and on open of any capital/corporate event requiring a new notice."
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Approved notice content, legal sign-off and the published template retained 7 years from template retirement in the compliance evidence repository."
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any form or correspondence published without the required notice content, or a notice issued late, is logged as an exception."
+        },
+        "Remediation sign-off captured": {
+          "role": "General Counsel",
+          "value": "General Counsel signs off any corrected notice content or late-notice remediation before republication."
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All ICA-required notice template builds/changes published in the test period, across the full notice inventory."
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for a published notice missing required statutory content or for a late annual meeting notice; any fail escalates to General Counsel."
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per-change; testing covers 100% of governance-critical notice changes plus a sample of others each period."
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have drafted or approved any sampled notice template."
+        },
+        "Evidence location for test results": {
+          "value": "Notice-template test workpaper in the compliance evidence repository, cross-referenced to the form inventory."
+        },
+        "Regulator-ready documentation": {
+          "value": "Approved template history plus test evidence, presentable to OSFI or a corporate governance inquiry within 5 business days."
+        },
+        "Regulator response path": {
+          "value": "General Counsel owns any OSFI or shareholder inquiry into notice content; Corporate Secretary handles meeting-notice-specific inquiries."
+        }
+      },
+      "checklist": [
+        {
+          "step": "Maintain the master inventory of ICA-required notices",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Open the form inventory in the policy administration system template library and confirm every notice type required under the ICA and its governing corporate practice is listed: annual meeting notice, participating account/dividend notice, policy assignment notice, and any capital-adequacy-related policyholder communication.",
+            "Tag each inventory row with the form/template ID(s) it lives in and the last content review date.",
+            "Flag any notice type present in law but missing from the inventory for immediate build."
+          ],
+          "done": "the inventory lists every required notice type, its hosting templates and last review date, with no missing type."
+        },
+        {
+          "step": "Identify the trigger for a new or changed notice",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "On intake of a new form, a corporate event (AGM scheduling, capital raise, participating account change) or an ICA amendment, log the trigger in the inventory with date and description.",
+            "Determine which notice type(s) the trigger affects using the master inventory from step 1.",
+            "Route the trigger to the Policy Forms Specialist for drafting."
+          ],
+          "done": "every trigger is logged with the affected notice type(s) identified and routed for drafting."
+        },
+        {
+          "step": "Draft or amend the required notice content",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "actions": [
+            "Draft the notice text against the required-content checklist for that notice type (statutory reference, required disclosures, recipient class, delivery method).",
+            "Compare the draft against the most recently approved version to isolate exactly what changed.",
+            "Route the draft to Regulatory Counsel for review."
+          ],
+          "done": "a draft (or redline against the prior approved version) exists and is routed for legal review."
+        },
+        {
+          "step": "Get Regulatory Counsel review of notice content",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Check the draft against the current ICA text and any governing corporate by-law or OSFI guideline for that notice type.",
+            "Confirm required elements are present: statutory citation, recipient class, response/voting deadline where applicable, and delivery method.",
+            "Return the draft with required changes, or approve it for publication."
+          ],
+          "done": "the draft carries a dated legal approval or a returned set of required changes."
+        },
+        {
+          "step": "Embed the approved notice into the hosting form/template",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "In the policy administration system open the template library and locate every template tagged as hosting this notice type in the inventory.",
+            "Insert the approved notice text into the correct section of each hosting template, preserving required formatting (bolding, statutory citation footer).",
+            "Version the template and note the change reason and approval reference."
+          ],
+          "done": "the approved notice text is embedded in every hosting template with a versioned change record."
+        },
+        {
+          "step": "Confirm delivery-channel logic matches the notice's required method",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "actions": [
+            "For notices with a prescribed delivery method (mail, electronic with consent, etc.), confirm the correspondence engine's channel logic matches that method for the affected recipient class.",
+            "Test-generate a sample notice through each configured channel.",
+            "Log any channel mismatch for correction before go-live."
+          ],
+          "done": "the correspondence engine's delivery channel for the notice matches the statutorily required method, verified by a test generation."
+        },
+        {
+          "step": "Update the form inventory record",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "actions": [
+            "Update the master inventory row for the notice type with the new template version, approval date and reviewer.",
+            "Record the effective date the new/amended notice goes live.",
+            "Cross-reference the inventory row to the legal approval and the trigger logged in step 2."
+          ],
+          "done": "the inventory row reflects the current template version, effective date and cross-referenced approval."
+        },
+        {
+          "step": "Notify Policy Administration and Correspondence teams of the change",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "actions": [
+            "Send a change notice to the Policy Administration Analyst and Correspondence Clerk teams stating the notice type, effective date and any transition handling for in-flight correspondence.",
+            "Confirm receipt and understanding from each notified team.",
+            "Update the change log with the notification date."
+          ],
+          "done": "downstream teams are notified of the effective date with confirmed receipt."
+        },
+        {
+          "step": "Test the published template before the first live use",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "actions": [
+            "Generate a test notice for a representative recipient in each affected line of business from the live template.",
+            "Compare the generated output line-by-line against the legally approved content.",
+            "Log any rendering discrepancy (truncated text, missing citation footer) for correction before the effective date."
+          ],
+          "done": "a test-generated notice matches the approved content exactly for every affected line of business."
+        },
+        {
+          "step": "Publish and monitor the first live batch",
+          "by": "Correspondence Clerk",
+          "role": "Correspondence Clerk",
+          "actions": [
+            "On the effective date, monitor the first live batch of notices generated under the new template.",
+            "Sample five generated notices and confirm they match the approved content and correct recipient class.",
+            "Escalate immediately to the Policy Forms Specialist if any live notice deviates from the approved content."
+          ],
+          "done": "the first live batch is sampled and confirmed to match approved content with no deviation."
+        },
+        {
+          "step": "Track the annual meeting notice against the 21-day requirement",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "actions": [
+            "For the annual meeting notice specifically, confirm the meeting date is set and back-calculate the required issue date at 21 days before the meeting.",
+            "Confirm the notice batch generation is scheduled to complete with margin ahead of that issue date.",
+            "Record the actual issue date and confirm it is at or before the 21-day deadline."
+          ],
+          "done": "the annual meeting notice issue date is recorded and confirmed at or before 21 days before the meeting."
+        },
+        {
+          "step": "Log any late or non-compliant notice as an exception",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Where a live batch review finds a deviation or a notice issued after its required deadline, raise a tracker issue with the affected recipients, root cause and remediation.",
+            "Assess whether affected recipients require a corrective re-notice.",
+            "Set a remediation date and a process fix to prevent recurrence."
+          ],
+          "done": "any late or non-compliant notice is logged with root cause, remediation and a decision on corrective re-notice."
+        },
+        {
+          "step": "Retain the approval and publication package",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the approved notice text, legal sign-off, template version record and the test-generation comparison to the compliance evidence repository.",
+            "Apply the 7-year retention label from template retirement (or, for active templates, a rolling hold).",
+            "Index the package by notice type and template ID."
+          ],
+          "done": "the approval and publication package is filed, retention-labelled and indexed by notice type."
+        },
+        {
+          "step": "Review the full notice inventory annually",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Once a year, walk the full master inventory against the current ICA text and any OSFI guideline update.",
+            "Confirm every notice type still has a current, approved template version with no stale (unreviewed over 12 months) rows.",
+            "Schedule redrafts for any stale or legally outdated notice."
+          ],
+          "done": "the annual inventory review is completed with no stale rows and redrafts scheduled where needed."
+        },
+        {
+          "step": "Brief Compliance leadership on outstanding notice gaps",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Summarize any notice type without a current approved template, any missed deadline in the period, and any pending redraft.",
+            "Present the summary to the Head of Compliance with target close dates.",
+            "Record leadership's direction and update the inventory with committed dates."
+          ],
+          "done": "outstanding gaps are briefed to Compliance leadership with committed close dates recorded."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of notice publications/changes in the test period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Extract every notice-type change/publication filed in the repository for the period.",
+            "Cross-check against the form inventory's effective-date log.",
+            "Include the annual meeting notice cycle."
+          ],
+          "done": "the population is reconciled to the inventory log with no missing publication."
+        },
+        {
+          "step": "Reconcile each published notice to a legal approval",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each population row to a dated Regulatory Counsel approval.",
+            "Confirm the approval predates the template publication date.",
+            "List unmatched rows as exceptions."
+          ],
+          "done": "every population row matches a pre-dated legal approval or is listed as an exception."
+        },
+        {
+          "step": "Select the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of annual meeting notice cycles and any capital/corporate-event notice.",
+            "Take a seeded random sample of 5 additional notice changes.",
+            "Record the seed and population size."
+          ],
+          "done": "the sample covers all high-risk notice types plus a reproducible random draw."
+        },
+        {
+          "step": "Re-perform the required-content check",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Independently read the live template in the policy administration system for each sampled notice.",
+            "Compare content against the required-content checklist for that notice type without referencing the original approval first.",
+            "Log any gap as an exception."
+          ],
+          "done": "independent content check performed and compared to approval for every sampled notice."
+        },
+        {
+          "step": "Verify delivery channel and recipient class",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Generate a test notice for the sampled template and confirm delivery channel matches the statutorily required method.",
+            "Confirm recipient-class logic (who receives it) matches the notice type's requirement.",
+            "Log mismatches."
+          ],
+          "done": "delivery channel and recipient class verified for every sampled notice."
+        },
+        {
+          "step": "Recompute the annual meeting notice deadline",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For the annual meeting notice sample, recompute the 21-day-before-meeting deadline from the recorded meeting date.",
+            "Compare to the actual recorded issue date.",
+            "Log any notice issued after the deadline as a compliance breach, not a routine exception."
+          ],
+          "done": "the 21-day computation is verified and any late issuance is flagged as a breach."
+        },
+        {
+          "step": "Trace the live batch sample review",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled notice change, pull the five-notice live batch sample recorded in the checklist and confirm it exists with a dated comparison to approved content.",
+            "Re-request a fresh live-notice example where the retained sample is incomplete.",
+            "Confirm the reviewer named on the retained sample is not the same person who drafted or embedded the notice content."
+          ],
+          "done": "live batch review evidence exists and is verified, or a fresh example is obtained and checked."
+        },
+        {
+          "step": "Confirm exception disposition and any corrective re-notice",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "For any exception logged during the period, confirm the tracker issue has a root cause, owner and remediation date.",
+            "Where a corrective re-notice was warranted, confirm it was sent and to the correct recipient class.",
+            "Confirm any resulting fix was reflected in the current template version before closing the exception."
+          ],
+          "done": "exceptions are confirmed dispositioned, with corrective re-notices verified where required."
+        },
+        {
+          "step": "Log every testing exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for every finding in steps 2 through 8.",
+            "Assign root cause and owner.",
+            "Set remediation date; carry any annual-meeting-notice breach into the next Corporate Secretary review as mandatory."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and follow-up commitment."
+        },
+        {
+          "step": "Conclude, sign and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "board portal",
+          "actions": [
+            "Compute the exception rate against threshold (zero tolerance for late annual meeting notices).",
+            "Write the conclusion with evidence references.",
+            "Have an independent reviewer sign.",
+            "Report to the Audit Committee."
+          ],
+          "done": "a signed conclusion is filed and reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-062-C12",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Policy Administrator",
+          "value": "Owns triggering, generating and delivering each statutory notice (annual meeting notice, participating account/dividend notice, assignment notice) once its triggering event occurs."
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — ICA s.369/s.368 reporting-chain notices and the annual meeting notice practice under the ICA re-read at each triggering event (rep: Canada)."
+        },
+        "In-scope processes": {
+          "value": "Triggering event detection (AGM date set, dividend declared, assignment recorded) through notice generation from the approved template, delivery, and notice log entry, across all policyholders/shareholders of record."
+        },
+        "In-scope systems": {
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "value": "Generates and dispatches the notice from the approved template; delivery confirmed via correspondence log."
+        },
+        "Compliance procedure documented": {
+          "value": "Statutory Notice Generation & Delivery Procedure — trigger detection, recipient-list pull, generation run, delivery, and notice log entry with delivery confirmation."
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Policy Admin Ops Lead; reviewed annually and on any change to the notice template inventory."
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per notice — the annual meeting notice must be delivered at least 21 days before the meeting date; other event-driven notices per their triggering event's statutory or by-law timeframe."
+        },
+        "Deadline reminders configured": {
+          "value": "Notice log milestone alerts at T-35/T-28/T-21 days before the annual meeting date; event-driven notices trigger an alert the same business day the triggering event is recorded."
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Recipient list, generation run log and delivery confirmation retained 7 years from the notice date in the compliance evidence repository."
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any notice generated late, to an incomplete recipient list, or without a delivery confirmation is logged as an exception."
+        },
+        "Remediation sign-off captured": {
+          "role": "Policy Admin Ops Lead",
+          "value": "Policy Admin Ops Lead signs off any corrective re-notice or recipient-list correction before it is executed."
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All statutory notices dispatched in the test period, across every notice type in the inventory, reconciled to triggering events."
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for a late annual meeting notice or an incomplete recipient list; any fail escalates to the Policy Admin Ops Lead and Compliance."
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven; testing covers 100% of governance-linked notices plus a sample of other event-driven notices each period."
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have generated or dispatched any sampled notice."
+        },
+        "Evidence location for test results": {
+          "value": "Notice-delivery test workpaper in the compliance evidence repository, cross-referenced to the notice log."
+        },
+        "Regulator-ready documentation": {
+          "value": "Notice log extract plus delivery confirmations, presentable to OSFI or an affected policyholder inquiry within 5 business days."
+        },
+        "Regulator response path": {
+          "value": "Policy Admin Ops Lead owns operational inquiries; Corporate Secretary and Regulatory Counsel handle any inquiry touching the annual meeting notice."
+        }
+      },
+      "checklist": [
+        {
+          "step": "Detect and log the triggering event",
+          "by": "Policy Administrator",
+          "role": "Policy Administrator",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Monitor the corporate calendar and policy admin system for a triggering event: AGM date confirmed by the Corporate Secretary, dividend/participating account declaration, or a recorded assignment.",
+            "Log the event type and date in the notice log the same business day it is confirmed.",
+            "Identify which notice type from the notice inventory the event triggers."
+          ],
+          "done": "the triggering event is logged same-day with the correct notice type identified."
+        },
+        {
+          "step": "Pull the recipient list",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Query the policy administration system for every policyholder/shareholder of record meeting the notice's recipient-class criteria as of the record date.",
+            "Cross-check the list count against last period's comparable notice for a materially unexplained swing.",
+            "Get the Policy Admin Ops Lead's sign-off on the recipient list before generation."
+          ],
+          "done": "the recipient list is pulled, sanity-checked, and signed off before generation."
+        },
+        {
+          "step": "Generate the notice batch from the approved template",
+          "by": "Policy Administrator",
+          "role": "Policy Administrator",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "In the template library select the current approved version of the notice type, never a superseded version.",
+            "Run the batch generation against the signed-off recipient list.",
+            "Confirm the batch generation log shows the correct template version ID and recipient count matching step 2."
+          ],
+          "done": "the batch is generated from the current approved template with a matching recipient count in the run log."
+        },
+        {
+          "step": "QA a sample of the generated batch before dispatch",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "actions": [
+            "Sample 10 generated notices (or 100% where the batch is under 25) and compare content to the approved template.",
+            "Confirm recipient name, address/contact and any variable data (dividend amount, meeting date/location) populated correctly.",
+            "Hold dispatch and escalate to the Policy Administrator if any sampled notice fails."
+          ],
+          "done": "the sample passes content and variable-data QA, or dispatch is held pending correction."
+        },
+        {
+          "step": "Dispatch the notice through the required delivery channel",
+          "by": "Correspondence Clerk",
+          "role": "Correspondence Clerk",
+          "actions": [
+            "Dispatch each notice through the confirmed channel (mail, electronic with consent, etc.) for its recipient class.",
+            "Where electronic delivery requires consent on file, confirm consent status before switching a recipient off paper delivery.",
+            "Record the dispatch date and channel per recipient in the notice log."
+          ],
+          "done": "the batch is dispatched through the confirmed channel with dispatch date and channel logged per recipient."
+        },
+        {
+          "step": "Capture delivery confirmation",
+          "by": "Correspondence Clerk",
+          "role": "Correspondence Clerk",
+          "actions": [
+            "For mailed notices, capture the mail-house dispatch confirmation and any returned-mail report.",
+            "For electronic notices, capture the delivery/read receipt from the email or portal delivery system.",
+            "Log any bounced or returned notice for follow-up."
+          ],
+          "done": "delivery confirmation (or a logged bounce/return for follow-up) exists for the batch."
+        },
+        {
+          "step": "Follow up on bounced or returned notices",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "actions": [
+            "For each bounced electronic notice or returned mail item, verify the contact record and correct it if outdated.",
+            "Re-dispatch the notice to the corrected contact before the statutory deadline where time permits.",
+            "Where the deadline cannot be met for a bounced recipient, log it and notify the Policy Admin Ops Lead."
+          ],
+          "done": "every bounce/return is followed up with a correction and re-dispatch, or a logged deadline-risk notification."
+        },
+        {
+          "step": "Track the annual meeting notice against its 21-day deadline",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "actions": [
+            "Confirm the dispatch date recorded in step 5 for the annual meeting notice is at least 21 days before the meeting date.",
+            "Where dispatch is at risk of missing the 21-day window, escalate to the Policy Admin Ops Lead immediately.",
+            "Record the confirmed compliant dispatch date in the corporate minute book reference."
+          ],
+          "done": "the annual meeting notice dispatch date is confirmed at least 21 days before the meeting, with any risk escalated."
+        },
+        {
+          "step": "Enter the completed notice into the notice log",
+          "by": "Policy Administrator",
+          "role": "Policy Administrator",
+          "actions": [
+            "Complete the notice log entry: notice type, trigger date, recipient count, template version, dispatch date/channel, delivery confirmation status.",
+            "Cross-reference the log entry to the recipient list and generation run log.",
+            "Close the notice log entry only when delivery confirmation is complete or bounces are dispositioned."
+          ],
+          "done": "the notice log entry is complete and cross-referenced, closed only once delivery is confirmed or dispositioned."
+        },
+        {
+          "step": "Reconcile notice volume to the triggering event",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "actions": [
+            "Compare the recipient count dispatched to the expected count from the policy admin system's eligible-recipient query at the record date.",
+            "Investigate and explain any variance beyond a small, documented tolerance (e.g. recent lapses/terminations).",
+            "Sign off the reconciliation on the notice log entry."
+          ],
+          "done": "dispatched volume reconciles to the expected eligible-recipient count, with variances explained and signed off."
+        },
+        {
+          "step": "Log any missed deadline or incomplete recipient list as an exception",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Where the 21-day (or applicable) deadline was missed, or the recipient list was later found incomplete, raise a tracker issue with root cause.",
+            "Assess whether a corrective re-notice or an extension request to affected recipients/OSFI is required.",
+            "Set a remediation date and process fix."
+          ],
+          "done": "any missed deadline or incomplete list is logged with root cause, a corrective decision and a remediation date."
+        },
+        {
+          "step": "Notify Corporate Secretary and Compliance of exceptions affecting the meeting",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "actions": [
+            "Where an annual meeting notice deadline is missed or a recipient is under-notified, notify Corporate Secretary and Compliance the same day.",
+            "Discuss whether the meeting date must move or a corrective notice cures the defect under the governing by-laws.",
+            "Record the decision and its legal basis."
+          ],
+          "done": "meeting-affecting exceptions are notified same-day with a recorded, legally grounded decision."
+        },
+        {
+          "step": "Retain the notice package",
+          "by": "Policy Administrator",
+          "role": "Policy Administrator",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the recipient list, generation run log, dispatch confirmation and notice log entry to the compliance evidence repository.",
+            "Apply the 7-year retention label from the notice date.",
+            "Index the package by notice type and trigger date."
+          ],
+          "done": "the notice package is filed, retention-labelled and indexed by notice type and trigger date."
+        },
+        {
+          "step": "Update the corporate calendar for the next occurrence",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "actions": [
+            "For recurring notices (annual meeting), update the corporate calendar with next year's target meeting date and the back-calculated 21-day notice deadline.",
+            "Confirm the notice log milestone alerts (T-35/T-28/T-21) are configured against the new date.",
+            "Confirm ownership assignment for the next cycle."
+          ],
+          "done": "the corporate calendar and milestone alerts are updated for the next occurrence with ownership confirmed."
+        },
+        {
+          "step": "Report notice delivery performance to Compliance leadership",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "actions": [
+            "Summarize, per period, on-time delivery rate, exception count and root causes across all statutory notice types.",
+            "Present the summary to the Head of Compliance with any process improvement recommendations.",
+            "Record leadership's direction and any resulting procedure updates."
+          ],
+          "done": "delivery performance is reported to Compliance leadership with recorded direction on any procedure update."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of statutory notices due in the test period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Extract every notice log entry for the period.",
+            "Cross-check against the corporate calendar and any recorded triggering events (AGM, dividend declarations, assignments) to confirm none is missing.",
+            "Include the annual meeting notice cycle."
+          ],
+          "done": "population reconciled to the corporate calendar and triggering-event log."
+        },
+        {
+          "step": "Reconcile recipient counts to the eligible population",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Independently query the policy administration system for the eligible recipient count as of each sampled notice's record date.",
+            "Compare to the dispatched count in the notice log.",
+            "Log unexplained variances."
+          ],
+          "done": "recipient counts independently reconciled for the sample, or variances logged."
+        },
+        {
+          "step": "Select the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of annual meeting and other AGM-linked notices.",
+            "Take a seeded random sample of 6 additional event-driven notices.",
+            "Record seed and population size."
+          ],
+          "done": "sample covers all governance-linked notices plus a reproducible random draw."
+        },
+        {
+          "step": "Recompute the statutory deadline for each sampled notice",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently recompute the required deadline (21 days before meeting, or the applicable event-driven timeframe) from the triggering event date.",
+            "Compare to the recorded dispatch date.",
+            "Log any late dispatch as a compliance breach."
+          ],
+          "done": "deadlines independently recomputed and compared, with late dispatch flagged as a breach not a routine exception."
+        },
+        {
+          "step": "Re-perform the content and template-version check",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Pull the template version ID used in each sampled generation run.",
+            "Confirm it matches the current approved version per the notice inventory at the trigger date.",
+            "Log any stale-template use."
+          ],
+          "done": "template version independently confirmed current for every sampled notice."
+        },
+        {
+          "step": "Verify delivery confirmation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled notice, pull the delivery/dispatch confirmation (mail-house report or electronic receipt).",
+            "Confirm it covers the full recipient list, not a partial batch.",
+            "Log any recipient lacking confirmation."
+          ],
+          "done": "delivery confirmation verified as complete for the sampled recipient list, or gaps logged."
+        },
+        {
+          "step": "Test bounce/return follow-up",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For any bounced/returned notice within the sample, confirm a corrected contact and re-dispatch (or a documented deadline-risk escalation) exists.",
+            "Confirm the re-dispatch, where it occurred, still met or explained a miss against the statutory deadline.",
+            "Log any bounce/return without a follow-up action as an exception in its own right."
+          ],
+          "done": "bounce/return handling verified for the sample."
+        },
+        {
+          "step": "Confirm corrective actions for prior exceptions",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Pull any exception logged in the period for a missed deadline or incomplete list.",
+            "Confirm the corrective re-notice or extension decision was executed and documented with legal basis.",
+            "Confirm Corporate Secretary/Compliance were notified same-day as required."
+          ],
+          "done": "prior exceptions confirmed corrected with documented legal basis and timely notification."
+        },
+        {
+          "step": "Log every testing exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for every finding in steps 2 through 8.",
+            "Assign root cause and owner.",
+            "Set remediation date; carry any annual-meeting-notice breach forward as a mandatory retest."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "board portal",
+          "actions": [
+            "Compute the exception rate against a zero-tolerance threshold for late annual meeting notices.",
+            "Write the conclusion with evidence references.",
+            "Have an independent reviewer sign.",
+            "Report to the Audit Committee."
+          ],
+          "done": "signed conclusion filed and reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-062-C13",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Systems Analyst",
+          "value": "Owns configuration of the policy administration and correspondence engine so statutory notice timing and content rules are system-enforced, not manually policed."
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — ICA s.369/s.368 notice-timing chain and the annual meeting 21-day practice re-read against the configured business rules at each release (rep: Canada)."
+        },
+        "In-scope processes": {
+          "value": "Change request intake for any new/changed statutory notice rule through business-rule configuration, test and release, across the policy administration and correspondence engine."
+        },
+        "In-scope systems": {
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "value": "Hosts the template-version lock, recipient-eligibility rules and deadline-alert configuration enforcing statutory notice timing/content."
+        },
+        "Compliance procedure documented": {
+          "value": "Statutory Notice System Configuration Procedure — change intake, business-rule design, configuration, test evidence, release approval, and post-release verification."
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of IT; reviewed annually and on any change to the notice inventory or deadline calendar."
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per change — configuration must be released and verified before the next occurrence of the affected notice's triggering event (e.g. before the next AGM cycle for annual meeting notice rules)."
+        },
+        "Deadline reminders configured": {
+          "value": "Change calendar alerts at T-30/T-14/T-7 days before a scheduled release affecting a statutory notice rule, tied to the next triggering event date."
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Change request, configuration spec, test evidence and release approval retained 7 years from release in the compliance evidence repository."
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any release found to have broken a timing or content rule (post-release verification failure) is logged as an exception with root cause and rollback/fix record."
+        },
+        "Remediation sign-off captured": {
+          "role": "IT Service Delivery Manager",
+          "value": "IT Service Delivery Manager signs off any rollback or hotfix addressing a broken statutory notice rule before re-release."
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All statutory-notice-rule configuration changes released in the test period, across the policy administration and correspondence engine."
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for a production rule that fails to reproduce its non-production test evidence, especially on the annual meeting notice rule; any fail escalates to the Head of IT."
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per-change; testing covers 100% of changes to the annual meeting notice rule plus a sample of other rule changes each period."
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have designed, built or tested any sampled configuration change."
+        },
+        "Evidence location for test results": {
+          "value": "Configuration test workpaper in the compliance evidence repository, cross-referenced to the ITSM change record."
+        },
+        "Regulator-ready documentation": {
+          "value": "Change record plus test and production verification evidence, presentable to OSFI or an internal governance inquiry within 5 business days."
+        },
+        "Regulator response path": {
+          "value": "Head of IT owns any inquiry into system enforcement of notice rules; Compliance Officer coordinates the response with Regulatory Counsel."
+        }
+      },
+      "checklist": [
+        {
+          "step": "Intake the configuration change request",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "actions": [
+            "Take the change request from the Policy Forms Specialist (new/amended notice type) or the Policy Admin Ops Lead (new deadline rule).",
+            "Log the request with the specific business rule needed: template-version lock, recipient-eligibility filter, or deadline-alert threshold.",
+            "Confirm the triggering event date the configuration must be live before."
+          ],
+          "done": "the change request is logged with the specific business rule and the deadline it must be live before."
+        },
+        {
+          "step": "Design the business rule",
+          "by": "Systems Analyst",
+          "role": "Systems Analyst",
+          "actions": [
+            "Translate the requirement into a system rule: for example, block generation of notice type X unless the template version equals the current approved version per inventory, or set an alert at T-35/T-28/T-21 days before the recorded meeting date field.",
+            "Document the rule logic, the fields/tables it reads, and the failure behavior (block vs warn).",
+            "Route the design to the Policy Forms Specialist or Policy Admin Ops Lead for business sign-off before build."
+          ],
+          "done": "the rule design is documented with failure behavior and carries business sign-off before build starts."
+        },
+        {
+          "step": "Build the configuration in a non-production environment",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "In the non-production instance of the policy administration system, implement the business rule per the signed-off design.",
+            "Configure the template-version lock to reference the live inventory table so it updates automatically when a new version is published.",
+            "Configure the deadline-alert job against the corporate calendar field feeding the meeting/event date."
+          ],
+          "done": "the rule is built in non-production, referencing the live inventory and calendar tables rather than a hardcoded value."
+        },
+        {
+          "step": "Write and execute test cases",
+          "by": "QA Automation Engineer",
+          "role": "QA Automation Engineer",
+          "actions": [
+            "Write test cases covering: generation blocked on a superseded template version, generation allowed on the current version, alert fires at each configured threshold, and alert does not fire early.",
+            "Execute the test cases in non-production and capture pass/fail evidence for each.",
+            "Log any failing test case back to the Configuration Engineer for fix."
+          ],
+          "done": "all test cases execute with captured pass/fail evidence and no open failures."
+        },
+        {
+          "step": "Get business acceptance sign-off",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "actions": [
+            "Review the test evidence against the original business requirement.",
+            "Perform a hands-on validation in non-production for at least one notice type end-to-end.",
+            "Sign off acceptance or return with named gaps."
+          ],
+          "done": "business acceptance is signed off with hands-on validation evidence, or returned with named gaps."
+        },
+        {
+          "step": "Route for change approval",
+          "by": "IT Service Delivery Manager",
+          "role": "IT Service Delivery Manager",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Raise a change record in the ITSM platform referencing the business requirement, test evidence and business acceptance sign-off.",
+            "Confirm the release window does not conflict with the next triggering event date (no release freeze violation).",
+            "Get change approval per the standard change advisory process."
+          ],
+          "done": "a change record is approved in the ITSM platform with no conflict against the next triggering event date."
+        },
+        {
+          "step": "Release the configuration to production",
+          "by": "Release Engineer",
+          "role": "Release Engineer",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Deploy the configuration to production per the approved change window.",
+            "Confirm the deployment log shows the exact rule version deployed, matching the tested build.",
+            "Notify the Policy Admin Ops Lead and Systems Analyst that the release is complete."
+          ],
+          "done": "the release is deployed with a deployment log matching the tested build, and stakeholders are notified."
+        },
+        {
+          "step": "Verify the rule in production before the next live use",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "actions": [
+            "In production, re-run a subset of the test cases from step 4 (template-version block, alert threshold) using a safe test record, not a live recipient batch.",
+            "Confirm the production behavior matches the non-production test evidence exactly.",
+            "Log and escalate any production/non-production discrepancy immediately."
+          ],
+          "done": "production verification matches non-production test evidence, or a discrepancy is escalated before live use."
+        },
+        {
+          "step": "Confirm the configuration is live before the next triggering event",
+          "by": "Systems Analyst",
+          "role": "Systems Analyst",
+          "actions": [
+            "Check the production verification date against the next occurrence of the affected notice's triggering event (from the corporate calendar).",
+            "Confirm there is at least one full cycle of margin between verification and the live event.",
+            "Notify the Policy Admin Ops Lead the rule is confirmed live and ready."
+          ],
+          "done": "the configuration is confirmed live with margin ahead of the next triggering event, and Policy Admin Ops Lead is notified."
+        },
+        {
+          "step": "Update the configuration inventory/runbook",
+          "by": "Systems Analyst",
+          "role": "Systems Analyst",
+          "actions": [
+            "Update the system configuration runbook with the new rule, its logic, the fields it reads, and the change reference.",
+            "Cross-reference the runbook entry to the notice inventory row and the deadline calendar entry it enforces.",
+            "Confirm the runbook is accessible to on-call support."
+          ],
+          "done": "the runbook reflects the new rule with cross-references to the notice inventory and deadline calendar, and is accessible to support."
+        },
+        {
+          "step": "Monitor the first live cycle for rule performance",
+          "by": "IT Service Delivery Manager",
+          "role": "IT Service Delivery Manager",
+          "actions": [
+            "Monitor the first live occurrence of the affected notice generation/alert for any rule misfire (false block, missed alert).",
+            "Compare the observed behavior to the runbook's documented expected behavior.",
+            "Log any misfire as an incident and assess business impact (missed deadline risk)."
+          ],
+          "done": "the first live cycle is monitored with observed behavior compared to expected, and any misfire logged as an incident."
+        },
+        {
+          "step": "Log any rule failure as an exception",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Where a rule misfire caused or risked a missed statutory deadline or wrong-content notice, raise a tracker issue with root cause and business impact.",
+            "Coordinate with IT Service Delivery Manager on a hotfix or rollback timeline.",
+            "Set a remediation date and confirm the fix is retested per step 4 before re-release."
+          ],
+          "done": "any rule failure is logged with root cause, business impact and a retested remediation before re-release."
+        },
+        {
+          "step": "Retain the configuration and test package",
+          "by": "Systems Analyst",
+          "role": "Systems Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the design document, test evidence, change record and production verification to the compliance evidence repository.",
+            "Apply the 7-year retention label from release.",
+            "Index the package by rule name and the notice type it enforces."
+          ],
+          "done": "the configuration package is filed, retention-labelled and indexed by rule name and notice type."
+        },
+        {
+          "step": "Review all statutory rules annually against the current inventory",
+          "by": "IT Service Delivery Manager",
+          "role": "IT Service Delivery Manager",
+          "actions": [
+            "Once a year, walk every configured statutory timing/content rule against the current notice inventory and deadline calendar.",
+            "Confirm no rule references a decommissioned template or a stale deadline formula.",
+            "Schedule remediation for any drifted rule."
+          ],
+          "done": "the annual rule review is completed with no drifted rule left unremediated."
+        },
+        {
+          "step": "Report configuration health to Compliance and IT leadership",
+          "by": "Head of IT",
+          "role": "Head of IT",
+          "actions": [
+            "Summarize, per period, rules changed, test pass rate, incidents and remediation status.",
+            "Present to the Head of Compliance and confirm no open high-risk rule gap remains.",
+            "Record leadership's direction and any resourcing needed."
+          ],
+          "done": "configuration health is reported to Compliance and IT leadership with no open high-risk gap unaddressed."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of configuration changes in the test period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Extract every change record tagged to a statutory notice rule from the ITSM platform for the period.",
+            "Cross-check against the runbook's change log.",
+            "Confirm none is missing."
+          ],
+          "done": "population reconciled to the runbook change log."
+        },
+        {
+          "step": "Reconcile each change to a business requirement and sign-off",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each change record to its originating business request and business acceptance sign-off.",
+            "Confirm the sign-off date predates the production release date recorded in the deployment log.",
+            "List unmatched changes as exceptions."
+          ],
+          "done": "every change matches a business request and sign-off, or is listed as an exception."
+        },
+        {
+          "step": "Select the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of changes affecting the annual meeting notice rule.",
+            "Take a seeded random sample of 5 additional changes.",
+            "Record seed and population size."
+          ],
+          "done": "sample covers the highest-risk rule plus a reproducible random draw."
+        },
+        {
+          "step": "Re-perform the test cases in a non-production environment",
+          "by": "QA Automation Engineer",
+          "role": "QA Automation Engineer",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Independently re-execute the template-version-block and deadline-alert test cases for each sampled change in a non-production environment.",
+            "Compare results to the retained test evidence.",
+            "Log discrepancies."
+          ],
+          "done": "test cases independently re-performed and compared to retained evidence for every sampled change."
+        },
+        {
+          "step": "Verify production configuration matches the approved build",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the current production rule configuration and compare it field-by-field to the approved design document for each sampled change.",
+            "Confirm the referenced inventory and calendar tables are the live production tables, not a stale copy.",
+            "Log any unauthorized drift."
+          ],
+          "done": "production configuration matches the approved design for the sample, or drift is logged."
+        },
+        {
+          "step": "Test an actual notice cycle against the configured rule",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For the annual meeting notice rule, trace the most recent live cycle's generation log and confirm the template-version lock and deadline alerts fired as configured.",
+            "Recompute the alert dates independently from the recorded meeting date.",
+            "Confirm no manual override or bypass of the rule was logged for that cycle."
+          ],
+          "done": "the live cycle's rule behavior is independently confirmed against a recomputed schedule."
+        },
+        {
+          "step": "Confirm change approval and release-window compliance",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Confirm each sampled change carries change advisory approval before deployment.",
+            "Confirm the deployment date is before the next relevant triggering event with adequate margin.",
+            "Log any change deployed without approval or with insufficient margin."
+          ],
+          "done": "change approval and release timing verified for the sample."
+        },
+        {
+          "step": "Review incident and remediation records",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Pull any incident logged for a rule misfire in the period.",
+            "Confirm root cause, business impact assessment and retest evidence exist before the fix was re-released.",
+            "Log any incident lacking a retested fix."
+          ],
+          "done": "incident and remediation records verified complete for the period."
+        },
+        {
+          "step": "Log every testing exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for every finding in steps 2 through 8.",
+            "Assign root cause and owner.",
+            "Set remediation date; carry any annual-meeting-rule exception forward as a mandatory retest."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "board portal",
+          "actions": [
+            "Compute the exception rate against threshold.",
+            "Write the conclusion with evidence references.",
+            "Have an independent reviewer sign.",
+            "Report to the Audit Committee, flagging any unremediated drift on the annual-meeting rule."
+          ],
+          "done": "signed conclusion filed and reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-062-C14",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Compliance Manager",
+          "value": "Owns the annual ICA training curriculum and completion tracking for all staff handling reserves, notices, investment limits or capital adequacy processes under the Act."
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — ICA ss.492-495 and the Investment Limits (Insurance Companies) Regulations, plus s.515(1) capital/liquidity adequacy provisions, re-read against the curriculum content at each annual refresh (rep: Canada)."
+        },
+        "In-scope processes": {
+          "value": "Curriculum design through role-based assignment, delivery, completion tracking and escalation of non-completion, covering Investment Operations, Actuarial, Policy Administration, Compliance and Corporate Secretary staff whose roles touch ICA obligations."
+        },
+        "In-scope systems": {
+          "app": "Cornerstone LMS",
+          "value": "Hosts the ICA training module, tracks assignment, completion and quiz scores by role."
+        },
+        "Compliance procedure documented": {
+          "value": "ICA Training Procedure — curriculum content mapped to the sections staff must operationalize (investment limits, capital/liquidity adequacy, actuary reporting chain, notice timing), assignment rules by role, completion deadline and escalation path."
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance; content re-approved annually and on any ICA or Investment Limits Regulations amendment."
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual — all in-scope staff must complete the refresher within 60 days of the annual assignment date; new hires in an in-scope role within 30 days of start."
+        },
+        "Deadline reminders configured": {
+          "value": "LMS auto-reminders at T-30/T-14/T-3 days before the 60-day completion deadline, escalating to the employee's manager at T-3."
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Completion records, quiz scores and curriculum version retained 7 years in the compliance evidence repository."
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any in-scope staff member missing the completion deadline is logged as a training exception with manager escalation and access-restriction consideration."
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Head of Compliance signs off closure of any overdue-completion exception once training is completed or a documented access restriction is applied."
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All in-scope staff assigned ICA training in the test period, reconciled to the HRIS headcount for in-scope roles."
+        },
+        "Pass/fail thresholds": {
+          "value": "95% on-time completion threshold; any employee in a high-touchpoint role (Investment Operations, Actuarial) incomplete past the access-restriction point is an automatic fail."
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; testing covers the full annual cycle with 100% review of high-touchpoint roles."
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have administered or tracked completion of the sampled training cycle."
+        },
+        "Evidence location for test results": {
+          "value": "Annual training test workpaper in the compliance evidence repository, cross-referenced to Cornerstone LMS completion exports."
+        },
+        "Regulator-ready documentation": {
+          "value": "Completion rate report plus curriculum legal sign-off, presentable to OSFI or an internal governance inquiry within 5 business days."
+        },
+        "Regulator response path": {
+          "value": "Head of Compliance owns any inquiry into staff training adequacy; Regulatory Counsel clears any written response referencing curriculum accuracy."
+        }
+      },
+      "checklist": [
+        {
+          "step": "Confirm the in-scope role list for ICA training",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Pull the current org chart from the HRIS for Investment Operations, Actuarial, Policy Administration, Compliance and Corporate Secretary functions.",
+            "Cross-reference each role against the ICA obligation touchpoints (investment limits, capital adequacy, actuary reporting chain, statutory notices).",
+            "Update the in-scope role list and get Compliance Manager sign-off."
+          ],
+          "done": "the in-scope role list is current, cross-referenced to ICA touchpoints, and signed off."
+        },
+        {
+          "step": "Review and refresh curriculum content",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Compare the current training module content against the latest ICA text and Investment Limits (Insurance Companies) Regulations for any amendment.",
+            "Update module content, scenarios and quiz questions to reflect any change.",
+            "Route the refreshed content to Regulatory Counsel for accuracy review."
+          ],
+          "done": "curriculum content is compared to current law, updated where needed, and routed for legal accuracy review."
+        },
+        {
+          "step": "Get legal sign-off on curriculum accuracy",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Review the refreshed module for legal accuracy against the ICA sections it covers.",
+            "Confirm examples and quiz questions do not misstate the investment limit thresholds or the actuary reporting chain.",
+            "Approve or return with corrections."
+          ],
+          "done": "curriculum accuracy carries dated legal approval or a returned correction set."
+        },
+        {
+          "step": "Build/update the module in the LMS",
+          "by": "Instructional Designer",
+          "role": "Instructional Designer",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Upload the approved content into Cornerstone LMS as a new module version, retiring the prior version from new assignments.",
+            "Configure the completion quiz with the passing threshold (e.g. 80%) and the approved question bank.",
+            "Test the module end-to-end as a learner before publishing."
+          ],
+          "done": "the module is published in Cornerstone LMS with the approved version, quiz threshold and a successful test run."
+        },
+        {
+          "step": "Assign the module to all in-scope staff",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Assign the module in Cornerstone LMS to every employee on the in-scope role list from step 1, with a 60-day completion deadline from assignment date.",
+            "Confirm the assignment count matches the in-scope role list count.",
+            "Set auto-reminders per the deadline schedule."
+          ],
+          "done": "assignment count matches the in-scope list, with reminders configured against the 60-day deadline."
+        },
+        {
+          "step": "Assign new hires in in-scope roles within their onboarding window",
+          "by": "HR Coordinator",
+          "role": "HR Coordinator",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "As part of onboarding for any role on the in-scope list, assign the ICA training module with a 30-day completion deadline from start date.",
+            "Confirm the assignment is triggered automatically from the HRIS new-hire feed where configured, or manually within 3 business days of start.",
+            "Log the assignment date on the employee's training record."
+          ],
+          "done": "new hires in in-scope roles are assigned within the required window with the assignment date logged."
+        },
+        {
+          "step": "Monitor completion progress",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Pull the completion status report from Cornerstone LMS weekly during the assignment window.",
+            "Identify employees approaching the T-14 and T-3 reminder thresholds without completion.",
+            "Confirm auto-reminders are firing as configured for those employees."
+          ],
+          "done": "weekly completion monitoring is performed with reminder firing confirmed for at-risk employees."
+        },
+        {
+          "step": "Escalate non-completion past deadline",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "At the completion deadline, pull the final non-completion list from the LMS.",
+            "Escalate each overdue employee's name and manager to the manager with a required completion date within 5 business days.",
+            "Log the escalation in the training exception tracker."
+          ],
+          "done": "every overdue employee is escalated to their manager with a 5-business-day completion requirement, logged in the tracker."
+        },
+        {
+          "step": "Consider access restriction for persistent non-completion",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "For any employee still incomplete 5 business days after escalation, assess whether system access to reserve, investment limit or notice-generation functions should be restricted pending completion.",
+            "Coordinate the restriction with the Identity Access Manager if applied.",
+            "Record the decision and its basis."
+          ],
+          "done": "persistent non-completion carries a recorded access-restriction assessment and decision."
+        },
+        {
+          "step": "Confirm quiz pass rates and identify content gaps",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Pull the quiz score report by question from Cornerstone LMS.",
+            "Identify any question with a pass rate below 70%, indicating a possible content or comprehension gap.",
+            "Route flagged questions to the Instructional Designer for content review at the next refresh."
+          ],
+          "done": "quiz score analysis is completed with any low-pass-rate question routed for content review."
+        },
+        {
+          "step": "Reconcile completion records to the in-scope role list",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Compare the final completion report to the in-scope role list from step 1, confirming 100% either completed or carries a documented, sign-off exception.",
+            "Investigate any employee on the role list missing an assignment entirely.",
+            "Close the reconciliation with a signed summary."
+          ],
+          "done": "completion reconciles 100% to the in-scope list, with any gap investigated and the reconciliation signed."
+        },
+        {
+          "step": "Log persistent or unresolved non-completion as a compliance exception",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for any employee still incomplete after the access-restriction assessment in step 9.",
+            "Assign root cause (manager non-enforcement, LMS assignment gap, employee leave) and an owner.",
+            "Set a remediation date and Head of Compliance sign-off requirement for closure."
+          ],
+          "done": "unresolved non-completion is logged with root cause, owner, remediation date and a sign-off requirement."
+        },
+        {
+          "step": "Retain training records for the cycle",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Export the completion report, quiz score summary and reconciliation sign-off from Cornerstone LMS to the compliance evidence repository.",
+            "Apply the 7-year retention label from the cycle's completion deadline.",
+            "Index the package by training year and module version."
+          ],
+          "done": "training records are filed, retention-labelled and indexed by year and module version."
+        },
+        {
+          "step": "Report the annual training cycle to leadership",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Summarize completion rate, quiz pass rate, escalations and any access restrictions for the cycle.",
+            "Present to the Chief Compliance Officer and, where the ICA/Investment Limits Regulations changed materially, to the Board Risk/Audit Committee.",
+            "Record leadership's direction for next cycle."
+          ],
+          "done": "the annual training cycle is reported to leadership with recorded direction for the next cycle."
+        },
+        {
+          "step": "Schedule next year's curriculum refresh and assignment cycle",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Set the next annual refresh review date and next assignment cycle start date on the compliance calendar.",
+            "Confirm ownership for curriculum refresh (step 2) is assigned for next cycle.",
+            "Carry forward any content gap identified in step 10 as a required update item."
+          ],
+          "done": "next cycle's refresh and assignment dates are scheduled with ownership and carried-forward content gaps assigned."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of in-scope staff for the test period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Independently pull the org chart for the same in-scope functions from the HRIS as of the assignment date.",
+            "Compare headcount to the Compliance-maintained in-scope role list.",
+            "Log any discrepancy."
+          ],
+          "done": "population independently reconciled to the HRIS headcount."
+        },
+        {
+          "step": "Reconcile LMS assignment to the population",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Pull the assignment report from Cornerstone LMS.",
+            "Match every in-scope employee from step 1 to an assignment record.",
+            "Log any employee with no assignment."
+          ],
+          "done": "every in-scope employee is matched to an LMS assignment, or the gap is logged."
+        },
+        {
+          "step": "Select the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of employees in Investment Operations and Actuarial roles (highest ICA touchpoint).",
+            "Take a seeded random sample of 15 additional in-scope employees.",
+            "Record seed and population size."
+          ],
+          "done": "sample covers the highest-risk functions plus a reproducible random draw."
+        },
+        {
+          "step": "Verify completion status and timing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Pull the completion date and quiz score for each sampled employee.",
+            "Recompute whether completion occurred within the 60-day (or 30-day new-hire) deadline from the recorded assignment date.",
+            "Log any late completion not properly escalated."
+          ],
+          "done": "completion timing independently verified for the sample, with unescalated lateness logged."
+        },
+        {
+          "step": "Confirm curriculum version and legal accuracy sign-off",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Confirm the module version assigned during the test period carries a dated legal accuracy sign-off predating assignment.",
+            "Independently spot-check module content against the current ICA text for material inaccuracy.",
+            "Confirm the quiz question bank matches the version referenced in the sign-off, not a since-edited copy."
+          ],
+          "done": "curriculum version and legal sign-off verified, with content spot-checked for accuracy."
+        },
+        {
+          "step": "Trace escalations for non-completion",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For any sampled employee who missed the deadline, confirm a manager escalation was logged with a 5-business-day requirement.",
+            "Confirm the access-restriction assessment (if applicable) was documented with a decision and basis.",
+            "Confirm the employee eventually completed the training or the access restriction remained in force through the test date."
+          ],
+          "done": "escalation and access-restriction handling verified for sampled non-completions."
+        },
+        {
+          "step": "Verify the completion reconciliation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently recompute the completion percentage against the in-scope list.",
+            "Compare to the Compliance Manager's signed reconciliation.",
+            "Log any material difference."
+          ],
+          "done": "completion percentage independently recomputed and compared to the signed reconciliation."
+        },
+        {
+          "step": "Assess quiz pass rate and content-gap follow-up",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the quiz score report and confirm any question flagged below 70% pass rate in the checklist was actually routed to the Instructional Designer.",
+            "Confirm evidence of the content review.",
+            "Confirm the next curriculum refresh cycle carries the flagged question as a required update item."
+          ],
+          "done": "content-gap follow-up verified for any flagged question."
+        },
+        {
+          "step": "Log every testing exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for every finding in steps 1 through 8.",
+            "Assign root cause and owner.",
+            "Set remediation date; carry any unresolved non-completion in a high-touchpoint role forward as a mandatory retest."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "board portal",
+          "actions": [
+            "Compute the exception rate against the pass/fail threshold (95% completion within deadline).",
+            "Write the conclusion with evidence references.",
+            "Have an independent reviewer who did not administer the training cycle sign the workpaper.",
+            "Report the conclusion to the Chief Compliance Officer and, where material, the Board Risk/Audit Committee via the board portal."
+          ],
+          "done": "a signed conclusion with exception rate is filed and reported to leadership."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-062-C15",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "value": "Owns continuous monitoring of complaints alleging ICA-related failures (notice timing/content, capital/investment-limit-driven policy actions) and driving root-cause remediation."
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — ICA ss.492-495 / Investment Limits Regulations and s.515(1) capital/liquidity adequacy provisions re-read whenever a complaint alleges an investment- or capital-driven policy impact (rep: Canada)."
+        },
+        "In-scope processes": {
+          "value": "Complaint intake (all channels) through ICA-relevance tagging, investigation, root-cause remediation and trend reporting, across all policyholder-facing lines."
+        },
+        "In-scope systems": {
+          "app": "Customer Self-Service Portal",
+          "value": "Primary complaint intake channel, feeding the case management tool where ICA-tagged complaints are investigated and tracked."
+        },
+        "Compliance procedure documented": {
+          "value": "ICA Complaint Monitoring & Remediation Procedure — intake tagging criteria, investigation SLA, root-cause categorization, remediation sign-off and trend escalation threshold."
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance; reviewed annually and on any material shift in complaint trend."
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Continuous intake with a 15-business-day investigation SLA per complaint; monthly trend report to Compliance leadership."
+        },
+        "Deadline reminders configured": {
+          "value": "Case management tool SLA alerts at day 10 and day 14 of the 15-business-day investigation window."
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Complaint record, investigation notes and remediation actions retained 7 years from closure in the compliance evidence repository."
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any complaint missing ICA-relevance tagging, breaching the SLA, or closed without a documented root cause is logged as an exception."
+        },
+        "Remediation sign-off captured": {
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "value": "Manager signs off every root-cause remediation action and confirms it is implemented before the complaint case is closed."
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All ICA-tagged complaints closed in the test period, reconciled to intake-channel volumes to test for under-tagging."
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for an SLA breach without escalation, or a systemic remediation missing its target fix date on a recurring root cause; any fail escalates to the Chief Risk Officer."
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous; testing runs monthly on substantiated systemic-remediation-linked complaints plus a rolling sample of others."
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have investigated or dispositioned any sampled complaint."
+        },
+        "Evidence location for test results": {
+          "value": "Complaint-handling test workpaper in the compliance evidence repository, cross-referenced to the case management tool."
+        },
+        "Regulator-ready documentation": {
+          "value": "Complaint trend report plus sampled case files, presentable to OSFI or a provincial regulator's market conduct inquiry within 5 business days."
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager owns any regulator complaint-handling inquiry; Chief Risk Officer escalates any material systemic exposure."
+        }
+      },
+      "checklist": [
+        {
+          "step": "Capture the complaint at intake",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "app": "Customer Self-Service Portal",
+          "actions": [
+            "Log every complaint received through the Customer Self-Service Portal, contact centre, mail or broker channel into the workflow/case management tool with channel, date, product line and complainant details.",
+            "Capture the complainant's own words on the issue before summarizing, to avoid losing detail relevant to tagging.",
+            "Assign a unique case number and acknowledge receipt to the complainant per the standard SLA."
+          ],
+          "done": "every complaint is logged with a case number, channel and verbatim issue text, and receipt is acknowledged."
+        },
+        {
+          "step": "Tag ICA-relevance",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Review the complaint against the ICA touchpoint list: notice timing/content, investment-limit-driven fund changes, capital/liquidity-related product actions, or actuary reporting-chain matters.",
+            "Tag ICA-relevant complaints distinctly from general service complaints.",
+            "Route ICA-tagged complaints to the Market Conduct / Consumer Compliance Manager for investigation assignment."
+          ],
+          "done": "the complaint is tagged for ICA-relevance and, where relevant, routed to Market Conduct for assignment."
+        },
+        {
+          "step": "Assign the investigation",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "Assign each ICA-tagged complaint to a Complaints Specialist or Consumer Affairs Analyst with subject-matter familiarity (notices, investment operations).",
+            "Set the 15-business-day SLA clock from the case log date.",
+            "Confirm the assignee has access to the relevant source records (notice log, template inventory, investment limit reports)."
+          ],
+          "done": "each ICA-tagged complaint is assigned with the SLA clock started and source-record access confirmed."
+        },
+        {
+          "step": "Investigate the underlying facts",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "actions": [
+            "Pull the specific source record the complaint concerns: notice log entry, template version, or the investment/capital action record.",
+            "Compare the complainant's account against the source record to establish what actually happened, not just what the complainant believes happened.",
+            "Interview the relevant internal team (Policy Administration, Investment Operations) where the source record alone is insufficient."
+          ],
+          "done": "the investigation is grounded in the specific source record and, where needed, an internal interview, not the complaint narrative alone."
+        },
+        {
+          "step": "Determine substantiation and root cause",
+          "by": "Consumer Affairs Analyst",
+          "role": "Consumer Affairs Analyst",
+          "actions": [
+            "Conclude whether the complaint is substantiated, partially substantiated or unsubstantiated based on the source-record comparison.",
+            "For substantiated complaints, assign a root-cause category: notice timing miss, notice content error, investment-limit breach impact, system configuration failure, or staff error.",
+            "Document the root-cause finding with the specific evidence supporting it."
+          ],
+          "done": "a substantiation conclusion and, for substantiated cases, a root-cause category with supporting evidence is documented."
+        },
+        {
+          "step": "Design the individual remediation",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "For substantiated complaints, determine the individual remedy (corrective notice, fee/interest adjustment, formal apology and explanation).",
+            "Confirm any financial remedy is authorized per the delegation of authority and routed to Finance for processing.",
+            "Record the remedy offered and the complainant's response."
+          ],
+          "done": "the individual remedy is determined, authorized and its offer/response recorded."
+        },
+        {
+          "step": "Respond to the complainant within the SLA",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "actions": [
+            "Draft the response letter/email addressing the substantiation conclusion, remedy (if any) and the complainant's right to escalate to the applicable ombudsman or OSFI's complaint-handling channel.",
+            "Route the response for Market Conduct sign-off before sending.",
+            "Send within the 15-business-day SLA and log the send date."
+          ],
+          "done": "the response is sent within SLA with the substantiation conclusion, remedy and escalation rights, signed off before sending."
+        },
+        {
+          "step": "Escalate any missed SLA",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "At day 10, review all open ICA-tagged cases for SLA risk and reassign resources where needed.",
+            "For any case that breaches the 15-business-day SLA, log the breach and notify the Head of Compliance.",
+            "Send an interim update to the complainant explaining the delay."
+          ],
+          "done": "SLA-risk cases are actively managed, and any breach is logged, escalated and disclosed to the complainant."
+        },
+        {
+          "step": "Aggregate substantiated complaints by root cause",
+          "by": "Consumer Affairs Analyst",
+          "role": "Consumer Affairs Analyst",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Monthly, pull all substantiated ICA-tagged complaints closed in the period from the case management tool.",
+            "Group by root-cause category and product line/state or province.",
+            "Identify any root cause exceeding a defined trend threshold (e.g. 3 or more substantiated complaints on the same cause in a rolling 90 days)."
+          ],
+          "done": "substantiated complaints are aggregated by root cause monthly, with any threshold breach identified."
+        },
+        {
+          "step": "Open a systemic remediation for trending root causes",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "For any root cause exceeding the trend threshold, open a systemic remediation item distinct from the individual case remedies already closed.",
+            "Route the systemic item to the accountable process owner (e.g. Policy Forms Specialist for notice content, IT for system configuration).",
+            "Set a target fix date and require confirmation the fix was implemented and tested."
+          ],
+          "done": "trending root causes have an open systemic remediation item with an accountable owner and a target fix date."
+        },
+        {
+          "step": "Verify systemic remediation implementation",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "On the target fix date, confirm with the accountable owner that the fix was implemented (e.g. new notice template published, configuration rule corrected).",
+            "Where practical, pull a post-fix sample of the affected process to confirm the root cause no longer recurs.",
+            "Close the systemic remediation item only after confirmed implementation."
+          ],
+          "done": "systemic remediation is confirmed implemented, with a post-fix sample check where practical, before closure."
+        },
+        {
+          "step": "Log unresolved or recurring root causes as an exception",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Where a systemic remediation misses its target fix date, or the root cause recurs after a prior 'fixed' closure, raise a tracker issue.",
+            "Assign an escalated owner and a revised remediation date.",
+            "Notify the Head of Compliance of any recurrence after a prior fix."
+          ],
+          "done": "missed or recurring systemic remediations are logged with an escalated owner, revised date and leadership notification."
+        },
+        {
+          "step": "Retain the complaint and remediation package",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the complaint record, investigation notes, substantiation conclusion, remedy and closure correspondence to the compliance evidence repository.",
+            "Apply the 7-year retention label from case closure.",
+            "Index the package by case number and root-cause category."
+          ],
+          "done": "the complaint package is filed, retention-labelled and indexed by case number and root cause."
+        },
+        {
+          "step": "Report complaint trends to Compliance and business leadership",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "Prepare the monthly trend report: volume, substantiation rate, SLA performance, open/closed systemic remediations.",
+            "Present to the Head of Compliance and the accountable business owners for any open systemic item.",
+            "Record leadership direction and any resourcing decisions."
+          ],
+          "done": "the monthly trend report is presented to leadership with recorded direction."
+        },
+        {
+          "step": "Escalate material trends to the Board Risk/Audit Committee",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Where a trend indicates a material, unremediated ICA-related exposure (e.g. a widespread notice failure), prepare a summary for the Board Risk/Audit Committee.",
+            "Include the root cause, remediation status and any regulatory self-report consideration with Regulatory Counsel.",
+            "Record the Committee's direction."
+          ],
+          "done": "material unremediated trends are escalated to the Board Risk/Audit Committee with recorded direction."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of ICA-tagged complaints in the test period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Extract every complaint tagged ICA-relevant from the case management tool for the period.",
+            "Cross-check tagging logic against a sample of untagged complaints to test for under-tagging.",
+            "Log any complaint that should have been tagged but was not."
+          ],
+          "done": "population reconciled including a check for under-tagged complaints."
+        },
+        {
+          "step": "Reconcile complaint volume to the intake channels",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently pull complaint counts from the Customer Self-Service Portal and contact centre logs for the period.",
+            "Compare to the case management tool's logged count.",
+            "Investigate any material gap suggesting under-logging."
+          ],
+          "done": "complaint volume independently reconciled across intake channels."
+        },
+        {
+          "step": "Select the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of substantiated complaints tied to a systemic remediation.",
+            "Take a seeded random sample of 15 additional ICA-tagged complaints.",
+            "Record seed and population size."
+          ],
+          "done": "sample covers all systemic-remediation-linked complaints plus a reproducible random draw."
+        },
+        {
+          "step": "Re-perform the substantiation determination",
+          "by": "Consumer Affairs Analyst",
+          "role": "Consumer Affairs Analyst",
+          "actions": [
+            "Independently pull the same source record (notice log, template inventory, investment/capital action record) used in the original investigation for each sampled complaint.",
+            "Reach an independent substantiation conclusion without reading the original conclusion first.",
+            "Compare and log any difference."
+          ],
+          "done": "substantiation independently re-determined and compared for every sampled complaint."
+        },
+        {
+          "step": "Verify SLA timing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute business days from case log date to response send date for each sampled complaint.",
+            "Compare to the 15-business-day SLA and the recorded breach log.",
+            "Log any unrecorded breach."
+          ],
+          "done": "SLA timing independently recomputed, with unrecorded breaches logged."
+        },
+        {
+          "step": "Verify individual remedy authorization and execution",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For sampled cases with a financial remedy, confirm authorization under the delegation of authority.",
+            "Confirm the remedy was actually processed (payment/adjustment record).",
+            "Log any remedy promised but not executed."
+          ],
+          "done": "remedy authorization and execution verified for the sample."
+        },
+        {
+          "step": "Test the trend aggregation logic",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently aggregate substantiated complaints by root cause and product line for the test period using the case management tool's raw data.",
+            "Compare to the Market Conduct-produced trend report.",
+            "Log any threshold breach the original report missed."
+          ],
+          "done": "trend aggregation independently reproduced and compared to the reported trend."
+        },
+        {
+          "step": "Verify systemic remediation implementation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each systemic remediation item closed in the period, independently confirm with the accountable owner's evidence (e.g. published template version, configuration change record) that the fix was actually implemented, not just marked closed.",
+            "Sample the post-fix process where practical.",
+            "Log as an exception any systemic remediation closed on a status update alone, with no supporting implementation evidence."
+          ],
+          "done": "systemic remediation implementation independently confirmed with evidence, not status alone."
+        },
+        {
+          "step": "Log every testing exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for every finding in steps 1 through 8.",
+            "Assign root cause and owner.",
+            "Set remediation date; carry any recurring root cause forward as a mandatory retest."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "board portal",
+          "actions": [
+            "Compute the exception rate and substantiation-handling accuracy against threshold.",
+            "Write the conclusion with evidence references.",
+            "Have an independent reviewer who performed no original investigations sign.",
+            "Report to the Board Risk/Audit Committee, flagging any unremediated systemic trend."
+          ],
+          "done": "signed conclusion filed and reported to the Board Risk/Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-062-C16",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Internal Auditor",
+          "value": "Owns the annual audit of statutory notice samples (content and timing) across the notice inventory and delivery process, reporting results to the Audit Committee."
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — ICA s.369/s.368 reporting-chain and the annual meeting 21-day notice practice re-read against each audited notice type at planning (rep: Canada)."
+        },
+        "In-scope processes": {
+          "value": "Annual audit planning through sample selection, content/timing testing, findings and Audit Committee reporting, covering every statutory notice type in the notice inventory."
+        },
+        "In-scope systems": {
+          "app": "AuditBoard",
+          "value": "Hosts the audit plan, workpapers, sample selection and findings tracker for the annual notice audit."
+        },
+        "Compliance procedure documented": {
+          "value": "Annual Statutory Notice Audit Procedure — risk-based scoping, sample methodology, content/timing test steps, finding rating, and Audit Committee reporting template."
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Audit Executive; the annual audit plan is approved by the Audit Committee before fieldwork begins."
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual — fieldwork completes and the report is issued to the Audit Committee at least one full cycle before the next annual meeting notice."
+        },
+        "Deadline reminders configured": {
+          "value": "Audit plan milestone alerts at fieldwork start, fieldwork completion and report-issuance dates, tracked in AuditBoard against the Audit Committee calendar."
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Audit plan, workpapers, sample evidence and the issued report retained 7 years from issuance in the compliance evidence repository."
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Every audit finding is logged with severity rating, root cause, management action plan and target date."
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Audit Executive",
+          "value": "Chief Audit Executive signs off closure of every finding once management's action plan is verified implemented."
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every statutory notice audit finding, sample selection and workpaper produced in the audit cycle, plus a re-pull of the underlying notice population independent of the original extract."
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for an unsupported high-severity finding or an unretested repeat finding; QA sample re-performance variance from the original conclusion above 5% of tested items triggers a full re-audit."
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation (the audit itself) is annual; the QA review of the audit is performed once per cycle, immediately following report issuance and before the next audit plan is scoped."
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Chief Audit Executive",
+          "value": "Reviewer must not have performed any of the original engagement's sample testing or drafted any finding."
+        },
+        "Evidence location for test results": {
+          "value": "QA review workpaper (independent re-pull, re-performance notes, exceptions) filed in the compliance evidence repository alongside the original audit package."
+        },
+        "Regulator-ready documentation": {
+          "value": "QA-reviewed audit report plus the underlying workpapers, presentable to OSFI or an external quality assessor within 10 business days."
+        },
+        "Regulator response path": {
+          "value": "Chief Audit Executive owns any OSFI or external quality-assessment inquiry into the internal audit function's notice-audit work; General Counsel clears any written response."
+        }
+      },
+      "checklist": [
+        {
+          "step": "Scope the annual notice audit",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "AuditBoard",
+          "actions": [
+            "In AuditBoard, open the annual audit plan and confirm the statutory notice audit is scheduled with the notice inventory as its universe.",
+            "Set the audit period to the most recently completed cycle for each notice type (including the last annual meeting notice).",
+            "Identify any prior-year finding requiring mandatory retest this cycle."
+          ],
+          "done": "the audit is scoped in AuditBoard against the current notice inventory, with prior-year findings flagged for retest."
+        },
+        {
+          "step": "Get Audit Committee approval of the audit plan",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "board portal",
+          "actions": [
+            "Present the scoped audit plan, including objectives, sample approach and timeline, to the Audit Committee for approval.",
+            "Incorporate any Committee-requested scope addition (e.g. a specific notice type of concern).",
+            "Record the approval date."
+          ],
+          "done": "the Audit Committee approves the audit plan, with any requested scope addition incorporated and the approval date recorded."
+        },
+        {
+          "step": "Pull the full population of notices issued in the audit period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Extract every notice log entry for the audit period across all in-scope notice types.",
+            "Reconcile the extract count to the corporate calendar's recorded triggering events (AGM, dividend declarations, assignments).",
+            "Resolve any discrepancy before sampling."
+          ],
+          "done": "the population is extracted and reconciled to the corporate calendar with no unresolved discrepancy."
+        },
+        {
+          "step": "Draw the risk-based sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of annual meeting notices and any notice type with a prior-year finding.",
+            "Take a seeded random sample of 20 additional notices spread across remaining notice types and lines of business.",
+            "Record the seed, population size and selection date in AuditBoard."
+          ],
+          "done": "the sample is drawn in AuditBoard, covering all high-risk notices plus a reproducible random draw."
+        },
+        {
+          "step": "Test content accuracy against the approved template",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "For each sampled notice, pull the as-sent copy from the correspondence archive and the approved template version recorded in the notice inventory as current at the notice's generation date.",
+            "Compare content line-by-line, including the statutory citation footer and any variable data (dates, amounts).",
+            "Log any deviation as a content finding with severity based on whether the deviation affects a required statutory disclosure."
+          ],
+          "done": "content is compared line-by-line for every sampled notice, with deviations logged and severity-rated."
+        },
+        {
+          "step": "Test timing accuracy against the statutory or by-law deadline",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "For each sampled notice, recompute the required deadline from its triggering event date (e.g. 21 days before the meeting for the annual meeting notice).",
+            "Compare the recomputed deadline to the actual dispatch date recorded in the notice log.",
+            "Log any late dispatch as a timing finding with severity based on days late and recipient impact."
+          ],
+          "done": "timing is independently recomputed and compared for every sampled notice, with late dispatch logged and severity-rated."
+        },
+        {
+          "step": "Verify delivery and recipient completeness",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "For each sampled notice, confirm delivery confirmation exists for the full recipient list, not a partial batch.",
+            "Independently recompute the expected eligible-recipient count from the policy administration system as of the record date and compare to the dispatched count.",
+            "Log any recipient-completeness gap as a finding."
+          ],
+          "done": "delivery and recipient completeness are verified for every sampled notice, with gaps logged as findings."
+        },
+        {
+          "step": "Trace prior-year findings to confirm remediation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For every finding from the prior year's audit, pull the management action plan and confirm the recorded completion evidence.",
+            "Retest the specific control or process the finding addressed using a current-period example.",
+            "Close the finding only if the retest confirms the fix, otherwise log it as a repeat finding."
+          ],
+          "done": "every prior-year finding is retested with a current-period example and closed or logged as a repeat finding."
+        },
+        {
+          "step": "Rate and document each finding",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "AuditBoard",
+          "actions": [
+            "For every content, timing or recipient-completeness finding, rate severity (high/medium/low) based on statutory impact and recipient count affected.",
+            "Document the finding with the specific notice(s), evidence and root cause in AuditBoard.",
+            "Route each finding to the accountable process owner (Policy Forms Specialist, Policy Administrator, Corporate Secretary, or IT) for a management response."
+          ],
+          "done": "every finding is severity-rated, documented with evidence and root cause, and routed for a management response."
+        },
+        {
+          "step": "Obtain management action plans",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Collect a written action plan and target date from each process owner for their assigned findings.",
+            "Assess whether the target date allows remediation before the next occurrence of the affected notice's triggering event.",
+            "Escalate to the Chief Audit Executive any action plan that does not close before the next triggering event for a high-severity finding."
+          ],
+          "done": "every finding carries a management action plan with a target date, escalated where a high-severity fix will not beat the next triggering event."
+        },
+        {
+          "step": "Draft the audit report",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Draft the report summarizing scope, sample, findings by severity, and management action plans.",
+            "State an overall opinion on notice content and timing compliance (effective / effective with exceptions / ineffective).",
+            "Route the draft to the Chief Audit Executive for review."
+          ],
+          "done": "a draft report with an overall opinion and management action plans is routed for Chief Audit Executive review."
+        },
+        {
+          "step": "Get Chief Audit Executive review and quality check",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Review the workpapers supporting each finding for sufficiency of evidence and correct severity rating.",
+            "Confirm the sample methodology and population reconciliation are documented and reproducible.",
+            "Approve the report for issuance or return with required workpaper corrections."
+          ],
+          "done": "the report is approved for issuance with a documented quality check, or returned with corrections."
+        },
+        {
+          "step": "Issue the report and present to the Audit Committee",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "board portal",
+          "actions": [
+            "Issue the final report to the process owners and Compliance leadership.",
+            "Present the report, including any high-severity finding, to the Audit Committee via the board portal at its next sitting.",
+            "Record the Committee's direction, including any requirement for interim status updates on open findings."
+          ],
+          "done": "the report is issued and presented to the Audit Committee, with its direction recorded."
+        },
+        {
+          "step": "Retain the audit package",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the audit plan, workpapers, sample evidence, findings and the issued report to the compliance evidence repository.",
+            "Apply the 7-year retention label from issuance.",
+            "Index the package by audit year and notice type."
+          ],
+          "done": "the audit package is filed, retention-labelled and indexed by year and notice type."
+        },
+        {
+          "step": "Track open findings to closure",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Log every open finding and its target date in the regulatory filing/issue tracker for ongoing monitoring.",
+            "Follow up with process owners ahead of each target date for status.",
+            "Confirm closure evidence and get Chief Audit Executive sign-off before marking a finding closed."
+          ],
+          "done": "open findings are tracked to a Chief Audit Executive-signed closure with confirmed evidence."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Independently re-pull the notice population for the audited cycle",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Without referencing the original audit's extract, independently pull the notice log population for the same audit period from the policy administration system.",
+            "Compare the independently pulled count to the original audit's documented population count.",
+            "Log any discrepancy as a population-integrity exception."
+          ],
+          "done": "the population is independently re-pulled and reconciled to the original audit's documented count, or a discrepancy is logged."
+        },
+        {
+          "step": "Reconcile the original sample to the selection methodology",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "AuditBoard",
+          "actions": [
+            "Using the recorded seed and population size in AuditBoard, reproduce the random sample selection.",
+            "Confirm the reproduced sample matches the original audit's tested sample exactly.",
+            "Confirm 100% coverage of the annual meeting notices and prior-year-finding notice types as documented."
+          ],
+          "done": "the sample is reproducible from the recorded seed and matches the original tested sample."
+        },
+        {
+          "step": "Re-perform content testing on a sub-sample",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Select 8 notices from the original sample and independently compare the as-sent copy to the approved template version, without reading the original finding first.",
+            "Compare the independent conclusion to the original workpaper's conclusion for each.",
+            "Log any difference as a QA exception."
+          ],
+          "done": "content testing is independently re-performed on a sub-sample and compared to the original conclusions."
+        },
+        {
+          "step": "Re-perform timing testing on a sub-sample",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "For the same 8-notice sub-sample, independently recompute the statutory/by-law deadline from the triggering event date and compare to the recorded dispatch date.",
+            "Compare the independent timing conclusion to the original workpaper's conclusion.",
+            "Log any difference as a QA exception."
+          ],
+          "done": "timing testing is independently re-performed and compared to the original conclusions for the sub-sample."
+        },
+        {
+          "step": "Verify finding severity ratings are supported and consistently applied",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Review every logged finding's evidence against the severity rating assigned.",
+            "Compare severity ratings across similar finding types (e.g. all late-annual-meeting-notice findings) for consistency.",
+            "Downgrade or upgrade any inconsistently rated finding and document the reason."
+          ],
+          "done": "severity ratings are independently checked for evidentiary support and consistency, with any correction documented."
+        },
+        {
+          "step": "Verify prior-year finding closures were properly retested",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Pull every prior-year finding marked closed in the current audit and confirm a current-period retest example, not just a status update, supports the closure.",
+            "Reopen any finding closed without genuine retest evidence.",
+            "Document the basis for confirming or reopening each closure."
+          ],
+          "done": "prior-year closures are confirmed genuinely retested or reopened, with the basis documented."
+        },
+        {
+          "step": "Confirm management action plans are tracked to target dates",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Pull the tracker record for every open finding from the current audit and confirm a target date and owner are recorded.",
+            "Confirm any high-severity finding's target date beats the next occurrence of the affected notice's triggering event.",
+            "Log any finding lacking a target date, owner, or adequate timeline as a QA exception."
+          ],
+          "done": "every open finding is confirmed tracked with an owner, target date and adequate timeline, or the gap is logged."
+        },
+        {
+          "step": "Verify Audit Committee reporting occurred as required",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "board portal",
+          "actions": [
+            "Confirm the audit report and any high-severity finding were actually presented to the Audit Committee, per the board portal minutes.",
+            "Confirm the Committee's recorded direction matches any interim status-update requirement.",
+            "Log any gap between required and actual Committee reporting."
+          ],
+          "done": "Audit Committee reporting is confirmed against board portal minutes, with any gap logged."
+        },
+        {
+          "step": "Log every QA exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for every exception found in steps 1 through 8, naming the specific finding or workpaper affected.",
+            "Assign a root cause (sample reproducibility gap, inconsistent severity rating, unretested closure) and an owner.",
+            "Set a remediation date and require it be addressed before the next annual audit plan is scoped."
+          ],
+          "done": "every QA exception has an issue, root cause, owner and a remediation date required before next cycle's planning."
+        },
+        {
+          "step": "Conclude the QA review, sign and report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "board portal",
+          "actions": [
+            "Compute the QA exception rate against the 5% re-performance variance threshold.",
+            "Write the QA conclusion (audit reliable / reliable with exceptions / re-audit required) with evidence references.",
+            "Sign the QA workpaper as the independent reviewer, confirming no involvement in the original engagement.",
+            "Report the QA conclusion to the Audit Committee alongside the original audit report."
+          ],
+          "done": "a signed QA conclusion with exception rate is filed and reported to the Audit Committee alongside the original report."
+        }
+      ]
+    }
+  ]
+}

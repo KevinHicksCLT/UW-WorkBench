@@ -1,0 +1,1820 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-063-C09",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Reserving Actuary",
+          "value": "Owns the quarterly reserve-to-extract reconciliation feeding the §807(d) tax reserve recomputation"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 26 U.S.C. §807 (life insurance reserves) and §816 (life insurance company defined), re-read each quarter close for the prescribed tax reserve method and applicable federal interest rate"
+        },
+        "In-scope processes": {
+          "value": "Policy admin reserve extract → reserve data warehouse → tax reserve recomputation feeding Form 1120-L Schedule F, across all life, annuity and group health blocks"
+        },
+        "In-scope systems": {
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "value": "Reserve extract source system; feeds the actuarial modeling platform and the tax reserve workpaper"
+        },
+        "Compliance procedure documented": {
+          "value": "Quarterly Reserve-to-Policy-Admin Reconciliation Procedure — extract pull, GL tie-out, roll-forward, §807(d) recomputation, variance investigation"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Actuary and Controller; reviewed annually and on any change to the reserve valuation model or admin system data schema"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Quarterly, aligned to statutory quarterly close; year-end reconciliation must close ahead of the Form 1120-L due date of March 15 (or September 15 with the automatic 6-month extension on Form 7004)"
+        },
+        "Deadline reminders configured": {
+          "value": "Reserve close calendar alerts at T-10, T-5 and T-0 business days to each quarter-end close, escalating to the Controller if unresolved at T-0"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Reconciliation workpapers, GL tie-out schedules and variance logs retained 7 years per IRS record-retention rules (26 CFR §1.6001-1)"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any unreconciled variance exceeding tolerance is logged with segment, dollar amount, root cause and remediation owner"
+        },
+        "Remediation sign-off captured": {
+          "role": "Controller",
+          "value": "Controller signs off every closed variance and every quarter's reconciliation package before it feeds the tax reserve workpaper"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All reserve segments/plan codes in the quarter's policy admin extract across life, annuity and group health lines"
+        },
+        "Pass/fail thresholds": {
+          "value": "Unexplained variance greater than 0.5% of segment reserve balance or $250,000, whichever is less, is a fail requiring root-cause and remediation before sign-off"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is quarterly; test re-performs the reconciliation each quarter over that quarter's population"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have prepared or reviewed the quarter's reconciliation package"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly reserve reconciliation test workpaper in the compliance evidence repository, cross-referenced to the GL close package"
+        },
+        "Regulator-ready documentation": {
+          "value": "Reconciliation package plus GL tie-out and §807(d) recomputation schedule, presentable to an IRS exam within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "Tax Director owns the IRS reserve-methodology exam response; Appointed Actuary and Reserving Actuary provide technical support"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Pull the quarter-end reserve extract from the policy admin system",
+          "by": "Data Engineer",
+          "role": "Data Engineer",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "In the policy admin system open the reserve/valuation extract job for the quarter-end as-of date and run it for every writing company and line of business (life, annuity, group health).",
+            "Confirm the extract carries policy id, plan code, issue date, valuation interest rate, mortality/morbidity table code, reserve method flag and gross reserve amount per contract.",
+            "Load the extract into the reserve data warehouse staging table and record the row count and total reserve dollars.",
+            "Notify the Reserving Actuary that the extract is loaded and ready for reconciliation, with the source run id."
+          ],
+          "done": "the quarter-end extract is loaded to staging with a recorded row count and dollar total for every line of business."
+        },
+        {
+          "step": "Map plan codes to tax reserve categories",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Open the plan-code-to-tax-category crosswalk (life, annuity certain/non-certain, group health) maintained in the actuarial modeling platform.",
+            "Match every plan code in the quarter's extract against the crosswalk; flag any unmapped code.",
+            "For flagged codes, contact the Product / Filing Actuary to confirm the correct tax category and add the code to the crosswalk.",
+            "Re-run the mapping until zero unmapped codes remain."
+          ],
+          "done": "every plan code in the extract maps to a tax reserve category with zero unmapped rows outstanding."
+        },
+        {
+          "step": "Pull the prior quarter's closing reserve balances for roll-forward",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "In the actuarial modeling platform open the prior quarter's signed-off reserve output by segment and plan code.",
+            "Export the prior closing reserve, in-force count and premium in force to the reconciliation workbook.",
+            "Confirm the prior quarter figures match the amounts carried in the prior quarter's filed reconciliation report."
+          ],
+          "done": "prior quarter closing reserves and in-force counts are loaded into the reconciliation workbook and agree to the prior filed report."
+        },
+        {
+          "step": "Build the expected roll-forward and compare to the new extract",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Compute expected reserve = prior closing reserve + new issues − terminations/lapses/deaths ± interest accrual, by segment.",
+            "Compare the expected roll-forward to the actual reserve total in the new quarter's extract, by segment and in total.",
+            "List every segment where the roll-forward variance exceeds 0.5% of segment reserve or $250,000.",
+            "Route listed segments to the Reserving Actuary for investigation before proceeding."
+          ],
+          "done": "a roll-forward comparison exists for every segment with all variances over threshold flagged for investigation."
+        },
+        {
+          "step": "Tie the extract total to the general ledger reserve balance",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "In the ERP general ledger, pull the quarter-end reserve liability account balance by writing company and line of business.",
+            "Compare the GL balance to the policy admin extract total, segment by segment.",
+            "Document any difference (timing, manual journal entries, ceded reinsurance adjustments) with the GL entry number that explains it.",
+            "Escalate any unexplained GL-to-extract difference to the Controller the same day."
+          ],
+          "done": "the extract total ties to the GL reserve balance by segment, with every difference explained by a documented GL entry."
+        },
+        {
+          "step": "Investigate flagged segment variances",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "For each flagged segment, pull a sample of contracts and trace the individual reserve calculation against the approved valuation basis in the actuarial modeling platform.",
+            "Check for data issues: missing issue dates, stale mortality table codes, duplicated or dropped policy records in the extract.",
+            "Contact the Data Engineer to correct any extract defect and re-pull the affected segment.",
+            "Record the root cause and resolution for each investigated variance in the reconciliation workbook."
+          ],
+          "done": "every flagged segment has a documented root cause and, where the extract was defective, a corrected re-pull."
+        },
+        {
+          "step": "Reconcile in-force policy counts between admin system and actuarial model",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Compare total in-force policy count and face amount/account value by segment between the policy admin extract and the actuarial model's loaded inventory.",
+            "Identify policies present in one system and not the other (drop-outs or duplicates) and list them by policy id.",
+            "Send the discrepancy list to Policy Administration for record-level investigation.",
+            "Update the reconciliation workbook once each discrepancy is resolved or explained."
+          ],
+          "done": "in-force counts and face amounts reconcile by segment or every discrepancy is explained and logged."
+        },
+        {
+          "step": "Validate the valuation assumptions used match the approved assumption set",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Pull the current approved valuation interest rates, mortality/morbidity tables and reserve method by plan code from the actuarial assumption governance record.",
+            "Compare against the assumption codes actually applied in the quarter's extract and model run.",
+            "Flag any plan code running on a superseded or incorrect assumption.",
+            "Route flagged plan codes to the Appointed Actuary for a determination on restatement versus prospective correction."
+          ],
+          "done": "every plan code's applied assumptions match the approved governance record or has an Appointed Actuary disposition on file."
+        },
+        {
+          "step": "Recompute the tax reserve under the §807(d) prescribed method",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Pull the current-year applicable federal interest rate and the prescribed reserve method (CRVM/CARVM or successor NAIC method) referenced in §807(d) and (e).",
+            "Apply the prescribed method to the reconciled statutory reserve by segment to derive the federally computed reserve amount.",
+            "Cap the computed tax reserve at the statutory reserve amount, and floor per the statutory net surrender value rule, per §807(d)(1).",
+            "Load the computed tax reserve by segment into the tax reserve workpaper feeding Form 1120-L Schedule F."
+          ],
+          "done": "the tax reserve is recomputed by segment under the §807(d) method, capped/floored correctly, and loaded to the tax workpaper."
+        },
+        {
+          "step": "Compare the computed tax reserve to the prior quarter's carrying value",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "Pull the prior quarter's tax reserve carrying value by segment from the tax reserve workpaper.",
+            "Compute the quarter-over-quarter change and compare it to the expected change implied by new issues, terminations and interest accrual.",
+            "Flag any segment where the change is not explained by normal business activity.",
+            "Route flagged segments back to the Reserving Actuary for a combined explanation before the workpaper is finalized."
+          ],
+          "done": "the quarter-over-quarter tax reserve change is explained by business activity for every segment or is logged as an open item."
+        },
+        {
+          "step": "Document all exceptions and variances with root cause",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Consolidate every flagged variance from the roll-forward, GL tie-out, in-force count and assumption checks into a single exception log.",
+            "For each entry record: segment, dollar/count variance, root cause category, resolution and resolution date.",
+            "Confirm no exception remains open without an assigned owner and target close date.",
+            "Attach the exception log to the reconciliation workbook."
+          ],
+          "done": "the exception log is complete with root cause, owner and resolution or target date for every entry."
+        },
+        {
+          "step": "Assemble the quarterly reconciliation report package",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Compile the reconciliation workbook, GL tie-out schedule, exception log and §807(d) recomputation schedule into a single report package.",
+            "Add a summary page with total reserve by segment, total variance resolved and total variance still open.",
+            "Version and date the package using the naming convention <company>-reserve-recon-<yyyyQq>.",
+            "Route the package to the Controller and Tax Director for review."
+          ],
+          "done": "a versioned, dated reconciliation report package exists covering every segment and is routed for review."
+        },
+        {
+          "step": "Route the package for Controller sign-off",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Review the reconciliation report package for completeness against the procedure checklist.",
+            "Confirm every exception is closed or has an approved remediation date before signing.",
+            "Sign and date the package; return unresolved items to the Reserving Actuary with a revised deadline if any remain open.",
+            "Notify the Tax Director once sign-off is complete so the tax reserve figures can be used in the return workpaper."
+          ],
+          "done": "the Controller has signed and dated the reconciliation package with no unresolved exceptions outstanding."
+        },
+        {
+          "step": "File the reconciliation report and hand off tax reserve figures",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the signed reconciliation package to the compliance evidence repository under the quarter and writing company.",
+            "Apply the 7-year retention label per IRS record-retention rules.",
+            "Hand off the finalized §807(d) tax reserve figures to the Tax Manager for inclusion in the Form 1120-L Schedule F workpaper.",
+            "Confirm the repository index shows the record as searchable by quarter, segment and writing company."
+          ],
+          "done": "the signed package is filed with a 7-year retention label and the tax reserve figures are confirmed received by Tax."
+        },
+        {
+          "step": "Update the reserve close calendar and reminders for next quarter",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Record the actual close date and any process delays against the reserve close calendar entry for the quarter just completed.",
+            "Adjust the T-10/T-5/T-0 reminder schedule for the next quarter if this quarter ran late.",
+            "Note any recurring root cause (e.g., a specific plan code family) for inclusion in the next procedure review.",
+            "Confirm the next quarter's calendar entry and reminders are active before closing out this cycle."
+          ],
+          "done": "the close calendar is updated with this quarter's actuals and next quarter's reminders are confirmed active."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of reserve segments subject to the quarter's reconciliation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Independently extract the quarter-end reserve data from the policy admin system by segment and plan code, without using the Reserving Actuary's staged extract.",
+            "Reconcile the row count and total reserve dollars of the independent extract to the extract used in the reconciliation workbook.",
+            "Resolve any difference in population before proceeding to sampling."
+          ],
+          "done": "the independently pulled population reconciles to the workbook's extract in row count and total dollars."
+        },
+        {
+          "step": "Reconcile the reconciliation report's GL tie-out independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Pull the quarter-end reserve liability GL balance directly from the general ledger for each segment.",
+            "Compare independently to the reconciliation report's GL tie-out figures.",
+            "List any segment where the independently pulled GL balance does not match the report as an exception."
+          ],
+          "done": "every segment's GL balance is independently confirmed to match the report or is logged as an exception."
+        },
+        {
+          "step": "Select and document the sample of segments and contracts",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of segments with a flagged variance in this quarter's exception log.",
+            "Take a random sample of 25 contracts (seeded, reproducible) from the remaining unflagged segments, minimum 40 contracts total.",
+            "Record the seed, population size and selection date in the test workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and includes every flagged segment."
+        },
+        {
+          "step": "Re-perform the roll-forward calculation for sampled segments",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently recompute expected reserve = prior closing reserve + issues − terminations ± interest for each sampled segment.",
+            "Compare the re-performed roll-forward to the figure in the reconciliation workbook.",
+            "Log any difference exceeding 0.5% of segment reserve or $250,000 as an exception."
+          ],
+          "done": "each sampled segment has an independently re-performed roll-forward with any threshold-breaching difference logged."
+        },
+        {
+          "step": "Re-perform the §807(d) tax reserve recomputation on the sample",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Independently pull the applicable federal interest rate and prescribed reserve method for each sampled segment as of the test date.",
+            "Recompute the §807(d) tax reserve and compare to the amount loaded in the tax reserve workpaper.",
+            "Confirm the cap/floor rules under §807(d)(1) were applied correctly on each sampled contract.",
+            "Log any recomputation difference as an exception with the segment and dollar amount."
+          ],
+          "done": "the §807(d) recomputation is independently re-performed for every sampled segment with cap/floor rules verified."
+        },
+        {
+          "step": "Trace sampled contracts to source valuation records",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled contract, trace policy id, issue date, valuation interest rate and mortality/morbidity table code from the extract back to the policy admin system record.",
+            "Confirm the assumption codes applied match the approved valuation assumption governance record as of the valuation date.",
+            "Log any mismatch as an exception, noting whether it is a data error or an assumption-governance gap."
+          ],
+          "done": "every sampled contract traces to its source record with assumption codes confirmed or the mismatch logged."
+        },
+        {
+          "step": "Validate the assumption-set version control",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Confirm the assumption set used in the quarter's valuation run matches the version approved and dated in the assumption governance record.",
+            "Check for any assumption change made after the valuation date that was not properly version-controlled.",
+            "Sign off on assumption integrity for the tested segments or document the exception."
+          ],
+          "done": "assumption-set version control is confirmed for the tested segments or an exception is documented and signed."
+        },
+        {
+          "step": "Recompute the tax reserve quarter-over-quarter change",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled segment, recompute the quarter-over-quarter tax reserve change and compare to new issues, terminations and interest accrual for that segment.",
+            "Flag any change not reasonably explained by business activity.",
+            "Cross-check flagged segments against the exception log to confirm the original reconciliation caught the same issue."
+          ],
+          "done": "quarter-over-quarter change is independently explained for every sampled segment or flagged as a new exception."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the segment, the variance amount and the compliance/tax impact.",
+            "Assign a root cause category (data defect, stale assumption, GL timing, calculation error) and an owner.",
+            "Set a remediation date and carry any exception affecting the filed tax reserve into a self-review with the Tax Director.",
+            "Carry open exceptions into next quarter's test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Compute the exception rate against the population tested and compare to the 0.5%/$250,000 threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer, who performed none of the original reconciliation, sign the test workpaper.",
+            "File the signed workpaper in the compliance evidence repository and report results to the Tax Director and Chief Actuary."
+          ],
+          "done": "a signed test workpaper with a stated conclusion and exception rate is filed and reported to Tax and the Chief Actuary."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-063-C10",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Appointed Actuary",
+          "value": "Owns the response to any IRS or regulator inquiry into tax reserve methodology, §807/§816 classification or the Schedule F valuation basis"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 26 U.S.C. §§807, 816 and 846(e), re-read against the specific inquiry topic before drafting the response (rep citation: 26 U.S.C. §846(e) discounting election)"
+        },
+        "In-scope processes": {
+          "value": "Inbound IRS Information Document Request (IDR) or state DOI/NAIC valuation inquiry intake → technical response drafting → counsel review → submission, for any reserve or tax-classification question"
+        },
+        "In-scope systems": {
+          "app": "Internal Regulatory System",
+          "value": "Inquiry/IDR tracking log; response drafts staged with the actuarial modeling platform output referenced"
+        },
+        "Compliance procedure documented": {
+          "value": "Regulator Valuation Inquiry Response Procedure — intake, technical lead assignment, evidence assembly, counsel review, submission, close-out"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Actuary and General Counsel; reviewed annually and after any IRS exam cycle"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Event-driven — IDR response due dates as stated on the IRS Form 4564 (typically 10-15 business days, negotiable) are logged the day the IDR is received"
+        },
+        "Deadline reminders configured": {
+          "value": "Inquiry tracker alerts at receipt, at the halfway point, and 2 business days before the stated due date, escalating to the Tax Director if a response is not drafted by then"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "IDR/inquiry, response, supporting workpapers and any extension correspondence retained 7 years per 26 CFR §1.6001-1"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any missed or late response to a regulator inquiry is logged with cause and the extension or escalation obtained"
+        },
+        "Remediation sign-off captured": {
+          "role": "General Counsel",
+          "value": "General Counsel signs off before any response admitting a methodology error or restatement is submitted"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All regulator valuation inquiries (IRS IDRs, state DOI actuarial exam questions) received and closed in the period"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any response submitted after its stated or extended due date, or any response not reviewed by counsel before submission, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven; test covers 100% of inquiries closed in the period given typically low volume"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have drafted or reviewed any of the sampled responses"
+        },
+        "Evidence location for test results": {
+          "value": "Inquiry-response test workpaper in the compliance evidence repository, cross-referenced to the inquiry tracker"
+        },
+        "Regulator-ready documentation": {
+          "value": "Full inquiry-to-response trail with dates, drafts and counsel sign-off, retrievable within 5 business days of a follow-on request"
+        },
+        "Regulator response path": {
+          "value": "Tax Director is the single point of contact for IRS correspondence; Appointed Actuary and Reserving Actuary provide the technical content"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Log the inbound inquiry the day it is received",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Open a new record in the inquiry tracker with the regulator name, inquiry type (IRS IDR, state DOI question, NAIC exam question), receipt date and stated due date.",
+            "Scan and attach the original inquiry document (e.g., IRS Form 4564 Information Document Request) to the tracker record.",
+            "Identify the topic (reserve methodology, §807/§816 classification, discounting election, captive election) and route the record to the Appointed Actuary as technical lead.",
+            "Notify the Tax Director and General Counsel that a new inquiry is open, with the due date."
+          ],
+          "done": "the inquiry is logged in the tracker with source document attached, topic tagged and technical lead assigned within 1 business day of receipt."
+        },
+        {
+          "step": "Confirm the response due date and request an extension if needed",
+          "by": "Tax Director",
+          "role": "Tax Director",
+          "actions": [
+            "Read the stated due date on the IDR or inquiry letter and confirm it against the calendar.",
+            "If the technical response cannot be assembled in time, call the assigned IRS examiner or state contact before the due date to request an extension, and record the new date in writing.",
+            "Update the inquiry tracker with the confirmed or extended due date.",
+            "Never let a due date pass without either a submitted response or a documented extension."
+          ],
+          "done": "the tracker shows a confirmed due date, and any extension is documented in writing before the original date passes."
+        },
+        {
+          "step": "Assign the technical lead and scope the response",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Read the inquiry in full and identify every question that requires a technical actuarial or tax answer.",
+            "Assign each question to the Reserving Actuary, Valuation Actuary or Tax Manager best positioned to answer it.",
+            "Set an internal drafting deadline at least 3 business days ahead of the regulator due date to leave time for counsel review.",
+            "Record the assignment and internal deadline in the inquiry tracker."
+          ],
+          "done": "every question in the inquiry has a named technical owner and an internal drafting deadline ahead of the regulator due date."
+        },
+        {
+          "step": "Assemble the supporting workpapers for each question",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "For each reserve-methodology question, pull the relevant valuation output, assumption documentation and the quarterly reserve reconciliation report that supports the figure in question.",
+            "For classification questions (life vs. non-life, §831(b) captive status), pull the underlying premium, ownership and diversification data cited in the return.",
+            "Cross-reference each workpaper to the specific inquiry question number.",
+            "Save all assembled workpapers into the inquiry's evidence folder."
+          ],
+          "done": "every inquiry question has a cross-referenced workpaper assembled and saved to the evidence folder."
+        },
+        {
+          "step": "Draft the technical response narrative",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "Write a direct answer to each inquiry question, citing the specific Internal Revenue Code section, Treasury regulation or NAIC guidance relied upon.",
+            "Reference the supporting workpaper exhibit number for every factual claim in the response.",
+            "Avoid volunteering information beyond the scope of the question asked.",
+            "Circulate the draft to the assigned technical owners for factual accuracy review."
+          ],
+          "done": "a draft response exists answering every question with a citation and a workpaper exhibit reference, reviewed by the technical owners."
+        },
+        {
+          "step": "Route the draft to Regulatory Counsel for legal review",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Review the draft for any statement that could be read as an admission of an unfiled position, methodology error or understatement.",
+            "Flag any statement requiring softening, qualification, or removal, and negotiate the wording with the Tax Manager.",
+            "Confirm nothing in the response waives privilege or discloses material outside the scope of the inquiry.",
+            "Return the marked-up draft with required changes identified."
+          ],
+          "done": "counsel has reviewed the draft and all required wording changes are identified and communicated back to the drafting team."
+        },
+        {
+          "step": "Incorporate counsel's changes and finalize the response",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "Incorporate every change counsel required into the response document.",
+            "Re-confirm every citation and exhibit reference still matches after edits.",
+            "Route the final version back to counsel for a confirming sign-off.",
+            "Save the final, counsel-approved version to the inquiry evidence folder."
+          ],
+          "done": "the final response incorporates all counsel changes and carries a confirming counsel sign-off."
+        },
+        {
+          "step": "Escalate any finding requiring self-disclosure before responding",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Where preparing the response surfaces a methodology error or misclassification, halt the standard response process.",
+            "Convene the Chief Actuary, Tax Director and General Counsel to assess whether a voluntary disclosure or amended return is required.",
+            "Document the assessment and decision before finalizing the inquiry response.",
+            "Ensure the final response is consistent with the disclosure decision made."
+          ],
+          "done": "any self-disclosure question is assessed and decided by General Counsel, Tax Director and Chief Actuary before the response is sent."
+        },
+        {
+          "step": "Obtain executive sign-off before submission",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Review the final response package for technical accuracy and completeness against every inquiry question.",
+            "Sign and date the response cover memo.",
+            "Confirm the Tax Director is ready to submit through the correct channel (IRS examiner, state DOI portal, or mail).",
+            "Log the sign-off date in the inquiry tracker."
+          ],
+          "done": "the Chief Actuary has signed the final response and the tracker shows the sign-off date."
+        },
+        {
+          "step": "Submit the response through the correct regulator channel",
+          "by": "Tax Director",
+          "role": "Tax Director",
+          "actions": [
+            "Submit the response to the named IRS examiner via the agreed secure channel (Form 4564 IDR responses go to the examiner directly, not through a general portal), or to the state DOI contact for a valuation inquiry.",
+            "Request and retain a delivery/read confirmation (email receipt, certified mail tracking, or portal confirmation number).",
+            "Log the submission date, channel and confirmation reference in the inquiry tracker.",
+            "Provide a copy of the final submitted response to the technical owners for their records."
+          ],
+          "done": "the response is submitted through the correct channel with a retained delivery confirmation logged against the inquiry."
+        },
+        {
+          "step": "Track any follow-up questions from the regulator",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "actions": [
+            "Monitor for a follow-up IDR or written follow-up question referencing the closed inquiry.",
+            "If received, open a linked inquiry record referencing the original and restart the response process at the assignment step.",
+            "If no follow-up is received within 60 days, note the inquiry as presumptively accepted in the tracker.",
+            "Keep the Appointed Actuary informed of the inquiry's status until formal close."
+          ],
+          "done": "follow-up questions are linked and tracked, or the inquiry is marked presumptively accepted after 60 days with no follow-up."
+        },
+        {
+          "step": "Close out the inquiry record",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Confirm the regulator has issued a closing letter, no-change letter, or has gone 60+ days with no follow-up.",
+            "Set the inquiry tracker status to Closed with the closing basis and date.",
+            "Note any lessons learned (recurring question type, documentation gap) for the next quarterly reconciliation cycle.",
+            "Notify the Controller and Chief Actuary of closure."
+          ],
+          "done": "the inquiry is marked Closed with a documented closing basis and lessons learned noted where applicable."
+        },
+        {
+          "step": "File the complete inquiry record in the evidence repository",
+          "by": "Tax Analyst",
+          "role": "Tax Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the original inquiry, all drafts, the counsel-reviewed final response, submission confirmation and any closing letter into the compliance evidence repository.",
+            "Apply the 7-year retention label per 26 CFR §1.6001-1.",
+            "Confirm the repository index shows the record as searchable by regulator, inquiry topic and closure date."
+          ],
+          "done": "the complete inquiry record is filed with a 7-year retention label and is searchable by regulator and topic."
+        },
+        {
+          "step": "Report the closed inquiry to the Compliance Committee",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Summarize the inquiry topic, response timeliness and outcome for the next Compliance Committee meeting.",
+            "Flag any recurring inquiry theme across quarters that suggests an underlying process or documentation gap.",
+            "Record the committee's acknowledgment in the meeting minutes.",
+            "Carry forward any committee-directed action item to the relevant process owner."
+          ],
+          "done": "the closed inquiry is reported to the Compliance Committee with any recurring theme flagged and minuted."
+        },
+        {
+          "step": "Update the inquiry response procedure with lessons learned",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Review lessons-learned notes from all inquiries closed in the year.",
+            "Update the Regulator Valuation Inquiry Response Procedure where a recurring gap was identified (e.g., a workpaper that is always requested but not routinely maintained).",
+            "Route the updated procedure to General Counsel for re-approval.",
+            "Communicate the updated procedure to the Reserving Actuary, Tax Manager and Regulatory Counsel."
+          ],
+          "done": "the procedure is updated to reflect the year's lessons learned and re-approved by General Counsel."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of inquiries received and closed in the period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Export every inquiry tracker record with a receipt date in the test period, regardless of status.",
+            "Reconcile the export count to the Compliance Committee's quarterly reporting summary for the same period.",
+            "Resolve any count difference before sampling."
+          ],
+          "done": "the population reconciles to the Compliance Committee reporting summary for the period."
+        },
+        {
+          "step": "Reconcile due dates and extensions across the population",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For every inquiry in the population, confirm a due date is recorded and, where extended, that the extension is documented in writing.",
+            "List any inquiry missing a due date or an extension record as an automatic exception.",
+            "Cross-check submission dates against due/extended dates for every inquiry in the population, not just the sample."
+          ],
+          "done": "every inquiry has a recorded due date and, if extended, written documentation; late submissions are identified population-wide."
+        },
+        {
+          "step": "Select and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of inquiries flagged late or missing an extension record in the reconciliation step.",
+            "Take a random sample of 10 additional inquiries (seeded, reproducible) from the remaining on-time population, minimum 15 total.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and includes every late or undocumented inquiry."
+        },
+        {
+          "step": "Re-perform the technical accuracy check on sampled responses",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Independently re-answer each inquiry question in the sample using the same source workpapers.",
+            "Compare the independent answer to the answer actually submitted to the regulator.",
+            "Log any material difference in conclusion or citation as an exception."
+          ],
+          "done": "every sampled response has an independent re-performance note with any conclusion difference logged."
+        },
+        {
+          "step": "Verify counsel review occurred before submission on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm a dated Regulatory Counsel review record exists for each sampled response, pre-dating the submission date.",
+            "Where no counsel review is on file, treat it as a fail, not a documentation gap.",
+            "Note whether counsel's required changes were actually incorporated into the final submitted version."
+          ],
+          "done": "every sampled response shows a dated pre-submission counsel review with required changes incorporated, or is logged as a fail."
+        },
+        {
+          "step": "Trace submission confirmations for the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled inquiry, locate the retained delivery/read confirmation (email receipt, certified mail tracking, portal confirmation).",
+            "Confirm the confirmation date is on or before the due/extended date.",
+            "Log any sampled inquiry lacking a retained confirmation as an exception."
+          ],
+          "done": "every sampled inquiry has a traced, on-time delivery confirmation or is logged as an exception."
+        },
+        {
+          "step": "Test the self-disclosure escalation control",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Identify any sampled inquiry where the technical re-performance surfaced a methodology question requiring escalation.",
+            "Confirm the escalation, if warranted, was actually raised to the Chief Actuary/Tax Director/General Counsel group during the original response.",
+            "Log as an exception any case where an escalation-worthy finding was not escalated at the time."
+          ],
+          "done": "every escalation-worthy finding in the sample is confirmed as having been raised at the time, or is logged as an exception."
+        },
+        {
+          "step": "Recompute the response-timeliness rate for the full population",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Using the reconciled population, compute the percentage of inquiries submitted by their due or extended date.",
+            "Compare the computed rate against the zero-tolerance threshold for missed/undocumented due dates.",
+            "Break out the rate by regulator type (IRS vs. state DOI/NAIC) to spot a channel-specific pattern."
+          ],
+          "done": "a population-wide timeliness rate is computed and broken out by regulator type, compared to the zero-tolerance threshold."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the inquiry id, what was missed and the regulatory relationship impact.",
+            "Assign a root cause (late assignment, counsel bottleneck, missing confirmation, technical error) and an owner.",
+            "Set a remediation date and carry every open exception into the next test as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references and the computed timeliness rate.",
+            "Have the independent reviewer, who drafted or reviewed none of the sampled responses, sign the workpaper.",
+            "Report results to the Compliance Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and timeliness rate is filed and reported to the Compliance Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-063-C11",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Product Filing Specialist",
+          "value": "Owns the tax-qualification filing-determination gate for every life, annuity and variable product form/rate/rule change under IRC Subchapter L"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 26 U.S.C. §7702 (definition of life insurance), §7702A (modified endowment contracts), §72(s) (annuity distribution-at-death rules) and §817(h) (variable contract diversification), re-read at determination time"
+        },
+        "In-scope processes": {
+          "value": "Product development change intake → IRC Subchapter L tax-qualification review gate → SERFF filing determination, for every new or amended life, annuity and variable product form, rate or rule"
+        },
+        "In-scope systems": {
+          "app": "Regulatory Filing Portal (SERFF)",
+          "value": "Tax-qualification determinations are logged in the filing tracker ahead of the SERFF filing determination"
+        },
+        "Compliance procedure documented": {
+          "value": "IRC Subchapter L Tax-Qualification Filing Determination Procedure — intake, §7702/7702A corridor and guideline premium test, §72(s) distribution language check, §817(h) diversification test applicability, log entry"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Tax Director and Chief Compliance Officer; reviewed annually and on any IRS revenue ruling or regulation affecting §7702/7702A/817(h)"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per filing — the tax-qualification determination must close before the SERFF filing determination and product build freeze"
+        },
+        "Deadline reminders configured": {
+          "value": "Filing tracker milestone alerts at T-60/T-30/T-10 days to the target filing submission date for every open tax-qualification determination"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Determination worksheet, corridor/GPT/CVAT test outputs and Tax Manager sign-off retained 7 years from product withdrawal"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any product change filed or implemented without a tax-qualification determination is logged as a compliance exception with root cause and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Tax Manager",
+          "value": "Tax Manager signs off every 'no tax-qualification impact' call and every late/unreviewed remediation"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All life, annuity and variable product form/rate/rule changes implemented in the quarter per the policy admin change log"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any implemented change with no tax-qualification determination on file before its effective date is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per-filing; test runs quarterly over that quarter's population of implemented product changes"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have authored any sampled tax-qualification determination"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly tax-qualification determination test workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Determination log export plus corridor/GPT/CVAT test outputs, presentable within 10 business days of an IRS or state exam request"
+        },
+        "Regulator response path": {
+          "value": "Tax Director owns any IRS product-qualification inquiry; Regulatory Counsel clears any admission of an unreviewed change before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Take in the approved product change and open a tax-qualification worksheet",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Open the product change queue and filter Status = 'Approved for filing determination'.",
+            "For every life, annuity or variable product change, open a companion tax-qualification worksheet alongside the state filing determination worksheet.",
+            "Copy onto the worksheet: product name, product type (whole life, UL/VUL, fixed or variable annuity), target effective date and whether the change touches premium/benefit design, cost of insurance, or distribution provisions.",
+            "Attach the signed change request to the tax-qualification folder named <company>-<product>-<effective date>-taxqual."
+          ],
+          "done": "the tax-qualification worksheet carries product, type and change scope, with the change request attached."
+        },
+        {
+          "step": "Screen the change against the IRC Subchapter L trigger list",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "For life products, check whether the change touches death benefit, premium pattern, cost of insurance rates or cash value — any of which can affect the §7702 guideline premium/cash value corridor test.",
+            "For annuities, check whether the change touches distribution provisions, death benefit payout timing or 1035 exchange handling relevant to §72(s).",
+            "For variable products, check whether the change touches the fund lineup or asset-allocation restrictions relevant to §817(h) diversification.",
+            "Mark the worksheet row NO IMPACT only when none of the trigger conditions are present, with the specific reason stated."
+          ],
+          "done": "every change is screened against the §7702/72(s)/817(h) trigger list with a stated reason for any NO IMPACT call."
+        },
+        {
+          "step": "Route triggered changes to the Product / Filing Actuary for technical review",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "For every triggered row, hand the product design specification and pricing basis to the Product / Filing Actuary.",
+            "Set a review deadline that leaves at least 30 days before the target SERFF filing submission date.",
+            "Track the routing and deadline on the worksheet."
+          ],
+          "done": "every triggered row is routed to the Product / Filing Actuary with a tracked deadline of at least 30 days before filing."
+        },
+        {
+          "step": "Re-run the §7702 guideline premium test / cash value accumulation test",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "In the actuarial modeling platform, load the revised product design and re-run the guideline premium test (GPT) or cash value accumulation test (CVAT), whichever election applies to the product.",
+            "Confirm the corridor factors applied match the current §7702(d) statutory corridor table by attained age.",
+            "Confirm no policy in-force or newly issued under the revised design fails the applicable test at any duration modeled.",
+            "Save the test output with duration-by-duration results into the tax-qualification folder."
+          ],
+          "done": "a GPT or CVAT re-run exists confirming no test failure at any modeled duration, saved with duration-by-duration output."
+        },
+        {
+          "step": "Check MEC status under §7702A for any premium or benefit change",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "actions": [
+            "Re-run the 7-pay test premium limit for the revised design under §7702A.",
+            "Compare the revised product's premium schedule against the 7-pay limit at every duration where the design changed.",
+            "Flag any design that would cause new business to become a modified endowment contract (MEC) as an unintended MEC risk.",
+            "Document the 7-pay limit calculation and the conclusion on the worksheet."
+          ],
+          "done": "the 7-pay test is re-run for the revised design and any unintended MEC risk is flagged and documented."
+        },
+        {
+          "step": "Check annuity distribution language against §72(s)",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "actions": [
+            "For annuity contract or rider changes, compare the revised death-benefit and distribution provisions against the §72(s) 5-year rule and the life-expectancy exception language.",
+            "Confirm the contract wording continues to require distribution to begin or complete within the statutory windows on owner death.",
+            "Flag any wording gap to Legal Counsel for a contract-language fix before the change proceeds to filing.",
+            "Document the comparison and conclusion on the worksheet."
+          ],
+          "done": "revised annuity distribution wording is confirmed to satisfy §72(s) or a Legal Counsel remediation is opened before filing."
+        },
+        {
+          "step": "Check variable product fund changes against §817(h) diversification",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "actions": [
+            "For variable product fund-lineup changes, pull each affected fund's most recent §817(h) diversification test result from the fund's investment adviser.",
+            "Confirm every fund added to the lineup has passed its most recent quarterly diversification test under Treas. Reg. §1.817-5.",
+            "Flag any fund without a current passing test result and hold it out of the lineup change until confirmed.",
+            "Document each fund's test date and result on the worksheet."
+          ],
+          "done": "every added fund has a documented current passing §817(h) diversification test result before the lineup change proceeds."
+        },
+        {
+          "step": "Support every 'no tax-qualification impact' call with a named basis",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "For each NO IMPACT row, name the basis: change does not touch premium/benefit/COI structure, does not touch distribution provisions, or does not touch fund lineup/asset allocation.",
+            "Have the Product / Filing Actuary countersign the basis on the worksheet.",
+            "Never leave a row reading only 'not applicable' without the countersigned basis."
+          ],
+          "done": "every NO IMPACT row carries a named basis countersigned by the Product / Filing Actuary."
+        },
+        {
+          "step": "Write the tax-qualification determination into the filing determination log",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "For every product change, add a log row: change id, product, trigger screen result, test performed (GPT/CVAT, 7-pay, §72(s), §817(h)), outcome, decider and decision date.",
+            "Link the log row to the tax-qualification folder holding the test outputs.",
+            "Set the log row status to 'Determined — pending Tax sign-off' or 'Determined — closed'."
+          ],
+          "done": "the log holds one complete, source-linked row per product change with no blank fields."
+        },
+        {
+          "step": "Get Tax Manager sign-off before the row closes",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "Route every triggered determination and every NO IMPACT call to the Tax Manager for review.",
+            "Tax Manager re-reads the test output and either confirms or overturns the determination in writing on the row.",
+            "Overturned rows go back to the Product / Filing Actuary for rework the same week.",
+            "Confirmed rows get Tax Manager name and date stamped, then move to 'Determined — closed'."
+          ],
+          "done": "no determination row is closed without a dated Tax Manager confirmation."
+        },
+        {
+          "step": "Feed the closed determination into the SERFF filing determination",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Attach the closed tax-qualification determination to the corresponding state SERFF filing determination worksheet.",
+            "Confirm the SERFF actuarial memorandum references the tax-qualification test results where required by the state's filing checklist.",
+            "Flag the state filing determination as blocked until the tax-qualification row is closed."
+          ],
+          "done": "every SERFF filing determination for an in-scope product references a closed tax-qualification row before it proceeds."
+        },
+        {
+          "step": "Escalate any design that cannot pass the required test",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "actions": [
+            "Where a design fails the GPT/CVAT, 7-pay or diversification test, halt the filing determination immediately.",
+            "Present redesign options to the Insurance Product Manager: adjust the benefit/premium pattern, adjust the fund lineup, or delay the change.",
+            "Record the decision and its owner on the worksheet — filing a design known to fail the test is never one of the options.",
+            "Re-run the failed test once the redesign is implemented before closing the row."
+          ],
+          "done": "every failed test has a documented redesign decision and a passing re-run before the row is closed."
+        },
+        {
+          "step": "Publish the determination back to the product change record",
+          "by": "Insurance Product Manager",
+          "role": "Insurance Product Manager",
+          "actions": [
+            "Attach the tax-qualification determination summary to the product change record.",
+            "Set a release gate flag on any change still pending Tax Manager sign-off.",
+            "Add the tax-qualification milestone to the product release plan alongside the state filing milestones."
+          ],
+          "done": "the change record shows the tax-qualification determination status and the release plan carries the milestone."
+        },
+        {
+          "step": "Retain the determination evidence for the full retention period",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move the tax-qualification folder (worksheet, test outputs, Tax Manager sign-off) into the compliance evidence repository under the product and effective date.",
+            "Apply the 7-year-from-withdrawal retention label.",
+            "Confirm the repository index shows the record as searchable by product and change id."
+          ],
+          "done": "the determination record is filed, labelled for 7-year retention and retrievable by product and change id."
+        },
+        {
+          "step": "Review the trigger list annually against IRS guidance updates",
+          "by": "Tax Director",
+          "role": "Tax Director",
+          "actions": [
+            "Each year, review IRS revenue rulings, notices and any regulation updates affecting §7702, §7702A, §72(s) or §817(h).",
+            "Update the trigger list and test procedures in the tax-qualification determination procedure to reflect any change.",
+            "Route the updated procedure for Chief Compliance Officer re-approval.",
+            "Communicate the update to the Product Filing Specialist and Product / Filing Actuary team."
+          ],
+          "done": "the trigger list is reviewed annually against current IRS guidance and any update is re-approved and communicated."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of product changes implemented in the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Extract from the policy admin change log every life, annuity and variable product form/rate/rule change with an effective date inside the quarter.",
+            "Reconcile the extract count to the product release notes for the quarter and resolve any difference before sampling."
+          ],
+          "done": "the population is reconciled to release records and signed as complete by the extractor."
+        },
+        {
+          "step": "Reconcile every implemented change to a tax-qualification determination",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each population row to a determination log row on change id.",
+            "Check the determination decision date is earlier than the change's effective date.",
+            "List unmatched rows and late determinations as automatic exceptions."
+          ],
+          "done": "every population row is matched to a pre-dated determination or listed as an exception."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of rows where the trigger screen found impact under §7702, §7702A, §72(s) or §817(h).",
+            "Take 15 rows selected at random (seeded, reproducible) from the NO IMPACT rows, minimum 25 rows total.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers every triggered row."
+        },
+        {
+          "step": "Re-perform the GPT/CVAT and 7-pay tests on the sample",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Independently re-run the GPT or CVAT and, where applicable, the 7-pay test for each sampled life product change.",
+            "Compare the independent result to the result recorded in the determination log.",
+            "Log any difference in pass/fail conclusion as an exception."
+          ],
+          "done": "each sampled life product row has an independently re-performed test with any conclusion difference logged."
+        },
+        {
+          "step": "Re-perform the annuity §72(s) wording check on the sample",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Independently read the sampled annuity contract's revised distribution wording against the §72(s) 5-year/life-expectancy rules.",
+            "Compare the independent conclusion to the recorded determination.",
+            "Log any difference as an exception."
+          ],
+          "done": "each sampled annuity row has an independent wording-check note with any difference logged."
+        },
+        {
+          "step": "Verify the §817(h) diversification evidence on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled variable-product fund addition, pull the fund's diversification test result directly from the investment adviser record.",
+            "Confirm the test date is current as of the product change's effective date.",
+            "Log any fund lacking a current passing test as an exception."
+          ],
+          "done": "every sampled fund addition has a verified current passing diversification test or is logged as an exception."
+        },
+        {
+          "step": "Check the NO IMPACT basis on the sample",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "For each sampled NO IMPACT row, confirm the stated basis is accurate given the actual change scope.",
+            "Confirm the row carries a Product / Filing Actuary countersignature.",
+            "Treat a generic 'not applicable' with no basis as a fail, not a documentation gap."
+          ],
+          "done": "every sampled NO IMPACT row has a verified, countersigned basis or is logged as a fail."
+        },
+        {
+          "step": "Trace sampled rows to the SERFF filing determination linkage",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Confirm the SERFF filing determination worksheet for each sampled product change references the closed tax-qualification row.",
+            "Confirm the actuarial memorandum filed in SERFF reflects the current test results where the state checklist requires it.",
+            "Log any missing linkage as an exception."
+          ],
+          "done": "every sampled row's SERFF filing determination is confirmed linked to the closed tax-qualification determination."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the change id, what was missed and the tax-qualification impact.",
+            "Assign a root cause and an owner, and set a remediation date.",
+            "For any confirmed test failure implemented in-market, open a self-review with Regulatory Counsel and the Tax Director.",
+            "Carry every open exception into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate and compare to the zero-unreviewed-change threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer, who authored none of the sampled determinations, sign the workpaper.",
+            "Report results to the Compliance Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate exists in the repository, reported to the Compliance Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-063-C12",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Product Filing Specialist",
+          "value": "Owns assembly of the filing package — forms, tax-qualification actuarial memo, state checklists — for every product change cleared by the §7702/72(s)/817(h) determination gate"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 26 U.S.C. §§7702, 7702A, 72(s), 817(h) content requirements cross-checked against each state's SERFF filing-requirements checklist for the applicable TOI"
+        },
+        "In-scope processes": {
+          "value": "Tax-qualification determination close-out → filing package assembly (forms, actuarial memo, companion items) → package quality review, for every cleared life, annuity and variable product change"
+        },
+        "In-scope systems": {
+          "app": "Regulatory Filing Portal (SERFF)",
+          "value": "Package assembled to SERFF attachment specifications ahead of submission"
+        },
+        "Compliance procedure documented": {
+          "value": "Filing Package Assembly Procedure — form/memo collection, tax-qualification exhibit attachment, state checklist mapping, quality review sign-off"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Compliance Officer; reviewed annually and on any SERFF General Instructions update"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per filing — package must be assembled and quality-reviewed at least 5 business days ahead of the latest submission date computed from the state's deemer clock"
+        },
+        "Deadline reminders configured": {
+          "value": "Filing tracker milestone alerts at T-15/T-10/T-5 business days to the latest submission date for every open package"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Assembled package, quality review checklist and sign-off retained 7 years from product withdrawal"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any package submitted without a completed quality review is logged as a compliance exception with root cause and remediation"
+        },
+        "Remediation sign-off captured": {
+          "role": "Compliance Officer",
+          "value": "Compliance Officer signs off any package released without full quality review, and every remediation"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All filing packages assembled and submitted in the quarter for life, annuity and variable product changes"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any package missing a required companion item at submission (actuarial memo, tax-qualification exhibit, Statement of Variability) is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per-filing; test runs quarterly over that quarter's population of submitted packages"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have assembled or quality-reviewed any sampled package"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly filing package completeness test workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Assembled package plus quality review checklist, presentable within 5 business days of a market conduct exam request"
+        },
+        "Regulator response path": {
+          "value": "Product Filing Specialist owns package completeness questions from a state examiner; Regulatory Counsel clears any admission of a package gap"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Open the package assembly record from the closed tax-qualification determination",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Pull the closed tax-qualification determination and the closed state review-method determination for the product change.",
+            "Open a filing package folder named <company>-<state>-<TOI>-<effective date>.",
+            "Copy the target submission channel (SERFF vs. state portal) and the computed latest submission date onto the package tracker."
+          ],
+          "done": "the package folder exists with both determinations attached and the latest submission date recorded."
+        },
+        {
+          "step": "Collect the print-ready forms and redlines",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Request from Product Development print-ready form PDFs with form number and edition date on every page.",
+            "Request a redline against the currently approved edition showing every change.",
+            "Open every PDF and confirm it is text-searchable, watermark-free, and under the SERFF attachment size cap (3 MB per attachment).",
+            "Reject and re-request anything marked DRAFT or missing an edition date."
+          ],
+          "done": "print-ready, watermark-free forms and a matching redline are collected for every form in scope."
+        },
+        {
+          "step": "Assemble the tax-qualification exhibit into the package",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "actions": [
+            "Pull the closed §7702/7702A GPT-CVAT/7-pay output, §72(s) wording confirmation, or §817(h) diversification confirmation from the tax-qualification folder, whichever applies to this product.",
+            "Summarize the test result and conclusion in a one-page tax-qualification exhibit suitable for attachment to the actuarial memorandum.",
+            "Attach the full underlying test output as a supporting exhibit.",
+            "Save both into the filing package folder."
+          ],
+          "done": "a tax-qualification exhibit and its underlying test output are saved into the filing package folder."
+        },
+        {
+          "step": "Draft the actuarial memorandum incorporating the tax-qualification exhibit",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "actions": [
+            "Draft the actuarial memorandum covering pricing basis, rate derivation and the certification page.",
+            "Insert a section referencing the tax-qualification exhibit and stating the product's compliance with the applicable IRC Subchapter L test.",
+            "Route the draft to the Pricing Actuary for a rate-derivation accuracy check.",
+            "Incorporate any corrections and finalize the memorandum."
+          ],
+          "done": "the actuarial memorandum includes the tax-qualification section and has passed the Pricing Actuary's accuracy check."
+        },
+        {
+          "step": "Pull each state's filing-requirements checklist and map companion items",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "In SERFF, open Industry ▸ Filing Rules for the state and TOI and open the state's filing-requirements checklist.",
+            "List every companion item required: actuarial memorandum, rate/rule schedule, Statement of Variability, readability (Flesch) certification, side-by-side redline, cover letter, filing fee amount and payment method.",
+            "Name the owner and due date for each companion item not yet collected.",
+            "Flag any long-lead item (Flesch scoring, translated forms) so it starts immediately."
+          ],
+          "done": "each state has a companion-item list mapped to the checklist, with an owner and due date for every open item."
+        },
+        {
+          "step": "Obtain the readability certification where required",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Run the Flesch reading-ease score on every consumer-facing form using the standard scoring tool.",
+            "Confirm the score meets the state's minimum threshold (commonly 40-50 depending on the state and line).",
+            "Where the score fails, return the form to Product Development for simplification and re-score.",
+            "File the passing score report with the package."
+          ],
+          "done": "a passing readability score report is filed for every consumer-facing form requiring one."
+        },
+        {
+          "step": "Compute and document the Statement of Variability",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "actions": [
+            "List every bracketed/variable field in the forms (e.g., interest rate ranges, fee ranges, optional rider language).",
+            "For each variable field, state the permissible range and the business rule governing which value is used.",
+            "Confirm no variable field could push the product outside the tested §7702/7702A/817(h) parameters at either extreme of its range.",
+            "Save the completed Statement of Variability to the package."
+          ],
+          "done": "the Statement of Variability covers every bracketed field and confirms no range breaches the tax-qualification test parameters."
+        },
+        {
+          "step": "Prepare the state-specific cover letter and transmittal",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Draft the cover letter identifying the filing purpose, form numbers, replaced forms (if any) and requested effective date.",
+            "Complete the state's transmittal form (e.g., NAIC Uniform Life, Accident and Health, Annuity or Variable Transmittal) with matching data.",
+            "Cross-check the transmittal's TOI/Sub-TOI against the NAIC Uniform Product Coding Matrix.",
+            "Save the completed cover letter and transmittal to the package."
+          ],
+          "done": "a cover letter and a fully completed, cross-checked transmittal exist in the package for the state."
+        },
+        {
+          "step": "Confirm the filing fee amount and payment method",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Look up the state's current filing fee schedule for the TOI and filing type.",
+            "Confirm the EFT payment method is configured in SERFF for the filer's account, or prepare a check per the state's instructions.",
+            "Record the fee amount and payment method on the package tracker.",
+            "Flag any state requiring a paper check well ahead of the submission date given added mailing lead time."
+          ],
+          "done": "the correct fee amount and a confirmed payment method are recorded on the package tracker."
+        },
+        {
+          "step": "Assemble the third-party filer authorization where used",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Where a third-party filer submits on the company's behalf, confirm a current signed authorization letter is on file for the state and TOI.",
+            "Renew any authorization that has expired or does not name the current product line.",
+            "Attach the current authorization letter to the package."
+          ],
+          "done": "a current, signed third-party filer authorization is attached to the package wherever a third-party filer is used."
+        },
+        {
+          "step": "Run the completeness check against the state checklist",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Walk the assembled package against every item on the state's filing-requirements checklist collected earlier.",
+            "Mark each item present, missing or not applicable with the reason.",
+            "Resolve every missing required item before proceeding.",
+            "Save the completed checklist into the package folder."
+          ],
+          "done": "the completed state checklist shows every required item present, with no unresolved missing items."
+        },
+        {
+          "step": "Route the package for quality review",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Review the forms, actuarial memorandum and Statement of Variability for consistency with the tax-qualification determination.",
+            "Confirm the cover letter and transmittal accurately describe the filing scope.",
+            "Sign and date the quality review checklist.",
+            "Return any deficiency to the Product Filing Specialist for correction before resubmission for review."
+          ],
+          "done": "the package carries a dated Regulatory Counsel quality-review sign-off with no open deficiencies."
+        },
+        {
+          "step": "Obtain final sign-off and lock the package",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Confirm the completed state checklist and the counsel quality-review sign-off are both on file.",
+            "Sign the package as ready for submission.",
+            "Lock the package folder from further edits pending submission.",
+            "Notify the Filing Analyst that the package is cleared for SERFF submission."
+          ],
+          "done": "the Compliance Officer has signed the package as ready and the folder is locked pending submission."
+        },
+        {
+          "step": "Log the package status in the filing tracker",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Update the filing tracker row for this change to 'Package Complete — Ready for Submission' with the sign-off date.",
+            "Confirm the latest submission date has not been exceeded by the package completion date.",
+            "Hand the package reference off to the Filing Analyst for submission."
+          ],
+          "done": "the tracker shows the package as complete and ready, within the latest submission date."
+        },
+        {
+          "step": "Retain the assembled package for the retention period",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Copy the finalized package into the compliance evidence repository under the product, state and effective date.",
+            "Apply the 7-year-from-withdrawal retention label.",
+            "Confirm the repository index shows the record as searchable by state, form number and product."
+          ],
+          "done": "the finalized package is filed with a 7-year retention label and retrievable by state and form number."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of packages submitted in the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Extract from the filing tracker every package marked submitted in the quarter, by state and product.",
+            "Reconcile the extract count to SERFF Filing Access submission records for the same period.",
+            "Resolve any count difference before sampling."
+          ],
+          "done": "the population reconciles to SERFF submission records for the quarter."
+        },
+        {
+          "step": "Reconcile every submitted package to a completed state checklist",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each population row to a completed state checklist in the package folder.",
+            "Check every required item is marked present with no unresolved missing items.",
+            "List any package missing a completed checklist as an automatic exception."
+          ],
+          "done": "every population row has a completed checklist or is listed as an exception."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of packages flagged with a missing checklist item in the reconciliation step.",
+            "Take 15 rows selected at random (seeded, reproducible) from the remaining clean population, minimum 25 rows total.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and includes every flagged package."
+        },
+        {
+          "step": "Re-perform the completeness check against the state checklist",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently pull the current state filing-requirements checklist for each sampled package's state and TOI.",
+            "Walk the assembled package against the independently pulled checklist.",
+            "Log any item the original review marked present but is actually missing or deficient as an exception."
+          ],
+          "done": "each sampled package is independently checked against the current state checklist with exceptions logged."
+        },
+        {
+          "step": "Verify the tax-qualification exhibit is consistent with the closed determination",
+          "by": "Tax Manager",
+          "role": "Tax Manager",
+          "actions": [
+            "For each sampled package, compare the tax-qualification exhibit content to the closed determination in the C11 log.",
+            "Confirm the test result and conclusion stated in the exhibit match the determination exactly.",
+            "Log any inconsistency as an exception."
+          ],
+          "done": "every sampled package's tax-qualification exhibit matches the closed determination or is logged as an exception."
+        },
+        {
+          "step": "Re-check readability scores on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently re-run the Flesch reading-ease score on each sampled consumer-facing form.",
+            "Compare to the score on file and to the state's minimum threshold.",
+            "Log any form that fails or was not re-scored after a post-filing edit as an exception."
+          ],
+          "done": "every sampled form has an independently confirmed passing readability score or is logged as an exception."
+        },
+        {
+          "step": "Test the Statement of Variability against the tested parameter ranges",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "actions": [
+            "For each sampled package, take every variable field's stated range and independently confirm both extremes still satisfy the applicable §7702/817(h) test.",
+            "Log any range that could breach a test parameter as an exception, regardless of whether the field has actually been used at that extreme."
+          ],
+          "done": "every sampled variable field range is independently confirmed within tested parameters or logged as an exception."
+        },
+        {
+          "step": "Verify counsel and Compliance Officer sign-offs pre-date submission",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the Regulatory Counsel quality-review sign-off date and the Compliance Officer final sign-off date both pre-date the SERFF submission date for each sampled package.",
+            "Log any package submitted before either sign-off as an exception."
+          ],
+          "done": "every sampled package's sign-off dates are confirmed to pre-date submission or logged as an exception."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the package id, the missing/deficient item and the filing risk it creates.",
+            "Assign a root cause and an owner, and set a remediation date.",
+            "Carry every open exception into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate and compare to the zero-missing-required-item threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer, who assembled or reviewed none of the sampled packages, sign the workpaper.",
+            "Report results to the Compliance Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate exists in the repository, reported to the Compliance Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-063-C13",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Filing Specialist",
+          "value": "Owns SERFF/state portal submission and disposition tracking for every locked filing package"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — each state's SERFF General Instructions and disposition-timeline rules under the applicable prior-approval, file-and-use or use-and-file statute, re-read at submission time"
+        },
+        "In-scope processes": {
+          "value": "Locked filing package hand-off → SERFF/state portal submission → objection/disposition tracking, for every cleared life, annuity and variable product filing"
+        },
+        "In-scope systems": {
+          "app": "Regulatory Filing Portal (SERFF)",
+          "value": "Submission, tracking number issuance and disposition status all recorded in SERFF Filing Access"
+        },
+        "Compliance procedure documented": {
+          "value": "SERFF Submission and Disposition Tracking Procedure — package intake, submission, tracking number capture, status monitoring, disposition close-out"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Compliance Officer; reviewed annually and on any SERFF platform release"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per filing — submission must occur on or before the latest submission date computed from the state's deemer clock; disposition tracked daily thereafter"
+        },
+        "Deadline reminders configured": {
+          "value": "Filing tracker alerts at submission, at the deemer midpoint, and 3 business days before the deemer date if no disposition has posted"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "SERFF submission receipt, tracking number and disposition record retained 7 years from product withdrawal"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any filing submitted after its latest submission date, or any disposition not tracked to close, is logged as a compliance exception"
+        },
+        "Remediation sign-off captured": {
+          "role": "Compliance Officer",
+          "value": "Compliance Officer signs off any late submission and any remediation of an untracked disposition"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All filings submitted through SERFF or a state portal in the quarter for life, annuity and variable products"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any filing submitted after its computed latest submission date, or with a disposition unresolved past the deemer date without escalation, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per-filing; test runs quarterly over that quarter's population of submitted filings"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have submitted or tracked any sampled filing"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly submission-and-disposition test workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "SERFF tracking numbers, submission dates and disposition history, exportable within 5 business days of a market conduct exam request"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Filing Specialist owns disposition-status questions from a state examiner; Regulatory Counsel clears any admission of a missed deadline"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Take hand-off of the locked, cleared filing package",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Confirm the package folder is locked and carries both the completed state checklist and the Compliance Officer sign-off.",
+            "Verify the latest submission date has not passed relative to today's date.",
+            "Open a submission record in the filing tracker referencing the package folder."
+          ],
+          "done": "a submission record exists referencing a locked, signed-off package with a still-valid submission date."
+        },
+        {
+          "step": "Log in to SERFF and start a new filing",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Log in to SERFF (login.serff.com) with the company instance and your industry user id.",
+            "From the Industry menu select New Filing, choose the correct state, company (NAIC co-code) and TOI/Sub-TOI.",
+            "Select the filing type (Rate/Rule, Form, Rate and Form Combination) matching the package.",
+            "Enter the filing description matching the cover letter's stated purpose."
+          ],
+          "done": "a new SERFF filing shell is created with the correct state, company, TOI and filing type."
+        },
+        {
+          "step": "Upload every package document to the correct SERFF tab",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "In the General Information tab, enter the transmittal data matching the completed state transmittal form.",
+            "In the Form Schedule tab, upload each form PDF with its form number and edition date populated in the schedule grid.",
+            "In the Rate/Rule Schedule tab, upload the rate exhibits and rating manual pages.",
+            "In the Supporting Documentation tab, upload the actuarial memorandum, tax-qualification exhibit, Statement of Variability, readability certification and cover letter.",
+            "Verify every uploaded file opens correctly and is not corrupted before proceeding."
+          ],
+          "done": "every package document is uploaded to its correct SERFF tab and verified to open correctly."
+        },
+        {
+          "step": "Enter the filing fee and payment method",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "In the Filing Fees tab, enter the fee amount confirmed during package assembly.",
+            "Select EFT as the payment method if configured for the account, or select the alternate method per the state's instructions.",
+            "Confirm the fee amount matches the state's published fee schedule before submitting."
+          ],
+          "done": "the filing fee tab is completed with the correct amount and payment method matching the state's schedule."
+        },
+        {
+          "step": "Run the SERFF validation check before submitting",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Use SERFF's built-in validation function to check for missing required fields or attachments.",
+            "Resolve every validation error shown.",
+            "Have a second Regulatory Filing Specialist perform a peer check of the filing shell against the package checklist before submission."
+          ],
+          "done": "the SERFF validation check passes clean and a peer check against the package checklist is complete."
+        },
+        {
+          "step": "Submit the filing and capture the SERFF tracking number",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Click Submit in SERFF and confirm the submission completes without error.",
+            "Record the assigned SERFF Tracking Number and the submission date/timestamp in the filing tracker.",
+            "Download the SERFF submission confirmation and save it into the package folder.",
+            "Verify the submission date is on or before the computed latest submission date; if it is not, escalate immediately per the escalation step below."
+          ],
+          "done": "the filing is submitted, the SERFF Tracking Number is recorded, and the confirmation is saved, on or before the latest submission date."
+        },
+        {
+          "step": "Set the deemer clock and disposition monitoring schedule",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Compute the deemer date = submission date + the state's review period (commonly 30, 45 or 60 days).",
+            "Load the deemer date into the filing tracker with alerts at the midpoint and 3 business days before the deemer date.",
+            "Set a recurring check to review SERFF Filing Access status at least weekly until disposition."
+          ],
+          "done": "the deemer date is computed, loaded with alerts, and a weekly status-review cadence is set."
+        },
+        {
+          "step": "Monitor SERFF for status changes and objections",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "In SERFF Filing Access, check the filing's status field (Submitted, Pending, Objection, Approved, Disapproved, Closed) at least weekly.",
+            "Where the status shows Objection, open the correspondence tab and download the objection letter immediately.",
+            "Where the status shows Approved or Disapproved, download the disposition letter and note the disposition date.",
+            "Update the filing tracker status field to match SERFF at every check."
+          ],
+          "done": "the filing tracker status matches SERFF's current status as of the most recent weekly check."
+        },
+        {
+          "step": "Route any objection to the C16 objection-response process immediately",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "On receipt of an objection letter, open a linked objection record referencing the filing's SERFF Tracking Number.",
+            "Hand off the objection letter and the state's stated response deadline to the objection-response owner the same day.",
+            "Do not let the deemer clock assumption stand once an objection has paused or reset it — confirm the state's rule on objection tolling and update the tracker's expected disposition date."
+          ],
+          "done": "every objection is handed off the day it is received with the deemer-clock impact recorded."
+        },
+        {
+          "step": "Close out an approved or accepted filing",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "On receiving an Approved, Filed or Closed-Approved disposition, download the approval letter from SERFF.",
+            "Record the approval/effective date and the approved form edition/rate level in the filing tracker.",
+            "Set the filing tracker status to 'Approved — cleared for implementation'.",
+            "Notify the Insurance Product Manager that the release gate for this state can be lifted per the C14 process."
+          ],
+          "done": "the approval letter is downloaded, the approval date is recorded, and Product is notified the release gate can be lifted."
+        },
+        {
+          "step": "Handle a Disapproved or Withdrawn disposition",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "On a Disapproved disposition, download the disapproval letter stating the state's grounds.",
+            "Route the disapproval to Regulatory Counsel and the Product / Filing Actuary within 1 business day for a redesign or resubmission decision.",
+            "Record the decision (resubmit, withdraw, drop the state) and its owner on the filing tracker.",
+            "Never allow the associated form/rate to be released for use in that state while disapproved."
+          ],
+          "done": "every disapproval has a routed, owned decision and the state remains blocked from release until resolved."
+        },
+        {
+          "step": "Prove a satisfied deemer where no disposition posts by the deemer date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Where the deemer date passes with no objection or disposition posted in SERFF, capture a dated screenshot of the SERFF status as of the deemer date.",
+            "Confirm with the Regulatory Filing Specialist that no objection was received and lost in correspondence.",
+            "Document the satisfied-deemer conclusion with the statutory basis and file it as the equivalent of an approval.",
+            "Notify the Insurance Product Manager the release gate can be lifted on the satisfied-deemer basis."
+          ],
+          "done": "a documented, dated satisfied-deemer conclusion exists and Product is notified the release gate can be lifted."
+        },
+        {
+          "step": "Escalate any submission that missed its latest submission date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Where a submission posts after the computed latest submission date, raise an escalation to the Chief Compliance Officer within 1 business day.",
+            "Present the options in writing: revise the target effective date, accept a delayed launch in that state, or launch on the previously approved forms/rates.",
+            "Record the decision and its owner on the filing tracker — skipping the deadline miss is never one of the options."
+          ],
+          "done": "every missed submission deadline has a written, owned decision recorded on the tracker."
+        },
+        {
+          "step": "Retain the submission and disposition record for the retention period",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move the SERFF submission confirmation, all correspondence and the final disposition letter into the compliance evidence repository under the product, state and SERFF Tracking Number.",
+            "Apply the 7-year-from-withdrawal retention label.",
+            "Confirm the repository index shows the record as searchable by SERFF Tracking Number."
+          ],
+          "done": "the submission and disposition record is filed with a 7-year retention label and searchable by SERFF Tracking Number."
+        },
+        {
+          "step": "Report filing status to the Compliance Committee monthly",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compile a monthly filing status report from the tracker: open, objected, approved and disapproved counts by state.",
+            "Highlight any filing approaching its deemer date without a disposition and any missed deadline.",
+            "Present the report at the Compliance Committee meeting and record any directed action in the minutes."
+          ],
+          "done": "a monthly filing status report is presented to the Compliance Committee with any at-risk filing highlighted and minuted."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of filings submitted in the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Independently export from SERFF Filing Access every filing with a submission date in the test quarter, by state and product.",
+            "Reconcile the export to the filing tracker's population for the same period.",
+            "Resolve any count or tracking-number difference before sampling."
+          ],
+          "done": "the SERFF-pulled population reconciles to the filing tracker for the quarter."
+        },
+        {
+          "step": "Recompute the latest submission date and compare to actual submission",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For every filing in the population, independently recompute the latest submission date from the target effective date and the state's deemer/lead-time rules.",
+            "Compare to the actual SERFF submission date.",
+            "List every filing submitted after its recomputed latest submission date as an automatic exception."
+          ],
+          "done": "the recomputed latest submission date is compared to actual submission for every filing, with late filings listed."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of filings flagged late in the recomputation step.",
+            "Take 15 rows selected at random (seeded, reproducible) from the remaining on-time population, minimum 25 rows total.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and includes every late filing."
+        },
+        {
+          "step": "Trace each sampled filing's status history in SERFF",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Open SERFF Filing Access for each sampled SERFF Tracking Number and pull the full status history.",
+            "Compare the status history to the filing tracker's recorded status changes and dates.",
+            "Log any discrepancy in status or date as an exception."
+          ],
+          "done": "every sampled filing's SERFF status history is compared to the tracker with discrepancies logged."
+        },
+        {
+          "step": "Verify objection handling on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled filing that received an objection, confirm the objection was handed off the same day it was received per the tracker timestamp.",
+            "Confirm the C16 objection-response process record exists and references this filing's SERFF Tracking Number.",
+            "Log any missing or late hand-off as an exception."
+          ],
+          "done": "every sampled objection is confirmed same-day handed off with a linked response record, or is logged as an exception."
+        },
+        {
+          "step": "Verify satisfied-deemer documentation on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled filing closed on a satisfied-deemer basis, confirm a dated screenshot and documented conclusion exist.",
+            "Independently recompute the deemer date and confirm it had genuinely passed with no objection before the conclusion was drawn.",
+            "Log any premature or unsupported satisfied-deemer conclusion as an exception."
+          ],
+          "done": "every sampled satisfied-deemer conclusion is independently confirmed accurate or logged as an exception."
+        },
+        {
+          "step": "Confirm the release gate held until approval or satisfied deemer",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "For each sampled filing, pull the earliest-use date actually configured in the policy admin/rating system for that state.",
+            "Compare the configured earliest-use date to the SERFF approval date or the satisfied-deemer date.",
+            "Treat any use configured before approval or a satisfied deemer as a reportable compliance breach, not a test exception."
+          ],
+          "done": "no sampled state was configured for use before approval or a satisfied deemer."
+        },
+        {
+          "step": "Verify retention filing for the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the compliance evidence repository holds the submission confirmation, correspondence and disposition letter for each sampled filing.",
+            "Confirm the 7-year retention label is applied.",
+            "Log any missing evidence as an exception."
+          ],
+          "done": "retention evidence is confirmed complete and correctly labelled for every sampled filing."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the SERFF Tracking Number, what was missed and the compliance impact.",
+            "Assign a root cause (late submission, missed objection, unsupported deemer claim, premature release) and an owner.",
+            "Set a remediation date and, for use-before-approval breaches, open a self-report assessment with Regulatory Counsel.",
+            "Carry every open exception into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate and compare to the zero-late-submission/zero-premature-use threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer, who submitted or tracked none of the sampled filings, sign the workpaper.",
+            "Report results to the Compliance Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate exists in the repository, reported to the Compliance Committee."
+        }
+      ]
+    }
+  ]
+}

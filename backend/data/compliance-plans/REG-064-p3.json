@@ -1,0 +1,2819 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-064-C17",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Chief Info Security Officer",
+          "value": "Owns the annual enterprise cybersecurity risk assessment and the remediation of every resulting finding across all FCA/PRA-regulated entities in scope"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "FCA Handbook SYSC 3.2.6R (systems and controls) and SYSC 15A.2 (operational resilience — important business services), cross-checked against the FCA Handbook online at assessment kickoff (rep: United Kingdom)"
+        },
+        "In-scope processes": {
+          "value": "Annual enterprise-wide cyber risk assessment covering all IT/OT assets, cloud workloads and applications mapped to important business services under SYSC 15A"
+        },
+        "In-scope systems": {
+          "app": "Qualys / Tenable (Vuln)",
+          "value": "Every asset in the CMDB scanned by Qualys/Tenable, plus cloud posture findings and penetration-test scope, consolidated in the GRC platform risk register"
+        },
+        "Compliance procedure documented": {
+          "value": "Enterprise Cybersecurity Risk Assessment Procedure — asset scoping, vulnerability scanning, penetration testing, control-gap rating, and severity-based remediation SLAs"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Info Security Officer and ratified by the Board Risk Committee; reviewed annually or after a material incident"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual assessment closes and reports to the Board Risk Committee ahead of the FCA Handbook SUP 16 annual return cycle; Critical findings remediated within 30 days, High within 90 days"
+        },
+        "Deadline reminders configured": {
+          "value": "GRC platform milestone alerts at T-60/T-30 days to assessment close, plus 7-day-before-SLA-breach alerts on open remediation tickets"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Scan exports, pen-test report, risk register extract, remediation tickets and Board Risk Committee minutes retained 6 years per FCA Handbook SYSC 9 record-keeping"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "ITSM/security ticketing system",
+          "value": "Overdue remediation items and unowned findings logged as exceptions with root cause and a revised target date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Info Security Officer",
+          "value": "Every closed finding is signed off with re-scan evidence confirming the fix before ticket closure"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All findings opened in the assessment period from the GRC platform risk register, reconciled to the vulnerability scan export and penetration test report"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on unremediated Critical findings past SLA without an approved exception; ≥90% of High/Medium findings closed on time to pass"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; the test runs once per assessment cycle over that cycle's full finding population"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Chief Risk Officer",
+          "value": "Reviewer must not have performed any sampled re-scan or severity re-derivation"
+        },
+        "Evidence location for test results": {
+          "value": "Annual cybersecurity assessment test workpaper (population extract, sample, re-scan evidence, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Assessment report, remediation log and Board Risk Committee minutes, presentable to the FCA/PRA within 5 business days of a supervisory request"
+        },
+        "Regulator response path": {
+          "value": "Chief Info Security Officer owns the technical response; General Counsel clears any submission referencing an open Critical finding before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Scope the annual assessment and freeze the asset inventory",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Pull the current asset inventory from the CMDB (Configuration Items ▸ Server/App/Cloud Resource) and export the in-scope list to the GRC platform risk register.",
+            "Cross-reference the Operational Resilience Lead's important-business-services map (SYSC 15A) to flag which assets support an important business service.",
+            "Confirm scope with the Chief Risk Officer and record sign-off in the assessment charter.",
+            "Freeze the scope list and timestamp it as the assessment baseline."
+          ],
+          "app": "CMDB",
+          "done": "the asset inventory is pulled, cross-referenced to important business services, and frozen as the assessment baseline."
+        },
+        {
+          "step": "Run authenticated vulnerability scans across the estate",
+          "by": "Security Engineer",
+          "role": "Security Engineer",
+          "app": "Qualys / Tenable (Vuln)",
+          "actions": [
+            "In Qualys/Tenable open Scans ▸ New Scan, select the frozen asset group, and apply the authenticated-credential scan template.",
+            "Launch the scan against on-prem, IaaS and PaaS assets and monitor for scan failures or unreachable hosts.",
+            "Export results (CSV/XML) with CVSS base score, affected asset and patch reference for every finding.",
+            "Re-queue any host that failed authentication and log the reason (credential rotation, firewall block)."
+          ],
+          "done": "a completed authenticated scan export exists for every in-scope asset, with failures re-queued or logged."
+        },
+        {
+          "step": "Commission and scope the annual penetration test",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Select the external penetration testing vendor and issue a statement of work covering the internet-facing perimeter, the customer portal, and one critical internal segment.",
+            "Agree rules of engagement (test window, excluded systems, escalation contact) with the Penetration Tester and vendor lead.",
+            "Notify IT Operations and the SOC of the test window so alerts are not misclassified as real attacks."
+          ],
+          "done": "a signed statement of work and rules of engagement exist and the SOC has been notified of the test window."
+        },
+        {
+          "step": "Execute the penetration test and document exploitable findings",
+          "by": "Penetration Tester",
+          "role": "Penetration Tester",
+          "actions": [
+            "Run reconnaissance, exploitation and post-exploitation against the agreed scope within the approved window.",
+            "Record each finding with CVSS score, affected asset, proof-of-concept evidence and business impact.",
+            "Deliver the draft report to the Chief Info Security Officer within 5 business days of test completion."
+          ],
+          "done": "a penetration test report with CVSS-scored, evidenced findings is delivered within 5 business days of test completion."
+        },
+        {
+          "step": "Review cloud security posture findings",
+          "by": "Cloud Architect",
+          "role": "Cloud Architect",
+          "actions": [
+            "Open the cloud provider's security center (Azure Defender for Cloud / AWS Security Hub) and export the current secure-score findings for every subscription/account in scope.",
+            "Cross-check each High/Critical finding against the CMDB to confirm asset ownership.",
+            "Add cloud findings to the consolidated risk register alongside the vulnerability scan and pen-test results."
+          ],
+          "done": "cloud security posture findings are exported, owner-matched, and merged into the consolidated register."
+        },
+        {
+          "step": "Consolidate and rate every finding in the GRC platform",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Import the vulnerability scan export, pen-test findings and cloud posture findings into the GRC platform's Risk Register module.",
+            "Assign each finding a severity (Critical/High/Medium/Low) using the CVSS score plus exploitability and business-impact modifiers.",
+            "De-duplicate findings that reference the same root cause across multiple assets.",
+            "Assign each finding a remediation SLA: Critical 30 days, High 90 days, Medium 180 days, Low next assessment cycle."
+          ],
+          "done": "every finding is de-duplicated, severity-rated and carries an SLA in the GRC risk register."
+        },
+        {
+          "step": "Assign remediation owners and open tickets",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "app": "ITSM/security ticketing system",
+          "actions": [
+            "For each open finding, identify the asset/application owner from the CMDB and assign the remediation ticket to them.",
+            "Set the ticket due date to the SLA date computed in the risk register and link the ticket back to the risk register entry.",
+            "Escalate any finding without an identifiable owner to the Chief Technology Officer within 3 business days."
+          ],
+          "done": "every finding has an owned, SLA-dated remediation ticket linked to its risk register entry."
+        },
+        {
+          "step": "Track remediation progress against SLA",
+          "by": "IT Security Manager",
+          "role": "IT Security Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Run a weekly report of open remediation tickets filtered by SLA due date within 14 days.",
+            "Follow up with ticket owners approaching or past SLA and log their status update on the ticket.",
+            "Escalate tickets more than 5 business days past SLA to the Chief Info Security Officer for exception handling."
+          ],
+          "done": "a weekly SLA report exists and every past-due ticket has a logged follow-up or escalation."
+        },
+        {
+          "step": "Validate fixes with a targeted re-scan",
+          "by": "Security Engineer",
+          "role": "Security Engineer",
+          "app": "Qualys / Tenable (Vuln)",
+          "actions": [
+            "For each ticket marked resolved, run a targeted re-scan of the specific asset and CVE/plugin ID in Qualys/Tenable.",
+            "Confirm the finding no longer appears in the re-scan result before closing the ticket.",
+            "Where the finding persists, reopen the ticket and reset the SLA clock from the reopen date."
+          ],
+          "done": "every 'resolved' finding is confirmed clear by a targeted re-scan before its ticket is closed."
+        },
+        {
+          "step": "Update the operational resilience impact tolerance mapping",
+          "by": "Operational Resilience Lead",
+          "role": "Operational Resilience Lead",
+          "actions": [
+            "Review any Critical or High finding tied to an important business service and assess whether it affects the service's impact tolerance under SYSC 15A.",
+            "Update the important-business-service risk map with the residual risk rating until remediation completes.",
+            "Notify the Chief Risk Officer of any service whose impact tolerance is now at risk of breach."
+          ],
+          "done": "the important-business-service risk map reflects every open Critical/High finding and the CRO is notified of any tolerance risk."
+        },
+        {
+          "step": "Draft the annual assessment report and residual risk statement",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Summarize scope, methodology, findings by severity, remediation status and residual risk into the annual report template.",
+            "State the residual risk position against the Board-approved risk appetite.",
+            "Circulate the draft to the Chief Risk Officer for review before the Board Risk Committee submission deadline."
+          ],
+          "done": "a draft report with a stated residual risk position is circulated to the CRO ahead of the committee deadline."
+        },
+        {
+          "step": "Present findings to the Board Risk Committee",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "app": "board portal",
+          "actions": [
+            "Upload the final assessment report and executive summary to the board portal ahead of the scheduled Risk Committee meeting.",
+            "Present the residual risk position, top findings and remediation roadmap at the meeting.",
+            "Capture committee questions, directives and the meeting minute reference against the assessment record."
+          ],
+          "done": "the report is uploaded to the board portal, presented, and committee minutes are captured against the assessment record."
+        },
+        {
+          "step": "Update controls and policy based on systemic findings",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Identify any finding pattern indicating a control gap (missing patch cadence, weak segmentation) rather than a one-off asset issue.",
+            "Draft the control or policy change and route it through the standard policy approval workflow.",
+            "Communicate the updated control requirement to IT Operations and application owners."
+          ],
+          "done": "every systemic finding pattern has a corresponding control or policy update routed for approval."
+        },
+        {
+          "step": "Log exceptions for overdue or accepted-risk findings",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "ITSM/security ticketing system",
+          "actions": [
+            "For any finding past SLA with no remediation plan, log a formal risk exception with root cause and a revised target date.",
+            "Route risk-acceptance requests to the Chief Info Security Officer and, for Critical findings, the Chief Risk Officer for approval.",
+            "Record the approved exception's expiry date and required compensating control."
+          ],
+          "done": "every overdue or accepted finding has a logged, approved exception with an expiry date and compensating control."
+        },
+        {
+          "step": "Retain assessment evidence in the compliance repository",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the scan exports, pen-test report, risk register extract, remediation tickets and committee minutes to the compliance evidence repository under the assessment year folder.",
+            "Apply the 6-year retention label required under FCA Handbook SYSC 9.",
+            "Confirm the folder is indexed and retrievable by asset, finding severity and remediation status."
+          ],
+          "done": "the full assessment evidence set is filed, retention-labelled and retrievable by asset and severity."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of findings and remediation tickets for the period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Export every finding opened in the assessment period from the GRC platform risk register, with severity, owner, SLA date and status.",
+            "Reconcile the finding count to the vulnerability scan export and the penetration test report to confirm nothing was dropped during import.",
+            "Resolve any count mismatch with the Security GRC Analyst before sampling."
+          ],
+          "done": "the finding population reconciles to the source scan and pen-test exports."
+        },
+        {
+          "step": "Verify scan and pen-test coverage against the frozen asset inventory",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the assets actually scanned/tested to the frozen scope list from the assessment charter.",
+            "List any in-scope asset with no scan result or pen-test coverage as a coverage gap.",
+            "Confirm coverage gaps were logged as exceptions rather than silently dropped."
+          ],
+          "done": "every in-scope asset is accounted for by a scan result, a pen-test result, or a logged coverage-gap exception."
+        },
+        {
+          "step": "Draw the sample of findings",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of Critical findings and any finding tied to an important business service.",
+            "Take 20 additional findings at random (seeded, reproducible) across High/Medium severities.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers all Critical/important-business-service findings."
+        },
+        {
+          "step": "Re-perform severity rating on the sample",
+          "by": "Security Analyst",
+          "role": "Security Analyst",
+          "actions": [
+            "Independently re-derive the CVSS score and severity rating for each sampled finding from the original scan/pen-test evidence, without viewing the recorded rating first.",
+            "Compare the independently derived rating to the recorded rating and log any mismatch.",
+            "Note any case where a lower severity appears to have been assigned to avoid the tighter SLA."
+          ],
+          "done": "each sampled finding has an independent severity re-derivation compared to the recorded rating, with mismatches logged."
+        },
+        {
+          "step": "Re-scan the sample to confirm current remediation status",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Qualys / Tenable (Vuln)",
+          "actions": [
+            "For each sampled finding marked resolved, run an independent targeted re-scan of the specific asset and CVE/plugin ID.",
+            "Confirm the finding does not reappear; where it does, flag as a false-closure exception.",
+            "Capture the re-scan output into the workpaper."
+          ],
+          "done": "each sampled resolved finding is independently re-scanned and confirmed clear, or flagged as a false closure."
+        },
+        {
+          "step": "Trace SLA dates and closure timing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled finding, recompute the SLA due date from severity and the finding-open date per the documented SLA table.",
+            "Compare the recomputed SLA date to the ticket's actual close date.",
+            "Flag any finding closed after its SLA date with no approved exception on file."
+          ],
+          "done": "every sampled finding's SLA maths is recomputed and any late closure without an approved exception is flagged."
+        },
+        {
+          "step": "Test that overdue findings have an approved, expiring exception",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "actions": [
+            "Pull every finding past SLA in the sample and confirm a risk exception exists in the GRC platform.",
+            "Verify the exception carries the required approver (CISO, or CRO for Critical) signature and an expiry date.",
+            "Flag any overdue finding lacking an approved exception as a control failure, not a documentation gap."
+          ],
+          "done": "every sampled overdue finding is backed by an approver-signed, expiry-dated exception or is flagged as a failure."
+        },
+        {
+          "step": "Confirm Board Risk Committee reporting occurred",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Open the board portal and confirm the assessment report and executive summary were uploaded ahead of the scheduled Risk Committee meeting.",
+            "Cross-check the committee minutes reference captured in the assessment record against the actual minute text.",
+            "Confirm any committee directive was tracked to closure."
+          ],
+          "done": "the board portal upload, minute reference and any committee directive are all verified against the record."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "app": "ITSM/security ticketing system",
+          "actions": [
+            "Raise a tracker issue for each test exception found above, describing the gap and its compliance impact.",
+            "Assign a root cause category and an owner for remediation.",
+            "Set a remediation date and carry unresolved items into the next assessment cycle as mandatory retest items."
+          ],
+          "done": "every test exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Compute the exception rate against the population and compare to the zero-tolerance threshold for Critical findings and the 90%-on-time threshold for High/Medium.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the evidence gathered.",
+            "Have an independent reviewer who authored none of the sampled re-performance work sign the workpaper.",
+            "Report the conclusion and any open exceptions to the Board Risk Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is reported to the Board Risk Committee and filed."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-064-C18",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "IT Security Manager",
+          "value": "Owns continuous operation of MFA, encryption and access-review controls across all in-scope systems"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "FCA Handbook SYSC 3.2.6R (systems and controls) and SYSC 6.1.1R (financial crime systems and controls), cross-referenced with UK GDPR Article 32 (security of processing), re-read at control-design date (rep: United Kingdom)"
+        },
+        "In-scope processes": {
+          "value": "Identity and access management (provisioning, MFA enrolment, periodic access recertification) and data-at-rest/in-transit encryption across policy admin, claims and customer-data systems"
+        },
+        "In-scope systems": {
+          "app": "IAM platform (SailPoint/Okta/Azure AD)",
+          "value": "MFA enforcement policies, conditional access rules and quarterly access-review campaigns run from the IAM platform; privileged accounts vaulted in the PAM tool"
+        },
+        "Compliance procedure documented": {
+          "value": "Access Control & Encryption Standard — MFA enrolment, privileged access via PAM, quarterly access recertification, encryption key management and rotation"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Info Security Officer and IT Security Manager; reviewed annually or on a material control failure"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Controls operate continuously; each quarterly access-review campaign must close within 30 days of launch and MFA coverage is verified monthly"
+        },
+        "Deadline reminders configured": {
+          "value": "IAM platform campaign reminders at day 15/25/30 of each quarterly access-review cycle; monthly MFA-coverage report auto-generated to the IT Security Manager"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "MFA enrolment logs, access-review campaign results and encryption key rotation logs retained 6 years per FCA Handbook SYSC 9"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "ITSM/security ticketing system",
+          "value": "Any account found without required MFA, an unattested access grant, or unencrypted transmission is logged as an exception with root cause"
+        },
+        "Remediation sign-off captured": {
+          "role": "IT Security Manager",
+          "value": "Each remediated exception is signed off with evidence of the corrective configuration change"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All privileged and standard user accounts on in-scope systems as of the test date, plus every quarterly access-review campaign completed in the period"
+        },
+        "Pass/fail thresholds": {
+          "value": "100% MFA coverage required on privileged and customer-data-facing accounts; ≥98% access-review campaign completion within the 30-day window to pass"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous; the test runs quarterly, aligned to each access-review campaign close"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Security GRC Analyst",
+          "value": "Reviewer must not administer the IAM platform or hold access-provisioning rights"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly access-control test workpaper (account population, sample, IAM platform screenshots, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "MFA coverage report, access-review campaign completion report and encryption key rotation log, presentable within 5 business days of a supervisory request"
+        },
+        "Regulator response path": {
+          "value": "IT Security Manager owns the technical response; Chief Info Security Officer clears any submission before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Define the control baseline and system scope",
+          "by": "IT Security Manager",
+          "role": "IT Security Manager",
+          "actions": [
+            "Export the in-scope application and system list from the CMDB, tiered by data sensitivity (customer PII, policy/claims data, internal).",
+            "For each tier, record the required controls: MFA method, encryption standard (AES-256 at rest, TLS 1.2+ in transit) and access-review frequency.",
+            "Circulate the baseline to application owners for acknowledgement and file the signed baseline in the compliance evidence repository."
+          ],
+          "done": "every in-scope system has a documented, owner-acknowledged control baseline by data-sensitivity tier."
+        },
+        {
+          "step": "Configure MFA enforcement policies",
+          "by": "IAM Engineer",
+          "role": "IAM Engineer",
+          "app": "IAM platform (SailPoint/Okta/Azure AD)",
+          "actions": [
+            "In Okta/Azure AD open Security ▸ Multifactor Authentication and set the required factor (authenticator app or hardware key) per application group.",
+            "Apply a conditional-access/app sign-on policy requiring MFA for every login to customer-data-facing and privileged applications.",
+            "Test the policy against a pilot account group and confirm enforcement before rolling out tenant-wide.",
+            "Publish the rollout date to application owners."
+          ],
+          "done": "an MFA enforcement policy is configured, pilot-tested and rolled out for every in-scope application group."
+        },
+        {
+          "step": "Enrol privileged accounts in the PAM vault",
+          "by": "Identity Access Manager",
+          "role": "Identity Access Manager",
+          "app": "CyberArk (PAM)",
+          "actions": [
+            "In CyberArk open Accounts ▸ Add Account for each privileged/administrative credential and onboard it into the safe.",
+            "Enable automatic password rotation and session recording for every onboarded account.",
+            "Remove any standing local administrator credential once the PAM-managed equivalent is verified working."
+          ],
+          "done": "every privileged account is onboarded to the PAM vault with rotation and session recording enabled."
+        },
+        {
+          "step": "Verify encryption at rest and in transit",
+          "by": "Security Engineer",
+          "role": "Security Engineer",
+          "actions": [
+            "For each in-scope database and storage account, confirm encryption-at-rest is enabled (native TDE or platform-managed encryption) and record the key management method.",
+            "Run a TLS configuration scan against each public and internal endpoint and confirm TLS 1.2 or higher with no deprecated cipher suites.",
+            "Log any system found without the required encryption as a control gap and open a remediation ticket."
+          ],
+          "done": "encryption-at-rest and TLS configuration is verified for every in-scope system, with gaps ticketed."
+        },
+        {
+          "step": "Run the monthly MFA coverage report",
+          "by": "Access Management Analyst",
+          "role": "Access Management Analyst",
+          "app": "IAM platform (SailPoint/Okta/Azure AD)",
+          "actions": [
+            "In the IAM platform open Reports ▸ MFA Enrollment and export the coverage report by application group.",
+            "Identify accounts without an enrolled MFA factor, especially privileged and customer-data-facing accounts.",
+            "Send the exception list to account owners requiring enrolment within 5 business days."
+          ],
+          "done": "a monthly MFA coverage report is produced and every unenrolled account has an owner notification on file."
+        },
+        {
+          "step": "Launch the quarterly access recertification campaign",
+          "by": "Access Management Analyst",
+          "role": "Access Management Analyst",
+          "app": "IAM platform (SailPoint/Okta/Azure AD)",
+          "actions": [
+            "In the IAM platform open Certifications ▸ New Campaign, scope it to all in-scope applications, and assign each user's direct manager as reviewer.",
+            "Set the campaign due date to 30 days from launch and enable automated reminder emails.",
+            "Publish the campaign kickoff notice to reviewers with instructions on approve/revoke actions."
+          ],
+          "done": "a scoped, manager-assigned access recertification campaign is launched with a 30-day due date and reminders enabled."
+        },
+        {
+          "step": "Reviewers complete access recertification",
+          "by": "Operation Manager",
+          "role": "Operation Manager",
+          "app": "IAM platform (SailPoint/Okta/Azure AD)",
+          "actions": [
+            "Open the assigned certification campaign in the IAM platform and review each direct report's entitlement list.",
+            "Attest 'approve' for access still required for the role or 'revoke' for access no longer needed.",
+            "Complete all assigned reviews before the campaign due date."
+          ],
+          "done": "every assigned reviewer has attested approve or revoke on 100% of their entitlement reviews before the due date."
+        },
+        {
+          "step": "Revoke access for failed or unattested items",
+          "by": "Identity Access Manager",
+          "role": "Identity Access Manager",
+          "app": "IAM platform (SailPoint/Okta/Azure AD)",
+          "actions": [
+            "At campaign close, pull the list of entitlements marked 'revoke' plus any left unattested past the due date.",
+            "Process the deprovisioning in the target application (remove role/group membership) and confirm removal.",
+            "Record the revocation date and confirming screenshot against each entitlement row in the campaign record."
+          ],
+          "done": "every revoked or unattested entitlement is deprovisioned in the target system with a dated confirmation on file."
+        },
+        {
+          "step": "Rotate encryption keys per schedule",
+          "by": "Security Engineer",
+          "role": "Security Engineer",
+          "actions": [
+            "Open the key management service console and confirm each in-scope key's rotation policy matches the documented standard (annual minimum, 90 days for high-sensitivity data).",
+            "Trigger manual rotation for any key past its scheduled rotation date.",
+            "Confirm dependent applications reconnect successfully after rotation before closing the task."
+          ],
+          "done": "every encryption key is rotated per its documented schedule and dependent applications are confirmed working."
+        },
+        {
+          "step": "Monitor control exceptions via SIEM alerts",
+          "by": "SOC Analyst",
+          "role": "SOC Analyst",
+          "app": "SIEM/SOAR",
+          "actions": [
+            "In the SIEM console open the saved search/dashboard for MFA-bypass attempts, impossible-travel logins and unencrypted-protocol usage.",
+            "Triage each alert within the shift and confirm whether it represents a genuine control failure or a false positive.",
+            "Escalate confirmed control failures to the IT Security Manager and open a ticket."
+          ],
+          "done": "SIEM alerts for MFA bypass, anomalous login and unencrypted transmission are triaged each shift with confirmed failures ticketed."
+        },
+        {
+          "step": "Remediate identified control gaps",
+          "by": "IT Security Manager",
+          "role": "IT Security Manager",
+          "app": "ITSM/security ticketing system",
+          "actions": [
+            "Consolidate control gaps from the MFA report, encryption verification and SIEM triage into remediation tickets.",
+            "Assign each ticket to the responsible system owner with a due date based on gap severity.",
+            "Track ticket status weekly until closure."
+          ],
+          "done": "every identified control gap has an assigned, dated remediation ticket tracked to closure."
+        },
+        {
+          "step": "Validate remediation",
+          "by": "Security Engineer",
+          "role": "Security Engineer",
+          "actions": [
+            "For each closed remediation ticket, re-check the specific control (MFA enrolment, encryption setting, or access revocation) in the source system.",
+            "Confirm the control now meets the documented baseline before signing off the ticket.",
+            "Reopen and reassign any ticket where the fix does not hold."
+          ],
+          "done": "every closed remediation ticket is independently re-checked against the control baseline before final sign-off."
+        },
+        {
+          "step": "Report control operating effectiveness to the CISO",
+          "by": "IT Security Manager",
+          "role": "IT Security Manager",
+          "actions": [
+            "Compile a monthly control dashboard: MFA coverage %, access-review campaign completion %, encryption exceptions and open remediation tickets.",
+            "Present the dashboard to the Chief Info Security Officer at the monthly security operations review.",
+            "Record any directive from the review and its target date."
+          ],
+          "done": "a monthly control effectiveness dashboard is presented to the CISO with any directives recorded."
+        },
+        {
+          "step": "Log exceptions with disposition",
+          "by": "Access Management Analyst",
+          "role": "Access Management Analyst",
+          "app": "ITSM/security ticketing system",
+          "actions": [
+            "For every control gap that cannot be closed within the standard SLA, log a formal exception with root cause and a compensating control.",
+            "Route the exception to the IT Security Manager for approval and set an expiry/review date.",
+            "Track approved exceptions on the monthly dashboard until they are closed or renewed."
+          ],
+          "done": "every unresolved control gap carries an approved, dated exception with a compensating control."
+        },
+        {
+          "step": "Retain evidence in the compliance repository",
+          "by": "IT Security Manager",
+          "role": "IT Security Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the MFA coverage reports, access-review campaign records, encryption verification logs and remediation tickets to the compliance evidence repository, organized by quarter.",
+            "Apply the 6-year retention label required under FCA Handbook SYSC 9.",
+            "Confirm the repository index is retrievable by system, control type and quarter."
+          ],
+          "done": "the quarter's control evidence set is filed, retention-labelled and retrievable by system and control type."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of in-scope accounts and campaigns",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "IAM platform (SailPoint/Okta/Azure AD)",
+          "actions": [
+            "Export the full user and privileged account list from the IAM platform as of the test date, with MFA enrolment status.",
+            "Export the quarterly access-review campaign completion report.",
+            "Reconcile both extracts to the CMDB in-scope system list and resolve any mismatch before sampling."
+          ],
+          "done": "the account and campaign population reconciles to the CMDB in-scope system list."
+        },
+        {
+          "step": "Verify MFA coverage on privileged and customer-data accounts",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Filter the account population to privileged accounts and accounts on customer-data-facing applications.",
+            "Confirm 100% of these accounts show an enrolled MFA factor in the extract.",
+            "List any account without MFA as an automatic exception with no judgement applied."
+          ],
+          "done": "every privileged and customer-data account is confirmed MFA-enrolled or listed as an exception."
+        },
+        {
+          "step": "Draw the sample for encryption and access-review testing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of privileged accounts flagged revoke-or-unattested in the quarterly campaign.",
+            "Take 25 additional standard accounts at random (seeded, reproducible) across in-scope systems.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers all revoke/unattested privileged accounts."
+        },
+        {
+          "step": "Re-perform the access-review outcome for the sample",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "IAM platform (SailPoint/Okta/Azure AD)",
+          "actions": [
+            "Open each sampled entitlement in the IAM platform and independently assess whether the access still matches the user's current role.",
+            "Compare the independent assessment to the recorded reviewer attestation.",
+            "Flag any mismatch, especially approvals for access outside the user's current role, as an exception."
+          ],
+          "done": "each sampled entitlement has an independent role-match assessment compared to the recorded attestation."
+        },
+        {
+          "step": "Confirm revoked accounts were actually deprovisioned",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled account marked revoked, log in to the target application (or query its entitlement API) and confirm the access no longer exists.",
+            "Compare the deprovisioning timestamp to the campaign close date and flag any deprovisioning that happened late.",
+            "Capture the confirming screenshot or query output in the workpaper."
+          ],
+          "done": "every sampled revoked account is confirmed deprovisioned in the target system, with timing checked."
+        },
+        {
+          "step": "Test encryption configuration on the sample",
+          "by": "Security Engineer",
+          "role": "Security Engineer",
+          "actions": [
+            "For each sampled in-scope system, independently query the database/storage encryption-at-rest setting and run a TLS scan against its endpoint.",
+            "Compare results to the documented control baseline for that data-sensitivity tier.",
+            "Flag any system below the required encryption standard as an exception."
+          ],
+          "done": "encryption-at-rest and TLS configuration is independently verified against the baseline for every sampled system."
+        },
+        {
+          "step": "Recompute MFA and access-review SLA timing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For the sampled campaign, recompute the 30-day completion window from the campaign launch date.",
+            "Compare the recomputed deadline to the actual campaign close date and flag any late completion.",
+            "Recompute the monthly MFA-report cadence and confirm no month in the period was skipped."
+          ],
+          "done": "campaign completion timing and MFA reporting cadence are recomputed and any lapse is flagged."
+        },
+        {
+          "step": "Trace SIEM-flagged control failures to remediation tickets",
+          "by": "SOC Analyst",
+          "role": "SOC Analyst",
+          "app": "SIEM/SOAR",
+          "actions": [
+            "Pull the period's SIEM alerts for MFA bypass and unencrypted-protocol usage that were triaged as confirmed failures.",
+            "Trace each confirmed failure to its remediation ticket in the ITSM/security ticketing system and confirm closure evidence.",
+            "Flag any confirmed failure with no linked, closed ticket."
+          ],
+          "done": "every confirmed SIEM control failure traces to a closed remediation ticket, or is flagged."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "IT Security Manager",
+          "role": "IT Security Manager",
+          "app": "ITSM/security ticketing system",
+          "actions": [
+            "Raise a tracker issue for each test exception identified above.",
+            "Assign a root cause category (late deprovisioning, missed MFA enrolment, encryption misconfiguration) and an owner.",
+            "Set a remediation date and carry unresolved items into the next quarter's test as mandatory retest rows."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Compute the exception rate against the population and compare to the 100%-MFA and 98%-on-time-campaign thresholds.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the evidence gathered.",
+            "Have the independent reviewer, who holds no IAM provisioning rights, sign the workpaper.",
+            "Report results to the Board Risk Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is reported and filed."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-064-C19",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Chief Info Security Officer",
+          "value": "Owns the annual incident response plan test and event-driven regulator notification within the FCA Handbook SUP 15.3 deadline"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "FCA Handbook SUP 15.3.1R (notifications — matters having a serious regulatory impact) and SYSC 15A.6 (operational incident and third-party reporting), re-read at plan-test date (rep: United Kingdom)"
+        },
+        "In-scope processes": {
+          "value": "Annual incident response plan tabletop/simulation exercise and the event-driven process for detecting, triaging and notifying the FCA of a significant operational or cyber incident"
+        },
+        "In-scope systems": {
+          "app": "SIEM/SOAR",
+          "value": "Incident detection and case management runs through the SIEM/SOAR platform; the incident record and notification tracker sit in the ITSM/security ticketing system"
+        },
+        "Compliance procedure documented": {
+          "value": "Incident Response & Regulatory Notification Plan — detection, severity classification, containment, FCA/PRA notification triggers and timelines, post-incident review"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Info Security Officer and the Board Risk Committee; reviewed annually and after every Severity 1 incident"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual tabletop test completed before the plan's anniversary date; any matter with serious regulatory impact notified to the FCA without undue delay, and no later than the timeline set by SUP 15.3"
+        },
+        "Deadline reminders configured": {
+          "value": "GRC platform reminder at T-30 days to the annual test anniversary; incident tracker starts a notification-deadline countdown the moment an incident is classified Severity 1"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Tabletop exercise report, incident timeline, notification correspondence and post-incident review retained 6 years per FCA Handbook SYSC 9"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "ITSM/security ticketing system",
+          "value": "Any missed or late FCA notification, or a failed tabletop objective, is logged as an exception with root cause"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Info Security Officer",
+          "value": "Post-incident review actions and tabletop remediation actions are each signed off with evidence of completion"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The annual tabletop exercise plus every Severity 1/2 incident logged in the SIEM/SOAR and ITSM systems during the period"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on a missed or late FCA notification for a matter with serious regulatory impact; tabletop must achieve all defined exercise objectives to pass"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual for the plan test and event-driven for notification; the test runs annually over the tabletop plus every notifiable incident in the period"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have participated in incident response or the tabletop exercise design"
+        },
+        "Evidence location for test results": {
+          "value": "Annual IR plan test workpaper (tabletop report, incident notification timeline reconciliation, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Incident timeline, FCA notification correspondence and post-incident review, presentable within 5 business days of a supervisory request"
+        },
+        "Regulator response path": {
+          "value": "Chief Info Security Officer drafts the notification; General Counsel and the Chief Risk Officer clear it before submission via RegData or direct supervisory contact"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Plan and schedule the annual incident response tabletop exercise",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Select a scenario relevant to the current threat landscape (ransomware, third-party data breach, prolonged outage of an important business service).",
+            "Define exercise objectives: detection time, escalation path, notification-decision timing, and communications accuracy.",
+            "Schedule the exercise date and invite the Incident Response Lead, SOC Lead, General Counsel, Chief Risk Officer and Communications Specialist.",
+            "Publish the scenario brief and objectives to participants at least 5 business days ahead."
+          ],
+          "done": "a scenario, objectives, date and participant list are confirmed and the brief is published in advance."
+        },
+        {
+          "step": "Run the tabletop exercise and capture the walkthrough",
+          "by": "Incident Response Lead",
+          "role": "Incident Response Lead",
+          "actions": [
+            "Facilitate the scenario walkthrough, injecting decision points that require an escalation and notification call.",
+            "Record each participant's decision, the time taken, and whether it matched the documented plan step.",
+            "Capture gaps where the plan was unclear or a role was unstaffed."
+          ],
+          "done": "the tabletop is run to completion with a timed decision log capturing every gap against the plan."
+        },
+        {
+          "step": "Score the exercise against its objectives and log findings",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Score each exercise objective (detection time, escalation, notification-decision timing, communications) as met, partially met or not met.",
+            "Log every not-met or partially-met objective as a finding with a proposed plan or staffing fix.",
+            "Circulate the scored report to the Chief Risk Officer within 5 business days of the exercise."
+          ],
+          "done": "every exercise objective is scored and every gap is logged as a finding with a proposed fix."
+        },
+        {
+          "step": "Update the incident response plan from tabletop findings",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Revise the plan document to close each logged finding (clarify a step, add a contact, adjust a timeline).",
+            "Route the revised plan through the standard policy approval workflow for CISO and Board Risk Committee sign-off.",
+            "Republish the approved plan and notify all named responders of the change."
+          ],
+          "done": "the plan is revised to address every finding, re-approved, and republished to responders."
+        },
+        {
+          "step": "Configure incident detection and severity classification",
+          "by": "SOC Lead",
+          "role": "SOC Lead",
+          "app": "SIEM/SOAR",
+          "actions": [
+            "In the SIEM/SOAR console confirm detection rules and correlation searches map to the plan's incident categories.",
+            "Verify the severity classification matrix (Sev 1-4) is loaded into the SOAR playbook with the correct escalation targets.",
+            "Test-fire a sample alert through the playbook and confirm it routes to the correct on-call responder."
+          ],
+          "done": "detection rules and the severity matrix are verified live in the SOAR playbook with a successful routing test."
+        },
+        {
+          "step": "Detect and triage a live incident",
+          "by": "SOC Analyst",
+          "role": "SOC Analyst",
+          "app": "SIEM/SOAR",
+          "actions": [
+            "Open the triggering alert in the SIEM/SOAR console, confirm it is a genuine incident, and open an incident case.",
+            "Classify severity using the documented matrix and assign the Incident Response Lead as case owner.",
+            "Timestamp the detection time and start the incident timeline in the case record."
+          ],
+          "done": "a triaged incident case exists with a severity classification, owner and a started timeline."
+        },
+        {
+          "step": "Assess whether the incident meets the FCA notification trigger",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Compare the incident's impact (data compromised, service outage duration, customer numbers affected) against the SUP 15.3 'serious regulatory impact' criteria.",
+            "Consult General Counsel where the trigger is ambiguous and record the joint decision on the case.",
+            "Log the notification-required decision, decider and time on the incident case."
+          ],
+          "done": "a documented, timestamped notification-required decision exists on the incident case."
+        },
+        {
+          "step": "Draft and submit the FCA notification",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Draft the notification covering what happened, when detected, customer/market impact, and remediation steps taken so far.",
+            "Route the draft to the Chief Risk Officer for review before submission.",
+            "Submit via the firm's usual FCA supervisory contact channel or RegData as directed by the firm's supervisor, and record the submission timestamp."
+          ],
+          "done": "the notification is drafted, reviewed and submitted with a recorded timestamp within the SUP 15.3 timeline."
+        },
+        {
+          "step": "Contain and remediate the incident",
+          "by": "Incident Response Lead",
+          "role": "Incident Response Lead",
+          "app": "SIEM/SOAR",
+          "actions": [
+            "Execute the containment playbook steps in SOAR (isolate host, revoke credentials, block indicator) and log each action with a timestamp.",
+            "Coordinate with system owners on remediation and verify the threat is eradicated before declaring containment complete.",
+            "Update the incident case status and timeline through to resolution."
+          ],
+          "done": "containment and remediation actions are logged with timestamps and the case is updated through to resolution."
+        },
+        {
+          "step": "Notify affected customers where required",
+          "by": "Communications Specialist",
+          "role": "Communications Specialist",
+          "actions": [
+            "Determine, with General Counsel, whether customer notification is required under UK GDPR Article 34 or the incident response plan's customer-impact criteria.",
+            "Draft the customer notification and route it for legal and Complaints Manager review before sending.",
+            "Log the notification content and send date against the incident case."
+          ],
+          "done": "the customer notification decision is documented and any required notification is sent with a logged date."
+        },
+        {
+          "step": "Conduct the post-incident review",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Hold a post-incident review within 10 business days of resolution with all responders.",
+            "Document root cause, response timeline against the plan, and lessons learned.",
+            "Assign action owners and due dates for every lesson learned."
+          ],
+          "done": "a post-incident review is held within 10 business days with root cause, timeline and owned action items documented."
+        },
+        {
+          "step": "Track post-incident and tabletop remediation actions to closure",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "ITSM/security ticketing system",
+          "actions": [
+            "Open a ticket for each post-incident review and tabletop remediation action with owner and due date.",
+            "Follow up weekly on open items and escalate overdue actions to the Chief Info Security Officer.",
+            "Close each ticket only with evidence the action was completed."
+          ],
+          "done": "every remediation action is ticketed, tracked and closed with evidence."
+        },
+        {
+          "step": "Report incident and tabletop outcomes to the Board Risk Committee",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "app": "board portal",
+          "actions": [
+            "Summarize the period's Severity 1/2 incidents, notification timeliness, and the tabletop scorecard in the Risk Committee pack.",
+            "Upload the pack to the board portal ahead of the meeting and present the summary.",
+            "Capture committee questions and directives against the record."
+          ],
+          "done": "an incident and tabletop summary is uploaded to the board portal and presented, with directives captured."
+        },
+        {
+          "step": "Log exceptions with disposition",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "ITSM/security ticketing system",
+          "actions": [
+            "Log any missed tabletop objective, late FCA notification, or overdue post-incident action as a formal exception with root cause.",
+            "Route each exception to the Chief Info Security Officer for a disposition and remediation date.",
+            "Track exceptions to closure on the monthly security dashboard."
+          ],
+          "done": "every exception is logged with root cause, disposition and a tracked remediation date."
+        },
+        {
+          "step": "Retain incident and tabletop evidence in the compliance repository",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the tabletop report, incident timelines, FCA notification correspondence and post-incident reviews to the compliance evidence repository.",
+            "Apply the 6-year retention label required under FCA Handbook SYSC 9.",
+            "Confirm the folder is indexed and retrievable by incident id and exercise date."
+          ],
+          "done": "the full evidence set is filed, retention-labelled and retrievable by incident id and exercise date."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of incidents and the tabletop exercise",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "SIEM/SOAR",
+          "actions": [
+            "Export every Severity 1 and 2 incident case from the SIEM/SOAR platform for the period.",
+            "Add the annual tabletop exercise as a population item.",
+            "Reconcile the incident count to the ITSM/security ticketing system's incident category to confirm nothing was excluded."
+          ],
+          "done": "the incident and tabletop population reconciles between the SOAR platform and the ITSM ticketing system."
+        },
+        {
+          "step": "Confirm the tabletop exercise met its scheduling and scope requirements",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the tabletop occurred within the annual cycle required by the plan.",
+            "Check the participant list against the required roles (Incident Response Lead, SOC Lead, General Counsel, Chief Risk Officer, Communications Specialist).",
+            "Flag any missing required participant or a cycle gap as an exception."
+          ],
+          "done": "tabletop timing and participation are checked against the plan requirement, with gaps flagged."
+        },
+        {
+          "step": "Draw the sample of incidents for detailed testing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of Severity 1 incidents in the period.",
+            "Take 10 Severity 2 incidents at random (seeded, reproducible).",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers 100% of Severity 1 incidents."
+        },
+        {
+          "step": "Re-perform the notification-trigger assessment for the sample",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "For each sampled incident, independently assess against SUP 15.3 criteria whether FCA notification was required, using only the incident case evidence as it stood at the time.",
+            "Compare the independent assessment to the decision actually recorded on the case.",
+            "Flag any case where notification should have occurred but did not, as a Critical exception."
+          ],
+          "done": "each sampled incident has an independent notification-trigger assessment compared to the recorded decision."
+        },
+        {
+          "step": "Trace notified incidents to the submitted FCA correspondence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled incident where notification was required, locate the actual submission (email, RegData confirmation, or supervisory call note).",
+            "Confirm the submission content matches the incident facts as known at submission time and covers impact and remediation status.",
+            "Capture the submission evidence into the workpaper."
+          ],
+          "done": "every sampled notification-required incident traces to actual, content-matching FCA correspondence."
+        },
+        {
+          "step": "Recompute the notification timeline against the SUP 15.3 deadline",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled notified incident, recompute the time elapsed between detection timestamp and notification submission timestamp.",
+            "Compare the elapsed time to the plan's internal target and the SUP 15.3 'without undue delay' standard.",
+            "Flag any notification that took longer than the plan's internal target with no documented justification."
+          ],
+          "done": "notification timing is recomputed for every sampled incident, with unjustified delays flagged."
+        },
+        {
+          "step": "Verify post-incident review completion and action closure",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM/security ticketing system",
+          "actions": [
+            "Confirm a post-incident review record exists for each sampled Severity 1/2 incident within 10 business days of resolution.",
+            "Trace each review's action items to closed tickets with completion evidence.",
+            "Flag any review missing, late, or with an open action past its due date."
+          ],
+          "done": "post-incident review existence, timing and action closure are verified for every sampled incident."
+        },
+        {
+          "step": "Confirm tabletop findings were remediated in the plan",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the tabletop scored report's not-met/partially-met objectives to the revised plan document.",
+            "Confirm the plan revision date is after the tabletop and that the specific gap was addressed in the text.",
+            "Flag any tabletop finding with no corresponding plan revision."
+          ],
+          "done": "every tabletop finding is traced to a dated plan revision, or flagged."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "app": "ITSM/security ticketing system",
+          "actions": [
+            "Raise a tracker issue for each test exception identified above.",
+            "Assign a root cause category (late notification, missed trigger, unclosed action) and an owner.",
+            "Set a remediation date; any missed FCA notification also triggers a self-report assessment with Regulatory Counsel."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date, and missed notifications trigger a self-report assessment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Compute the exception rate and compare to the zero-tolerance threshold for missed/late FCA notifications.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the evidence gathered.",
+            "Have the independent reviewer, who did not participate in incident response or tabletop design, sign the workpaper.",
+            "Report the conclusion and any open breaches to the Board Risk Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is reported to the Board Risk Committee and filed."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-064-C20",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Chief Info Security Officer",
+          "value": "Owns the annual certification of compliance with the firm's information security controls, filed in support of the SM&CR Certification Regime"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "FCA Handbook SYSC 27.9 (Certification Regime — annual certification of Certified Persons) and SYSC 4.3 (management responsibility), re-read at certification date (rep: United Kingdom)"
+        },
+        "In-scope processes": {
+          "value": "Year-end assessment of every Certified Person in a Certification Function role touching information security or customer data, and the resulting fit-and-proper annual certification filing"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Certification workflow, evidence collection and sign-off tracked in the GRC platform; certificates issued and filed via HRIS and the Internal Regulatory System"
+        },
+        "Compliance procedure documented": {
+          "value": "Annual Certification Regime Procedure — competence assessment, conduct rule breach check, fitness-and-propriety declaration, certificate issuance"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Info Security Officer and Head of Compliance; reviewed annually ahead of the certification window"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual certification must be completed and each certificate issued or refused within 12 months of the prior certification, per SYSC 27.9"
+        },
+        "Deadline reminders configured": {
+          "value": "GRC platform reminders at T-60/T-30/T-10 days to each Certified Person's certification anniversary date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Competence assessments, conduct rule breach checks, fitness declarations and issued certificates retained 6 years per FCA Handbook SYSC 9"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any certification completed late, or any refusal to certify, is logged as an exception with disposition and HR/Compliance follow-up"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Every late certification and every refusal-to-certify case is signed off with its final disposition"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All individuals holding a Certification Function as of the certification window, per the HRIS Certification Regime role list"
+        },
+        "Pass/fail thresholds": {
+          "value": "100% of Certified Persons must have a completed certification decision (certified or refused) before their anniversary date to pass"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; the test runs once per certification cycle over the full Certified Person population"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have performed any certification assessment being tested"
+        },
+        "Evidence location for test results": {
+          "value": "Annual certification test workpaper (population extract, sample, assessment re-performance, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Certification population list, completed certificates and any refusal records, presentable within 5 business days of an FCA request"
+        },
+        "Regulator response path": {
+          "value": "Head of Compliance owns the response; General Counsel clears any submission referencing a refused certification"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Pull the Certification Function population",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "In the HRIS, filter active employees by Certification Function tag for roles with system access to information security controls or customer data.",
+            "Cross-check the list against the CISO's own team roster and any contractor holding a Certification Function.",
+            "Load the confirmed population into the GRC platform's certification workflow module."
+          ],
+          "app": "HRIS (Workday/SuccessFactors)",
+          "done": "the confirmed Certification Function population is loaded into the GRC platform certification workflow."
+        },
+        {
+          "step": "Open a certification case for each Certified Person",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "In the GRC platform open Certification ▸ New Case for each individual, pre-populated from HRIS with role, tenure and prior certification date.",
+            "Set the case due date to 12 months minus 30 days from the individual's last certification date.",
+            "Assign the case to the individual's line manager for the competence and conduct assessment."
+          ],
+          "done": "every Certified Person has an open, due-dated certification case assigned to their line manager."
+        },
+        {
+          "step": "Assess competence against the role profile",
+          "by": "IT Security Manager",
+          "role": "IT Security Manager",
+          "actions": [
+            "Review the individual's completed mandatory training, performance review outcomes and any skills gaps against the role profile for the Certification Function.",
+            "Document the competence conclusion (competent / development needed / not competent) on the certification case.",
+            "Where development needed, attach the training plan and target completion date."
+          ],
+          "done": "a documented competence conclusion, with a training plan where applicable, exists on every case."
+        },
+        {
+          "step": "Check for conduct rule breaches in the period",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Query the disciplinary and conduct-breach register for any record against the individual since the last certification.",
+            "Where a breach is recorded, retrieve the investigation outcome and any sanction applied.",
+            "Attach the breach record and outcome, or confirm 'no breach found', to the certification case."
+          ],
+          "done": "every certification case shows either a confirmed breach outcome or a documented 'no breach found' check."
+        },
+        {
+          "step": "Complete the fitness-and-propriety declaration",
+          "by": "IT Security Manager",
+          "role": "IT Security Manager",
+          "actions": [
+            "Run the required background checks (criminal record, credit check, regulatory reference) per the firm's onboarding-refresh schedule.",
+            "Complete the fitness-and-propriety declaration form covering honesty, integrity, reputation, competence and financial soundness.",
+            "Attach the check results and declaration to the certification case."
+          ],
+          "done": "background checks are completed and a fitness-and-propriety declaration is attached to the case."
+        },
+        {
+          "step": "Take the certification decision",
+          "by": "IT Security Manager",
+          "role": "IT Security Manager",
+          "actions": [
+            "Review the competence conclusion, conduct check and fitness declaration together against the certification standard.",
+            "Decide to certify or refuse to certify, and record the reasoning on the case.",
+            "Where refusing, notify HR Business Partner and Compliance Manager immediately for the statutory next-steps process."
+          ],
+          "done": "a reasoned certify/refuse decision is recorded on every case."
+        },
+        {
+          "step": "Issue the certificate",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "For certified individuals, generate the certificate from the GRC platform template with the certification period and function.",
+            "Deliver the certificate to the individual and file the acknowledgement of receipt.",
+            "Update the individual's HRIS record with the new certification expiry date."
+          ],
+          "done": "a certificate is issued, acknowledged and the HRIS expiry date is updated for every certified individual."
+        },
+        {
+          "step": "Process refusal-to-certify cases",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "For any refused individual, initiate the SM&CR-required process: restrict system access to information-security functions and notify the Chief Info Security Officer.",
+            "Coordinate with HR Business Partner on the individual's role change, remediation plan, or termination per policy.",
+            "Assess whether the refusal itself is a notifiable event to the FCA and consult General Counsel."
+          ],
+          "done": "every refusal triggers access restriction, an HR action plan, and an FCA-notifiability assessment."
+        },
+        {
+          "step": "Track certification cases to closure against the deadline",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Run a weekly report of open certification cases filtered by due date within 30 days.",
+            "Follow up with line managers on overdue assessments and log the reason for delay.",
+            "Escalate cases more than 10 days past due to the Head of Compliance."
+          ],
+          "done": "a weekly report tracks open cases and every case more than 10 days overdue is escalated."
+        },
+        {
+          "step": "Consolidate the annual certification summary",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Compile the count of certified, refused, and still-open cases across the population.",
+            "Note any case closed after its anniversary date and the reason.",
+            "Prepare the summary for the Head of Compliance's sign-off."
+          ],
+          "done": "a consolidated summary of certification outcomes across the full population is prepared."
+        },
+        {
+          "step": "Obtain Head of Compliance sign-off on the annual certification",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Review the consolidated summary and the underlying case files for completeness.",
+            "Sign off the annual certification cycle as complete, noting any residual open case and its remediation plan.",
+            "File the signed summary with the annual SM&CR governance pack."
+          ],
+          "done": "the Head of Compliance signs off the cycle summary, with any residual open case and its remediation plan noted."
+        },
+        {
+          "step": "Report certification outcomes to the Board Risk Committee",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "app": "board portal",
+          "actions": [
+            "Upload the certification summary to the board portal ahead of the scheduled governance meeting.",
+            "Present the completion rate, any refusals and their status, and any overdue cases.",
+            "Capture committee questions and directives against the record."
+          ],
+          "done": "the certification summary is uploaded and presented to the Board Risk Committee, with directives captured."
+        },
+        {
+          "step": "Log exceptions with disposition",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Log every case completed after its anniversary date as a formal exception with root cause.",
+            "Route the exception to the Head of Compliance for disposition.",
+            "Record the disposition and any process fix to prevent recurrence."
+          ],
+          "done": "every late certification case has a logged exception with root cause and disposition."
+        },
+        {
+          "step": "Retain certification evidence for the retention period",
+          "by": "Security GRC Analyst",
+          "role": "Security GRC Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move each closed certification case (competence assessment, conduct check, fitness declaration, decision, certificate) into the compliance evidence repository.",
+            "Apply the 6-year retention label required under FCA Handbook SYSC 9.",
+            "Confirm the repository index is searchable by individual and certification year."
+          ],
+          "done": "every closed case is filed, retention-labelled and retrievable by individual and certification year."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of Certified Persons",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Extract the Certification Function-tagged population from the HRIS as of the certification window.",
+            "Reconcile the extract to the GRC platform's certification case list to confirm every individual has an open or closed case.",
+            "Resolve any individual missing a case with the Security GRC Analyst before sampling."
+          ],
+          "done": "the Certified Person population reconciles between HRIS and the GRC platform certification workflow."
+        },
+        {
+          "step": "Confirm 100% case completion before each anniversary date",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For every individual in the population, compare the certification case close date to their certification anniversary date.",
+            "List any case open past its anniversary date as an automatic exception.",
+            "Note any individual with no case opened at all as a Critical exception."
+          ],
+          "done": "every population member's case timing is checked against their anniversary date, with lapses listed."
+        },
+        {
+          "step": "Draw the sample of certification cases",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of refusal-to-certify cases.",
+            "Take 20 certified cases at random (seeded, reproducible).",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers 100% of refusal cases."
+        },
+        {
+          "step": "Re-perform the conduct rule breach check on the sample",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Independently query the disciplinary and conduct-breach register for each sampled individual over the certification period.",
+            "Compare the independent result to what is documented on the certification case.",
+            "Flag any case where a breach existed but was not reflected in the certification decision."
+          ],
+          "done": "each sampled case's conduct check is independently re-performed and compared to the recorded result."
+        },
+        {
+          "step": "Verify the fitness-and-propriety evidence on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the required background checks (criminal record, credit, regulatory reference) are present and dated within the certification window for each sampled case.",
+            "Confirm the declaration form is signed by the individual and countersigned by the line manager.",
+            "Flag any missing or stale (prior-cycle) evidence."
+          ],
+          "done": "fitness-and-propriety evidence completeness and currency are verified for every sampled case."
+        },
+        {
+          "step": "Re-perform the competence assessment for the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Review the training records and performance outcomes behind each sampled competence conclusion.",
+            "Independently form a competence view and compare it to the recorded conclusion.",
+            "Flag any conclusion that appears unsupported by the underlying evidence."
+          ],
+          "done": "each sampled competence conclusion is independently checked against its supporting evidence."
+        },
+        {
+          "step": "Trace certificates issued to HRIS expiry-date updates",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "For each sampled certified case, confirm a certificate document exists with the correct certification period.",
+            "Confirm the HRIS record shows the matching updated expiry date.",
+            "Flag any certificate not reflected in HRIS."
+          ],
+          "done": "certificate issuance is traced to a matching HRIS expiry-date update for every sampled case."
+        },
+        {
+          "step": "Verify refusal-case follow-through",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "For each refusal case in the sample, confirm access restriction to information-security functions was applied and dated.",
+            "Confirm the FCA-notifiability assessment was completed and, where notification was required, trace it to the actual submission.",
+            "Flag any refusal case missing the access restriction or the notifiability assessment."
+          ],
+          "done": "every sampled refusal case shows access restriction and a completed notifiability assessment, or is flagged."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a case-level exception for each finding above, describing the gap.",
+            "Assign a root cause category (late assessment, missing evidence, unlinked refusal action) and an owner.",
+            "Set a remediation date and carry unresolved items into next cycle's mandatory retest population."
+          ],
+          "done": "every exception has a logged root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Compute the exception rate against the population and compare to the 100%-completion threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the evidence gathered.",
+            "Have the independent reviewer, who performed none of the sampled assessments, sign the workpaper.",
+            "Report results to the Board Risk Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is reported and filed."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-064-C21",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Third-Party Risk Manager",
+          "value": "Owns oversight of critical/important third-party service provider security across the outsourcing portfolio"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "FCA Handbook SYSC 8 (outsourcing) and PRA Rulebook / SS2/21 (Outsourcing and third party risk management), re-read at each vendor risk assessment (rep: United Kingdom)"
+        },
+        "In-scope processes": {
+          "value": "Due diligence, contracting, ongoing monitoring and exit planning for every critical or important outsourced function, per the outsourcing register"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Vendor risk assessments, security questionnaires and monitoring results tracked in the GRC platform; contracts held in the contract lifecycle management repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Third-Party Outsourcing Oversight Procedure — criticality assessment, pre-contract due diligence, security questionnaire, contract clause standard, ongoing monitoring cadence, exit plan requirement"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Info Security Officer and Third-Party Risk Manager; reviewed annually"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Pre-contract due diligence completed before any critical/important function goes live; annual reassessment for every critical vendor; exit plan reviewed every 2 years"
+        },
+        "Deadline reminders configured": {
+          "value": "GRC platform reminders at T-60/T-30 days to each vendor's annual reassessment date and each contract's renewal/exit-plan review date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Due diligence packs, security questionnaires, monitoring results, contracts and exit plans retained 6 years after contract termination per FCA Handbook SYSC 9"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any vendor operating past its due diligence or reassessment date, or with an unresolved critical security finding, is logged as an exception"
+        },
+        "Remediation sign-off captured": {
+          "role": "Third-Party Risk Manager",
+          "value": "Every closed vendor security finding and every overdue reassessment is signed off with remediation evidence"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All vendors classified critical or important on the outsourcing register as of the test date"
+        },
+        "Pass/fail thresholds": {
+          "value": "100% of critical/important vendors must have a current (within 12 months) security reassessment and an executed contract with the standard security clauses to pass"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per-vendor/annual; the test runs annually over the full critical/important vendor population"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have performed any sampled vendor assessment"
+        },
+        "Evidence location for test results": {
+          "value": "Annual third-party oversight test workpaper (vendor population, sample, re-performed due diligence checks, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Outsourcing register extract, vendor risk assessments and contracts, presentable within 5 business days of a supervisory request"
+        },
+        "Regulator response path": {
+          "value": "Third-Party Risk Manager owns the response; Procurement Manager and General Counsel support contract-specific queries"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Maintain the outsourcing register and criticality classification",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "In the GRC platform open the Vendor/Outsourcing module and review each active vendor's function description.",
+            "Apply the criticality test (impact of failure on important business services, data sensitivity, substitutability) and classify as Critical, Important or Standard.",
+            "Add any newly onboarded vendor to the register within 5 business days of contract signature.",
+            "Confirm the register reconciles to the Coupa/Ariba active supplier list."
+          ],
+          "done": "the outsourcing register is current, every vendor is classified, and it reconciles to the active supplier list."
+        },
+        {
+          "step": "Run pre-contract due diligence for a new critical/important vendor",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Issue the standard security questionnaire (SOC 2 report request, penetration test summary, data handling and sub-outsourcing disclosure) to the prospective vendor.",
+            "Review the vendor's SOC 2/ISO 27001 certificate and any exceptions noted in the auditor's opinion.",
+            "Score the vendor's residual risk and document the go/no-go recommendation."
+          ],
+          "done": "a completed security questionnaire, certificate review and a documented risk score exist before contract signature."
+        },
+        {
+          "step": "Negotiate the required outsourcing contract clauses",
+          "by": "Procurement Manager",
+          "role": "Procurement Manager",
+          "app": "Coupa / SAP Ariba (Procurement)",
+          "actions": [
+            "In Coupa/Ariba open the contract request and attach the standard SYSC 8 clause pack (audit rights, sub-outsourcing notification, data location, breach notification timeline, termination/exit assistance).",
+            "Route the draft to General Counsel for review of any vendor-proposed deviation.",
+            "Confirm the final signed contract includes every required clause before activation."
+          ],
+          "done": "the executed contract includes every required SYSC 8 clause, confirmed before activation."
+        },
+        {
+          "step": "File the contract and due diligence pack in the contract repository",
+          "by": "Contracts Manager",
+          "role": "Contracts Manager",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "Upload the executed contract, due diligence pack and risk score to the contract lifecycle management repository, linked to the vendor's outsourcing register entry.",
+            "Tag the record with the criticality classification and the annual reassessment due date.",
+            "Confirm the repository record is retrievable from the outsourcing register."
+          ],
+          "done": "the contract and due diligence pack are filed, tagged and linked to the register entry."
+        },
+        {
+          "step": "Set the ongoing monitoring cadence",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Configure the GRC platform to trigger an annual reassessment task for every Critical/Important vendor and a lighter-touch biennial review for Standard vendors.",
+            "Set continuous monitoring alerts (breach notification feeds, financial health score) for Critical vendors where the tool supports it.",
+            "Confirm the monitoring configuration against the register at least quarterly."
+          ],
+          "done": "annual/biennial reassessment tasks and continuous monitoring alerts are configured for every vendor tier."
+        },
+        {
+          "step": "Perform the annual vendor security reassessment",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Request the vendor's current SOC 2/ISO 27001 report and any material change disclosure (ownership, sub-outsourcing, breach history) since the last assessment.",
+            "Compare the current report to the prior year and flag any new exception or control gap.",
+            "Update the vendor's risk score and record the reassessment date on the register."
+          ],
+          "done": "an updated risk score and reassessment date are recorded for every Critical/Important vendor within its annual cycle."
+        },
+        {
+          "step": "Investigate any vendor security incident or breach notification",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "app": "ITSM/security ticketing system",
+          "actions": [
+            "On receiving a vendor breach notification, open an incident case and assess the impact to the firm's data or important business services.",
+            "Coordinate with the Chief Info Security Officer on whether the firm's own incident response and FCA notification process is triggered.",
+            "Document the vendor's remediation commitment and set a follow-up review date."
+          ],
+          "done": "every vendor breach notification is assessed for firm impact, with a documented remediation follow-up date."
+        },
+        {
+          "step": "Track vendor remediation of open security findings",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Log each open vendor security finding (from SOC 2 exceptions or incidents) in the GRC platform with a target remediation date.",
+            "Follow up with the vendor relationship owner at each monitoring cadence until the finding is confirmed closed.",
+            "Escalate a finding open beyond two monitoring cycles to the Chief Info Security Officer."
+          ],
+          "done": "every open vendor finding is tracked with a remediation date and escalated if it persists past two cycles."
+        },
+        {
+          "step": "Review and refresh the exit plan for each critical vendor",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Review the documented exit/transition plan for feasibility: alternative provider, data extraction method, and estimated transition timeline.",
+            "Confirm the plan reflects the vendor's current service scope and any sub-outsourcing arrangement.",
+            "Re-approve or update the plan at least every 2 years, or immediately after a material service change."
+          ],
+          "done": "every critical vendor's exit plan is current, feasible and re-approved within the 2-year cycle."
+        },
+        {
+          "step": "Escalate any vendor operating without current due diligence",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "actions": [
+            "Identify any Critical/Important vendor whose reassessment or contract clause coverage has lapsed.",
+            "Raise the gap to the Third-Party Risk Manager and the vendor relationship owner for immediate remediation.",
+            "Where the gap cannot close within 30 days, escalate to the Board Risk Committee with a risk-acceptance or termination recommendation."
+          ],
+          "done": "every lapsed vendor is escalated and, if unresolved within 30 days, brought to the Board Risk Committee."
+        },
+        {
+          "step": "Consolidate the annual outsourcing oversight report",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Compile the vendor population, reassessment completion rate, open findings and exit-plan status into the annual report.",
+            "Circulate the draft to the Chief Info Security Officer and Chief Risk Officer for review.",
+            "Finalize the report ahead of the Board Risk Committee cycle."
+          ],
+          "done": "a consolidated annual outsourcing oversight report is finalized and reviewed."
+        },
+        {
+          "step": "Present the outsourcing oversight report to the Board Risk Committee",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "app": "board portal",
+          "actions": [
+            "Upload the finalized report to the board portal ahead of the scheduled meeting.",
+            "Present the vendor risk landscape, reassessment coverage and any unresolved critical findings.",
+            "Capture committee directives against the record."
+          ],
+          "done": "the report is uploaded, presented, and committee directives are captured."
+        },
+        {
+          "step": "Log exceptions with disposition",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Log every lapsed reassessment, missing clause, or unremediated finding as a formal exception with root cause.",
+            "Route each exception to the Chief Info Security Officer for disposition and a remediation date.",
+            "Track approved exceptions until closed."
+          ],
+          "done": "every gap is logged as an exception with root cause, disposition and a tracked remediation date."
+        },
+        {
+          "step": "Retain vendor oversight evidence for the retention period",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload due diligence packs, reassessments, incident records, exit plans and the annual report to the compliance evidence repository.",
+            "Apply the 6-year-post-termination retention label per FCA Handbook SYSC 9.",
+            "Confirm the repository index is retrievable by vendor and criticality tier."
+          ],
+          "done": "the full vendor oversight evidence set is filed, retention-labelled and retrievable by vendor and tier."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of critical/important vendors",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Export the full outsourcing register filtered to Critical and Important classification.",
+            "Reconcile the register to the Coupa/Ariba active supplier list to confirm no critical vendor is missing from the register.",
+            "Resolve any mismatch with the Third-Party Risk Manager before sampling."
+          ],
+          "done": "the vendor population reconciles between the outsourcing register and the active supplier list."
+        },
+        {
+          "step": "Verify classification consistency across the population",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently apply the criticality test to a cross-section of vendors using the function description on file.",
+            "Compare the independent classification to the recorded classification.",
+            "Flag any vendor that appears under-classified relative to its actual function."
+          ],
+          "done": "classification consistency is checked and any apparent under-classification is flagged."
+        },
+        {
+          "step": "Draw the sample of vendors",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of Critical vendors.",
+            "Take 15 Important vendors at random (seeded, reproducible).",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers 100% of Critical vendors."
+        },
+        {
+          "step": "Re-perform the due diligence check on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled vendor, independently review the current SOC 2/ISO 27001 report and confirm no material exception was missed in the recorded reassessment.",
+            "Compare the independent review to the recorded risk score.",
+            "Flag any material exception omitted from the recorded assessment."
+          ],
+          "done": "each sampled vendor's due diligence evidence is independently reviewed and compared to the recorded score."
+        },
+        {
+          "step": "Verify contract clause coverage on the sample",
+          "by": "Contracts Manager",
+          "role": "Contracts Manager",
+          "app": "contract lifecycle management repository",
+          "actions": [
+            "Open each sampled vendor's executed contract in the repository and check for the required SYSC 8 clause set (audit rights, sub-outsourcing notification, breach notification timeline, exit assistance).",
+            "Flag any missing or weakened clause compared to the standard clause pack.",
+            "Note the contract execution date relative to the service go-live date."
+          ],
+          "done": "clause coverage is verified for every sampled contract, with gaps and timing issues flagged."
+        },
+        {
+          "step": "Recompute reassessment timing against the annual cycle",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled vendor, recompute the 12-month reassessment window from the prior assessment date.",
+            "Compare the recomputed window to the actual reassessment completion date.",
+            "Flag any vendor reassessed late or not at all in the period."
+          ],
+          "done": "reassessment timing is recomputed for every sampled vendor, with lapses flagged."
+        },
+        {
+          "step": "Trace open vendor security findings to closure evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "For each sampled vendor with a logged finding, trace it through to its closure evidence or current open status with a valid remediation date.",
+            "Confirm findings open beyond two monitoring cycles were escalated per the procedure.",
+            "Flag any finding with no tracked closure evidence and no escalation."
+          ],
+          "done": "every sampled finding traces to closure evidence or a valid, escalated open status."
+        },
+        {
+          "step": "Verify exit plan currency for the sampled critical vendors",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Confirm each sampled Critical vendor has an exit plan re-approved within the last 2 years.",
+            "Check the plan reflects the vendor's current service scope.",
+            "Flag any stale or scope-mismatched exit plan."
+          ],
+          "done": "exit plan currency and accuracy are verified for every sampled Critical vendor."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Chief Info Security Officer",
+          "role": "Chief Info Security Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a tracker issue for each test exception identified above.",
+            "Assign a root cause category (late reassessment, missing clause, unremediated finding) and an owner.",
+            "Set a remediation date and carry unresolved items into next year's mandatory retest population."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Compute the exception rate against the population and compare to the 100%-current-reassessment threshold for Critical vendors.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the evidence gathered.",
+            "Have the independent reviewer, who performed none of the sampled reassessments, sign the workpaper.",
+            "Report results to the Board Risk Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is reported and filed."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-064-C22",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Sustainability Risk Manager",
+          "value": "Owns preparation and submission of the firm's annual TCFD-aligned climate-related financial disclosures"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "FCA Handbook ESG Sourcebook, ESG 2 (TCFD-aligned climate disclosure requirements for insurers), re-read against the current in-force text ahead of drafting (rep: United Kingdom)"
+        },
+        "In-scope processes": {
+          "value": "Year-end collection, calculation and disclosure of governance, strategy, risk management and metrics-and-targets content required by the ESG Sourcebook, plus any FCA/PRA climate survey"
+        },
+        "In-scope systems": {
+          "app": "BI/reporting platform",
+          "value": "Emissions and exposure data aggregated in the BI/reporting platform from source systems; disclosure drafted and filed via the Internal Regulatory System"
+        },
+        "Compliance procedure documented": {
+          "value": "Annual TCFD Disclosure Procedure — data collection from underwriting/investment portfolios, scenario analysis update, metrics calculation, narrative drafting, sign-off, publication"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Risk Officer and ratified by the Board; reviewed annually ahead of the disclosure drafting cycle"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual disclosure published alongside the Annual Report and Accounts; any FCA/PRA climate survey completed by its stated portal deadline"
+        },
+        "Deadline reminders configured": {
+          "value": "Reporting calendar milestones at T-90/T-60/T-30 days to Annual Report publication for each disclosure section owner"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Underlying emissions data, scenario analysis workpapers, metrics calculations and the published disclosure retained 6 years per FCA Handbook SYSC 9"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "compliance evidence repository",
+          "value": "Any disclosure section missing supporting workpapers at sign-off, or any late data feed, is logged as an exception with disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "Final disclosure content and any restated prior-year metric is signed off before publication"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every quantitative metric and qualitative statement in the published TCFD-aligned disclosure for the reporting year"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for a published metric that cannot be traced to source data; any unsupported statement is a fail requiring correction or restatement"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; the test runs once per disclosure cycle ahead of publication"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have prepared any sampled metric or narrative section"
+        },
+        "Evidence location for test results": {
+          "value": "Annual TCFD disclosure test workpaper (metric population, sample, source-data trace, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Published disclosure plus underlying workpapers, presentable within 5 business days of an FCA/PRA supervisory request"
+        },
+        "Regulator response path": {
+          "value": "Sustainability Risk Manager owns the technical response; Chief Risk Officer clears any restatement or correction before it is communicated"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Scope the disclosure content against the ESG Sourcebook requirements",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "actions": [
+            "Read the current ESG 2 requirements and map each required element (governance, strategy, risk management, metrics and targets) to a disclosure section owner.",
+            "Identify any new or changed requirement since the prior year's disclosure and note the impact on scope.",
+            "Publish the disclosure scope and section ownership to the reporting calendar."
+          ],
+          "done": "every ESG 2 required element is mapped to a section owner and published on the reporting calendar."
+        },
+        {
+          "step": "Collect emissions and exposure data from source systems",
+          "by": "Data Analyst",
+          "role": "Data Analyst",
+          "app": "BI/reporting platform",
+          "actions": [
+            "Extract underwriting portfolio exposure by sector and investment portfolio holdings from the data warehouse into the BI/reporting platform's climate data model.",
+            "Pull Scope 1/2/3 operational emissions data from the facilities and travel systems for the reporting year.",
+            "Validate completeness against the prior-year data feed list and flag any missing source."
+          ],
+          "done": "underwriting, investment and operational emissions data are extracted and validated against the prior-year feed list."
+        },
+        {
+          "step": "Update the climate scenario analysis",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "actions": [
+            "Refresh the physical and transition risk scenario models with the current-year portfolio data.",
+            "Compare scenario outputs to the prior year and document any material shift in exposure.",
+            "Have the Chief Risk Officer review the scenario methodology and results."
+          ],
+          "done": "scenario analysis is refreshed, compared to the prior year, and reviewed by the CRO."
+        },
+        {
+          "step": "Calculate the required climate metrics",
+          "by": "Data Analyst",
+          "role": "Data Analyst",
+          "app": "BI/reporting platform",
+          "actions": [
+            "Calculate weighted average carbon intensity, financed emissions and any insurance-associated emissions metric per the ESG 2 methodology.",
+            "Cross-check each calculation formula against the documented methodology note.",
+            "Flag any metric where source data coverage is below the methodology's minimum threshold and document the limitation."
+          ],
+          "done": "every required metric is calculated per the documented methodology, with coverage limitations disclosed."
+        },
+        {
+          "step": "Draft the governance and strategy narrative",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "actions": [
+            "Draft the governance section describing Board and management oversight of climate risk.",
+            "Draft the strategy section describing identified risks/opportunities and their business impact over short/medium/long term.",
+            "Route the draft to the Chief Risk Officer and General Counsel for review."
+          ],
+          "done": "governance and strategy narrative sections are drafted and routed for review."
+        },
+        {
+          "step": "Draft the risk management and metrics-and-targets sections",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "actions": [
+            "Draft the risk management section describing how climate risk is identified, assessed and integrated into the enterprise risk management framework.",
+            "Insert the calculated metrics and any targets, with year-over-year comparison and commentary on movement.",
+            "Route the draft to the Enterprise Risk Manager for consistency with the ERM framework description."
+          ],
+          "done": "risk management and metrics-and-targets sections are drafted with metrics inserted and reviewed for ERM consistency."
+        },
+        {
+          "step": "Assemble the full disclosure and cross-check consistency",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "actions": [
+            "Assemble all four sections into the disclosure document using the firm's standard template.",
+            "Cross-check that every metric cited in the narrative matches the calculation workpaper exactly.",
+            "Confirm formatting and cross-references align with the Annual Report and Accounts where the disclosure is incorporated."
+          ],
+          "done": "the assembled disclosure is internally consistent and its metrics match the calculation workpapers exactly."
+        },
+        {
+          "step": "Route the disclosure for legal and risk review",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Review the disclosure for accuracy of forward-looking statements and consistency with other public disclosures.",
+            "Check every quantitative claim carries a traceable source reference.",
+            "Return comments to the Sustainability Risk Manager with a required-changes list."
+          ],
+          "done": "legal review is complete and every required change is returned with a traceable-source check."
+        },
+        {
+          "step": "Obtain Chief Risk Officer sign-off",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Review the final disclosure draft against the scenario analysis and metrics workpapers.",
+            "Sign off the disclosure as ready for Board review, or return it with required revisions.",
+            "Record the sign-off date on the disclosure record."
+          ],
+          "done": "the Chief Risk Officer signs off the disclosure as ready for Board review, with the date recorded."
+        },
+        {
+          "step": "Present the disclosure to the Board for approval",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "board portal",
+          "actions": [
+            "Upload the final disclosure to the board portal ahead of the scheduled Board meeting.",
+            "Present the disclosure, scenario analysis findings and any year-over-year metric movement.",
+            "Capture Board approval or requested changes against the record."
+          ],
+          "done": "the disclosure is uploaded, presented and Board approval or requested changes are captured."
+        },
+        {
+          "step": "Publish the disclosure",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "actions": [
+            "Incorporate the Board-approved disclosure into the Annual Report and Accounts or the standalone TCFD report as applicable.",
+            "Publish on the firm's website and, where required, submit via the applicable FCA/PRA survey portal by its stated deadline.",
+            "Record the publication date and submission confirmation."
+          ],
+          "done": "the disclosure is published and, where required, submitted through the regulator's survey portal with a recorded confirmation."
+        },
+        {
+          "step": "Maintain the underlying data and methodology support",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "actions": [
+            "File the methodology note, data lineage documentation and calculation workpapers alongside the published disclosure.",
+            "Confirm each metric in the workpaper links back to its BI/reporting platform source query.",
+            "Update the methodology note for any calculation change from the prior year."
+          ],
+          "done": "methodology note, data lineage and calculation workpapers are filed and linked to source queries."
+        },
+        {
+          "step": "Respond to any FCA/PRA climate survey",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Log in to the survey portal and complete each question using the same source data and metrics as the published disclosure.",
+            "Have the Sustainability Risk Manager review the survey response for consistency with the published disclosure before submission.",
+            "Submit before the stated portal deadline and retain the submission receipt."
+          ],
+          "done": "the survey response is consistent with the published disclosure and submitted with a retained receipt before deadline."
+        },
+        {
+          "step": "Log exceptions with disposition",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Log any disclosure section that reached sign-off without a complete supporting workpaper as a formal exception.",
+            "Route the exception to the Chief Risk Officer for disposition and, if needed, a post-publication correction plan.",
+            "Track exceptions to closure ahead of the next disclosure cycle."
+          ],
+          "done": "every incomplete-workpaper exception is logged with disposition and tracked to closure."
+        },
+        {
+          "step": "Retain the disclosure evidence for the retention period",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the published disclosure, methodology note, data lineage and calculation workpapers to the compliance evidence repository.",
+            "Apply the 6-year retention label required under FCA Handbook SYSC 9.",
+            "Confirm the folder is indexed and retrievable by disclosure year and metric."
+          ],
+          "done": "the full disclosure evidence set is filed, retention-labelled and retrievable by year and metric."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of disclosed metrics and statements",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "List every quantitative metric and material qualitative statement in the published disclosure.",
+            "Reconcile the metric list to the calculation workpaper index to confirm every published number has a source workpaper.",
+            "Resolve any metric with no linked workpaper before sampling."
+          ],
+          "done": "the metric and statement population reconciles to the calculation workpaper index."
+        },
+        {
+          "step": "Verify data feed completeness",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "BI/reporting platform",
+          "actions": [
+            "Compare the source data feeds actually used against the prior-year feed list and the documented methodology's required inputs.",
+            "Flag any required feed that was missing or substituted, and check the disclosure discloses the resulting limitation.",
+            "Confirm feed extraction dates fall within the reporting period."
+          ],
+          "done": "data feed completeness is checked and any undisclosed limitation is flagged."
+        },
+        {
+          "step": "Draw the sample of metrics and statements",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of quantitative metrics with year-over-year movement greater than 10%.",
+            "Take 10 additional metrics/statements at random (seeded, reproducible).",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers every metric with material year-over-year movement."
+        },
+        {
+          "step": "Recompute sampled metrics from source data",
+          "by": "Data Analyst",
+          "role": "Data Analyst",
+          "app": "BI/reporting platform",
+          "actions": [
+            "Independently rerun the calculation for each sampled metric directly against the BI/reporting platform source query, without referencing the published figure first.",
+            "Compare the recomputed value to the published value within the methodology's stated tolerance.",
+            "Flag any variance beyond tolerance as an exception."
+          ],
+          "done": "each sampled metric is independently recomputed and compared to the published value."
+        },
+        {
+          "step": "Verify the scenario analysis methodology on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Review the scenario analysis workpaper for the sampled statements and confirm the portfolio data used matches the current-year extract.",
+            "Confirm the Chief Risk Officer's review sign-off exists and pre-dates disclosure publication.",
+            "Flag any statement not supported by the scenario workpaper."
+          ],
+          "done": "scenario-based statements are traced to a reviewed, dated workpaper for every sampled item."
+        },
+        {
+          "step": "Trace qualitative statements to supporting evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled qualitative statement (governance, strategy, risk management), identify the underlying evidence (Board minutes, risk framework document, committee terms of reference).",
+            "Confirm the evidence supports the statement as written, with no overstatement.",
+            "Flag any statement without traceable supporting evidence."
+          ],
+          "done": "every sampled qualitative statement is traced to supporting evidence or flagged."
+        },
+        {
+          "step": "Confirm Board approval and publication timing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Confirm the board portal shows the disclosure was uploaded and approved before the publication date.",
+            "Confirm any Board-requested change was incorporated into the published version.",
+            "Flag any publication that occurred without recorded Board approval."
+          ],
+          "done": "Board approval and change incorporation are confirmed before publication for the tested cycle."
+        },
+        {
+          "step": "Verify the FCA/PRA survey response matches the published disclosure",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Compare each survey answer to the corresponding published disclosure metric or statement.",
+            "Confirm the submission timestamp is before the survey portal's stated deadline.",
+            "Flag any inconsistency between the survey response and the published disclosure."
+          ],
+          "done": "survey responses are checked for consistency with the published disclosure and for on-time submission."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Raise a tracker issue for each test exception identified above.",
+            "Assign a root cause category (calculation error, missing workpaper, unsupported statement) and an owner.",
+            "Set a remediation date; a material variance triggers an assessment of whether a public correction is required."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date, and material variances trigger a correction assessment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compute the exception rate against the population and compare to the zero-tolerance threshold for untraceable metrics.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the evidence gathered.",
+            "Have an independent reviewer who prepared none of the sampled metrics or narrative sign the workpaper.",
+            "Report results to the Board Risk Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is reported to the Board Risk Committee and filed."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-064-C23",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Sustainability Risk Manager",
+          "value": "Owns the continuous maintenance of the data lineage and methodology support underlying the firm's climate and ESG disclosures"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "FCA Handbook ESG 2.2.1G (methodology and data quality disclosure) and SYSC 3.2.6R (systems and controls for record-keeping), re-read at each methodology review (rep: United Kingdom)"
+        },
+        "In-scope processes": {
+          "value": "Continuous maintenance of the data catalog, lineage documentation and methodology notes supporting every published climate/ESG metric"
+        },
+        "In-scope systems": {
+          "app": "data catalog/quality tool",
+          "value": "Metric definitions, source lineage and data quality scores maintained in the data catalog/quality tool, sourced from the enterprise data warehouse/lakehouse"
+        },
+        "Compliance procedure documented": {
+          "value": "Climate Data Governance Standard — metric definition register, source lineage mapping, data quality scoring, methodology change log"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Data Officer and Sustainability Risk Manager; reviewed annually or on any methodology change"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Continuous maintenance; lineage and methodology documentation must be current before each quarterly data refresh and before the annual disclosure drafting cycle begins"
+        },
+        "Deadline reminders configured": {
+          "value": "Data catalog workflow reminders ahead of each quarterly refresh and a T-45-day reminder before the annual disclosure drafting cycle opens"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Metric definitions, lineage maps, data quality reports and methodology change logs retained 6 years per FCA Handbook SYSC 9"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "data catalog/quality tool",
+          "value": "Any metric found without current lineage documentation, or a data quality score below threshold, is logged as an exception"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Data Officer",
+          "value": "Every closed data quality exception and every methodology change is signed off before it feeds the next disclosure cycle"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every metric definition and its lineage record maintained in the data catalog for the reporting year"
+        },
+        "Pass/fail thresholds": {
+          "value": "100% of published-metric lineage records must be current and pass the documented data quality threshold to pass"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous; the test runs quarterly, aligned to the data refresh cadence"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Data Quality Analyst",
+          "value": "Reviewer must not maintain the metric definitions or lineage records being tested"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly data governance test workpaper (metric population, sample, lineage trace, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Metric definition register and lineage export, presentable within 5 business days of an FCA/PRA supervisory request"
+        },
+        "Regulator response path": {
+          "value": "Chief Data Officer owns the technical response; Sustainability Risk Manager confirms disclosure impact before it is communicated"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Maintain the metric definition register",
+          "by": "Data Steward",
+          "role": "Data Steward",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "In the data catalog open the Business Glossary and confirm every published climate/ESG metric has a definition entry (name, formula, unit, owner).",
+            "Update the entry whenever the underlying methodology changes and version the definition.",
+            "Flag any published metric with no corresponding catalog entry for immediate remediation."
+          ],
+          "done": "every published metric has a versioned, current definition entry in the data catalog."
+        },
+        {
+          "step": "Map source lineage for each metric",
+          "by": "Data Architect",
+          "role": "Data Architect",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "For each metric, trace and document the source table/field in the enterprise data warehouse/lakehouse through each transformation step to the published figure.",
+            "Confirm the lineage diagram in the data catalog matches the actual pipeline configuration in the orchestrator.",
+            "Update the lineage map whenever a source system or transformation changes."
+          ],
+          "done": "a current, pipeline-accurate lineage map exists for every metric in the data catalog."
+        },
+        {
+          "step": "Run the data quality scoring job",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "Configure and run the data quality rules (completeness, accuracy range checks, timeliness) against each metric's source data ahead of each quarterly refresh.",
+            "Review the resulting quality score against the documented minimum threshold per metric.",
+            "Flag any metric below threshold and notify the Data Steward."
+          ],
+          "done": "a data quality score is produced for every metric each quarter, with below-threshold metrics flagged."
+        },
+        {
+          "step": "Remediate data quality gaps before the refresh closes",
+          "by": "Data Engineer",
+          "role": "Data Engineer",
+          "actions": [
+            "Investigate the root cause of each below-threshold flag (source system outage, schema change, missing feed).",
+            "Fix the pipeline or source issue and re-run the quality scoring job to confirm the metric now passes.",
+            "Document the fix in the pipeline change log."
+          ],
+          "done": "every below-threshold metric is fixed and re-confirmed passing before the quarterly refresh closes."
+        },
+        {
+          "step": "Version and log every methodology change",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "actions": [
+            "Document any change to a metric's calculation methodology, including the rationale and the effective reporting period.",
+            "Assess whether the change requires prior-year metric restatement and document the assessment.",
+            "Log the change in the methodology change log with the approver's name and date."
+          ],
+          "done": "every methodology change is documented, restatement-assessed, and logged with approver and date."
+        },
+        {
+          "step": "Obtain Chief Data Officer sign-off on the register and lineage",
+          "by": "Chief Data Officer",
+          "role": "Chief Data Officer",
+          "actions": [
+            "Review the metric definition register and lineage maps for completeness ahead of the quarterly refresh close.",
+            "Sign off the register as current, or return specific entries for correction.",
+            "Record the sign-off date against the refresh cycle."
+          ],
+          "done": "the Chief Data Officer signs off the register and lineage maps as current for the cycle, with the date recorded."
+        },
+        {
+          "step": "Feed the confirmed metrics to the disclosure drafting process",
+          "by": "Data Analyst",
+          "role": "Data Analyst",
+          "app": "BI/reporting platform",
+          "actions": [
+            "Export the sign-off-confirmed metric values from the data catalog into the BI/reporting platform used for disclosure drafting.",
+            "Attach the metric definition version and lineage reference to each exported value.",
+            "Notify the Sustainability Risk Manager that the confirmed data set is ready for drafting."
+          ],
+          "done": "confirmed metric values with their definition version and lineage reference are exported and handed off for drafting."
+        },
+        {
+          "step": "Monitor for upstream source system changes",
+          "by": "Data Architect",
+          "role": "Data Architect",
+          "actions": [
+            "Subscribe to change-management notifications for every upstream system feeding a climate/ESG metric.",
+            "Assess each notified change for lineage or methodology impact before the next refresh.",
+            "Update the affected lineage map or flag a methodology review as needed."
+          ],
+          "done": "upstream change notifications are monitored and assessed for lineage/methodology impact each cycle."
+        },
+        {
+          "step": "Reconcile the data catalog to the published disclosure after publication",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "actions": [
+            "After each annual disclosure is published, reconcile every cited metric back to the data catalog's confirmed value and version.",
+            "Log any discrepancy between the published figure and the catalog value as an exception.",
+            "Confirm the reconciliation before archiving the cycle's evidence."
+          ],
+          "done": "every published metric reconciles to its catalog value and version, with discrepancies logged."
+        },
+        {
+          "step": "Track workpapers supporting each metric",
+          "by": "Data Steward",
+          "role": "Data Steward",
+          "actions": [
+            "Confirm a calculation workpaper exists and is linked for every metric in the catalog.",
+            "Check the workpaper cites the exact source query or extract used.",
+            "Flag any metric with a missing or unlinked workpaper for remediation before the next refresh."
+          ],
+          "done": "every metric has a linked, source-cited workpaper, with gaps flagged for remediation."
+        },
+        {
+          "step": "Review and update data governance roles annually",
+          "by": "Chief Data Officer",
+          "role": "Chief Data Officer",
+          "actions": [
+            "Confirm the Data Steward and Data Architect assignments for each metric are current and staffed.",
+            "Update role assignments for any personnel change during the year.",
+            "Publish the updated ownership list to the data catalog."
+          ],
+          "done": "metric ownership assignments are confirmed current and published for the year."
+        },
+        {
+          "step": "Report data governance status to the Chief Risk Officer",
+          "by": "Chief Data Officer",
+          "role": "Chief Data Officer",
+          "actions": [
+            "Prepare a quarterly summary of data quality scores, open exceptions and methodology changes.",
+            "Present the summary to the Chief Risk Officer ahead of any disclosure-impacting decision.",
+            "Record any directive from the review."
+          ],
+          "done": "a quarterly data governance summary is presented to the CRO with any directive recorded."
+        },
+        {
+          "step": "Log exceptions with disposition",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "Log every below-threshold metric, missing lineage record, or unlinked workpaper as a formal exception with root cause.",
+            "Route the exception to the Chief Data Officer for disposition and a remediation date.",
+            "Track exceptions to closure before the next quarterly refresh."
+          ],
+          "done": "every gap is logged as an exception with root cause, disposition and a tracked remediation date."
+        },
+        {
+          "step": "Retain data governance evidence for the retention period",
+          "by": "Data Steward",
+          "role": "Data Steward",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the metric definition register, lineage maps, data quality reports and methodology change log to the compliance evidence repository each quarter.",
+            "Apply the 6-year retention label required under FCA Handbook SYSC 9.",
+            "Confirm the folder is indexed and retrievable by metric and reporting quarter."
+          ],
+          "done": "the quarter's data governance evidence is filed, retention-labelled and retrievable by metric and quarter."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of metric definitions and lineage records",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "Export the full metric definition register with version, owner and last-updated date.",
+            "Reconcile the register to the list of metrics actually cited in the most recent published disclosure.",
+            "Resolve any published metric missing from the register before sampling."
+          ],
+          "done": "the metric population reconciles to the metrics actually cited in the published disclosure."
+        },
+        {
+          "step": "Verify quarterly data quality scoring occurred",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm a data quality scoring run exists for each quarter in the test period.",
+            "Compare the number of metrics scored each quarter to the full metric population.",
+            "Flag any quarter with an incomplete scoring run."
+          ],
+          "done": "quarterly scoring completeness is confirmed against the full metric population, with gaps flagged."
+        },
+        {
+          "step": "Draw the sample of metrics",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of metrics that failed a data quality threshold at any point in the period.",
+            "Take 10 additional metrics at random (seeded, reproducible).",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers 100% of metrics with a period data quality failure."
+        },
+        {
+          "step": "Re-perform lineage tracing on the sample",
+          "by": "Data Architect",
+          "role": "Data Architect",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "For each sampled metric, independently trace the pipeline from source table to published figure using the orchestrator's actual job configuration.",
+            "Compare the independently traced lineage to the documented lineage map.",
+            "Flag any divergence between actual pipeline behavior and the documented map."
+          ],
+          "done": "each sampled metric's lineage is independently re-traced and compared to the documented map."
+        },
+        {
+          "step": "Recompute data quality scores for the sample",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "Independently rerun the data quality rules for each sampled metric against the source data as of the relevant quarter.",
+            "Compare the recomputed score to the recorded score.",
+            "Flag any material difference, especially where a below-threshold result was not recorded."
+          ],
+          "done": "each sampled metric's data quality score is recomputed and compared to the recorded score."
+        },
+        {
+          "step": "Confirm remediation of below-threshold findings",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled metric that failed threshold, trace the root-cause investigation and fix documented in the pipeline change log.",
+            "Confirm the re-run quality score after the fix actually passed threshold.",
+            "Flag any failure closed without a confirmed passing re-run."
+          ],
+          "done": "every sampled below-threshold finding traces to a fix and a confirmed passing re-run, or is flagged."
+        },
+        {
+          "step": "Verify methodology change documentation and restatement assessment",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled metric with a logged methodology change, confirm the change log includes rationale, effective period, approver and restatement assessment.",
+            "Where restatement was warranted, confirm it was carried into the relevant disclosure.",
+            "Flag any change missing documentation or a required restatement."
+          ],
+          "done": "methodology change documentation and any required restatement are verified for every sampled change."
+        },
+        {
+          "step": "Trace workpapers to source queries for the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Open the linked calculation workpaper for each sampled metric and confirm it cites an exact, re-runnable source query.",
+            "Re-run the cited query and compare the output to the workpaper's recorded figure.",
+            "Flag any workpaper whose query does not reproduce the recorded figure."
+          ],
+          "done": "each sampled workpaper's source query is re-run and its output compared to the recorded figure."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Chief Data Officer",
+          "role": "Chief Data Officer",
+          "app": "data catalog/quality tool",
+          "actions": [
+            "Raise a tracker issue for each test exception identified above.",
+            "Assign a root cause category (stale lineage, missed threshold, undocumented methodology change) and an owner.",
+            "Set a remediation date and carry unresolved items into next quarter's mandatory retest population."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "actions": [
+            "Compute the exception rate against the population and compare to the 100%-current-lineage threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the evidence gathered.",
+            "Have the independent reviewer, who maintains none of the sampled definitions or lineage, sign the workpaper.",
+            "Report results to the Chief Risk Officer and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is reported and filed."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-064-C24",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Controller",
+          "value": "Owns preparation and filing of statutory financial statements: UK FCA Handbook SUP 16 regulatory returns for the UK entity and NAIC statutory blanks for the group's US subsidiaries"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "FCA Handbook SUP 16.12 (integrated regulatory reporting — financial data) for the UK entity, cross-referenced with the NAIC Annual/Quarterly Statement Instructions for each US subsidiary, re-read at each filing cycle (rep: United Kingdom)"
+        },
+        "In-scope processes": {
+          "value": "Quarterly and annual close through to statutory financial statement preparation, internal review and submission for every regulated entity in the group"
+        },
+        "In-scope systems": {
+          "app": "Statutory Reporting (NAIC)",
+          "value": "US subsidiary blanks prepared in the Statutory Reporting (NAIC) system; UK entity returns prepared from the general ledger and submitted via RegData/the Internal Regulatory System"
+        },
+        "Compliance procedure documented": {
+          "value": "Statutory Financial Statement Preparation Procedure — trial balance close, statutory adjustments, blank/return population, internal review, filing submission"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Financial Officer and Controller; reviewed annually and on any NAIC blank or FCA return-form change"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Quarterly statements due 45 days after quarter-end; annual statements due March 1 for NAIC-regulated US subsidiaries; UK entity SUP 16 returns due per the RegData schedule (typically 20-45 business days after period-end)"
+        },
+        "Deadline reminders configured": {
+          "value": "Close calendar milestone alerts at T-30/T-15/T-5 days to each filing deadline across every regulated entity"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Filed statements, supporting workpapers, trial balances and internal review sign-offs retained 7 years per FCA Handbook SYSC 9 and applicable NAIC record-retention model law"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "close/consolidation tool",
+          "value": "Any missed filing deadline or post-filing restatement is logged as an exception with root cause and regulator notification status"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Financial Officer",
+          "value": "Every late filing and every restatement is signed off with the corrective action and regulator communication on file"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every quarterly and annual statutory statement/return filed by each regulated entity in the group during the period"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for a missed statutory filing deadline; any material misstatement identified post-filing is a fail requiring a logged restatement"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is quarterly/annual; the test runs each quarter over that quarter's filings plus a full annual-cycle review"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have prepared or reviewed any sampled filing during the close cycle"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly statutory filing test workpaper (filing population, sample, recalculation, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Filed statements, submission confirmations and supporting trial balances, presentable within 5 business days of an FCA/NAIC examiner request"
+        },
+        "Regulator response path": {
+          "value": "Controller owns the technical response; Chief Financial Officer clears any submission involving a restatement before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Set the statutory close calendar for every regulated entity",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "List every regulated entity in the group (UK FCA-regulated entity, each NAIC-domiciled US subsidiary) with its filing frequency and statutory deadline.",
+            "Build the close calendar working back from each deadline to trial balance close, statutory adjustment, and internal review milestones.",
+            "Publish the calendar to Accounting, Statutory Reporting and the Regulatory Reporting Manager."
+          ],
+          "done": "a close calendar covering every regulated entity's deadlines and milestones is published to the reporting teams."
+        },
+        {
+          "step": "Close the general ledger trial balance",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "In the ERP close the period, post all accrual and reconciling entries, and lock the trial balance for the entity.",
+            "Reconcile intercompany balances between the UK entity and US subsidiaries before lock.",
+            "Export the locked trial balance to the close/consolidation tool for the statutory adjustment step."
+          ],
+          "done": "the trial balance is locked, intercompany-reconciled, and exported to the consolidation tool."
+        },
+        {
+          "step": "Apply statutory accounting adjustments for US NAIC subsidiaries",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "In the Statutory Reporting (NAIC) system open the subsidiary's working trial balance and apply SAP-to-STAT adjustments (non-admitted assets, statutory reserve basis, IMR/AVR).",
+            "Populate the required schedules and exhibits per the current NAIC Annual/Quarterly Statement Instructions for the line of business.",
+            "Run the NAIC blank's built-in validation checks and resolve every flagged edit before proceeding."
+          ],
+          "done": "statutory adjustments are applied, schedules populated, and all NAIC validation edits are resolved."
+        },
+        {
+          "step": "Prepare the UK entity's FCA Handbook SUP 16 return",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Map the UK entity's closed trial balance to the specific SUP 16 return template required for the period (e.g., financial data return).",
+            "Complete every required field, cross-checking totals against the general ledger export.",
+            "Run any built-in cross-check/validation the return template provides and resolve flagged discrepancies."
+          ],
+          "done": "the SUP 16 return is populated from the closed trial balance with all validation discrepancies resolved."
+        },
+        {
+          "step": "Perform the actuarial reserve review",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Review the statutory reserve calculations feeding the filing for reasonableness against the prior quarter and the actuarial opinion basis.",
+            "Confirm the reserve figures in the filing match the actuarial workpapers exactly.",
+            "Sign off the reserve figures as ready for filing."
+          ],
+          "done": "reserve figures are reviewed, matched to actuarial workpapers, and signed off."
+        },
+        {
+          "step": "Conduct the internal management review",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Review the completed filing for each entity against the trial balance, prior period, and budget/forecast for reasonableness.",
+            "Investigate and document the explanation for any variance beyond the materiality threshold.",
+            "Approve the filing for submission or return it with required corrections."
+          ],
+          "done": "every filing is reviewed for reasonableness with material variances explained, then approved for submission."
+        },
+        {
+          "step": "Obtain Chief Financial Officer sign-off",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Review the Controller-approved filings and the reserve sign-off for each entity.",
+            "Sign the statutory certification required by the filing (officer certification page for NAIC blanks; attestation for the SUP 16 return).",
+            "Record the sign-off date against each filing."
+          ],
+          "done": "the CFO signs the required certification for every filing, with the date recorded."
+        },
+        {
+          "step": "Submit the NAIC statutory blanks",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Submit the completed blank through the NAIC electronic filing system (OPTins) for each domiciliary and non-domiciliary state as required.",
+            "Confirm the submission receipt and filing status for each state.",
+            "File the submission confirmation with the filing record."
+          ],
+          "done": "each NAIC blank is submitted with a confirmed receipt for every required state."
+        },
+        {
+          "step": "Submit the SUP 16 return via RegData",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Submit the completed return through the FCA's RegData portal within the return's due window.",
+            "Confirm the portal's acceptance receipt and download the submission confirmation.",
+            "File the confirmation with the filing record."
+          ],
+          "done": "the SUP 16 return is submitted through RegData with a downloaded, filed acceptance confirmation."
+        },
+        {
+          "step": "Track filings against the deadline calendar",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "close/consolidation tool",
+          "actions": [
+            "Update the close calendar with each filing's actual submission date and status.",
+            "Flag any filing at risk of missing its deadline at T-5 days and escalate to the Chief Financial Officer.",
+            "Confirm every entity's filing is marked submitted before the deadline passes."
+          ],
+          "done": "the close calendar reflects actual submission status for every entity, with at-risk filings escalated before deadline."
+        },
+        {
+          "step": "Respond to regulator filing queries or edit rejections",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "actions": [
+            "Monitor the NAIC/FCA portal for any rejected edit check or examiner query on the submitted filing.",
+            "Research and prepare the response or corrected schedule within the regulator's stated response window.",
+            "Resubmit the corrected filing and log the correction with its reason."
+          ],
+          "done": "every rejected edit or examiner query is answered within the response window, with any correction logged."
+        },
+        {
+          "step": "Assess and process any post-filing restatement",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Where a material error is identified after filing, assess the restatement requirement against NAIC/FCA guidance.",
+            "Prepare and file the amended statement/return, with General Counsel review of any required regulator notification.",
+            "Document the root cause and the process fix to prevent recurrence."
+          ],
+          "done": "any material post-filing error is assessed, restated where required, notified, and root-caused."
+        },
+        {
+          "step": "Log exceptions with disposition",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "close/consolidation tool",
+          "actions": [
+            "Log any missed deadline, rejected edit unresolved past its window, or restatement as a formal exception with root cause.",
+            "Route each exception to the Chief Financial Officer for disposition.",
+            "Track exceptions to closure and reflect resolution in the close calendar."
+          ],
+          "done": "every filing exception is logged with root cause, disposition and tracked closure."
+        },
+        {
+          "step": "Retain filing evidence for the retention period",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "financial reporting repository",
+          "actions": [
+            "Upload each filed statement/return, supporting trial balance, actuarial sign-off and submission confirmation to the financial reporting repository.",
+            "Apply the 7-year retention label required under FCA Handbook SYSC 9 and applicable NAIC record-retention requirements.",
+            "Confirm the repository index is retrievable by entity, period and filing type."
+          ],
+          "done": "the full filing evidence set is filed, retention-labelled and retrievable by entity, period and type."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of statutory filings for the period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "close/consolidation tool",
+          "actions": [
+            "Extract every quarterly and annual statutory filing due in the period from the close calendar, by entity and filing type.",
+            "Reconcile the extract to the actual submissions recorded in the Statutory Reporting (NAIC) system and the Internal Regulatory System.",
+            "Resolve any calendar-to-submission mismatch before sampling."
+          ],
+          "done": "the filing population reconciles between the close calendar and the actual filing systems."
+        },
+        {
+          "step": "Confirm on-time submission for every filing in the population",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare each filing's submission confirmation timestamp to its statutory due date.",
+            "List any filing submitted after its due date as an automatic exception.",
+            "Confirm every late filing has a logged root cause and regulator communication."
+          ],
+          "done": "every filing's timeliness is checked against its due date, with late filings and their disposition confirmed."
+        },
+        {
+          "step": "Draw the sample of filings for detailed testing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of annual statutory filings and any filing that was late or restated.",
+            "Take 5 quarterly filings at random (seeded, reproducible) per entity.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers 100% of annual and late/restated filings."
+        },
+        {
+          "step": "Recompute statutory adjustments and reconcile to the trial balance",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "For each sampled NAIC blank, independently trace the SAP-to-STAT adjustments back to the locked trial balance and supporting schedules.",
+            "Recompute key totals (admitted assets, surplus, net income) and compare to the filed figures.",
+            "Flag any variance beyond the materiality threshold."
+          ],
+          "done": "statutory adjustments and key totals are independently recomputed and compared to the filed figures for every sampled blank."
+        },
+        {
+          "step": "Recompute the UK SUP 16 return figures",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For each sampled SUP 16 return, independently re-map the trial balance to the return template.",
+            "Compare the independently mapped figures to the filed return.",
+            "Flag any mapping discrepancy."
+          ],
+          "done": "SUP 16 return figures are independently re-mapped and compared to the filed return for every sampled item."
+        },
+        {
+          "step": "Verify reserve figures against the actuarial workpaper",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "For each sampled filing, compare the filed reserve figures to the actuarial workpaper and the signed actuarial opinion.",
+            "Confirm the actuarial sign-off date precedes the filing submission date.",
+            "Flag any mismatch or missing/late sign-off."
+          ],
+          "done": "reserve figures and actuarial sign-off timing are verified against the workpaper for every sampled filing."
+        },
+        {
+          "step": "Confirm CFO certification exists for every sampled filing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the officer certification/attestation page is signed and dated by the Chief Financial Officer for each sampled filing.",
+            "Confirm the certification date precedes the actual submission date.",
+            "Flag any filing submitted without a valid, pre-dated certification."
+          ],
+          "done": "CFO certification existence and timing are verified for every sampled filing."
+        },
+        {
+          "step": "Trace edit-check rejections and examiner queries to resolution",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled filing, check the regulator portal history for any rejected edit or examiner query.",
+            "Trace each query/rejection to a documented response and, where applicable, a resubmission within the regulator's response window.",
+            "Flag any unresolved query or a response that missed its window."
+          ],
+          "done": "edit-check rejections and examiner queries are traced to timely resolution for every sampled filing."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "app": "close/consolidation tool",
+          "actions": [
+            "Raise a tracker issue for each test exception identified above.",
+            "Assign a root cause category (late filing, calculation error, missing certification) and an owner.",
+            "Set a remediation date; any material misstatement also triggers a formal restatement assessment."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date, and material misstatements trigger a restatement assessment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compute the exception rate against the population and compare to the zero-tolerance threshold for missed deadlines.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the evidence gathered.",
+            "Have an independent reviewer who prepared or reviewed none of the sampled filings sign the workpaper.",
+            "Report results to the Audit Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is reported to the Audit Committee and filed."
+        }
+      ]
+    }
+  ]
+}

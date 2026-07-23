@@ -1,0 +1,1983 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-015-C25",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Controller",
+          "value": "Plan Controller owns the ERISA plan financial statements (Schedule H Parts I and II) and the large-plan IQPA opinion attachment; escalation to the Chief Financial Officer as Plan Administrator delegate"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — ERISA §103(a)(3), 29 U.S.C. §1023(a)(3) and ERISA §102 / 29 CFR 2520.102-3 re-read against the current-year EBSA Form 5500 Instructions (Schedule H line 3 audit-opinion coding) at the start of each plan-year close"
+        },
+        "In-scope processes": {
+          "value": "Plan-year financial close for every ERISA plan with 100+ participants with account balances at the start of the plan year — trust reconciliation, contribution and distribution cut-off, Schedule H balance sheet and income statement build, IQPA opinion attachment"
+        },
+        "In-scope systems": {
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "value": "Plan trial balance and sponsor contribution accruals in the GL, reconciled to recordkeeper trust statements; the assembled Schedule H financials are attached in EFAST2 IFILE"
+        },
+        "Compliance procedure documented": {
+          "value": "ERISA Plan Financial Statement Preparation Procedure — participant-count test at first day of plan year, trust-to-GL reconciliation, Schedule H line mapping, accrual vs cash basis election, IQPA opinion type coding on Schedule H line 3a-3d"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Financial Officer and the plan's Retirement Committee; re-approved each year after EBSA publishes the revised Form 5500 Instructions and Schedule H changes"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Quarterly trust reconciliations at each plan-quarter end; draft plan financial statements to the IQPA within 90 days of plan year end; final audited statements attached to the Form 5500 by the last day of the 7th month after plan year end (July 31 for calendar-year plans), or October 15 with a timely Form 5558"
+        },
+        "Deadline reminders configured": {
+          "value": "Close calendar alerts at plan year end +45 days (trust recon complete), +90 days (draft statements to IQPA), +150 days (opinion received), and 15 days before the 5500 due date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Signed plan financial statements, trust-to-GL reconciliations, Schedule H line workpapers and the IQPA opinion retained at least 6 years from the Form 5500 filing date per ERISA §107, and longer where a participant benefit claim may still turn on the record"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "compliance evidence repository",
+          "value": "A large-plan filing lodged without the auditor's report, an unreconciled trust difference over the audit threshold, or a Schedule H line restated after filing is logged as a compliance exception with root cause and an amended-return decision"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Financial Officer",
+          "value": "CFO signs off any restatement of plan financial statements, any amended Form 5500 filed to add or correct the IQPA report, and the corrective action on any unreconciled trust variance"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every ERISA plan in the sponsor's plan inventory for the plan year, with its participant count at the first day of the plan year, its filer status (large/small), and its filed Schedule H or Schedule I"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any large plan whose Form 5500 was filed without an attached IQPA report is a fail; any trust-to-GL difference above 0.5% of plan net assets left unexplained is a fail; any Schedule H line not traceable to the audited statements is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Quarterly test of the trust-to-GL reconciliation for the largest three plans; full annual test of participant counts, filer status and IQPA attachment across 100% of plans before the 5500 due date"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have prepared or reviewed any plan trial balance, Schedule H workpaper or reconciliation in the tested year"
+        },
+        "Evidence location for test results": {
+          "value": "Annual ERISA plan reporting test workpaper (plan inventory, participant-count extract, Schedule H tie-out, EFAST2 acknowledgement IDs) filed in the compliance evidence repository under the plan year"
+        },
+        "Regulator-ready documentation": {
+          "value": "For each plan: filed Form 5500 with Schedule H, the IQPA opinion, the audited financial statements and the trust-to-GL reconciliation, producible for an EBSA reporting-compliance inquiry within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "EBSA correspondence (rejection letters, Reporting Compliance Notices) routes to the Controller with Legal Counsel; a rejected large-plan filing is corrected by amended Form 5500 with the IQPA report attached, and DFVCP is evaluated where the filing is treated as not filed"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Run the first-day participant count and set each plan's filer status",
+          "by": "Benefits Analyst",
+          "role": "Benefits Analyst",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Ask the Retirement Recordkeeping Specialist for the recordkeeper's participant census as of the first day of the plan year — active participants, retirees and beneficiaries receiving benefits, and separated participants with an account balance.",
+            "In the HRIS run the benefits eligibility report for the same date and reconcile head counts to the recordkeeper census; investigate any difference over 25 participants before proceeding.",
+            "Apply the 100-participants-with-account-balances test and, where the count is between 80 and 120, apply the 80-120 rule to keep the prior year's filer status and write down the election.",
+            "Record for every plan on the plan inventory: plan number (001, 002…), EIN, plan year end, first-day count, filer status LARGE or SMALL, and audit required Y/N.",
+            "Send the completed inventory to the Controller and the IQPA engagement partner as the trigger for audit scoping."
+          ],
+          "done": "every plan in the inventory carries a first-day participant count reconciled to the recordkeeper census and a documented large/small filer status."
+        },
+        {
+          "step": "Pull the trust statements and build the plan trial balance",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Download from the recordkeeper/trustee the certified trust statement for the plan year: beginning net assets, contributions received, benefit payments, investment income, realized and unrealized appreciation, and administrative expenses paid from plan assets.",
+            "Post the plan trial balance in the GL plan company code and map every trust line to a GL account.",
+            "Request from the Payroll Specialist the payroll register totals for employee deferrals, loan repayments and employer match remitted during the plan year.",
+            "Reconcile payroll-side remittances to trust-side contribution receipts by pay period and list every difference with an explanation.",
+            "Where the trustee issues a certification under 29 CFR 2520.103-5, save the signed certification — it is what supports a §103(a)(3)(C) limited-scope-style audit."
+          ],
+          "done": "the plan trial balance is posted, tied to the certified trust statement, and every payroll-to-trust remittance difference is explained in writing."
+        },
+        {
+          "step": "Reconcile trust assets to the GL and clear differences",
+          "by": "Accountant",
+          "role": "Accountant",
+          "app": "BlackLine (Close)",
+          "actions": [
+            "Open the plan net-assets reconciliation template in the close tool and load the trust ending balance and the GL ending balance.",
+            "Break the difference into timing items (contributions in transit, distributions issued but uncashed, pending trades) and true differences.",
+            "Chase every true difference over 0.5% of plan net assets with the Retirement Operations Administrator and the trustee until it clears or becomes a booked adjustment.",
+            "Attach the trust statement, the GL balance report and the supporting emails to the reconciliation and submit it for Controller approval.",
+            "Escalate any uncleared difference to the Controller with an assessment of whether it is a prohibited transaction or a delinquent contribution."
+          ],
+          "done": "the net-assets reconciliation is approved with zero unexplained difference above 0.5% of plan net assets."
+        },
+        {
+          "step": "Test contribution timeliness and quantify any delinquent participant contributions",
+          "by": "Payroll Specialist",
+          "role": "Payroll Specialist",
+          "app": "ADP Payroll",
+          "actions": [
+            "Export every payroll cycle in the plan year with the deferral withholding date and the amount withheld.",
+            "Match each cycle to the trust deposit date on the recordkeeper contribution report and compute the days between withholding and deposit.",
+            "Flag any deposit later than the earliest date the amounts could reasonably be segregated from general assets (the 7-business-day safe harbor for plans under 100 participants is not available to large plans).",
+            "For each late cycle compute lost earnings using the DOL Voluntary Fiduciary Correction Program Online Calculator and hand the schedule to the Controller for Schedule H line 4a reporting.",
+            "Give the completed timeliness schedule to the Benefits Administrator so the corrective deposit is made and the participants are made whole."
+          ],
+          "done": "a payroll-cycle timeliness schedule exists with days-to-deposit per cycle and a lost-earnings calculation for every late remittance."
+        },
+        {
+          "step": "Map the trial balance onto Schedule H Part I and Part II lines",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Build the Schedule H tie-out workbook with one column per Schedule H line and one row per GL account.",
+            "Populate Part I lines 1a-1l (cash, receivables, general and participant-directed investments, employer securities, buildings) and lines 1g-1k for liabilities, agreeing total net assets to the reconciliation.",
+            "Populate Part II lines 2a-2t: employer contributions, participant contributions, non-cash contributions, interest and dividends, net appreciation, benefit payments, corrective distributions, deemed distributions of participant loans, and administrative expenses split between professional fees, contract administrator fees and investment advisory fees.",
+            "Enter line 4a delinquent participant contributions from the payroll timeliness schedule and line 4j reportable transactions from the 5% schedule.",
+            "Foot and cross-foot the workbook so beginning net assets plus net income equals ending net assets, and circulate it to the IQPA as the audit tie-out."
+          ],
+          "done": "every Schedule H Part I and Part II line traces to a GL account in the tie-out workbook and the roll-forward balances to the dollar."
+        },
+        {
+          "step": "Draft the plan financial statements in the ERISA presentation",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "financial reporting repository",
+          "actions": [
+            "Draft the Statement of Net Assets Available for Benefits and the Statement of Changes in Net Assets Available for Benefits for the current and prior plan year.",
+            "Draft the notes: plan description, funding policy, vesting schedule, participant loans, investment valuation and fair value hierarchy levels, tax status with the IRS determination or opinion letter date, party-in-interest transactions, and risks and uncertainties.",
+            "State the basis of accounting (accrual) and disclose any difference between the financial statements and Form 5500 Schedule H amounts in a reconciling note.",
+            "Circulate the draft to the Compensation & Benefits Manager to confirm the plan-provision narrative matches the current plan document and amendments.",
+            "Save the numbered draft into the financial reporting repository under plan number and plan year."
+          ],
+          "done": "a complete draft financial statement set with notes exists, agreed to the Schedule H tie-out and to the current plan document."
+        },
+        {
+          "step": "Assemble the audit request package for the independent qualified public accountant",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "AuditBoard",
+          "actions": [
+            "Load the IQPA's prepared-by-client list into the audit workspace with an owner and due date on every item.",
+            "Upload the plan document and all amendments, the adoption agreement, the IRS determination or opinion letter, the trust agreement, the recordkeeping and investment management agreements, and the current fidelity bond.",
+            "Upload the certified trust statement, trial balance, Schedule H tie-out, participant census, payroll registers and the contribution timeliness schedule.",
+            "Obtain the recordkeeper's SOC 1 Type 2 report covering the plan year and confirm the report period covers the full 12 months, noting any gap period that needs a bridge letter.",
+            "Track open items daily and escalate anything unanswered for more than five business days to the Controller."
+          ],
+          "done": "the IQPA prepared-by-client list is 100% delivered, including a SOC 1 Type 2 covering the whole plan year or a bridge letter for the gap."
+        },
+        {
+          "step": "Set the audit scope election and confirm the certification supports it",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Decide whether the plan will take an ERISA §103(a)(3)(C) audit and document the basis: assets held by a qualifying bank or insurance carrier that certifies both completeness and accuracy.",
+            "Read the certification letter and confirm it is signed by an authorised officer of the qualifying institution and covers the full plan-year investment information.",
+            "Confirm with the Compensation & Benefits Manager that management is willing to make the written §103(a)(3)(C) permissibility acknowledgement the auditor requires under AU-C 703.",
+            "Where any asset class is not certified (self-directed brokerage, real estate, employer securities), scope it into full audit testing and tell the IQPA.",
+            "Record the election and its support on the audit scoping memo."
+          ],
+          "done": "the audit scope election is documented, supported by a qualifying certification, and non-certified asset classes are explicitly scoped in."
+        },
+        {
+          "step": "Clear audit findings and post agreed adjustments",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Log every proposed audit adjustment and every reportable finding from the IQPA on the audit issues list with an owner.",
+            "Post agreed adjustments to the plan trial balance and re-run the Schedule H tie-out so the workbook and the statements move together.",
+            "For findings that are operational failures (late deposits, incorrect compensation definition, missed deferral opportunity), open a correction under EPCRS with the Benefits Administrator and record the correction method.",
+            "Update the notes for any subsequent event through the report date.",
+            "Confirm in writing to the IQPA that no further adjustments are outstanding before the opinion is issued."
+          ],
+          "done": "the audit issues list is closed, adjustments are posted, and the tie-out and statements agree after adjustment."
+        },
+        {
+          "step": "Obtain the signed IQPA opinion and classify its type",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Receive the manually signed audit report on the accounting firm's letterhead, dated, with the city and state of the office issuing it.",
+            "Classify the opinion as unmodified, qualified, adverse or disclaimer, and separately note whether it is an ERISA §103(a)(3)(C) audit report.",
+            "Map the classification to Form 5500 Schedule H line 3a (opinion type) and line 3b, and record the accountant's name, EIN and address for line 3c.",
+            "Where the opinion is other than unmodified, brief the Chief Financial Officer and the Retirement Committee on the cause before the filing goes out.",
+            "File the signed opinion PDF with the financial statements as a single attachment ready for EFAST2."
+          ],
+          "done": "a signed, dated IQPA report exists, its opinion type is classified, and the Schedule H line 3 coding is set from it."
+        },
+        {
+          "step": "Present the plan financial statements to the Retirement Committee for approval",
+          "by": "Compensation & Benefits Manager",
+          "role": "Compensation & Benefits Manager",
+          "actions": [
+            "Circulate the audited statements, the IQPA opinion, the auditor's governance communication letter and the Schedule H tie-out to the Retirement Committee at least five business days before the meeting.",
+            "Walk the committee through net assets, contributions, benefit payments, expenses paid from plan assets and any line 4a delinquent contributions.",
+            "Record the committee's approval resolution, the attendees and the date in the minutes.",
+            "Capture any committee action item (fee benchmarking, deposit process fix) with an owner and a due date."
+          ],
+          "done": "committee minutes record approval of the audited plan financial statements with attendees, date and any assigned action items."
+        },
+        {
+          "step": "Attach the audited statements and opinion to the Form 5500 in EFAST2",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Open the plan's Form 5500 in EFAST2 IFILE and go to Schedule H, then the Accountant's Opinion attachment slot.",
+            "Attach the audited financial statements, notes, supplemental schedules and the signed IQPA report as a single searchable PDF named per the EFAST2 attachment convention.",
+            "Complete Schedule H lines 3a-3d from the opinion classification worksheet and confirm line 3d(2) is only used where an ERISA §103(a)(3)(C) audit applies.",
+            "Run the EFAST2 validation and clear every error and warning — a large-plan filing with no accountant's opinion attached will be treated as incomplete and rejected.",
+            "Record the filing in the regulatory reporting log with the plan number, EIN, plan year and attachment file name."
+          ],
+          "done": "the audited statements and signed opinion are attached to Schedule H in EFAST2 and the filing passes validation with no outstanding errors."
+        },
+        {
+          "step": "Reconcile the filed Schedule H back to the audited statements after submission",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "actions": [
+            "Download the accepted Form 5500 PDF from EFAST2 using the acknowledgement ID.",
+            "Compare Schedule H line by line to the audited Statement of Net Assets and Statement of Changes, including line 4a, 4j and the expense split.",
+            "Where any line differs, decide same day whether an amended Form 5500 is required and record the decision and its basis.",
+            "Store the accepted filing PDF and the acknowledgement ID alongside the audited statements in the evidence folder."
+          ],
+          "done": "the filed Schedule H is reconciled line-for-line to the audited statements and the acknowledgement ID is stored with the evidence."
+        },
+        {
+          "step": "Run the interim quarterly reconciliation between annual cycles",
+          "by": "Accountant",
+          "role": "Accountant",
+          "app": "BlackLine (Close)",
+          "actions": [
+            "At each plan-quarter end, reconcile trust net assets to the GL plan trial balance using the same template as the annual reconciliation.",
+            "Re-run the payroll-to-trust contribution timeliness test for the quarter's pay cycles so a late-deposit pattern is caught inside the year, not at audit.",
+            "Report to the Controller any quarter-over-quarter movement in net assets over 10% with the driver identified (market, large distribution, plan merger).",
+            "Submit the quarterly reconciliation for Controller approval within 30 days of the quarter end."
+          ],
+          "done": "an approved trust-to-GL reconciliation and contribution timeliness test exists for every plan quarter within 30 days of quarter end."
+        },
+        {
+          "step": "Archive the plan-year financial reporting record under ERISA retention",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move the plan-year package — audited statements, IQPA opinion, Schedule H tie-out, reconciliations, census, trustee certification, committee minutes and the accepted EFAST2 filing — into the repository under plan number and plan year.",
+            "Apply the ERISA §107 retention label of at least 6 years from the filing date, and the longer §209 label where the record supports individual benefit entitlement.",
+            "Confirm the repository index makes the package searchable by EIN, plan number, plan year and EFAST2 acknowledgement ID.",
+            "Give the Controller and Internal Auditor read access for the next cycle's testing."
+          ],
+          "done": "the plan-year package is archived, labelled for ERISA retention and retrievable by EIN, plan number and acknowledgement ID."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of ERISA plans and their filer status",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Extract every benefit plan flagged as ERISA-covered from the HRIS plan table with EIN, plan number, plan year end and plan type.",
+            "Add plans acquired or merged during the year from the corporate development close checklist so short-plan-year filings cannot be missed.",
+            "Reconcile the plan list to the prior-year EFAST2 filing history retrieved by EIN so no plan silently drops out of the population.",
+            "Sign the population as complete with the extract date and record counts in the workpaper."
+          ],
+          "done": "the plan population is reconciled to prior-year EFAST2 filings and to the acquisition list, and signed as complete."
+        },
+        {
+          "step": "Re-perform the first-day participant count and the large-plan determination",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the recordkeeper census file as of the first day of the plan year directly from the recordkeeper portal rather than from the preparer's copy.",
+            "Recount participants with account balances and compare to the count recorded on the plan inventory.",
+            "Recompute the large/small determination and, where the 80-120 rule was used, confirm the prior-year filer status and that the election was applied consistently.",
+            "Treat any plan mis-classified as small when it had 100+ participants with balances as a critical exception — that filing is missing a required audit."
+          ],
+          "done": "the participant count and filer status are independently recomputed for every plan and every difference is logged."
+        },
+        {
+          "step": "Draw and document the sample of plans and Schedule H lines",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of large plans and 100% of plans whose filer status changed from the prior year.",
+            "Take a seeded random sample of 5 small plans to test that the small-plan classification held.",
+            "Within each sampled plan select Schedule H lines 1a-1l totals, 2a, 2e, 2i, 4a and 4j for tie-out.",
+            "Record the seed, population size, selection date and sample rationale so the sample can be re-drawn."
+          ],
+          "done": "the sample covers 100% of large plans, is reproducible from a recorded seed, and names the Schedule H lines tested."
+        },
+        {
+          "step": "Confirm an IQPA report is attached to every large-plan filing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For each sampled large plan retrieve the accepted Form 5500 from EFAST2 by acknowledgement ID.",
+            "Open the Accountant's Opinion attachment and confirm it is a manually signed report on firm letterhead, dated, naming the plan and the plan year.",
+            "Compare the firm name, EIN and address in the attachment to Schedule H line 3c and the opinion type to line 3a.",
+            "Any large-plan filing with no attachment, an unsigned report, or a mismatch between the attached opinion type and line 3a is an automatic fail."
+          ],
+          "done": "every sampled large-plan filing carries a signed IQPA report whose firm details and opinion type agree with Schedule H line 3."
+        },
+        {
+          "step": "Tie the filed Schedule H lines to the audited financial statements",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Enter the selected Schedule H line amounts from the accepted filing into the test workbook.",
+            "Enter the corresponding figures from the audited Statement of Net Assets and Statement of Changes.",
+            "Compute the variance on every line and require a written reconciling explanation for any variance, however small.",
+            "Confirm beginning net assets plus net income equals ending net assets on the filed schedule."
+          ],
+          "done": "every tested Schedule H line agrees to the audited statements or has a documented reconciling explanation, and the roll-forward foots."
+        },
+        {
+          "step": "Re-perform the trust-to-GL reconciliation for the largest plans",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Obtain the certified trust statement direct from the trustee or recordkeeper portal for the three largest plans by net assets.",
+            "Pull the GL plan trial balance for the same date and independently compute the difference.",
+            "Vouch each reconciling item to source: contributions in transit to the payroll register, uncashed distribution checks to the disbursement register, pending trades to the trade confirmations.",
+            "Flag any residual unexplained difference above 0.5% of plan net assets as a fail against the stated threshold."
+          ],
+          "done": "the reconciliation is independently recomputed for the three largest plans with every reconciling item vouched to source."
+        },
+        {
+          "step": "Recompute contribution timeliness and the line 4a disclosure",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "ADP Payroll",
+          "actions": [
+            "Select 15 payroll cycles across the plan year, weighted toward quarter-ends and any month with an off-cycle payroll.",
+            "Recompute days between deferral withholding and trust deposit from the payroll register date and the trust posting date.",
+            "Recompute lost earnings on any late cycle using the DOL VFCP Online Calculator and compare to the amount deposited.",
+            "Compare the total delinquent participant contributions you compute to the amount reported on Schedule H line 4a and log any understatement."
+          ],
+          "done": "days-to-deposit and lost earnings are independently recomputed for 15 cycles and reconcile to the amount reported on line 4a."
+        },
+        {
+          "step": "Test the §103(a)(3)(C) scope election and the SOC 1 coverage",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled plan taking a §103(a)(3)(C) audit, read the institution's certification and confirm it covers both completeness and accuracy and is signed by an authorised officer.",
+            "Confirm the certifying institution is a bank, similar institution or insurance carrier regulated and supervised and subject to periodic examination.",
+            "Check that non-certified asset classes (self-directed brokerage windows, real estate, employer securities) were scoped into full testing rather than excluded.",
+            "Obtain the recordkeeper SOC 1 Type 2 and confirm the period covers the whole plan year or a bridge letter closes the gap; list all complementary user entity controls and confirm the sponsor operates them."
+          ],
+          "done": "each scope election is supported by a qualifying signed certification, non-certified assets are scoped in, and SOC 1 coverage plus user entity controls are evidenced."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Raise one issue per exception recording plan number, plan year, the Schedule H line or control affected, and the dollar impact.",
+            "Assign a root cause — census cut-off error, filer-status misjudgement, unreconciled trust item, late deferral deposits, missing audit attachment — and an owner.",
+            "Set a remediation date and, where the filing itself is defective, record the amended Form 5500 decision and its target filing date.",
+            "Refer late-deposit findings to Legal Counsel for a VFCP and Form 5330 excise tax assessment, and carry every open issue into next year's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date, an amended-filing decision where relevant, and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the plan financial reporting test",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the exception rate by plan and by Schedule H line tested against the stated thresholds.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — citing the workpaper references behind it.",
+            "Have the independent reviewer, who prepared no trial balance, reconciliation or Schedule H workpaper in the tested year, sign the workpaper.",
+            "Report the conclusion and any missing-audit findings to the Retirement Committee and the Audit Committee at their next sittings and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with an exception rate, a stated conclusion and a dated committee reporting reference is filed in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-015-C26",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Owns on-time submission of the Form 5500 series and the participant disclosure deadlines for every ERISA plan; escalation to the Corporate Secretary as the named Plan Administrator"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 29 CFR 2560.503-1(l), 29 CFR 2578.1 and the EBSA Cybersecurity Program Best Practices / Compliance Assistance Release 2021-01 re-read against the current EFAST2 filing instructions before each plan-year filing window opens"
+        },
+        "In-scope processes": {
+          "value": "Annual Form 5500 / 5500-SF submission through EFAST2, Form 5558 extension requests, Form 8955-SSA to the IRS, PBGC premium filings for defined benefit plans, and the participant disclosure clock (SPD within 120 days of a plan becoming subject to ERISA, within 90 days of a participant first covered, documents on written request within 30 days)"
+        },
+        "In-scope systems": {
+          "app": "Internal Regulatory System",
+          "value": "EFAST2 IFILE for the Form 5500 series with credentials held under DOL-issued filing signer IDs; filing status, acknowledgement IDs and deadline evidence mirrored into the internal regulatory reporting log"
+        },
+        "Compliance procedure documented": {
+          "value": "ERISA Filing and Disclosure Submission Procedure — filer role assignment, EFAST2 credential custody, extension decision rule, signature authority, validation-error clearance and acknowledgement capture"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and the Corporate Secretary; re-approved annually and whenever EBSA changes the EFAST2 signature or credential rules"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Form 5500 due the last day of the 7th month after plan year end (July 31 for calendar-year plans), extended to October 15 by a Form 5558 filed on or before the original due date; Summary Annual Report to participants within 9 months of plan year end or 2 months after the extended due date; SPD within 120 days of the plan becoming subject to ERISA and within 90 days of a participant first being covered; requested documents furnished within 30 days"
+        },
+        "Deadline reminders configured": {
+          "value": "Filing calendar alerts at plan year end +150 days (draft package), 30 days before the original due date (extension go/no-go), 10 and 3 business days before each of July 31 and October 15, and at the SAR and 30-day document-request clocks"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "EFAST2 acknowledgement IDs and filing receipts, Form 5558 confirmations, SAR distribution logs and 30-day document-request response logs retained 6 years from filing date under ERISA §107"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any filing submitted after its due date, any filing rejected by EFAST2 validation, and any document request answered later than 30 days is logged with root cause and a DFVCP or §502(c) penalty exposure assessment"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs off every late or amended Form 5500, every DFVCP submission, and the corrective distribution plan for any missed participant disclosure"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All Form 5500 series filings, Form 5558 extensions, Form 8955-SSA filings, PBGC premium filings, SAR distributions and 30-day participant document requests for the plan year, across every ERISA plan in the inventory"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on statutory filing dates — one filing after its due date without a timely Form 5558 is a fail; any document request answered after 30 days is a fail given §502(c)(1) exposure of up to $110 per day per participant"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Annual full-population test after the October 15 extended deadline closes, plus a quarterly test of the 30-day document-request log because that clock runs continuously"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Officer",
+          "value": "Reviewer must hold no EFAST2 filing signer credential and must not have prepared or submitted any tested filing"
+        },
+        "Evidence location for test results": {
+          "value": "Annual ERISA filing timeliness workpaper (filing inventory, EFAST2 acknowledgement extract, extension confirmations, SAR distribution proof) in the compliance evidence repository under the plan year"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per plan: EFAST2 acknowledgement ID and receipt, Form 5558 confirmation, filed Form 5500 PDF, SAR distribution log and postal/electronic delivery proof, producible for an EBSA or IRS inquiry within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "EBSA Reporting Compliance and IRS Employee Plans notices route to the Regulatory Reporting Manager with Legal Counsel; late filings are cured through the DOL Delinquent Filer Voluntary Compliance Program before EBSA issues a notice of rejection wherever the option remains open"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Build the plan-year filing calendar from the plan inventory",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Load every ERISA plan from the plan inventory into the filing calendar with EIN, three-digit plan number, plan year end and plan type (defined contribution, defined benefit, welfare).",
+            "Compute each plan's original Form 5500 due date as the last day of the 7th month after its plan year end and the extended date as 2½ months later.",
+            "Add the dependent deadlines to each plan row: Form 8955-SSA, PBGC premium filing for DB plans, and the Summary Annual Report to participants.",
+            "Assign a named preparer, a named reviewer and a DOL-credentialed filing signer to each plan row.",
+            "Send the calendar to the Corporate Secretary and the Controller for confirmation that the named Plan Administrator on each row matches the plan document."
+          ],
+          "done": "every plan has a calendar row with original and extended due dates, dependent deadlines, and named preparer, reviewer and filing signer."
+        },
+        {
+          "step": "Verify EFAST2 credentials and signature authority before the window opens",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Confirm each filing signer holds a current EFAST2 user ID with the Filing Signer role registered under their own name and email — credentials are personal and must never be shared.",
+            "Have any signer whose credentials have lapsed re-register at the EFAST2 website and complete the electronic signature agreement before the package is ready.",
+            "Confirm the Plan Administrator signer and, where the plan is funded through a trust, the Plan Sponsor signer are both provisioned.",
+            "Apply the EBSA Cybersecurity Program Best Practices (Compliance Assistance Release 2021-01) controls to the credential store: MFA enforced, no shared mailboxes, access reviewed each quarter with the Access Management Analyst.",
+            "Record credential status per plan row on the filing calendar."
+          ],
+          "done": "every plan row shows an active, individually-held EFAST2 filing signer credential with MFA, verified before the filing window opens."
+        },
+        {
+          "step": "Assemble the Form 5500 package and its required schedules",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Open the plan's return in EFAST2 IFILE and complete Part I and Part II of the Form 5500: plan name, plan number, EIN, plan year dates, participant counts and the plan characteristic codes.",
+            "Attach the schedules the plan requires — Schedule A for insurance contracts, C for service provider fees, D for DFE participation, G for non-exempt transactions, H or I for financials, R for retirement plan distributions, SB or MB for actuarial information.",
+            "Pull the Schedule H figures from the Controller's tie-out workbook and the Schedule A data from each insurance carrier's annual report to the plan.",
+            "Chase any carrier that has not delivered its Schedule A information — the carrier is obliged under ERISA §103(a)(2) to supply it, and its absence blocks the filing.",
+            "Save the draft return and circulate the IFILE print preview to the named reviewer."
+          ],
+          "done": "the return is complete in IFILE with every required schedule attached and all carrier-sourced Schedule A data received."
+        },
+        {
+          "step": "Make the extension decision and file Form 5558 if needed",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Thirty days before each plan's original due date, review the package status: audit opinion received, Schedule A data in, reviewer sign-off complete.",
+            "Where any of those is outstanding, file Form 5558 Application for Extension of Time with the IRS on or before the original due date — a Form 5558 filed even one day late gives no extension at all.",
+            "Complete Form 5558 with the plan name, EIN, plan number, plan year end and the extended date requested (2½ months), and file it electronically where available or mail it to the IRS address in the current instructions with proof of mailing.",
+            "Update the plan's calendar row to the extended date and re-arm the reminders.",
+            "File the extension confirmation or certified mail receipt in the plan evidence folder — it is the only defence to a late-filing penalty."
+          ],
+          "done": "every plan needing more time has a Form 5558 filed on or before its original due date with the confirmation retained."
+        },
+        {
+          "step": "Run EFAST2 validation and clear every error and warning",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Run the IFILE validation on the completed return and export the error and warning list.",
+            "Fix each error at source — participant-count mismatches go back to the Benefits Analyst, financial line errors to the Controller, actuarial schedule errors to the Actuary.",
+            "For each warning left unfixed, write a one-line justification on the filing checklist so the reviewer sees a deliberate decision rather than an oversight.",
+            "Re-run validation until the error count is zero, then print the validation report to PDF for the evidence folder.",
+            "Confirm the accountant's opinion attachment is present for every large plan — its absence makes the filing incomplete and rejectable."
+          ],
+          "done": "validation returns zero errors, every remaining warning has a written justification, and the validation report is filed."
+        },
+        {
+          "step": "Obtain the reviewer sign-off before signature",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Review the IFILE print preview against the prior-year filing and question every year-over-year movement over 15% in participant counts, contributions or net assets.",
+            "Confirm the plan characteristic codes match the plan document features (auto-enrolment, Roth, safe harbor, participant loans).",
+            "Confirm the service provider list on Schedule C reconciles to the fee disclosures received under 29 CFR 2550.408b-2 and that indirect compensation is reported or the alternative reporting option conditions are met.",
+            "Sign the filing checklist with name and date, and return any item requiring rework with a same-week due date."
+          ],
+          "done": "the filing checklist carries a dated reviewer signature and every year-over-year movement over 15% is explained."
+        },
+        {
+          "step": "Electronically sign and submit through EFAST2",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Log in to EFAST2 IFILE under your own filing signer credential — never under another person's ID.",
+            "Read the signer attestation, apply the electronic signature as Plan Administrator, and add the Plan Sponsor signature where the plan requires it.",
+            "Submit the return and wait for the status to move from Processing to Filed or Filed with Errors.",
+            "Capture the acknowledgement ID, submission date and time stamp, and the filing status onto the plan calendar row.",
+            "Where the status returns Filed with Errors, treat it as unresolved and hand it straight back to the Regulatory Reporting Manager the same day."
+          ],
+          "done": "the return shows status Filed in EFAST2 with the acknowledgement ID and time stamp recorded against the plan row."
+        },
+        {
+          "step": "File Form 8955-SSA and the PBGC premium filing on their own clocks",
+          "by": "Retirement Operations Administrator",
+          "role": "Retirement Operations Administrator",
+          "actions": [
+            "Build the Form 8955-SSA population from the recordkeeper's deferred vested terminated participant report — separated participants with a deferred vested benefit not yet paid.",
+            "File Form 8955-SSA with the IRS by the same due date as the Form 5500 (extended by a timely Form 5558) and record the participant count reported.",
+            "For each defined benefit plan, complete the PBGC comprehensive premium filing in My PAA with the flat-rate and variable-rate premium calculation and file it by October 15 for calendar-year plans.",
+            "Reconcile the premium funding target and participant count used in My PAA to the Schedule SB signed by the Enrolled Actuary.",
+            "Save the IRS and PBGC confirmations to the plan evidence folder."
+          ],
+          "done": "Form 8955-SSA and every PBGC premium filing are submitted by their due dates with confirmations retained and reconciled to Schedule SB."
+        },
+        {
+          "step": "Distribute the Summary Annual Report inside its window",
+          "by": "Benefits Administrator",
+          "role": "Benefits Administrator",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Prepare the SAR from the filed Schedule H/I figures using the model language in 29 CFR 2520.104b-10, including the notice of the right to receive the full annual report on request.",
+            "Build the distribution list of participants and beneficiaries receiving benefits from the HRIS and the recordkeeper census.",
+            "Distribute within 9 months of the plan year end, or within 2 months after the extended Form 5500 due date where Form 5558 was filed (December 15 for a calendar-year plan on extension).",
+            "Where electronic delivery is used, confirm the safe harbor conditions are met — work-related computer access or affirmative consent, plus the notice of internet availability.",
+            "Retain the distribution log with dates, delivery channel, recipient counts and bounce-back handling."
+          ],
+          "done": "the SAR is distributed inside the 9-month or extended 2-month window with a retained log showing dates, channel and recipient counts."
+        },
+        {
+          "step": "Serve participant document requests inside the 30-day clock",
+          "by": "Benefits Administrator",
+          "role": "Benefits Administrator",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Log every written request for plan documents — SPD, latest annual report, plan document, trust agreement, bargaining agreement — with the received date and a 30-day due date.",
+            "Furnish the requested documents within 30 days of the written request as required by ERISA §104(b)(4), and record the send date and channel.",
+            "Where a reasonable copying charge is applied, disclose it in advance and keep it within the schedule permitted by 29 CFR 2520.104b-30.",
+            "Escalate to Legal Counsel any request that arrives from a participant's attorney or alongside a claim, given §502(c)(1) daily penalty exposure.",
+            "Close the case only when the documents are evidenced as sent."
+          ],
+          "done": "every written document request is closed with a send date inside 30 days of receipt and the evidence attached to the case."
+        },
+        {
+          "step": "Meet the SPD delivery clocks for new plans and new participants",
+          "by": "Benefits Analyst",
+          "role": "Benefits Analyst",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "For any newly established plan, calendar the SPD delivery date at 120 days after the plan becomes subject to ERISA per 29 CFR 2520.104b-2.",
+            "Configure the HRIS onboarding workflow so a newly covered participant is issued the SPD within 90 days of first coverage.",
+            "Run a monthly exception report of participants whose coverage start date is more than 90 days old with no SPD delivery record, and clear it inside the month.",
+            "Track Summary of Material Modifications delivery within 210 days after the plan year in which the amendment was adopted.",
+            "Keep the delivery evidence — mail file, electronic delivery receipts and consent records — against each participant record."
+          ],
+          "done": "no participant is more than 90 days into coverage without an SPD delivery record and every new plan has a 120-day SPD delivery date met."
+        },
+        {
+          "step": "Handle an abandoned or terminating plan through the qualified termination administrator route",
+          "by": "Legal Counsel",
+          "role": "Legal Counsel",
+          "actions": [
+            "Where a plan sponsor has ceased to exist or cannot be located, assess the abandoned plan criteria in 29 CFR 2578.1 with the Corporate Secretary.",
+            "Confirm the qualified termination administrator status of the custodian and have it file the notice of plan abandonment with EBSA within the regulation's timeframe.",
+            "Ensure the QTA notifies participants of the termination, the distribution options and the deadline to elect, and that the special terminal report is filed instead of a full Form 5500.",
+            "Document the wind-up decisions, the QTA correspondence and the final distribution register in the plan legal file."
+          ],
+          "done": "any abandoned or terminating plan has a documented 29 CFR 2578.1 assessment, QTA notices and the special terminal report filed."
+        },
+        {
+          "step": "Capture the acknowledgement evidence and close the filing calendar row",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Download the accepted filing PDF and the acknowledgement receipt from EFAST2 for every plan.",
+            "Attach the acknowledgement ID, submission timestamp, Form 5558 confirmation, validation report and signer name to the plan's calendar row.",
+            "Mark the row Closed-On Time or Closed-Late with the day count against the statutory date — never Closed without a date comparison.",
+            "Move the complete filing package into the compliance evidence repository under EIN, plan number and plan year with a 6-year ERISA §107 retention label."
+          ],
+          "done": "every calendar row is closed with an acknowledgement ID, a timeliness verdict against the statutory date, and the package archived."
+        },
+        {
+          "step": "Cure any late or rejected filing through DFVCP before EBSA acts",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Within one business day of identifying a missed or rejected filing, confirm with Legal Counsel whether the plan remains eligible for the Delinquent Filer Voluntary Compliance Program — eligibility ends once EBSA issues a notice of failure to file.",
+            "Complete the delinquent filing in EFAST2 first, then submit the DFVCP application and pay the applicable per-plan penalty through the DFVCP online calculator and payment portal.",
+            "Notify the Chief Financial Officer and the Retirement Committee of the exposure and the cure path in writing.",
+            "Record the DFVCP acknowledgement in the filing calendar row and the issue tracker, and set the root-cause remediation date."
+          ],
+          "done": "every late or rejected filing has a completed EFAST2 submission, a DFVCP acknowledgement where eligible, and a written committee notification."
+        },
+        {
+          "step": "Report filing timeliness to the Retirement Committee each cycle",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Publish the cycle dashboard: filings due, filed on time, filed on extension, filed late, rejected, and open document requests past 30 days.",
+            "Show each late item with its day count, the penalty exposure and the cure status.",
+            "Present the dashboard to the Retirement Committee and record the minute reference.",
+            "Roll every unresolved item forward as an open action with an owner and a due date rather than closing the cycle over it."
+          ],
+          "done": "the committee minutes record the timeliness dashboard, and every late or open item carries a named owner and due date."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of filings due for the plan year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Extract the filing calendar for the plan year with every Form 5500 series, Form 8955-SSA, PBGC premium and SAR obligation.",
+            "Independently derive each plan's statutory due date from its plan year end rather than trusting the calendar's stored date.",
+            "Add plans that were terminated, merged or newly established mid-year so short-plan-year and final filings enter the population.",
+            "Reconcile the population to the EFAST2 filing history for the sponsor's EINs and sign it as complete."
+          ],
+          "done": "the filing population is independently date-derived, reconciled to EFAST2 filing history and signed as complete."
+        },
+        {
+          "step": "Reconcile the population to accepted EFAST2 acknowledgements",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Match each population row to an EFAST2 acknowledgement ID on EIN plus plan number plus plan year.",
+            "Confirm the filing status is Filed and not Filed with Errors or Processing.",
+            "List every unmatched row and every Filed-with-Errors status as an automatic exception with no further judgement.",
+            "Capture the EFAST2 filing history screen into the workpaper as the source of the match."
+          ],
+          "done": "every obligation is matched to an accepted acknowledgement ID or listed as an exception, with the source screen captured."
+        },
+        {
+          "step": "Draw and document the timeliness sample",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Take 100% of filings submitted within 5 days of a statutory date, all filings on extension, and all late or rejected filings.",
+            "Take a seeded random sample of 15 remaining filings and 20 participant document requests from the case log.",
+            "Record the seed, population size, selection date and stratification rationale in the workpaper.",
+            "Confirm the sample includes at least one filing from each plan type — defined contribution, defined benefit and welfare."
+          ],
+          "done": "the sample is reproducible from a recorded seed, covers all near-deadline, extended and late filings, and spans every plan type."
+        },
+        {
+          "step": "Recompute each statutory due date and the extension arithmetic",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Recompute the original due date as the last day of the 7th month after the plan year end and the extended date as 2½ months beyond it.",
+            "Compare the recomputed dates to the dates recorded on the calendar row and to the EFAST2 submission timestamp.",
+            "Compute days early or late for every sampled filing and record the number, not a pass/fail flag alone.",
+            "Where a weekend or federal holiday shifted the date, confirm the shift was applied correctly and consistently."
+          ],
+          "done": "every sampled filing has an independently recomputed due date and a recorded days-early or days-late figure."
+        },
+        {
+          "step": "Verify each Form 5558 was filed on or before the original due date",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the Form 5558 confirmation or certified mail receipt for every filing that relied on an extension.",
+            "Compare the extension filing date to the plan's original due date — a Form 5558 filed after the original due date gives no extension and makes the return late.",
+            "Confirm the plan name, EIN, plan number and plan year end on the Form 5558 match the return it was meant to extend.",
+            "Treat any missing, mismatched or late Form 5558 as a late filing regardless of when the return itself went in."
+          ],
+          "done": "every extended filing is supported by a matching Form 5558 evidenced as filed on or before the original due date."
+        },
+        {
+          "step": "Trace SAR distribution to proof of delivery inside the window",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "For each sampled plan, pull the SAR distribution log with dates, channel, recipient counts and bounce-back handling.",
+            "Recompute the deadline as 9 months after plan year end, or 2 months after the extended Form 5500 due date where an extension applied.",
+            "Reconcile the recipient count to the participant and beneficiary population from the recordkeeper census and investigate any shortfall over 2%.",
+            "For electronic delivery, confirm the safe harbor basis on file — work-related computer access or affirmative consent — for a sample of 10 recipients."
+          ],
+          "done": "each SAR is evidenced as delivered inside its recomputed window to a recipient count reconciled to the census, with the electronic delivery basis verified."
+        },
+        {
+          "step": "Recompute the 30-day and 90/120-day disclosure clocks",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "workflow/case management tool",
+          "actions": [
+            "For the 20 sampled document requests, recompute days from the written request date to the evidenced send date and flag any over 30.",
+            "For newly covered participants in the year, recompute days from coverage start to SPD delivery and flag any over 90.",
+            "For any newly established plan, confirm SPD delivery within 120 days of the plan becoming subject to ERISA.",
+            "For each breach, compute the §502(c)(1) daily penalty exposure at the current per-day maximum and record it as quantified risk, not a note."
+          ],
+          "done": "every sampled disclosure clock is recomputed, each breach has a quantified §502(c)(1) exposure, and the counts are recorded."
+        },
+        {
+          "step": "Test EFAST2 credential custody against the cybersecurity expectations",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "IAM platform (SailPoint/Okta/Azure AD)",
+          "actions": [
+            "List every person holding an EFAST2 filing signer credential and compare it to the roles named on the filing calendar.",
+            "Confirm no credential is registered to a shared mailbox or a departed employee, and that MFA is enforced on the mailbox behind each credential.",
+            "Compare the signer recorded on each sampled filing to the person who actually authenticated, per the credential holder list.",
+            "Assess the control set against the EBSA Cybersecurity Program Best Practices in Compliance Assistance Release 2021-01 and list gaps."
+          ],
+          "done": "every filing signer credential is individually held with MFA, matches the signer on the filing, and gaps against CAR 2021-01 are listed."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise one tracker issue per exception with plan number, obligation, statutory date, actual date and days late.",
+            "Assign a root cause — audit opinion late, carrier Schedule A data late, extension missed, credential lapsed, census error — and an owner.",
+            "Set a remediation date and, for late filings, record the DFVCP eligibility assessment and submission status.",
+            "Carry every open exception into the next cycle's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue with days late, a root cause, an owner, a remediation date, a DFVCP status and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the filing timeliness test",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the on-time rate by obligation type and compare it to the zero-late-statutory-filing threshold.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — citing the acknowledgement IDs and date recomputations behind it.",
+            "Have the independent reviewer, who holds no EFAST2 credential and prepared no tested filing, sign the workpaper.",
+            "Report to the Retirement Committee and the Audit Committee, and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with an on-time rate, a stated conclusion and a dated committee reporting reference is filed in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-015-C27",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Controller",
+          "value": "Owns the ERISA supplemental schedules attached to the Form 5500 — Schedule of Assets (Held at End of Year), Schedule of Reportable Transactions, Schedule of Delinquent Participant Contributions and Schedule G — and their agreement to the audited financial statements"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 29 CFR 2520.103-10 supplemental schedule content requirements read together with 29 CFR 2560.503-1(l) and 29 CFR 2578.1, re-verified against the current-year Form 5500 Instructions for Schedule H lines 4a, 4i and 4j before the schedules are built"
+        },
+        "In-scope processes": {
+          "value": "Annual supplemental schedule build for every large ERISA plan: end-of-year asset listing with party-in-interest identification, 5% reportable transaction test, delinquent contribution schedule, non-exempt transaction and defaulted loan schedules"
+        },
+        "In-scope systems": {
+          "app": "Enterprise data warehouse/lakehouse",
+          "value": "Recordkeeper and custodian position and transaction extracts staged in the warehouse for the asset listing and the 5% reportable transaction computation; final schedules attached to the Form 5500 in EFAST2"
+        },
+        "Compliance procedure documented": {
+          "value": "ERISA Supplemental Schedule Preparation Procedure — asset listing columns and identifiers, party-in-interest flagging rule, 5% threshold denominator, delinquent contribution roll-up, and the schedule-to-financial-statement agreement check"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Financial Officer with the IQPA engagement partner's confirmation that the schedule formats meet the supplemental schedule reporting requirements; reconfirmed annually"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual — draft schedules to the IQPA within 90 days of plan year end so audit testing can run, final schedules attached to the Form 5500 by July 31 for calendar-year plans or October 15 on a timely Form 5558; interim delinquent contribution schedule refreshed within 30 days of each quarter end"
+        },
+        "Deadline reminders configured": {
+          "value": "Reminders at plan year end +60 days (custodian extract received), +90 days (draft schedules issued), +150 days (audit comments cleared) and 10 business days before the applicable Form 5500 due date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Asset listing extracts, 5% threshold computation workbook, party-in-interest determination memo and the attached schedule PDFs retained 6 years from the Form 5500 filing date under ERISA §107"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "compliance evidence repository",
+          "value": "A missing supplemental schedule, an asset listed without an identity/cost/value column, an omitted 5% transaction or an understated line 4a amount is logged as an exception with an amended-filing decision"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Financial Officer",
+          "value": "CFO signs off any restated supplemental schedule, any amended Form 5500 filed to add a missing schedule, and the corrective plan for any unreported non-exempt transaction"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every large plan's supplemental schedule set for the plan year, the underlying end-of-year holdings file, the full-year transaction file by security, and the payroll-to-trust contribution timeliness schedule"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any required supplemental schedule absent from the filing is a fail; any asset on the holdings file absent from the asset listing is a fail; any single-security transaction series above 5% of beginning-of-year plan assets omitted from the reportable transaction schedule is a fail; line 4a understated by any amount is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Annual test of the full schedule set at the point the audit file closes, with a quarterly interim test of the delinquent contribution roll-up because that data accrues each pay cycle"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have built the asset listing, run the 5% computation or prepared any schedule in the tested year"
+        },
+        "Evidence location for test results": {
+          "value": "Annual supplemental schedule test workpaper (holdings reconciliation, 5% recomputation, party-in-interest sample, schedule-to-statement tie) in the compliance evidence repository under plan number and plan year"
+        },
+        "Regulator-ready documentation": {
+          "value": "Attached schedule PDFs, the source holdings and transaction extracts, the 5% computation workbook and the party-in-interest memo, producible for an EBSA investigator within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "EBSA questions on a supplemental schedule route to the Controller with Legal Counsel; a missing or defective schedule is cured by amended Form 5500, and any non-exempt transaction surfaced is assessed for VFCP correction and Form 5330 excise tax"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Obtain the certified end-of-year holdings extract from the custodian",
+          "by": "Investment Operations Manager",
+          "role": "Investment Operations Manager",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Request from the custodian and recordkeeper the plan's position file as of the last day of the plan year with CUSIP or other identifier, security description, share or par quantity, cost, and current value for every holding.",
+            "Load the file into the warehouse staging table keyed on plan number, and confirm the row count and total market value against the certified trust statement.",
+            "Request the look-through detail for any common collective trust, pooled separate account or master trust so the plan's participation is reportable on Schedule D.",
+            "Reject any extract lacking cost data for non-participant-directed assets — cost is a required column on the asset listing.",
+            "Hand the accepted extract to the Senior Accountant with the reconciliation to net assets attached."
+          ],
+          "done": "the holdings extract is loaded, reconciled to certified trust net assets, and carries identifier, description, quantity, cost and value on every row."
+        },
+        {
+          "step": "Build the Schedule of Assets (Held at End of Year)",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Build the schedule in the 29 CFR 2520.103-10 column order: (a) party-in-interest indicator, (b) identity of issue/borrower/lessor/similar party, (c) description including maturity date, rate of interest, collateral, par or maturity value, (d) cost, (e) current value.",
+            "Populate column (c) fully for participant loans — interest rate range and maturity dates — and for any debt instrument.",
+            "Omit cost in column (d) only where the asset is participant-directed, and state that basis in the schedule footnote.",
+            "Foot the current value column and agree the total to the Statement of Net Assets investments line to the dollar.",
+            "Label the schedule with plan name, EIN, plan number and plan year end as the audit report will reference it."
+          ],
+          "done": "the asset listing carries all five required columns, is footed, and its total agrees to the investments line in the audited statements."
+        },
+        {
+          "step": "Identify and flag every party-in-interest holding",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Build the party-in-interest list under ERISA §3(14): the sponsor and affiliates, plan fiduciaries, the trustee, recordkeeper, investment managers, service providers, unions representing covered employees, and 50%-or-more owners.",
+            "Match the asset listing issuers and counterparties against that list on name and, where available, LEI or tax ID.",
+            "Mark column (a) with an asterisk on every matched row — participant loans and employer securities always qualify.",
+            "Write a determination memo naming each flagged party, the relationship that makes it a party in interest, and the exemption relied on (e.g. §408(b)(1) participant loans, §408(b)(2) reasonable service arrangements).",
+            "Circulate the memo to Legal Counsel for confirmation before the schedule is finalised."
+          ],
+          "done": "every party-in-interest row is asterisked and covered by a counsel-confirmed determination memo naming the relationship and the exemption."
+        },
+        {
+          "step": "Run the 5% reportable transaction computation",
+          "by": "Financial Analyst",
+          "role": "Financial Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Set the denominator: plan current value of assets at the beginning of the plan year, taken from the prior-year Statement of Net Assets.",
+            "Pull the full-year transaction file and aggregate purchases and sales separately by security identifier, treating a series of transactions in the same security as one series.",
+            "Compute each aggregate against 5% of the beginning-of-year denominator and list every series that exceeds it.",
+            "Exclude transactions in participant-directed accounts from the reportable transaction schedule and state that exclusion basis in the workbook.",
+            "Save the computation workbook with the denominator, the threshold value and the full ranked list, not only the exceedances."
+          ],
+          "done": "the 5% threshold is computed from a documented beginning-of-year denominator and every exceeding series is identified from the ranked full list."
+        },
+        {
+          "step": "Build the Schedule of Reportable Transactions",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each reportable series list: identity of party involved, description of asset including par or maturity value, purchase price, selling price, lease rental, expenses incurred with the transaction, cost of asset, current value of asset on the transaction date, and net gain or loss.",
+            "Split single transactions from series of transactions on separate schedule sections as the instructions require.",
+            "Agree the net gain or loss column to the realized gain/loss recognised in the Statement of Changes.",
+            "Set Schedule H line 4j to Yes where any reportable transaction exists and attach this schedule.",
+            "Where no series exceeds the threshold, retain the computation workbook as the evidence that the schedule is genuinely not required."
+          ],
+          "done": "each reportable series is presented with all nine required data elements and its net gain/loss agrees to the audited statements."
+        },
+        {
+          "step": "Build the Schedule of Delinquent Participant Contributions",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Take the payroll-to-trust timeliness schedule from the Payroll Specialist and isolate every cycle where deferrals or loan repayments reached the trust later than the earliest reasonably segregable date.",
+            "Present, per plan year, the total that was late, whether it was fully corrected, and whether it is included in the VFCP filing.",
+            "Reconcile the total to Schedule H line 4a and confirm the Form 5500 answer is Yes.",
+            "Add the lost earnings deposited and the deposit date so a reader can see the correction, not only the failure.",
+            "Where amounts remain uncorrected at the filing date, say so on the schedule rather than presenting the failure as closed."
+          ],
+          "done": "the delinquent contribution schedule reconciles to Schedule H line 4a and shows the corrected amount, lost earnings and deposit dates."
+        },
+        {
+          "step": "Build Schedule G for defaulted loans, leases and non-exempt transactions",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "actions": [
+            "Part I: list every loan or fixed income obligation in default or classified as uncollectible with the obligor, original amount, amount overdue for principal and interest, and the detailed description.",
+            "Part II: list any lease in default or uncollectible with the same level of detail.",
+            "Part III: list every non-exempt transaction with a party in interest, with the relationship, description, purchase and selling price, cost, current value and net gain or loss.",
+            "Pull defaulted participant loan data from the recordkeeper's deemed distribution report and reconcile it to Schedule H line 2g.",
+            "Refer every Part III entry to Legal Counsel for a prohibited transaction assessment before the filing goes out."
+          ],
+          "done": "Schedule G Parts I-III are complete, defaulted loans reconcile to the deemed distribution report, and every Part III entry has a counsel assessment."
+        },
+        {
+          "step": "Build Schedule C service provider and indirect compensation disclosure",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Collect the 29 CFR 2550.408b-2 fee disclosures from every covered service provider — recordkeeper, investment managers, custodian, auditor, consultant, third-party administrator.",
+            "List every service provider receiving $5,000 or more in direct or indirect compensation with its EIN, service codes and compensation amount.",
+            "Identify indirect compensation (revenue sharing, 12b-1 fees, sub-transfer agency fees) and apply the eligible indirect compensation alternative reporting option only where its written-disclosure conditions are met.",
+            "List any service provider that failed or refused to supply the required information in the Part II section reserved for it.",
+            "Reconcile total fees on Schedule C to administrative expenses on Schedule H line 2i."
+          ],
+          "done": "every provider at or above $5,000 is listed with service codes and compensation, indirect compensation is treated and reconciled to line 2i."
+        },
+        {
+          "step": "Build Schedule A from carrier data and Schedule D from pooled arrangements",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Request the ERISA §103(a)(2) annual report from each insurance carrier providing benefits or holding plan assets — persons receiving commissions, fees paid, premiums, and the contract's experience.",
+            "Complete Schedule A per contract with the carrier name, NAIC code, contract number, policy year dates and the commission and fee detail by recipient.",
+            "Complete Schedule D listing every common collective trust, pooled separate account, master trust investment account or 103-12 IE the plan participated in, with the DFE name, EIN, plan number and dollar value of interest at year end.",
+            "Reconcile each Schedule D value to the corresponding line on the asset listing.",
+            "Escalate to the Regulatory Reporting Manager any carrier that has not supplied its report 60 days before the due date."
+          ],
+          "done": "a Schedule A exists per insurance contract with carrier-supplied commission detail, and every Schedule D interest ties to the asset listing."
+        },
+        {
+          "step": "Agree the supplemental schedules to the audited financial statements",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Tie the asset listing total to the investments line, the reportable transaction gains to realized gains, the delinquent contributions to line 4a and Schedule C fees to line 2i.",
+            "Record each tie in the schedule tie-out tab with the statement page reference so a reader can retrace it.",
+            "Resolve every difference before issuing the schedules to the IQPA — the auditor reports on these schedules in relation to the financial statements as a whole.",
+            "Sign the tie-out tab as reviewer with name and date."
+          ],
+          "done": "every supplemental schedule total ties to a named line in the audited statements with the tie evidenced and signed."
+        },
+        {
+          "step": "Clear the IQPA's supplemental schedule comments",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "AuditBoard",
+          "actions": [
+            "Log each auditor comment on the schedules — missing column, wrong identifier, unflagged party in interest, misapplied threshold — with an owner.",
+            "Correct the schedule at source in the build workbook rather than editing the output PDF, then reissue the schedule with a version number.",
+            "Reconfirm the tie-out after every correction so a fix on one schedule does not break another.",
+            "Obtain written auditor agreement that the schedules are ready for attachment before the filing is signed."
+          ],
+          "done": "every auditor comment is closed with a versioned corrected schedule and written auditor agreement to attach."
+        },
+        {
+          "step": "Attach the schedule set to the Form 5500 and set the driver answers",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "In EFAST2 IFILE attach the supplemental schedules as part of the accountant's report attachment, in the order the audit report references them.",
+            "Set the Schedule H driver answers that require a schedule: line 4a delinquent contributions, line 4b-4h loans/leases/non-exempt transactions driving Schedule G, line 4j reportable transactions.",
+            "Confirm every Yes answer has a corresponding attached schedule and every attached schedule has a Yes answer behind it.",
+            "Run the EFAST2 validation and clear any attachment-related error before submission."
+          ],
+          "done": "every Yes driver answer on Schedule H has its matching attached schedule and validation returns no attachment errors."
+        },
+        {
+          "step": "Refresh the delinquent contribution schedule each quarter",
+          "by": "Payroll Specialist",
+          "role": "Payroll Specialist",
+          "app": "ADP Payroll",
+          "actions": [
+            "Within 30 days of each quarter end, rerun the deferral withholding to trust deposit comparison for that quarter's payroll cycles.",
+            "Add any newly identified late cycle to the running delinquent contribution schedule with the amount and days late.",
+            "Compute lost earnings on the new items through the DOL VFCP Online Calculator and hand the correction instruction to the Benefits Administrator.",
+            "Report the quarter's count and dollar value of late cycles to the Controller so the year-end line 4a figure is never a surprise."
+          ],
+          "done": "the delinquent contribution schedule is refreshed within 30 days of each quarter end with lost earnings computed on every new item."
+        },
+        {
+          "step": "Assess unreported non-exempt transactions for correction and excise tax",
+          "by": "Legal Counsel",
+          "role": "Legal Counsel",
+          "actions": [
+            "Review every Schedule G Part III entry and every delinquent contribution amount against the ERISA §406 prohibited transaction rules and the §408 exemptions.",
+            "Where a prohibited transaction is confirmed, decide with the Head of Compliance whether to correct under VFCP and whether the PTE 2002-51 excise tax relief conditions are met.",
+            "Where relief is unavailable, instruct the Tax Manager to file Form 5330 and pay the excise tax on the amount involved.",
+            "Record the analysis, the decision and the correction date in the plan legal file and on the exception log."
+          ],
+          "done": "every non-exempt transaction has a documented §406/§408 analysis, a correction decision and either a VFCP filing or a Form 5330."
+        },
+        {
+          "step": "Archive the schedule build evidence under ERISA retention",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the holdings extract, transaction file, 5% computation workbook, party-in-interest memo, tie-out tab and the final attached schedule PDFs under plan number and plan year.",
+            "Apply the 6-year-from-filing ERISA §107 retention label to the whole package.",
+            "Confirm the package is searchable by plan number, plan year and security identifier so an EBSA request can be answered from the index.",
+            "Grant read access to the Internal Auditor and the IQPA for the following year's cycle."
+          ],
+          "done": "the schedule build package is archived with a 6-year retention label and is searchable by plan number, plan year and security identifier."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of required supplemental schedules",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "List every large plan for the plan year and, for each, derive which supplemental schedules the Schedule H answers require.",
+            "Pull the accepted Form 5500 attachments from EFAST2 by acknowledgement ID and inventory the schedules actually attached.",
+            "Reconcile required to attached and list every gap in either direction — a schedule attached with no Yes answer is as much a defect as the reverse.",
+            "Sign the population as complete with the extract date and counts."
+          ],
+          "done": "required and attached supplemental schedules are reconciled per plan with every gap listed, and the population is signed."
+        },
+        {
+          "step": "Reconcile the asset listing to the custodian holdings file",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Obtain the custodian end-of-year position file directly from the custodian portal, not from the preparer's copy.",
+            "Match it to the filed asset listing on security identifier and compare quantity, cost and current value on every row.",
+            "List every holding present in the custodian file and absent from the listing, and every value difference over $1,000.",
+            "Foot the filed listing independently and compare to the investments line in the audited Statement of Net Assets."
+          ],
+          "done": "the filed asset listing reconciles row-for-row to the custodian file and its independently computed total agrees to the audited statements."
+        },
+        {
+          "step": "Draw and document the schedule testing sample",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Take 100% of plans with any Schedule G entry, any line 4a amount, or any party-in-interest flag.",
+            "Take a seeded random sample of 25 asset listing rows and 100% of reportable transaction series.",
+            "Take a seeded random sample of 10 Schedule C service providers.",
+            "Record the seed, population sizes, selection date and stratification rationale so the sample can be re-drawn."
+          ],
+          "done": "the sample is reproducible from a recorded seed and covers all Schedule G, line 4a and reportable transaction items in full."
+        },
+        {
+          "step": "Recompute the 5% reportable transaction threshold independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Take the beginning-of-year plan asset value from the prior-year filed Schedule H, not from the preparer's workbook, and compute 5% of it.",
+            "Aggregate the custodian transaction file independently by security identifier for purchases and for sales.",
+            "Compare your exceedance list to the filed schedule and treat any omitted series as a fail regardless of dollar size.",
+            "Confirm the participant-directed exclusion was applied to genuinely participant-directed accounts only, by sampling five excluded securities."
+          ],
+          "done": "the 5% threshold and the exceedance list are independently recomputed and reconcile to the filed schedule with no omissions."
+        },
+        {
+          "step": "Re-perform the party-in-interest identification on the sample",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Build your own ERISA §3(14) party list from the plan document, service agreements and the sponsor's affiliate register.",
+            "Match the 25 sampled asset listing rows against it independently and compare to the filed column (a) flags.",
+            "For each flagged row, confirm the determination memo names the relationship and the exemption relied on.",
+            "Treat an unflagged party-in-interest holding as an exception and assess whether it should also have appeared on Schedule G Part III."
+          ],
+          "done": "party-in-interest flags on the sample are independently re-derived and every flag is supported by a named relationship and exemption."
+        },
+        {
+          "step": "Recompute the delinquent contribution amount reported on line 4a",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "ADP Payroll",
+          "actions": [
+            "Pull all payroll cycles for the plan year and independently compute days from deferral withholding to trust posting.",
+            "Sum the amounts on every cycle exceeding the earliest reasonably segregable date and compare to the filed schedule and Schedule H line 4a.",
+            "Recompute lost earnings on 5 late cycles using the DOL VFCP Online Calculator and compare to the amounts actually deposited.",
+            "Treat any understatement of line 4a, however small, as a fail against the stated threshold."
+          ],
+          "done": "the line 4a amount and lost earnings are independently recomputed and agree to the filed schedule with no understatement."
+        },
+        {
+          "step": "Trace Schedule C fees and Schedule A carrier data to source disclosures",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "For the 10 sampled service providers, open the 29 CFR 2550.408b-2 fee disclosure and compare the compensation reported on Schedule C to it.",
+            "Confirm indirect compensation is either reported in full or covered by a properly evidenced eligible indirect compensation alternative.",
+            "For each insurance contract, compare Schedule A commission and fee detail to the carrier's ERISA §103(a)(2) report and confirm the NAIC code and contract number.",
+            "Reconcile total Schedule C fees to Schedule H line 2i and list any difference."
+          ],
+          "done": "sampled Schedule C amounts trace to 408b-2 disclosures, Schedule A ties to carrier reports, and total fees reconcile to line 2i."
+        },
+        {
+          "step": "Verify Schedule G completeness against defaulted loan and transaction data",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Pull the recordkeeper deemed distribution and loan default report for the plan year.",
+            "Compare it to Schedule G Part I and to Schedule H line 2g and list any default not shown on the schedule.",
+            "Compare the Part III non-exempt transaction list to the party-in-interest matching results from the earlier step.",
+            "Confirm each Part III entry carries a dated Legal Counsel prohibited transaction assessment and a correction decision."
+          ],
+          "done": "every loan default and non-exempt transaction is present on Schedule G, reconciled to line 2g, with a dated counsel assessment on each Part III entry."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Raise one issue per exception with plan number, schedule affected, the omitted or misstated item and its dollar value.",
+            "Assign a root cause — incomplete custodian extract, wrong 5% denominator, party list not refreshed, payroll cut-off — and an owner.",
+            "Set a remediation date and, where the filing itself is defective, record the amended Form 5500 decision and target date.",
+            "Carry every open exception into the next year's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue with a dollar value, a root cause, an owner, a remediation date and an amended-filing decision where relevant."
+        },
+        {
+          "step": "Conclude, sign and report the supplemental schedule test",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the exception rate by schedule type against the stated zero-omission thresholds.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — citing the recomputation workpapers behind it.",
+            "Have the independent reviewer, who built no schedule and ran no 5% computation in the tested year, sign the workpaper.",
+            "Report to the Retirement Committee and the Audit Committee, and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with an exception rate by schedule type, a stated conclusion and a dated committee reporting reference is filed."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-015-C28",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Controller",
+          "value": "Owns engagement of the independent qualified public accountant under ERISA §103(a)(3)(A) and delivery of the audited financials to the Form 5500 for every plan with 100+ participants with account balances at the start of the plan year"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — ERISA §103(a)(3), 29 U.S.C. §1023(a)(3) including the §103(a)(3)(C) scope limitation, read against AU-C 703 and the current-year Form 5500 Instructions for Schedule H line 3 before the engagement letter is signed"
+        },
+        "In-scope processes": {
+          "value": "IQPA selection and independence vetting, engagement letter execution, audit fieldwork support, management representation, opinion receipt and attachment to the Form 5500 — for every large plan in the sponsor's plan inventory"
+        },
+        "In-scope systems": {
+          "app": "AuditBoard",
+          "value": "Audit workspace holding the prepared-by-client list, evidence uploads, open-item tracking and the auditor's findings log; the signed opinion is attached to Schedule H in EFAST2"
+        },
+        "Compliance procedure documented": {
+          "value": "Plan Audit Engagement Procedure — large-plan trigger from the first-day participant count, IQPA independence and licensing check, engagement scope election, PBC delivery standard, representation letter authority and opinion attachment"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Audit Committee, which also approves the IQPA appointment and fee each year; the Retirement Committee ratifies the plan-level engagement"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Engagement letter signed within 60 days of plan year end; PBC package delivered within 90 days; fieldwork complete and findings cleared within 150 days; signed opinion in hand at least 15 business days before the Form 5500 due date (July 31, or October 15 on a timely Form 5558)"
+        },
+        "Deadline reminders configured": {
+          "value": "Audit milestone alerts at plan year end +60 (engagement letter), +90 (PBC complete), +120 (fieldwork exit), +150 (findings cleared) and a hard stop 15 business days before the applicable 5500 due date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Engagement letter, independence confirmation, PBC delivery log, management representation letter, findings log, signed opinion and audited statements retained 6 years from the Form 5500 filing date under ERISA §107"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "AuditBoard",
+          "value": "A large plan with no engagement in place, an opinion received after the 15-business-day buffer, a qualified or disclaimed opinion, or an independence impairment is logged with root cause and an Audit Committee escalation"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Audit Executive",
+          "value": "Signs off the response to any modified opinion, any auditor-reported material weakness in plan operations, and the corrective plan where an audit was started late or not at all"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every plan in the inventory with its first-day participant count, filer status, engagement letter, opinion type and Form 5500 attachment status for the plan year"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any large plan without a signed IQPA opinion attached to its Form 5500 is a fail; an opinion dated after the filing date is a fail; an IQPA without a valid independence confirmation and current CPA licence is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Annual test covering 100% of large plans, run after the last opinion is received and before the October 15 extended deadline; a mid-year checkpoint confirms engagement letters exist for every plan expected to be large"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have managed the IQPA relationship, prepared PBC items or signed the management representation letter"
+        },
+        "Evidence location for test results": {
+          "value": "Annual plan audit oversight workpaper (engagement inventory, independence confirmations, opinion type analysis, attachment verification) in the compliance evidence repository under the plan year"
+        },
+        "Regulator-ready documentation": {
+          "value": "Engagement letters, independence and licensure evidence, management representation letters and signed opinions per plan, producible for an EBSA Office of the Chief Accountant enquiry within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "EBSA audit-quality enquiries and IQPA deficiency notices route to the Controller with the Chief Audit Executive and Legal Counsel; a deficient audit is re-performed and the Form 5500 amended with the replacement opinion attached"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Trigger the audit requirement from the first-day participant count",
+          "by": "Benefits Analyst",
+          "role": "Benefits Analyst",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Within 30 days of the plan year starting, obtain the recordkeeper census as of the first day of the plan year and count participants with account balances.",
+            "Apply the 100-participant threshold and the 80-120 rule, and record the resulting filer status against each plan.",
+            "Send the Controller the list of plans crossing into large-plan status this year — those need an audit for the first time and a longer lead time.",
+            "Flag any plan expected to cross the threshold next year so the recordkeeper data quality work starts a year early."
+          ],
+          "done": "the Controller holds a dated list of plans requiring an ERISA §103(a)(3)(A) audit this year, including first-time large plans."
+        },
+        {
+          "step": "Select the IQPA and confirm independence and licensure",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Shortlist firms with a demonstrated employee benefit plan practice, ideally AICPA Employee Benefit Plan Audit Quality Center members, and request their most recent peer review report.",
+            "Confirm the engagement partner and firm hold current CPA licences in the state and that the firm is independent of the plan and the sponsor under ERISA §103(a)(3)(A) and AICPA independence rules.",
+            "Confirm no partner or professional on the engagement holds an interest in the sponsor or serves in a plan fiduciary or recordkeeping capacity.",
+            "Obtain a written independence confirmation naming the plan and the plan year.",
+            "Take the appointment and the fee to the Audit Committee for approval and record the resolution."
+          ],
+          "done": "an independent, peer-reviewed IQPA is appointed with a written independence confirmation and a recorded Audit Committee approval."
+        },
+        {
+          "step": "Execute the engagement letter with the scope election stated",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "DocuSign",
+          "actions": [
+            "Review the draft engagement letter for the plan name, EIN, plan number, plan year, scope, fee and the auditor's and management's responsibilities.",
+            "State the audit scope election explicitly: a full-scope audit, or an ERISA §103(a)(3)(C) audit with the certification basis named.",
+            "Confirm the letter includes the management acknowledgements AU-C 703 requires — maintaining the plan instrument, administering the plan, and determining that a §103(a)(3)(C) audit is permissible.",
+            "Route for signature to the Plan Administrator representative and the engagement partner and store the executed letter in the plan file.",
+            "Sign the letter within 60 days of plan year end so fieldwork scheduling is not the constraint."
+          ],
+          "done": "a signed engagement letter naming the plan, plan year, scope election and the AU-C 703 acknowledgements is in the plan file within 60 days of year end."
+        },
+        {
+          "step": "Validate the §103(a)(3)(C) certification before relying on it",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Obtain the certification from the bank, similar institution or insurance carrier holding the assets and confirm it is signed by an authorised officer.",
+            "Confirm the certification covers both the completeness and the accuracy of the investment information — a certification of accuracy alone does not support the election.",
+            "Confirm the certifying institution is regulated, supervised and subject to periodic examination by a state or federal agency.",
+            "Identify any asset not covered by the certification — self-directed brokerage, real estate, employer securities, alternatives — and tell the auditor to scope it into full testing.",
+            "File the certification with the engagement letter as the support for the Schedule H line 3d(2) coding."
+          ],
+          "done": "a signed certification covering completeness and accuracy from a qualifying institution is on file, with non-certified assets identified for full testing."
+        },
+        {
+          "step": "Deliver the prepared-by-client package on the agreed standard",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "AuditBoard",
+          "actions": [
+            "Load the auditor's PBC list into the audit workspace with an owner and due date on every line and a single point of contact per workstream.",
+            "Deliver the governing documents: plan document and all amendments, adoption agreement, IRS determination or opinion letter, trust agreement, service agreements and the ERISA fidelity bond.",
+            "Deliver the financial data: certified trust statement, trial balance, Schedule H tie-out, payroll registers, contribution timeliness schedule and the distribution register.",
+            "Deliver the participant data: full-year census with hire, termination, eligibility, compensation, deferral election and vesting service fields.",
+            "Close the whole list within 90 days of plan year end and escalate any item open more than five business days to the Controller."
+          ],
+          "done": "100% of PBC items are delivered within 90 days of plan year end with no item open beyond five business days unescalated."
+        },
+        {
+          "step": "Supply the SOC 1 reports and evidence the user entity controls",
+          "by": "Controls Analyst",
+          "role": "Controls Analyst",
+          "app": "AuditBoard",
+          "actions": [
+            "Obtain the SOC 1 Type 2 report from the recordkeeper, the trustee/custodian and any payroll provider whose processing affects the plan.",
+            "Confirm each report's period covers the whole plan year; where it does not, obtain a bridge letter covering the gap and give both to the auditor.",
+            "Extract the complementary user entity controls from each report and evidence that the sponsor actually performs them — participant data reviews, transaction report reconciliations, access administration.",
+            "List every exception noted in the service auditor's testing and assess its effect on the plan with the Controller.",
+            "Upload the reports, bridge letters and the user entity control evidence to the audit workspace."
+          ],
+          "done": "SOC 1 Type 2 coverage exists for the full plan year for every relevant provider, with user entity controls evidenced and exceptions assessed."
+        },
+        {
+          "step": "Support compliance testing on participant data and plan operations",
+          "by": "Retirement Operations Administrator",
+          "role": "Retirement Operations Administrator",
+          "actions": [
+            "Give the auditor the sample-support pack for participant testing: enrolment forms, deferral election changes, distribution requests, loan applications and beneficiary designations.",
+            "Reconcile the definition of compensation used for deferrals and match to the plan document definition and explain any exclusion applied.",
+            "Provide the eligibility computation for the auditor's sample of new entrants and the vesting service computation for terminated participants who took distributions.",
+            "Provide the ADP/ACP nondiscrimination test results, the top-heavy determination and evidence of any corrective distribution made inside its correction window.",
+            "Respond to auditor sample requests within three business days so fieldwork does not stall."
+          ],
+          "done": "every participant sample request is answered within three business days with source documents, and compensation, eligibility and vesting computations are supplied."
+        },
+        {
+          "step": "Run the fieldwork exit meeting and log every finding",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "AuditBoard",
+          "actions": [
+            "Hold the exit meeting with the engagement partner, the Compensation & Benefits Manager and the Retirement Operations Administrator within 120 days of plan year end.",
+            "Log every proposed adjustment, uncorrected misstatement, internal control deficiency and operational failure on the findings log with an owner and a due date.",
+            "Classify each control finding as a deficiency, significant deficiency or material weakness and record the auditor's basis for the classification.",
+            "Agree in writing which findings will be corrected before the opinion and which will be reported to those charged with governance.",
+            "Circulate the findings log to the Audit Committee chair the same week."
+          ],
+          "done": "a findings log exists with a classification, owner and due date on every item, agreed in writing with the engagement partner."
+        },
+        {
+          "step": "Correct operational failures under EPCRS before the opinion is issued",
+          "by": "Benefits Administrator",
+          "role": "Benefits Administrator",
+          "actions": [
+            "For each operational failure identified — missed deferral opportunity, wrong compensation definition, late deposits, improper exclusion of eligible employees — select the correction method from the current EPCRS revenue procedure.",
+            "Compute the corrective contribution, the missed match and the earnings adjustment, and process the deposit through the recordkeeper.",
+            "Decide with Legal Counsel whether self-correction is available or a Voluntary Correction Program submission with Form 8950 is required.",
+            "Notify affected participants where the correction changes their account and retain the notice.",
+            "Give the auditor the correction memo, the calculation and the deposit confirmation before the opinion date."
+          ],
+          "done": "every operational failure has a named EPCRS correction method, a computed and deposited correction, and evidence supplied to the auditor."
+        },
+        {
+          "step": "Sign the management representation letter",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Read the representation letter in full — it covers completeness of plan records, disclosure of all plan amendments, party-in-interest and non-exempt transactions, subsequent events and the §103(a)(3)(C) permissibility acknowledgement.",
+            "Confirm with the Controller and the Compensation & Benefits Manager that every representation is factually supportable before signing.",
+            "Refuse to sign any representation not supported by evidence and resolve the underlying fact first.",
+            "Date the letter no earlier than the audit report date and return the signed original to the engagement partner.",
+            "File the executed letter in the plan audit file."
+          ],
+          "done": "a signed representation letter dated no earlier than the audit report date is with the auditor and filed in the plan audit file."
+        },
+        {
+          "step": "Receive the opinion, classify it and code Schedule H line 3",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Receive the manually signed audit report on firm letterhead, dated, naming the plan, the plan year and the city and state of the issuing office.",
+            "Classify the opinion as unmodified, qualified, adverse or disclaimer, and separately record whether it is an ERISA §103(a)(3)(C) report.",
+            "Complete the Schedule H line 3 coding worksheet with the opinion type, the accountant's name, EIN and address.",
+            "Where the opinion is modified, brief the CFO, the Retirement Committee and the Audit Committee on the cause and the remediation before filing.",
+            "Confirm the opinion is in hand at least 15 business days before the Form 5500 due date, and escalate immediately if not."
+          ],
+          "done": "a signed, dated opinion is in hand with its type classified onto the Schedule H line 3 worksheet at least 15 business days before the due date."
+        },
+        {
+          "step": "Attach the audited statements and opinion to the Form 5500",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "In EFAST2 IFILE open the plan's Schedule H and load the accountant's opinion attachment slot.",
+            "Attach the signed opinion, the audited statements, the notes and the supplemental schedules as a single searchable PDF.",
+            "Complete Schedule H lines 3a-3d from the coding worksheet and confirm line 3d(2) is used only where a §103(a)(3)(C) audit applies.",
+            "Run validation and confirm no missing-attachment error remains — a large-plan filing without the auditor's report is incomplete and will be rejected.",
+            "Record the acknowledgement ID and attachment file name against the plan row in the filing calendar."
+          ],
+          "done": "the signed opinion and audited statements are attached to Schedule H, line 3 coding matches the opinion, and validation returns no attachment error."
+        },
+        {
+          "step": "Report the audit outcome to the Audit and Retirement Committees",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "board portal",
+          "actions": [
+            "Present per plan: the opinion type, the number and classification of control findings, uncorrected misstatements, and any EPCRS correction made.",
+            "Present the auditor's governance communication letter and management's written response to each point.",
+            "Record the committee's acceptance and any directed action with an owner and a due date in the minutes.",
+            "Table the IQPA fee and reappointment decision for the following year at the same meeting."
+          ],
+          "done": "committee minutes record the opinion type, findings, management responses and the reappointment decision for every plan."
+        },
+        {
+          "step": "Escalate and remediate any plan that reached the deadline without an opinion",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Fifteen business days before the due date, list any large plan without a signed opinion and escalate to the CFO and the Audit Committee chair the same day.",
+            "Decide in writing between filing Form 5558 for the remaining extension, or accepting a late filing with a DFVCP cure — never file a large-plan return with no opinion attached to buy time.",
+            "Where the return was already filed incomplete, prepare the amended Form 5500 with the opinion attached and file it as soon as the opinion is signed.",
+            "Record the root cause — late census, unresponsive recordkeeper, unresolved reconciliation, engagement signed late — and the process fix with an owner."
+          ],
+          "done": "every plan short of an opinion at the deadline has a written filing decision, an amendment plan where needed, and a root-cause fix with an owner."
+        },
+        {
+          "step": "Archive the audit file under ERISA retention",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the engagement letter, independence confirmation, peer review report, PBC delivery log, SOC 1 reports and bridge letters, findings log, EPCRS correction memos, representation letter and the signed opinion under plan number and plan year.",
+            "Apply the 6-year-from-filing ERISA §107 retention label to the package.",
+            "Confirm the index makes the file retrievable by EIN, plan number, plan year and audit firm name.",
+            "Grant read access to the Internal Auditor and the succeeding year's engagement team."
+          ],
+          "done": "the complete audit file is archived with a 6-year retention label and is retrievable by EIN, plan number, plan year and audit firm."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of plans requiring an ERISA audit",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Extract every ERISA plan from the plan inventory with EIN, plan number, plan year end and first-day participant count.",
+            "Independently derive large-plan status from the recordkeeper census rather than accepting the recorded filer status.",
+            "Add plans acquired, merged or terminated in the year so short-plan-year audits enter the population.",
+            "Reconcile to the prior-year EFAST2 filings by EIN and sign the population as complete with counts and extract date."
+          ],
+          "done": "the audit-required population is independently derived from census data, reconciled to prior-year filings and signed as complete."
+        },
+        {
+          "step": "Reconcile every audit-required plan to a signed engagement and an opinion",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "AuditBoard",
+          "actions": [
+            "Match each population row to a signed engagement letter on plan number plus plan year.",
+            "Match each row to a signed audit report and compare the report date to the Form 5500 submission date.",
+            "List any plan with no engagement letter, no opinion, or an opinion dated after the filing date as an automatic exception.",
+            "Capture the engagement letter and opinion first pages into the workpaper as evidence of the match."
+          ],
+          "done": "every audit-required plan is matched to a signed engagement letter and an opinion dated on or before the filing, or listed as an exception."
+        },
+        {
+          "step": "Draw and document the audit oversight sample",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Take 100% of large plans, 100% of first-time large plans and 100% of plans with a modified opinion.",
+            "Take a seeded random sample of 5 plans classified as small to confirm the classification held.",
+            "Within each sampled plan select the independence confirmation, the certification (where §103(a)(3)(C) applies), the representation letter and the findings log for testing.",
+            "Record the seed, population size, selection date and rationale in the workpaper."
+          ],
+          "done": "the sample covers 100% of large, first-time large and modified-opinion plans and is reproducible from a recorded seed."
+        },
+        {
+          "step": "Re-verify IQPA independence and licensure",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Confirm the engagement partner and the firm hold active CPA licences by checking the relevant state board of accountancy register on the audit report date.",
+            "Read the written independence confirmation and confirm it names the specific plan and plan year.",
+            "Cross-check the firm and its partners against the sponsor's vendor master and fiduciary register for any non-audit relationship that would impair independence.",
+            "Confirm a peer review report exists and note any peer review rating other than pass."
+          ],
+          "done": "licensure is verified against the state board register, independence is confirmed in writing per plan and year, and peer review status is recorded."
+        },
+        {
+          "step": "Re-perform the §103(a)(3)(C) permissibility assessment",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled plan taking a §103(a)(3)(C) audit, read the certification and independently confirm it addresses both completeness and accuracy.",
+            "Confirm the certifying institution qualifies — a bank, similar institution or insurance carrier regulated, supervised and subject to periodic examination.",
+            "Confirm the management acknowledgement of permissibility appears in the engagement letter and the representation letter.",
+            "Identify any asset class excluded from certification and confirm the auditor performed full testing on it; an unsupported election is a fail."
+          ],
+          "done": "each scope election is independently confirmed against a qualifying certification and both management acknowledgements, with non-certified assets tested."
+        },
+        {
+          "step": "Verify the opinion attachment and the Schedule H line 3 coding",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Retrieve the accepted Form 5500 from EFAST2 by acknowledgement ID for each sampled plan.",
+            "Open the accountant's opinion attachment and confirm it is manually signed, dated, on firm letterhead and names the plan and plan year.",
+            "Compare the opinion type in the attachment to Schedule H line 3a and the firm name, EIN and address to line 3c.",
+            "Confirm line 3d(2) is used only where a §103(a)(3)(C) audit is genuinely in place and log any mismatch as a fail."
+          ],
+          "done": "every sampled filing carries a signed opinion whose type and firm details agree with Schedule H line 3, with mismatches logged."
+        },
+        {
+          "step": "Recompute the audit timeline against the milestone deadlines",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each sampled plan compute days from plan year end to engagement letter signature, PBC completion, fieldwork exit and opinion date.",
+            "Compare each to the 60/90/120/150-day milestones and to the 15-business-day pre-filing buffer.",
+            "Compute the buffer actually achieved between the opinion date and the Form 5500 submission and flag any plan under 15 business days.",
+            "Correlate late milestones with the exceptions logged during the year to test whether the escalation actually fired."
+          ],
+          "done": "every sampled plan has recomputed milestone day counts, an achieved pre-filing buffer figure, and any missed escalation is identified."
+        },
+        {
+          "step": "Test the findings log and the EPCRS corrections through to completion",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "AuditBoard",
+          "actions": [
+            "Pull the auditor's governance communication letter and compare every point raised to the internal findings log — a point raised by the auditor and absent from the log is a control failure.",
+            "For each operational failure, trace the EPCRS correction method, the computation, the deposit confirmation and the participant notice.",
+            "Confirm self-correction eligibility was assessed and that a VCP submission was made where self-correction was unavailable.",
+            "Confirm every material weakness and significant deficiency has an owner, a due date and evidence of remediation or an accepted extension."
+          ],
+          "done": "every auditor-raised point appears on the findings log, and every operational failure traces to a computed, deposited and notified EPCRS correction."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "AuditBoard",
+          "actions": [
+            "Raise one issue per exception with plan number, plan year, the failure (no engagement, late opinion, independence gap, unsupported scope election, unattached opinion) and its filing consequence.",
+            "Assign a root cause — participant count derived late, engagement signed late, recordkeeper data delays, certification not obtained — and an owner.",
+            "Set a remediation date and, where the filing is defective, record the amended Form 5500 decision and target filing date.",
+            "Carry every open exception into next year's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue with a filing consequence, a root cause, an owner, a remediation date and an amendment decision where relevant."
+        },
+        {
+          "step": "Conclude, sign and report the plan audit oversight test",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance threshold on missing or late opinions.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — citing the engagement, independence and attachment evidence behind it.",
+            "Have the independent reviewer, who managed no IQPA relationship and signed no representation letter, sign the workpaper.",
+            "Report the conclusion and any missing-audit findings to the Audit Committee and the Retirement Committee, and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with an exception rate, a stated conclusion and a dated committee reporting reference is filed in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-015-C29",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Owns the continuously maintained ERISA obligation calendar covering Form 5500 series, participant disclosures and the 29 CFR 2560.503-1 claims and appeals clocks, with the evidence of timeliness behind every entry"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 29 CFR 2560.503-1(b) reasonable claims procedure requirements, with the notification timeframes in 2560.503-1(f) and appeal timeframes in 2560.503-1(i), re-verified against eCFR on each calendar review and whenever EBSA issues a disaster-relief extension"
+        },
+        "In-scope processes": {
+          "value": "Continuous calendar maintenance for every ERISA plan: annual filings, participant disclosure windows, and the per-claim clocks for group health, disability, pension and life claims — initial determinations, extensions, appeals and external review"
+        },
+        "In-scope systems": {
+          "app": "workflow/case management tool",
+          "value": "Claim and appeal cases carry the received date, statutory due date and clock status; the annual filing and disclosure obligations are held on the same calendar with owner, due date and evidence link"
+        },
+        "Compliance procedure documented": {
+          "value": "ERISA Obligation Calendar and Claims Timeliness Procedure — calendar entry standard (obligation, citation, owner, due date, evidence artifact), clock-start rules, tolling for incomplete claims, extension notice rules, and the SPD description of the claims procedure"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and the Corporate Secretary as Plan Administrator; reviewed quarterly and re-approved on any change to plan claims procedures or to the DOL claims regulation"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Continuous — group health post-service claims decided within 30 days (one 15-day extension), pre-service within 15 days, urgent care within 72 hours; disability claims within 45 days with up to two 30-day extensions; appeals within 60 days (group health) or 45 days (pension/disability); documents furnished on request within 30 days; plus every annual Form 5500 and disclosure date on the same calendar"
+        },
+        "Deadline reminders configured": {
+          "value": "Case-level alerts at 50% and 80% of each claim clock and a breach alert at expiry; calendar-level alerts at 30, 10 and 3 business days before every annual filing and disclosure date; a daily aged-case report to the Complaints Manager"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Claim and appeal case records with received dates, determination letters, extension notices and delivery proof, plus filing acknowledgements, retained 6 years from the filing or determination date under ERISA §107 and longer where the benefit entitlement remains live under §209"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "workflow/case management tool",
+          "value": "Any claim or appeal decided after its regulatory clock, any extension taken without a timely written notice, and any calendar entry closed without evidence is logged as an exception with the deemed-exhaustion consequence recorded"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs off every breached claims clock, the remediation of any calendar entry closed without evidence, and the response where a claimant is deemed to have exhausted administrative remedies under 29 CFR 2560.503-1(l)"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every calendar obligation with a due date in the test period, plus every benefit claim and appeal decided in the period across group health, disability, pension and life, with its received date and determination date"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on regulatory claim clocks — one determination outside 30/15/72-hour or 45-day limits without a valid written extension notice is a fail; any calendar entry marked complete with no evidence artifact attached is a fail; claim clock accuracy must be 100% on the tested sample"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Monthly test of the claims and appeals clocks because the obligation runs continuously, plus a quarterly test of calendar completeness against the statutory obligation inventory"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Officer",
+          "value": "Reviewer must not own any calendar entry and must not have adjudicated or approved any sampled claim or appeal"
+        },
+        "Evidence location for test results": {
+          "value": "Monthly claims timeliness workpaper and quarterly calendar completeness workpaper (obligation inventory, case extract, clock recomputation, exception log) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "The obligation calendar export with evidence links, the claims procedure as described in the SPD, and per-claim files with received date, determination letter and delivery proof — producible for an EBSA benefits advisor enquiry or a §502(a)(1)(B) suit within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "EBSA Benefits Advisor enquiries and participant complaints route to the Complaints Manager with Legal Counsel; where a clock was missed, the claim is treated as deemed exhausted under 29 CFR 2560.503-1(l) and the position is cleared with Legal Counsel before any response is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Build the statutory obligation inventory the calendar must cover",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "List every ERISA obligation the sponsor carries: Form 5500 series and Form 8955-SSA, PBGC premiums, SAR, SPD and SMM delivery, 404a-5 participant fee disclosure, 408b-2 provider disclosure receipt, blackout notices, and the 2560.503-1 claim and appeal clocks.",
+            "For each, record the citation, the triggering event, the day count, the responsible role and the evidence artifact that proves completion.",
+            "Cross-check the list against the plan document and SPD for any plan-specific commitment shorter than the regulatory minimum — the plan's own promise governs where it is stricter.",
+            "Have Legal Counsel confirm the citation and day count on every row before the inventory is loaded.",
+            "Load the confirmed inventory into the GRC obligation register as the source the calendar is generated from."
+          ],
+          "done": "the obligation register holds every ERISA obligation with citation, trigger, day count, owner and named evidence artifact, confirmed by counsel."
+        },
+        {
+          "step": "Generate the calendar entries and assign a named owner to each",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Generate a dated calendar entry from every register row for every plan, deriving the date from the plan year end or the triggering event.",
+            "Assign a named individual owner and a named backup to each entry — never a team mailbox.",
+            "Set the required evidence artifact on the entry so it cannot be closed without an attachment.",
+            "Configure reminders at 30, 10 and 3 business days before each date, escalating to the Regulatory Reporting Manager at 3 days.",
+            "Publish the calendar to the Retirement Committee and confirm no plan is missing from it."
+          ],
+          "done": "every register row has a dated calendar entry per plan with a named owner, backup, required evidence artifact and configured reminders."
+        },
+        {
+          "step": "Configure the claim clocks in the case management workflow",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Create a case type per claim category with the regulatory clock built in: urgent care 72 hours, pre-service 15 days, post-service 30 days, disability 45 days, pension 90 days.",
+            "Configure the clock to start on the date the claim is received at the address designated in the SPD, not the date it reaches the adjudicator's queue.",
+            "Build the extension path so an extension can only be applied where a written notice is generated before the original period expires, stating the special circumstances and the date a decision is expected.",
+            "Build the tolling rule for incomplete claims: the clock tolls from the date the request for further information is sent until the claimant responds, with a minimum 45 days given to respond.",
+            "Test the configuration with the QA Analyst on ten scenario cases per category before it goes live."
+          ],
+          "done": "each claim category has a configured clock, an extension gate requiring a prior written notice, and a tested tolling rule."
+        },
+        {
+          "step": "Describe the claims procedure accurately in the SPD",
+          "by": "Legal Counsel",
+          "role": "Legal Counsel",
+          "actions": [
+            "Compare the SPD claims section to the configured procedure: where to file, the decision timeframes, the appeal deadline, the review process and the right to bring a §502(a) civil action.",
+            "Confirm the SPD states the claimant's right to receive, free of charge, all documents relevant to the claim on request.",
+            "Confirm the SPD does not impose any procedure that unduly inhibits a claim — no filing fee, no more than two levels of mandatory appeal.",
+            "Issue a Summary of Material Modifications where the procedure changed, within 210 days after the plan year in which the change was adopted.",
+            "Sign off the SPD claims section with a date so the calendar entry can close against it."
+          ],
+          "done": "the SPD claims section matches the configured procedure, states the §502(a) right, and any change is covered by a timely SMM."
+        },
+        {
+          "step": "Log every claim on receipt with its clock start date",
+          "by": "Claims Intake Rep",
+          "role": "Claims Intake Rep",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Open a case on the day the claim is received at the designated filing address and record the received date, the channel and the claim category.",
+            "Confirm the claim meets the plan's definition of a filed claim; where it does not, send the deficiency notice inside the timeframe rather than leaving the case unopened.",
+            "Attach the claim form and every submitted document to the case at intake.",
+            "Confirm the system-computed statutory due date on screen and correct the category if the date looks wrong for the claim type.",
+            "Route the case to the adjudication queue the same business day."
+          ],
+          "done": "every claim has a case opened on its received date with the correct category, a system-computed due date and the documents attached."
+        },
+        {
+          "step": "Work the daily aged-case report before any clock expires",
+          "by": "Complaints Manager",
+          "role": "Complaints Manager",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Run the aged-case report each morning showing every open claim and appeal with days elapsed, days remaining and the owner.",
+            "Work the 80%-of-clock band first and confirm with each owner what is outstanding and whether an extension notice is needed.",
+            "Escalate any case with under 20% of its clock remaining to the Claims Director / Manager the same day.",
+            "Record on the case the reason for any case reaching the escalation band so the root cause is visible later.",
+            "Report the count of cases in each band to the Head of Compliance weekly."
+          ],
+          "done": "the aged-case report is worked daily with every case under 20% of clock remaining escalated and its cause recorded."
+        },
+        {
+          "step": "Issue extension notices before the original period expires",
+          "by": "Claims Examiner",
+          "role": "Claims Examiner",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Where a decision cannot be made in the initial period, generate the extension notice before the original period expires — a notice issued afterwards does not extend anything.",
+            "State in the notice the special circumstances requiring the extension and the date by which a decision will be rendered.",
+            "Where the extension is caused by missing information, specify the information needed and give the claimant at least 45 days to supply it, and record the tolling start.",
+            "Send the notice through the channel evidenced on the case and attach the delivery proof.",
+            "Update the case due date only from the generated notice, never by manual override."
+          ],
+          "done": "every extension is supported by a notice issued before the original period expired, stating the circumstances and the new decision date, with delivery proof attached."
+        },
+        {
+          "step": "Issue adverse benefit determinations with the required content",
+          "by": "Claims Examiner",
+          "role": "Claims Examiner",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Draft the determination letter with the specific reason for the denial, reference to the specific plan provisions relied on, a description of any additional material needed and why, and a description of the appeal procedure and time limits.",
+            "Include the statement of the claimant's right to bring a civil action under ERISA §502(a) following an adverse determination on appeal.",
+            "Where an internal rule, guideline or protocol was relied on, either state it or state that it is available free on request; where the denial is based on medical necessity or experimental treatment, include the scientific or clinical judgement explanation.",
+            "Send the letter inside the clock and attach it plus delivery proof to the case.",
+            "Close the case only when the letter and delivery proof are both attached."
+          ],
+          "done": "each adverse determination is issued inside the clock with reasons, plan provisions, appeal rights, §502(a) notice and delivery proof on the case."
+        },
+        {
+          "step": "Run the appeal within its own clock and with a fresh reviewer",
+          "by": "Claims Director / Manager",
+          "role": "Claims Director / Manager",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Open an appeal case on the date the appeal is received and confirm the claimant had at least 60 days from the adverse determination to file it.",
+            "Assign a reviewer who is neither the original decision-maker nor that person's subordinate, and record the segregation on the case.",
+            "Where the denial involved medical judgement, consult a health care professional with appropriate training who was not consulted on the initial denial, and record that consultant's identity.",
+            "Give the claimant, on request and free of charge, all documents, records and information relevant to the claim before the decision is made.",
+            "Decide inside the appeal clock and issue the determination with the §502(a) civil action statement."
+          ],
+          "done": "every appeal is decided inside its clock by a segregated reviewer, with an independent medical consultant where medical judgement was involved."
+        },
+        {
+          "step": "Attach the evidence artifact to every calendar entry before closing it",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "For each closed calendar entry attach the named artifact — EFAST2 acknowledgement receipt, SAR distribution log, SPD delivery record, determination letter with delivery proof.",
+            "Record the actual completion date on the entry alongside the due date so the timeliness gap is computed and stored, not inferred later.",
+            "Reject any closure request with no artifact attached and return it to the owner the same day.",
+            "Run a weekly report of entries closed in the last seven days with no artifact and clear it to zero."
+          ],
+          "done": "no calendar entry is closed without its named evidence artifact and a stored actual-completion date."
+        },
+        {
+          "step": "Reconcile the calendar to the obligation register each quarter",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Extract the obligation register and the calendar entries for the quarter and match them plan by plan.",
+            "List any register row with no calendar entry for a plan and any calendar entry with no register row behind it.",
+            "Re-read the eCFR text for any citation flagged as amended since the last review and update the day count on the register and every generated entry.",
+            "Add obligations arising from plan changes in the quarter — new plans, mergers, terminations, benefit changes — and generate their entries.",
+            "Have the Head of Compliance approve the reconciled register version."
+          ],
+          "done": "the calendar and the obligation register reconcile with no unmatched rows either way, and the approved register version is dated."
+        },
+        {
+          "step": "Apply EBSA disaster or emergency relief to the clocks when it is issued",
+          "by": "Legal Counsel",
+          "role": "Legal Counsel",
+          "actions": [
+            "Monitor EBSA news releases, Disaster Relief Notices and Compliance Assistance Releases for extensions to claim, appeal, COBRA or filing deadlines.",
+            "Assess which plans, claim categories and geographic areas the relief actually covers and write the scope determination.",
+            "Instruct the Business Systems Analyst to adjust the affected clocks in the case management configuration with an effective-date-bounded rule, not a blanket switch.",
+            "Notify affected claimants of the extended deadline where the relief requires it and retain the notice.",
+            "Record the relief, its scope and its expiry date on the obligation register so the clocks revert automatically."
+          ],
+          "done": "every applicable relief has a written scope determination, a date-bounded clock adjustment and a recorded expiry that returns the clocks to normal."
+        },
+        {
+          "step": "Report calendar and claims timeliness to the Retirement Committee",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "board portal",
+          "actions": [
+            "Publish the period dashboard: obligations due, completed on time, completed late with day counts, and open past due, split by plan.",
+            "Publish claims timeliness by category — urgent care, pre-service, post-service, disability, pension — with the count decided outside the clock.",
+            "Show every deemed-exhaustion event under 29 CFR 2560.503-1(l) and the litigation exposure it creates.",
+            "Record the committee's directed actions with owners and due dates in the minutes."
+          ],
+          "done": "committee minutes record on-time rates by obligation and claim category, every deemed-exhaustion event, and directed actions with owners."
+        },
+        {
+          "step": "Remediate breached clocks and calendar failures at root cause",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "workflow/case management tool",
+          "actions": [
+            "For every breached claim clock, confirm with Legal Counsel whether the claimant is deemed to have exhausted administrative remedies and record the position on the case.",
+            "Complete the determination immediately regardless of the breach, and notify the claimant of their appeal and civil action rights.",
+            "Assign a root cause — intake logged late, wrong claim category, extension notice issued late, staffing gap, medical consultant unavailable — and a process owner.",
+            "Where the cause is a configuration defect, raise a change with the Business Systems Analyst and re-test the clock before closing the issue.",
+            "Set a remediation date and carry the item into the next monthly test as a mandatory retest row."
+          ],
+          "done": "every breach has a counsel position on deemed exhaustion, a completed determination, a root cause, an owner and a retest commitment."
+        },
+        {
+          "step": "Archive the calendar and claim timeliness evidence under ERISA retention",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Export the period's calendar with due dates, completion dates and evidence links and file it under the plan year.",
+            "Archive claim and appeal case files with received dates, extension notices, determination letters and delivery proof.",
+            "Apply the 6-year ERISA §107 retention label, and the longer §209 label on any record bearing on an individual's benefit entitlement.",
+            "Confirm the index makes records retrievable by plan number, claimant identifier, claim category and determination date."
+          ],
+          "done": "the calendar export and claim case files are archived with the correct retention labels and are retrievable by plan, claimant and determination date."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of calendar obligations and decided claims",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Extract every calendar entry with a due date inside the test period, with plan, obligation, owner, due date and completion date.",
+            "Extract every claim and appeal decided in the period from the case management tool with received date, category and determination date.",
+            "Add claims closed as withdrawn or abandoned so cases cannot be removed from the population by reclassification.",
+            "Reconcile the case counts to the claim system's volume report and sign the population as complete."
+          ],
+          "done": "the obligation and claim populations are extracted, reconciled to system volume reports and signed as complete."
+        },
+        {
+          "step": "Reconcile the calendar to the independent statutory obligation inventory",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Build an independent obligation list from eCFR and the plan documents rather than from the maintained register.",
+            "Match it to the calendar per plan and list every obligation with no calendar entry — a missing entry is a control failure even where the underlying task was done.",
+            "Compare the day count on each entry to the current regulatory text and flag any stale day count.",
+            "Confirm any plan-specific commitment shorter than the regulatory minimum is the date actually calendared."
+          ],
+          "done": "the calendar is reconciled to an independently built obligation list with every missing entry and stale day count listed."
+        },
+        {
+          "step": "Draw and document the timeliness sample",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Take 100% of urgent care claims, 100% of claims where an extension was applied, and 100% of appeals.",
+            "Take a seeded random sample of 40 remaining claims stratified across group health, disability, pension and life.",
+            "Take a seeded random sample of 25 calendar entries closed in the period.",
+            "Record the seed, population sizes, selection date and stratification rationale so the sample can be re-drawn."
+          ],
+          "done": "the sample is reproducible from a recorded seed and covers all urgent care claims, extended claims and appeals in full."
+        },
+        {
+          "step": "Recompute each claim clock from the received date",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each sampled claim take the received date from the source document — postmark, portal timestamp or fax header — not the system field.",
+            "Recompute the statutory due date from the category: 72 hours urgent care, 15 days pre-service, 30 days post-service, 45 days disability, 90 days pension.",
+            "Compare to the determination date on the letter and compute days early or late for every case.",
+            "Confirm the claim category assigned matches the claim's actual nature — a miscategorised urgent care claim decided in 30 days is a breach, not a pass."
+          ],
+          "done": "every sampled claim has an independently recomputed due date from a source-document received date and a days early/late figure."
+        },
+        {
+          "step": "Test every extension for a valid, timely written notice",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "workflow/case management tool",
+          "actions": [
+            "For each extended claim, open the extension notice and compare its send date to the expiry of the original period.",
+            "Confirm the notice states the special circumstances and the date by which a decision would be rendered.",
+            "Where information was requested from the claimant, confirm at least 45 days were given and that the tolling period recorded matches the request and response dates.",
+            "Treat any extension without a notice sent before the original expiry as a breach of the original clock, not a documentation gap."
+          ],
+          "done": "every extension is supported by a notice evidenced as sent before the original period expired, with the tolling period independently verified."
+        },
+        {
+          "step": "Test adverse determination content against the regulation",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "For each sampled denial read the determination letter against 29 CFR 2560.503-1(g): specific reason, specific plan provisions, additional material needed, appeal procedure and time limits.",
+            "Confirm the §502(a) civil action statement appears on the final adverse determination.",
+            "Confirm any internal rule or medical necessity basis is either stated or offered free on request.",
+            "Confirm delivery proof exists and treat a letter with no evidenced delivery as not issued."
+          ],
+          "done": "every sampled denial letter carries all required content elements, the §502(a) statement where required, and evidenced delivery."
+        },
+        {
+          "step": "Test appeal reviewer segregation and independent medical consultation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "workflow/case management tool",
+          "actions": [
+            "For each appeal compare the appeal reviewer to the initial decision-maker and to that person's reporting line in the HR org data.",
+            "Where medical judgement was involved, confirm a health care professional was consulted, that they were not consulted on the initial denial, and that their identity is recorded.",
+            "Confirm the claimant was given, on request and free of charge, the documents relevant to the claim before the appeal decision.",
+            "Treat any appeal decided by the original decision-maker or a subordinate as a fail."
+          ],
+          "done": "every appeal is evidenced as decided by a segregated reviewer with an independent medical consultant recorded where medical judgement applied."
+        },
+        {
+          "step": "Verify the evidence artifact behind every sampled calendar closure",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Open each of the 25 sampled calendar entries and confirm the named evidence artifact is attached and matches the obligation.",
+            "Compare the artifact's own date — acknowledgement timestamp, distribution log date, letter date — to the recorded completion date.",
+            "Flag any entry closed with a placeholder, a screenshot without a date, or an artifact dated after the due date.",
+            "Recompute the on-time verdict for each sampled entry from the artifact date rather than the recorded status."
+          ],
+          "done": "every sampled entry has a dated artifact matching its obligation and an on-time verdict recomputed from the artifact date."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Raise one issue per exception with plan, claim or obligation reference, the clock breached, days late and the consequence.",
+            "Assign a root cause — intake logged late, miscategorised claim, late extension notice, staffing gap, stale calendar day count, missing evidence artifact — and an owner.",
+            "For every breached claim clock, record the Legal Counsel position on deemed exhaustion under 29 CFR 2560.503-1(l) and any litigation notification made.",
+            "Set a remediation date and carry every open exception into the next monthly test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue with days late, a root cause, an owner, a deemed-exhaustion position where relevant, and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the calendar and claims timeliness test",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the on-time rate by claim category and by obligation type against the stated 100% clock-accuracy threshold.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — citing the clock recomputations and artifact verifications behind it.",
+            "Have the independent reviewer, who owns no calendar entry and adjudicated no sampled claim, sign the workpaper.",
+            "Report to the Retirement Committee and the Audit Committee, including every deemed-exhaustion event, and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with on-time rates by category, a stated conclusion and a dated committee reporting reference is filed in the repository."
+        }
+      ]
+    }
+  ]
+}

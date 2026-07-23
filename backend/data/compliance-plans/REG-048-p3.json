@@ -1,0 +1,1184 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-048-C17",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Controller",
+          "value": "Corporate Controller owns the Regulation S-X financial statement schedules and the Item 601 exhibit index in the Form 10-K; escalation to the Chief Financial Officer on any omitted or qualified schedule"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Regulation S-X 17 CFR Part 210 re-read at each year-end close: Article 7 (insurance companies) Rules 7-03 to 7-05, Rule 12-04 (Schedule II parent-only), Rule 12-09 (Schedule V valuation accounts), Rule 12-15 (Schedule I summary of investments), plus Rules 3-05, 3-09, 4-08(g) and 13-01, checked against the SEC's current eCFR text and any Financial Reporting Manual update issued since the prior 10-K"
+        },
+        "In-scope processes": {
+          "value": "Year-end close → consolidation → S-X schedule build (Schedules I, II, III, IV, V, VI for the insurance registrant) → Item 601 exhibit assembly → Inline XBRL tagging → 10-K Item 15 assembly for the SEC registrant and every consolidated insurance subsidiary"
+        },
+        "In-scope systems": {
+          "app": "close/consolidation tool",
+          "value": "Consolidation trial balance and elimination ledger feed the schedules; parent-only (Schedule II) column is built from the standalone holding-company ledger in the ERP; final schedules and exhibits are assembled in the financial reporting repository for EDGAR submission"
+        },
+        "Compliance procedure documented": {
+          "value": "S-X Schedules & Exhibits Procedure — schedule applicability tests, source-to-schedule tie-out map (Schedule III DAC/reserves/premium by segment, Schedule IV assumed/ceded reinsurance percentages, Schedule VI P&C loss development), exhibit index build, XBRL tagging and reviewer roles"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Financial Officer and reviewed by the Disclosure Committee each year before the year-end close calendar is issued; re-approved on any S-X amendment or auditor-identified schedule deficiency"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Schedules complete and tied out by close day 20; auditor schedule review complete 10 business days before the 10-K filing date; 10-K itself due 60 days after fiscal year end for a large accelerated filer (75 accelerated / 90 non-accelerated) under Rule 13a-1"
+        },
+        "Deadline reminders configured": {
+          "value": "Year-end close calendar tasks with owner and due date for each schedule (I, II, III, IV, V, VI) and each Item 601 exhibit, alerting at T-10, T-5 and T-1 business days against the schedule due date, plus a hard gate that blocks EDGAR submission while any schedule task is open"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Schedule workpapers, source trial-balance extracts, tie-out sheets, applicability memos and the exhibit index retained 7 years to support Exchange Act Rule 17a-4-style record expectations and the auditor's retention period; filed under the fiscal year in the financial reporting repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any schedule omitted, mis-tied to the audited statements, or filed with an unresolved footing difference is logged as a financial reporting exception with the affected schedule, the dollar variance, root cause and whether it requires a 10-K/A"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Financial Officer",
+          "value": "CFO signs off on any schedule restatement, omitted-schedule conclusion or post-filing amendment before it is submitted to EDGAR"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every S-X schedule and every Item 601 exhibit presented in (or omitted from) the filed Form 10-K for the fiscal year, plus the applicability test results for Rules 3-05, 3-09, 4-08(g) and 13-01"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on a required schedule omitted or a schedule that does not foot to the audited financial statements; any tie-out difference above $0 on totals, or any exhibit listed in the index but not filed, is a fail and escalates to the Audit Committee"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual with the 10-K; test runs once per year immediately before filing, with a pre-test walkthrough at Q3 to confirm the schedule build is on foot for the new year"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have prepared or reviewed any schedule in the close; drawn from Internal Audit, not from the Controller's group"
+        },
+        "Evidence location for test results": {
+          "value": "Annual S-X schedule test workpaper (applicability matrix, tie-out re-performance, exhibit index trace, XBRL validation output) filed in the compliance evidence repository under FY<year> / SEC Reporting"
+        },
+        "Regulator-ready documentation": {
+          "value": "Schedule-by-schedule tie-out binder plus applicability memos, producible to an SEC Division of Corporation Finance comment letter on the schedules within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "SEC comment letters on S-X schedules are routed to the Controller for the accounting response, drafted with the engagement partner, cleared by the General Counsel and filed via EDGAR correspondence (CORRESP) within the SEC's stated response window"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Run the S-X schedule applicability tests for the fiscal year",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "close/consolidation tool",
+          "actions": [
+            "Pull the final consolidated trial balance for the fiscal year from the consolidation tool and export the parent-only (holding company standalone) column separately.",
+            "Test Schedule II (Rule 12-04): compute restricted net assets of consolidated subsidiaries as a percentage of consolidated net assets at year end — over 25% requires condensed parent-only financial information.",
+            "Test Schedules I, III, IV and VI under Article 7 (Rules 7-05) since the registrant is an insurance company, and Schedule V under Rule 12-09 for valuation and qualifying accounts (allowance for credit losses, valuation allowances).",
+            "Write an applicability memo naming each schedule as required, omitted-because-not-applicable or omitted-because-amounts-are-immaterial, citing the rule and showing the computed test value.",
+            "Send the memo to the engagement partner and the Chief Financial Officer for concurrence before schedule build starts."
+          ],
+          "done": "each of Schedules I through VI has a documented required/omitted conclusion with the computed test value and the S-X rule cited, concurred by the auditor."
+        },
+        {
+          "step": "Build Schedule I — Summary of Investments Other Than Investments in Related Parties",
+          "by": "Investment Operations Manager",
+          "role": "Investment Operations Manager",
+          "app": "BlackRock Aladdin",
+          "actions": [
+            "Extract the year-end investment portfolio from the investment accounting system by S-X Rule 12-15 category: fixed maturities (bonds by issuer type — U.S. Treasury, states/municipalities, foreign governments, public utilities, all other corporate), equity securities, mortgage loans, real estate, policy loans, other long-term investments and short-term investments.",
+            "For each category populate the three required columns: original cost (amortized cost for fixed maturities), fair value at the balance sheet date, and the amount at which shown in the balance sheet.",
+            "Reconcile the Schedule I total 'amount at which shown in the balance sheet' to the consolidated balance sheet total investments line, to the dollar, and attach the reconciliation.",
+            "Hand the completed schedule and the reconciliation to the Controller's reporting team with the portfolio extract date and source system stamped on it."
+          ],
+          "done": "Schedule I carries cost, fair value and carrying value by Rule 12-15 category and its carrying-value total agrees to the balance sheet with a zero difference."
+        },
+        {
+          "step": "Build Schedule II — Condensed Financial Information of Registrant (parent-only)",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Extract the holding-company-only ledger from the ERP with no subsidiary consolidation, carrying investments in subsidiaries on the equity method as Rule 12-04 requires.",
+            "Prepare the condensed parent-only balance sheet, statement of operations and statement of cash flows for the three years presented in the 10-K.",
+            "Add the Rule 12-04(b)/(c) footnotes: dividends received from consolidated subsidiaries in each year, the amount of restricted net assets, and long-term debt maturities for each of the five years following the balance sheet date.",
+            "Tie parent-only equity in undistributed earnings of subsidiaries back to consolidated net income and prove parent-only equity equals consolidated total stockholders' equity."
+          ],
+          "done": "parent-only equity and net income agree to the consolidated statements and the dividend, restricted-net-asset and debt-maturity footnotes are present for all periods."
+        },
+        {
+          "step": "Build Schedule III — Supplementary Insurance Information by segment",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "enterprise data warehouse",
+          "actions": [
+            "Take the reportable segments exactly as presented in the ASC 280 segment footnote — Schedule III must use the same segments, not a management view.",
+            "For each segment pull the Rule 7-05 columns: deferred policy acquisition costs, future policy benefits/losses/claims and loss expenses, unearned premiums, other policy claims and benefits payable, premium revenue, net investment income, benefits/claims/losses and settlement expenses, amortization of DAC, other operating expenses, and premiums written (P&C only).",
+            "Allocate net investment income to segments on the documented allocation basis and attach the allocation support.",
+            "Foot each column across the segments and tie the totals to the corresponding consolidated balance sheet and income statement captions.",
+            "Send the segment column totals to the Financial Analyst who owns the segment footnote for a two-way agreement check."
+          ],
+          "done": "every Schedule III column foots across segments to the audited consolidated caption and the segment set matches the ASC 280 footnote exactly."
+        },
+        {
+          "step": "Build Schedule IV — Reinsurance",
+          "by": "Reinsurance Accountant",
+          "role": "Reinsurance Accountant",
+          "app": "ceded accounting platform",
+          "actions": [
+            "Extract from the ceded accounting platform, for life insurance in force and for premiums by line (life, accident and health, property and liability): gross amount, ceded to other companies, assumed from other companies and net amount.",
+            "Compute the final Rule 7-05 column — percentage of amount assumed to net — for each line and each year presented, to one decimal place.",
+            "Reconcile ceded premiums in the schedule to the ceded premium ledger accounts and gross premiums to the direct written/earned premium report; investigate any difference over $0 before signing.",
+            "Flag any year where assumed-to-net exceeds a level that would trigger additional reinsurance disclosure and raise it to the Controller."
+          ],
+          "done": "Schedule IV shows gross/ceded/assumed/net and the assumed-to-net percentage for every line and year, with each column tied to the ledger."
+        },
+        {
+          "step": "Build Schedule V — Valuation and Qualifying Accounts",
+          "by": "Accountant",
+          "role": "Accountant",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "List every valuation and qualifying account required by Rule 12-09: allowance for credit losses on premiums receivable and reinsurance recoverables, deferred tax valuation allowance, and any other contra-asset reserve.",
+            "For each account and each of the three years, pull balance at beginning of period, additions charged to costs and expenses, additions charged to other accounts, deductions (write-offs, recoveries) and balance at end of period.",
+            "Describe the nature of every 'charged to other accounts' and 'deductions' amount in a footnote to the schedule — an unexplained deduction is an SEC comment magnet.",
+            "Tie each ending balance to the contra-asset balance in the trial balance and to the related footnote rollforward."
+          ],
+          "done": "every valuation account rolls forward beginning-to-ending across all three years and each ending balance agrees to the trial balance and the related footnote."
+        },
+        {
+          "step": "Build Schedule VI — Supplemental Information Concerning Property-Casualty Insurance Operations",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "app": "Milliman Arius (Reserving)",
+          "actions": [
+            "For each affiliated P&C consolidated group, pull deferred acquisition costs, reserves for unpaid claims and claim adjustment expenses, discount deducted from those reserves, unearned premiums and earned premiums.",
+            "Split claims and claim adjustment expenses incurred into current-year and prior-year components — prior-year development must equal the development shown in the loss reserve rollforward footnote.",
+            "Add amortization of deferred acquisition costs, paid claims and claim adjustment expenses, and premiums written.",
+            "Send the current-year/prior-year incurred split to the Controller with the reserve rollforward so both are reviewed side by side before the schedule is locked."
+          ],
+          "done": "prior-year development in Schedule VI equals the development disclosed in the loss reserve rollforward footnote and every column ties to the audited statements."
+        },
+        {
+          "step": "Run the acquired-business and equity-investee financial statement tests",
+          "by": "Financial Analyst",
+          "role": "Financial Analyst",
+          "actions": [
+            "For every business acquired during the year, run the Rule 1-02(w) significance tests (investment, asset and income tests) against the prior-year audited financials to decide whether Rule 3-05 separate acquiree financial statements and Article 11 pro formas are required in the 10-K.",
+            "For every equity method investee, run the same tests to decide whether Rule 3-09 separate audited investee financial statements or Rule 4-08(g) summarized financial information is required.",
+            "For registered debt with subsidiary guarantors, prepare the Rule 13-01 summarized financial information of the obligor group and confirm it is placed in MD&A or the footnotes as elected.",
+            "Document each computed significance percentage and its inputs in the applicability memo so the conclusion can be re-performed."
+          ],
+          "done": "each acquisition, equity investee and guarantor structure has computed significance percentages and a documented include/exclude conclusion under Rules 3-05, 3-09, 4-08(g) and 13-01."
+        },
+        {
+          "step": "Assemble the Item 601 exhibit index for the Form 10-K",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "financial reporting repository",
+          "actions": [
+            "Build the exhibit index in Item 15 with a numbered row per Item 601 exhibit: 3.1/3.2 charter and bylaws, 4.x description of securities registered under Section 12, 10.x material contracts including every management compensatory plan, 21.1 subsidiaries of the registrant, 23.1 consent of the independent registered public accounting firm, 24.1 power of attorney, 31.1/31.2 Rule 13a-14(a) certifications, 32.1/32.2 Section 1350 certifications, and 97.1 the incentive compensation clawback policy.",
+            "For each exhibit mark filed herewith, furnished, or incorporated by reference — and for incorporation give the exact prior filing, its file number and its filing date.",
+            "Collect the current-year signed auditor consent (23.1) from the engagement partner and the signed certifications from the CEO and CFO; unsigned placeholders may not enter the index.",
+            "Refresh Exhibit 21.1 from the legal entity register: every consolidated subsidiary with its state or jurisdiction of organization, omitting only subsidiaries below the significance threshold.",
+            "Check each hyperlink in the index resolves to the referenced EDGAR document as Rule 105 of Regulation S-T requires."
+          ],
+          "done": "every exhibit row is filed, furnished or hyperlinked to a resolvable EDGAR document, with a current signed consent and both certifications in hand."
+        },
+        {
+          "step": "Tag the schedules and financial statements in Inline XBRL",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "financial reporting repository",
+          "actions": [
+            "Tag the face financial statements, all footnotes (detail tagging) and the S-X schedules using the current-year US-GAAP taxonomy, applying the insurance-specific elements for DAC, future policy benefits, unpaid claims and reinsurance recoverables.",
+            "Justify every extension element in the extension taxonomy documentation — an extension used where a standard element exists is a Regulation S-T Rule 405 finding.",
+            "Run the EDGAR validation and the XBRL US quality checks and clear every error and every calculation-inconsistency warning before submission.",
+            "Confirm the cover page is tagged with the entity central index key, filer status, auditor name, auditor firm ID and auditor location as the cover page taxonomy requires."
+          ],
+          "done": "the Inline XBRL exhibit validates with zero EDGAR errors, extensions are justified, and cover-page auditor identification is tagged."
+        },
+        {
+          "step": "Tie every schedule line to the audited financial statements",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Build one tie-out sheet per schedule mapping each schedule caption to the audited statement caption or footnote it must agree to, showing schedule amount, statement amount and difference.",
+            "Require a zero difference on every total; where a schedule caption is an allocation or a disaggregation, attach the supporting allocation and cross-foot it back to the total.",
+            "Have the preparer initial and date each tie-out sheet and a second reviewer in the reporting group sign the review column.",
+            "Return any schedule with an open difference to its preparer the same day rather than carrying a reconciling item into the filing."
+          ],
+          "done": "every schedule has a signed, dated tie-out sheet showing a zero difference to the audited financial statements."
+        },
+        {
+          "step": "Deliver the schedules and exhibits into the auditor's review",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "AuditBoard",
+          "actions": [
+            "Post the complete schedule set, tie-out sheets and applicability memo to the auditor request list at least 10 business days before the planned filing date.",
+            "Walk the engagement team through Schedule III segment allocation and Schedule VI prior-year development, which draw the most audit attention.",
+            "Log every auditor comment on the schedules with an owner and a response due date, and record the resolution and the changed schedule version.",
+            "Obtain the auditor's confirmation that the schedules are covered by the audit report's reference to the financial statement schedules before the report is dated."
+          ],
+          "done": "all auditor schedule comments are resolved in writing and the audit report expressly covers the financial statement schedules."
+        },
+        {
+          "step": "Take the schedules and exhibit index through the Disclosure Committee",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Circulate the full Item 15 package — schedules, tie-outs, applicability memo, exhibit index — to the Disclosure Committee at least 5 business days before filing.",
+            "Walk the committee through every schedule omitted and the rule relied on, and every new or removed exhibit versus the prior year.",
+            "Record committee questions, the answers given and any resulting change to the package in the Disclosure Committee minutes.",
+            "Confirm the committee's recommendation to file is minuted before the CEO and CFO certifications are signed."
+          ],
+          "done": "Disclosure Committee minutes record the review of the schedules and exhibit index and a recommendation to file."
+        },
+        {
+          "step": "Submit the 10-K with the schedules and exhibits on EDGAR",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "financial reporting repository",
+          "actions": [
+            "Assemble the EDGAR submission with form type 10-K, the correct period of report, the registrant CIK and every exhibit attached with its Item 601 exhibit number as the document type.",
+            "Run the EDGAR test filing first and clear every suspense message, then release the live submission before 5:30 p.m. Eastern so it carries the intended filing date.",
+            "Confirm the acceptance message and the accession number, then open the filing on EDGAR and page through Item 15 to confirm every schedule and exhibit rendered.",
+            "File the acceptance message, accession number and the as-filed PDF in the financial reporting repository under the fiscal year."
+          ],
+          "done": "the 10-K is accepted on EDGAR with an accession number, all schedules and exhibits render, and the as-filed copy is retained."
+        },
+        {
+          "step": "Retain the schedule and exhibit evidence for the retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move the schedule workpapers, source extracts, tie-out sheets, applicability memo, auditor comment log and the exhibit index into the compliance evidence repository under FY<year> / SEC Reporting.",
+            "Apply the 7-year retention label so the record survives beyond the auditor's own retention period and any SEC comment cycle.",
+            "Index the record so it is retrievable by fiscal year, schedule number and exhibit number.",
+            "Confirm with the Controller that the retained package matches the as-filed 10-K version, not a pre-filing draft."
+          ],
+          "done": "the retained package matches the as-filed 10-K, carries a 7-year label and is retrievable by schedule and exhibit number."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of required and omitted schedules and exhibits",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "financial reporting repository",
+          "actions": [
+            "List from the as-filed 10-K every S-X schedule presented in Item 15 and every exhibit row in the exhibit index.",
+            "Add from the applicability memo every schedule concluded not required, so omissions are inside the population rather than invisible.",
+            "Add the Rule 3-05, 3-09, 4-08(g) and 13-01 significance conclusions as separate population rows.",
+            "Reconcile the population to the prior-year 10-K schedule and exhibit list and explain every addition and deletion before testing begins."
+          ],
+          "done": "the population covers presented schedules, omitted schedules, exhibits and significance conclusions, reconciled to the prior year with every change explained."
+        },
+        {
+          "step": "Re-perform the schedule applicability tests independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "close/consolidation tool",
+          "actions": [
+            "Recompute the Rule 12-04 restricted net assets test from the consolidation trial balance without looking at the Controller's memo, and compare your 25% conclusion to theirs.",
+            "Recompute the Rule 1-02(w) investment, asset and income significance percentages for each acquisition and equity investee from the prior-year audited financials.",
+            "Where a schedule was omitted as immaterial, quantify the omitted amounts and judge materiality yourself against consolidated totals.",
+            "Treat any difference in conclusion — including a right conclusion supported by the wrong rule — as an exception."
+          ],
+          "done": "each applicability conclusion has an independent recomputation and either agrees or is logged as an exception."
+        },
+        {
+          "step": "Draw and document the schedule line sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of Schedule III segment column totals, Schedule IV assumed-to-net percentages and Schedule VI prior-year development, as the highest-risk lines.",
+            "Draw 25 further schedule lines at random with a recorded seed from Schedules I, II and V, for a minimum of 40 lines in total.",
+            "Record the population size, the seed, the draw date and the selection tool in the workpaper so the sample can be re-drawn identically.",
+            "Add every exhibit that is new, removed or incorporated by reference this year to the sample as a targeted selection."
+          ],
+          "done": "the sample is reproducible from the recorded seed and covers all high-risk schedule lines and every changed exhibit."
+        },
+        {
+          "step": "Re-perform the tie-out of sampled schedule lines to the audited statements",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For each sampled line, trace the schedule amount independently to the consolidated trial balance account or footnote caption it must equal.",
+            "Cross-foot each schedule column and re-add each row total rather than accepting the preparer's totals.",
+            "For Schedule III, re-add the segment columns and agree them to the ASC 280 segment footnote as filed.",
+            "Record the schedule amount, the source amount and the difference for every sampled line in the workpaper; any non-zero total difference is a fail."
+          ],
+          "done": "every sampled line has an independently traced source amount and a recorded difference, with zero differences on totals."
+        },
+        {
+          "step": "Recompute the Schedule IV reinsurance percentages and Schedule VI development",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ceded accounting platform",
+          "actions": [
+            "Recompute assumed-to-net percentage = assumed ÷ net for every line and year in Schedule IV and compare to the filed figure to one decimal place.",
+            "Agree gross, ceded and assumed premium to the ceded accounting platform ledger balances at the same period end.",
+            "Recompute Schedule VI prior-year incurred development and agree it line for line to the loss reserve rollforward footnote in the 10-K.",
+            "Investigate any development difference with the Reserving Actuary and record whether the schedule or the footnote was wrong."
+          ],
+          "done": "reinsurance percentages recompute to the filed figures and Schedule VI prior-year development equals the reserve rollforward footnote."
+        },
+        {
+          "step": "Trace every exhibit index row to a real filed or referenced document",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "financial reporting repository",
+          "actions": [
+            "Open the as-filed 10-K on EDGAR and click every exhibit hyperlink in the index to confirm it resolves to the referenced document as Regulation S-T Rule 105 requires.",
+            "For each incorporated-by-reference exhibit, confirm the cited prior filing, file number and filing date are accurate.",
+            "Confirm Exhibit 23.1 is the current-year signed auditor consent naming the current fiscal year and that Exhibits 31.1/31.2 and 32.1/32.2 are signed by the persons then serving as CEO and CFO.",
+            "Compare Exhibit 21.1 to the legal entity register at year end and list any consolidated subsidiary missing from it."
+          ],
+          "done": "every exhibit hyperlink resolves, the consent and certifications are current and correctly signed, and Exhibit 21.1 agrees to the entity register."
+        },
+        {
+          "step": "Validate the Inline XBRL tagging of the schedules",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "financial reporting repository",
+          "actions": [
+            "Re-run the EDGAR XBRL validation and the XBRL US quality checks against the as-filed instance and capture the output.",
+            "Sample 15 tagged schedule facts and confirm each uses a standard US-GAAP element where one exists, with the correct period, unit, sign and decimals.",
+            "Review every extension element against the taxonomy and challenge any extension that duplicates a standard element.",
+            "Confirm the cover-page auditor name, firm ID and location tags match the audit report as filed."
+          ],
+          "done": "validation output shows zero errors, sampled facts are correctly tagged, and every extension has a documented justification."
+        },
+        {
+          "step": "Test the filing deadline arithmetic and submission timing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the registrant's filer status (large accelerated, accelerated, non-accelerated) from the tested public float at the most recent second-quarter end.",
+            "Recompute the Rule 13a-1 due date — 60, 75 or 90 days after fiscal year end for that status — and compare to the EDGAR acceptance timestamp.",
+            "Confirm the submission was released before the 5:30 p.m. Eastern cut-off on the intended filing date, and that no Rule 12b-25 Form NT 10-K was required.",
+            "Record the computed due date, the actual acceptance date and the days of headroom or lateness."
+          ],
+          "done": "the recomputed Rule 13a-1 due date, the filer status behind it and the actual acceptance timestamp are documented, showing the filing was timely."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception naming the schedule or exhibit, the dollar or tagging difference and whether the filed document is wrong.",
+            "Assign a root cause (wrong source extract, stale allocation basis, missed applicability test, unrefreshed exhibit, extension misuse) and an accountable owner in the Controller's group.",
+            "Set a remediation date and, for any error in the filed document, obtain the CFO's assessment of whether a 10-K/A is required and record it.",
+            "Carry every open exception into next year's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date and — where the filing is wrong — a documented amendment decision."
+        },
+        {
+          "step": "Conclude, sign and report the schedule and exhibit test",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance threshold for omitted schedules and non-zero tie-out differences.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — with the workpaper references supporting it.",
+            "Have the independent reviewer, who prepared and reviewed no schedule in the close, sign and date the workpaper.",
+            "Report the conclusion and any amendment decision to the Audit Committee at its next meeting and file the signed workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and Audit Committee reporting date is filed in the evidence repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-048-C18",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Controller",
+          "value": "Corporate Controller owns delivery of the audited financial statements and the audit process; the Corporate Secretary owns drafting the Item 407(d)(3) audit committee report, and the Audit Committee chair owns the report's assertions"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Regulation S-K Item 407(d)(3), 17 CFR 229.407(d)(3) for the audit committee report; Exchange Act §13(a) and Rule 13a-1, 17 CFR 240.13a-1 for the annual report; Regulation S-X 17 CFR Part 210 for the statements; plus Rule 2-01 auditor independence and §10A(i) pre-approval, re-read each proxy season against the current eCFR text and the SEC Financial Reporting Manual"
+        },
+        "In-scope processes": {
+          "value": "Audit planning → audit committee oversight (quarterly meetings, AS 1301 communications, critical audit matters) → year-end audit completion and report dating → 10-K filing of audited financials → annual meeting proxy statement Item 407(d)(3) audit committee report and Item 9(e) fee disclosure"
+        },
+        "In-scope systems": {
+          "app": "board portal",
+          "value": "Audit committee materials, AS 1301 communications, pre-approval requests and minutes are distributed and archived in the board portal; the audited statements and auditor consent are assembled in the financial reporting repository for EDGAR"
+        },
+        "Compliance procedure documented": {
+          "value": "Independent Audit & Audit Committee Reporting Procedure — auditor appointment and independence assessment, non-audit service pre-approval workflow, AS 1301 communication agenda, audited-financials review and recommendation-to-include vote, and the four required Item 407(d)(3) report statements"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Audit Committee in its charter review each year and by the General Counsel for the proxy disclosure language; re-approved on any change to PCAOB standards or SEC audit committee disclosure rules"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Audit report dated no earlier than sufficient appropriate evidence is obtained and no later than the 10-K filing; 10-K due 60 days after fiscal year end for a large accelerated filer under Rule 13a-1; the definitive proxy containing the audit committee report must be filed within 120 days of fiscal year end where Part III is incorporated by reference"
+        },
+        "Deadline reminders configured": {
+          "value": "Proxy season calendar with reminders at T-45, T-21 and T-7 days to the DEF 14A filing date for: audit committee approval of the report, receipt of the auditor's PCAOB Rule 3526 independence letter, and the fee table sign-off; audit milestones alert against the 10-K due date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Audit committee minutes, AS 1301 communication decks, the auditor's Rule 3526 independence letter, pre-approval logs, the recommendation-to-include resolution and the signed audit report retained 7 years under the record retention schedule for corporate governance records"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any non-audit service performed without pre-approval, any independence impairment, any AS 1301 communication not made, or any Item 407(d)(3) statement not supportable by the minutes is logged as a governance exception with the affected meeting date and disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "General Counsel",
+          "value": "General Counsel signs off on any independence impairment remediation, any unapproved-service ratification and any correction to the audit committee report disclosure"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The four Item 407(d)(3) assertions in the filed proxy, every audit committee meeting held during the fiscal year with its minutes, every non-audit service engagement of the independent accountant in the year, and the fees disclosed in the Item 9(e) fee table"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any Item 407(d)(3) statement not evidenced by minutes, any non-audit service without documented pre-approval, or any fee-table amount differing from the auditor's billing records is a fail and is reported to the Audit Committee chair before the proxy is filed"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual with the proxy; test runs once per proxy season before DEF 14A filing, with a mid-year interim check of the pre-approval log against auditor billings"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have prepared the audit committee report, the fee table or any pre-approval request"
+        },
+        "Evidence location for test results": {
+          "value": "Annual audit committee reporting test workpaper (minutes trace for each of the four assertions, pre-approval reconciliation, fee-table recomputation, independence letter check) filed in the compliance evidence repository under FY<year> / Governance"
+        },
+        "Regulator-ready documentation": {
+          "value": "An assertion-to-minutes trace matrix for the Item 407(d)(3) report plus the independence letter, pre-approval log and fee reconciliation, producible to an SEC comment letter or PCAOB inspection request within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "SEC comment letters on the audit committee report or fee disclosure route to the Corporate Secretary with the General Counsel drafting, the Audit Committee chair clearing any statement about committee actions, and the response filed as EDGAR correspondence within the stated window"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Appoint the independent registered public accounting firm and confirm PCAOB registration",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "board portal",
+          "actions": [
+            "Table the audit committee resolution appointing the firm for the fiscal year, naming the engagement partner and the partner's year on the engagement against the five-year rotation limit in Rule 2-01(c)(6).",
+            "Confirm the firm's current registration and its Firm ID on the PCAOB's Registered Firms list and capture the record date of the check.",
+            "Post the resolution, the engagement letter and the registration check into the board portal meeting pack.",
+            "Put shareholder ratification of the appointment on the annual meeting agenda as a management proposal and record the vote in the meeting minutes."
+          ],
+          "done": "the appointment resolution, the engagement partner rotation position and a dated PCAOB registration check are in the board portal and ratification is on the meeting agenda."
+        },
+        {
+          "step": "Obtain and assess the auditor's independence communication",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Request from the engagement partner the written PCAOB Rule 3526 communication disclosing all relationships between the firm and the company that may bear on independence.",
+            "Circulate the firm's relationship list to Treasury, Tax and HR to confirm no prohibited relationship exists — loans outside Rule 2-01(c)(1)(ii), business relationships, or employment of a former engagement team member in a financial reporting oversight role within the one-year cooling-off period.",
+            "Schedule the required discussion of independence with the audit committee and minute it as held.",
+            "File the signed independence letter with the meeting minutes and note its date, which must fall inside the current proxy cycle."
+          ],
+          "done": "a current signed Rule 3526 independence letter exists, the relationship list is cleared by Treasury, Tax and HR, and the independence discussion is minuted."
+        },
+        {
+          "step": "Operate the pre-approval process for audit and non-audit services",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Maintain the pre-approval policy with service categories and dollar limits and route every proposed engagement of the independent accountant through the workflow before work starts.",
+            "Reject outright any service on the Rule 2-01(c)(4) prohibited list — bookkeeping, financial information systems design and implementation, appraisal or valuation, actuarial services, internal audit outsourcing, management or human resources functions, broker-dealer or investment banking, legal services and expert services unrelated to the audit.",
+            "Where the de minimis exception under §10A(i)(1)(B) is relied on, record the total non-audit fees, prove they are under 5% of total fees paid to the auditor in that year, and obtain approval before completion of the audit.",
+            "Report the pre-approval log to the audit committee at every quarterly meeting and have delegated-authority approvals ratified at the next meeting."
+          ],
+          "done": "every engagement of the auditor has a documented pre-approval before work started, no prohibited service is present, and the log has been reported to the committee each quarter."
+        },
+        {
+          "step": "Hold the audit planning meeting and set the scope with the committee",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "board portal",
+          "actions": [
+            "Have the engagement partner present the audit plan: materiality and performance materiality, significant risks including reserve estimation and investment valuation, the ICFR scoping under AS 2201, locations and components in scope, and the use of specialists and the internal audit function.",
+            "Have Internal Audit present its own plan and identify the overlap and the reliance the external auditor intends to place on internal audit work.",
+            "Record the committee's questions and any requested scope change in the minutes, including any request to expand testing over a specific estimate.",
+            "Load the agreed audit milestone dates into the year-end close calendar with named owners."
+          ],
+          "done": "the audit plan, materiality, significant risks and ICFR scope are minuted as presented and discussed, with milestone dates in the close calendar."
+        },
+        {
+          "step": "Deliver the audit request list and the draft financial statements",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "AuditBoard",
+          "actions": [
+            "Publish the prepared-by-client request list with an owner and due date per item and track completion daily against the audit fieldwork schedule.",
+            "Deliver the draft consolidated financial statements, footnotes and Regulation S-X schedules to the engagement team by the date agreed in the close calendar.",
+            "Provide the reserve, DAC and investment valuation support packs early, since these carry the highest audit effort and drive the critical audit matter.",
+            "Escalate any request-list item more than three business days late to the Chief Financial Officer with the reason and the recovery date."
+          ],
+          "done": "the request list is fully delivered, the draft statements are with the auditor on the agreed date, and no item is more than three days late without an escalation."
+        },
+        {
+          "step": "Receive and act on the AS 1301 required communications",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "app": "board portal",
+          "actions": [
+            "Have the engagement partner communicate to the audit committee, in writing, the matters AS 1301 requires: significant accounting policies and practices, critical accounting estimates and the auditor's view of their quality, significant unusual transactions, uncorrected and corrected misstatements, disagreements with management, difficulties encountered and any consultation with other accountants.",
+            "Review the summary of uncorrected misstatements with the committee and document, for each item passed, why it is immaterial individually and in aggregate.",
+            "Have the auditor present the proposed critical audit matters under AS 3101 and the basis for each, and record the committee's discussion.",
+            "Minute each required communication as made and note the date it was delivered."
+          ],
+          "done": "every AS 1301 required communication is minuted as delivered and discussed, with the uncorrected misstatement summary and the proposed critical audit matters recorded."
+        },
+        {
+          "step": "Hold the executive sessions the listing standards expect",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "app": "board portal",
+          "actions": [
+            "Schedule, at each quarterly audit committee meeting, separate private sessions with the independent auditor, the Chief Audit Executive and management.",
+            "Minute each session as held with its attendees, without recording the content where privilege or candour requires, so the fact of the session is provable.",
+            "Capture any matter raised in private session that requires follow-up as an action item with an owner and a due date.",
+            "Confirm at year end that a private session with the auditor was held in every quarter."
+          ],
+          "done": "minutes show a private session with the independent auditor at every quarterly meeting, with follow-up actions owned and dated."
+        },
+        {
+          "step": "Review and discuss the audited financial statements with management and the auditor",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "app": "board portal",
+          "actions": [
+            "Circulate the near-final 10-K, including the audited statements, footnotes and MD&A, to the audit committee at least 5 business days before the year-end meeting.",
+            "At the meeting, have management walk the committee through the statements and have the auditor state whether it has any matter to add, and minute that the review and discussion occurred with both parties.",
+            "Record the committee's specific discussion of the critical audit matter, the reserve estimate and any material weakness or significant deficiency reported.",
+            "Have the committee resolve, on the record, to recommend that the audited financial statements be included in the Annual Report on Form 10-K — this resolution is the factual basis for the Item 407(d)(3)(i)(C) statement."
+          ],
+          "done": "minutes record both the review and discussion of the audited statements with management and the auditor, and the recommendation-to-include resolution with its date."
+        },
+        {
+          "step": "Obtain the management representation letter and the signed audit report",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "financial reporting repository",
+          "actions": [
+            "Prepare the management representation letter covering all periods in the audit report, dated the same date as the audit report, and have the CEO and CFO sign it.",
+            "Attach the final summary of uncorrected misstatements to the representation letter and represent that the effects are immaterial.",
+            "Obtain the manually signed audit report naming the firm, the city and state, the auditor tenure statement ('We have served as the Company's auditor since ____') and the critical audit matters.",
+            "Confirm the audit report date is not earlier than the date sufficient appropriate audit evidence was obtained and place the signed report into the 10-K assembly."
+          ],
+          "done": "a signed representation letter dated the same day as a signed audit report is on file, and the report names the firm, tenure and critical audit matters."
+        },
+        {
+          "step": "Collect the auditor consent and file the audited financials in the 10-K",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "financial reporting repository",
+          "actions": [
+            "Request the Exhibit 23.1 consent to incorporation by reference into the effective Securities Act registration statements, listing each Form S-3/S-8 file number.",
+            "Assemble the audited statements, the audit report and the consent into the 10-K EDGAR submission and confirm the auditor's Firm ID and location are tagged on the cover page.",
+            "Release the submission ahead of the Rule 13a-1 deadline — 60 days after fiscal year end for a large accelerated filer — and before the 5:30 p.m. Eastern cut-off.",
+            "Send the accession number and the as-filed document to the engagement partner and the audit committee chair the same day."
+          ],
+          "done": "the 10-K containing the signed audit report and Exhibit 23.1 consent is accepted on EDGAR inside the Rule 13a-1 deadline, with the accession number circulated."
+        },
+        {
+          "step": "Draft the Item 407(d)(3) audit committee report for the proxy",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "board portal",
+          "actions": [
+            "Draft the report to state, in the committee's name, all four required matters: that the committee reviewed and discussed the audited financial statements with management; that it discussed with the independent auditor the matters required by the applicable PCAOB standard; that it received the written disclosures and letter required by PCAOB Rule 3526 and discussed independence with the auditor; and that, based on those reviews and discussions, it recommended the audited financial statements be included in the Form 10-K.",
+            "Cite the minute reference and date behind each of the four statements in a working annex that is not filed but supports the disclosure.",
+            "Add the Item 407(d)(3)(ii) statement that the report is not soliciting material, not deemed filed, and not incorporated by reference except where the registrant specifically so provides.",
+            "List the audit committee members whose names appear under the report and confirm each served on the committee during the relevant period."
+          ],
+          "done": "the draft report contains all four required statements, each backed by a dated minute reference, plus the not-soliciting-material legend and the signing member list."
+        },
+        {
+          "step": "Build the Item 9(e) accountant fee table and the pre-approval policy disclosure",
+          "by": "Financial Analyst",
+          "role": "Financial Analyst",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Extract all amounts billed by the independent accountant for the two most recent fiscal years from the accounts payable ledger by vendor and purchase order.",
+            "Classify each invoice into Audit Fees, Audit-Related Fees, Tax Fees and All Other Fees per Item 9(e) and describe the nature of the services in each category other than Audit Fees.",
+            "Reconcile the classified totals to a written fee summary obtained from the engagement partner and resolve every difference before disclosure.",
+            "Draft the accompanying disclosure of the committee's pre-approval policies and the percentage of services in each category approved under the §10A(i)(1)(B) de minimis exception."
+          ],
+          "done": "the fee table reconciles to both the AP ledger and the auditor's own fee summary, with category descriptions and the pre-approval policy disclosure drafted."
+        },
+        {
+          "step": "Have the audit committee approve the report and the fee disclosure",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "app": "board portal",
+          "actions": [
+            "Circulate the draft report, the fee table and the supporting minute-reference annex to the committee at least 7 days before the approval meeting.",
+            "Walk the committee through each of the four statements against the minutes that evidence them so no member is asked to assert something unrecorded.",
+            "Record the committee's approval of the report and the fee disclosure, and confirm every named member agrees their name may appear.",
+            "Release the approved text to the General Counsel for the proxy build with a version stamp."
+          ],
+          "done": "committee minutes record approval of the audit committee report and the fee table, with each of the four statements walked to its supporting minute."
+        },
+        {
+          "step": "File the definitive proxy containing the audit committee report",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "financial reporting repository",
+          "actions": [
+            "Assemble the DEF 14A with the audit committee report, the Item 9(e) fee table, the ratification proposal and the audit committee charter reference, and file the preliminary proxy first if any matter requires it.",
+            "File the definitive proxy on EDGAR within 120 days of fiscal year end where Part III of the 10-K is incorporated by reference, and confirm the acceptance message and accession number.",
+            "Confirm the filed report text matches the committee-approved version character for character and that the not-soliciting-material legend survived the proxy typesetting.",
+            "Circulate the as-filed proxy to the committee chair and file it in the financial reporting repository with the approval minutes."
+          ],
+          "done": "the DEF 14A is accepted on EDGAR within 120 days of year end carrying the committee-approved report text and legend, with the accession number retained."
+        },
+        {
+          "step": "Retain the audit and committee evidence for the retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move the audit committee minutes, AS 1301 communication decks, Rule 3526 independence letter, pre-approval log, representation letter, signed audit report, consent and the approved report text into the compliance evidence repository under FY<year> / Governance.",
+            "Apply the 7-year retention label consistent with the corporate governance record retention schedule.",
+            "Index the package so it is retrievable by meeting date, by Item 407(d)(3) statement and by service pre-approval reference.",
+            "Confirm with the Corporate Secretary that the retained report text is the as-filed version, not a pre-approval draft."
+          ],
+          "done": "the governance package is filed, labelled for 7-year retention, retrievable by meeting date and matches the as-filed proxy text."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of committee meetings, assertions and auditor engagements",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "List every audit committee meeting held during the fiscal year and up to the proxy filing date from the board portal calendar, with the minute document for each.",
+            "List the four Item 407(d)(3) assertions from the filed proxy as separate population rows.",
+            "Extract every engagement of the independent accountant in the year from the pre-approval log and, separately, from the AP ledger by vendor.",
+            "Reconcile the meeting list to the committee charter's required meeting cadence and the engagement list from the two sources, resolving every difference before sampling."
+          ],
+          "done": "the population covers all meetings, the four assertions and all auditor engagements, with the two independent engagement sources reconciled."
+        },
+        {
+          "step": "Trace each of the four Item 407(d)(3) assertions to the minutes",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Open the minutes for the year-end meeting and locate the record that the audited financial statements were reviewed and discussed with management.",
+            "Locate the record that the AS 1301 matters were discussed with the independent auditor, and confirm the auditor was present.",
+            "Locate the receipt of the Rule 3526 written disclosures and letter and the independence discussion, and confirm the letter's date precedes the meeting.",
+            "Locate the recommendation-to-include resolution and confirm its date precedes the 10-K filing date.",
+            "Record for each assertion the minute page, meeting date and quoted sentence in a trace matrix; an assertion with no minute support is a fail, not a documentation gap."
+          ],
+          "done": "all four assertions have a quoted minute reference with a date that precedes the relevant filing, recorded in the trace matrix."
+        },
+        {
+          "step": "Draw the pre-approval and engagement sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of non-audit engagements — audit-related, tax and all other — since these carry the independence risk.",
+            "Draw 25 audit-fee invoices at random with a recorded seed from the AP population, for a minimum of 40 items in total.",
+            "Record the population size, the seed, the draw date and the extraction query in the workpaper so the sample can be re-drawn.",
+            "Add every engagement approved under delegated authority or the de minimis exception as a targeted selection."
+          ],
+          "done": "the sample is reproducible from the recorded seed, covers 100% of non-audit engagements and every delegated or de minimis approval."
+        },
+        {
+          "step": "Re-perform the pre-approval test on each sampled engagement",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "For each sampled engagement, compare the pre-approval approval date to the engagement letter date and the first date work was performed — approval after work started is an exception with no mitigation.",
+            "Read the scope of each non-audit engagement against the Rule 2-01(c)(4) prohibited services list and reach your own conclusion before reading the compliance assessment.",
+            "For delegated approvals, confirm ratification at the next committee meeting appears in the minutes.",
+            "For any de minimis reliance, recompute total non-audit fees as a percentage of total fees paid to the auditor and confirm it is below 5% and approved before audit completion."
+          ],
+          "done": "each sampled engagement has an independent prohibited-service conclusion and a pre-approval dated before work started, with de minimis percentages recomputed."
+        },
+        {
+          "step": "Recompute the Item 9(e) fee table from source records",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Re-extract all amounts billed by the independent accountant for both disclosed fiscal years from the AP ledger by vendor and re-add the totals.",
+            "Independently classify a sample of 15 invoices into Audit, Audit-Related, Tax and All Other and compare to the classification used in the filed table.",
+            "Agree the recomputed totals to the auditor's written fee summary and to the filed fee table, recording any difference by category.",
+            "Treat any category difference from the auditor's own summary as a fail, since the auditor is the corroborating source."
+          ],
+          "done": "recomputed fee totals agree by category to both the AP ledger and the auditor's fee summary, with any classification difference logged."
+        },
+        {
+          "step": "Test auditor independence and rotation compliance",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Obtain the current Rule 3526 letter and confirm it is signed, dated within the current proxy cycle and addressed to the audit committee.",
+            "Confirm the engagement partner and the engagement quality reviewer are within the five-year rotation limit under Rule 2-01(c)(6) by tracing partner names across the last six audit reports.",
+            "Cross-check the HR new-hire register for the year against the audit engagement team roster to detect any hire into a financial reporting oversight role inside the one-year cooling-off period.",
+            "Verify on the PCAOB Registered Firms list that the firm's registration was in good standing at the audit report date, and check the firm's Form AP filing names the engagement partner disclosed to the committee."
+          ],
+          "done": "a current signed independence letter, in-limit partner rotation, a clean cooling-off check and a verified PCAOB registration and Form AP are documented."
+        },
+        {
+          "step": "Verify the audited financials were actually filed as recommended",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "financial reporting repository",
+          "actions": [
+            "Open the as-filed 10-K on EDGAR and confirm it contains the signed audit report of the firm named in the audit committee report.",
+            "Confirm the financial statements filed are the same version the committee reviewed, by comparing the committee meeting draft's key totals to the filed statements.",
+            "Confirm Exhibit 23.1 consent is present, current-year and names the registration statements it covers.",
+            "Confirm the audit report's tenure statement and the cover-page auditor Firm ID and location tags are consistent with the engagement records."
+          ],
+          "done": "the filed 10-K contains the same audited statements the committee recommended, from the named firm, with a current consent and consistent auditor identification."
+        },
+        {
+          "step": "Recompute the filing deadline arithmetic for the 10-K and the proxy",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute the Rule 13a-1 10-K due date from fiscal year end using the registrant's filer status and compare it to the EDGAR acceptance timestamp.",
+            "Recompute the 120-day Part III incorporation deadline from fiscal year end and compare it to the DEF 14A acceptance timestamp.",
+            "Confirm the audit report date, the representation letter date and the recommendation-to-include minute date are in a defensible order relative to the filing date.",
+            "Record the computed dates, the actual dates and the headroom in days for each deadline."
+          ],
+          "done": "both the 10-K and the proxy deadlines are recomputed and shown to be met, with the audit report, representation letter and minute dates in a defensible sequence."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise an issue per exception naming the assertion, meeting or engagement affected and whether the filed proxy disclosure is unsupportable.",
+            "Assign a root cause (minute drafted without the required wording, service engaged before approval, fee misclassification, letter obtained late) and an owner in the Corporate Secretary or Controller group.",
+            "Set a remediation date and, for any independence impairment or unapproved prohibited service, obtain the General Counsel's assessment of disclosure and self-reporting obligations.",
+            "Carry every open exception into the next proxy season's test as a mandatory retest row."
+          ],
+          "done": "each exception has an issue, a root cause, an owner, a remediation date and — where independence is implicated — a General Counsel disclosure assessment."
+        },
+        {
+          "step": "Conclude, sign and report the audit committee reporting test",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance threshold for unsupported assertions and unapproved services.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — citing the trace matrix, pre-approval re-performance and fee recomputation.",
+            "Have the independent reviewer, who drafted neither the report nor the fee table nor any pre-approval request, sign and date the workpaper.",
+            "Report the conclusion to the Audit Committee chair before the proxy is filed and to the full committee at its next meeting, then file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate exists, reported to the committee chair before the proxy filing date."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-048-C19",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Reporting Manager",
+          "value": "SEC Reporting Manager owns the Exchange Act filing calendar and the quarter-end disclosure controls and procedures evaluation package; the CEO and CFO own the Rule 13a-15(b) conclusion they certify"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — Exchange Act Rule 13a-15(b), 17 CFR 240.13a-15(b), requiring evaluation of disclosure controls and procedures as of the end of each period covered by a periodic report, read with Rule 13a-15(e) (definition), Rule 13a-14 (certifications), Item 307 of Regulation S-K and Rule 12b-25; re-verified each quarter against the current eCFR text and any SEC rule adopting release since the prior quarter"
+        },
+        "In-scope processes": {
+          "value": "Continuous Exchange Act calendar maintenance for 10-K, 10-Q, 8-K, DEF 14A, 11-K and Section 16 Forms 3/4/5 → quarter-end disclosure committee cycle → sub-certification collection from process and entity owners → CEO/CFO Rule 13a-14 certification → Item 4/Item 9A conclusion in the filing"
+        },
+        "In-scope systems": {
+          "app": "regulatory filing/issue tracker",
+          "value": "The Exchange Act filing calendar, per-filing task owners and timeliness evidence live in the filing tracker; sub-certification questionnaires and disclosure committee minutes are held in the GRC platform, and submissions are made through EDGAR from the financial reporting repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Exchange Act Filing Calendar & Disclosure Controls Procedure — calendar build rules per form type, filer-status-driven due date arithmetic, 8-K trigger intake, sub-certification population and questions, disclosure committee agenda, and the Item 307 conclusion wording standard"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Disclosure Committee chair (Chief Financial Officer) and the General Counsel; reviewed each quarter and re-approved whenever filer status changes, a new form obligation arises, or the SEC amends a filing deadline"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Every Exchange Act deadline carried in the calendar: 10-K 60/75/90 days after fiscal year end by filer status; 10-Q 40/45 days after quarter end; 8-K within 4 business days of the triggering event (Item 1.05 cyber within 4 business days of the materiality determination); Forms 3 within 10 days of becoming an insider, Form 4 within 2 business days of the transaction, Form 5 within 45 days of fiscal year end; DEF 14A within 120 days of year end for Part III incorporation; Form 11-K within 180 days of the plan year end; Rule 12b-25 NT filings granting 15 calendar days for a 10-K and 5 for a 10-Q"
+        },
+        "Deadline reminders configured": {
+          "value": "Tracker alerts at T-30, T-10, T-5 and T-1 business days before each periodic filing due date; a 24-hour alert on any open 8-K trigger against its 4-business-day clock; and a daily open-item digest to the SEC Reporting Manager while any quarter-end sub-certification is outstanding"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Filing calendar snapshots per quarter, EDGAR acceptance messages and accession numbers, sub-certification responses, disclosure committee minutes and the evaluation memo retained 7 years under the SEC reporting record retention schedule"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any filing made after its due date, any 8-K trigger identified after its 4-business-day clock started, any missing sub-certification, or any evaluation not completed before certification is logged as a reporting exception with the form type, the days late and whether Form 12b-25 was used"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Financial Officer",
+          "value": "CFO signs off on any late or amended filing, any negative or qualified Item 307 conclusion, and the remediation plan behind any disclosure controls deficiency"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every Exchange Act filing made in the period (10-K, 10-Q, 8-K, DEF 14A, 11-K, Forms 3/4/5) taken from the registrant's EDGAR filing history, plus every 8-K trigger event logged and every quarter-end disclosure controls evaluation package"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on a late periodic filing or a late Section 16 report; zero tolerance on an Item 307 conclusion certified before the evaluation was completed; a sub-certification response rate below 100% of the identified population is a fail and blocks the certification"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous with a quarter-end evaluation point; the test runs quarterly over that quarter's filings and evaluation package, with an annual roll-up covering all four quarters before the 10-K certification"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not maintain the filing calendar, prepare any filing, or administer the sub-certification process"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly disclosure controls and filing timeliness workpaper (EDGAR history extract, calendar reconciliation, deadline recomputation, sub-certification completeness, evaluation memo review) in the compliance evidence repository under FY<year> Q<n> / SEC Reporting"
+        },
+        "Regulator-ready documentation": {
+          "value": "A quarter-by-quarter evaluation memo set with sub-certification evidence, disclosure committee minutes and an EDGAR timeliness reconciliation, producible to an SEC comment letter or enforcement inquiry on disclosure controls within 10 business days"
+        },
+        "Regulator response path": {
+          "value": "SEC staff questions on filing timeliness or disclosure controls route to the SEC Reporting Manager for the factual record, the General Counsel for the response, and the CFO for any statement about the Item 307 conclusion; responses are filed as EDGAR correspondence within the staff's stated window"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Establish the registrant's filer status and derive the deadline set",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Compute aggregate worldwide public float of common equity held by non-affiliates as of the last business day of the most recently completed second fiscal quarter, using that day's closing price and the non-affiliate share count from the transfer agent.",
+            "Apply the Rule 12b-2 thresholds to set the status — large accelerated ($700M+ float), accelerated ($75M-$700M), or non-accelerated — and check the smaller reporting company and emerging growth company tests separately.",
+            "Derive the deadline set from the status: 10-K at 60/75/90 days and 10-Q at 40/45 days after period end, and record the arithmetic in the calendar's status memo.",
+            "Publish the status and the derived deadlines to the Controller, the General Counsel and the Investor Relations Director, and set the cover-page filer status checkboxes accordingly."
+          ],
+          "done": "the computed public float, the resulting filer status and the derived 10-K/10-Q deadlines are documented and reflected on the filing cover pages."
+        },
+        {
+          "step": "Build the twelve-month Exchange Act filing calendar",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Create one calendar row per expected filing for the next twelve months: 10-K, three 10-Qs, DEF 14A, Form 11-K for each employee benefit plan, and the annual Section 16 Form 5 window.",
+            "For each row record form type, period covered, statutory due date, internal target date (set 3 business days before the statutory date), preparer, reviewer and certifying officers.",
+            "Roll every due date that lands on a Saturday, Sunday or federal holiday forward to the next business day per Rule 0-3 and show the rolled date, not the raw date.",
+            "Add the upstream milestone tasks per filing — close complete, auditor review complete, disclosure committee meeting, sub-certifications due, board or committee approval — each with its own owner and date.",
+            "Have the Chief Financial Officer approve the calendar before the fiscal year starts and lock the statutory due date field against edits."
+          ],
+          "done": "the calendar holds every expected filing with a business-day-adjusted statutory due date, an internal target, named owners and upstream milestones, approved by the CFO."
+        },
+        {
+          "step": "Stand up the 8-K trigger intake so event filings cannot be missed",
+          "by": "Legal Counsel",
+          "role": "Legal Counsel",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Publish the 8-K trigger list mapped to the business owner most likely to see it first: Item 1.01 material agreements to Contracts, Item 2.02 results of operations to Investor Relations, Item 4.01 auditor change and Item 4.02 non-reliance to the Controller, Item 5.02 officer/director changes to HR, Item 1.05 material cybersecurity incidents to the Chief Info Security Officer, Item 8.01 other events to the General Counsel.",
+            "Require each named owner to log a potential trigger in the tracker within one business day of becoming aware of the event, before any materiality conclusion is reached.",
+            "On each logged trigger, start the 4-business-day clock at the triggering event date — or, for Item 1.05, at the date the incident is determined to be material — and display the deadline on the item.",
+            "Have the General Counsel record the materiality determination and its date on the item, since that date is itself the evidence for the Item 1.05 clock.",
+            "Review the open trigger log at the weekly disclosure working session and escalate anything within 48 hours of its deadline."
+          ],
+          "done": "every trigger owner is named, a logged trigger displays its 4-business-day deadline and its materiality determination date, and the log is reviewed weekly."
+        },
+        {
+          "step": "Track Section 16 reporting obligations for insiders",
+          "by": "Legal Operations Manager / Corporate Paralegal",
+          "role": "Legal Operations Manager / Corporate Paralegal",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Maintain the Section 16 insider list — directors, officers designated under Rule 16a-1(f), and 10% beneficial owners — and update it within one business day of any board or officer change.",
+            "Hold a current EDGAR filer code set (CIK, CCC) and a signed power of attorney for every insider so a Form 4 can be filed without chasing signatures.",
+            "On any insider transaction, file Form 4 before the end of the second business day following the transaction date; for Rule 10b5-1 plan transactions confirm the plan adoption date and checkbox are populated.",
+            "File Form 3 within 10 days of a person becoming an insider and sweep exempt transactions into Form 5 within 45 days of fiscal year end.",
+            "Reconcile filed Forms 4 to the stock plan administrator's transaction report monthly so no transaction reaches quarter end unreported."
+          ],
+          "done": "the insider list is current, every transaction has a Form 4 filed within two business days, and the monthly reconciliation to the plan administrator shows no unreported transactions."
+        },
+        {
+          "step": "Maintain EDGAR access and filing agent readiness",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "financial reporting repository",
+          "actions": [
+            "Confirm the registrant's EDGAR Next account is active with named account administrators and users, and that each authorised individual holds current credentials.",
+            "Test that at least two individuals can generate a live submission, so a single absence cannot delay a filing.",
+            "Re-verify the entity's EDGAR profile annually as EDGAR Next requires, and update officer, address and agent details within the required window of any change.",
+            "Keep the filing agent's contact and escalation path on the calendar record, with the last date a test filing was successfully submitted."
+          ],
+          "done": "EDGAR access is verified for at least two individuals, the annual entity confirmation is current, and a recent successful test filing is recorded."
+        },
+        {
+          "step": "Define the disclosure controls and procedures being evaluated",
+          "by": "SOX Program Manager",
+          "role": "SOX Program Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Document the DCP inventory against the Rule 13a-15(e) definition: controls ensuring information required to be disclosed is recorded, processed, summarised and reported within the SEC's time periods, and accumulated and communicated to the CEO and CFO to allow timely disclosure decisions.",
+            "Map each control to the disclosure it protects — financial statements, MD&A, risk factors, legal proceedings, cybersecurity Item 106, executive compensation, subsequent events.",
+            "Identify which DCP controls overlap ICFR and which are disclosure-only, so the evaluation is not silently reduced to an ICFR test.",
+            "Have the Disclosure Committee approve the inventory and re-approve it whenever a new disclosure obligation is added."
+          ],
+          "done": "a Disclosure-Committee-approved DCP inventory exists, mapped to specific disclosures, distinguishing disclosure-only controls from ICFR controls."
+        },
+        {
+          "step": "Issue the quarter-end sub-certification questionnaires",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Refresh the sub-certifier population each quarter from the org and entity registers: functional heads, subsidiary controllers, the Chief Info Security Officer, the General Counsel, the Chief Actuary and the Investor Relations Director.",
+            "Issue questionnaires 10 business days before the disclosure committee meeting, asking each certifier to confirm completeness of information provided, known errors or fraud, control deficiencies, litigation and contingencies, related party transactions, subsequent events and cybersecurity incidents.",
+            "Require an explanation and an owner for every 'no' or qualified answer rather than accepting the answer as filed.",
+            "Chase daily until the response rate is 100% of the identified population and record the completion date per certifier."
+          ],
+          "done": "100% of the refreshed sub-certifier population has responded before the disclosure committee meeting, with every qualified answer explained and owned."
+        },
+        {
+          "step": "Run the quarter-end disclosure committee meeting",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Circulate the draft 10-K or 10-Q, the sub-certification exception summary, the open 8-K trigger log and the DCP evaluation results to the committee at least 3 business days before the meeting.",
+            "Work the agenda: disclosure changes since the prior period, new risk factors, legal proceedings updates from the General Counsel, cybersecurity incidents from the Chief Info Security Officer, subsequent events, and any control deficiency identified.",
+            "Reach and minute an explicit committee view on whether disclosure controls and procedures were effective as of the end of the period.",
+            "Record every open item with an owner and a due date that precedes the filing date, and minute the committee's recommendation to file."
+          ],
+          "done": "minutes record the agenda coverage, an explicit effectiveness view as of period end, and a recommendation to file with all open items owned and dated."
+        },
+        {
+          "step": "Perform and document the Rule 13a-15(b) evaluation as of period end",
+          "by": "SOX Program Manager",
+          "role": "SOX Program Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Write the evaluation memo stating the evaluation date as the end of the period covered by the report, the participation of the CEO and CFO in the evaluation, and the procedures performed.",
+            "Summarise the evidence relied on: DCP control operation results, sub-certification responses and exceptions, filing timeliness statistics for the quarter, and any ICFR deficiency and its disclosure impact.",
+            "Assess every identified deficiency for severity — deficiency, significant deficiency, or material weakness — and state whether it makes the DCP conclusion negative.",
+            "State the conclusion in the memo in the same words that will appear in Item 4 (10-Q) or Item 9A (10-K), and date and sign it before certifications are signed."
+          ],
+          "done": "a signed, dated evaluation memo exists for the period end, naming the CEO and CFO participation, the evidence, the deficiency assessment and the conclusion wording."
+        },
+        {
+          "step": "Collect the Rule 13a-14 certifications from the CEO and CFO",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "financial reporting repository",
+          "actions": [
+            "Prepare the Exhibit 31.1 and 31.2 certifications in the exact form prescribed by Item 601(b)(31), with no altered or omitted paragraph, and the Exhibit 32.1/32.2 Section 1350 statements.",
+            "Attach the evaluation memo, the sub-certification pack and the disclosure committee minutes to the certification package as the officers' support.",
+            "Obtain the signatures only after the evaluation memo is signed, and confirm the certification date equals the filing date.",
+            "Record any officer question or requested change and its resolution in the certification file."
+          ],
+          "done": "signed certifications in the prescribed form exist, dated the filing date, supported by an evaluation memo signed earlier."
+        },
+        {
+          "step": "Write the Item 307 conclusion into the filing",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "financial reporting repository",
+          "actions": [
+            "Draft Item 4 (10-Q) or Item 9A (10-K) stating that the CEO and CFO evaluated the effectiveness of disclosure controls and procedures as of the end of the period and reached their conclusion.",
+            "Confirm the wording matches the evaluation memo conclusion exactly, and that any 'not effective' conclusion is followed by the identified material weakness and the remediation plan.",
+            "Add the Item 9A(b) statement of any change in internal control over financial reporting during the quarter that materially affected, or is reasonably likely to materially affect, ICFR.",
+            "Have the General Counsel review the wording before it enters the final proof."
+          ],
+          "done": "the filed Item 307 conclusion matches the evaluation memo word for word and any material weakness carries a remediation plan and an ICFR change statement."
+        },
+        {
+          "step": "File on EDGAR and capture the timeliness evidence",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "financial reporting repository",
+          "actions": [
+            "Run a test submission and clear all suspense messages, then release the live submission before the 5:30 p.m. Eastern cut-off on the intended date.",
+            "Capture the EDGAR acceptance message, the accession number and the filing date and attach them to the calendar row as the timeliness evidence.",
+            "Compare the acceptance date to the statutory due date on the calendar row and mark the row on-time or late with the number of days.",
+            "Where a filing cannot be made on time, file Form 12b-25 by the business day after the due date with the specific reason, and file within the 15 calendar days (10-K) or 5 calendar days (10-Q) the rule allows."
+          ],
+          "done": "every calendar row carries an EDGAR accession number and acceptance timestamp with an on-time/late marking, and any Rule 12b-25 use is documented."
+        },
+        {
+          "step": "Track and remediate disclosure control deficiencies",
+          "by": "Controls Analyst",
+          "role": "Controls Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Log every deficiency raised by sub-certifiers, the disclosure committee, Internal Audit or the external auditor as an issue with a severity assessment and an owner.",
+            "Set remediation dates that fall before the next period-end evaluation date so the next conclusion is not carried on an open item.",
+            "Re-test each remediated control before it is closed and attach the re-test evidence to the issue.",
+            "Report the open deficiency population and its ageing to the Disclosure Committee at each quarterly meeting."
+          ],
+          "done": "every deficiency has a severity, an owner, a remediation date before the next evaluation and re-test evidence attached before closure."
+        },
+        {
+          "step": "Reconcile the calendar to the registrant's actual EDGAR filing history each quarter",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Download the registrant's full EDGAR filing history for the quarter by CIK and list every accepted submission by form type and accession number.",
+            "Match each EDGAR submission to a calendar row; an EDGAR filing with no calendar row means the calendar is incomplete, and a calendar row with no EDGAR filing means an obligation was missed.",
+            "Include Section 16 Forms 3, 4 and 5 filed by insiders under the company's filer agent so late insider reports surface before they become an Item 405 delinquency disclosure.",
+            "Resolve every unmatched item and record the resolution before closing the quarter."
+          ],
+          "done": "the quarter's EDGAR history and the calendar reconcile with zero unmatched items on either side, including Section 16 forms."
+        },
+        {
+          "step": "Retain the quarter's calendar and evaluation evidence",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Snapshot the calendar as at quarter end and move it with the evaluation memo, sub-certification responses, disclosure committee minutes, certification package and EDGAR acceptance messages into the evidence repository under FY<year> Q<n> / SEC Reporting.",
+            "Apply the 7-year retention label consistent with the SEC reporting record retention schedule.",
+            "Index the package so it is retrievable by form type, period end and accession number.",
+            "Confirm with the SEC Reporting Manager that the retained conclusion wording matches the as-filed Item 4 or Item 9A text."
+          ],
+          "done": "the quarter's package is filed, labelled for 7-year retention, retrievable by form type and accession number, and matches the as-filed conclusion wording."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of filings and obligations for the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Download the registrant's EDGAR filing history for the quarter by CIK — every 10-K, 10-Q, 8-K, DEF 14A, 11-K and Section 16 form — as the independent source of record.",
+            "Extract the filing calendar rows for the same period from the tracker as the company's own record.",
+            "Add every logged 8-K trigger event, whether or not it resulted in a filing, so suppressed triggers are inside the population.",
+            "Reconcile the two lists item by item and resolve every unmatched row before sampling — an EDGAR filing with no calendar row and a calendar row with no filing are both findings."
+          ],
+          "done": "the EDGAR history, the filing calendar and the 8-K trigger log are reconciled with every unmatched item explained and signed as complete."
+        },
+        {
+          "step": "Recompute every statutory due date independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Re-derive filer status from the public float computed at the last business day of the most recent second fiscal quarter, using the transfer agent's non-affiliate share count and that day's closing price.",
+            "Recompute the 10-K due date at 60/75/90 days and the 10-Q at 40/45 days from period end for that status, and roll weekend and federal holiday dates forward per Rule 0-3.",
+            "Recompute each 8-K deadline as 4 business days from the triggering event date, and for Item 1.05 from the documented materiality determination date.",
+            "Recompute Section 16 deadlines: Form 3 at 10 days, Form 4 at 2 business days from the transaction date, Form 5 at 45 days from fiscal year end.",
+            "Compare each recomputed date to the EDGAR acceptance timestamp and record the headroom or lateness in days."
+          ],
+          "done": "every filing in the population has an independently recomputed due date compared to its EDGAR acceptance timestamp, with days of headroom or lateness recorded."
+        },
+        {
+          "step": "Draw the sample of filings, triggers and sub-certifications",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of periodic filings (10-K, 10-Q), 100% of 8-K trigger log entries and 100% of Section 16 forms filed late by any measure.",
+            "Draw 25 sub-certification responses at random with a recorded seed from the quarter's certifier population, for a minimum of 40 items in total.",
+            "Record the population size, seed, draw date and the extraction query so the sample can be re-drawn identically.",
+            "Add as targeted selections every filing where Rule 12b-25 was used and every trigger logged more than one business day after the event."
+          ],
+          "done": "the sample is reproducible from the recorded seed and covers all periodic filings, all 8-K triggers and every 12b-25 use."
+        },
+        {
+          "step": "Re-perform the 8-K trigger judgement on each logged event",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "For each logged trigger, read the underlying source document — executed agreement, board resolution, incident report, termination notice — and reach your own Form 8-K item conclusion before reading the company's determination.",
+            "Compare the triggering event date you identify to the date used to start the 4-business-day clock; a clock started at logging rather than at the event is an exception.",
+            "For Item 1.05 entries, confirm the materiality determination was made without unreasonable delay and is documented with its own date and decision-maker.",
+            "Search the quarter's board and committee minutes, press releases and the material contract register for events that never reached the trigger log at all."
+          ],
+          "done": "every logged trigger has an independent item conclusion and clock-start date, and the minutes and contract sweep surfaced no unlogged trigger."
+        },
+        {
+          "step": "Test sub-certification completeness and exception handling",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Rebuild the sub-certifier population independently from the HR org register and the legal entity register as at quarter end, and compare it to the population the process actually issued to.",
+            "Confirm every identified certifier responded and that each response date precedes the disclosure committee meeting date.",
+            "For each sampled qualified or negative answer, trace the explanation, the owner assigned and the resolution before filing.",
+            "Treat a certifier missing from the issued population as a fail, since an unasked certifier cannot be a passed control."
+          ],
+          "done": "the independently rebuilt certifier population matches the issued population, every response pre-dates the committee meeting, and every qualified answer traces to a resolution."
+        },
+        {
+          "step": "Re-perform the Rule 13a-15(b) evaluation review",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Confirm the evaluation memo states the evaluation date as the end of the period covered by the report, not an earlier convenience date.",
+            "Confirm the memo evidences CEO and CFO participation in the evaluation and is signed and dated before the certification date.",
+            "Re-assess the severity of each deficiency listed in the memo against the material weakness definition, and judge for yourself whether the stated conclusion survives.",
+            "Compare the memo's conclusion wording to the filed Item 4 or Item 9A text word for word and log any divergence."
+          ],
+          "done": "the evaluation memo is dated at period end, signed before certification, evidences officer participation, and its conclusion matches the filed text exactly."
+        },
+        {
+          "step": "Verify the certifications are in the prescribed form and properly supported",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "financial reporting repository",
+          "actions": [
+            "Open Exhibits 31.1 and 31.2 as filed and compare them paragraph by paragraph to the Item 601(b)(31) prescribed form — any altered, renumbered or omitted paragraph is an exception.",
+            "Confirm the certification date equals the filing date and that the signing officers were the CEO and CFO in office on that date.",
+            "Confirm Exhibits 32.1 and 32.2 were furnished and identify the correct report and period.",
+            "Confirm the officers' support pack — evaluation memo, sub-certifications, committee minutes — was assembled before the signature date."
+          ],
+          "done": "the certifications match the prescribed form exactly, are dated the filing date and are supported by a pack assembled beforehand."
+        },
+        {
+          "step": "Test filing timeliness and any Rule 12b-25 reliance",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "financial reporting repository",
+          "actions": [
+            "For every filing in the population, compare the EDGAR acceptance timestamp to the recomputed due date and mark on-time or late in days.",
+            "Confirm each submission was released before the 5:30 p.m. Eastern cut-off on its recorded filing date, since a later release carries the next business day.",
+            "For any Rule 12b-25 use, confirm Form 12b-25 was filed no later than one business day after the due date, that it stated the specific reason for the inability to file, and that the filing landed within the 15 calendar days (10-K) or 5 calendar days (10-Q) allowed.",
+            "Confirm any late Section 16 report is captured for the Item 405 delinquent reports disclosure in the next proxy."
+          ],
+          "done": "timeliness is proven filing by filing against the recomputed dates, and every 12b-25 use and late Section 16 report is documented with its disclosure consequence."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise an issue per exception naming the form type, the period, the days late or the missing evaluation element, and the disclosure consequence.",
+            "Assign a root cause (trigger logged late, calendar row missing, filer status not refreshed, sub-certifier population stale, evaluation memo signed after certification) and an owner in the SEC Reporting or Legal group.",
+            "Set a remediation date before the next quarter-end evaluation date and, for any late periodic filing, obtain the CFO's assessment of the Item 307 conclusion impact.",
+            "Carry every open exception into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date before the next evaluation and — where a filing was late — a documented conclusion impact assessment."
+        },
+        {
+          "step": "Conclude, sign and report the disclosure controls and timeliness test",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance thresholds for late periodic filings, late Section 16 reports and certification-before-evaluation.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — citing the EDGAR reconciliation, deadline recomputation and evaluation memo review.",
+            "Have the independent reviewer, who maintains no calendar row, prepares no filing and administers no sub-certification, sign and date the workpaper.",
+            "Report the conclusion to the Disclosure Committee before the next filing and to the Audit Committee at its next meeting, then file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is filed and reported to the Disclosure Committee before the next filing."
+        }
+      ]
+    }
+  ]
+}

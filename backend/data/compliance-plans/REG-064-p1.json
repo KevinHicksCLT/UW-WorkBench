@@ -1,0 +1,3013 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-064-C01",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Chief Data Officer",
+          "value": "Owns the enterprise AI/predictive-model inventory and its continuous currency; escalates undocumented pricing/underwriting/claims models to the Chief Risk Officer"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — FCA Handbook SYSC 4.1 (systems and controls) and PRIN 2A (Consumer Duty) re-read at each inventory refresh; UK GDPR Art. 22 checked wherever a model drives a solely-automated decision (rep: United Kingdom)"
+        },
+        "In-scope processes": {
+          "value": "Every AI, ML or predictive-analytics model used in pricing, underwriting, claims triage, fraud scoring, retention or marketing propensity across all UK writing entities and the Life and Personal Lines books"
+        },
+        "In-scope systems": {
+          "app": "model governance repository",
+          "value": "Enterprise Model Inventory register; scanned against deployment/experiment logs in Azure ML / MLflow and Databricks Lakehouse"
+        },
+        "Compliance procedure documented": {
+          "value": "AI Model Inventory Standard — new-model intake trigger, mandatory field set (purpose, data sources, decision use, risk tier, owner), quarterly reconciliation to production, decommission workflow"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Data Officer and Chief Risk Officer; reviewed annually and on any FCA AI or Consumer Duty portfolio letter"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Continuous obligation — every new model or material model change is logged within 5 business days of first production use; full inventory reconciled quarterly"
+        },
+        "Deadline reminders configured": {
+          "value": "Model governance repository fires a 5-business-day SLA reminder to the requesting Data Scientist and the CDO team on any deployment without a matching inventory record"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Inventory exports, quarterly reconciliation logs and decommission records retained 6 years from model retirement in the model governance repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Undocumented or shadow models found on reconciliation are logged as exceptions with root cause, business owner and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Data Officer",
+          "value": "CDO signs off closure of every shadow-model exception before the model is confirmed inventoried or formally decommissioned"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All models flagged 'in production' in the model governance repository, cross-checked against every model artefact found live in Azure ML/MLflow and Databricks registries in the test period"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for production models absent from the inventory; any single undocumented pricing/underwriting/claims model escalates immediately to the Chief Risk Officer"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous; independent reconciliation test performed quarterly against production deployment logs"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Model Risk Analyst",
+          "value": "Reviewer must not be the Data Scientist or engineer who built or logged the sampled model"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly model-inventory reconciliation workpaper filed in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Model inventory export with purpose, owner, deployment date and risk tier, presentable to the FCA within 10 business days of a section 165 information request"
+        },
+        "Regulator response path": {
+          "value": "Chief Data Officer coordinates the technical response; Compliance Officer clears the submission before it is sent to the FCA"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Trigger inventory intake at model conception",
+          "by": "Data Scientist",
+          "role": "Data Scientist",
+          "app": "model governance repository",
+          "actions": [
+            "Before any model touches production data, open a New Model Request in the model governance repository.",
+            "Complete the mandatory intake fields: business purpose, target variable, input data sources, decision the model influences, and whether a human reviews the output before it acts on a customer.",
+            "Tag the model against the risk taxonomy — HIGH for pricing/underwriting/claims-triage, MEDIUM for retention/marketing propensity, LOW for internal ops analytics.",
+            "Route the request to the Model Risk Analyst queue and notify the Chief Data Officer team by email."
+          ],
+          "done": "the request carries a complete field set, a risk tag and is routed for review before the model reaches production."
+        },
+        {
+          "step": "Classify the model's risk tier and required governance level",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "actions": [
+            "Open the intake request and apply the risk-tiering rubric against the stated decision use (pricing, underwriting, claims, fraud, retention, marketing).",
+            "Confirm whether the model output is solely automated with no human review, which triggers the UK GDPR Article 22 assessment.",
+            "Record the required governance controls for the assigned tier: bias testing cadence, human-oversight documentation, explainability method.",
+            "Return the classification to the Data Scientist and copy the Chief Data Officer on HIGH-tier classifications."
+          ],
+          "done": "the model carries a risk tier, an Article 22 flag and its required control set before build proceeds."
+        },
+        {
+          "step": "Register model lineage and data sources",
+          "by": "Data Engineer",
+          "role": "Data Engineer",
+          "app": "Databricks Lakehouse",
+          "actions": [
+            "In Databricks Lakehouse open the model's Unity Catalog entry and list every source table and feature-engineering pipeline feeding it.",
+            "Confirm each source table has a data-quality owner and a documented refresh schedule.",
+            "Paste the lineage diagram (or catalog link) into the model governance repository record.",
+            "Flag any source containing protected characteristics (age, health, postcode-derived proxies) for the bias-testing team."
+          ],
+          "done": "the inventory record links to a verified lineage diagram naming every source and its data-quality owner."
+        },
+        {
+          "step": "Confirm human decision-authority is documented before go-live",
+          "by": "Chief Data Officer",
+          "role": "Chief Data Officer",
+          "actions": [
+            "Review the intake record's human-oversight field against the model's actual deployment design.",
+            "For any HIGH-tier model, confirm a named role can override or reject the model's output before it reaches the customer.",
+            "Reject go-live sign-off where no override path exists and send the request back to the model owner.",
+            "Record the confirmed human-oversight design on the inventory record."
+          ],
+          "done": "every HIGH-tier model shows a named override role before the CDO approves go-live."
+        },
+        {
+          "step": "Log the model into the central inventory with a unique identifier",
+          "by": "Chief Data Officer",
+          "role": "Chief Data Officer",
+          "app": "model governance repository",
+          "actions": [
+            "Assign a unique Model ID in the model governance repository and set status to 'In Production'.",
+            "Attach the lineage diagram, risk classification, human-oversight design and the bias-testing schedule.",
+            "Set the next scheduled review date per the risk tier (HIGH = quarterly, MEDIUM = semi-annual, LOW = annual).",
+            "Publish the record so it is visible to Compliance, Risk and Internal Audit."
+          ],
+          "done": "the model has a unique inventory record, status 'In Production' and a scheduled review date."
+        },
+        {
+          "step": "Reconcile the inventory to production deployment logs",
+          "by": "MLOps Engineer",
+          "role": "MLOps Engineer",
+          "app": "Azure ML / MLflow",
+          "actions": [
+            "Export the list of models registered as 'live' in the Azure ML / MLflow model registry.",
+            "Export the list of 'In Production' models from the model governance repository.",
+            "Diff the two lists on model name and version; any registry model absent from the inventory is a shadow model.",
+            "Log every mismatch as an open item with the deploying team's name for follow-up."
+          ],
+          "done": "the registry-to-inventory diff is complete and every mismatch has a named follow-up owner."
+        },
+        {
+          "step": "Investigate and close out shadow-model findings",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Open a GRC exception record for each shadow model found in the reconciliation.",
+            "Interview the deploying Data Scientist to establish how the model reached production without intake.",
+            "Require immediate retrospective completion of the intake, risk classification and lineage steps.",
+            "Set a remediation date and escalate to the Chief Risk Officer if the model is HIGH-tier and has been live over 30 days undocumented."
+          ],
+          "done": "every shadow model has a closed GRC exception with a completed retrospective inventory entry."
+        },
+        {
+          "step": "Update the inventory on retraining or material model change",
+          "by": "Data Scientist",
+          "role": "Data Scientist",
+          "app": "model governance repository",
+          "actions": [
+            "On any retrain, feature-set change or target-variable change, open a Model Change record against the existing Model ID.",
+            "Re-run the risk classification if the change affects the decision use or data sources.",
+            "Version the model in the inventory (e.g. v1.0 to v1.1) and link the new artefact in Azure ML / MLflow.",
+            "Notify the Model Risk Analyst that a re-review of bias testing and explainability documentation is due."
+          ],
+          "done": "the inventory shows the new version, linked artefact and a triggered re-review."
+        },
+        {
+          "step": "Track model ownership and business-sponsor changes",
+          "by": "Chief Data Officer",
+          "role": "Chief Data Officer",
+          "actions": [
+            "Run a quarterly ownership report from the model governance repository listing named owner and business sponsor per model.",
+            "Cross-check leavers/movers against the HR system and flag any model with an owner no longer in role.",
+            "Reassign ownership within 10 business days and update the inventory record.",
+            "Confirm the new owner has read and accepted the model's governance obligations."
+          ],
+          "done": "no inventory record carries an owner who has left the role for more than 10 business days."
+        },
+        {
+          "step": "Assess third-party and vendor AI models for inventory inclusion",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Cross-reference the vendor/outsourcing register for any supplier providing scoring, pricing or claims-triage services driven by AI.",
+            "Request the vendor's model documentation (purpose, training data provenance, bias-testing evidence) via the vendor management process.",
+            "Register the vendor model in the inventory with source 'Third Party' and link the outsourcing register entry.",
+            "Confirm the vendor contract obliges the supplier to notify material model changes."
+          ],
+          "done": "every vendor-supplied AI model used in a UK decision process has an inventory record linked to its outsourcing register entry."
+        },
+        {
+          "step": "Decommission models and archive the inventory record",
+          "by": "Data Scientist",
+          "role": "Data Scientist",
+          "app": "model governance repository",
+          "actions": [
+            "On retirement, set the model status to 'Decommissioned' with the retirement date and reason.",
+            "Confirm the model has been removed from the Azure ML / MLflow serving endpoint and Databricks scheduled jobs.",
+            "Archive the lineage, bias-test history and change log under the Model ID for the retention period.",
+            "Notify Compliance that the model is no longer in production."
+          ],
+          "done": "the archived record is complete and the serving endpoint is confirmed removed."
+        },
+        {
+          "step": "Present the inventory summary to the AI Governance Committee",
+          "by": "Chief Data Officer",
+          "role": "Chief Data Officer",
+          "actions": [
+            "Compile a quarterly summary: total models, new intakes, retirements, open shadow-model exceptions and overdue reviews.",
+            "Present the summary at the AI Governance / Risk Committee meeting with the Chief Risk Officer in attendance.",
+            "Record committee questions and any required remediation actions in the minutes.",
+            "Distribute the approved summary to Compliance and Internal Audit."
+          ],
+          "done": "the committee has reviewed and minuted the quarterly inventory summary."
+        },
+        {
+          "step": "Escalate overdue registrations past the 5-business-day SLA",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Pull the SLA breach report from the model governance repository for intakes not completed within 5 business days of production deployment.",
+            "Contact the model owner directly and request same-week completion.",
+            "Escalate any breach exceeding 15 business days to the Chief Risk Officer as a control failure.",
+            "Log the escalation and its resolution date."
+          ],
+          "done": "no intake breach remains open past 15 business days without a logged escalation."
+        },
+        {
+          "step": "Reconcile inventory scope against new FCA AI guidance",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "On publication of any new FCA AI-related discussion paper, policy statement or portfolio letter, review the current inventory scope against it.",
+            "Identify any model type newly brought into scope (e.g. generative AI used in customer correspondence) and add it to the intake taxonomy.",
+            "Brief the Chief Data Officer and Data Science teams on the scope change.",
+            "Update the AI Model Inventory Standard accordingly."
+          ],
+          "done": "the inventory taxonomy is updated within 30 days of any FCA scope-relevant publication."
+        },
+        {
+          "step": "Retain inventory evidence for the retention period",
+          "by": "Chief Data Officer",
+          "role": "Chief Data Officer",
+          "actions": [
+            "Export the full inventory, reconciliation logs and decommission archive quarterly into the compliance evidence repository.",
+            "Apply the 6-year-from-retirement retention label to each model's record set.",
+            "Confirm the repository index is searchable by Model ID, owner and risk tier.",
+            "Verify the prior quarter's export remains retrievable before closing the current cycle."
+          ],
+          "done": "the quarter's inventory evidence is filed, labelled for 6-year retention and retrievable by Model ID."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of models believed to be in production",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "model governance repository",
+          "actions": [
+            "Export every model marked 'In Production' from the model governance repository as of the test date.",
+            "Independently export every live model/version from the Azure ML / MLflow registry and every scheduled scoring job in Databricks Lakehouse.",
+            "Merge the two extracts and reconcile counts before sampling.",
+            "Sign the population as complete, including the reconciliation total."
+          ],
+          "done": "the population is reconciled between the inventory and the live registries and signed as complete."
+        },
+        {
+          "step": "Identify shadow models missed by the quarterly reconciliation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "List every registry/scheduled-job model absent from the inventory export.",
+            "Confirm each was, or was not, already logged as an open GRC exception.",
+            "Treat any unreported shadow model as an automatic test exception.",
+            "Record the count and names of unreported shadow models in the workpaper."
+          ],
+          "done": "every registry model not in the inventory is either matched to a logged exception or listed as a new exception."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of HIGH-tier (pricing/underwriting/claims) models.",
+            "Take 15 randomly selected MEDIUM/LOW-tier models (seeded, reproducible).",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers every HIGH-tier model."
+        },
+        {
+          "step": "Re-perform the risk classification for each sampled model",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "actions": [
+            "Read the model's stated business purpose and decision use independently of the recorded tier.",
+            "Apply the risk-tiering rubric fresh and reach an independent conclusion.",
+            "Compare to the recorded tier; any downgrade or upgrade is an exception.",
+            "Capture the rubric worksheet used for the re-classification."
+          ],
+          "done": "each sampled model has an independent re-classification note, with any discrepancy logged as an exception."
+        },
+        {
+          "step": "Verify lineage and human-oversight documentation on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Databricks Lakehouse",
+          "actions": [
+            "Open the Unity Catalog lineage for each sampled model and confirm it matches the diagram attached to the inventory record.",
+            "Confirm a named override role exists for every HIGH-tier sampled model.",
+            "Contact the named override holder to confirm they are aware of the responsibility.",
+            "Flag any lineage or oversight documentation that is stale or unconfirmed."
+          ],
+          "done": "lineage matches the live catalog and every HIGH-tier sampled model has a confirmed named overseer."
+        },
+        {
+          "step": "Test third-party model coverage",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Cross-check the vendor/outsourcing register against the inventory's 'Third Party' source entries.",
+            "Confirm each in-scope vendor model has current bias-testing evidence on file.",
+            "Flag any vendor providing AI-driven scoring with no corresponding inventory entry.",
+            "Log missing vendor entries as exceptions with the outsourcing register reference."
+          ],
+          "done": "every in-scope vendor AI service traces to an inventory record with current evidence, or is logged as an exception."
+        },
+        {
+          "step": "Confirm decommissioned models were actually removed from serving",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Azure ML / MLflow",
+          "actions": [
+            "For a sample of records marked 'Decommissioned', query the Azure ML / MLflow serving endpoint and Databricks job scheduler.",
+            "Confirm no active endpoint or job references the retired model version.",
+            "Flag any decommissioned model still live as a critical exception.",
+            "Capture the endpoint/job query results into the workpaper."
+          ],
+          "done": "no sampled decommissioned model is found still serving in production."
+        },
+        {
+          "step": "Check ownership currency on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the named owner and business sponsor on each sampled record are current employees in the stated role.",
+            "Cross-check against the HRIS leavers report for the test period.",
+            "Flag any record whose owner left role more than 10 business days before the test date without reassignment.",
+            "Record findings by Model ID."
+          ],
+          "done": "no sampled record shows a stale owner beyond the 10-business-day reassignment window."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a GRC issue per exception with the Model ID, what was missed and the governance impact.",
+            "Assign a root cause (missed intake, stale lineage, unremoved endpoint, ownership drift) and an owner.",
+            "Set a remediation date and carry unresolved items into the next quarter's mandatory retest.",
+            "Confirm each prior-quarter exception was actually closed before marking it resolved."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest status."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance threshold for undocumented HIGH-tier models.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the evidence.",
+            "Have the independent reviewer, who classified none of the sampled models, sign the workpaper.",
+            "Report results to the AI Governance Committee and file the signed workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and committee reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-064-C02",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Data Science Lead",
+          "value": "Owns execution of the bias/unfair-discrimination test plan across all in-scope pricing, underwriting and claims models"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — FCA Handbook PRIN 2A and SYSC 4 re-read against the current test plan; UK GDPR Article 5(1)(a) (fairness) and Equality Act 2010 s.19 (indirect discrimination) checked for each protected-characteristic proxy (rep: United Kingdom)"
+        },
+        "In-scope processes": {
+          "value": "Statistical fairness and disparate-impact testing for every pricing, underwriting and claims-triage model classified HIGH-tier in the AI inventory, before go-live and at least annually thereafter"
+        },
+        "In-scope systems": {
+          "app": "Azure ML / MLflow",
+          "value": "Bias-testing pipeline run against MLflow-registered model versions; results written to the model governance repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Model Fairness Testing Standard — protected/proxy variable list, disparate-impact metrics (adverse impact ratio, demographic parity gap), pass/fail thresholds, escalation path"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Data Officer and Chief Risk Officer; reviewed annually and whenever the Equality Act protected-characteristic proxy list changes"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per model before go-live, then annually for HIGH-tier models and immediately on any retrain that changes the feature set"
+        },
+        "Deadline reminders configured": {
+          "value": "Model governance repository flags any HIGH-tier model whose fairness test is more than 11 months old, 30 days ahead of the annual deadline"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Bias-test datasets, metric outputs and sign-off retained 6 years from the model's decommission date"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any model failing the adverse-impact threshold is logged as an exception blocking go-live or continued production use until remediated"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "CRO signs off any remediation (re-weighting, feature removal, threshold adjustment) before the model returns to or remains in production"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All HIGH-tier models due or overdue for annual fairness testing in the period, per the model governance repository schedule"
+        },
+        "Pass/fail thresholds": {
+          "value": "Adverse impact ratio below 0.80 (four-fifths rule) on any protected-characteristic proxy is a fail requiring remediation before continued use"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per-model/annual; independent verification test performed annually on the full HIGH-tier population"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Model Risk Analyst",
+          "value": "Reviewer must not be the Data Scientist who ran the original fairness test"
+        },
+        "Evidence location for test results": {
+          "value": "Annual fairness-testing verification workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Fairness test results, methodology and remediation log per model, presentable to the FCA within 10 business days of an inquiry"
+        },
+        "Regulator response path": {
+          "value": "Chief Data Officer prepares the technical response; Compliance Officer and General Counsel clear it before submission to the FCA"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Confirm which models are due for fairness testing",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "app": "model governance repository",
+          "actions": [
+            "Query the model governance repository for HIGH-tier models with a fairness-test date over 11 months old, or with no test on record.",
+            "Cross-check against models flagged for go-live in the next 60 days.",
+            "Compile the due list with Model ID, owner and target deadline.",
+            "Send the due list to Data Science Lead and the model owners."
+          ],
+          "done": "the due list is complete and distributed with named owners and deadlines."
+        },
+        {
+          "step": "Define the protected-characteristic proxy variables to test",
+          "by": "Data Scientist",
+          "role": "Data Scientist",
+          "actions": [
+            "Pull the current Equality Act 2010 protected-characteristic list and the approved proxy-variable mapping (postcode as a proxy for ethnicity, occupation as a proxy for disability, etc.) from the Model Fairness Testing Standard.",
+            "Identify which proxies are present, directly or via correlated features, in the model's input dataset.",
+            "Document any proxy the model owner disputes and escalate to the Data Science Lead for a ruling.",
+            "Record the final proxy list on the model's test plan."
+          ],
+          "done": "the test plan names every protected-characteristic proxy present in the model's inputs, with disputes resolved."
+        },
+        {
+          "step": "Assemble the holdout dataset with demographic labels",
+          "by": "Data Scientist",
+          "role": "Data Scientist",
+          "app": "Databricks Lakehouse",
+          "actions": [
+            "In Databricks Lakehouse, pull a representative holdout sample of scored records not used in model training.",
+            "Join the sample to the demographic/proxy reference table under the approved data-sharing agreement.",
+            "Confirm minimum subgroup sample sizes meet statistical power requirements (commonly n≥30 per subgroup); flag under-powered subgroups.",
+            "Store the assembled dataset in the model's test workspace with an access log."
+          ],
+          "done": "the holdout dataset is assembled, demographically labelled and subgroup sample sizes are checked for power."
+        },
+        {
+          "step": "Run the disparate-impact test battery",
+          "by": "Data Scientist",
+          "role": "Data Scientist",
+          "app": "Azure ML / MLflow",
+          "actions": [
+            "In the Azure ML fairness-testing notebook, load the registered MLflow model version and score the holdout dataset.",
+            "Compute the adverse impact ratio, demographic parity gap and equal opportunity difference for each protected-characteristic proxy.",
+            "Log all metric outputs as MLflow run artefacts tagged to the Model ID and test date.",
+            "Flag any subgroup breaching the 0.80 adverse impact ratio threshold."
+          ],
+          "done": "all fairness metrics are computed, logged as MLflow artefacts and threshold breaches are flagged."
+        },
+        {
+          "step": "Interpret results and draft the fairness test report",
+          "by": "Data Science Lead",
+          "role": "Data Science Lead",
+          "actions": [
+            "Review the metric outputs against the pass/fail thresholds in the Model Fairness Testing Standard.",
+            "Draft the fairness test report: methodology, dataset, metrics, subgroup results, pass/fail conclusion.",
+            "Where a subgroup fails, identify the likely driving feature(s) using SHAP or equivalent feature-attribution output.",
+            "Attach the report and metric artefacts to the model's record in the model governance repository."
+          ],
+          "done": "the report states a pass/fail conclusion per subgroup with driving-feature analysis for any failure."
+        },
+        {
+          "step": "Escalate and remediate any failing model",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Open a GRC exception for any subgroup fail, naming the Model ID, proxy and adverse impact ratio.",
+            "Convene the model owner and Data Scientist to select a remediation path: feature removal, re-weighting, threshold adjustment or model retirement.",
+            "Set a remediation deadline; block continued production use of a failing HIGH-tier model beyond 30 days without an approved remediation plan.",
+            "Track the remediation to completion in the GRC record."
+          ],
+          "done": "every failing model has an open, tracked remediation plan or is blocked from production within 30 days."
+        },
+        {
+          "step": "Re-test after remediation",
+          "by": "Data Scientist",
+          "role": "Data Scientist",
+          "app": "Azure ML / MLflow",
+          "actions": [
+            "Re-run the disparate-impact test battery against the remediated model version in Azure ML / MLflow.",
+            "Confirm the adverse impact ratio now clears 0.80 for every previously failing subgroup.",
+            "Log the re-test as a new MLflow run linked to the remediation GRC record.",
+            "Notify the Model Risk Manager to close the exception on a pass."
+          ],
+          "done": "the remediated model version clears every threshold and the exception is closed on evidence."
+        },
+        {
+          "step": "Get Chief Risk Officer sign-off before go-live or continued use",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Review the fairness test report, and remediation evidence where applicable.",
+            "Confirm the report methodology matches the approved Model Fairness Testing Standard.",
+            "Sign off in the model governance repository, unlocking go-live or continued production status.",
+            "Note any conditions attached to the sign-off (e.g. mandatory 6-month re-test instead of annual)."
+          ],
+          "done": "the model shows a dated CRO sign-off before it goes or remains live."
+        },
+        {
+          "step": "Notify Compliance and update the AI governance program record",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Receive the signed-off fairness test report and log it against the model's compliance record.",
+            "Update the AI governance program's fairness-testing tracker with the completion date and next-due date.",
+            "Flag any pattern of repeat failures across models sharing a common feature for a wider data-sourcing review.",
+            "Include the period's fairness-testing summary in the quarterly compliance report."
+          ],
+          "done": "the tracker shows the current test status for every HIGH-tier model and any pattern is flagged for review."
+        },
+        {
+          "step": "Brief the Underwriting and Pricing teams on any threshold change",
+          "by": "Data Science Lead",
+          "role": "Data Science Lead",
+          "actions": [
+            "Where remediation changed a rating factor or eligibility rule, brief the Head of Pricing and Chief Underwriting Officer on the change.",
+            "Confirm the change is reflected in the rating engine and underwriting guidelines documentation.",
+            "Record the briefing date and attendees in the model's change log.",
+            "Confirm no parallel, unremediated version of the model remains live in any rating engine environment."
+          ],
+          "done": "Pricing and Underwriting confirm the remediated logic is the only version live in production."
+        },
+        {
+          "step": "Review the proxy-variable mapping annually against Equality Act guidance",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Review Equality Act 2010 case law and EHRC guidance updates annually for new recognised proxy variables.",
+            "Compare against the current approved proxy-variable mapping used in fairness testing.",
+            "Recommend additions or removals to the Data Science Lead.",
+            "Approve the updated mapping for the next testing cycle."
+          ],
+          "done": "the proxy-variable mapping is reviewed and re-approved annually against current legal guidance."
+        },
+        {
+          "step": "Maintain the fairness-testing calendar",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "app": "model governance repository",
+          "actions": [
+            "Maintain the master calendar of fairness-test due dates per HIGH-tier model in the model governance repository.",
+            "Adjust due dates automatically on any logged retrain event.",
+            "Send a monthly digest of upcoming and overdue tests to Data Science Lead and Compliance Officer.",
+            "Reconcile the calendar to the model inventory quarterly to catch any newly HIGH-tier model."
+          ],
+          "done": "the calendar is current, reconciled quarterly and drives the monthly digest without gaps."
+        },
+        {
+          "step": "Document testing limitations and data gaps",
+          "by": "Data Scientist",
+          "role": "Data Scientist",
+          "actions": [
+            "Where demographic labels are unavailable or inferred (e.g. no direct ethnicity field), document the inference method and its known error rate.",
+            "State any subgroup excluded from testing due to insufficient sample size and the plan to close the gap.",
+            "Attach the limitations statement to the fairness test report.",
+            "Flag material limitations to the Data Science Lead for disclosure in the sign-off request."
+          ],
+          "done": "every limitation and data gap is documented and disclosed alongside the test conclusion."
+        },
+        {
+          "step": "Archive the fairness test evidence pack",
+          "by": "Data Science Lead",
+          "role": "Data Science Lead",
+          "actions": [
+            "Assemble the dataset description, MLflow run artefacts, report, remediation record and CRO sign-off into a single evidence pack per Model ID and test date.",
+            "File the pack in the compliance evidence repository with the 6-year retention label applied.",
+            "Confirm the pack is retrievable by Model ID and test date.",
+            "Notify the Model Risk Analyst that the calendar entry can be marked complete."
+          ],
+          "done": "the evidence pack is filed, labelled for retention and retrievable, and the calendar entry is closed."
+        },
+        {
+          "step": "Report fairness-testing outcomes to the AI Governance Committee",
+          "by": "Chief Data Officer",
+          "role": "Chief Data Officer",
+          "actions": [
+            "Compile the quarter's fairness-test pass/fail summary across all HIGH-tier models.",
+            "Present trend data (repeat failures, remediation turnaround time) to the AI Governance Committee.",
+            "Record committee feedback and any required policy change in the minutes.",
+            "Distribute the summary to the Chief Risk Officer and Compliance."
+          ],
+          "done": "the committee has reviewed and minuted the quarter's fairness-testing summary."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of models due for fairness testing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "model governance repository",
+          "actions": [
+            "Extract every HIGH-tier model from the model governance repository with its last fairness-test date.",
+            "Identify all models due or overdue in the test period, plus any that went live without a pre-go-live test.",
+            "Reconcile the extract to the fairness-testing calendar maintained by the Model Risk Analyst.",
+            "Sign the population as complete before sampling."
+          ],
+          "done": "the population is reconciled to the testing calendar and signed as complete."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of models with a failed or overdue-by-more-than-30-days test status.",
+            "Take 10 randomly selected passing models (seeded, reproducible).",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers every overdue or failed model."
+        },
+        {
+          "step": "Re-perform the disparate-impact calculation for each sampled model",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "app": "Azure ML / MLflow",
+          "actions": [
+            "Pull the same holdout dataset and MLflow model version referenced in the original fairness test report.",
+            "Independently recompute the adverse impact ratio and demographic parity gap for each protected-characteristic proxy.",
+            "Compare the recomputed values to the reported values; any material difference is an exception.",
+            "Capture the recomputation notebook output into the workpaper."
+          ],
+          "done": "each sampled model has an independent recomputation with any material difference logged as an exception."
+        },
+        {
+          "step": "Verify the proxy-variable list used matches the approved mapping",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Compare the proxy variables tested in the sampled reports to the current General-Counsel-approved mapping.",
+            "Flag any report that used an outdated or incomplete proxy list.",
+            "Confirm the mapping in use was the one in force on the test date, not the current one, where the mapping has since changed.",
+            "Record findings by Model ID."
+          ],
+          "done": "the proxy list used in each sampled report matches the mapping approved as of that test date."
+        },
+        {
+          "step": "Trace failing models to a completed remediation and re-test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "For every sampled model that originally failed, pull the GRC exception record.",
+            "Confirm a remediation was implemented, re-tested, and passed before the model resumed or continued production use.",
+            "Check the elapsed time between failure and remediation against the 30-day production-block rule for HIGH-tier models.",
+            "Flag any model that remained live beyond 30 days without an approved remediation plan as a compliance breach."
+          ],
+          "done": "every sampled failure traces to a timely, evidenced remediation and re-test, or is logged as a breach."
+        },
+        {
+          "step": "Confirm sample-size adequacy and data-gap disclosures",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Check the subgroup sample sizes recorded in each sampled report against the stated statistical power requirement.",
+            "Confirm any demographic-inference method or excluded subgroup was disclosed in the limitations statement.",
+            "Flag any report presenting a conclusion on an under-powered subgroup without disclosure.",
+            "Record findings by Model ID."
+          ],
+          "done": "every sampled report's sample-size adequacy and disclosed limitations are independently verified."
+        },
+        {
+          "step": "Verify Chief Risk Officer sign-off exists and pre-dates go-live/continued use",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm a dated CRO sign-off exists in the model governance repository for every sampled model.",
+            "Compare the sign-off date to the model's go-live date or, for existing models, to the annual due date.",
+            "Flag any model used in production before its sign-off date as a control breach.",
+            "Capture the sign-off record into the workpaper."
+          ],
+          "done": "every sampled model shows a CRO sign-off that pre-dates its go-live or continued-use date, or the gap is logged as a breach."
+        },
+        {
+          "step": "Check Pricing and Underwriting adoption of remediated logic",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For remediated models affecting rating or eligibility, confirm with the Head of Pricing that only the remediated version is live in the rating engine.",
+            "Spot-check a small number of live quotes to confirm the rating factors match the remediated model output.",
+            "Flag any evidence of the pre-remediation version still being used.",
+            "Record findings by Model ID."
+          ],
+          "done": "no sampled remediated model shows evidence of the pre-remediation version still in live use."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a GRC issue per exception with the Model ID, what was missed and the fairness/compliance impact.",
+            "Assign a root cause (stale proxy list, under-powered subgroup, late remediation, missing sign-off) and an owner.",
+            "Set a remediation date and carry unresolved items into next year's mandatory retest.",
+            "Confirm prior-year exceptions were genuinely closed before marking them resolved."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest status."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance threshold for HIGH-tier models used beyond 30 days without remediation.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the evidence.",
+            "Have the independent reviewer, who ran none of the sampled original tests, sign the workpaper.",
+            "Report results to the AI Governance Committee and file the signed workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and committee reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-064-C03",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Compliance Officer",
+          "value": "Owns the AI governance program and its written policy suite; escalation to Chief Risk Officer and the Board Governance Lead"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — FCA Handbook PROD 4.2 (manufacture of insurance products) and SYSC 3/SYSC 4 (systems and controls) re-read at each annual policy review (rep: United Kingdom)"
+        },
+        "In-scope processes": {
+          "value": "The AI governance policy suite — model risk policy, fairness-testing standard, human-oversight standard, third-party AI due diligence policy — covering every UK writing entity and the Life and Personal Lines books"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Policy library and attestation workflow hosted in the GRC platform; policy documents stored in the compliance evidence repository"
+        },
+        "Compliance procedure documented": {
+          "value": "AI Governance Program Charter — policy inventory, review cadence, approval chain, escalation and breach-reporting path"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Board Risk Committee on recommendation of the Chief Risk Officer and General Counsel"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Full policy suite reviewed and re-approved annually, or within 90 days of any material FCA AI publication or internal AI incident"
+        },
+        "Deadline reminders configured": {
+          "value": "GRC platform sends a 60-day and 30-day reminder ahead of each policy's annual review date to the named policy owner"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Every policy version, approval record and Board minute retained 7 years from superseding version"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any policy found lapsed (past its review date with no re-approval) is logged as a governance exception with an interim-effectiveness statement"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "CRO signs off the interim-effectiveness statement and the completed re-approval that closes a lapsed-policy exception"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The full AI governance policy suite in force during the test period, per the GRC platform policy library"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any policy past its review date by more than 30 days with no re-approval is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual review; independent verification test performed annually against the full policy suite"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have drafted or approved any sampled policy"
+        },
+        "Evidence location for test results": {
+          "value": "Annual AI governance policy assurance workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Current policy suite with version history and Board approval minutes, presentable to the FCA within 10 business days of an inquiry"
+        },
+        "Regulator response path": {
+          "value": "General Counsel and Compliance Officer jointly prepare and clear the response to the FCA"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Maintain the master inventory of required AI governance policies",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "In the GRC platform policy library, list every required AI governance document: model risk policy, fairness-testing standard, human-oversight standard, explainability standard, third-party AI due diligence policy, incident-response addendum.",
+            "For each, record the owner, current version, approval date and next-review date.",
+            "Compare against the FCA's current AI-related expectations (SYSC 4, PRIN 2A, PROD 4.2, relevant portfolio letters) to confirm no required document is missing.",
+            "Flag any missing document and assign a drafting owner."
+          ],
+          "done": "the inventory lists every required policy with an owner, version and review date, with no missing document unassigned."
+        },
+        {
+          "step": "Draft or revise a policy ahead of its review date",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Pull the current approved version and mark up changes against the latest FCA guidance, internal incident learnings and model inventory scope changes.",
+            "Circulate the draft to the Chief Data Officer, Chief Risk Officer and Head of Compliance for comment.",
+            "Log all comments and resolutions in the policy's revision history.",
+            "Finalise the clean version for approval routing."
+          ],
+          "done": "the revised draft incorporates reviewer comments and carries a complete revision history."
+        },
+        {
+          "step": "Route the policy through the approval chain",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Review the finalised draft for legal and regulatory sufficiency against current FCA Handbook provisions.",
+            "Confirm the policy assigns clear accountable owners for each control it describes.",
+            "Route to the Chief Risk Officer for risk sign-off, then to the Board Risk Committee for approval.",
+            "Record each approval step with name, role and date in the GRC platform."
+          ],
+          "done": "the policy shows a complete, dated approval chain ending in Board Risk Committee sign-off."
+        },
+        {
+          "step": "Publish the approved policy and version-control it",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Upload the Board-approved policy to the GRC platform policy library, incrementing the version number.",
+            "Supersede the prior version and move it to the archive with its full history intact.",
+            "Publish the policy to the compliance intranet and notify all named policy stakeholders.",
+            "Set the next annual review date in the GRC platform."
+          ],
+          "done": "the new version is published, the prior version archived, and the next review date is scheduled."
+        },
+        {
+          "step": "Collect attestations from accountable owners",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Issue an attestation task in the GRC platform to every role named as an accountable owner in the policy (CDO, Data Science Lead, Model Risk Manager, etc.).",
+            "Require each to confirm they have read the current version and understand their obligations.",
+            "Chase outstanding attestations weekly until 100% complete.",
+            "File the completed attestation log against the policy version."
+          ],
+          "done": "100% of named accountable owners have a dated attestation on file against the current version."
+        },
+        {
+          "step": "Map each policy control to the model governance and fairness-testing workflows",
+          "by": "Model Risk Manager",
+          "role": "Model Risk Manager",
+          "actions": [
+            "Confirm every control described in the policy suite has a corresponding step in the model inventory and fairness-testing procedures.",
+            "Identify any policy requirement with no operational workflow behind it and raise a gap ticket.",
+            "Update the workflow documentation to close confirmed gaps.",
+            "Record the control-to-workflow mapping for audit reference."
+          ],
+          "done": "every policy control maps to an operating workflow, with gaps ticketed and tracked to closure."
+        },
+        {
+          "step": "Monitor for FCA publications that trigger an off-cycle review",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "actions": [
+            "Subscribe to FCA publications (discussion papers, policy statements, portfolio letters) relevant to AI and Consumer Duty.",
+            "On any relevant publication, assess within 10 business days whether it triggers an off-cycle policy review.",
+            "Where triggered, notify the Compliance Officer and set a 90-day off-cycle review deadline.",
+            "Log the assessment and its outcome in the GRC platform."
+          ],
+          "done": "every relevant FCA publication has a logged assessment within 10 business days, with off-cycle reviews deadlined at 90 days."
+        },
+        {
+          "step": "Trigger a policy review after an AI-related incident",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "On any logged AI-related incident (fairness-test failure left unremediated, model outage causing customer harm, data breach involving a model), assess whether the relevant policy needs revision.",
+            "Document the incident's root cause and whether it reflects a policy gap versus an execution failure.",
+            "Where a policy gap is found, trigger the drafting step with a 90-day deadline.",
+            "Record the incident-to-policy-review linkage in the GRC platform."
+          ],
+          "done": "every AI-related incident has a documented policy-gap assessment, with confirmed gaps triggering a 90-day review."
+        },
+        {
+          "step": "Review the third-party AI due diligence policy against the vendor register",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Confirm the current third-party AI due diligence policy's requirements are reflected in the vendor onboarding checklist.",
+            "Spot-check three recently onboarded AI vendors against the checklist for completeness.",
+            "Flag any checklist item the policy requires but onboarding does not currently capture.",
+            "Feed findings into the next policy revision cycle."
+          ],
+          "done": "the vendor onboarding checklist is confirmed aligned to the current policy, with gaps fed into the next revision."
+        },
+        {
+          "step": "Present the annual governance program assurance report to the Board",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Compile the year's policy review status, attestation completion rate, incident-triggered reviews and open gaps.",
+            "Present the assurance report to the Board Risk Committee.",
+            "Record Board feedback and any directed action in the minutes.",
+            "Distribute the approved report to Compliance and Internal Audit."
+          ],
+          "done": "the Board Risk Committee has reviewed and minuted the annual governance assurance report."
+        },
+        {
+          "step": "Cross-reference the policy suite to related regulatory regimes",
+          "by": "Legal Counsel",
+          "role": "Legal Counsel",
+          "actions": [
+            "Confirm the AI governance policy suite cross-references UK GDPR, the Equality Act 2010 and any sector-specific PRA expectations that also apply.",
+            "Identify any conflicting or duplicated requirement across regimes and resolve with the accountable owners.",
+            "Update the policy's regulatory-basis section with the confirmed cross-references.",
+            "Record the review date and outcome."
+          ],
+          "done": "the policy suite's regulatory-basis section is current and free of unresolved cross-regime conflicts."
+        },
+        {
+          "step": "Escalate lapsed policies immediately",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Run the GRC platform's lapsed-policy report identifying any document past its review date.",
+            "Issue an interim-effectiveness statement confirming the prior version remains the operative control pending re-approval.",
+            "Escalate to the Chief Risk Officer for sign-off on the interim statement within 5 business days.",
+            "Prioritise the lapsed policy's re-approval ahead of all other queued reviews."
+          ],
+          "done": "every lapsed policy has a signed interim-effectiveness statement within 5 business days and a prioritised re-approval track."
+        },
+        {
+          "step": "Train accountable owners on policy changes",
+          "by": "Learning & Development Specialist",
+          "role": "Learning & Development Specialist",
+          "actions": [
+            "On publication of a materially revised policy, build or update the corresponding training module in the learning management system.",
+            "Assign the module to every accountable owner and their direct reports.",
+            "Track completion and chase non-completion after 15 business days.",
+            "Report completion rates to the Compliance Officer."
+          ],
+          "done": "training is assigned within 10 business days of publication and completion is tracked to at least 95%."
+        },
+        {
+          "step": "Reconcile the policy suite to the model inventory scope",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Compare the model types and decision uses named in the policy suite to the current model inventory categories.",
+            "Identify any inventory category (e.g. a newly added generative-AI use case) not addressed by an existing policy.",
+            "Raise a drafting request for any uncovered category.",
+            "Record the reconciliation outcome quarterly."
+          ],
+          "done": "every model inventory category maps to a governing policy, with gaps raised as drafting requests."
+        },
+        {
+          "step": "Retain the policy and attestation evidence",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "File each policy version, approval chain, attestation log and Board minute into the compliance evidence repository.",
+            "Apply the 7-year-from-supersession retention label.",
+            "Confirm the repository index is searchable by policy name and version.",
+            "Verify the prior year's evidence remains retrievable before closing the current cycle."
+          ],
+          "done": "the year's policy governance evidence is filed, labelled for 7-year retention and retrievable by policy name."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of policies in force during the period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Extract the full policy library from the GRC platform with version, approval date and review-due date.",
+            "Reconcile the extract to the master policy inventory maintained by the Compliance Officer.",
+            "Identify any policy referenced in operating procedures but absent from the library.",
+            "Sign the population as complete before sampling."
+          ],
+          "done": "the population is reconciled to the master inventory and signed as complete."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of policies past their review date at any point in the test period.",
+            "Take 5 randomly selected on-time policies (seeded, reproducible).",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers every lapsed policy."
+        },
+        {
+          "step": "Re-verify the approval chain for each sampled policy",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm each approval step (drafting reviewer, General Counsel, Chief Risk Officer, Board Risk Committee) is present with name, role and date.",
+            "Cross-check the Board Risk Committee approval against the actual committee minutes.",
+            "Flag any policy published without a matching minuted Board approval.",
+            "Capture the minute excerpt into the workpaper."
+          ],
+          "done": "every sampled policy's approval chain is independently confirmed against committee minutes."
+        },
+        {
+          "step": "Verify attestation completeness on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Pull the attestation log for each sampled policy and list every named accountable owner.",
+            "Confirm 100% of named owners have a dated attestation against the current version.",
+            "Flag any owner with no attestation or an attestation against a superseded version.",
+            "Record findings by policy name."
+          ],
+          "done": "attestation completeness is independently confirmed for every sampled policy, with gaps flagged."
+        },
+        {
+          "step": "Test whether lapsed policies had a timely interim-effectiveness statement",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled lapsed policy, confirm an interim-effectiveness statement was issued within 5 business days of the lapse.",
+            "Confirm the Chief Risk Officer signed the interim statement.",
+            "Flag any lapse with no interim statement, or one issued late, as an exception.",
+            "Record the lapse duration in days for each finding."
+          ],
+          "done": "every sampled lapse either has a timely, signed interim statement or is logged as an exception with its duration."
+        },
+        {
+          "step": "Verify control-to-workflow mapping on the sample",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "actions": [
+            "For each sampled policy, pick two stated controls and confirm an operating workflow step actually implements each one.",
+            "Interview the relevant workflow owner (e.g. Model Risk Manager, Data Science Lead) to confirm the control is genuinely performed, not just documented.",
+            "Flag any control with no corresponding live workflow as a design gap.",
+            "Record findings by policy and control."
+          ],
+          "done": "each sampled policy's tested controls are confirmed operating in practice, or gaps are flagged."
+        },
+        {
+          "step": "Confirm off-cycle review triggers were acted on",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the log of FCA publications and AI incidents assessed for off-cycle review triggers during the period.",
+            "Confirm each trigger assessment was made within the 10-business-day requirement.",
+            "For any confirmed trigger, confirm the resulting review completed within the 90-day deadline.",
+            "Flag any missed assessment or overdue off-cycle review."
+          ],
+          "done": "every trigger event has a timely logged assessment and, where triggered, a review completed within 90 days."
+        },
+        {
+          "step": "Check training completion evidence on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled materially revised policy, pull the training completion report from the learning management system.",
+            "Confirm completion reached at least 95% within the tracked window.",
+            "Flag any policy with lower completion or no training module created.",
+            "Record findings by policy name."
+          ],
+          "done": "training completion is independently verified against the 95% target for every sampled revised policy."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a GRC issue per exception with the policy name, what was missed and the governance impact.",
+            "Assign a root cause (late review, missing attestation, workflow gap, missed trigger) and an owner.",
+            "Set a remediation date and carry unresolved items into next year's mandatory retest.",
+            "Confirm prior-year exceptions were genuinely closed before marking them resolved."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest status."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Compute the exception rate against the 30-day lapse threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the evidence.",
+            "Have the independent reviewer, who drafted or approved none of the sampled policies, sign the workpaper.",
+            "Report results to the Board Risk Committee and file the signed workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and Board reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-064-C04",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Chief Data Officer",
+          "value": "Owns per-model human-oversight and explainability documentation across the HIGH-tier model population"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — FCA Handbook SYSC 19 (governance and accountability) and PRIN 2A re-read per model documentation cycle; UK GDPR Article 22 and Article 13/14 transparency requirements checked where the model informs a customer-facing decision (rep: United Kingdom)"
+        },
+        "In-scope processes": {
+          "value": "Human-oversight design and explainability documentation for every HIGH-tier pricing, underwriting and claims-triage model, completed before go-live and refreshed on material change"
+        },
+        "In-scope systems": {
+          "app": "model governance repository",
+          "value": "Model documentation record links explainability artefacts generated in Azure ML / MLflow to the human-oversight design"
+        },
+        "Compliance procedure documented": {
+          "value": "Model Documentation Standard — required sections: decision logic summary, explainability method (SHAP/LIME or equivalent), override role, escalation path, customer-facing explanation template"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Data Officer and General Counsel; reviewed annually and on any material model change"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Documentation completed before go-live; refreshed within 10 business days of any material change to model logic or the override design"
+        },
+        "Deadline reminders configured": {
+          "value": "Model governance repository blocks a go-live status change until the documentation record is marked complete"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Documentation versions and explainability artefacts retained 6 years from model decommission"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any HIGH-tier model live without complete documentation is logged as an exception blocking continued production status"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Data Officer",
+          "value": "CDO signs off completion of any documentation exception before the model's blocked status is lifted"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All HIGH-tier models live during the test period per the model governance repository"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any HIGH-tier model missing an override role, explainability artefact or customer-facing explanation is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per-model; independent verification test performed annually across the full HIGH-tier population"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Model Risk Analyst",
+          "value": "Reviewer must not have authored the sampled model's documentation"
+        },
+        "Evidence location for test results": {
+          "value": "Annual model documentation assurance workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per-model documentation pack with explainability artefacts, presentable to the FCA within 10 business days of an inquiry"
+        },
+        "Regulator response path": {
+          "value": "Chief Data Officer coordinates the technical response; General Counsel clears any customer-facing explanation language before it is used externally"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Confirm documentation is required before build begins",
+          "by": "Chief Data Officer",
+          "role": "Chief Data Officer",
+          "app": "model governance repository",
+          "actions": [
+            "On any model classified HIGH-tier in the inventory, open the Model Documentation record in the model governance repository.",
+            "Set the record status to 'Documentation Required — Not Started' and link it to the model's inventory ID.",
+            "Assign the documentation owner (the model's lead Data Scientist).",
+            "Set the target completion date ahead of the planned go-live date."
+          ],
+          "done": "every HIGH-tier model has an open, assigned documentation record before build sign-off."
+        },
+        {
+          "step": "Write the decision-logic summary in plain language",
+          "by": "Data Scientist",
+          "role": "Data Scientist",
+          "actions": [
+            "Describe in plain, non-technical language what the model predicts, its main inputs and how the output feeds the business decision.",
+            "Avoid unexplained jargon; where a technical term is unavoidable, define it in a glossary section.",
+            "Have a colleague outside the build team read the summary and confirm they understand the decision logic without further explanation.",
+            "Attach the reviewed summary to the documentation record."
+          ],
+          "done": "the plain-language summary passes an outside-reader comprehension check and is attached to the record."
+        },
+        {
+          "step": "Generate the explainability artefact",
+          "by": "Data Scientist",
+          "role": "Data Scientist",
+          "app": "Azure ML / MLflow",
+          "actions": [
+            "In Azure ML, run the approved explainability method (SHAP for tree/ensemble models, LIME or integrated gradients for other model classes) against a representative sample of scored records.",
+            "Log the global feature-importance chart and at least 5 individual-record explanation examples as MLflow artefacts.",
+            "Confirm the top contributing features align with the plain-language decision-logic summary; investigate and resolve any mismatch.",
+            "Attach the explainability artefacts to the documentation record."
+          ],
+          "done": "explainability artefacts are generated, logged in MLflow and reconciled to the plain-language summary."
+        },
+        {
+          "step": "Design and name the human-override role",
+          "by": "Chief Data Officer",
+          "role": "Chief Data Officer",
+          "actions": [
+            "Identify the named role empowered to review, question or override the model's output before it acts on a customer (e.g. Senior Underwriter for pricing overrides, Claims Examiner for triage overrides).",
+            "Document the override role's authority, the trigger conditions for review and the escalation path if the override role disagrees with the model.",
+            "Confirm the override role has received training on the model's decision logic and its limitations.",
+            "Record the override design and named role in the documentation record."
+          ],
+          "done": "a named, trained override role and escalation path is documented for the model."
+        },
+        {
+          "step": "Draft the customer-facing explanation template",
+          "by": "Legal Counsel",
+          "role": "Legal Counsel",
+          "actions": [
+            "Draft a plain-English explanation template a customer can request or receive, describing the factors that influenced their pricing, underwriting or claims decision.",
+            "Confirm the template meets UK GDPR Article 13/14 transparency requirements and does not disclose commercially sensitive model internals.",
+            "Route the template through Compliance for Consumer Duty (fair-value communication) review.",
+            "Attach the approved template to the documentation record."
+          ],
+          "done": "the customer-facing explanation template is approved and attached to the documentation record."
+        },
+        {
+          "step": "Test the explanation template against a real scored record",
+          "by": "Data Scientist",
+          "role": "Data Scientist",
+          "actions": [
+            "Populate the approved template using the explainability output for a real (anonymised) scored record.",
+            "Confirm the populated explanation is coherent, accurate and does not contradict the model's actual decision logic.",
+            "Have the Legal Counsel review the populated example for compliance and clarity.",
+            "Attach the tested example to the documentation record."
+          ],
+          "done": "a populated, reviewed example explanation is attached and confirmed coherent with the model's actual logic."
+        },
+        {
+          "step": "Route the documentation package for CDO sign-off",
+          "by": "Chief Data Officer",
+          "role": "Chief Data Officer",
+          "app": "model governance repository",
+          "actions": [
+            "Review the completed decision-logic summary, explainability artefacts, override design and explanation template together.",
+            "Confirm every required section of the Model Documentation Standard is present and internally consistent.",
+            "Sign off and set the documentation record status to 'Complete'.",
+            "Confirm the model's go-live gate in the inventory is unblocked only after this sign-off."
+          ],
+          "done": "the documentation record is marked 'Complete' with a dated CDO sign-off before go-live."
+        },
+        {
+          "step": "Refresh documentation on material model change",
+          "by": "Data Scientist",
+          "role": "Data Scientist",
+          "actions": [
+            "On any retrain, feature-set change or override-design change, reopen the documentation record.",
+            "Re-run the explainability artefact generation and update the decision-logic summary and explanation template as needed.",
+            "Route the updated package for CDO re-sign-off within 10 business days of the change going live.",
+            "Version the documentation record to match the model version."
+          ],
+          "done": "documentation is refreshed and re-signed within 10 business days of any material model change."
+        },
+        {
+          "step": "Train the override role on the current documentation",
+          "by": "Learning & Development Specialist",
+          "role": "Learning & Development Specialist",
+          "actions": [
+            "Build or update the training module covering the model's decision logic, the override role's authority and the escalation path.",
+            "Assign the module to every individual holding the named override role.",
+            "Track completion and confirm 100% completion before the model or its update goes live.",
+            "Report completion status to the Chief Data Officer."
+          ],
+          "done": "100% of override-role holders have completed current training before go-live."
+        },
+        {
+          "step": "Log and respond to customer explanation requests",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "actions": [
+            "Log every customer request for an explanation of an AI-influenced decision in the case-management system.",
+            "Pull the approved explanation template and populate it using the record's actual explainability output.",
+            "Route the populated explanation through Legal Counsel review before sending where the case is a formal complaint.",
+            "Respond within the Consumer Duty-aligned service standard (target 10 business days) and log the response date."
+          ],
+          "done": "every explanation request is logged, populated from real model output and answered within the service standard."
+        },
+        {
+          "step": "Audit override usage patterns",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "actions": [
+            "Pull the override log for each HIGH-tier model quarterly.",
+            "Analyse override frequency and reasons; an unusually low override rate may indicate rubber-stamping rather than genuine review.",
+            "Flag any override role showing a 0% override rate over a full quarter for a process check.",
+            "Report findings to the Chief Data Officer."
+          ],
+          "done": "override usage is reviewed quarterly and any suspiciously low override rate is flagged and investigated."
+        },
+        {
+          "step": "Reconcile documentation status to the model inventory",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "app": "model governance repository",
+          "actions": [
+            "Run a monthly report of HIGH-tier models in 'In Production' status against documentation records marked 'Complete'.",
+            "Flag any production model with an incomplete or missing documentation record.",
+            "Escalate flagged models to the Chief Data Officer for immediate remediation.",
+            "Record the reconciliation outcome each month."
+          ],
+          "done": "no HIGH-tier production model shows an incomplete documentation record beyond the current month's reconciliation."
+        },
+        {
+          "step": "Escalate undocumented HIGH-tier models",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Open a GRC exception for any HIGH-tier model found live without complete documentation.",
+            "Require the Chief Data Officer to complete and sign off documentation within 15 business days.",
+            "Escalate to the Chief Risk Officer if the deadline is missed.",
+            "Close the exception only on confirmed sign-off."
+          ],
+          "done": "every undocumented HIGH-tier model has a tracked GRC exception closed within 15 business days or escalated."
+        },
+        {
+          "step": "Review explainability method suitability annually",
+          "by": "Data Science Lead",
+          "role": "Data Science Lead",
+          "actions": [
+            "Annually review whether the explainability method used (SHAP, LIME, etc.) remains appropriate for the current model architecture.",
+            "Where a model has moved to a new architecture (e.g. gradient boosting to a neural network), confirm the explainability method still produces valid, stable explanations.",
+            "Update the Model Documentation Standard's approved-methods list if needed.",
+            "Notify affected model owners of any required documentation refresh."
+          ],
+          "done": "explainability method suitability is reviewed annually with any required refresh notified to model owners."
+        },
+        {
+          "step": "Retain the documentation evidence",
+          "by": "Chief Data Officer",
+          "role": "Chief Data Officer",
+          "actions": [
+            "File each model's documentation package (summary, explainability artefacts, override design, explanation template, sign-off) into the compliance evidence repository.",
+            "Apply the 6-year-from-decommission retention label.",
+            "Confirm the repository index is searchable by Model ID.",
+            "Verify prior versions remain retrievable alongside the current one."
+          ],
+          "done": "the documentation package is filed, labelled for 6-year retention and retrievable by Model ID."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of HIGH-tier models requiring documentation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "model governance repository",
+          "actions": [
+            "Extract every HIGH-tier model from the model governance repository with its documentation record status.",
+            "Reconcile the extract to the model inventory's production status list.",
+            "Identify any HIGH-tier production model with no matching documentation record.",
+            "Sign the population as complete before sampling."
+          ],
+          "done": "the population is reconciled to the inventory and signed as complete."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of models with an incomplete or missing documentation record.",
+            "Take 10 randomly selected models with a 'Complete' record (seeded, reproducible).",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers every incomplete-documentation model."
+        },
+        {
+          "step": "Re-verify the explainability artefact for each sampled model",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "app": "Azure ML / MLflow",
+          "actions": [
+            "Open the logged MLflow explainability run for the sampled model and confirm it corresponds to the current live model version.",
+            "Independently review whether the top contributing features are consistent with the documented decision-logic summary.",
+            "Flag any mismatch or any artefact generated against a superseded model version.",
+            "Capture the artefact review notes into the workpaper."
+          ],
+          "done": "each sampled model's explainability artefact is independently confirmed current and consistent with its documentation."
+        },
+        {
+          "step": "Confirm the named override role is real and trained",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the named override role in the documentation is held by a current employee in that role.",
+            "Pull the training completion record for that individual and confirm it is current.",
+            "Interview the override-role holder to confirm they understand their authority and the escalation path.",
+            "Flag any gap between documented and actual practice."
+          ],
+          "done": "the override role is confirmed real, trained and understood for every sampled model."
+        },
+        {
+          "step": "Test the customer-facing explanation template against a real record",
+          "by": "Legal Counsel",
+          "role": "Legal Counsel",
+          "actions": [
+            "Independently populate the approved template using a different (anonymised) scored record than the one used at documentation time.",
+            "Confirm the resulting explanation is coherent, accurate and meets UK GDPR transparency requirements.",
+            "Flag any template that produces an inconsistent or non-compliant explanation on re-test.",
+            "Record findings by Model ID."
+          ],
+          "done": "the explanation template is independently re-tested against a fresh record for every sampled model."
+        },
+        {
+          "step": "Trace a sample of logged customer explanation requests to timely, accurate responses",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull 10 logged customer explanation requests from the case-management system across the test period.",
+            "Confirm each was answered within the 10-business-day service standard using the approved template and real model output.",
+            "Confirm any formal complaint case received Legal Counsel review before the response was sent.",
+            "Flag any late, generic or unreviewed response as an exception."
+          ],
+          "done": "the sampled explanation requests are confirmed answered on time, accurately and with required legal review."
+        },
+        {
+          "step": "Recompute override usage rates and investigate anomalies",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently recompute the override rate for each sampled model's override role over the test period.",
+            "Compare to the rate reported in the quarterly override-usage review.",
+            "Investigate any override role showing a 0% rate not already flagged and interview the role holder.",
+            "Record findings by Model ID and role."
+          ],
+          "done": "override rates are independently recomputed and any unflagged anomaly is investigated."
+        },
+        {
+          "step": "Verify material-change refresh timeliness",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For sampled models with a logged retrain or feature-set change in the period, confirm the documentation refresh and re-sign-off occurred within 10 business days.",
+            "Flag any refresh completed late or not at all.",
+            "Cross-check the change log timestamp against the documentation record's version history.",
+            "Record findings by Model ID."
+          ],
+          "done": "documentation refresh timeliness is independently confirmed for every sampled changed model."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a GRC issue per exception with the Model ID, what was missed and the governance impact.",
+            "Assign a root cause (stale artefact, untrained override role, non-compliant template, late refresh) and an owner.",
+            "Set a remediation date and carry unresolved items into next year's mandatory retest.",
+            "Confirm prior-year exceptions were genuinely closed before marking them resolved."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest status."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Data Officer",
+          "role": "Chief Data Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance threshold for missing override roles or explainability artefacts.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the evidence.",
+            "Have the independent reviewer, who authored none of the sampled documentation, sign the workpaper.",
+            "Report results to the AI Governance Committee and file the signed workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and committee reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-064-C05",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Compliance Officer",
+          "value": "Owns coordination of every FCA AI-related inquiry, information request and attestation from intake to submission"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — FCA Handbook SUP 15 (notifications) and section 165 Financial Services and Markets Act 2000 information-request powers re-read on receipt of each inquiry (rep: United Kingdom)"
+        },
+        "In-scope processes": {
+          "value": "Intake, coordination and submission of every FCA request touching AI governance, model risk or algorithmic decision-making across all UK writing entities"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Regulatory inquiry tracker records intake date, statutory deadline, response owner and submission evidence"
+        },
+        "Compliance procedure documented": {
+          "value": "FCA Inquiry Response Procedure — intake triage, evidence-gathering assignment, legal review gate, submission and acknowledgement logging"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and General Counsel; reviewed annually"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Event-driven — response deadline set by the specific FCA request; statutory section 165 requests default to a reasonable-time standard the firm interprets as 10 business days absent an explicit date"
+        },
+        "Deadline reminders configured": {
+          "value": "Regulatory inquiry tracker sends daily reminders to the response owner and Head of Compliance inside the final 3 business days before the deadline"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Inquiry, response, supporting evidence pack and FCA acknowledgement retained 7 years from submission"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any response submitted after the FCA-set deadline is logged as an exception requiring a written cause and remediation to prevent recurrence"
+        },
+        "Remediation sign-off captured": {
+          "role": "General Counsel",
+          "value": "General Counsel signs off the final response before submission and any late-response remediation plan"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All FCA AI-related inquiries, information requests and attestation requests logged in the regulatory inquiry tracker during the period"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any response submitted after the FCA-set or interpreted deadline is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven; independent verification test performed annually across the full logged population"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have drafted any sampled response"
+        },
+        "Evidence location for test results": {
+          "value": "Annual FCA inquiry-response assurance workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Full inquiry-to-submission trail with evidence packs, retrievable within the same 10-business-day window used for FCA responses"
+        },
+        "Regulator response path": {
+          "value": "Compliance Officer owns coordination; General Counsel clears every submission; Head of Compliance is the named FCA contact of record"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Intake and triage the FCA inquiry on receipt",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "On receipt of any FCA letter, portfolio-letter follow-up, section 165 request or attestation request touching AI, log it in the regulatory inquiry tracker within 1 business day.",
+            "Record the request's exact scope, the named FCA contact, any stated deadline and the request reference number.",
+            "Classify the request type (information request, attestation, thematic review, section 165 notice).",
+            "Assign a response owner and notify General Counsel and Head of Compliance."
+          ],
+          "done": "the inquiry is logged within 1 business day with scope, deadline and an assigned owner."
+        },
+        {
+          "step": "Determine the statutory or interpreted response deadline",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Where the FCA letter states an explicit deadline, record it verbatim in the tracker.",
+            "Where no explicit deadline is given, apply the firm's 10-business-day reasonable-time standard and record the computed date.",
+            "Confirm whether the request falls under formal section 165 FSMA powers, which carries statutory compulsion, versus an informal request.",
+            "Set the tracker's deadline field and flag section 165 requests as high-priority."
+          ],
+          "done": "every inquiry carries a confirmed deadline and a correct classification of its statutory basis."
+        },
+        {
+          "step": "Scope the evidence required and assign gathering tasks",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Break the request into discrete evidence items (e.g. model inventory extract, fairness-test reports, governance policy versions, override logs).",
+            "Assign each item to the accountable data owner (Chief Data Officer, Data Science Lead, Model Risk Manager) with an internal sub-deadline at least 5 business days before the external deadline.",
+            "Track sub-task completion daily in the tracker.",
+            "Escalate any sub-task at risk of missing its internal deadline to the Head of Compliance."
+          ],
+          "done": "every evidence item has an assigned owner and an internal sub-deadline ahead of the external deadline."
+        },
+        {
+          "step": "Pull evidence from the model governance repository and GRC platform",
+          "by": "Chief Data Officer",
+          "role": "Chief Data Officer",
+          "app": "model governance repository",
+          "actions": [
+            "Export the requested model inventory records, fairness-test reports and documentation packages exactly matching the request's stated scope and date range.",
+            "Verify the export is complete by cross-checking record counts against the live inventory.",
+            "Redact any information outside the request's scope or containing unrelated personal data.",
+            "Hand the evidence package to the Compliance Officer with a completeness confirmation."
+          ],
+          "done": "the evidence package matches the request scope exactly, is verified complete and is confirmed as handed over."
+        },
+        {
+          "step": "Draft the narrative response",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "actions": [
+            "Draft a narrative response addressing each question or requirement in the FCA letter point by point.",
+            "Reference the specific evidence exhibit supporting each statement.",
+            "Avoid speculative or unsupported claims; where information is not available, state that explicitly with the reason.",
+            "Circulate the draft to the response owner and Chief Data Officer for factual accuracy review."
+          ],
+          "done": "the draft answers every point in the letter, each referencing a specific evidence exhibit, with no unsupported claims."
+        },
+        {
+          "step": "Route the draft through legal review",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Review the narrative response and evidence pack for legal accuracy, privilege issues and consistency with prior FCA submissions.",
+            "Flag any statement that could be read as an admission of a control failure and confirm it is accurate and necessary.",
+            "Require correction of any inaccurate or inconsistent statement before proceeding.",
+            "Provide written sign-off in the tracker once satisfied."
+          ],
+          "done": "General Counsel has signed off the response as legally accurate and consistent with prior submissions."
+        },
+        {
+          "step": "Obtain Head of Compliance final approval",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Present the final response package to the Head of Compliance for approval.",
+            "Confirm the response has been reviewed by every accountable data owner named in it.",
+            "Record the approval with name, role and date in the tracker.",
+            "Prepare the submission in the format and channel specified by the FCA (letter, portal, email to the named supervisor)."
+          ],
+          "done": "the Head of Compliance has approved the final package and the submission format matches the FCA's specified channel."
+        },
+        {
+          "step": "Submit the response before the deadline",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Submit the response through the specified channel at least 1 business day ahead of the deadline where feasible.",
+            "Retain the submission confirmation (delivery receipt, sent email, portal confirmation) as evidence.",
+            "Log the actual submission date and time in the tracker.",
+            "Notify the Head of Compliance and General Counsel that submission is complete."
+          ],
+          "done": "the response is submitted on or ahead of the deadline with retained submission confirmation."
+        },
+        {
+          "step": "Log and file the FCA's acknowledgement or follow-up",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "On receipt of any FCA acknowledgement, follow-up question or closure notice, log it against the original inquiry record.",
+            "If a follow-up question is received, restart the triage step for the follow-up as a linked sub-inquiry.",
+            "Close the original inquiry record only once the FCA has confirmed no further information is required.",
+            "File all correspondence chronologically against the inquiry record."
+          ],
+          "done": "the inquiry record shows every piece of correspondence and is only closed on FCA confirmation."
+        },
+        {
+          "step": "Debrief internally on lessons from the inquiry",
+          "by": "Regulatory Affairs Manager",
+          "role": "Regulatory Affairs Manager",
+          "actions": [
+            "Convene a short debrief with the response owner, Chief Data Officer and General Counsel after closure.",
+            "Identify any evidence gap, process delay or documentation weakness the inquiry exposed.",
+            "Raise action items against the AI governance program (policy, inventory or documentation improvements) as needed.",
+            "Record the debrief outcome in the tracker."
+          ],
+          "done": "every closed inquiry has a documented debrief with any resulting action items raised."
+        },
+        {
+          "step": "Maintain the standing evidence-readiness pack",
+          "by": "Chief Data Officer",
+          "role": "Chief Data Officer",
+          "actions": [
+            "Maintain a continuously current export-ready evidence pack (model inventory summary, fairness-test status, governance policy index) so it can be pulled within 24 hours of any inquiry.",
+            "Refresh the standing pack monthly regardless of whether an inquiry is open.",
+            "Confirm the pack's completeness with Compliance quarterly.",
+            "Store the current pack in the compliance evidence repository."
+          ],
+          "done": "a current, complete standing evidence pack exists and is refreshed at least monthly."
+        },
+        {
+          "step": "Track cumulative inquiry themes across the year",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Tag each closed inquiry by theme (model risk, fairness, explainability, notices, incident-related).",
+            "Compile a quarterly theme report showing frequency and any recurring FCA concern.",
+            "Present recurring themes to the AI Governance Committee for a proactive control response.",
+            "Update the FCA Inquiry Response Procedure if a systemic weakness is identified."
+          ],
+          "done": "recurring inquiry themes are identified quarterly and fed back into governance improvements."
+        },
+        {
+          "step": "Verify the named FCA contact and escalation path are current",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Confirm annually that the firm's named supervisory contact at the FCA and internal escalation contacts are current.",
+            "Update the FCA Inquiry Response Procedure with any change.",
+            "Notify all response owners of the current contact details.",
+            "Record the confirmation date."
+          ],
+          "done": "the named FCA contact and internal escalation path are confirmed current at least annually."
+        },
+        {
+          "step": "Rehearse a mock inquiry response annually",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Run an annual tabletop exercise simulating a section 165 AI-related information request.",
+            "Time the evidence-gathering and drafting steps against the internal sub-deadlines.",
+            "Identify any bottleneck (slow evidence pull, unclear ownership) and remediate before the next cycle.",
+            "Record the exercise outcome and remediation actions."
+          ],
+          "done": "an annual mock inquiry exercise is completed with documented bottlenecks and remediation actions."
+        },
+        {
+          "step": "Retain the full inquiry evidence trail",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "File the inquiry, all evidence exhibits, the approved response, submission confirmation and FCA acknowledgement together.",
+            "Apply the 7-year-from-submission retention label in the compliance evidence repository.",
+            "Confirm the repository index is searchable by FCA request reference number.",
+            "Verify closed prior-year inquiries remain retrievable."
+          ],
+          "done": "the inquiry trail is filed, labelled for 7-year retention and retrievable by request reference number."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of FCA inquiries logged in the period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Extract every inquiry record from the regulatory inquiry tracker logged in the test period.",
+            "Reconcile the extract to correspondence held by Head of Compliance and General Counsel's mailboxes for any inquiry not logged.",
+            "List any unlogged inquiry found as an automatic exception.",
+            "Sign the population as complete before sampling."
+          ],
+          "done": "the population is reconciled against correspondence and signed as complete, with unlogged inquiries flagged."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of section 165 statutory requests.",
+            "Take 5 randomly selected informal requests (seeded, reproducible).",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers every section 165 request."
+        },
+        {
+          "step": "Verify deadline determination and internal sub-deadlines",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled inquiry, confirm the recorded deadline matches the FCA letter's stated date, or the 10-business-day standard where none was stated.",
+            "Confirm internal sub-deadlines were set at least 5 business days ahead of the external deadline.",
+            "Flag any inquiry with no recorded sub-deadlines or a miscalculated external deadline.",
+            "Record findings by inquiry reference."
+          ],
+          "done": "deadline determination and sub-deadline setting are independently confirmed for every sampled inquiry."
+        },
+        {
+          "step": "Trace evidence exhibits back to source systems",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "model governance repository",
+          "actions": [
+            "For each sampled inquiry, pull the evidence exhibits referenced in the final response.",
+            "Re-generate the equivalent extract from the model governance repository or GRC platform and compare to the submitted exhibit.",
+            "Flag any exhibit that does not match a re-generated extract or appears incomplete against the request's scope.",
+            "Capture the comparison into the workpaper."
+          ],
+          "done": "every sampled response's evidence exhibits are independently traced and confirmed accurate."
+        },
+        {
+          "step": "Confirm General Counsel and Head of Compliance sign-off exist and pre-date submission",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm both sign-offs are present in the tracker for each sampled inquiry.",
+            "Compare the sign-off dates to the actual submission date and time.",
+            "Flag any response submitted before both sign-offs were recorded.",
+            "Record findings by inquiry reference."
+          ],
+          "done": "both required sign-offs are confirmed present and pre-dating submission for every sampled inquiry."
+        },
+        {
+          "step": "Recompute submission timeliness",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the logged submission date/time to the recorded deadline for each sampled inquiry.",
+            "Flag any submission after the deadline as a fail, including submissions made on the deadline day after the FCA's stated cut-off time.",
+            "Cross-check the retained submission confirmation (receipt, sent email, portal confirmation) against the logged date.",
+            "Record findings by inquiry reference."
+          ],
+          "done": "submission timeliness is independently recomputed and confirmed against retained confirmations for every sampled inquiry."
+        },
+        {
+          "step": "Verify closure only occurred on FCA confirmation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled closed inquiry, confirm a logged FCA acknowledgement or closure notice exists.",
+            "Flag any inquiry closed internally with no corresponding FCA confirmation on file.",
+            "Confirm any follow-up question was tracked as a linked sub-inquiry rather than ignored.",
+            "Record findings by inquiry reference."
+          ],
+          "done": "closure is independently confirmed as evidenced by an FCA confirmation for every sampled inquiry."
+        },
+        {
+          "step": "Check the debrief and standing evidence pack currency",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm a debrief record exists for each sampled closed inquiry.",
+            "Pull the current standing evidence-readiness pack and confirm its last-refreshed date is within the past month.",
+            "Flag a stale standing pack or a missing debrief as a process exception.",
+            "Record findings."
+          ],
+          "done": "debrief completion and standing-pack currency are independently confirmed."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise a GRC issue per exception with the inquiry reference, what was missed and the regulatory impact.",
+            "Assign a root cause (unlogged inquiry, missed deadline, unverified exhibit, missing sign-off) and an owner.",
+            "Set a remediation date and, for any missed statutory deadline, open a self-report assessment with General Counsel.",
+            "Carry every open exception into next year's mandatory retest."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Compute the exception rate against the zero-missed-statutory-deadline threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the evidence.",
+            "Have the independent reviewer, who drafted none of the sampled responses, sign the workpaper.",
+            "Report results to the Board Risk Committee and file the signed workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and Board reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-064-C06",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Insurance Product Manager",
+          "value": "Owns embedding every FCA-required AI/automated-decision notice and disclosure into product forms and correspondence templates"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — FCA Handbook ICOBS 6A (disclosure) and PRIN 2A (Consumer Duty communications) re-read against the current form library each release; UK GDPR Article 13/14 (transparency on automated decision-making) checked per form (rep: United Kingdom)"
+        },
+        "In-scope processes": {
+          "value": "New-business, renewal and claims-decision forms and correspondence templates for every UK product where an AI/predictive model materially influences the outcome"
+        },
+        "In-scope systems": {
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "value": "Notice/disclosure text embedded as managed content blocks in the policy administration system's correspondence template library"
+        },
+        "Compliance procedure documented": {
+          "value": "Product Notices and Disclosures Standard — required notice text per decision type, placement rules (application, renewal, decline, claims-decision letters), version-control and legal sign-off gate"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and General Counsel; reviewed on every product or process change and at least annually"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per change — new or amended notice language embedded before the triggering product or process change goes live"
+        },
+        "Deadline reminders configured": {
+          "value": "Product change tracker blocks a release to production until the linked notice/disclosure review task is marked complete"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Form inventory, approved notice text versions and legal sign-off retained 7 years from form withdrawal"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any product change implemented without the required notice embedded is logged as a compliance exception with root cause and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "General Counsel",
+          "value": "General Counsel signs off remediation of any form found missing a required notice"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All active correspondence templates and forms in the policy administration system's template library for AI-influenced decision types"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any active template for an AI-influenced decision missing the required notice text is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per-change; independent verification test performed semi-annually across the full active template library"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Officer",
+          "value": "Reviewer must not have authored or approved the sampled template's notice text"
+        },
+        "Evidence location for test results": {
+          "value": "Semi-annual form/notice inventory assurance workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Form inventory with notice text mapped to each template, presentable to the FCA within 10 business days of an inquiry"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct Compliance owns the exam/inquiry response; General Counsel clears any admission of a missing notice before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Identify every decision type where an AI model materially influences the outcome",
+          "by": "Chief Data Officer",
+          "role": "Chief Data Officer",
+          "app": "model governance repository",
+          "actions": [
+            "Query the model governance repository for HIGH-tier models by decision type: application pricing, underwriting decline, renewal repricing, claims-triage outcome.",
+            "For each decision type, confirm whether the model output is the sole driver, a material input alongside human judgement, or advisory only.",
+            "Hand the classified list to the Insurance Product Manager and General Counsel.",
+            "Flag any newly identified decision type since the last review for immediate notice-gap assessment."
+          ],
+          "done": "a current, classified list of AI-influenced decision types exists and has been handed to Product and Legal."
+        },
+        {
+          "step": "Draft the required notice text per decision type",
+          "by": "Legal Counsel",
+          "role": "Legal Counsel",
+          "actions": [
+            "For each AI-influenced decision type, draft notice text meeting UK GDPR Article 13/14 transparency requirements and FCA Consumer Duty plain-language expectations.",
+            "State clearly that automated processing is used, what it assesses, and how the customer can request human review or an explanation.",
+            "Run the draft through a plain-language / readability check appropriate for retail customers.",
+            "Version and date the approved notice text in the notice text library."
+          ],
+          "done": "approved, versioned notice text exists for every AI-influenced decision type and passes the readability check."
+        },
+        {
+          "step": "Map notice text to the specific forms and correspondence templates",
+          "by": "Insurance Product Manager",
+          "role": "Insurance Product Manager",
+          "actions": [
+            "List every form and correspondence template affected by each decision type: quote/application form, decline letter, renewal notice, claims-decision letter.",
+            "For each template, specify exact placement (e.g. footer of the quote page, opening paragraph of a decline letter) per the Product Notices and Disclosures Standard.",
+            "Build the mapping table linking decision type, notice version and template ID.",
+            "Hand the mapping to the Policy Forms Specialist for build."
+          ],
+          "done": "a complete decision-type-to-template mapping with specified placement exists for every affected form."
+        },
+        {
+          "step": "Embed the notice as a managed content block in the policy administration system",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "In the policy administration system's correspondence template designer, create or update the managed content block holding the approved notice text.",
+            "Insert the content block at the specified placement in each mapped template, using the template's merge-field engine rather than hard-coded text.",
+            "Set the content block's effective date to align with the triggering product or process change's go-live date.",
+            "Save as a draft version pending compliance review."
+          ],
+          "done": "the notice content block is embedded at the correct placement in every mapped template as a dated draft."
+        },
+        {
+          "step": "Generate a proof document for each updated template",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Run a test-case merge through the policy administration system for each updated template using representative dummy customer data.",
+            "Generate a PDF proof showing the notice text rendered in its actual placement and font.",
+            "Confirm no merge-field errors or truncated text.",
+            "Attach the proof to the form's build record."
+          ],
+          "done": "a clean PDF proof exists for every updated template showing the notice correctly rendered."
+        },
+        {
+          "step": "Route the proof for Compliance and Legal review",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Review each proof against the approved notice text and placement rules in the Product Notices and Disclosures Standard.",
+            "Confirm the notice is not buried in fine print or contradicted by other template language.",
+            "Route to General Counsel for final legal sign-off.",
+            "Record the review outcome in the form's build record."
+          ],
+          "done": "every updated template's proof is reviewed by Compliance and signed off by General Counsel before release."
+        },
+        {
+          "step": "Promote the reviewed template to production ahead of the triggering change",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Promote the signed-off template version from the test environment to production in the policy administration system.",
+            "Confirm the go-live date is set to align with or precede the triggering product/process change's effective date.",
+            "Run a final smoke test generating a live-environment proof document.",
+            "Close the form's build record as 'Released'."
+          ],
+          "done": "the template is live in production with a smoke-tested proof, released no later than the triggering change's effective date."
+        },
+        {
+          "step": "Update the form inventory register",
+          "by": "Insurance Product Manager",
+          "role": "Insurance Product Manager",
+          "actions": [
+            "Add or update the entry in the form inventory: form ID, decision type, notice version, placement, release date, sign-off references.",
+            "Retire and archive any superseded template version, retaining its history.",
+            "Confirm the inventory is the single source of truth queried by the compliance testing process.",
+            "Notify Compliance that the inventory has been updated."
+          ],
+          "done": "the form inventory reflects the current released version with full version history retained."
+        },
+        {
+          "step": "Confirm the release gate blocked go-live without a notice review",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Check the product change tracker for the triggering change and confirm the notice-review task shows 'Complete' before go-live status was set.",
+            "Where the gate was bypassed, immediately assess whether the live product is now non-compliant.",
+            "Escalate any bypass to the Head of Compliance and open a remediation ticket.",
+            "Record the gate-check outcome."
+          ],
+          "done": "the release gate is confirmed to have blocked go-live until the notice review was complete, or a bypass is escalated and remediated."
+        },
+        {
+          "step": "Train customer-facing teams on the new notice content",
+          "by": "Learning & Development Specialist",
+          "role": "Learning & Development Specialist",
+          "actions": [
+            "Update training materials for Underwriting, Claims and Customer Service teams to reflect the new notice text and its purpose.",
+            "Assign the update to relevant teams and track completion.",
+            "Prepare talking points for staff fielding customer questions about the automated-decision notice.",
+            "Report completion to the Insurance Product Manager."
+          ],
+          "done": "customer-facing teams are trained on the new notice content before or immediately after release."
+        },
+        {
+          "step": "Monitor complaint volumes for notice-related confusion",
+          "by": "Complaints Manager",
+          "role": "Complaints Manager",
+          "actions": [
+            "Tag complaints referencing confusion about automated decisions or requests for human review.",
+            "Compile a monthly volume trend and share with the Insurance Product Manager and Legal Counsel.",
+            "Where a notice appears to be driving confusion, raise a wording-review request.",
+            "Record the monitoring outcome each month."
+          ],
+          "done": "notice-related complaint volume is monitored monthly and any wording concern is fed back for review."
+        },
+        {
+          "step": "Reconcile the notice inventory to the AI model inventory quarterly",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "actions": [
+            "Compare the AI-influenced decision types in the model governance repository to the decision types covered in the notice inventory.",
+            "Flag any HIGH-tier model decision type with no corresponding notice mapping.",
+            "Route gaps to the Insurance Product Manager for immediate remediation.",
+            "Record the reconciliation outcome quarterly."
+          ],
+          "done": "every HIGH-tier model's decision type maps to a notice, with gaps routed for remediation quarterly."
+        },
+        {
+          "step": "Review notice text annually against FCA Consumer Duty guidance",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Review FCA Consumer Duty and disclosure guidance updates annually.",
+            "Compare current notice text against updated guidance for continued adequacy.",
+            "Recommend revisions where guidance has moved and route through the drafting step.",
+            "Record the annual review outcome."
+          ],
+          "done": "notice text adequacy is reviewed annually against current FCA guidance with any gap routed for revision."
+        },
+        {
+          "step": "Escalate a missing-notice finding as a control failure",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue immediately on discovering any live template missing a required notice.",
+            "Assess the number of customers who received the decision without the notice and the exposure window.",
+            "Route to General Counsel for a self-report assessment where the exposure is material.",
+            "Track remediation of the template and any required customer remediation to closure."
+          ],
+          "done": "every missing-notice finding is escalated, assessed for exposure and tracked to remediation closure."
+        },
+        {
+          "step": "Retain the form and notice version evidence",
+          "by": "Insurance Product Manager",
+          "role": "Insurance Product Manager",
+          "actions": [
+            "File the form inventory, notice text versions, proofs and sign-offs into the compliance evidence repository.",
+            "Apply the 7-year-from-withdrawal retention label.",
+            "Confirm the repository index is searchable by form ID and decision type.",
+            "Verify superseded versions remain retrievable alongside the current one."
+          ],
+          "done": "the form and notice evidence is filed, labelled for 7-year retention and retrievable by form ID."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of active AI-influenced templates",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Extract every active correspondence template from the policy administration system's template library.",
+            "Cross-reference against the model governance repository's list of HIGH-tier AI-influenced decision types.",
+            "Identify which templates should carry a notice and reconcile to the form inventory.",
+            "Sign the population as complete before sampling."
+          ],
+          "done": "the population of notice-required templates is reconciled to the model inventory and signed as complete."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of decline and claims-decision templates.",
+            "Take 10 randomly selected other templates (quote, renewal) (seeded, reproducible).",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers every decline and claims-decision template."
+        },
+        {
+          "step": "Generate a live proof for each sampled template",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Independently run a test-case merge in the policy administration system for each sampled template.",
+            "Generate a fresh PDF proof and visually confirm the notice text is present, at the correct placement and not truncated.",
+            "Compare the rendered text word-for-word to the currently approved version in the notice text library.",
+            "Capture the proof into the workpaper."
+          ],
+          "done": "each sampled template's live rendering is independently verified against the approved notice text."
+        },
+        {
+          "step": "Verify placement and prominence against the Standard",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compare each sampled proof's actual notice placement to the rule specified in the Product Notices and Disclosures Standard.",
+            "Assess whether the notice is legible and not buried below unrelated boilerplate.",
+            "Flag any placement or prominence deviation as an exception.",
+            "Record findings by template ID."
+          ],
+          "done": "placement and prominence are independently assessed against the Standard for every sampled template."
+        },
+        {
+          "step": "Confirm legal sign-off exists and pre-dates the release date",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the General Counsel sign-off record for each sampled template's current version.",
+            "Compare the sign-off date to the template's production go-live date.",
+            "Flag any template released before its sign-off date.",
+            "Record findings by template ID."
+          ],
+          "done": "legal sign-off is confirmed present and pre-dating release for every sampled template."
+        },
+        {
+          "step": "Trace release timing against the triggering product change",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled template tied to a specific product or process change, pull the change's effective date from the product change tracker.",
+            "Confirm the template's notice-carrying version was live on or before that effective date.",
+            "Flag any gap where customers could have received the decision before the notice was live.",
+            "Record findings by template ID."
+          ],
+          "done": "release timing against the triggering change is independently confirmed for every sampled template."
+        },
+        {
+          "step": "Reconcile the notice inventory to the model inventory",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "actions": [
+            "Independently re-run the reconciliation between HIGH-tier AI decision types and the notice inventory.",
+            "Confirm every decision type identified in the reconciliation has a live, sampled-and-verified notice.",
+            "Flag any decision type with no corresponding notice as a critical exception.",
+            "Record findings."
+          ],
+          "done": "the notice-to-model reconciliation is independently re-performed with any gap flagged as critical."
+        },
+        {
+          "step": "Review complaint records for notice-related exposure",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull complaint records tagged as notice-related for the test period.",
+            "Assess whether any complaint reveals a customer receiving an undisclosed automated decision.",
+            "Cross-reference the complaint date against the affected template's notice-release date.",
+            "Record findings and any exposure identified."
+          ],
+          "done": "complaint records are reviewed for notice-related exposure and any finding is cross-referenced to release timing."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the template ID, what was missed and the customer exposure.",
+            "Assign a root cause (build error, late release, placement failure, missing sign-off) and an owner.",
+            "Set a remediation date and, for material customer exposure, open a self-report assessment with General Counsel.",
+            "Carry unresolved items into next cycle's mandatory retest."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance threshold for missing notices.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the evidence.",
+            "Have the independent reviewer, who authored none of the sampled notice text, sign the workpaper.",
+            "Report results to the Compliance Committee and file the signed workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and committee reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-064-C07",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Policy Administration Analyst",
+          "value": "Owns timely generation and delivery of every AI-decision notice triggered by a live policy or claims event"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — FCA Handbook ICOBS 6A.2 and DISP 1.3 (complaints/decision communications) re-read for delivery-timing requirements each release; UK GDPR Article 12 (timely communication) checked per notice type (rep: United Kingdom)"
+        },
+        "In-scope processes": {
+          "value": "Event-driven generation and delivery of decline, renewal-repricing and claims-decision notices for every policy where an AI-influenced decision has been made"
+        },
+        "In-scope systems": {
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "value": "Automated notice-generation workflow triggered on decision events, with delivery logged in the correspondence audit trail"
+        },
+        "Compliance procedure documented": {
+          "value": "Notice Generation and Delivery Procedure — trigger events, required delivery window per notice type, delivery-channel rules, exception handling for bounced or undeliverable notices"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and Policy Admin Ops Lead; reviewed annually"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Event-driven — decline notices within 5 business days of the decision, renewal-repricing notices at least 21 calendar days before renewal, claims-decision notices within 3 business days of the decision"
+        },
+        "Deadline reminders configured": {
+          "value": "Notice log dashboard flags any triggered event with no generated notice inside 80% of its delivery window"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Notice log entries and delivery confirmations retained 7 years from the policy's lapse or claim closure"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any notice generated or delivered outside its statutory window is logged as an exception with root cause and customer-remediation assessment"
+        },
+        "Remediation sign-off captured": {
+          "role": "Compliance Officer",
+          "value": "Compliance Officer signs off remediation of any late or undelivered notice, including any required customer remediation"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All decision events (decline, renewal-repricing, claims-decision) triggered in the test period per the policy administration system's event log"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any notice generated or delivered outside its statutory window is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven; independent verification test performed quarterly over that quarter's event population"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Officer",
+          "value": "Reviewer must not be the analyst who processed any sampled notice"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly notice-timeliness test workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Notice log export with generation and delivery timestamps per event, presentable to the FCA within 10 business days of an inquiry"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct Compliance owns the exam/inquiry response; Compliance Officer clears any admission of a late-notice pattern before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Confirm the trigger events are correctly configured",
+          "by": "Policy Administrator",
+          "role": "Policy Administrator",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "In the policy administration system's business rules engine, locate the event triggers for decline, renewal-repricing and claims-decision outcomes.",
+            "Confirm each trigger fires immediately on the decision being finalised in the underwriting or claims workstation, not on a batch delay.",
+            "Test-fire each trigger type in the UAT environment and confirm the notice-generation task queues correctly.",
+            "Record the confirmed trigger configuration in the change log."
+          ],
+          "done": "all three trigger types are confirmed firing immediately on decision finalisation in UAT."
+        },
+        {
+          "step": "Generate the notice from the approved template on trigger",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Confirm the automated workflow pulls the current approved notice template (per REG-064-C06's mapping) and merges the customer's actual decision data.",
+            "Check the merged notice for correct policy number, decision date and any monetary figures (new premium, decline reason category).",
+            "Route any merge exception (missing field, template error) to the Policy Admin Ops Lead same-day rather than allowing a blank or broken notice to queue.",
+            "Confirm the generated notice enters the delivery queue with a generation timestamp."
+          ],
+          "done": "every triggered event produces a correctly merged notice with a logged generation timestamp same-day."
+        },
+        {
+          "step": "Select and confirm the delivery channel",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "actions": [
+            "Check the customer's communication preference on file (post, email, Customer Self-Service Portal message).",
+            "Apply the channel priority rule: use the customer's elected preference; default to post where no preference is on file or email has previously bounced.",
+            "Confirm the address or email on file was validated within the last 12 months; flag stale contact data for verification before sending.",
+            "Set the delivery channel on the notice record."
+          ],
+          "done": "every notice carries a confirmed, validated delivery channel before dispatch."
+        },
+        {
+          "step": "Dispatch the notice within its statutory delivery window",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Customer Self-Service Portal",
+          "actions": [
+            "Dispatch decline notices within 5 business days of the decision date; renewal-repricing notices at least 21 calendar days before the renewal date; claims-decision notices within 3 business days of the decision.",
+            "For portal delivery, publish the notice to the Customer Self-Service Portal and trigger the email/SMS alert that a document is ready.",
+            "For post, hand off to the mail house with the required same-day or next-day print SLA.",
+            "Log the actual dispatch timestamp against the notice record."
+          ],
+          "done": "the notice is dispatched inside its statutory window with a logged dispatch timestamp."
+        },
+        {
+          "step": "Confirm delivery and capture proof",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "actions": [
+            "For email/portal delivery, confirm the send-confirmation and (where available) the read/open event from the delivery platform.",
+            "For post, confirm the mail house's dispatch confirmation and batch reference.",
+            "Attach the delivery proof to the notice log entry.",
+            "Where no delivery confirmation is received within 2 business days of dispatch, escalate to check for a bounce or return."
+          ],
+          "done": "every dispatched notice has an attached delivery proof or an escalated bounce investigation within 2 business days."
+        },
+        {
+          "step": "Handle bounced or undeliverable notices",
+          "by": "Correspondence Clerk",
+          "role": "Correspondence Clerk",
+          "actions": [
+            "On a bounced email or returned-mail notification, open an undeliverable-notice case.",
+            "Attempt to verify updated contact details via the CRM and any recent customer contact (claim call, policy service request).",
+            "Re-dispatch through the corrected channel within 2 business days of identifying the failure.",
+            "If no valid contact can be found, escalate to the Policy Admin Ops Lead for a manual outreach attempt (phone call) and document the attempt."
+          ],
+          "done": "every bounced notice is re-dispatched within 2 business days of the failure being identified, or escalated with a documented manual attempt."
+        },
+        {
+          "step": "Log every notice in the Notice Log with full lifecycle timestamps",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "actions": [
+            "Record trigger event, generation timestamp, dispatch timestamp, delivery channel and delivery/bounce status for every notice.",
+            "Link the log entry to the policy number and the underlying AI decision record in the model governance repository.",
+            "Confirm no log entry is left with a blank dispatch or delivery-status field beyond 3 business days of triggering.",
+            "Reconcile the log daily against the event trigger count to catch missed generations."
+          ],
+          "done": "the notice log carries a complete lifecycle record for every triggered event, reconciled daily against trigger counts."
+        },
+        {
+          "step": "Escalate any notice at risk of missing its statutory window",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "actions": [
+            "Monitor the notice log dashboard for any event inside 80% of its delivery window with no dispatch logged.",
+            "Contact the assigned Policy Administration Analyst to expedite same-day.",
+            "Where the window will be missed regardless, notify the Compliance Officer immediately, not after the fact.",
+            "Record the at-risk event and its resolution."
+          ],
+          "done": "every at-risk event is escalated before the window closes, with Compliance notified of any that will be missed."
+        },
+        {
+          "step": "Assess and report any notice delivered outside its window",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for any notice with a dispatch timestamp outside its statutory window.",
+            "Assess whether the delay caused customer detriment (e.g. a renewal lapsed before the customer was notified of a repriced premium).",
+            "Where detriment is found, initiate the customer remediation process (extension, reinstatement, goodwill payment as appropriate).",
+            "Record the root cause and remediation in the tracker."
+          ],
+          "done": "every late notice has an assessed detriment finding and, where warranted, a tracked remediation."
+        },
+        {
+          "step": "Reconcile the notice log to the AI decision event log monthly",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "actions": [
+            "Pull the AI-influenced decision events (declines, repricings, claims decisions) from the underwriting/claims workstation event log.",
+            "Compare to the notice log for the same period and identify any decision event with no matching notice record.",
+            "Route any gap to the Policy Admin Ops Lead for immediate investigation.",
+            "Record the reconciliation outcome monthly."
+          ],
+          "done": "the notice log is reconciled to the decision event log monthly with any gap routed for investigation."
+        },
+        {
+          "step": "Review delivery-channel effectiveness quarterly",
+          "by": "Customer Experience Lead",
+          "role": "Customer Experience Lead",
+          "actions": [
+            "Analyse the bounce/undeliverable rate by channel (post vs email vs portal) quarterly.",
+            "Identify any channel with a materially higher failure rate and investigate the cause (stale addresses, spam filtering).",
+            "Recommend channel-priority rule changes to the Policy Admin Ops Lead where warranted.",
+            "Record the quarterly review outcome."
+          ],
+          "done": "channel effectiveness is reviewed quarterly with any material failure-rate issue investigated and addressed."
+        },
+        {
+          "step": "Audit a sample of notices for content accuracy",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "actions": [
+            "Pull a monthly sample of 10 dispatched notices across the three notice types.",
+            "Confirm the merged content (decision reason, figures, dates) matches the underlying policy/claims record exactly.",
+            "Flag any content error and route to Policy Administration Analyst for correction and, if already sent, a corrected re-issue.",
+            "Record the audit outcome monthly."
+          ],
+          "done": "a monthly content-accuracy sample is completed with any error corrected and re-issued where already dispatched."
+        },
+        {
+          "step": "Update the delivery-window rules on any regulatory change",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Monitor FCA Handbook updates to ICOBS and DISP delivery-timing requirements.",
+            "Update the Notice Generation and Delivery Procedure and the system's window configuration where a rule changes.",
+            "Notify the Policy Admin Ops Lead and re-test the trigger configuration for the changed window.",
+            "Record the update date and the re-test outcome."
+          ],
+          "done": "delivery-window rules are updated and re-tested within 30 days of any relevant FCA rule change."
+        },
+        {
+          "step": "Confirm claims-decision notices align with the claims file",
+          "by": "Claims Coordinator",
+          "role": "Claims Coordinator",
+          "actions": [
+            "For claims-decision notices, cross-check the notice's stated decision and reason against the claims file's recorded outcome and adjuster notes.",
+            "Flag any mismatch between the AI-influenced triage outcome and the notice text before dispatch where the workflow allows a pre-send check.",
+            "Escalate systemic mismatches to the Model Risk Analyst for the underlying model documentation to be reviewed.",
+            "Record the check outcome."
+          ],
+          "done": "claims-decision notices are checked against the claims file, with mismatches flagged before or promptly after dispatch."
+        },
+        {
+          "step": "Retain the notice log and delivery evidence",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "actions": [
+            "Export the notice log with delivery proofs into the compliance evidence repository quarterly.",
+            "Apply the 7-year-from-lapse/closure retention label.",
+            "Confirm the repository index is searchable by policy number and notice type.",
+            "Verify prior quarters' exports remain retrievable."
+          ],
+          "done": "the notice log and delivery evidence is filed, labelled for 7-year retention and retrievable by policy number."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of decision events triggered in the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Extract every decline, renewal-repricing and claims-decision event from the policy administration system's event log for the quarter.",
+            "Reconcile the extract count to the notice log's trigger count for the same period.",
+            "List any event with no matching notice log entry as an automatic exception.",
+            "Sign the population as complete before sampling."
+          ],
+          "done": "the population is reconciled to the notice log and signed as complete."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of events already flagged late or undeliverable in the notice log.",
+            "Take 25 randomly selected on-time events, minimum 10 per notice type (seeded, reproducible).",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers every already-flagged late event."
+        },
+        {
+          "step": "Recompute the statutory delivery window for each sampled event",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently recompute the required delivery window from the decision date using the current rule (5 business days decline, 21 calendar days renewal, 3 business days claims-decision).",
+            "Compare to the logged dispatch timestamp and flag any breach not already caught.",
+            "Cross-check business-day calculations against the bank holiday calendar in force at the time.",
+            "Record findings by policy number."
+          ],
+          "done": "delivery-window compliance is independently recomputed and any unflagged breach is logged as a new exception."
+        },
+        {
+          "step": "Verify content accuracy against the source decision record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the actual dispatched notice text and compare every merged field (decision reason, premium figures, dates) to the underlying policy or claims record.",
+            "Flag any content mismatch as an exception.",
+            "Confirm the notice template version used matches the version approved and mapped for that decision type at the time.",
+            "Record findings by policy number."
+          ],
+          "done": "content accuracy and template version currency are independently verified for every sampled notice."
+        },
+        {
+          "step": "Trace delivery proof for each sampled notice",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm a delivery proof (send confirmation, mail house dispatch confirmation) exists and matches the logged channel.",
+            "For bounced/undeliverable cases, confirm a re-dispatch occurred within 2 business days per procedure, or an escalated manual attempt is documented.",
+            "Flag any notice with no delivery proof and no bounce-handling record.",
+            "Record findings by policy number."
+          ],
+          "done": "delivery proof or documented bounce-handling is confirmed for every sampled notice."
+        },
+        {
+          "step": "Verify detriment assessment on every late notice",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "For each sampled late notice, confirm a detriment assessment was performed and documented.",
+            "Where detriment was found, confirm the remediation (extension, reinstatement, goodwill payment) was actually completed.",
+            "Flag any late notice with no detriment assessment on file.",
+            "Record findings by policy number."
+          ],
+          "done": "detriment assessment and, where warranted, remediation completion is confirmed for every sampled late notice."
+        },
+        {
+          "step": "Check the monthly reconciliation and content-accuracy audit records",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the monthly notice-log-to-decision-event reconciliation was performed for every month in the quarter.",
+            "Confirm the monthly content-accuracy sample audit was performed and any error corrected.",
+            "Flag any missed monthly control as a process exception.",
+            "Record findings."
+          ],
+          "done": "monthly reconciliation and content-accuracy audit performance is confirmed for the full quarter."
+        },
+        {
+          "step": "Assess channel-failure trends",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently compute the bounce/undeliverable rate by channel for the quarter.",
+            "Compare to the Customer Experience Lead's quarterly review conclusions.",
+            "Flag any material discrepancy or unaddressed high-failure channel.",
+            "Record findings."
+          ],
+          "done": "channel-failure trends are independently recomputed and compared to the internal quarterly review."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the policy number, what was missed and the customer impact.",
+            "Assign a root cause (trigger failure, content error, delivery failure, missed reconciliation) and an owner.",
+            "Set a remediation date and confirm any required customer remediation was completed.",
+            "Carry unresolved items into next quarter's mandatory retest."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance threshold for missed statutory windows causing customer detriment.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the evidence.",
+            "Have the independent reviewer, who processed none of the sampled notices, sign the workpaper.",
+            "Report results to the Compliance Committee and file the signed workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and committee reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-064-C08",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Configuration Engineer",
+          "value": "Owns implementing and testing the system configuration that enforces notice timing and content rules in the policy administration platform"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — FCA Handbook SYSC 4.1 (systems and controls adequacy) and ICOBS 6A.2 delivery-timing requirements re-read against the configuration specification each release (rep: United Kingdom)"
+        },
+        "In-scope processes": {
+          "value": "Change management for the automated rules engine that fires notice triggers, enforces delivery windows and locks approved notice content in the policy administration platform"
+        },
+        "In-scope systems": {
+          "app": "Policy Administration Platform",
+          "value": "Business rules engine, correspondence template designer and release pipeline enforcing timing and content rules"
+        },
+        "Compliance procedure documented": {
+          "value": "System Configuration Change Standard — requirements traceability from the Compliance-approved rule to the configured trigger/window, mandatory UAT test cases, segregation-of-duties for production promotion"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of IT and Head of Compliance; reviewed annually and on any related FCA rule change"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per change — configuration updated and tested ahead of any new or amended timing/content rule's effective date"
+        },
+        "Deadline reminders configured": {
+          "value": "Release pipeline blocks promotion to production until the linked compliance test cases show a 100% pass result"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Configuration change requests, test case results, sign-offs and deployment logs retained 7 years from the configuration's retirement"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "value": "Any configuration deployed without a passed compliance test case is logged as an exception with root cause and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "IT Service Delivery Manager",
+          "value": "IT Service Delivery Manager signs off remediation of any configuration exception before the change is confirmed compliant"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All configuration changes to the notice-timing and notice-content rules deployed to production in the test period"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any deployed configuration change lacking a passed compliance test case, or found not enforcing the intended rule in production, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per-change; independent verification test performed quarterly over that quarter's deployed changes plus an annual full regression test"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "QA Analyst",
+          "value": "Reviewer must not be the Configuration Engineer who built the sampled change"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly configuration-compliance test workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Configuration change log with linked compliance test evidence, presentable to the FCA within 10 business days of an inquiry"
+        },
+        "Regulator response path": {
+          "value": "Head of IT coordinates the technical response; Compliance Officer clears the submission before it is sent to the FCA"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Translate the compliance requirement into a system change request",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Take the approved timing/content rule from Compliance (e.g. a new delivery-window figure, a revised notice content mapping) and open a change request in the ITSM platform.",
+            "Write the requirement as a testable acceptance criterion: trigger condition, exact timing threshold, expected system behaviour.",
+            "Link the change request to the source compliance procedure or policy version it implements.",
+            "Route to the Head of IT for prioritisation into the release backlog."
+          ],
+          "done": "the change request states a testable acceptance criterion and is linked to its source compliance requirement."
+        },
+        {
+          "step": "Design the configuration in the business rules engine",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "In the policy administration platform's business rules engine, build or amend the rule implementing the trigger condition and timing threshold.",
+            "Where content is affected, link the rule to the correct managed content block from the notice text library rather than hard-coding text.",
+            "Document the rule logic (inputs, condition, output) in the change record.",
+            "Peer-review the rule design with another Configuration Engineer before build."
+          ],
+          "done": "the rule design is documented, peer-reviewed and correctly references the managed content block."
+        },
+        {
+          "step": "Write compliance test cases covering the acceptance criteria",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "actions": [
+            "Write test cases covering the happy path (trigger fires within the window), boundary conditions (event on the exact deadline day) and failure modes (missing data preventing trigger).",
+            "Include a test case for weekend/bank-holiday handling on business-day-based windows.",
+            "Include a content test case confirming the merged notice text matches the current approved version exactly.",
+            "Link each test case to its source acceptance criterion in the change request."
+          ],
+          "done": "test cases cover happy path, boundary conditions, failure modes and content accuracy, each linked to an acceptance criterion."
+        },
+        {
+          "step": "Execute the test cases in the UAT environment",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Deploy the configuration change to the UAT environment.",
+            "Execute every linked test case, recording pass/fail and evidence (screenshot, generated document, timestamp log) for each.",
+            "Log any failure as a defect against the Configuration Engineer with reproduction steps.",
+            "Re-test after any defect fix until 100% of test cases pass."
+          ],
+          "done": "100% of linked test cases pass in UAT with evidence captured for each."
+        },
+        {
+          "step": "Obtain Compliance sign-off on the UAT evidence",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Review the UAT test evidence against the original compliance requirement.",
+            "Confirm the boundary-condition and content-accuracy test cases specifically demonstrate the rule is enforced as intended.",
+            "Sign off in the change record, or return with specific gaps for rework.",
+            "Record the sign-off date."
+          ],
+          "done": "Compliance has signed off the UAT evidence as demonstrating the requirement is correctly enforced."
+        },
+        {
+          "step": "Promote the change to production under segregation of duties",
+          "by": "Release Coordinator",
+          "role": "Release Coordinator",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Confirm the release pipeline shows a 100% pass on linked compliance test cases before allowing promotion.",
+            "Promote the change using a release engineer distinct from the Configuration Engineer who built it.",
+            "Record the deployment timestamp and the build/release identifiers in the change record.",
+            "Notify the Configuration Engineer and Compliance Officer of successful deployment."
+          ],
+          "done": "the change is promoted by a segregated releaser only after the pipeline confirms 100% test pass, with deployment logged."
+        },
+        {
+          "step": "Run a production smoke test immediately after deployment",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "actions": [
+            "Execute a subset of the compliance test cases against the live production environment using a non-customer-impacting test record where possible.",
+            "Confirm the trigger fires and the content renders exactly as it did in UAT.",
+            "Escalate any production-only discrepancy to the Configuration Engineer immediately and consider a rollback.",
+            "Record the smoke test result in the change record."
+          ],
+          "done": "a production smoke test confirms the change behaves as tested, with any discrepancy triggering an immediate escalation."
+        },
+        {
+          "step": "Roll back immediately if production does not match tested behaviour",
+          "by": "IT Service Delivery Manager",
+          "role": "IT Service Delivery Manager",
+          "actions": [
+            "On confirmation of a production discrepancy, authorise an immediate rollback to the last known-compliant configuration.",
+            "Notify Compliance and the business owner of the rollback and the customer-impact window, if any.",
+            "Open an incident record covering root cause investigation.",
+            "Do not re-attempt promotion until the root cause is fixed and re-tested end to end."
+          ],
+          "done": "any production discrepancy triggers an immediate rollback, notification and incident record before re-attempting the change."
+        },
+        {
+          "step": "Monitor configuration drift after deployment",
+          "by": "Site Reliability Engineer",
+          "role": "Site Reliability Engineer",
+          "actions": [
+            "Set up an automated monthly check comparing the live rules-engine configuration to the last approved, signed-off baseline.",
+            "Alert the Configuration Engineer and Compliance Officer on any unauthorised drift.",
+            "Investigate drift causes (emergency hotfix, manual override) and require retrospective compliance sign-off.",
+            "Record the monthly drift-check outcome."
+          ],
+          "done": "a monthly automated drift check runs, with any unauthorised change investigated and retrospectively signed off."
+        },
+        {
+          "step": "Maintain the requirements-to-configuration traceability matrix",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "actions": [
+            "Maintain a matrix linking every active compliance rule to its implementing configuration item and its most recent test evidence.",
+            "Update the matrix on every change deployment.",
+            "Review the matrix quarterly for any compliance rule with no linked, currently-tested configuration.",
+            "Route gaps to the Head of IT for prioritisation."
+          ],
+          "done": "the traceability matrix is current and reviewed quarterly, with gaps routed for prioritisation."
+        },
+        {
+          "step": "Run a full annual regression test of all timing/content configurations",
+          "by": "QA Automation Engineer",
+          "role": "QA Automation Engineer",
+          "app": "Apache JMeter / k6 Performance Testing",
+          "actions": [
+            "Assemble the full library of compliance test cases across all notice types and timing rules.",
+            "Automate execution against a full-scale UAT refresh mirroring production configuration.",
+            "Record pass/fail for every rule and route failures to the Configuration Engineer for remediation before the next release window.",
+            "Report the annual regression result to the Head of IT and Head of Compliance."
+          ],
+          "done": "the full annual regression test is executed with results reported and failures remediated before the next release."
+        },
+        {
+          "step": "Review access controls on the rules engine",
+          "by": "IT Security Manager",
+          "role": "IT Security Manager",
+          "actions": [
+            "Review who holds production write-access to the business rules engine and correspondence template designer quarterly.",
+            "Confirm access is limited to authorised Configuration Engineers and Release Coordinators, with no direct business-user write access.",
+            "Remove access for anyone who has left the role or no longer needs it.",
+            "Record the access review outcome quarterly."
+          ],
+          "done": "production write-access to the rules engine is reviewed quarterly and restricted to authorised roles."
+        },
+        {
+          "step": "Log configuration exceptions and track to closure",
+          "by": "IT Service Delivery Manager",
+          "role": "IT Service Delivery Manager",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Raise a ticket for any configuration deployed without a passed compliance test case, any drift finding, or any smoke-test discrepancy.",
+            "Assign a root cause and an owner, and set a remediation date.",
+            "Track the ticket to closure with re-test evidence attached.",
+            "Report open exceptions monthly to the Head of IT and Compliance Officer."
+          ],
+          "done": "every configuration exception is ticketed, assigned, remediated and closed with re-test evidence."
+        },
+        {
+          "step": "Update the System Configuration Change Standard on process learnings",
+          "by": "IT Service Delivery Manager",
+          "role": "IT Service Delivery Manager",
+          "actions": [
+            "Review incident and exception patterns from the past year for recurring root causes.",
+            "Propose Standard updates (additional mandatory test case types, tighter segregation rules) where warranted.",
+            "Route the proposed update through Head of IT and Head of Compliance for approval.",
+            "Publish and communicate the updated Standard to all Configuration Engineers."
+          ],
+          "done": "the Standard is reviewed annually against incident patterns and updated where warranted."
+        },
+        {
+          "step": "Retain the configuration change and test evidence",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "actions": [
+            "File each change request, rule design, test case results, sign-offs and deployment log into the compliance evidence repository.",
+            "Apply the 7-year-from-retirement retention label.",
+            "Confirm the repository index is searchable by change request ID and the compliance rule it implements.",
+            "Verify prior changes remain retrievable alongside the current configuration."
+          ],
+          "done": "the configuration change evidence is filed, labelled for 7-year retention and retrievable by change request ID."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of configuration changes deployed in the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Extract every configuration change deployed to production in the quarter that touches notice timing or content rules from the ITSM platform.",
+            "Reconcile the extract to the release pipeline's deployment log.",
+            "List any deployment found in the pipeline log with no matching ITSM change request as an automatic exception.",
+            "Sign the population as complete before sampling."
+          ],
+          "done": "the population is reconciled to the deployment log and signed as complete."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of changes flagged as rolled back or exception-logged during the quarter.",
+            "Take 10 randomly selected clean deployments (seeded, reproducible).",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers every rolled-back or exception-logged change."
+        },
+        {
+          "step": "Re-perform the compliance test cases against the live configuration",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Independently re-execute the boundary-condition and content-accuracy test cases against the current production configuration for each sampled change.",
+            "Compare results to the original UAT and smoke-test evidence.",
+            "Flag any test case that now fails, or that was never actually executed despite being marked passed.",
+            "Capture the re-performance evidence into the workpaper."
+          ],
+          "done": "each sampled change's compliance test cases are independently re-executed with any failure or fabricated pass logged as an exception."
+        },
+        {
+          "step": "Verify the traceability from compliance requirement to deployed rule",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled change, confirm the ITSM change request links to a specific, dated compliance requirement or policy version.",
+            "Confirm the deployed rule logic in the change record matches the stated acceptance criterion.",
+            "Flag any change with a vague or missing requirement linkage.",
+            "Record findings by change request ID."
+          ],
+          "done": "requirement-to-configuration traceability is independently confirmed for every sampled change."
+        },
+        {
+          "step": "Confirm segregation of duties on promotion",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the individual who promoted each sampled change to production is different from the Configuration Engineer who built it.",
+            "Confirm the compliance sign-off predates the promotion timestamp.",
+            "Flag any change promoted by its own builder or without a pre-dated sign-off.",
+            "Record findings by change request ID."
+          ],
+          "done": "segregation of duties and sign-off sequencing is independently confirmed for every sampled change."
+        },
+        {
+          "step": "Test the monthly configuration drift-detection control",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the drift-detection check ran every month in the quarter with results retained.",
+            "Independently compare the current production configuration to the last approved baseline for the sampled rules.",
+            "Flag any drift not caught by the monthly control.",
+            "Record findings."
+          ],
+          "done": "drift-detection control performance is confirmed for the quarter and any missed drift is independently identified."
+        },
+        {
+          "step": "Verify rollback handling on any flagged discrepancy",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled change that triggered a rollback, confirm an incident record exists with a documented root cause.",
+            "Confirm the re-attempted deployment carried updated test cases addressing the root cause.",
+            "Confirm any affected customers or transactions during the discrepancy window were identified and assessed for impact.",
+            "Record findings by change request ID."
+          ],
+          "done": "rollback handling, root-cause fix and customer-impact assessment are confirmed for every sampled rollback."
+        },
+        {
+          "step": "Review production access controls",
+          "by": "IT Security Manager",
+          "role": "IT Security Manager",
+          "actions": [
+            "Independently pull the current access list for the business rules engine and correspondence template designer.",
+            "Compare against the last quarterly access review and confirm all listed individuals are current and authorised.",
+            "Flag any unauthorised or stale access not caught by the quarterly review.",
+            "Record findings."
+          ],
+          "done": "production access is independently reviewed and any gap missed by the quarterly control is flagged."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "IT Service Delivery Manager",
+          "role": "IT Service Delivery Manager",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Raise a ticket per exception with the change request ID, what was missed and the compliance impact.",
+            "Assign a root cause (missing test case, sign-off gap, segregation failure, undetected drift) and an owner.",
+            "Set a remediation date and carry unresolved items into next quarter's mandatory retest.",
+            "Confirm prior-quarter exceptions were genuinely closed before marking them resolved."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest status."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Head of IT",
+          "role": "Head of IT",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance threshold for changes deployed without a passed compliance test case.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the evidence.",
+            "Have the independent reviewer, who built none of the sampled changes, sign the workpaper.",
+            "Report results to the Compliance Committee and file the signed workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and committee reporting date exists in the repository."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2971 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-059-C01",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Appointed Actuary",
+          "value": "Appointed Actuary owns the quarterly and year-end reserve computation and certification for all OSFI-regulated Canadian entities; escalation to Chief Actuary and CFO for capital-impacting movements"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — OSFI Guideline E-15 (Appointed Actuary: Legal Requirements, Qualifications and External Review) and the CIA Standards of Practice (CALM/IFRS 17 fulfilment cash flows for life, discounted unpaid claims for P&C), re-read at each valuation cycle (rep: Canada, OSFI Guideline E-19 ORSA Key Metrics Report / E-15 Memorandum to the Appointed Actuary)"
+        },
+        "In-scope processes": {
+          "value": "Quarterly close and annual year-end reserve valuation for every in-force life, health and annuity block and every P&C unpaid-claim liability, across all OSFI-regulated legal entities and branches"
+        },
+        "In-scope systems": {
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "value": "FIS Prophet (life CALM/IFRS 17 models) and Milliman Arius (P&C loss development); assumption library version-controlled in the model governance repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Reserve Valuation Standard Operating Procedure — CALM/IFRS 17 fulfilment cash flow methodology (life) and discounted central-estimate-plus-margin methodology (P&C), assumption-setting governance and model change control"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Actuary and ratified by the Board Audit & Risk Committee annually and on any material methodology or assumption change"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Quarterly reserves finalized within 5 business days of quarter-end to feed OSFI's quarterly Financial Data Return; year-end reserves finalized ahead of the 180-day Appointed Actuary's Report filing deadline"
+        },
+        "Deadline reminders configured": {
+          "value": "Valuation calendar alerts at quarter-end +5 business days, and at T-60/T-30 days before the 180-day annual AAR filing deadline"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Valuation workpapers, assumption version tags and model run logs retained 7 years from the valuation date in the model governance repository"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "compliance evidence repository",
+          "value": "Reserve exceptions (assumption breach, model error, late close, GL reconciliation break) logged with root cause and Chief Actuary/CFO disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Actuary",
+          "value": "Chief Actuary signs off every reserve restatement or model/assumption remediation before it is booked to the general ledger"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All valuation runs (quarterly and year-end) completed in the review period across every legal entity and product group, per the model governance repository run log"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for a posted reserve without a signed certification memo and completed peer review; reconciliation breaks above the Controller's materiality threshold are a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is quarterly/annual; test runs quarterly over that quarter's runs plus 100% coverage of the year-end run"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have performed or peer-reviewed any sampled valuation run"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly reserve-testing workpaper (population extract, sample, re-performance notes, exceptions) in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Valuation memoranda, RRS submission confirmations and reconciliation workpapers, presentable to an OSFI supervisory review within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Chief Actuary owns the OSFI supervisory response on valuation matters; Regulatory Counsel clears any admission of a reserve deficiency before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Extract policy, in-force and claims data as of the valuation date",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Pull the in-force life/annuity extract (or open the claim triangle for P&C) from the Policy Administration Platform / Claims Platform as of the valuation cutoff date.",
+            "Ask the Data Quality Analyst to run the standard data-quality checks (missing dates of birth, negative reserves, out-of-range factors) and return the exception report.",
+            "Reconcile record counts and total sums insured/premium to the prior quarter's closing extract; investigate any variance over 1%.",
+            "Load the validated extract into the actuarial modeling platform's staging area and tag it with the valuation date."
+          ],
+          "done": "the extract is data-quality-cleared, reconciled to the prior period within tolerance, and staged in the modeling platform under the valuation-date tag."
+        },
+        {
+          "step": "Set and document the valuation assumptions",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Open the assumption library in FIS Prophet (life) or Milliman Arius (P&C) and pull forward the prior period's mortality/morbidity/lapse or loss-development assumptions.",
+            "Compare each assumption to the latest experience study from the Actuarial Analyst and to CIA-published mortality/improvement scales; record any proposed change with rationale.",
+            "Route material assumption changes (greater than 2% reserve impact) to the Chief Actuary for pre-approval before loading.",
+            "Lock the approved assumption set in the model governance repository with a version tag and effective date."
+          ],
+          "done": "assumptions are loaded, compared to experience, pre-approved where material, and version-locked in the model governance repository."
+        },
+        {
+          "step": "Run the CALM/IFRS 17 fulfilment cash flow projection (life) or discounted unpaid-claim projection (P&C)",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Execute the production valuation run against the locked assumption set and the staged policy/claims extract.",
+            "For life business, confirm the run applies the Canadian Asset Liability Method (CALM)/IFRS 17 fulfilment cash flow approach with the OSFI-prescribed discount curve.",
+            "For P&C business, confirm the run applies discounted central estimates by accident/underwriting year from the latest loss-development triangles.",
+            "Capture the run log (model version, assumption version, run duration, convergence status) and attach it to the valuation workpaper."
+          ],
+          "done": "the production run completes on the locked model/assumption versions with a clean convergence log attached to the workpaper."
+        },
+        {
+          "step": "Compute the Provision for Adverse Deviation (PfAD) / risk margin",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Apply the CIA Standards of Practice prescribed PfAD ranges (mortality, morbidity, lapse, expense, interest) to the best-estimate cash flows for life business, or the margin for adverse deviation on unpaid claims for P&C.",
+            "Document the selected point within each prescribed range and the rationale, by line of business and product group.",
+            "Have the Valuation Actuary independently spot-check three product groups' PfAD selections against the CIA range tables.",
+            "Record total PfAD/margin as a separate line in the valuation workpaper."
+          ],
+          "done": "PfAD/margin is computed within CIA-prescribed ranges, independently spot-checked, and shown as a separate workpaper line."
+        },
+        {
+          "step": "Reconcile modeled reserves to the general ledger",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Extract the current reserve balance by product/GL account from the ERP general ledger.",
+            "Match to the modeled reserve output by product/GL mapping and investigate any break greater than the Controller's materiality threshold.",
+            "Document reconciling items (in-force movement, currency translation, model timing) with a dollar amount and explanation for each.",
+            "Obtain the Controller's sign-off that the reconciliation is complete before reserves are posted."
+          ],
+          "done": "modeled reserves reconcile to the GL within the materiality threshold, every reconciling item is explained, and Controller sign-off is obtained."
+        },
+        {
+          "step": "Peer review the valuation run",
+          "by": "Actuary",
+          "role": "Actuary",
+          "actions": [
+            "Independently re-run a materiality-weighted sample of product groups (minimum 20% of reserve balance) in a parallel model instance.",
+            "Compare peer-review output to the production run; log any variance beyond tolerance as a review finding.",
+            "Check assumption version, discount curve version and model formulae against the locked, approved versions.",
+            "Sign and date the peer review checklist before the run proceeds to certification."
+          ],
+          "done": "the peer reviewer has independently reproduced a materiality-weighted sample within tolerance and signed the review checklist."
+        },
+        {
+          "step": "Assess reserve adequacy against the prior period and management's best estimate",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Decompose the reserve movement from the prior valuation date into new business, in-force runoff, assumption changes, and experience gains/losses, by product.",
+            "Compare the modeled reserve to the actuary's independent judgement of adequacy, drawing on the latest experience study and industry benchmarks.",
+            "Flag any product group where the movement is unexplained or adequacy judgement diverges from the model beyond the documented threshold.",
+            "Record the adequacy conclusion in the valuation memo."
+          ],
+          "done": "reserve movement is fully decomposed and the Appointed Actuary has recorded an explicit adequacy conclusion for every product group."
+        },
+        {
+          "step": "Prepare the reserve certification memo",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Draft the valuation memorandum stating methodology, assumptions, PfAD selections, reconciliation results, peer review outcome and adequacy conclusion.",
+            "Cite the CIA Standards of Practice sections and OSFI Guideline E-15 provisions relied on for the methodology.",
+            "Attach the run logs, assumption version tags and reconciliation workpaper as memo exhibits.",
+            "Sign and date the memo as the formal reserve certification for the period."
+          ],
+          "done": "a signed, dated valuation memorandum with methodology, assumptions, reconciliation and adequacy conclusion exists with all exhibits attached."
+        },
+        {
+          "step": "Obtain Chief Actuary and CFO capital sign-off",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Present the reserve movement, PfAD and capital impact (LICAT/MCT ratio effect) to the Chief Financial Officer's capital management team.",
+            "Walk through every product group flagged in the adequacy assessment and confirm its disposition.",
+            "Obtain written sign-off from the Chief Financial Officer confirming the reserve figures are approved for GL posting and capital reporting.",
+            "Log the sign-off date on the valuation workpaper."
+          ],
+          "done": "the Chief Financial Officer has signed off in writing on the reserve figures and their capital impact before posting."
+        },
+        {
+          "step": "Post the reserve journal entries",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Enter the approved reserve movement journal entry in the ERP general ledger against the signed-off valuation workpaper reference number.",
+            "Route the entry through the standard month-end approval workflow for second-person review.",
+            "Confirm the posted balance matches the certified reserve figure exactly.",
+            "Close the reserve sub-ledger for the period."
+          ],
+          "done": "the reserve journal entry is posted, second-reviewed, and ties exactly to the certified figure."
+        },
+        {
+          "step": "Update the model and assumption change log",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "app": "model governance repository",
+          "actions": [
+            "Record every model version, assumption version and methodology change used in the period in the model governance repository.",
+            "Tag each change with its reserve dollar impact and its approver.",
+            "Cross-reference the change log entry to the valuation memo exhibit number.",
+            "Flag any change that requires model risk validation before its next use."
+          ],
+          "done": "every model/assumption change for the period is logged, dollar-tagged, cross-referenced and flagged for validation where required."
+        },
+        {
+          "step": "File the reserve figures into OSFI's regulatory return",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Log in to OSFI's Regulatory Reporting System (RRS) and open the quarterly Financial Data Return / LICAT (life) or MCT (P&C) return for the filing period.",
+            "Enter the certified reserve figures into the prescribed schedule lines, matching the GL-posted balance.",
+            "Run the RRS built-in validation edits and resolve any flagged inconsistencies before submission.",
+            "Submit the return and retain the RRS submission confirmation and timestamp."
+          ],
+          "done": "the certified reserves are entered into the correct RRS schedule, pass validation edits, and the submission confirmation is retained."
+        },
+        {
+          "step": "Present the reserve result to the Board Audit & Risk Committee",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "app": "board portal",
+          "actions": [
+            "Upload the valuation memo summary and reserve movement analysis to the board portal ahead of the Audit & Risk Committee meeting.",
+            "Brief the Appointed Actuary to attend and answer committee questions on methodology and adequacy.",
+            "Record committee questions and the Appointed Actuary's responses in the meeting minutes.",
+            "File the approved board minute extract with the valuation record."
+          ],
+          "done": "the reserve result is presented to and received by the Audit & Risk Committee with minutes filed against the valuation record."
+        },
+        {
+          "step": "Archive the valuation workpapers",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Assemble the full workpaper set (data extract, assumption log, run logs, peer review checklist, reconciliation, memo, sign-offs) into a single valuation package.",
+            "Upload the package to the compliance evidence repository under the valuation date and product group.",
+            "Apply the 7-year retention label required for actuarial valuation records.",
+            "Confirm the package is indexed and searchable by valuation date and legal entity."
+          ],
+          "done": "the complete workpaper package is archived, retention-labelled and indexed by valuation date and entity."
+        },
+        {
+          "step": "Set the next cycle's valuation calendar and reminders",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Update the valuation calendar with the next quarter-end and year-end valuation dates and the 180-day Appointed Actuary's Report deadline.",
+            "Configure calendar reminders at T-60 and T-30 days before each filing deadline to the Appointed Actuary, Chief Actuary and Regulatory Reporting Analyst.",
+            "Confirm the reminder distribution list is current after any team change."
+          ],
+          "done": "the next cycle's deadlines are calendared with T-60/T-30 reminders configured to the current owner list."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of valuation runs performed in the review period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "model governance repository",
+          "actions": [
+            "Extract from the model governance repository every quarterly and year-end valuation run completed in the period, by legal entity and product group.",
+            "Reconcile the run count to the GL close calendar and the RRS filing calendar for the same period.",
+            "Resolve any missing or duplicate run before sampling."
+          ],
+          "done": "the population is reconciled to the close and filing calendars and signed as complete by the extractor."
+        },
+        {
+          "step": "Reconcile each posted reserve to a signed certification memo",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each population row to a signed valuation memorandum on file.",
+            "Check the memo signature date precedes the GL posting date.",
+            "List unmatched or unsigned rows as automatic exceptions."
+          ],
+          "done": "every population row is matched to a pre-dated, signed memorandum or listed as an exception."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of the year-end valuation runs and the largest product group by reserve balance in each quarter.",
+            "Take 10 additional runs selected at random (seeded, reproducible) from the remaining population.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers 100% of year-end runs and the largest product group each quarter."
+        },
+        {
+          "step": "Re-perform the valuation computation for the sampled runs",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Reload the locked assumption set and data extract for each sampled run into a parallel model instance.",
+            "Re-execute the CALM/IFRS 17 or discounted-central-estimate run independently of the production output.",
+            "Compare the re-performed reserve to the certified figure; log any variance beyond tolerance as an exception.",
+            "Capture the re-performed run log into the test workpaper."
+          ],
+          "done": "each sampled run is independently re-performed with the variance against the certified figure documented."
+        },
+        {
+          "step": "Test the PfAD/margin selections against CIA-prescribed ranges",
+          "by": "Actuary",
+          "role": "Actuary",
+          "actions": [
+            "Pull the CIA Standards of Practice prescribed PfAD range tables current as of each sampled valuation date.",
+            "Confirm the selected PfAD/margin point for each sampled product group falls within the prescribed range.",
+            "Flag any selection outside the range or lacking documented rationale as an exception."
+          ],
+          "done": "every sampled PfAD/margin selection is confirmed within the prescribed range or logged as an exception."
+        },
+        {
+          "step": "Trace the GL-posted reserve to the RRS-filed figure",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "For each sampled run, open the corresponding OSFI RRS return and locate the filed reserve schedule line.",
+            "Compare the RRS-filed figure to the GL-posted balance and the certified valuation memo figure.",
+            "Capture the RRS submission confirmation screen into the workpaper.",
+            "Log any mismatch as an exception with the dollar difference."
+          ],
+          "done": "every sampled run's RRS-filed figure ties to the GL-posted and certified figures, or the difference is logged."
+        },
+        {
+          "step": "Recompute the reserve movement decomposition",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "For the sampled runs, independently decompose the reserve movement into new business, runoff, assumption change and experience components.",
+            "Compare the independent decomposition to the one recorded in the valuation memo.",
+            "Log any component that cannot be independently reconciled as an exception."
+          ],
+          "done": "the movement decomposition is independently reproduced and reconciled for every sampled run."
+        },
+        {
+          "step": "Verify peer review and reconciliation evidence exists for every sampled run",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm a signed peer review checklist and a Controller-approved GL reconciliation exist for each sampled run.",
+            "Confirm the peer reviewer is not the same person who performed the production run.",
+            "Log any missing or same-person review as an exception."
+          ],
+          "done": "signed, independent peer review and reconciliation evidence is confirmed for every sampled run."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Raise a tracker issue per exception with the run id, entity, product group and the compliance/financial impact.",
+            "Assign a root cause (data extract error, assumption drift, model defect, missed reconciliation) and an owner.",
+            "Set a remediation date and, for reserve-deficiency exceptions, notify the Chief Financial Officer.",
+            "Carry every open exception into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate and compare it to the zero-tolerance certification/reconciliation threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer, who performed none of the sampled re-performances, sign the workpaper.",
+            "Report results to the Audit & Risk Committee at its next sitting and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and committee reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-059-C02",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Appointed Actuary",
+          "value": "Appointed Actuary drafts, certifies and signs the annual actuarial opinion and Appointed Actuary's Report (AAR); Chief Actuary is the escalation point"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — OSFI Guideline E-15 (Appointed Actuary: Legal Requirements, Qualifications and External Review) and the Corporate Governance Guideline (2018) fit-and-proper provisions governing the Appointed Actuary's ongoing qualification, re-read at each annual cycle (rep: Canada, OSFI Corporate Governance Guideline 2018)"
+        },
+        "In-scope processes": {
+          "value": "Annual preparation, peer review and signing of the Statement of the Appointed Actuary and the Appointed Actuary's Report accompanying the year-end valuation, across all OSFI-regulated legal entities"
+        },
+        "In-scope systems": {
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "value": "Valuation model output and assumption exhibits feeding the AAR narrative; opinion drafted and version-controlled in the model governance repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Annual Actuarial Opinion Procedure — AAR content requirements per CIA Standards of Practice, independent peer review, fit-and-proper reconfirmation, and board presentation before signing"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Actuary and the Board Audit & Risk Committee annually"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Statement of the Appointed Actuary and the AAR must be signed and ready to accompany the Annual Return within 180 days of fiscal year-end"
+        },
+        "Deadline reminders configured": {
+          "value": "Filing tracker alerts at T-90/T-60/T-30 days before the 180-day fiscal-year-end deadline"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Signed opinion, AAR, peer review notes and board minutes retained 7 years from the opinion date"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "compliance evidence repository",
+          "value": "Any missed peer review, late signature, or fit-and-proper lapse is logged with root cause and Chief Actuary disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Actuary",
+          "value": "Chief Actuary signs off on any remediation to a qualification lapse or a late/amended opinion"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All signed actuarial opinions and AARs issued in the review period across every legal entity"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any opinion signed without a completed peer review or a current fit-and-proper reconfirmation is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; test runs annually over 100% of the population, given its low volume"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have drafted or peer-reviewed any sampled opinion"
+        },
+        "Evidence location for test results": {
+          "value": "Annual actuarial opinion test workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Signed opinion, AAR and peer review file, presentable to OSFI supervisory staff within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Chief Actuary owns the OSFI response on opinion content; Regulatory Counsel clears any qualification or timing admission before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Compile the valuation basis and change summary for the opinion",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Pull the certified year-end valuation memo and reserve movement decomposition from the Reserving Actuary.",
+            "List every methodology or assumption change made in the year and its reserve dollar impact.",
+            "Confirm the change list matches the model governance repository's change log for the period.",
+            "Draft the change-summary section of the opinion from this reconciled list."
+          ],
+          "done": "the change summary is drawn from the certified valuation memo and reconciles to the model governance repository's change log."
+        },
+        {
+          "step": "Draft the Appointed Actuary's Report narrative sections",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Draft the AAR sections covering valuation methods, assumptions, data sources and judgments per the CIA Standards of Practice content requirements.",
+            "Include the reconciliation of reserves to the general ledger and the reserve adequacy conclusion from the year-end valuation.",
+            "Have the Actuarial Analyst compile the supporting exhibits (assumption tables, PfAD ranges, sensitivity results) referenced in the narrative.",
+            "Cross-check every exhibit reference number against the actual attached exhibit."
+          ],
+          "done": "the AAR narrative is drafted with every referenced exhibit attached and cross-checked."
+        },
+        {
+          "step": "Assemble the supporting exhibit package",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "model governance repository",
+          "actions": [
+            "Pull the final valuation run log, assumption version tags and PfAD tables from the model governance repository.",
+            "Format each exhibit with a title, date and version tag matching the AAR narrative reference.",
+            "Compile the exhibits into a single package in submission order.",
+            "Route the package to the Appointed Actuary for review."
+          ],
+          "done": "the exhibit package is complete, version-tagged and matches the AAR's exhibit references."
+        },
+        {
+          "step": "Obtain independent actuarial peer review of the draft opinion",
+          "by": "Actuary",
+          "role": "Actuary",
+          "actions": [
+            "Read the full AAR draft and Statement of the Appointed Actuary against the CIA Standards of Practice content checklist.",
+            "Confirm the stated methodology matches the actual model run and that every judgment call is documented with rationale.",
+            "Raise review comments in writing and require the Appointed Actuary to resolve each before proceeding.",
+            "Sign and date the peer review checklist once all comments are resolved."
+          ],
+          "done": "a signed peer review checklist exists with every comment resolved before the opinion advances."
+        },
+        {
+          "step": "Reconfirm the Appointed Actuary's fit-and-proper qualification",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "actions": [
+            "Pull the Appointed Actuary's current CIA membership status, continuing-education record and any disciplinary history.",
+            "Confirm the individual continues to meet the integrity, competence and financial-soundness criteria under the Corporate Governance Guideline.",
+            "Record the reconfirmation date and evidence in the governance file.",
+            "Notify OSFI of any change to the Appointed Actuary designation per the Guideline E-15 notification requirement."
+          ],
+          "done": "the Appointed Actuary's fit-and-proper status is reconfirmed and evidenced in the governance file for the current cycle."
+        },
+        {
+          "step": "Route the draft opinion through Legal/Compliance review",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Read the draft opinion and AAR for consistency with the required regulatory language and prior-year filed language.",
+            "Confirm no forward-looking or qualifying statements are included that would weaken the certification.",
+            "Return comments to the Appointed Actuary in writing with a turnaround deadline.",
+            "Sign off that the opinion language is regulator-ready."
+          ],
+          "done": "Regulatory Counsel has signed off that the opinion language is complete and regulator-ready."
+        },
+        {
+          "step": "Present the draft opinion to the Chief Actuary",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Review the peer-reviewed, legally-cleared draft opinion and AAR in full.",
+            "Confirm the capital impact of the certified reserves is consistent with the CFO-approved figures from the valuation sign-off.",
+            "Raise any final questions to the Appointed Actuary and require resolution before board presentation.",
+            "Approve the draft for board presentation."
+          ],
+          "done": "the Chief Actuary has approved the draft opinion for board presentation with no open questions."
+        },
+        {
+          "step": "Present the opinion to the Board Audit & Risk Committee",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "app": "board portal",
+          "actions": [
+            "Upload the draft opinion, AAR summary and peer review outcome to the board portal ahead of the committee meeting.",
+            "Have the Appointed Actuary present the opinion and answer committee questions on methodology and adequacy.",
+            "Record the committee's acknowledgment and any requested follow-up in the minutes.",
+            "File the minute extract with the opinion record."
+          ],
+          "done": "the committee has acknowledged the opinion with minutes filed against the opinion record."
+        },
+        {
+          "step": "Sign the Statement of the Appointed Actuary",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Confirm every prior step (peer review, legal clearance, Chief Actuary approval, board presentation) is closed with evidence on file.",
+            "Sign and date the Statement of the Appointed Actuary certifying the reserves are appropriate under the applicable standards.",
+            "Sign and date the accompanying AAR.",
+            "Record the signature date on the opinion tracker."
+          ],
+          "done": "the Statement of the Appointed Actuary and the AAR are signed and dated with all prerequisite evidence on file."
+        },
+        {
+          "step": "Notarize and version-lock the signed opinion",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "actions": [
+            "Confirm the signature is properly executed per the entity's signing authority requirements.",
+            "Apply the corporate seal or notarization where the filing jurisdiction requires it.",
+            "Lock the signed PDF as the final version and record its checksum in the opinion tracker.",
+            "Distribute the locked final version to the Regulatory Reporting Analyst for filing."
+          ],
+          "done": "the signed opinion is properly executed, version-locked, and handed to the filer."
+        },
+        {
+          "step": "Attach the opinion to the annual statement package",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Confirm the annual statement financial exhibits are final and match the certified reserve figures in the opinion.",
+            "Insert the signed opinion and AAR into the annual statement package in the position OSFI's Annual Return instructions require.",
+            "Verify the package's cross-references (page numbers, exhibit numbers) between the opinion and the financial statements.",
+            "Hand the assembled package to the filing owner for submission."
+          ],
+          "done": "the signed opinion is correctly positioned in the annual statement package with cross-references verified."
+        },
+        {
+          "step": "Distribute the signed opinion to the external auditor",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Send the signed opinion and AAR to the external auditor as part of the year-end audit evidence package.",
+            "Respond to any auditor query on methodology by routing it to the Appointed Actuary with a tracked deadline.",
+            "Confirm the auditor's management letter carries no unresolved actuarial opinion findings.",
+            "File the auditor's acknowledgment with the opinion record."
+          ],
+          "done": "the external auditor has received the signed opinion and confirmed no unresolved findings remain."
+        },
+        {
+          "step": "Track the opinion through to OSFI filing",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Confirm with the Regulatory Reporting Analyst that the annual statement package including the opinion has been submitted via OSFI's Regulatory Reporting System.",
+            "Retain the RRS submission confirmation referencing the opinion attachment.",
+            "Update the opinion tracker status to 'Filed' with the submission date and confirmation number.",
+            "Notify the Appointed Actuary and Chief Actuary that filing is complete."
+          ],
+          "done": "the opinion tracker shows 'Filed' with the RRS confirmation number and date."
+        },
+        {
+          "step": "Archive the signed opinion and supporting file",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Assemble the signed opinion, AAR, peer review checklist, fit-and-proper reconfirmation and board minutes into a single record.",
+            "Upload the record to the compliance evidence repository under the fiscal year and legal entity.",
+            "Apply the 7-year retention label.",
+            "Confirm the record is indexed and searchable by opinion date and entity."
+          ],
+          "done": "the complete opinion record is archived, retention-labelled and indexed by fiscal year and entity."
+        },
+        {
+          "step": "Set the next cycle's opinion calendar and reminders",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Update the opinion tracker with next fiscal year-end and the 180-day filing deadline.",
+            "Configure T-90/T-60/T-30 day reminders to the Appointed Actuary, Chief Actuary and Regulatory Counsel.",
+            "Confirm the reminder distribution list is current after any personnel change."
+          ],
+          "done": "next cycle's deadline is calendared with T-90/T-60/T-30 reminders configured to the current owner list."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of signed opinions issued in the review period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Extract from the compliance evidence repository every signed Statement of the Appointed Actuary and AAR issued in the period, by legal entity.",
+            "Reconcile the count to the number of legal entities required to file under OSFI.",
+            "Resolve any missing entity before sampling."
+          ],
+          "done": "the population reconciles to the required filing entity list and is signed as complete by the extractor."
+        },
+        {
+          "step": "Reconcile each opinion to its peer review and legal clearance evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each opinion to a signed peer review checklist and a Regulatory Counsel sign-off.",
+            "Check both evidence items pre-date the opinion signature date.",
+            "List unmatched or unsigned items as automatic exceptions."
+          ],
+          "done": "every opinion is matched to pre-dated peer review and legal clearance evidence or listed as an exception."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of opinions given the annual, low-volume population.",
+            "Record the population size and test date in the workpaper."
+          ],
+          "done": "100% of the opinion population is included in the test with the population size documented."
+        },
+        {
+          "step": "Verify fit-and-proper reconfirmation for the signing Appointed Actuary",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the Appointed Actuary's CIA membership and continuing-education record as of the opinion date.",
+            "Compare to the governance file's fit-and-proper reconfirmation evidence for the same period.",
+            "Log any lapse in qualification or missing reconfirmation as an exception."
+          ],
+          "done": "fit-and-proper status is confirmed current as of the opinion date for every entity, or the gap is logged."
+        },
+        {
+          "step": "Re-perform the content check against the CIA Standards of Practice checklist",
+          "by": "Actuary",
+          "role": "Actuary",
+          "actions": [
+            "Independently read each opinion against the current CIA Standards of Practice AAR content requirements.",
+            "Confirm methodology, assumptions, data sources and judgments are each addressed with supporting exhibits.",
+            "Log any missing required content element as an exception."
+          ],
+          "done": "each opinion is independently confirmed to satisfy the current CIA content requirements or exceptions are logged."
+        },
+        {
+          "step": "Confirm board presentation occurred before signature",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Pull the Audit & Risk Committee minutes from the board portal for the period preceding each opinion's signature date.",
+            "Confirm the minutes record the opinion's presentation and any committee questions and responses.",
+            "Log any opinion signed without a preceding board presentation as an exception."
+          ],
+          "done": "board presentation before signature is confirmed for every opinion or the gap is logged."
+        },
+        {
+          "step": "Trace the filed opinion to the OSFI RRS submission",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Open the OSFI RRS submission record for the annual statement package and confirm the opinion attachment matches the signed final version by checksum.",
+            "Confirm the submission date is on or before the 180-day fiscal-year-end deadline.",
+            "Capture the RRS confirmation screen into the workpaper."
+          ],
+          "done": "the filed opinion matches the signed final version and was submitted on or before the 180-day deadline."
+        },
+        {
+          "step": "Recompute the 180-day deadline for every entity",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each entity, recompute the 180-day deadline from its fiscal year-end date.",
+            "Compare the recomputed deadline to the actual RRS submission date.",
+            "Log any late submission as a reportable exception, not a documentation gap."
+          ],
+          "done": "the 180-day deadline is recomputed and compared to the actual filing date for every entity, with any breach logged."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Raise a tracker issue per exception with entity, opinion date, what was missed and the compliance impact.",
+            "Assign a root cause (qualification lapse, missed peer review, late board presentation, late filing) and an owner.",
+            "Set a remediation date and, for a missed statutory deadline, open a self-report assessment with Regulatory Counsel.",
+            "Carry every open exception into next year's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer, who drafted none of the sampled opinions, sign the workpaper.",
+            "Report results to the Audit & Risk Committee and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and committee reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-059-C03",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Regulatory Reporting Manager owns coordinating and submitting the annual statement package (financial statements, capital return, actuarial opinion and AAR) to OSFI; Regulatory Reporting Analyst executes the filing"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — OSFI's Annual Return / Regulatory Reporting System (RRS) filing instructions and Guideline E-15's requirement that the opinion accompany the annual filing, re-read at each annual filing cycle (rep: Canada, OSFI Corporate Governance Guideline 2018)"
+        },
+        "In-scope processes": {
+          "value": "Annual statement assembly and OSFI RRS submission for every OSFI-regulated legal entity, bundling the signed actuarial opinion/AAR with the audited financial statements and capital return"
+        },
+        "In-scope systems": {
+          "app": "Internal Regulatory System",
+          "value": "OSFI Regulatory Reporting System (RRS) for submission; document assembly and cross-checks performed in the compliance evidence repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Annual Statement Filing Procedure — package assembly, cross-reference checks, RRS submission steps and acknowledgment retention"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Financial Officer and reviewed annually ahead of the filing season"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual statement package including the opinion filed with OSFI within 180 days of fiscal year-end"
+        },
+        "Deadline reminders configured": {
+          "value": "Filing tracker alerts at T-90/T-60/T-30 days before the 180-day deadline, escalating to the CFO at T-10"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Filed package, RRS submission confirmation and acknowledgment retained 7 years from the filing date"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any late or incomplete annual statement filing is logged with root cause and CFO disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Financial Officer",
+          "value": "CFO signs off on any late-filing remediation plan or resubmission"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All annual statement filings submitted to OSFI in the review period across every legal entity"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any filing submitted after the 180-day deadline, or missing the opinion attachment, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; test runs annually over 100% of the filing population"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have assembled or submitted any sampled filing"
+        },
+        "Evidence location for test results": {
+          "value": "Annual filing test workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "RRS submission confirmations and filed package, presentable to OSFI supervisory staff within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Reporting Manager owns the OSFI filing-status response; Regulatory Counsel clears any late-filing admission before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Confirm all annual statement components are final",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Request final, audited financial statements from the Controller and confirm the audit opinion is unqualified or that any qualification is understood and disclosed.",
+            "Request the signed actuarial opinion and AAR from the Appointed Actuary.",
+            "Request the completed capital return (LICAT or MCT) from the Capital Model Actuary.",
+            "Log each component's receipt date on the filing tracker."
+          ],
+          "done": "all three components (financial statements, opinion/AAR, capital return) are received and logged as final."
+        },
+        {
+          "step": "Cross-check figures for consistency across the package",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Compare the reserve figure in the actuarial opinion to the reserve line in the audited financial statements.",
+            "Compare the capital ratio inputs in the LICAT/MCT return to the capital figures in the financial statements.",
+            "Flag and route any discrepancy to the Controller and Appointed Actuary for resolution before assembly continues.",
+            "Record the cross-check completion on the filing tracker."
+          ],
+          "done": "all cross-checked figures agree across the package or discrepancies are resolved before assembly."
+        },
+        {
+          "step": "Assemble the annual statement package in OSFI's required format",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Order the package per OSFI's Annual Return instructions: financial statements, notes, capital return, actuarial opinion, AAR.",
+            "Insert cross-reference page numbers between the opinion and the financial statement notes it certifies.",
+            "Run a completeness checklist against the OSFI Annual Return instructions to confirm no required schedule is missing.",
+            "Save the assembled package with a version tag in the compliance evidence repository."
+          ],
+          "done": "the assembled package passes the OSFI completeness checklist and is version-tagged in the repository."
+        },
+        {
+          "step": "Obtain internal sign-off to file",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Review the assembled package summary and the cross-check resolution log.",
+            "Confirm with the Chief Actuary that the opinion figures are unchanged from the certified valuation.",
+            "Provide written sign-off authorizing submission.",
+            "Log the sign-off date on the filing tracker."
+          ],
+          "done": "the CFO has signed off in writing to authorize submission before the RRS filing step begins."
+        },
+        {
+          "step": "Log in to OSFI's Regulatory Reporting System and open the filing shell",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Log in to OSFI's Regulatory Reporting System (RRS) using the entity's filer credentials.",
+            "Open the Annual Return filing shell for the correct legal entity and fiscal year-end.",
+            "Confirm the pre-populated entity details (NAIC-equivalent OSFI institution code, fiscal year-end date) are correct.",
+            "Begin the upload session and note the session id on the filing tracker."
+          ],
+          "done": "the correct entity's filing shell is open in RRS with the session id logged."
+        },
+        {
+          "step": "Upload the package components into RRS",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Upload the financial statements, capital return and actuarial opinion/AAR as separate attachments in the RRS schedules they belong to.",
+            "Run RRS's built-in validation edits on each schedule and resolve any flagged formatting or completeness error.",
+            "Confirm every required RRS field shows a green/valid status before proceeding.",
+            "Save the filing as a draft and route it to the Regulatory Reporting Manager for a pre-submission check."
+          ],
+          "done": "every RRS schedule passes validation and the draft filing is saved for pre-submission review."
+        },
+        {
+          "step": "Perform the pre-submission review",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Open the draft RRS filing and compare each uploaded attachment against the final assembled package for completeness.",
+            "Confirm the CFO sign-off date and the actuarial opinion signature date both pre-date today.",
+            "Check the filing deadline (180 days from fiscal year-end) has not passed and record days-to-deadline remaining.",
+            "Approve the draft for submission or return it with specific corrections."
+          ],
+          "done": "the pre-submission review is approved with the deadline countdown recorded, or corrections are returned."
+        },
+        {
+          "step": "Submit the filing in RRS",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Submit the approved draft filing in RRS.",
+            "Capture the RRS submission confirmation number, submission timestamp and confirming screen.",
+            "Download the RRS acknowledgment receipt once issued.",
+            "Update the filing tracker status to 'Submitted' with the confirmation number."
+          ],
+          "done": "the filing is submitted with a captured confirmation number, timestamp and downloaded acknowledgment."
+        },
+        {
+          "step": "Distribute the filing confirmation internally",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Send the RRS confirmation and acknowledgment to the CFO, Chief Actuary and Appointed Actuary.",
+            "Notify the Corporate Secretary so the filing can be referenced in the next board meeting materials.",
+            "Update the enterprise filing calendar to show the current year's obligation as closed."
+          ],
+          "done": "the confirmation is distributed to all accountable owners and the filing calendar is updated."
+        },
+        {
+          "step": "Reconcile the RRS-accepted filing back to the source package",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Re-open the accepted filing in RRS and download the system-of-record copy of each schedule.",
+            "Byte-for-byte or checksum-compare the RRS-held copy to the internally archived final package.",
+            "Log and correct any mismatch through an RRS amendment filing if found.",
+            "Record the reconciliation result on the filing tracker."
+          ],
+          "done": "the RRS-held filing is confirmed identical to the internally archived package, or a corrective amendment is filed."
+        },
+        {
+          "step": "Handle any OSFI filing-completeness query",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Monitor the RRS message center and the designated OSFI liaison mailbox for completeness or clarification queries.",
+            "Route any query to the relevant source owner (Controller, Appointed Actuary, Capital Model Actuary) with a response deadline.",
+            "Have Regulatory Counsel review any substantive response before it is sent back through RRS.",
+            "Log the query and response on the filing tracker."
+          ],
+          "done": "every OSFI completeness query is logged, routed, reviewed by Regulatory Counsel where substantive, and answered within its deadline."
+        },
+        {
+          "step": "Report the filing status to the Board",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "board portal",
+          "actions": [
+            "Add the annual statement filing confirmation to the next board meeting's governance report on the board portal.",
+            "Note the submission date relative to the 180-day deadline.",
+            "Record the board's acknowledgment in the minutes."
+          ],
+          "done": "the filing status is reported to and acknowledged by the Board with minutes on file."
+        },
+        {
+          "step": "Archive the filed package and confirmations",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move the final filed package, RRS confirmation, acknowledgment receipt and any query correspondence into the compliance evidence repository.",
+            "Apply the 7-year retention label from the filing date.",
+            "Confirm the record is indexed by legal entity and fiscal year."
+          ],
+          "done": "the filed package and all confirmations are archived, retention-labelled and indexed."
+        },
+        {
+          "step": "Update the filing playbook with lessons learned",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Note any RRS validation issue, cross-check discrepancy or timeline pressure encountered this cycle.",
+            "Update the Annual Statement Filing Procedure with the fix or process change.",
+            "Circulate the updated procedure to the filing team ahead of next year's cycle."
+          ],
+          "done": "the filing procedure is updated with this cycle's lessons and circulated to the team."
+        },
+        {
+          "step": "Set the next cycle's filing calendar and reminders",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Load next fiscal year-end and the resulting 180-day deadline into the filing tracker.",
+            "Configure T-90/T-60/T-30/T-10 day reminders to the Regulatory Reporting Analyst, CFO and Appointed Actuary.",
+            "Confirm the reminder list is current after any personnel change."
+          ],
+          "done": "next cycle's deadline is calendared with reminders configured to the current owner list."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of annual statement filings submitted in the review period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Extract from OSFI's RRS filing history every Annual Return submission in the period, by legal entity.",
+            "Reconcile the count to the required filing entity list.",
+            "Resolve any missing entity before sampling."
+          ],
+          "done": "the population reconciles to the required filing entity list and is signed as complete."
+        },
+        {
+          "step": "Reconcile each filing to its CFO sign-off",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each filing to a written CFO sign-off authorizing submission.",
+            "Check the sign-off date pre-dates the RRS submission timestamp.",
+            "List unmatched filings as automatic exceptions."
+          ],
+          "done": "every filing is matched to a pre-dated CFO sign-off or listed as an exception."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of filings given the annual, low-volume population across entities.",
+            "Record the population size and test date in the workpaper."
+          ],
+          "done": "100% of the filing population is included with the population size documented."
+        },
+        {
+          "step": "Re-perform the completeness check against OSFI's Annual Return instructions",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Independently pull the current OSFI Annual Return completeness checklist.",
+            "Open each sampled filing in RRS and confirm every required schedule and attachment is present.",
+            "Log any missing schedule or attachment as an exception."
+          ],
+          "done": "each sampled filing is independently confirmed complete against the current OSFI checklist or exceptions are logged."
+        },
+        {
+          "step": "Verify cross-check figures agree across the filed package",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the reserve figure in the filed opinion to the reserve line in the filed financial statements for each sampled filing.",
+            "Compare the capital return inputs to the filed financial statement capital figures.",
+            "Log any unresolved discrepancy as an exception."
+          ],
+          "done": "cross-check figures are confirmed to agree across every sampled filed package or discrepancies are logged."
+        },
+        {
+          "step": "Trace the RRS submission to the internally archived final package",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Download the RRS-held copy of each sampled filing's attachments.",
+            "Checksum-compare to the version archived in the compliance evidence repository.",
+            "Log any mismatch as an exception and confirm whether an amendment filing was made."
+          ],
+          "done": "the RRS-held filing is confirmed identical to the archived package for every sampled filing, or the gap is logged."
+        },
+        {
+          "step": "Recompute the 180-day filing deadline for every sampled entity",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute the 180-day deadline from each entity's fiscal year-end date.",
+            "Compare the recomputed deadline to the actual RRS submission timestamp.",
+            "Log any late submission as a reportable exception."
+          ],
+          "done": "the 180-day deadline is recomputed and compared to the actual filing date for every sampled entity."
+        },
+        {
+          "step": "Confirm board reporting of the filing status occurred",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Pull the board minutes from the board portal for the period following each sampled filing.",
+            "Confirm the filing status was reported and acknowledged.",
+            "Log any missing board report as an exception."
+          ],
+          "done": "board reporting of the filing status is confirmed for every sampled filing or the gap is logged."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the entity, filing date, what was missed and the compliance impact.",
+            "Assign a root cause (missing schedule, cross-check gap, late submission, missed board report) and an owner.",
+            "Set a remediation date and, for a missed statutory deadline, open a self-report assessment with Regulatory Counsel.",
+            "Carry every open exception into next year's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer, who assembled and submitted none of the sampled filings, sign the workpaper.",
+            "Report results to the Audit & Risk Committee and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and committee reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-059-C04",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Appointed Actuary",
+          "value": "Appointed Actuary owns the annual Financial Condition Testing (FCT, formerly DCAT) report supporting asset adequacy and cash-flow testing; Reserving Actuary performs the scenario runs"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — CIA Standards of Practice, Financial Condition Testing (section 2100 series), and OSFI Guideline E-15's requirement that the Appointed Actuary report on financial condition, re-read at each annual cycle (rep: Canada, OSFI Guideline E-15 / Memorandum to the Appointed Actuary; note the item's supporting citation also references OSFI Guideline B-13 asset-inventory provisions, which the model asset register maintained under this control satisfies)"
+        },
+        "In-scope processes": {
+          "value": "Annual Financial Condition Testing / asset adequacy analysis covering the base scenario and prescribed adverse scenarios (interest rate, mortality/morbidity, lapse, expense, new business) over a minimum 3-year projection horizon, across all in-force life and annuity blocks"
+        },
+        "In-scope systems": {
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "value": "FIS Prophet asset-liability projection module; scenario library and asset/liability inventory maintained in the model governance repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Financial Condition Testing Procedure — scenario design per CIA guidance, projection model configuration, base and adverse-scenario runs, and board reporting of results"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Actuary and presented annually to the Board Audit & Risk Committee"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "FCT report completed and presented to the Board ahead of the year-end Appointed Actuary's Report, within the 180-day fiscal-year-end filing window"
+        },
+        "Deadline reminders configured": {
+          "value": "Scenario design kickoff reminder at T-120 days before year-end, run completion at T-60, board presentation at T-30"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "FCT report, scenario assumptions, asset/liability inventory and run logs retained 7 years from the report date"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "compliance evidence repository",
+          "value": "Any scenario run failure, missed prescribed scenario, or stale asset/liability inventory is logged with root cause and Chief Actuary disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Actuary",
+          "value": "Chief Actuary signs off on any remediation to a missed scenario or a stale inventory finding"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All FCT scenario runs performed in the review period across every legal entity, per the model governance repository run log"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for a missing prescribed adverse scenario or an FCT report presented without a completed asset/liability inventory refresh"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; test runs annually over 100% of the FCT scenario set"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have performed or peer-reviewed any sampled scenario run"
+        },
+        "Evidence location for test results": {
+          "value": "Annual FCT test workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "FCT report, scenario assumptions and board minutes, presentable to OSFI supervisory staff within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Chief Actuary owns the OSFI response on financial condition matters; Regulatory Counsel clears any capital-adequacy admission before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Refresh the asset and liability inventory",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "model governance repository",
+          "actions": [
+            "Pull the current investment portfolio holdings from the Chief Investment Officer's asset system and the current in-force liability extract from the actuarial modeling platform.",
+            "Reconcile total asset market value and liability reserve totals to the general ledger.",
+            "Update the asset/liability inventory record in the model governance repository with the refreshed totals and as-of date.",
+            "Flag any newly acquired asset class or product line that lacks a modeled cash-flow profile."
+          ],
+          "done": "the asset/liability inventory is refreshed, GL-reconciled, and any unmodeled new class or product is flagged."
+        },
+        {
+          "step": "Design the base scenario and the prescribed adverse scenarios",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Set the base scenario using current best-estimate assumptions consistent with the year-end valuation.",
+            "Design the prescribed adverse scenarios per CIA Standards of Practice: interest rate rise/fall, mortality/morbidity deterioration, lapse deterioration, expense increase, and reduced new business.",
+            "Size each adverse scenario's shock magnitude against CIA guidance and document the rationale.",
+            "Have the Chief Actuary approve the final scenario set before scenario runs begin."
+          ],
+          "done": "the base and all prescribed adverse scenarios are designed, sized against CIA guidance, and approved by the Chief Actuary."
+        },
+        {
+          "step": "Configure and run the projection model for each scenario",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Load the refreshed asset/liability inventory and the approved scenario set into the FIS Prophet asset-liability projection module.",
+            "Run the base scenario and each adverse scenario over the minimum 3-year projection horizon.",
+            "Capture surplus/deficiency and capital ratio trajectories for each scenario run.",
+            "Save each run log with scenario name, model version and run date to the model governance repository."
+          ],
+          "done": "every approved scenario is run over the required horizon with surplus/capital trajectories captured and logged."
+        },
+        {
+          "step": "Analyze scenario results for ruin points and capital breaches",
+          "by": "Actuary",
+          "role": "Actuary",
+          "actions": [
+            "Review each scenario's projected surplus and capital ratio path for any point where capital falls below the internal target or the OSFI supervisory target.",
+            "Where a breach occurs, identify the projection year, magnitude and the driving assumption.",
+            "Document management actions that would plausibly be taken before the breach point (assumed only where consistent with CIA guidance on credible actions).",
+            "Summarize each scenario's outcome in a results table."
+          ],
+          "done": "every scenario's outcome, including any capital breach point and driving assumption, is documented in a results table."
+        },
+        {
+          "step": "Draft the Financial Condition Testing report",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Draft the FCT report covering scenario design rationale, results table, ruin analysis, and the overall financial condition opinion.",
+            "Reference the refreshed asset/liability inventory and cite the CIA Standards of Practice sections applied.",
+            "Attach the run logs and scenario assumption documentation as exhibits.",
+            "State an explicit conclusion on the entity's financial condition over the projection horizon."
+          ],
+          "done": "a draft FCT report with results, ruin analysis, exhibits and an explicit financial-condition conclusion exists."
+        },
+        {
+          "step": "Obtain independent peer review of the FCT report",
+          "by": "Actuary",
+          "role": "Actuary",
+          "actions": [
+            "Independently re-run at least two of the prescribed adverse scenarios in a parallel model instance.",
+            "Compare results to the draft report's figures and log any variance beyond tolerance as a review finding.",
+            "Confirm every prescribed CIA scenario category is addressed in the report.",
+            "Sign and date the peer review checklist."
+          ],
+          "done": "a peer reviewer has independently reproduced at least two adverse scenarios within tolerance and signed the review checklist."
+        },
+        {
+          "step": "Reconcile FCT model inputs to the certified year-end valuation",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Compare the base scenario's opening reserves and assets to the certified year-end valuation memo figures.",
+            "Investigate and document any difference beyond the materiality threshold.",
+            "Confirm the assumption set used in the base scenario matches the locked valuation assumption version.",
+            "Sign off that FCT inputs tie to the certified valuation."
+          ],
+          "done": "FCT base-scenario inputs are confirmed to tie to the certified year-end valuation within tolerance."
+        },
+        {
+          "step": "Route the draft FCT report to the Chief Actuary",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Review the peer-reviewed draft FCT report and the valuation reconciliation.",
+            "Assess whether any capital breach point warrants an immediate capital management action ahead of board reporting.",
+            "Approve the draft for board presentation or return it with required changes.",
+            "Log the approval date on the FCT tracker."
+          ],
+          "done": "the Chief Actuary has approved the draft FCT report for board presentation."
+        },
+        {
+          "step": "Present the FCT results to the Board Audit & Risk Committee",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "app": "board portal",
+          "actions": [
+            "Upload the FCT report and results summary to the board portal ahead of the committee meeting.",
+            "Have the Appointed Actuary present the scenario results, any capital breach points and management action assumptions.",
+            "Record committee questions and responses, and any requested capital management follow-up, in the minutes.",
+            "File the minute extract with the FCT record."
+          ],
+          "done": "the FCT results are presented to and received by the committee with minutes filed against the FCT record."
+        },
+        {
+          "step": "Escalate any projected capital breach to capital management",
+          "by": "Chief Financial Officer",
+          "role": "Chief Financial Officer",
+          "actions": [
+            "Review any scenario showing a projected breach of the internal or OSFI supervisory capital target.",
+            "Convene the capital management team to assess mitigating actions (reinsurance, capital raise, in-force management).",
+            "Document the chosen mitigating action and its expected capital impact.",
+            "Report the escalation and action plan to the Chief Risk Officer."
+          ],
+          "done": "any projected capital breach has a documented, CFO-reviewed mitigating action plan reported to the Chief Risk Officer."
+        },
+        {
+          "step": "Finalize and sign the FCT report",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Incorporate any board or Chief Actuary feedback into the final FCT report.",
+            "Confirm all exhibits and the peer review checklist are attached in the final version.",
+            "Sign and date the final FCT report.",
+            "Lock the final PDF version with a checksum reference in the FCT tracker."
+          ],
+          "done": "the final FCT report is signed, dated and version-locked with all exhibits attached."
+        },
+        {
+          "step": "Reference the FCT conclusion in the Appointed Actuary's Report",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Insert a summary of the FCT scenario results and financial-condition conclusion into the relevant AAR section.",
+            "Cross-reference the AAR entry to the full FCT report exhibit number.",
+            "Confirm the AAR's overall reserve adequacy statement is consistent with the FCT conclusion.",
+            "Flag any inconsistency to the Chief Actuary before the AAR is signed."
+          ],
+          "done": "the AAR references the FCT conclusion consistently, with any inconsistency resolved before AAR signature."
+        },
+        {
+          "step": "Update the FCT model and scenario change log",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "app": "model governance repository",
+          "actions": [
+            "Record the FCT model version, scenario library version and any methodology change in the model governance repository.",
+            "Tag each change with the approver and the date.",
+            "Cross-reference to the FCT report exhibit number.",
+            "Flag any change requiring model risk validation before next use."
+          ],
+          "done": "every FCT model/scenario change is logged, tagged, cross-referenced and flagged for validation where required."
+        },
+        {
+          "step": "Archive the FCT report and workpapers",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Assemble the signed FCT report, scenario assumptions, run logs, peer review checklist and board minutes into a single package.",
+            "Upload the package to the compliance evidence repository under the fiscal year and legal entity.",
+            "Apply the 7-year retention label.",
+            "Confirm the package is indexed and searchable by fiscal year and entity."
+          ],
+          "done": "the complete FCT package is archived, retention-labelled and indexed by fiscal year and entity."
+        },
+        {
+          "step": "Set the next cycle's FCT calendar and reminders",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Load the next fiscal year-end into the FCT tracker with milestone dates for scenario design, run completion and board presentation.",
+            "Configure reminders at T-120 (design), T-60 (run completion) and T-30 (board presentation) days before year-end.",
+            "Confirm the reminder distribution list is current after any personnel change."
+          ],
+          "done": "next cycle's FCT milestones are calendared with reminders configured to the current owner list."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of FCT scenario runs performed in the review period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "model governance repository",
+          "actions": [
+            "Extract from the model governance repository every FCT scenario run for the review period, by legal entity and scenario category.",
+            "Reconcile the count of scenarios run to the CIA-prescribed minimum scenario set.",
+            "Resolve any missing prescribed scenario before sampling."
+          ],
+          "done": "the population is reconciled to the CIA-prescribed minimum scenario set and signed as complete."
+        },
+        {
+          "step": "Reconcile the FCT report to the asset/liability inventory refresh",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the FCT report's opening asset and liability totals match the refreshed inventory record for the same as-of date.",
+            "Check the inventory refresh date pre-dates the scenario run dates.",
+            "List any unreconciled or stale inventory as an exception."
+          ],
+          "done": "the FCT report's opening balances tie to a current, pre-dated inventory refresh or the gap is logged."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of the prescribed adverse scenario categories (interest rate, mortality/morbidity, lapse, expense, new business).",
+            "Take the base scenario plus 2 additional scenario runs at random for full re-performance.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample covers 100% of prescribed scenario categories plus a reproducible random re-performance set."
+        },
+        {
+          "step": "Re-perform the sampled scenario runs",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Reload the locked scenario assumptions and inventory into a parallel model instance.",
+            "Re-execute each sampled scenario independently of the production run.",
+            "Compare the re-performed surplus/capital trajectory to the reported figures and log any variance beyond tolerance.",
+            "Capture the re-performed run log into the test workpaper."
+          ],
+          "done": "each sampled scenario is independently re-performed with the variance against the reported figures documented."
+        },
+        {
+          "step": "Check the scenario shock sizing against CIA guidance",
+          "by": "Actuary",
+          "role": "Actuary",
+          "actions": [
+            "Pull the current CIA Standards of Practice guidance on adverse scenario shock magnitudes.",
+            "Compare each sampled adverse scenario's shock size to the guidance range.",
+            "Flag any scenario sized outside the guidance range without documented rationale as an exception."
+          ],
+          "done": "every sampled scenario's shock sizing is confirmed against CIA guidance or logged as an exception."
+        },
+        {
+          "step": "Verify the FCT base scenario ties to the certified year-end valuation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the FCT base scenario's opening reserves and assumption set to the certified year-end valuation memo.",
+            "Confirm the Valuation Actuary's tie-out sign-off exists and pre-dates the FCT report.",
+            "Log any untied figure as an exception."
+          ],
+          "done": "the FCT base scenario is confirmed tied to the certified valuation with a pre-dated sign-off, or the gap is logged."
+        },
+        {
+          "step": "Confirm capital breach escalation occurred where projected",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Identify any sampled scenario projecting a capital target breach.",
+            "Confirm a CFO-reviewed mitigating action plan exists and was reported to the Chief Risk Officer for that breach.",
+            "Log any breach without a documented escalation as an exception."
+          ],
+          "done": "every projected capital breach in the sample has a documented, escalated mitigating action or the gap is logged."
+        },
+        {
+          "step": "Confirm board presentation and peer review evidence exists",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Pull board minutes from the board portal confirming FCT presentation for the review period.",
+            "Confirm a signed peer review checklist exists and pre-dates the Chief Actuary's approval.",
+            "Log any missing board presentation or peer review as an exception."
+          ],
+          "done": "board presentation and peer review evidence is confirmed for the review period or the gap is logged."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Raise a tracker issue per exception with the scenario, entity, what was missed and the compliance/capital impact.",
+            "Assign a root cause (stale inventory, missed scenario, sizing gap, missed escalation) and an owner.",
+            "Set a remediation date and, for capital-adequacy exceptions, notify the Chief Risk Officer.",
+            "Carry every open exception into next year's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance threshold for missing prescribed scenarios.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer, who performed none of the sampled re-performances, sign the workpaper.",
+            "Report results to the Audit & Risk Committee and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and committee reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-059-C05",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Reserving Actuary",
+          "value": "Reserving Actuary owns the quarterly reconciliation of reserve data to policy admin extracts; Data Quality Analyst supports data-side investigation"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — OSFI Guideline E-15's requirement that the Appointed Actuary's Report document the data underlying the valuation, and the CIA Standards of Practice data-quality provisions, re-read at each quarterly cycle (rep: Canada, OSFI Guideline E-15 / Memorandum to the Appointed Actuary)"
+        },
+        "In-scope processes": {
+          "value": "Quarterly reconciliation of the actuarial valuation data extract to the policy administration system's book of record, across every product and legal entity feeding the valuation"
+        },
+        "In-scope systems": {
+          "app": "Policy Administration Platform",
+          "value": "Policy Administration Platform (source of record) reconciled against the actuarial modeling platform's staged extract, with breaks tracked in the enterprise data warehouse/lakehouse"
+        },
+        "Compliance procedure documented": {
+          "value": "Valuation Data Reconciliation Procedure — extract pull, record-level and control-total matching, break investigation, and sign-off before the extract is used in valuation"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Actuary and reviewed annually or on any policy admin system change"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Reconciliation completed within 3 business days of each quarter-end, ahead of the valuation run start"
+        },
+        "Deadline reminders configured": {
+          "value": "Reconciliation task reminder at quarter-end +1 business day, escalation at +3 if unresolved breaks remain"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Reconciliation report, break log and sign-off retained 7 years from the valuation date it supports"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "compliance evidence repository",
+          "value": "Unresolved reconciliation breaks used in a valuation run without sign-off are logged as exceptions with root cause and Reserving Actuary disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Reserving Actuary",
+          "value": "Reserving Actuary signs off that all material breaks are resolved or explicitly accepted before the extract is used"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All quarterly reconciliations performed in the review period across every legal entity and product"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for a valuation run using an extract with an unresolved break above the materiality threshold and no sign-off"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is quarterly; test runs quarterly over that quarter's reconciliations"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have performed or signed off any sampled reconciliation"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly reconciliation test workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Reconciliation reports and break logs, presentable to OSFI supervisory staff within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Chief Actuary owns the OSFI response on data-quality matters; Regulatory Counsel clears any material data-error admission before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Pull the policy admin book-of-record extract",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Log in to the Policy Administration Platform and run the standard in-force/claims extract as of the quarter-end cutoff.",
+            "Capture the control totals (policy count, sum insured, premium in force, claim reserve total) directly from the platform's reporting module.",
+            "Save the extract with a timestamped filename and hash it for integrity.",
+            "Hand the extract and control totals to the Reserving Actuary."
+          ],
+          "done": "the book-of-record extract is pulled with control totals captured and a hashed, timestamped file handed off."
+        },
+        {
+          "step": "Pull the actuarial model's staged extract",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Open the actuarial modeling platform's staging area and export the extract loaded for the current valuation cycle.",
+            "Capture the same control totals (policy count, sum insured, premium, claim reserve) from the staged extract.",
+            "Confirm the staged extract's valuation date matches the policy admin extract's cutoff date exactly.",
+            "Hand the staged control totals to the Reserving Actuary."
+          ],
+          "done": "the staged extract's control totals are captured and confirmed to share the same cutoff date as the book-of-record extract."
+        },
+        {
+          "step": "Match control totals between the two sources",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Compare policy count, sum insured, premium and claim reserve control totals between the book-of-record and staged extracts.",
+            "Compute the dollar and percentage variance for each control total.",
+            "Flag any variance exceeding the materiality threshold (typically 0.5% of the total) for record-level investigation.",
+            "Record the control-total comparison table in the reconciliation report."
+          ],
+          "done": "control totals are compared with variances computed, and any threshold breach is flagged for record-level investigation."
+        },
+        {
+          "step": "Perform record-level matching on flagged control totals",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Load both extracts into the enterprise data warehouse and join on policy/claim identifier.",
+            "Identify unmatched records (present in one source but not the other) and records with a field-level mismatch (sum insured, reserve amount, status).",
+            "Categorize each unmatched or mismatched record by likely cause: new business timing, lapse timing, data entry error, or interface defect.",
+            "Export the categorized break list to the reconciliation report."
+          ],
+          "done": "unmatched and mismatched records are identified, categorized by likely cause, and exported to the reconciliation report."
+        },
+        {
+          "step": "Investigate each material break to a root cause",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "For each break above the individual materiality threshold, open the source policy or claim record in the Policy Administration Platform and confirm its current status.",
+            "Determine whether the break is a timing difference (in-flight transaction), a mapping error, or a genuine data-quality defect.",
+            "Document the root cause and the dollar impact on the break log.",
+            "Route interface or mapping defects to the Data Engineer for a system-level fix ticket."
+          ],
+          "done": "every material break has a documented root cause, dollar impact, and a fix ticket where a system defect is the cause."
+        },
+        {
+          "step": "Correct or accept each break before the extract is used",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "For timing differences, confirm no correction is needed and document the accepted rationale.",
+            "For genuine data errors within the actuary's control, correct the staged extract and re-pull the affected records.",
+            "For breaks that cannot be corrected before the valuation deadline, document the dollar impact on reserves and route for sign-off as an accepted limitation.",
+            "Update the break log with the final disposition for every break."
+          ],
+          "done": "every break carries a final disposition (accepted timing difference, corrected, or accepted limitation) before the extract proceeds to valuation."
+        },
+        {
+          "step": "Quantify the aggregate reconciliation impact on reserves",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Sum the reserve dollar impact of all accepted, unresolved breaks.",
+            "Compare the aggregate impact to the valuation materiality threshold used in the reserve certification.",
+            "Where the aggregate impact exceeds the threshold, flag it for disclosure in the valuation memo.",
+            "Record the aggregate impact figure in the reconciliation report."
+          ],
+          "done": "the aggregate reserve impact of unresolved breaks is quantified and compared to the valuation materiality threshold."
+        },
+        {
+          "step": "Draft the reconciliation report",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Compile the control-total comparison, break log, root causes and dispositions into the quarterly reconciliation report.",
+            "State the aggregate reserve impact of unresolved breaks and whether it exceeds the materiality threshold.",
+            "Attach the two source extract hashes to prove the extracts used are the ones reconciled.",
+            "Route the report for sign-off."
+          ],
+          "done": "the reconciliation report is compiled with control totals, breaks, dispositions, impact statement and source-extract hashes attached."
+        },
+        {
+          "step": "Obtain sign-off to proceed to valuation",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Confirm every material break carries a final disposition and the aggregate impact is within tolerance, or is explicitly flagged for the valuation memo.",
+            "Sign and date the reconciliation report as complete.",
+            "Notify the Valuation Actuary that the extract is cleared to proceed into the production valuation run.",
+            "Log the sign-off date on the reconciliation tracker."
+          ],
+          "done": "the reconciliation report is signed and the extract is formally cleared to proceed into valuation."
+        },
+        {
+          "step": "Route system-level break fixes for follow-through",
+          "by": "Data Engineer",
+          "role": "Data Engineer",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Open a ticket in the ITSM platform for every interface or mapping defect identified in the reconciliation.",
+            "Assign a fix owner and target date, prioritized by the dollar impact of the defect.",
+            "Track the ticket through to closure and confirm the fix is verified in the next quarter's reconciliation.",
+            "Report open, aged tickets to the Data Quality Manager monthly."
+          ],
+          "done": "every system-level break has a tracked ticket, and prior-quarter fixes are verified closed in the current reconciliation."
+        },
+        {
+          "step": "Report unresolved material breaks to the Chief Actuary",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Review any break disposition flagged as an accepted limitation with a material reserve impact.",
+            "Decide whether the impact requires disclosure in the valuation memo or an adjustment to reserves.",
+            "Document the decision and its rationale.",
+            "Log the decision on the reconciliation tracker."
+          ],
+          "done": "every material accepted-limitation break has a Chief Actuary decision on disclosure or adjustment, documented and logged."
+        },
+        {
+          "step": "Link the reconciliation report to the valuation workpaper",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Attach the signed reconciliation report as an exhibit to the current quarter's valuation workpaper.",
+            "Cross-reference the aggregate impact figure in the valuation memo's data-quality section.",
+            "Confirm the cross-reference page numbers are correct.",
+            "Notify the Appointed Actuary that the reconciliation exhibit is attached."
+          ],
+          "done": "the signed reconciliation report is attached to the valuation workpaper with correct cross-references."
+        },
+        {
+          "step": "Track reconciliation cycle time and break trends",
+          "by": "Data Quality Manager",
+          "role": "Data Quality Manager",
+          "actions": [
+            "Log the reconciliation completion date and break count for the quarter on a trend tracker.",
+            "Compare break count and dollar impact against the prior four quarters.",
+            "Escalate a rising break-count trend to the Reserving Actuary and Data Engineering lead for root-cause review.",
+            "Report the trend to the Chief Data Officer quarterly."
+          ],
+          "done": "reconciliation cycle time and break trends are tracked quarterly with rising trends escalated."
+        },
+        {
+          "step": "Archive the reconciliation package",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Assemble the reconciliation report, break log, source extract hashes and sign-off into a package.",
+            "Upload the package to the compliance evidence repository under the valuation date and legal entity.",
+            "Apply the 7-year retention label.",
+            "Confirm the package is indexed and searchable by valuation date."
+          ],
+          "done": "the reconciliation package is archived, retention-labelled and indexed by valuation date."
+        },
+        {
+          "step": "Set the next quarter's reconciliation calendar and reminders",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Load the next quarter-end date and the 3-business-day reconciliation deadline into the reconciliation tracker.",
+            "Configure reminders at quarter-end +1 and an escalation alert at +3 if unresolved.",
+            "Confirm the reminder distribution list is current after any personnel change."
+          ],
+          "done": "next quarter's reconciliation deadline is calendared with reminders and an escalation alert configured."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of reconciliations performed in the review period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Extract from the compliance evidence repository every quarterly reconciliation report for the period, by legal entity and product.",
+            "Reconcile the count to the number of valuation cycles run in the period.",
+            "Resolve any missing reconciliation before sampling."
+          ],
+          "done": "the population reconciles to the number of valuation cycles run and is signed as complete."
+        },
+        {
+          "step": "Reconcile each valuation run to a signed, pre-dated reconciliation report",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each valuation run to a signed reconciliation report.",
+            "Check the reconciliation sign-off date pre-dates the valuation run start date.",
+            "List unmatched or post-dated reconciliations as automatic exceptions."
+          ],
+          "done": "every valuation run is matched to a pre-dated, signed reconciliation report or listed as an exception."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take the reconciliation with the largest aggregate break impact from each quarter in the period.",
+            "Take 2 additional reconciliations selected at random (seeded, reproducible).",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and includes the largest-impact reconciliation from every quarter."
+        },
+        {
+          "step": "Re-perform the control-total comparison for the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Independently re-pull the policy admin control totals for the sampled quarter-end date.",
+            "Independently pull the staged extract control totals used in the same valuation run.",
+            "Recompute the variance and compare to the reported reconciliation variance.",
+            "Log any unexplained difference as an exception."
+          ],
+          "done": "control totals are independently re-pulled and the recomputed variance matches the reported figure or is logged as an exception."
+        },
+        {
+          "step": "Re-perform record-level matching on a sub-sample of breaks",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Take 15 breaks at random from each sampled reconciliation's break log.",
+            "Independently trace each to the source policy admin record and confirm the recorded root cause is accurate.",
+            "Log any break whose recorded root cause cannot be independently confirmed as an exception."
+          ],
+          "done": "root causes for the sub-sampled breaks are independently confirmed or logged as exceptions."
+        },
+        {
+          "step": "Test the disposition of every material break",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For every break above the materiality threshold in the sample, confirm a final disposition (accepted timing difference, corrected, accepted limitation) is recorded.",
+            "For corrected breaks, confirm the corrected extract was actually used in the valuation run.",
+            "For accepted-limitation breaks, confirm the Chief Actuary's disclosure/adjustment decision is documented.",
+            "Log any break without a complete disposition trail as an exception."
+          ],
+          "done": "every material break in the sample has a confirmed, complete disposition trail or the gap is logged."
+        },
+        {
+          "step": "Verify the aggregate reserve impact figure",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently sum the dollar impact of unresolved breaks in each sampled reconciliation.",
+            "Compare to the aggregate impact figure stated in the reconciliation report.",
+            "Log any discrepancy as an exception."
+          ],
+          "done": "the aggregate impact figure is independently recomputed and matches the reported figure or is logged as an exception."
+        },
+        {
+          "step": "Confirm the reconciliation exhibit was attached to the valuation workpaper",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Open the certified valuation memo for each sampled quarter and confirm the reconciliation report is attached as an exhibit.",
+            "Confirm the cross-reference in the memo's data-quality section matches the reconciliation exhibit.",
+            "Log any missing or mismatched exhibit as an exception."
+          ],
+          "done": "the reconciliation exhibit is confirmed attached and correctly cross-referenced for every sampled quarter, or the gap is logged."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Raise a tracker issue per exception with the quarter, entity, what was missed and the reserve dollar impact.",
+            "Assign a root cause (interface defect, mapping error, missed sign-off, incomplete disposition) and an owner.",
+            "Set a remediation date and, for reserve-impacting exceptions, notify the Chief Actuary.",
+            "Carry every open exception into next quarter's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate and compare it to the zero-tolerance threshold for unresolved, unsigned-off material breaks.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer, who performed none of the sampled reconciliations, sign the workpaper.",
+            "Report results to the Audit & Risk Committee and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and committee reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-059-C06",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Appointed Actuary",
+          "value": "Appointed Actuary owns substantive responses to OSFI valuation inquiries; Regulatory Reporting Manager coordinates intake and routing"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — OSFI's supervisory information-request process under the Corporate Governance Guideline (2018) and Guideline E-15's expectation that the Appointed Actuary respond to valuation queries, re-read whenever a new inquiry type is received (rep: Canada, OSFI Corporate Governance Guideline 2018)"
+        },
+        "In-scope processes": {
+          "value": "Intake, research, drafting and submission of responses to any OSFI valuation inquiry, information request or follow-up question, across all legal entities under OSFI supervision"
+        },
+        "In-scope systems": {
+          "app": "Internal Regulatory System",
+          "value": "OSFI Regulatory Reporting System (RRS) message center for inquiry receipt/response; correspondence tracked in the regulatory filing/issue tracker"
+        },
+        "Compliance procedure documented": {
+          "value": "Regulator Inquiry Response Procedure — intake logging, routing to the substantive owner, legal review, response SLA and sign-off before submission"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Actuary and Head of Compliance, reviewed annually"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Event-driven — response due date as stated in each individual OSFI inquiry, typically 10-20 business days; tracked per inquiry on receipt"
+        },
+        "Deadline reminders configured": {
+          "value": "Inquiry-specific reminders at 50% and 80% of the response window, escalating to the Chief Actuary at 90%"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Inquiry, research notes, draft and final response, and submission confirmation retained 7 years from the response date"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any missed response deadline or an inaccurate response later corrected is logged with root cause and Chief Actuary disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Actuary",
+          "value": "Chief Actuary signs off on any corrected or supplemented response before it is resubmitted to OSFI"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All OSFI valuation inquiries received and responded to in the review period across every legal entity"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for a response submitted after its stated due date, or a response not reviewed by Regulatory Counsel"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven; test runs quarterly over that quarter's inquiries received"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have drafted or approved any sampled response"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly inquiry-response test workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Full correspondence file with timestamps, presentable to OSFI supervisory staff or in a subsequent examination within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Reporting Manager owns inquiry intake and routing; Regulatory Counsel clears every substantive response before submission"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Log the incoming OSFI inquiry",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Open the OSFI RRS message center (or the designated OSFI liaison mailbox) and identify the new inquiry.",
+            "Log the inquiry in the regulatory filing/issue tracker with received date, stated due date, subject and requesting OSFI contact.",
+            "Classify the inquiry type: valuation methodology question, data request, follow-up to a prior filing, or examination-related.",
+            "Assign a case owner based on classification."
+          ],
+          "done": "the inquiry is logged with due date, classification and an assigned case owner within 1 business day of receipt."
+        },
+        {
+          "step": "Route the inquiry to the substantive owner",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Route valuation methodology and adequacy questions to the Appointed Actuary.",
+            "Route data-specific questions to the Reserving Actuary or Data Quality Analyst as applicable.",
+            "Route examination-related inquiries to the Chief Actuary and Regulatory Counsel jointly.",
+            "Confirm the case owner has acknowledged receipt within 1 business day."
+          ],
+          "done": "the inquiry is routed to the correct substantive owner with acknowledged receipt logged."
+        },
+        {
+          "step": "Research the inquiry against the underlying workpapers",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "app": "model governance repository",
+          "actions": [
+            "Pull the relevant valuation memo, run logs and assumption documentation from the model governance repository for the period the inquiry concerns.",
+            "Reconstruct the specific figure, methodology choice, or data point OSFI is asking about.",
+            "Identify whether the answer is a simple clarification or requires new analysis.",
+            "Note any gap in existing documentation that the response will need to fill."
+          ],
+          "done": "the inquiry's underlying facts are reconstructed from workpapers with any documentation gap identified."
+        },
+        {
+          "step": "Draft the substantive response",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Draft a direct answer to each question in the inquiry, referencing the specific workpaper, memo section or exhibit that supports it.",
+            "Avoid speculative or forward-looking statements not supported by the record.",
+            "Attach or reference supporting exhibits (run logs, assumption tables, reconciliation reports) as needed.",
+            "Flag any question the team cannot fully answer within the response window for early escalation."
+          ],
+          "done": "a draft response answering every inquiry question with cited supporting exhibits exists, with any unanswerable item flagged."
+        },
+        {
+          "step": "Have a peer actuary review the draft for accuracy",
+          "by": "Actuary",
+          "role": "Actuary",
+          "actions": [
+            "Independently verify each cited figure in the draft response against the source workpaper.",
+            "Confirm the response does not contradict any previously filed opinion or return.",
+            "Raise any inaccuracy or inconsistency in writing and require it be resolved before the response advances.",
+            "Sign off that the draft is factually accurate."
+          ],
+          "done": "a peer actuary has verified every cited figure and signed off on the draft's accuracy."
+        },
+        {
+          "step": "Route the draft through Regulatory Counsel review",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Read the draft response for tone, scope and any statement that could be read as an admission beyond the facts.",
+            "Confirm the response does not disclose information outside the scope of the specific inquiry.",
+            "Return comments to the Appointed Actuary with a same-week turnaround.",
+            "Sign off that the response is legally clear for submission."
+          ],
+          "done": "Regulatory Counsel has signed off that the response is scoped correctly and legally clear."
+        },
+        {
+          "step": "Obtain Chief Actuary approval",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Review the peer-reviewed, legally-cleared draft response in full.",
+            "Confirm the response is consistent with the entity's most recent certified valuation and AAR.",
+            "Approve the response for submission or return it with final changes.",
+            "Log the approval date on the inquiry tracker."
+          ],
+          "done": "the Chief Actuary has approved the response for submission."
+        },
+        {
+          "step": "Submit the response through the OSFI channel it arrived on",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Submit the approved response through the OSFI RRS message center or the channel the inquiry was received on.",
+            "Attach every supporting exhibit referenced in the response.",
+            "Capture the submission confirmation and timestamp.",
+            "Update the inquiry tracker status to 'Responded' with the submission date."
+          ],
+          "done": "the response is submitted through the correct channel with all exhibits attached and the submission confirmation captured."
+        },
+        {
+          "step": "Confirm submission before the stated due date",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Compare the submission timestamp to the inquiry's stated due date.",
+            "Where the response is at risk of missing the due date, request an extension from OSFI in writing before the due date passes.",
+            "Log any extension granted, with the new due date, on the inquiry tracker.",
+            "Escalate any missed due date to the Chief Actuary and Head of Compliance immediately."
+          ],
+          "done": "the response's timing against the due date is confirmed, with any extension logged or any miss immediately escalated."
+        },
+        {
+          "step": "Track any OSFI follow-up question",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Monitor the RRS message center for an OSFI follow-up to the submitted response.",
+            "Log any follow-up as a linked child inquiry on the tracker, retaining the parent-child relationship.",
+            "Route the follow-up through the same research/draft/review/approve/submit cycle.",
+            "Close the parent inquiry only once no further follow-up is received within the standard 20-business-day window."
+          ],
+          "done": "any OSFI follow-up is logged, linked to the parent inquiry, and the parent is closed only after the follow-up window elapses."
+        },
+        {
+          "step": "Update internal documentation where the inquiry revealed a gap",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Where research for the response revealed a documentation gap in the valuation memo or AAR, note the gap.",
+            "Update the relevant procedure or workpaper template to close the gap for the next cycle.",
+            "Notify the Chief Actuary of the documentation improvement made.",
+            "Log the update on the inquiry tracker as a corrective action."
+          ],
+          "done": "any documentation gap surfaced by the inquiry is closed in the relevant procedure or template, logged as a corrective action."
+        },
+        {
+          "step": "Notify internal stakeholders of the response outcome",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Summarize the inquiry, response and any OSFI reaction for the Chief Risk Officer and Board Governance Lead.",
+            "Flag any inquiry pattern suggesting a broader supervisory concern.",
+            "Include material inquiries in the next Compliance Committee update.",
+            "File the summary with the inquiry record."
+          ],
+          "done": "material inquiry outcomes are summarized to the Chief Risk Officer and reported to the Compliance Committee."
+        },
+        {
+          "step": "Archive the complete correspondence file",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Assemble the inquiry, research notes, draft versions, peer review sign-off, legal clearance and final submitted response into one file.",
+            "Upload the file to the compliance evidence repository under the inquiry date and legal entity.",
+            "Apply the 7-year retention label.",
+            "Confirm the file is indexed and searchable by inquiry date and OSFI reference number."
+          ],
+          "done": "the complete correspondence file is archived, retention-labelled and indexed by inquiry date and reference number."
+        },
+        {
+          "step": "Review inquiry volume and turnaround trends",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Compile inquiry count, average turnaround time and any missed deadlines for the quarter.",
+            "Compare trends against the prior four quarters.",
+            "Report the trend and any process bottleneck to the Chief Risk Officer.",
+            "Adjust the response SLA or staffing if turnaround is consistently at risk."
+          ],
+          "done": "inquiry volume and turnaround trends are compiled, reported, and any needed process adjustment is made."
+        },
+        {
+          "step": "Confirm the response procedure is current",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Review the Regulator Inquiry Response Procedure annually against actual practice observed in the period.",
+            "Update routing rules, SLA windows or escalation triggers as needed.",
+            "Circulate the updated procedure to all case owners.",
+            "Log the review date and any changes made."
+          ],
+          "done": "the response procedure is reviewed annually, updated where needed, and circulated to case owners."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of OSFI inquiries received in the review period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Extract from the RRS message center and the regulatory filing/issue tracker every OSFI inquiry received in the period.",
+            "Reconcile the tracker count to the RRS message center count.",
+            "Resolve any discrepancy before sampling."
+          ],
+          "done": "the population is reconciled between the tracker and RRS message center and signed as complete."
+        },
+        {
+          "step": "Reconcile each inquiry to a logged response",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each inquiry to a submitted response on the tracker.",
+            "Check the response submission date against the inquiry's stated due date.",
+            "List any inquiry without a matched response, or with a late response, as an automatic exception."
+          ],
+          "done": "every inquiry is matched to a response with timeliness checked, or listed as an exception."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of examination-related inquiries.",
+            "Take 5 additional inquiries selected at random (seeded, reproducible) from the remaining population.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible, and covers 100% of examination-related inquiries."
+        },
+        {
+          "step": "Re-verify the accuracy of each sampled response",
+          "by": "Actuary",
+          "role": "Actuary",
+          "app": "model governance repository",
+          "actions": [
+            "Independently pull the source workpaper cited in each sampled response.",
+            "Confirm every figure and methodology statement in the response matches the source workpaper.",
+            "Log any inaccuracy or unsupported statement as an exception."
+          ],
+          "done": "every sampled response's figures are independently confirmed against source workpapers or logged as exceptions."
+        },
+        {
+          "step": "Confirm peer review and legal clearance evidence exists",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm a signed peer actuary accuracy sign-off exists for each sampled response.",
+            "Confirm a Regulatory Counsel clearance sign-off exists and pre-dates submission.",
+            "Log any missing sign-off as an exception."
+          ],
+          "done": "peer review and legal clearance evidence is confirmed present and pre-dated for every sampled response, or logged as exceptions."
+        },
+        {
+          "step": "Trace each response to its OSFI submission confirmation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Open the RRS message center and locate the submission confirmation for each sampled response.",
+            "Confirm the submitted content matches the final approved draft on file.",
+            "Capture the confirmation screen into the workpaper.",
+            "Log any mismatch as an exception."
+          ],
+          "done": "every sampled response's submission is traced to a matching RRS confirmation or the gap is logged."
+        },
+        {
+          "step": "Recompute response timeliness against the stated due date",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled inquiry, recompute the business days between receipt and response submission.",
+            "Compare to the due date stated in the original inquiry (or any documented extension).",
+            "Log any late response as a reportable exception, not a documentation gap."
+          ],
+          "done": "response timeliness is recomputed and compared to the due date (or extension) for every sampled inquiry."
+        },
+        {
+          "step": "Confirm follow-up inquiries were tracked to closure",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For sampled inquiries with a logged follow-up, confirm the follow-up went through the same review cycle as the parent.",
+            "Confirm the parent inquiry was closed only after the follow-up window elapsed with no further question.",
+            "Log any inquiry closed prematurely as an exception."
+          ],
+          "done": "follow-up handling and closure timing is confirmed correct for every sampled inquiry with a follow-up, or the gap is logged."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the inquiry id, what was missed and the compliance impact.",
+            "Assign a root cause (missed routing, late review, inaccurate content, late submission) and an owner.",
+            "Set a remediation date and, for a missed statutory-style deadline, open a self-report assessment with Regulatory Counsel.",
+            "Carry every open exception into next quarter's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance timeliness/review threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer, who drafted none of the sampled responses, sign the workpaper.",
+            "Report results to the Compliance Committee and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and committee reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-059-C07",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Sustainability Risk Manager",
+          "value": "Sustainability Risk Manager owns compiling and submitting the annual OSFI climate risk disclosure survey; Chief Risk Officer signs the submission"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — OSFI Guideline B-15 (Climate Risk Management), Chapter 2 mandatory climate disclosures aligned to TCFD, and the OSFI/OFSI Climate Risk Returns filing instructions, re-read at each annual survey cycle (rep: Canada, OSFI Guideline B-15 — Climate Risk Management, Chapter 1: governance and risk management; also referencing OSFI Guideline E-19 ORSA Key Metrics Report and Guideline B-10 Third-Party Risk Management contractual provisions for climate-related data from external providers)"
+        },
+        "In-scope processes": {
+          "value": "Annual compilation and submission of the OSFI climate risk disclosure (governance, strategy, risk management and metrics/targets sections aligned to TCFD), across all Canadian OSFI-regulated legal entities"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Climate metrics and governance evidence compiled in the GRC platform; emissions and exposure data sourced from the enterprise data warehouse/lakehouse and external data providers"
+        },
+        "Compliance procedure documented": {
+          "value": "Climate Disclosure Survey Procedure — data collection by section (governance, strategy, risk management, metrics/targets), data provider contract terms review, and Chief Risk Officer sign-off before submission"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Risk Officer and reviewed annually ahead of the survey cycle"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual climate risk disclosure survey submitted to OSFI per the published survey calendar, tracked against the entity's fiscal year-end plus the survey's fixed submission window"
+        },
+        "Deadline reminders configured": {
+          "value": "Data collection kickoff at T-90 days, draft complete at T-45, sign-off at T-15 before the survey submission deadline"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Survey submission, underlying metrics workpapers and data-provider extracts retained 7 years from the submission date"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "compliance evidence repository",
+          "value": "Missing metrics, unavailable data-provider figures, or late submission are logged with root cause and Chief Risk Officer disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "Chief Risk Officer signs off on any late or amended climate disclosure submission"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The climate risk disclosure survey submissions made in the review period across every legal entity required to file"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for a submitted metric that cannot be traced to a source extract, or a submission after the published deadline"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; test runs annually over 100% of the submission population"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have compiled or approved any sampled survey submission"
+        },
+        "Evidence location for test results": {
+          "value": "Annual climate disclosure test workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Survey submission, metrics workpapers and third-party data confirmations, presentable to OSFI supervisory staff within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Sustainability Risk Manager owns the OSFI climate-survey clarification response; Regulatory Counsel clears any methodology-limitation admission before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Pull the current-cycle OSFI climate disclosure survey template",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Log in to OSFI's Regulatory Reporting System (RRS) and download the current-year climate risk disclosure survey template.",
+            "Compare the template to last year's version and note any new or changed metric, threshold, or section.",
+            "Brief the data-collection owners on any changes before collection begins.",
+            "Log the template version and download date on the survey tracker."
+          ],
+          "done": "the current survey template is downloaded, compared to the prior version for changes, and data owners are briefed."
+        },
+        {
+          "step": "Compile the governance section evidence",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "app": "board portal",
+          "actions": [
+            "Pull board and committee minutes from the board portal evidencing climate risk oversight discussions in the fiscal year.",
+            "Document the board's role in setting the climate risk appetite and reviewing climate strategy.",
+            "Document management's climate governance structure (committee, reporting lines) as of fiscal year-end.",
+            "Attach the minute excerpts as supporting evidence for the governance section."
+          ],
+          "done": "governance section evidence, including board minute excerpts and the management structure description, is compiled and attached."
+        },
+        {
+          "step": "Compile the strategy section evidence",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "actions": [
+            "Document the climate-related risks and opportunities identified as material to the business over short, medium and long time horizons.",
+            "Summarize any climate scenario analysis performed (see the ORSA climate scenario integration control) and its strategic implications.",
+            "Describe the resilience of the business strategy under the scenarios considered.",
+            "Route the draft to the Chief Strategy Officer for review."
+          ],
+          "done": "the strategy section is drafted with material risks, scenario implications and strategy resilience described, and reviewed by the Chief Strategy Officer."
+        },
+        {
+          "step": "Compile the risk management section evidence",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Pull the climate risk identification, assessment and monitoring process documentation from the GRC platform.",
+            "Document how climate risk is integrated into the overall enterprise risk management framework and risk appetite statement.",
+            "Document any climate-specific risk limits, triggers or escalation protocols in place during the fiscal year.",
+            "Attach the GRC platform extracts as supporting evidence."
+          ],
+          "done": "the risk management section is compiled with GRC platform evidence attached showing climate risk integration into the ERM framework."
+        },
+        {
+          "step": "Collect the quantitative metrics and targets data",
+          "by": "Data Analyst",
+          "role": "Data Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Pull financed/insured emissions or exposure metrics required by the survey from the enterprise data warehouse and from external climate data providers under contract.",
+            "Reconcile each metric's underlying exposure or portfolio total to the general ledger or the investment/underwriting system of record.",
+            "Document data source, calculation methodology and any known limitation for each metric.",
+            "Flag any metric the organization cannot yet calculate and document the stated reason (data unavailability, methodology not yet developed)."
+          ],
+          "done": "quantitative metrics are collected, reconciled to source systems, documented with methodology, and any gap is flagged with a stated reason."
+        },
+        {
+          "step": "Review third-party data provider terms for climate data use",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Confirm the contract with each external climate/emissions data provider permits use of the data in a regulatory disclosure.",
+            "Confirm the provider's data lineage and update frequency meet the survey's currency requirement.",
+            "Document any contractual limitation on data use or redistribution.",
+            "Flag any provider relationship needing a contract amendment before next year's cycle."
+          ],
+          "done": "third-party data provider terms are confirmed to permit regulatory use, with any limitation documented and any needed amendment flagged."
+        },
+        {
+          "step": "Assemble the complete survey response",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "actions": [
+            "Enter the governance, strategy, risk management and metrics/targets section content into the OSFI survey template.",
+            "Cross-check every quantitative figure against its source reconciliation from the data collection step.",
+            "Confirm every narrative section addresses the specific sub-questions in the template, not a generic restatement.",
+            "Save the assembled draft with a version tag."
+          ],
+          "done": "the complete survey draft is assembled, every figure is cross-checked to its source, and every sub-question is addressed."
+        },
+        {
+          "step": "Obtain Enterprise Risk Manager and Sustainability review",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Review the assembled draft for consistency with the entity's ORSA and enterprise risk management framework.",
+            "Confirm the metrics and targets reported are consistent with any internal or external climate commitments already made.",
+            "Return comments to the Sustainability Risk Manager with a fixed turnaround.",
+            "Approve the draft for legal review."
+          ],
+          "done": "the Chief Risk Officer has reviewed the draft for consistency and approved it for legal review."
+        },
+        {
+          "step": "Route the draft through Regulatory Counsel review",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Read the draft survey for language that overstates certainty in metrics flagged as limited or estimated.",
+            "Confirm any forward-looking target statement includes appropriate qualification.",
+            "Return comments to the Sustainability Risk Manager.",
+            "Sign off that the survey language is regulator-ready."
+          ],
+          "done": "Regulatory Counsel has signed off that the survey language is appropriately qualified and regulator-ready."
+        },
+        {
+          "step": "Obtain Chief Risk Officer sign-off to submit",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Review the legally cleared final draft.",
+            "Provide written sign-off authorizing submission.",
+            "Log the sign-off date on the survey tracker.",
+            "Notify the Regulatory Reporting Analyst to proceed with submission."
+          ],
+          "done": "the Chief Risk Officer has signed off in writing to authorize submission."
+        },
+        {
+          "step": "Submit the survey via OSFI's Regulatory Reporting System",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Log in to RRS and open the climate risk disclosure survey filing shell for the correct entity and fiscal year.",
+            "Enter or upload the approved survey content into the prescribed schedule.",
+            "Run RRS validation edits and resolve any flagged issue.",
+            "Submit the survey and capture the confirmation number and timestamp."
+          ],
+          "done": "the survey is submitted in RRS with validation edits cleared and a confirmation number captured."
+        },
+        {
+          "step": "Distribute the submission confirmation internally",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "actions": [
+            "Send the RRS confirmation to the Chief Risk Officer, Chief Strategy Officer and Board Governance Lead.",
+            "Update the survey tracker status to 'Submitted' with the confirmation number and date.",
+            "Add the submission to the next Compliance Committee update."
+          ],
+          "done": "the submission confirmation is distributed and the survey tracker is updated to 'Submitted'."
+        },
+        {
+          "step": "Handle any OSFI clarification query on the survey",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "actions": [
+            "Monitor the RRS message center for OSFI clarification queries on the submitted survey.",
+            "Route any methodology question to the Data Analyst and any governance question to the Board Governance Lead.",
+            "Have Regulatory Counsel review any substantive response before submission.",
+            "Log the query and response on the survey tracker."
+          ],
+          "done": "every OSFI clarification query is logged, routed, reviewed by Regulatory Counsel where substantive, and answered."
+        },
+        {
+          "step": "Archive the survey package",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Assemble the final submitted survey, source metric reconciliations, provider terms review and sign-offs into a package.",
+            "Upload the package to the compliance evidence repository under the fiscal year and legal entity.",
+            "Apply the 7-year retention label.",
+            "Confirm the package is indexed and searchable by fiscal year."
+          ],
+          "done": "the survey package is archived, retention-labelled and indexed by fiscal year and entity."
+        },
+        {
+          "step": "Set the next cycle's climate survey calendar and reminders",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "actions": [
+            "Load next year's survey submission window into the survey tracker once OSFI publishes it.",
+            "Configure reminders at T-90 (kickoff), T-45 (draft complete) and T-15 (sign-off) days before the deadline.",
+            "Confirm the reminder distribution list is current after any personnel change."
+          ],
+          "done": "next cycle's survey deadline is calendared with T-90/T-45/T-15 reminders configured to the current owner list."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of climate survey submissions in the review period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Extract from OSFI's RRS filing history every climate risk disclosure survey submission in the period, by legal entity.",
+            "Reconcile the count to the required filing entity list.",
+            "Resolve any missing entity before sampling."
+          ],
+          "done": "the population reconciles to the required filing entity list and is signed as complete."
+        },
+        {
+          "step": "Reconcile each submission to Chief Risk Officer sign-off",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each submission to a written Chief Risk Officer sign-off.",
+            "Check the sign-off date pre-dates the RRS submission timestamp.",
+            "List unmatched submissions as automatic exceptions."
+          ],
+          "done": "every submission is matched to a pre-dated Chief Risk Officer sign-off or listed as an exception."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of submissions given the annual, low-volume population across entities.",
+            "Record the population size and test date in the workpaper."
+          ],
+          "done": "100% of the submission population is included with the population size documented."
+        },
+        {
+          "step": "Trace every quantitative metric to its source reconciliation",
+          "by": "Data Analyst",
+          "role": "Data Analyst",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "For each sampled submission, pull the source reconciliation workpaper for every quantitative metric reported.",
+            "Independently recompute at least 5 metrics from the enterprise data warehouse or provider extract.",
+            "Compare recomputed figures to the submitted figures and log any variance beyond tolerance.",
+            "Confirm every metric with a stated limitation is documented as such in the submission."
+          ],
+          "done": "quantitative metrics are independently recomputed and traced to source for every sampled submission, with variances logged."
+        },
+        {
+          "step": "Verify the governance section against board minutes",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Pull board and committee minutes from the board portal for the fiscal year covered by the submission.",
+            "Confirm the governance section's description of board oversight is supported by the actual minutes.",
+            "Log any unsupported governance claim as an exception."
+          ],
+          "done": "the governance section is confirmed supported by actual board minutes or the gap is logged."
+        },
+        {
+          "step": "Verify third-party data provider terms were confirmed",
+          "by": "Third-Party Risk Manager",
+          "role": "Third-Party Risk Manager",
+          "actions": [
+            "Confirm a documented contract review exists for each external data provider whose data was used in the sampled submission.",
+            "Confirm the review pre-dates the submission date.",
+            "Log any missing or post-dated contract review as an exception."
+          ],
+          "done": "third-party data provider terms review is confirmed present and pre-dated for every sampled submission, or logged as an exception."
+        },
+        {
+          "step": "Confirm Regulatory Counsel review occurred",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm a signed Regulatory Counsel review exists for each sampled submission.",
+            "Confirm the review pre-dates the Chief Risk Officer sign-off.",
+            "Log any missing or out-of-sequence review as an exception."
+          ],
+          "done": "Regulatory Counsel review is confirmed present and correctly sequenced for every sampled submission, or logged as an exception."
+        },
+        {
+          "step": "Recompute submission timeliness against the OSFI survey deadline",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the OSFI-published submission deadline for the survey cycle.",
+            "Compare to the actual RRS submission timestamp for each sampled entity.",
+            "Log any late submission as a reportable exception."
+          ],
+          "done": "submission timeliness is recomputed and compared to the published deadline for every sampled entity."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Raise a tracker issue per exception with the entity, metric or section affected, and the compliance impact.",
+            "Assign a root cause (data gap, unreviewed provider contract, missed sign-off, late submission) and an owner.",
+            "Set a remediation date and, for a missed statutory-style deadline, notify Regulatory Counsel.",
+            "Carry every open exception into next year's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance threshold for untraceable metrics or late submission.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer, who compiled none of the sampled submissions, sign the workpaper.",
+            "Report results to the Risk Committee and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and committee reporting date exists in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-059-C08",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Enterprise Risk Manager",
+          "value": "Enterprise Risk Manager owns integrating climate scenarios into the annual ORSA and stress-testing program; Chief Risk Officer approves the scenario set and results"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — OSFI Guideline B-15 (Climate Risk Management), Chapter 1 governance and risk management provisions, and OSFI Guideline E-19 (ORSA) requiring climate to be considered a material risk category, re-read at each annual ORSA cycle (rep: Canada, OSFI Guideline B-15 — Climate Risk Management, Chapter 1; OSFI Guideline E-15 / CIA Standards of Practice — Financial Condition Testing for the scenario mechanics)"
+        },
+        "In-scope processes": {
+          "value": "Annual integration of physical and transition climate risk scenarios into the Own Risk and Solvency Assessment (ORSA) and the Financial Condition Testing stress-testing program, across all material lines of business and legal entities"
+        },
+        "In-scope systems": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Climate scenario library and risk appetite linkage tracked in the GRC platform; scenario cash-flow impacts modeled in the actuarial modeling platform"
+        },
+        "Compliance procedure documented": {
+          "value": "ORSA Climate Scenario Integration Procedure — scenario selection (NGFS-aligned physical and transition pathways), impact modeling, risk appetite linkage, and board reporting"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Risk Officer and presented annually to the Board Risk Committee alongside the ORSA report"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Climate scenario analysis completed and incorporated into the ORSA report ahead of its annual submission to OSFI via the ORSA Key Metrics Report (KMR) cycle"
+        },
+        "Deadline reminders configured": {
+          "value": "Scenario selection kickoff at T-100 days, modeling complete at T-60, board presentation at T-30 before the annual ORSA submission"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Climate scenario design, model outputs and ORSA report sections retained 7 years from the report date"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "compliance evidence repository",
+          "value": "Missing scenario pathway coverage, unmodeled material line of business, or a stale risk-appetite linkage is logged with root cause and Chief Risk Officer disposition"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "Chief Risk Officer signs off on any remediation to a missing scenario pathway or an unmodeled material exposure"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All climate scenario analyses incorporated into the ORSA/FCT program in the review period across every legal entity"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for an ORSA report submitted without both a physical-risk and a transition-risk scenario pathway modeled for every material line of business"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; test runs annually over 100% of the scenario set incorporated into the ORSA report"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have selected or modeled any sampled scenario"
+        },
+        "Evidence location for test results": {
+          "value": "Annual ORSA climate scenario test workpaper in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "ORSA report climate scenario section, model outputs and board minutes, presentable to OSFI supervisory staff within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Chief Risk Officer owns the OSFI response on ORSA climate-scenario matters; Regulatory Counsel clears any capital-adequacy admission before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Confirm the material lines of business requiring climate scenario coverage",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Pull the current materiality assessment from the GRC platform, ranking lines of business by exposure to physical and transition climate risk.",
+            "Confirm coverage of property lines exposed to physical perils, and long-tail liability, energy and real-estate-linked investment portfolios exposed to transition risk.",
+            "Flag any newly material line not covered in the prior year's scenario set.",
+            "Route the confirmed coverage list to the Chief Risk Officer for approval."
+          ],
+          "done": "the material lines requiring climate scenario coverage are confirmed, any newly material line is flagged, and the list is approved."
+        },
+        {
+          "step": "Select the physical and transition risk scenario pathways",
+          "by": "Sustainability Risk Manager",
+          "role": "Sustainability Risk Manager",
+          "actions": [
+            "Select physical risk scenarios (e.g., increased frequency/severity of weather perils) aligned to recognized pathways such as the NGFS scenario framework.",
+            "Select transition risk scenarios (e.g., orderly, disorderly and hot-house-world pathways) covering carbon-pricing, policy and technology shifts.",
+            "Document the rationale for each pathway selected and its relevance to the entity's material lines of business.",
+            "Route the selected scenario set to the Chief Risk Officer and Appointed Actuary for approval."
+          ],
+          "done": "physical and transition scenario pathways are selected, documented with rationale, and approved."
+        },
+        {
+          "step": "Translate scenarios into modelable risk drivers",
+          "by": "CAT Modeler",
+          "role": "CAT Modeler",
+          "app": "Catastrophe Data Provider",
+          "actions": [
+            "For physical risk scenarios, translate the selected pathway into peril frequency/severity shifts using the catastrophe modeling data provider's climate-conditioned output.",
+            "For transition risk scenarios, translate carbon-price and policy pathways into asset repricing and underwriting exposure shifts with the Investment Analyst.",
+            "Document the translation methodology and any third-party model relied on.",
+            "Hand the risk-driver set to the Reserving Actuary/Reinsurance Actuary for cash-flow modeling."
+          ],
+          "done": "each scenario pathway is translated into modelable risk drivers with methodology and data source documented."
+        },
+        {
+          "step": "Model the financial impact of each scenario",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Load the translated risk drivers into the actuarial/ALM projection model alongside the base ORSA/FCT scenario set.",
+            "Run each climate scenario over the ORSA's multi-year projection horizon, capturing surplus, capital ratio and liquidity impacts.",
+            "Compare results to the base scenario to isolate the incremental climate impact.",
+            "Save each run log to the model governance repository with scenario name and version."
+          ],
+          "done": "each climate scenario's financial impact is modeled over the ORSA horizon, isolated from the base scenario, and logged."
+        },
+        {
+          "step": "Assess capital and liquidity adequacy under each climate scenario",
+          "by": "Capital Model Actuary",
+          "role": "Capital Model Actuary",
+          "actions": [
+            "Compare the projected capital ratio under each climate scenario to the internal target and OSFI supervisory target.",
+            "Identify the projection year and magnitude of any capital or liquidity shortfall.",
+            "Document plausible management actions consistent with the entity's risk appetite that would address a projected shortfall.",
+            "Summarize results by scenario in a capital adequacy table."
+          ],
+          "done": "capital and liquidity adequacy under every climate scenario is assessed, with any shortfall and its management action documented."
+        },
+        {
+          "step": "Link scenario results to the risk appetite statement",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Compare the scenario results to the climate risk appetite thresholds recorded in the GRC platform.",
+            "Identify any threshold breach under a plausible scenario and document the required escalation.",
+            "Update the risk appetite statement's climate section if a threshold proves miscalibrated against the scenario results.",
+            "Record the linkage analysis in the ORSA workpaper."
+          ],
+          "done": "scenario results are compared to the climate risk appetite with any breach escalated and documented in the ORSA workpaper."
+        },
+        {
+          "step": "Draft the ORSA climate scenario section",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "actions": [
+            "Draft the ORSA report section covering scenario selection rationale, modeled financial impacts, capital/liquidity adequacy results and risk appetite linkage.",
+            "Cite the OSFI Guideline B-15 and E-19 provisions the section responds to.",
+            "Attach the run logs and capital adequacy table as exhibits.",
+            "Route the drafted section to the Appointed Actuary for consistency review against the FCT report."
+          ],
+          "done": "the ORSA climate scenario section is drafted with exhibits attached and routed for consistency review."
+        },
+        {
+          "step": "Reconcile the climate scenario section to the FCT report",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Compare the climate scenario assumptions and capital impacts to the corresponding FCT report scenarios.",
+            "Confirm no inconsistency exists between the two reports' conclusions on capital adequacy.",
+            "Resolve and document any inconsistency before the ORSA section is finalized.",
+            "Sign off that the two reports are consistent."
+          ],
+          "done": "the ORSA climate section and the FCT report are confirmed consistent, with any resolved inconsistency documented and signed off."
+        },
+        {
+          "step": "Obtain independent peer review of the scenario modeling",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "actions": [
+            "Independently re-run at least one physical and one transition risk scenario in a parallel model instance.",
+            "Compare results to the reported figures and log any variance beyond tolerance as a review finding.",
+            "Confirm the translation methodology from scenario pathway to risk driver is documented and reproducible.",
+            "Sign and date the peer review checklist."
+          ],
+          "done": "a peer reviewer has independently reproduced at least one physical and one transition scenario within tolerance and signed off."
+        },
+        {
+          "step": "Present the climate scenario results to the Board Risk Committee",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "app": "board portal",
+          "actions": [
+            "Upload the ORSA climate scenario section and capital adequacy table to the board portal ahead of the Risk Committee meeting.",
+            "Have the Chief Risk Officer present the scenario results, any risk appetite breach and the proposed management actions.",
+            "Record committee questions, responses and any requested follow-up in the minutes.",
+            "File the minute extract with the ORSA record."
+          ],
+          "done": "the climate scenario results are presented to and received by the Board Risk Committee with minutes filed against the ORSA record."
+        },
+        {
+          "step": "Finalize the ORSA report with the climate section incorporated",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Incorporate any board feedback into the final ORSA climate scenario section.",
+            "Confirm the full ORSA report, including the climate section, is internally consistent and complete.",
+            "Sign off on the final ORSA report for submission.",
+            "Log the sign-off date on the ORSA tracker."
+          ],
+          "done": "the ORSA report with the climate scenario section incorporated is signed off as final."
+        },
+        {
+          "step": "Submit the ORSA Key Metrics Report reflecting the climate scenario results",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Log in to OSFI's RRS and open the ORSA Key Metrics Report (KMR) filing shell for the entity and fiscal year.",
+            "Enter the climate-scenario-informed capital and risk metrics into the prescribed KMR fields.",
+            "Run RRS validation edits and resolve any flagged inconsistency.",
+            "Submit the KMR and retain the confirmation number and timestamp."
+          ],
+          "done": "the KMR reflecting the climate scenario results is submitted in RRS with validation edits cleared and confirmation retained."
+        },
+        {
+          "step": "Update the model governance and scenario change log",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "app": "model governance repository",
+          "actions": [
+            "Record the climate scenario pathways, translation methodology version and model version used in the model governance repository.",
+            "Tag each change with the approver and date.",
+            "Cross-reference the ORSA report exhibit number.",
+            "Flag any change requiring further model risk validation before next use."
+          ],
+          "done": "every climate scenario model/methodology change is logged, tagged, cross-referenced and flagged for validation where required."
+        },
+        {
+          "step": "Archive the ORSA climate scenario package",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Assemble the scenario selection rationale, translation methodology, run logs, capital adequacy table, peer review checklist and board minutes into one package.",
+            "Upload the package to the compliance evidence repository under the fiscal year and legal entity.",
+            "Apply the 7-year retention label.",
+            "Confirm the package is indexed and searchable by fiscal year and entity."
+          ],
+          "done": "the complete ORSA climate scenario package is archived, retention-labelled and indexed by fiscal year and entity."
+        },
+        {
+          "step": "Set the next cycle's ORSA climate scenario calendar and reminders",
+          "by": "Enterprise Risk Manager",
+          "role": "Enterprise Risk Manager",
+          "actions": [
+            "Load next year's ORSA submission window into the ORSA tracker with milestone dates for scenario selection, modeling and board presentation.",
+            "Configure reminders at T-100 (selection), T-60 (modeling complete) and T-30 (board presentation) days before the ORSA submission deadline.",
+            "Confirm the reminder distribution list is current after any personnel change."
+          ],
+          "done": "next cycle's ORSA climate scenario milestones are calendared with reminders configured to the current owner list."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of climate scenarios incorporated into the review period's ORSA",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "model governance repository",
+          "actions": [
+            "Extract from the model governance repository every climate scenario run incorporated into the ORSA/FCT program in the review period, by legal entity.",
+            "Reconcile the count to the material lines of business list approved for coverage.",
+            "Resolve any uncovered material line before sampling."
+          ],
+          "done": "the population reconciles to the approved material-lines coverage list and is signed as complete."
+        },
+        {
+          "step": "Reconcile the ORSA climate section to the FCT report",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the climate scenario assumptions and capital conclusions in the filed ORSA report to the FCT report for the same period.",
+            "Confirm the Appointed Actuary's consistency sign-off exists and pre-dates ORSA finalization.",
+            "List any unreconciled inconsistency as an exception."
+          ],
+          "done": "the ORSA climate section is confirmed consistent with the FCT report and the sign-off is pre-dated, or the gap is logged."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of physical-risk and transition-risk scenario pathways used in the ORSA.",
+            "Take one additional material line of business at random for a full re-performance.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample covers 100% of scenario pathways plus a reproducible additional material-line re-performance."
+        },
+        {
+          "step": "Re-perform the scenario-to-risk-driver translation",
+          "by": "CAT Modeler",
+          "role": "CAT Modeler",
+          "app": "Catastrophe Data Provider",
+          "actions": [
+            "Independently pull the catastrophe data provider's current climate-conditioned output for the sampled physical scenario.",
+            "Recompute the peril frequency/severity shift and compare to the recorded risk driver.",
+            "Log any variance beyond tolerance as an exception."
+          ],
+          "done": "the scenario-to-risk-driver translation is independently recomputed for the sampled scenario, with variance logged."
+        },
+        {
+          "step": "Re-perform the financial impact modeling for the sample",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Reload the sampled scenario's risk drivers into a parallel model instance.",
+            "Re-execute the financial impact projection independently of the production run.",
+            "Compare the re-performed capital/liquidity impact to the reported figures and log any variance beyond tolerance.",
+            "Capture the re-performed run log into the test workpaper."
+          ],
+          "done": "the financial impact is independently re-performed for the sampled scenario with the variance documented."
+        },
+        {
+          "step": "Verify the risk appetite linkage analysis",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Pull the climate risk appetite thresholds from the GRC platform as of the ORSA reporting date.",
+            "Compare the sampled scenario's results to those thresholds independently.",
+            "Confirm any breach identified was escalated per the documented process.",
+            "Log any unescalated breach as an exception."
+          ],
+          "done": "risk appetite linkage is independently verified for the sampled scenario with any unescalated breach logged."
+        },
+        {
+          "step": "Confirm peer review and board presentation evidence exists",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Confirm a signed peer review checklist exists for the sampled scenario modeling.",
+            "Pull board minutes from the board portal confirming the climate scenario results were presented to the Risk Committee.",
+            "Log any missing peer review or board presentation as an exception."
+          ],
+          "done": "peer review and board presentation evidence is confirmed for the sampled scenario or logged as exceptions."
+        },
+        {
+          "step": "Trace the ORSA KMR submission to the underlying scenario results",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Open the filed ORSA Key Metrics Report in RRS and locate the climate-scenario-informed metrics.",
+            "Compare the filed figures to the capital adequacy table in the ORSA workpaper.",
+            "Log any mismatch as an exception."
+          ],
+          "done": "the filed KMR climate metrics are confirmed to tie to the ORSA workpaper's capital adequacy table, or the mismatch is logged."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Raise a tracker issue per exception with the scenario, entity, what was missed and the capital/compliance impact.",
+            "Assign a root cause (uncovered material line, translation error, modeling variance, missed escalation) and an owner.",
+            "Set a remediation date and, for capital-adequacy exceptions, notify the Appointed Actuary and Chief Financial Officer.",
+            "Carry every open exception into next year's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance threshold for missing scenario pathway coverage.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have the independent reviewer, who selected and modeled none of the sampled scenarios, sign the workpaper.",
+            "Report results to the Board Risk Committee and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and committee reporting date exists in the repository."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1950 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-049-C01",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Financial Crime AML Officer",
+          "value": "Designated BSA/AML and OFAC officer owns pre-bind, mid-term beneficiary-change and payout screening on covered products (permanent life, annuities); true-match escalation goes to Head of Compliance and Regulatory Counsel"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 31 CFR 1025.210(b)(1) and 31 CFR 1025.320 re-read in the current e-CFR at each program review, together with OFAC 31 CFR 501.603/501.604 reporting rules and the OFAC Sanctions List Service change notices checked on every SDN/Consolidated list refresh"
+        },
+        "In-scope processes": {
+          "value": "Application intake and pre-bind underwriting, beneficiary designation, mid-term beneficiary change, ownership assignment, 1035 exchange, policy loan/surrender/partial withdrawal, and death-claim and maturity payout on permanent life and annuity contracts (covered products under 31 CFR 1025.100(h))"
+        },
+        "In-scope systems": {
+          "app": "Sanctions screening system (LexisNexis Bridger/FircoSoft)",
+          "value": "Bridger screens applicant, owner, payor, insured, beneficiary, assignee and payee against the OFAC SDN and Consolidated Sanctions Lists; party records feed nightly from the policy administration system and the payment gateway holds disbursement until the screen result is CLEAR"
+        },
+        "Compliance procedure documented": {
+          "value": "OFAC and Sanctions Screening Procedure for covered products — party-record capture standard (full legal name, DOB, address, government ID), list refresh cadence, fuzzy-match threshold, alert triage SLA, blocked vs rejected handling, and the 10-business-day OFAC blocking report"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance, re-approved annually, and amended within 5 business days of any new OFAC sanctions programme, Executive Order or General License that changes the screening scope for life and annuity payouts"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Blocked or rejected transaction reports to OFAC Compliance within 10 business days of the blocking or rejection; Annual Report of Blocked Property (form TD F 90-22.50) covering property held at 31 December due by 30 September; SAR referral raised the same business day where a sanctions nexus also suggests suspicion"
+        },
+        "Deadline reminders configured": {
+          "value": "Screening queue SLA alerts fire at 24h/48h/72h on any unresolved potential match; a daily 07:00 alert raises a P2 incident if the SDN list file failed to load; calendar reminders on 10 August and 10 September drive the Annual Report of Blocked Property"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Screening logs (party name screened, list name and version date, match score, disposition, analyst id, timestamp), blocked-property ledger entries and filed OFAC reports retained 5 years from the transaction date per 31 CFR 501.601 and 31 CFR 1010.430"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Any payout released without a completed screen, any alert aged past the 72h SLA, any list version stale by more than one business day and any beneficiary change processed off-system is logged as a sanctions exception with root cause, funds status and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs off every true-match blocking decision, every override of a match scored above the escalation threshold, and the closure of each screening exception"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every party added or changed in the quarter — new business applicants, owners and insureds, beneficiary designations and mid-term beneficiary changes, assignments — plus every death-claim and maturity payout released, extracted from the policy administration party and disbursement tables"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on a payout released without a completed screen or with an open potential match; more than 2% of sampled beneficiary changes lacking a screening log record, or any screen run against a list file older than one business day, fails the control"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous and real-time; the substantive test runs quarterly over that quarter's party and payout population, backed by a monthly automated completeness reconciliation of the policy admin party feed to the screening log"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must sit outside the AML/OFAC screening team and must have adjudicated none of the sampled alerts"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly OFAC screening test workpaper (population extract, feed reconciliation, sample and seed, re-screen output, alert re-adjudication notes, exception log) filed in the compliance evidence repository under BSA-AML / OFAC / <quarter>"
+        },
+        "Regulator-ready documentation": {
+          "value": "Screening logs with list versions, the alert adjudication audit trail, the blocked-property ledger and filed OFAC blocking reports, producible to an OFAC administrative subpoena, a FinCEN request or a state market conduct exam within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Financial Crime AML Officer owns OFAC Compliance and FinCEN correspondence through the OFAC Reporting System and BSA E-Filing secure messaging; Regulatory Counsel clears any voluntary self-disclosure to OFAC before submission"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Refresh the OFAC lists and prove the load succeeded",
+          "by": "Sanctions Analyst",
+          "role": "Sanctions Analyst",
+          "app": "Sanctions screening system (LexisNexis Bridger/FircoSoft)",
+          "actions": [
+            "Each business morning open the screening system Administration ▸ Watch List Management screen and confirm the SDN List, Consolidated Sanctions List, Non-SDN Menu-Based Sanctions List and the Sectoral Sanctions Identifications list all show a publication date no older than the previous business day.",
+            "Compare the loaded record counts to the counts published on the OFAC Sanctions List Service change notice email for that date; a difference of more than 5 records means a partial load.",
+            "Where a load failed, raise a P2 incident to the Production Support Analyst and suspend release of all disbursements until the list is current — record the suspension start time.",
+            "Read the OFAC recent actions notice for new programme tags (e.g. a new country or narcotics programme) and forward any new programme to the Financial Crime AML Officer for scope assessment.",
+            "Export the daily list-load confirmation to the screening evidence folder named ofac-list-load-<yyyy-mm-dd>.pdf."
+          ],
+          "done": "each list shows a current publication date, record counts reconcile to the OFAC change notice, and the dated load confirmation is filed."
+        },
+        {
+          "step": "Capture screenable party data at application intake",
+          "by": "New Business Case Manager",
+          "role": "New Business Case Manager",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "On the New Business ▸ Party Details tab enter full legal name, date of birth, residential address, country of citizenship and government ID type/number for the proposed owner, insured, payor and every named beneficiary.",
+            "Reject an application back to the producer where a beneficiary is recorded only as 'estate of', 'per will', initials or a relationship word with no legal name — those cannot be screened.",
+            "For entity owners or beneficiaries (trust, corporation, LLC) record the entity legal name, jurisdiction of formation and the beneficial owners provided by the producer.",
+            "Set the Screening Required flag on the case so the nightly party feed to the screening system picks it up.",
+            "Hand the case to the Sanctions Analyst queue when any party record is a non-US address or a non-US citizenship."
+          ],
+          "done": "every party on the application carries a full legal name, DOB or formation jurisdiction, address and ID, and the case is flagged for screening."
+        },
+        {
+          "step": "Screen all pre-bind parties before the policy is issued",
+          "by": "Sanctions Analyst",
+          "role": "Sanctions Analyst",
+          "app": "Sanctions screening system (LexisNexis Bridger/FircoSoft)",
+          "actions": [
+            "Open the screening system Batch ▸ Pre-Bind queue and run the day's new business party file against the current SDN and Consolidated lists.",
+            "Confirm the run report shows parties screened equal to parties submitted; investigate any dropped record with the Data Quality Analyst before issue.",
+            "Leave the case in Pending Screening status in the policy administration system until every party returns CLEAR or a potential match is adjudicated.",
+            "Write the screen result — list name, list version date, score, disposition, analyst id, timestamp — back onto the policy record's Compliance tab.",
+            "Tell the New Business Case Manager in writing when the case is cleared for issue."
+          ],
+          "done": "no policy is issued until every pre-bind party has a dated CLEAR or adjudicated screen result written to the policy record."
+        },
+        {
+          "step": "Set and document the fuzzy-match threshold and good-guy list",
+          "by": "Sanctions Analyst",
+          "role": "Sanctions Analyst",
+          "app": "Sanctions screening system (LexisNexis Bridger/FircoSoft)",
+          "actions": [
+            "In Administration ▸ Matching Settings record the current name-match score threshold, the transliteration and nickname settings and the date-of-birth tolerance window.",
+            "Run an above-the-line / below-the-line sample of 50 alerts either side of the threshold and record how many below-the-line records would have been true matches.",
+            "Take any proposed threshold change to the Financial Crime AML Officer with the sample results attached; never change the threshold in production without that written approval.",
+            "Review the good-guy (whitelist) entries quarterly and expire any entry older than 12 months or created without a documented adjudication.",
+            "File the tuning memo in the compliance evidence repository."
+          ],
+          "done": "the live threshold, tolerance settings and whitelist are documented, tested above and below the line, and approved in writing by the AML Officer."
+        },
+        {
+          "step": "Triage potential matches inside the 72-hour SLA",
+          "by": "AML Analyst",
+          "role": "AML Analyst",
+          "app": "Sanctions screening system (LexisNexis Bridger/FircoSoft)",
+          "actions": [
+            "Work the Alerts ▸ My Queue list in age order, oldest first, and open each alert to the side-by-side comparison screen.",
+            "Compare the screened party's name, date of birth, address, place of birth and ID number against the SDN entry's aka list, DOB and identification fields.",
+            "Request the missing identifiers from the producer or the Life Policy Service Representative where the record is too thin to discriminate — do not close an alert as false positive on a thin record.",
+            "Record the disposition as False Positive with the discriminating field named (e.g. 'DOB differs by 14 years; SDN entry is Cuban national, applicant is US-born'), or escalate as Potential True Match.",
+            "Any alert aged past 72 hours is reported on the daily queue-age report to the Financial Crime AML Officer."
+          ],
+          "done": "every alert is closed inside 72 hours with a named discriminating field or escalated, and the queue-age report shows no breaches."
+        },
+        {
+          "step": "Confirm and escalate a true match",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "actions": [
+            "Re-run the party name against the OFAC Sanctions List Search tool (sanctionssearch.ofac.treas.gov) at minimum fuzziness and read the full SDN entry including all aka and address records.",
+            "Call the OFAC Sanctions Compliance Hotline (1-800-540-6322) where the identifiers are close but not conclusive and log the date, the OFAC officer and the guidance given.",
+            "Where the match is confirmed, instruct the Life Claims Examiner and the Billing Operations Manager in writing to stop every inbound premium and outbound payment on the contract immediately.",
+            "Notify Regulatory Counsel and the Head of Compliance the same business day with the SDN programme tag and the affected contract numbers.",
+            "Record the confirmation, the OFAC entry printout and the stop instruction in the case file."
+          ],
+          "done": "the true match is confirmed against the live OFAC entry, all money movement on the contract is stopped, and counsel and compliance are notified the same day."
+        },
+        {
+          "step": "Block the property and open a blocked-funds ledger entry",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "app": "Payment Gateway",
+          "actions": [
+            "Instruct Treasury to move the blocked amount into a separate interest-bearing blocked account at the commercially reasonable rate required by 31 CFR 501.603, and record the account number.",
+            "Open a blocked-property ledger row with contract number, party name, SDN programme, blocking date, principal amount and interest terms.",
+            "In the payment gateway place a permanent stop on the payee record so no future disbursement can be released against it.",
+            "Distinguish blocked (property of a sanctioned party — must be held) from rejected (a prohibited transaction with no blockable interest — return the funds and record the rejection) and write the determination on the ledger row.",
+            "Tell the beneficiary or claimant only that the payment cannot be released pending a regulatory review, using the wording Regulatory Counsel approved."
+          ],
+          "done": "the funds sit in a blocked interest-bearing account or are documented as rejected, the ledger row is complete, and the payee is permanently stopped in the payment gateway."
+        },
+        {
+          "step": "Report the blocked or rejected transaction to OFAC within 10 business days",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "actions": [
+            "Complete the OFAC blocking or rejection report through the OFAC Reporting System (ofacreporting.treasury.gov) within 10 business days of the blocking or rejection date, per 31 CFR 501.603(b).",
+            "Enter the sanctions programme, the date of blocking, the property description (life insurance cash value, annuity payout, death benefit), the amount, the account holding the funds and the legal authority relied on.",
+            "Attach the policy or claim documentation and the screening evidence showing the match basis.",
+            "Save the OFAC submission confirmation number onto the blocked-property ledger row and into the case file.",
+            "Diary the case for the Annual Report of Blocked Property if the property is still held at 31 December."
+          ],
+          "done": "the OFAC report is submitted inside 10 business days and its confirmation number is recorded on the ledger row."
+        },
+        {
+          "step": "Screen beneficiary designations and every mid-term beneficiary change",
+          "by": "Life Policy Service Representative",
+          "role": "Life Policy Service Representative",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Process the beneficiary change request on the Policy Service ▸ Beneficiary Change screen only after capturing the new beneficiary's full legal name, DOB, address and relationship to the insured.",
+            "Submit the new beneficiary to the real-time screening service from the Compliance tab before committing the change; the change cannot be committed while the result is PENDING.",
+            "Refer to the Financial Crime Investigator any change that adds a non-relative to a large face amount, adds a foreign-resident beneficiary, or is the third change on the contract in 12 months.",
+            "Attach the signed beneficiary change form to the contract in the document management repository with the screen result reference number.",
+            "Write the screen date, list version and disposition into the contract's Compliance tab history."
+          ],
+          "done": "no beneficiary change is committed without a completed screen written to the contract history, and pattern referrals are raised."
+        },
+        {
+          "step": "Re-screen the in-force book against each list update",
+          "by": "Sanctions Analyst",
+          "role": "Sanctions Analyst",
+          "app": "Sanctions screening system (LexisNexis Bridger/FircoSoft)",
+          "actions": [
+            "After each SDN/Consolidated list update, run the Batch ▸ Portfolio Rescreen job over all in-force contract parties — owners, insureds, payors, beneficiaries, assignees.",
+            "Where OFAC publishes a new sanctions programme, run a full-book rescreen rather than a delta rescreen and record which job type was used.",
+            "Reconcile the rescreen input count to the in-force party count from the policy administration extract and investigate any shortfall with the Data Engineer before signing off the run.",
+            "Route new alerts to the AML Analyst queue with a Portfolio Rescreen tag so they are aged against the same 72-hour SLA.",
+            "File the run log with job id, list version, party count and alert count."
+          ],
+          "done": "every list update triggers a rescreen whose input count reconciles to the in-force party population, with alerts routed and the run log filed."
+        },
+        {
+          "step": "Screen the payee before any death benefit or maturity payout leaves",
+          "by": "Life Claims Examiner",
+          "role": "Life Claims Examiner",
+          "app": "Claims Platform",
+          "actions": [
+            "On the claim's Payment Authorisation screen confirm the Compliance tab shows a CLEAR screen result for the claimant, each payee, any assignee and any funeral home or third-party payee, dated within 30 days.",
+            "Re-screen where the payout instruction names a bank account, address or payee that differs from the record screened at designation.",
+            "Refer to the AML Analyst any payout above $100,000 to a foreign address, any payment split across more than three payees, and any request to wire proceeds to a jurisdiction different from the beneficiary's address of record.",
+            "Hold the disbursement in the payment gateway until the screen result and the referral outcome are both recorded on the claim.",
+            "Record the screen reference number in the claim payment note so the disbursement can be traced back to the screen."
+          ],
+          "done": "no death or maturity payout is released without a current CLEAR screen on every payee recorded against the claim payment."
+        },
+        {
+          "step": "Evaluate unusual beneficiary patterns for suspicious-activity referral",
+          "by": "Financial Crime Investigator",
+          "role": "Financial Crime Investigator",
+          "app": "NICE Actimize (AML)",
+          "actions": [
+            "Work the Beneficiary Anomaly alert queue covering: beneficiary changed within 90 days of a death claim, beneficiary with no insurable-interest relationship, the same beneficiary or payee bank account appearing across unrelated contracts, and early surrender shortly after a large single premium.",
+            "Pull the contract history, premium payment source, producer of record and prior beneficiary versions from the policy administration system for each alert.",
+            "Test the aggregate value of the pattern against the $5,000 SAR threshold in 31 CFR 1025.320(a)(2), and treat any amount as reportable where an employee or producer is implicated.",
+            "Write a referral to the Financial Crime AML Officer stating the pattern, the parties, the aggregate amount and the red flags relied on where the criteria are met.",
+            "Record a no-referral rationale with the same evidence where they are not."
+          ],
+          "done": "every beneficiary-anomaly alert closes with either a written SAR referral or a documented, evidenced no-referral rationale."
+        },
+        {
+          "step": "Screen producers, agencies and third-party payors",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "NIPR (Producer Licensing)",
+          "actions": [
+            "At appointment and at each NIPR Appointment Renewal run, submit the producer's legal name, NPN, agency name and agency FEIN to the sanctions screening service.",
+            "Screen every third-party premium payor and any assignee named on a collateral assignment before the assignment is recorded.",
+            "Where a producer or agency returns a potential match, suspend new business submissions from that producer pending adjudication and tell the Agency Relations Manager in writing.",
+            "Record the screen result against the producer record and against the appointment renewal batch.",
+            "Feed confirmed matches into the termination-for-cause process with Regulatory Counsel."
+          ],
+          "done": "every appointed producer, agency, third-party payor and assignee carries a dated screen result and matches suspend submissions."
+        },
+        {
+          "step": "File the Annual Report of Blocked Property by 30 September",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "actions": [
+            "In June extract every blocked-property ledger row open as of the prior 31 December, with principal, accrued interest and sanctions programme.",
+            "Complete form TD F 90-22.50 (Annual Report of Blocked Property) per 31 CFR 501.603(b)(2) and reconcile the reported balances to the Treasury blocked-account statements at 31 December.",
+            "Have the Controller confirm the blocked balances agree to the general ledger blocked-funds account before submission.",
+            "Submit through the OFAC Reporting System by 30 September and save the confirmation.",
+            "Report a nil return position in the file where no blocked property was held, so the decision not to file is evidenced."
+          ],
+          "done": "the annual report is submitted by 30 September with balances reconciled to the GL, or a documented nil position is on file."
+        },
+        {
+          "step": "Retain screening evidence for five years and make it retrievable",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Load the monthly screening log export (party, list name and version date, score, disposition, analyst, timestamp), alert adjudication notes, blocked-property ledger and filed OFAC reports into the repository under BSA-AML / OFAC / <year>.",
+            "Apply the 5-year retention label measured from the transaction date, per 31 CFR 501.601 and 31 CFR 1010.430(d).",
+            "Confirm the repository index makes records searchable by contract number, party name, screen date and OFAC confirmation number.",
+            "Run a quarterly retrieval test on 5 randomly chosen screen references and record the retrieval time."
+          ],
+          "done": "screening evidence is filed under a 5-year retention label and a quarterly retrieval test proves records come back by contract number and party name."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of screenable parties and payouts for the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Extract from the party and disbursement tables every party created or amended in the quarter — applicants, owners, insureds, payors, beneficiaries, assignees — plus every death and maturity payout released, with contract number, party role, change date and payout amount.",
+            "Add beneficiary changes processed through the contact centre and any recorded on paper forms so off-system changes cannot hide from the population.",
+            "Reconcile the extract row count to the policy administration change-history report and to the disbursement register total for the quarter, and resolve differences before sampling."
+          ],
+          "done": "the population reconciles to the change-history report and disbursement register, and the extractor signs it as complete."
+        },
+        {
+          "step": "Reconcile the party population to the screening log for completeness",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Sanctions screening system (LexisNexis Bridger/FircoSoft)",
+          "actions": [
+            "Export the quarter's screening log and left-join the population to it on contract number plus party name plus role.",
+            "List every population row with no matching screen record, and every screen whose timestamp is after the policy issue date or after the disbursement release date.",
+            "Check each screen's list version date is no more than one business day older than the screen timestamp, flagging stale-list screens.",
+            "Treat unscreened payouts and post-disbursement screens as automatic exceptions with no judgement applied."
+          ],
+          "done": "every population row is matched to a timely screen against a current list, or listed as an exception."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of death and maturity payouts over $250,000 and 100% of payouts to a foreign address.",
+            "Take 25 beneficiary designations or mid-term changes and 15 pre-bind cases by seeded random selection from the remainder, minimum 45 rows overall.",
+            "Record the seed value, the population size, the strata and the selection date in the workpaper so the sample can be re-drawn identically."
+          ],
+          "done": "the sample is drawn, reproducible from the recorded seed, and covers every high-value and foreign-address payout."
+        },
+        {
+          "step": "Re-screen the sampled parties independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Sanctions screening system (LexisNexis Bridger/FircoSoft)",
+          "actions": [
+            "Run each sampled party name through the OFAC Sanctions List Search tool at a lower fuzziness than production and, separately, through the screening system's ad-hoc search using the list version in force on the original screen date.",
+            "Reach your own hit / no-hit conclusion before opening the production disposition.",
+            "Compare to the recorded result; a different conclusion, or the right conclusion recorded against the wrong list version, is an exception.",
+            "Capture the search result screen for each sampled party into the workpaper."
+          ],
+          "done": "each sampled party has an independent re-screen result and a captured search screen in the workpaper."
+        },
+        {
+          "step": "Re-adjudicate a sample of closed false positives",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Pull 20 alerts closed as False Positive in the quarter, weighted toward the highest match scores and the fastest closures.",
+            "Read the analyst's discriminating field and test whether it actually discriminates — a differing middle initial or a common surname is not sufficient where DOB and country agree.",
+            "Confirm any alert closed on a thin party record was reopened after identifiers were requested, rather than closed for lack of data.",
+            "Check every whitelist (good-guy) entry relied on has a documented adjudication and is under 12 months old."
+          ],
+          "done": "each re-adjudicated alert is supported by a genuine discriminating identifier, or is logged as an exception with the score and closure time."
+        },
+        {
+          "step": "Trace payouts to a current clear screen before release",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Payment Gateway",
+          "actions": [
+            "For each sampled payout, read the disbursement release timestamp from the payment gateway transaction record.",
+            "Compare it to the screen timestamp on the claim's Compliance tab and confirm the screen precedes release and is dated within 30 days of it.",
+            "Confirm the payee name and bank details on the released payment match the party actually screened, not an earlier beneficiary version.",
+            "Note any payment released while the payee carried an open alert as a reportable breach rather than a test exception."
+          ],
+          "done": "every sampled payout traces to a clear screen on the actual payee that precedes the release timestamp."
+        },
+        {
+          "step": "Test the blocking, ledger and OFAC reporting on true matches",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "List every true match confirmed in the quarter and pull the blocked-property ledger row for each.",
+            "Confirm the funds sit in a segregated interest-bearing blocked account and that the GL blocked-funds balance agrees to the ledger total.",
+            "Recompute the 10-business-day OFAC reporting deadline from the blocking date and compare it to the OFAC Reporting System confirmation date.",
+            "Confirm the blocked versus rejected determination is documented with the legal basis, and that the payee is permanently stopped in the payment gateway."
+          ],
+          "done": "every true match has segregated blocked funds reconciled to the GL and an OFAC report filed inside the recomputed 10-business-day deadline."
+        },
+        {
+          "step": "Recompute list-currency and alert-ageing metrics",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Rebuild the daily list-load record for the quarter from the screening system logs and count days where no current SDN load is evidenced.",
+            "Recompute alert age as closure timestamp minus creation timestamp for every alert in the quarter and count breaches of the 72-hour SLA.",
+            "Compare your recomputed breach count to the count reported in the AML management pack and explain any difference.",
+            "Confirm every portfolio rescreen following a list update covered the full in-force party count from the same date's policy admin extract."
+          ],
+          "done": "recomputed list-currency and SLA-breach figures reconcile to the reported metrics, or the difference is documented."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception carrying the contract number, party, what failed (no screen, late screen, stale list, weak false-positive closure, late OFAC report) and the funds impact.",
+            "Assign a root cause — thin party data at intake, feed break, threshold set too high, manual off-system change, SLA under-resourcing — and a named owner.",
+            "Set a remediation date and, for any payment released to a sanctioned party, open a voluntary self-disclosure assessment with Regulatory Counsel the same day.",
+            "Carry every open exception into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the screening test",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the exception rate by stratum and compare it to the zero-tolerance payout threshold and the 2% beneficiary-change threshold.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — with the workpaper references supporting it.",
+            "Have the Internal Auditor, who adjudicated none of the sampled alerts, sign the workpaper as independent reviewer.",
+            "Present results, breaches and open self-disclosure assessments to the AML Oversight Committee at its next sitting and file the signed workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rates by stratum and a committee reporting date is filed in the repository."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-049-C02",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Financial Crime AML Officer",
+          "value": "The officer designated under 31 CFR 1025.210(b)(2) owns the written AML program for covered products and the detection thresholds that surface reportable activity; reports functionally to the Chief Risk Officer and to the Board Audit Committee"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 31 CFR 1025.210(a) and (b)(1)-(4) and 31 CFR 1025.320(a)(2) re-read in the current e-CFR at the annual program review, alongside FinCEN advisories on insurance-sector typologies and the FFIEC BSA/AML Examination Manual sections used as design benchmarks"
+        },
+        "In-scope processes": {
+          "value": "Covered-product transaction monitoring across permanent life, annuity and any product with cash value or an investment feature — premium receipt, 1035 exchange, policy loan, partial withdrawal, full surrender, free-look refund, death benefit and maturity payout — plus employee and producer conduct monitoring"
+        },
+        "In-scope systems": {
+          "app": "NICE Actimize (AML)",
+          "value": "Actimize holds the detection scenarios, the $5,000 aggregation logic and the any-amount insider-abuse rule, fed daily from the policy administration and billing platforms; alerts land in the case queue and the program document set lives in the GRC platform"
+        },
+        "Compliance procedure documented": {
+          "value": "Written AML Program for Covered Products — four pillars mapped clause-by-clause to 31 CFR 1025.210(b)(1)-(4), the covered/non-covered product inventory, the scenario and threshold catalogue, alert routing SLAs and the insider-abuse escalation route"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Board of Directors on the recommendation of the Audit Committee, re-approved annually, and re-approved out of cycle for any new covered product, acquisition of a block of business, or scenario/threshold change that alters detection coverage"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual board re-approval of the program before the anniversary of the last approval; quarterly AML Oversight Committee reporting; scenario tuning refresh at least annually; new covered product must have scenario coverage in place before its first policy is issued"
+        },
+        "Deadline reminders configured": {
+          "value": "GRC platform obligation record raises tasks at 90 and 30 days before the program approval anniversary; a daily feed-integrity alert fires if the policy admin or billing file fails to land in Actimize; product launch gates block go-live without a scenario coverage sign-off"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Board-approved program versions with approval minutes, the designation letter for the AML officer, the risk assessment, the scenario/threshold catalogue with change history and tuning memos, retained 5 years from supersession per 31 CFR 1010.430"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Missed feed days, scenarios disabled without change control, covered products launched without scenario coverage, and alerts breaching triage SLA are logged as program exceptions with root cause, detection-gap impact and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Risk Officer",
+          "value": "Signs off closure of every detection-coverage gap and every scenario or threshold change that reduces alert volume"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All covered-product transactions in the period from the policy administration and billing platforms (premiums, 1035 exchanges, loans, withdrawals, surrenders, free-look refunds, death and maturity payouts), plus the scenario catalogue, the change log for thresholds, and every employee/producer conduct case"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on a covered product with no scenario coverage and on any transaction feed day missing from Actimize; more than 1% of transactions failing the feed reconciliation, or any threshold changed without documented approval, fails the control"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Detection runs continuously and the program is reviewed annually; the feed and coverage test runs monthly, the scenario above/below-the-line tuning test runs annually before the board re-approval"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must be outside the financial crime function and must not have designed or tuned any scenario under test"
+        },
+        "Evidence location for test results": {
+          "value": "Annual AML program design-effectiveness workpaper and monthly feed-reconciliation packs in the compliance evidence repository under BSA-AML / Program, cross-linked to the GRC obligation record"
+        },
+        "Regulator-ready documentation": {
+          "value": "Board-approved program with approval minutes, the officer designation letter, the risk assessment, the covered-product inventory and the scenario/threshold catalogue with tuning evidence, presentable to a FinCEN or IRS BSA examiner within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Financial Crime AML Officer fronts FinCEN and IRS SB/SE BSA examination requests; Regulatory Counsel reviews every written response and the Chief Risk Officer briefs the Audit Committee before submission"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Refresh the AML risk assessment that drives the program design",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Pull the prior-year inherent risk ratings from the GRC risk register and re-score product, customer, geography and distribution-channel risk using the current year's volumes.",
+            "Obtain from the Data Analyst the counts and values by covered product, by state and by producer channel, plus the share of business with foreign-resident owners or beneficiaries.",
+            "Score each FinCEN insurance-sector typology (early surrender with penalty accepted, overpayment then refund to a third party, single premium funded from an unexplained source, unrelated third-party payor) as covered or not covered by an existing detection scenario.",
+            "Record residual risk after controls and list every gap where residual risk exceeds appetite as an input to the program update.",
+            "Route the completed assessment to the Chief Risk Officer for challenge before it is used."
+          ],
+          "done": "the risk assessment is re-scored on current volumes, every typology is mapped to a scenario or a named gap, and the CRO has challenged it."
+        },
+        {
+          "step": "Designate the AML compliance officer in writing with defined authority",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "board portal",
+          "actions": [
+            "Place the designation resolution on the board agenda naming the individual as AML Compliance Officer under 31 CFR 1025.210(b)(2).",
+            "Record in the resolution the officer's authority to file SARs without management pre-approval, direct access to the Audit Committee, and the resources and staffing allocated to the function.",
+            "Publish the approved minutes and the signed designation letter to the board portal and send a copy to the compliance evidence repository.",
+            "Repeat the resolution whenever the incumbent changes, and record the effective date of the handover so there is no unowned period."
+          ],
+          "done": "a board resolution and signed designation letter name the current AML officer, state their authority and cover every day since the last designation."
+        },
+        {
+          "step": "Maintain the written program mapped clause-by-clause to the rule",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Hold the program document in the GRC policy module with a control mapping table: 31 CFR 1025.210(b)(1) policies and internal controls, (b)(2) designated officer, (b)(3) training, (b)(4) independent testing, and 1025.320 suspicious activity reporting.",
+            "Against each clause cite the internal procedure, the owning role and the evidence artifact that proves it operates.",
+            "Version the document on every change, record the change reason and require the Financial Crime AML Officer's approval before publication.",
+            "Retire superseded versions to the evidence repository rather than deleting them."
+          ],
+          "done": "every clause of 1025.210(b) and 1025.320 maps to a named procedure, owner and evidence artifact in the current program version."
+        },
+        {
+          "step": "Maintain the covered-product inventory and the in/out determination",
+          "by": "Insurance Product Manager",
+          "role": "Insurance Product Manager",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "List every product code in the policy administration system with its product type, cash value feature and investment feature flags.",
+            "Mark each as covered or not covered under 31 CFR 1025.100(h) — permanent life, annuity, and any product with cash value or investment features are covered; term life and group products are generally not.",
+            "Write the reasoning and the citation for every not-covered determination; never leave a product marked 'N/A'.",
+            "Send new product codes to the Financial Crime AML Officer at the product design gate so scenario coverage is built before first issue.",
+            "Re-confirm the inventory at each annual program review and after any block acquisition."
+          ],
+          "done": "every live product code carries a covered/not-covered determination with a citation, and new codes route through the AML design gate."
+        },
+        {
+          "step": "Configure the SAR detection scenarios and thresholds",
+          "by": "AML Analyst",
+          "role": "AML Analyst",
+          "app": "NICE Actimize (AML)",
+          "actions": [
+            "In the scenario library configure the mandatory-reporting rules from 31 CFR 1025.320(a)(2): any amount where an employee, officer, director or producer is involved or implicated; $5,000 or more where a suspect is identifiable or the activity is otherwise suspicious.",
+            "Build covered-product typology scenarios: early surrender inside the surrender-charge period, single premium above the customer's stated income band, premium paid by an unrelated third party, overpayment followed by refund to a different account, rapid 1035 exchange churn, and structured premium payments just under reporting thresholds.",
+            "Set aggregation to party level across all contracts, on a 30-day rolling window, so a series of small transactions rolls up to the $5,000 test.",
+            "Record for each scenario the rule logic, threshold value, aggregation window, owner and the typology it addresses in the scenario catalogue.",
+            "Take every threshold value to the Financial Crime AML Officer for written approval before it is promoted to production."
+          ],
+          "done": "the insider any-amount rule and the $5,000 aggregate rule are live, every scenario is catalogued with logic and owner, and all thresholds carry written AML officer approval."
+        },
+        {
+          "step": "Prove the transaction feeds into the monitoring system are complete",
+          "by": "Data Quality Analyst",
+          "role": "Data Quality Analyst",
+          "app": "Data pipeline orchestrator (Airflow/Dagster/Prefect)",
+          "actions": [
+            "Schedule the daily policy administration and billing extracts into Actimize and set the orchestrator to alert on any DAG failure or zero-row file.",
+            "Reconcile daily record counts and value totals loaded into Actimize back to the source system control totals for premiums, disbursements, loans and surrenders.",
+            "Investigate any variance above 0.1% of value the same day with the Integration Engineer and reload rather than accept a partial file.",
+            "Publish a monthly feed-completeness certificate listing days loaded, days missed and value variance, signed by the Data Quality Analyst.",
+            "Log any missed feed day as a detection-coverage exception in the GRC platform."
+          ],
+          "done": "every business day shows a reconciled feed load, and any missed or partial day is logged as a coverage exception and reloaded."
+        },
+        {
+          "step": "Tune thresholds with above- and below-the-line testing",
+          "by": "Model Risk Analyst",
+          "role": "Model Risk Analyst",
+          "app": "NICE Actimize (AML)",
+          "actions": [
+            "For each scenario draw a sample of 30 transactions just above the threshold and 30 just below it from the prior 12 months.",
+            "Review the below-the-line sample as if it had alerted and record how many would have warranted a SAR referral — any hit means the threshold is set too high.",
+            "Measure the above-the-line productive-alert rate (alerts that became referrals) and flag scenarios below 5% as candidates for narrowing, but never narrow a mandatory rule from 1025.320(a)(2).",
+            "Write the tuning memo with the samples, results and the recommended threshold, and route it to the Financial Crime AML Officer and the Chief Risk Officer.",
+            "Store the memo and the approved change ticket in the model governance repository."
+          ],
+          "done": "each scenario has a dated tuning memo with above- and below-the-line results and an approved, ticketed threshold decision."
+        },
+        {
+          "step": "Route alerts to case management with an enforced triage SLA",
+          "by": "AML Analyst",
+          "role": "AML Analyst",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Set alert routing rules so mandatory insider-abuse alerts go straight to the Financial Crime Investigator queue and all others to the tier-1 AML queue.",
+            "Enforce triage SLAs of 5 business days for tier-1 alerts and 2 business days for insider-abuse alerts, measured from alert creation.",
+            "Require the closing analyst to record the disposition, the evidence reviewed and the decision rationale on the case — a bare 'no further action' cannot be saved.",
+            "Publish the daily queue-age report to the AML Officer and re-allocate work where any queue exceeds 15 open alerts per analyst."
+          ],
+          "done": "alerts route by type, close inside the SLA with a recorded rationale, and the queue-age report shows no aged breaches."
+        },
+        {
+          "step": "Run the insider-abuse channel at any dollar amount",
+          "by": "Financial Crime Investigator",
+          "role": "Financial Crime Investigator",
+          "actions": [
+            "Maintain a confidential intake route (email alias and hotline case type) for suspicions about employees, officers, directors and appointed producers, restricted to the financial crime team.",
+            "Work every insider case regardless of amount, since 31 CFR 1025.320(a)(2) sets no dollar floor where an insider is involved.",
+            "Pull the employee's or producer's system activity, policy transactions on their own or related contracts, and commission history for the review period.",
+            "Escalate to the Financial Crime AML Officer and the Employee Relations Manager under a need-to-know restriction that excludes the subject's own management chain.",
+            "Record the case in a restricted-access folder so the file cannot be read by the subject or their manager."
+          ],
+          "done": "every insider suspicion is worked at any amount in a restricted case file with the subject's management chain excluded."
+        },
+        {
+          "step": "Take producer-sourced red flags into the detection net",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Publish the covered-product red flag list on the agent portal and require producers to submit an Unusual Activity Referral form for cash-equivalent premium, unexplained wealth, or a customer indifferent to surrender charges.",
+            "Route each referral into the AML case queue within one business day of receipt with the producer's NPN and the contract number attached.",
+            "Track referral volumes by agency and challenge agencies producing zero referrals against material new business volume.",
+            "Confirm back to the producer that the referral was received, without disclosing whether a SAR resulted."
+          ],
+          "done": "producer referrals reach the AML case queue within one business day and zero-referral agencies with material volume are challenged."
+        },
+        {
+          "step": "Run change control over every scenario and threshold change",
+          "by": "Change Coordinator",
+          "role": "Change Coordinator",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Require a change ticket for any scenario enablement, disablement, threshold move or aggregation-window change, with the tuning memo attached.",
+            "Record the AML Officer approval and, where alert volume is expected to fall, the Chief Risk Officer approval on the ticket before deployment.",
+            "Capture the pre- and post-change alert volumes for 30 days and attach them to the ticket as the impact record.",
+            "Reject any emergency change that disables a mandatory 1025.320(a)(2) rule — those may only be modified through the full approval path."
+          ],
+          "done": "no scenario or threshold moves without an approved ticket, an attached tuning memo and a 30-day volume impact record."
+        },
+        {
+          "step": "Report program health to the AML Oversight Committee quarterly",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "app": "Power BI",
+          "actions": [
+            "Publish the quarterly pack with alert volumes by scenario, triage SLA performance, referral and SAR counts, feed-completeness days missed, open coverage gaps and training completion.",
+            "Show each metric against its threshold and last four quarters so trend deterioration is visible.",
+            "Present open detection-coverage gaps with owner and remediation date, and ask the committee to accept or reject any proposed extension.",
+            "Minute the committee's decisions and load the pack to the board portal."
+          ],
+          "done": "the quarterly pack is presented with trended metrics and open gaps, and the committee's decisions are minuted."
+        },
+        {
+          "step": "Take the program to the board for annual re-approval",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "board portal",
+          "actions": [
+            "Assemble the annual submission: refreshed risk assessment, updated program document with the clause map, scenario catalogue, independent test report and management action status.",
+            "Table it at the Audit Committee at least 30 days before the program approval anniversary so any challenge can be worked before the board date.",
+            "Obtain the board resolution approving the program and confirming the AML officer designation, and record the resolution date.",
+            "Publish the approved version and archive the superseded version in the evidence repository."
+          ],
+          "done": "the board resolution approving the current program is dated on or before the approval anniversary and the superseded version is archived."
+        },
+        {
+          "step": "Escalate a detection outage as a program failure, not a ticket",
+          "by": "Operational Risk Manager",
+          "role": "Operational Risk Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Treat any period where feeds failed, scenarios were disabled or the case system was unavailable as a detection outage and record its start and end timestamps.",
+            "Quantify the exposure: transaction count and value that ran through unmonitored, by covered product.",
+            "Require a retrospective run of the affected scenarios over the outage window and the triage of the resulting alerts before the incident closes.",
+            "Notify the Financial Crime AML Officer and the Audit Committee chair where the outage exceeds 5 business days.",
+            "Record the outage, the retrospective run evidence and the sign-off in the GRC issue."
+          ],
+          "done": "every detection outage is quantified, retrospectively rescanned, triaged and signed off before the issue closes."
+        },
+        {
+          "step": "Retain program artefacts for five years from supersession",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File each approved program version, board minute extract, officer designation letter, risk assessment and scenario catalogue snapshot under BSA-AML / Program / <year>.",
+            "Apply the 5-year retention label measured from the date the version was superseded, per 31 CFR 1010.430(d).",
+            "Index the records so an examiner request can be answered by approval date, program version and scenario id.",
+            "Run an annual retrieval test on the prior three program versions and record the retrieval time."
+          ],
+          "done": "every program version and its approval evidence is filed under a 5-year retention label and retrievable by version and approval date."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the covered-product transaction population for the period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Enterprise data warehouse/lakehouse",
+          "actions": [
+            "Extract every covered-product transaction for the period — premium receipts, 1035 exchanges, policy loans, partial withdrawals, surrenders, free-look refunds, death and maturity payouts — with contract, party, product code, date and amount.",
+            "Reconcile the extract totals to the general ledger premium and disbursement accounts and to the billing platform control totals.",
+            "Split the population by covered/not-covered product determination so unmonitored products are visible as a stratum."
+          ],
+          "done": "the population reconciles to the GL and billing control totals and is split by covered-product determination."
+        },
+        {
+          "step": "Reconcile the population to what actually reached the monitoring system",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "NICE Actimize (AML)",
+          "actions": [
+            "Export the Actimize ingested-transaction table for the same period and join to the population on transaction id.",
+            "Count and value the transactions absent from Actimize and identify the business days with no load at all.",
+            "Confirm each missed day was logged as a coverage exception and retrospectively rescanned, with the resulting alerts triaged.",
+            "Treat any value variance above 1% as a control failure regardless of whether it was previously logged."
+          ],
+          "done": "every population transaction is matched to an ingested record or is explained by a logged, rescanned outage."
+        },
+        {
+          "step": "Test that every covered product has live scenario coverage",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take the product code inventory and, for each covered code, list the Actimize scenarios that reference it.",
+            "Flag any covered product with no scenario, and any product marked not-covered without a written citation-backed determination.",
+            "Check products launched in the period had scenario coverage live on or before the first policy issue date.",
+            "Confirm the mandatory insider any-amount rule and the $5,000 aggregate rule apply across all covered products, not a subset."
+          ],
+          "done": "every covered product maps to at least one live scenario, and the two mandatory rules apply across the whole covered estate."
+        },
+        {
+          "step": "Draw and document the transaction and scenario sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of scenario and threshold changes made in the period, and 100% of insider-abuse cases.",
+            "Take 30 transactions by seeded random selection from those exceeding the $5,000 aggregate rule and 15 from just below it.",
+            "Record the seed, the strata, the population sizes and the selection date so the sample can be reproduced."
+          ],
+          "done": "the sample is drawn and reproducible, covering all threshold changes, all insider cases and both sides of the $5,000 line."
+        },
+        {
+          "step": "Re-perform the aggregation logic against the raw data",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For 20 sampled parties, recompute the 30-day rolling party-level aggregate from the raw transaction extract independently of Actimize.",
+            "Compare your aggregate to the value Actimize used and confirm parties crossing $5,000 generated an alert.",
+            "Test that aggregation spans all contracts held by the same party, including contracts on different product codes and administration systems.",
+            "Record every party that crossed the threshold without alerting as a detection failure with the recomputed amount."
+          ],
+          "done": "recomputed 30-day party aggregates match Actimize and every crossing of $5,000 produced an alert, or the gap is documented."
+        },
+        {
+          "step": "Re-test the below-the-line sample for missed suspicion",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Review the 15 just-below-threshold transactions as if they had alerted, using the same investigation standard as a live case.",
+            "Record for each whether it would have warranted a SAR referral on the facts available.",
+            "Compare your conclusions to the latest tuning memo's below-the-line results and challenge any scenario whose memo claimed a clean below-the-line result.",
+            "Treat any below-the-line hit as evidence the threshold is set too high and raise it as a finding."
+          ],
+          "done": "the below-the-line sample is independently re-reviewed and any missed suspicion is raised as a threshold finding."
+        },
+        {
+          "step": "Trace threshold changes to approvals and impact evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "For every scenario or threshold change in the period, open the change ticket and confirm a tuning memo is attached.",
+            "Confirm the AML Officer approval predates deployment, and that a Chief Risk Officer approval exists where alert volume fell.",
+            "Read the 30-day pre/post alert volume record and confirm it was attached rather than promised.",
+            "Confirm no mandatory 1025.320(a)(2) rule was weakened or disabled at any point in the period."
+          ],
+          "done": "every change traces to a ticket with a tuning memo, dated approvals predating deployment and an attached volume impact record."
+        },
+        {
+          "step": "Test the officer designation and program approval currency",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Read the board minutes and confirm a designation resolution names the current AML officer with SAR-filing authority and Audit Committee access.",
+            "Check the designation covers every day of the period with no gap across incumbent changes.",
+            "Recompute the program approval anniversary from the prior board resolution date and confirm re-approval occurred on or before it.",
+            "Confirm the approved version in the GRC policy module is the same version filed in the evidence repository."
+          ],
+          "done": "an unbroken designation and an in-date board approval are evidenced, and the approved and filed program versions agree."
+        },
+        {
+          "step": "Log program exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception — coverage gap, missed feed, unapproved threshold change, aggregation failure, stale designation — with the transaction count and value left unmonitored.",
+            "Assign a root cause (product launched outside the AML gate, pipeline fragility, aggregation configured per-contract instead of per-party, governance calendar missed) and a named owner.",
+            "Set a remediation date and require a retrospective rescan where detection was absent.",
+            "Carry every open issue into the next test cycle as a mandatory retest."
+          ],
+          "done": "every exception has an issue with quantified unmonitored exposure, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the program design test",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the feed-completeness variance and the coverage-gap count against the zero-tolerance and 1% thresholds.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — with the workpaper references behind it.",
+            "Have the Internal Auditor, who designed and tuned none of the scenarios tested, sign the workpaper as independent reviewer.",
+            "Report the conclusion and open coverage gaps to the Audit Committee before the board program re-approval, and file the signed workpaper."
+          ],
+          "done": "a signed workpaper with a stated conclusion, quantified coverage gaps and an Audit Committee reporting date is filed before board re-approval."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-049-C03",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Financial Crime AML Officer",
+          "value": "Sole signatory on the FinCEN SAR filing decision under 31 CFR 1025.320(a); files without management pre-approval and escalates a no-file decision on a $5,000-plus insider case to the Audit Committee chair"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 31 CFR 1025.320(a)(1) and (a)(2) for the insurance-company SAR duty, 1025.320(b)(3) for the 30/60-calendar-day filing clock, 1025.320(d) for the confidentiality prohibition and 1025.320(c) for the 5-year retention, each re-read against the current e-CFR and the current FinCEN SAR Electronic Filing Instructions"
+        },
+        "In-scope processes": {
+          "value": "Suspicious activity intake (monitoring alert, producer referral, claims or service escalation, subpoena or law-enforcement contact), investigation, file/no-file decision, FinCEN SAR preparation and submission, continuing-activity review and the customer exit decision, for covered products only"
+        },
+        "In-scope systems": {
+          "app": "workflow/case management tool",
+          "value": "Cases carry the initial detection date, the investigation record and the decision; the FinCEN SAR itself is prepared and submitted in the FinCEN BSA E-Filing System (bsaefiling.fincen.treas.gov) and the returned BSA Identifier is written back onto the case"
+        },
+        "Compliance procedure documented": {
+          "value": "Suspicious Activity Reporting Procedure — initial-detection dating rule, 30/60-day clock calculation, investigation evidence standard, narrative writing standard (who, what, when, where, why, how), QA review, BSA E-Filing submission, no-file documentation and the 120-day continuing-activity review"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Financial Crime AML Officer and the Head of Compliance, reviewed annually and on every FinCEN advisory or SAR form change that alters the filing fields or narrative expectations"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "File within 30 calendar days of initial detection of facts constituting a basis for filing; up to 60 calendar days where no suspect is identified on the detection date; continuing activity reviewed and, if still suspicious, reported within 120 calendar days of the last filing"
+        },
+        "Deadline reminders configured": {
+          "value": "Case management raises reminders at day 10, day 20 and day 25 of the 30-day clock, escalating to the Head of Compliance at day 27; a separate diary fires at day 90 and day 110 for the 120-day continuing-activity review"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "A copy of each filed FinCEN SAR plus the supporting documentation — alerts, transaction extracts, screening results, correspondence, the decision memo — retained 5 years from the filing date per 31 CFR 1025.320(c), in a restricted-access folder"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Late filings, cases with an undocumented initial-detection date, no-file decisions without a written rationale, missed 120-day continuing reviews and any confidentiality breach are logged as SAR exceptions with root cause and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs off every late filing with its cause, every no-file decision on a case exceeding $5,000, and closure of each SAR process exception"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every case opened in the period from any intake route — monitoring alerts, producer referrals, claims and service escalations, subpoenas and law-enforcement contacts — plus every FinCEN SAR filed and every acknowledgement returned by BSA E-Filing"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on a SAR filed outside the 30/60-calendar-day window and on any confidentiality breach; more than 5% of no-file decisions lacking a written rationale, or any case without a recorded initial-detection date, fails the control"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "The obligation is event-driven per case; the test runs quarterly over that quarter's case population, with a monthly deadline-ageing report reviewed by the Head of Compliance between tests"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have investigated, decided or filed any sampled case, and access is granted under the SAR confidentiality restriction"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly SAR timeliness and quality workpaper (case population, clock recomputation, narrative quality scoring, no-file rationale review, exceptions) in a restricted BSA-AML / SAR folder in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Filed SAR copies with BSA Identifiers, the BSA E-Filing acknowledgements, the case investigation files and the decision memos, producible to FinCEN, IRS SB/SE BSA examiners or a law-enforcement 314(a) request within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Financial Crime AML Officer is the sole contact for FinCEN and for law-enforcement SAR follow-up through the BSA E-Filing secure message centre; Regulatory Counsel clears every disclosure and asserts the 31 USC 5318(g)(2) confidentiality prohibition against any third-party request"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Register the referral and fix the initial detection date",
+          "by": "AML Analyst",
+          "role": "AML Analyst",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Open a case for every intake — Actimize alert, producer Unusual Activity Referral, claims or service escalation, subpoena, or a law-enforcement contact — within one business day of receipt.",
+            "Record the initial detection date as the date the company first became aware of facts that may constitute a basis for filing, not the date the case was assigned, and write the basis for that date on the case.",
+            "Attach the triggering artefact — the alert id, the referral form with the producer's NPN, the subpoena PDF — to the case.",
+            "Set the case type (covered product, insider, sanctions-related) and the initial suspicion category so routing and reporting are correct from day one.",
+            "Let the system compute the day-30 due date from the detection date and display it on the case header."
+          ],
+          "done": "the case carries a dated, reasoned initial detection date, the triggering artefact and a system-computed day-30 due date."
+        },
+        {
+          "step": "Assemble the transaction and relationship evidence",
+          "by": "Financial Crime Investigator",
+          "role": "Financial Crime Investigator",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Pull the full contract history for every contract held by the subject: application, premium receipts and their funding source, 1035 exchanges, loans, withdrawals, surrenders, beneficiary versions and payout instructions.",
+            "Pull the billing platform's payment records for payor name, bank routing and account, payment method and any refund or overpayment return.",
+            "Pull the sanctions screening history and any prior alerts or cases on the same party from the case system.",
+            "Ask the Life Policy Service Representative and the producer of record for the customer contact notes and any stated purpose or source of funds — do not tell them a SAR is contemplated.",
+            "Build a dated transaction timeline with amounts, counterparties and contracts on the case."
+          ],
+          "done": "the case holds a dated transaction timeline with funding sources, counterparties and prior case history attached."
+        },
+        {
+          "step": "Test the facts against the four statutory filing bases",
+          "by": "Financial Crime Investigator",
+          "role": "Financial Crime Investigator",
+          "actions": [
+            "Test the activity against each basis in 31 CFR 1025.320(a)(2): involves funds from illegal activity or disguises such funds; is designed to evade a BSA requirement; has no business or apparent lawful purpose and no reasonable explanation; or facilitates criminal activity.",
+            "Compute the aggregate amount involved or attempted across all related transactions and compare it to the $5,000 threshold; record that the threshold does not apply where an insider is implicated.",
+            "Record the innocent explanation you tested and why it was or was not accepted — an unexplained source of funds is a finding, an explained one is not.",
+            "State on the case whether the activity was conducted or merely attempted, since attempted transactions are equally reportable.",
+            "Write the recommendation — file or no-file — with the basis named and the aggregate amount stated."
+          ],
+          "done": "the case records which statutory basis is met, the aggregate amount, the tested innocent explanation and a reasoned file/no-file recommendation."
+        },
+        {
+          "step": "Decide file or no-file and record the decision",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "actions": [
+            "Review the investigator's recommendation with the timeline and evidence attached, and record the decision, the decision date and the reasoning in the case decision field.",
+            "For a no-file, write what facts would change the answer and set a monitoring diary on the party for 90 days.",
+            "For a no-file on a case exceeding $5,000 or involving an insider, obtain the Head of Compliance's countersignature before closing.",
+            "Take the decision without seeking business-line approval — the designation letter grants filing authority independent of management.",
+            "Where the decision is to file, assign the SAR preparation task with the remaining days on the 30-day clock shown."
+          ],
+          "done": "every case closes with a dated, reasoned file/no-file decision, countersigned where over $5,000 or insider-related."
+        },
+        {
+          "step": "Write the SAR narrative to the FinCEN standard",
+          "by": "Financial Crime Investigator",
+          "role": "Financial Crime Investigator",
+          "actions": [
+            "Open the narrative with who is being reported, what instrument or product was used, when the activity occurred, where it took place and why it is suspicious, then how the activity was conducted.",
+            "State the aggregate amount, the date range, the contract numbers, the covered product type and the funding and disbursement counterparties in the body.",
+            "Describe the insurance-specific facts an examiner cannot infer: single premium size against stated income, surrender inside the surrender-charge period and the penalty accepted, beneficiary changed shortly before a claim, third-party payor with no relationship to the insured.",
+            "Exclude legal conclusions, opinions about guilt and any reference to the SAR itself in customer-facing systems.",
+            "Have a second investigator read the narrative cold and confirm it stands alone without the case file."
+          ],
+          "done": "the narrative covers who/what/when/where/why/how with amounts, dates and contracts, and passes a cold read by a second investigator."
+        },
+        {
+          "step": "Complete the FinCEN SAR form in BSA E-Filing",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "actions": [
+            "Log in to the FinCEN BSA E-Filing System (bsaefiling.fincen.treas.gov) with the institution's supervisory user credentials and open Reports ▸ FinCEN SAR (form 111), New Report.",
+            "Complete Part I Subject Information with legal name, aliases, DOB, address, ID type and number, occupation, phone and the subject's relationship to the institution.",
+            "Complete Part II Suspicious Activity Information: date range, amount involved, the suspicious activity category and subcategory (e.g. insurance — excessive insurance, insurance — proceeds sent to unrelated third party), and the cumulative amount for a continuing report.",
+            "Complete Part III Information About Financial Institution Where Activity Occurred with the writing company's EIN, primary federal regulator, TIN and address, and Part IV with the filing institution contact office and phone.",
+            "Paste the approved narrative into Part V and confirm it renders inside the field's character limit without truncation."
+          ],
+          "done": "all five parts of the FinCEN SAR are complete with subject identifiers, activity categories, institution details and an untruncated narrative."
+        },
+        {
+          "step": "Quality-review the SAR before submission",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Check the subject identifiers on the form against the policy administration party record character by character — a transposed DOB or TIN makes the report unsearchable to law enforcement.",
+            "Confirm the activity date range and amount on the form match the case timeline and the computed aggregate.",
+            "Confirm the suspicious activity category chosen matches the narrative facts, and that the continuing-activity box is set correctly for a follow-up report.",
+            "Confirm the filing institution and the institution-where-activity-occurred sections name the correct writing company and EIN where the group has multiple carriers.",
+            "Record the reviewer name and date on the case before the form is submitted."
+          ],
+          "done": "a named reviewer has checked identifiers, amounts, categories and institution details against the case, and signed the case before submission."
+        },
+        {
+          "step": "Submit inside the 30 or 60 calendar-day window and capture the BSA Identifier",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "actions": [
+            "Submit the report so the submission date falls no later than 30 calendar days after the initial detection date under 31 CFR 1025.320(b)(3).",
+            "Where no suspect was identifiable on the detection date, use the extension to 60 calendar days and record on the case the fact and date that made the suspect unidentifiable — never use the extension as routine slack.",
+            "After submission open Track Status in BSA E-Filing, wait for the acknowledgement and copy the BSA Identifier (BSA ID) onto the case.",
+            "Where the acknowledgement returns an error or a warning, correct and resubmit the same day and record both attempts.",
+            "Compute and record days-from-detection-to-filing on the case for the timeliness metric."
+          ],
+          "done": "the BSA Identifier is on the case, the acknowledgement is filed, and days-from-detection is recorded and within 30 or a justified 60."
+        },
+        {
+          "step": "Enforce SAR confidentiality across the business",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "actions": [
+            "Restrict the case folder and the filed SAR to the financial crime team's access group; the policy administration and claims records must carry no reference to a SAR.",
+            "Brief anyone who must act on the underlying facts — a claims examiner holding a payout, a producer compliance manager terminating an appointment — on the facts only, never on the filing, per 31 CFR 1025.320(d).",
+            "Refer any subpoena, civil discovery request or customer question about a SAR to Regulatory Counsel to assert the disclosure prohibition and notify FinCEN's Office of Chief Counsel where required.",
+            "Log any suspected tipping-off as a confidentiality breach in the GRC platform the same day."
+          ],
+          "done": "SAR references exist only in the restricted folder, third-party requests route to counsel, and any tipping-off is logged the same day."
+        },
+        {
+          "step": "Decide and document the customer relationship outcome",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Convene the exit review with the Financial Crime AML Officer and Regulatory Counsel within 10 business days of filing.",
+            "Decide retain-with-monitoring, restrict (block new premium, block loans and surrenders) or exit, and record the reasoning.",
+            "Where exit is chosen, confirm with Regulatory Counsel the contractual and state-law route for non-renewal or rescission and the notice wording that discloses nothing about the filing.",
+            "Instruct the Life Policy Service Representative on the account restrictions using the approved wording, and set a review date."
+          ],
+          "done": "a dated retain/restrict/exit decision with reasoning exists, and any customer-facing action uses counsel-approved wording."
+        },
+        {
+          "step": "Run the 120-day continuing-activity review",
+          "by": "AML Analyst",
+          "role": "AML Analyst",
+          "app": "NICE Actimize (AML)",
+          "actions": [
+            "Diary every filed SAR for review at 90 days and again at 110 days from the filing date.",
+            "Pull all activity on the subject's contracts since the last filing and test whether the suspicious pattern continued.",
+            "Where it continued, file a continuing-activity SAR within 120 calendar days of the previous filing, tick the continuing-activity box, quote the prior BSA Identifier and report the cumulative amount for the new period.",
+            "Where it stopped, record the review, the period covered and the evidence of cessation on the case and close the diary."
+          ],
+          "done": "each filed SAR has a documented 120-day review that either produced a continuing report inside the window or evidenced cessation."
+        },
+        {
+          "step": "Handle law-enforcement and 314(a)/314(b) contact through one route",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Route every law-enforcement call, grand jury subpoena and FinCEN 314(a) list to the Financial Crime AML Officer as the single intake point.",
+            "Search the 314(a) subject list against the party master within the 14-calendar-day response window and respond through the FinCEN Secure Information Sharing System with a positive match or no match.",
+            "Where a 314(b) information-sharing request is made or received, confirm the counterparty's current 314(b) registration before any information moves.",
+            "Log each contact, the information released and counsel's authorisation on the case."
+          ],
+          "done": "every law-enforcement and 314(a)/314(b) contact is logged, answered inside the response window and cleared by counsel."
+        },
+        {
+          "step": "Report SAR metrics without disclosing case content",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "app": "Power BI",
+          "actions": [
+            "Report to the AML Oversight Committee: cases opened, SARs filed, no-file rate, average and maximum days from detection to filing, filings using the 60-day extension, and continuing reports.",
+            "Show the count filed outside 30/60 days as a named exception line, never buried in an average.",
+            "Present the metrics without subject names or narrative content so the pack itself does not breach confidentiality.",
+            "Minute the committee's challenge and any action on timeliness."
+          ],
+          "done": "the committee sees timeliness, volumes and late filings by count, with no subject-identifying content in the pack."
+        },
+        {
+          "step": "Escalate a missed or at-risk deadline the day it is at risk",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Review the daily case-ageing report and escalate every case at day 25 of the 30-day clock to the Head of Compliance with the blocker named.",
+            "Where a deadline is already missed, file the SAR immediately rather than waiting to perfect it, and note the late-filing reason in the narrative.",
+            "Raise a GRC issue for each late filing with root cause (detection date recorded late, investigation resourcing, evidence delay from a business area) and an owner.",
+            "Report the late filing to the AML Oversight Committee at its next sitting."
+          ],
+          "done": "no clock reaches day 30 without escalation, every late filing is submitted immediately and carries a root-caused GRC issue."
+        },
+        {
+          "step": "Retain the SAR and its supporting file for five years",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the SAR copy, the BSA E-Filing acknowledgement with the BSA Identifier, the case investigation file, the decision memo and the QA review into a restricted BSA-AML / SAR / <year> folder.",
+            "Apply the 5-year retention label measured from the filing date, per 31 CFR 1025.320(c).",
+            "Restrict folder permissions to the financial crime team and named auditors, with access logging enabled.",
+            "Confirm the index supports retrieval by BSA Identifier, subject name and filing date, and run an annual retrieval test."
+          ],
+          "done": "each SAR and its supporting file is retained 5 years from filing in a permission-restricted, access-logged folder retrievable by BSA Identifier."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of cases and filings for the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Extract every case opened, worked or closed in the quarter with intake route, initial detection date, decision, decision date, filing date and BSA Identifier.",
+            "Add the Actimize alert log, the producer referral inbox and the subpoena register so intakes that never became cases are visible.",
+            "Reconcile the case count to the alert-to-case conversion report and to the SAR filing log, and resolve any difference before sampling."
+          ],
+          "done": "the case population reconciles to the alert, referral and subpoena registers and to the filing log, and is signed as complete."
+        },
+        {
+          "step": "Reconcile filings to BSA E-Filing acknowledgements",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Export the acknowledgement list from BSA E-Filing Track Status for the quarter and join it to the internal filing log on BSA Identifier.",
+            "List any internal record marked filed with no acknowledgement, and any acknowledgement with no internal case.",
+            "Confirm every rejected or warning acknowledgement was corrected and resubmitted, and read the resubmission date.",
+            "Treat a filing claimed internally but not acknowledged by FinCEN as an automatic exception."
+          ],
+          "done": "every claimed filing matches a FinCEN acknowledgement and every rejection is evidenced as corrected and resubmitted."
+        },
+        {
+          "step": "Draw and document the case sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of filings that used the 60-day extension, 100% of insider cases and 100% of continuing-activity reports.",
+            "Take 20 filed SARs and 20 no-file decisions by seeded random selection from the remainder, minimum 45 cases overall.",
+            "Record the seed, strata, population sizes and selection date so the sample can be reproduced."
+          ],
+          "done": "the sample is reproducible and covers all 60-day extensions, insider cases and continuing reports plus a random filed/no-file draw."
+        },
+        {
+          "step": "Recompute the 30/60-day clock from the underlying facts",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled filing, read the alert timestamp, referral receipt date or subpoena date and derive your own initial detection date from the evidence rather than the recorded field.",
+            "Recompute the day-30 deadline in calendar days and compare it to the actual submission date on the acknowledgement.",
+            "Where 60 days were used, confirm the case records the specific fact that made the suspect unidentifiable on the detection date; a blank or generic reason means the 30-day deadline applied.",
+            "Log any filing beyond the recomputed deadline as a reportable late filing rather than a documentation exception."
+          ],
+          "done": "each sampled filing has an independently derived detection date, a recomputed deadline and a documented on-time or late conclusion."
+        },
+        {
+          "step": "Re-perform the file/no-file judgement",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "For each sampled no-file case, read the transaction timeline and evidence and reach your own conclusion before opening the recorded decision.",
+            "Test the aggregate amount against $5,000 by recomputing it from the transaction extract, and confirm insider cases were treated with no dollar floor.",
+            "Confirm the case records the innocent explanation tested; a no-file resting on an untested explanation is an exception.",
+            "Confirm the Head of Compliance countersignature exists on every no-file over $5,000 or involving an insider."
+          ],
+          "done": "each sampled no-file is independently re-judged, with recomputed aggregates and the required countersignatures evidenced."
+        },
+        {
+          "step": "Score narrative quality against the FinCEN standard",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Score each sampled narrative for who, what, when, where, why and how, plus the presence of amounts, date range and contract numbers.",
+            "Confirm the insurance-specific facts appear — product type, premium size against stated income, surrender charge accepted, beneficiary change proximity to claim, third-party payor.",
+            "Flag narratives containing legal conclusions or references to the SAR in customer-facing systems.",
+            "Score below 5 of 6 narrative elements as a quality exception with the missing elements named."
+          ],
+          "done": "every sampled narrative is scored against the six elements with missing elements named and quality exceptions logged."
+        },
+        {
+          "step": "Trace form field accuracy back to the source records",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Compare Part I subject name, DOB, address, ID type and number on the filed SAR to the policy administration party record.",
+            "Compare the Part II amount and date range to the recomputed transaction aggregate and timeline.",
+            "Confirm the Part III institution EIN and address name the writing company that actually carried the activity, not the group parent.",
+            "Confirm the QA reviewer named on the case is not the investigator who wrote the narrative."
+          ],
+          "done": "sampled SAR form fields agree with source records and the QA reviewer is evidenced as segregated from the narrative author."
+        },
+        {
+          "step": "Test confidentiality and the 120-day continuing review",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Search the policy administration, claims and CRM systems for the sampled contract numbers and confirm no note, task or letter references a SAR or a filing.",
+            "Review the case folder permissions and access log for any account outside the financial crime team and named auditors.",
+            "For each sampled filed SAR, recompute the 120-day continuing-activity due date from the filing date and confirm a documented review exists inside it.",
+            "Confirm continuing reports quote the prior BSA Identifier and report the cumulative amount for the new period."
+          ],
+          "done": "no SAR reference exists outside the restricted folder and every 120-day review is evidenced inside the recomputed window."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception with the case id, what failed (late filing, undated detection, unjustified 60-day use, weak narrative, missed 120-day review, confidentiality breach) and the regulatory impact.",
+            "Assign a root cause — detection date recorded on assignment instead of awareness, investigation resourcing, evidence delay from claims or billing, QA skipped under deadline pressure — and a named owner.",
+            "Set a remediation date; for any confidentiality breach open a counsel-led review the same day.",
+            "Carry every open exception into the next quarter's test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment, with breaches routed to counsel same-day."
+        },
+        {
+          "step": "Conclude, sign and report the SAR test",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute the late-filing count, the average and maximum days from detection to filing, and the no-file documentation rate against the 5% threshold.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — citing the workpaper references behind each figure.",
+            "Have the Internal Auditor, who investigated, decided and filed none of the sampled cases, sign the workpaper as independent reviewer.",
+            "Report late filings and any confidentiality breach to the AML Oversight Committee and the Audit Committee, and file the signed workpaper in the restricted SAR folder."
+          ],
+          "done": "a signed workpaper with a stated conclusion, late-filing count and committee reporting date is filed in the restricted SAR folder."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-049-C04",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Financial Crime AML Officer",
+          "value": "Owns the AML training curriculum and the written policies, procedures and internal controls it teaches under 31 CFR 1025.210(b)(1) and (b)(3); delivery and completion tracking are run with the Learning Development Manager"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 31 CFR 1025.210(b)(1) for risk-based written policies, procedures and internal controls and 1025.210(b)(3) for ongoing training of employees and of the agents and brokers on whom the company relies, re-read in the current e-CFR, together with the CTR rule at 31 CFR 1010.311/1010.313(b) and the SAR rule at 1025.320 that the course must teach"
+        },
+        "In-scope processes": {
+          "value": "Annual and new-joiner AML training for every role touching covered products — new business underwriting, policy service, claims, billing, contact centre, financial crime, internal audit and executive management — plus the appointed producers and agencies selling permanent life and annuity business"
+        },
+        "In-scope systems": {
+          "app": "learning management system",
+          "value": "Curriculum, assignment, completion and assessment scores sit in the LMS, populated from the HRIS worker feed for employees and the producer appointment file for agents; producer completion is reconciled against the NIPR appointment list"
+        },
+        "Compliance procedure documented": {
+          "value": "AML Training Standard and the underlying written policies, procedures and internal controls — role-based curriculum matrix, required content (red flags for covered products, the 15-calendar-day CTR deadline, the 30/60-calendar-day SAR deadline, sanctions escalation, no tipping-off), pass mark, delinquency escalation and evidence retention"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Financial Crime AML Officer and the Head of Compliance as part of the board-approved AML program, refreshed annually and within 60 days of any FinCEN advisory, new covered product, or typology change identified by the risk assessment or independent testing"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual refresher completed by every covered employee and appointed producer before 31 December; new joiners and newly appointed producers within 30 days of start or appointment date; targeted training within 60 days of an incident or a FinCEN advisory; content refresh completed before the board's annual program re-approval"
+        },
+        "Deadline reminders configured": {
+          "value": "LMS auto-reminders at 30, 14 and 7 days before the assignment due date, then weekly overdue notices to the learner and their manager; a day-25 alert on new-joiner assignments so the 30-day rule is not missed; a producer overdue extract feeds the commission-hold process monthly"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Course content versions, the role-based curriculum matrix, assignment and completion records with dates and assessment scores, attendance registers for live sessions, and producer acknowledgements retained 5 years from the training date per 31 CFR 1010.430"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Employees or producers overdue past the due date, covered roles missing from the curriculum matrix, content not refreshed after an advisory, and assessment pass marks overridden are logged as training exceptions with root cause, population affected and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs off closure of every training delinquency campaign and approves any temporary exemption, which must name the individual, the reason and an expiry date"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every covered employee on the HRIS worker feed during the year (including joiners, leavers and internal movers) and every producer appointed during the year on the NIPR appointment file, joined to the LMS assignment and completion records"
+        },
+        "Pass/fail thresholds": {
+          "value": "100% completion required for the financial crime team, new business, claims, policy service and executive management; below 98% completion for the wider covered population, any covered role absent from the curriculum matrix, or any new joiner untrained beyond 30 days fails the control"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "The obligation is annual with a 30-day new-joiner rule; completion is monitored monthly against the HRIS and appointment feeds and formally tested annually before the board program re-approval"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must sit outside both the financial crime function and Learning & Development, and must not have authored or approved the course content"
+        },
+        "Evidence location for test results": {
+          "value": "Annual AML training completeness workpaper (HRIS-to-LMS reconciliation, producer appointment reconciliation, curriculum-to-risk-assessment mapping, content review, exceptions) in the compliance evidence repository under BSA-AML / Training / <year>"
+        },
+        "Regulator-ready documentation": {
+          "value": "The curriculum matrix, dated course content versions, the completion register by name and date with assessment scores, and producer acknowledgements, producible to a FinCEN or IRS BSA examiner or a state market conduct examiner within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Financial Crime AML Officer answers examiner questions on training adequacy and content; the Learning Development Manager supplies completion extracts; Regulatory Counsel reviews any written representation about coverage before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Derive the curriculum from the risk assessment and the written controls",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "actions": [
+            "Take the current AML risk assessment and list every typology rated medium or high for covered products — single premium from an unexplained source, early surrender accepting the charge, third-party payor, beneficiary change shortly before a claim, 1035 exchange churn.",
+            "Map each typology to the written policy or internal control that addresses it and to the learning objective that must teach it.",
+            "List the reportable deadlines the course must state plainly: CTR within 15 calendar days of the reportable currency transaction under 31 CFR 1010.311 and 1010.313(b), SAR within 30 calendar days of initial detection or 60 where no suspect is identified under 1025.320.",
+            "Write the curriculum design note showing typology, control, learning objective and the target roles, and route it to the Head of Compliance."
+          ],
+          "done": "every medium and high typology maps to a written control and a learning objective, and the design note is approved."
+        },
+        {
+          "step": "Define the covered population role by role",
+          "by": "People Analytics / HR Operations Manager",
+          "role": "People Analytics / HR Operations Manager",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Extract the active worker list with job code, department, cost centre, manager and hire date.",
+            "Tag each job code as covered or not covered against the curriculum matrix, covering new business, policy service, claims, billing, contact centre, financial crime, internal audit and executive management.",
+            "Set up a nightly feed of joiners, leavers and internal movers into the LMS so a mover into a covered role picks up the assignment automatically.",
+            "Send the tagged job-code list to the Financial Crime AML Officer for confirmation and record their approval."
+          ],
+          "done": "every active job code carries a covered/not-covered tag approved by the AML Officer and a nightly mover feed reaches the LMS."
+        },
+        {
+          "step": "Build the role-based modules with covered-product content",
+          "by": "Instructional Designer",
+          "role": "Instructional Designer",
+          "app": "learning management system",
+          "actions": [
+            "Build a core module for all covered staff: what BSA/AML is, which products are covered under 31 CFR 1025.100(h), the four filing bases, the $5,000 aggregate and the any-amount insider rule, and the no-tipping-off prohibition.",
+            "Build role modules: new business and underwriting (source of funds, third-party payor, entity owners), policy service (beneficiary change red flags, assignment screening), claims (payee screening before disbursement, beneficiary change proximity to claim), billing (overpayment then refund to a different account, cash-equivalent instruments).",
+            "State the deadlines explicitly on screen — CTR within 15 calendar days, SAR within 30 calendar days of initial detection or 60 where no suspect is identified — and require the learner to answer a question on each.",
+            "Include the escalation route by name: raise an Unusual Activity Referral into the AML case queue, never discuss it with the customer or the producer.",
+            "Version the content with an effective date and store the source files in the document management repository."
+          ],
+          "done": "core and role modules are built with covered-product red flags, the named deadlines and the escalation route, and are versioned with an effective date."
+        },
+        {
+          "step": "Get the content reviewed by compliance and counsel before release",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Read the module scripts against 31 CFR 1025.210(b)(1) and (b)(3) and confirm each required element is taught, not merely mentioned.",
+            "Check every regulatory citation, threshold and day count on screen against the current e-CFR text and correct any stale figure.",
+            "Confirm the confidentiality module states the 31 CFR 1025.320(d) prohibition correctly and does not encourage staff to record SAR references in customer systems.",
+            "Record the review date, the reviewer and the content version approved, and release only the approved version to the LMS."
+          ],
+          "done": "the released content version carries a dated counsel and compliance review with every citation and day count verified."
+        },
+        {
+          "step": "Assign the courses and set the due dates",
+          "by": "Learning Development Manager",
+          "role": "Learning Development Manager",
+          "app": "learning management system",
+          "actions": [
+            "Create the annual assignment rule for every covered job code with a due date of 31 December and open the window at the start of the annual cycle.",
+            "Create the joiner rule setting a due date of hire date plus 30 days for anyone entering a covered job code, including internal movers.",
+            "Configure reminder notifications at 30, 14 and 7 days before due date, then weekly overdue notices copied to the learner's manager.",
+            "Run a dry-run assignment against the HRIS extract and reconcile assignment count to covered headcount before going live."
+          ],
+          "done": "assignments exist for every covered worker with the correct due date, reminders are configured, and assignment count reconciles to covered headcount."
+        },
+        {
+          "step": "Deliver and record training for appointed producers",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Extract the appointed producer list by NPN and state from the appointment file and reconcile it to NIPR appointment records for the year.",
+            "Publish the producer AML course on the agent portal and require completion within 30 days of appointment and annually thereafter before new business is accepted.",
+            "Accept an industry-standard AML course certificate (for example a LIMRA AML certificate) as an alternative, and record the certificate provider, completion date and certificate number against the producer record.",
+            "Capture a signed acknowledgement that the producer will refer red flags and will not disclose a referral to the customer.",
+            "Send the monthly overdue producer list to the Commission Analyst so commissions are held until completion."
+          ],
+          "done": "every appointed producer has a completion record or an accepted certificate on file, with overdue producers on commission hold."
+        },
+        {
+          "step": "Assess understanding rather than attendance",
+          "by": "Instructional Designer",
+          "role": "Instructional Designer",
+          "app": "learning management system",
+          "actions": [
+            "Attach a scored assessment of at least 10 questions to each module with an 80% pass mark and a randomised question bank.",
+            "Include scenario questions that require the learner to pick the correct deadline — 15 calendar days for a CTR, 30 calendar days from initial detection for a SAR — and the correct escalation route.",
+            "Allow two retakes; a third failure routes the learner to the Financial Crime AML Officer for a coached session recorded on the LMS record.",
+            "Report question-level failure rates to the Financial Crime AML Officer so weak content can be rewritten."
+          ],
+          "done": "each module has a scored 80% pass-mark assessment, retake and coaching path, and question-level failure rates are reported."
+        },
+        {
+          "step": "Deliver enhanced training to the financial crime team and senior management",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "actions": [
+            "Run a live annual session for the financial crime team covering SAR narrative writing to the FinCEN standard, the BSA E-Filing form 111 field-by-field walkthrough, and the 120-day continuing-activity review.",
+            "Run a separate briefing for the board and executive committee covering their 31 CFR 1025.210 responsibilities, the year's SAR and sanctions volumes and the independent test findings.",
+            "Cover the CTR path for the rare cash-equivalent premium receipt — the 15-calendar-day filing deadline under 31 CFR 1010.311 and 1010.313(b) and who files it.",
+            "Take a signed attendance register at each session and load it to the LMS against the individual records so live delivery is evidenced like e-learning.",
+            "Record the session date, content version and facilitator in the training evidence folder."
+          ],
+          "done": "the financial crime team and the board have dated live sessions with signed attendance registers loaded to their LMS records."
+        },
+        {
+          "step": "Track completion monthly against the live worker feed",
+          "by": "Learning & Development Specialist",
+          "role": "Learning & Development Specialist",
+          "app": "Power BI",
+          "actions": [
+            "Publish a monthly completion dashboard by department, job family and manager, sourced from the LMS and the HRIS worker feed on the same date.",
+            "Show completed, in progress, not started and overdue counts, and highlight any covered worker with no assignment at all — that is a matrix gap, not a delinquency.",
+            "Reconcile the dashboard headcount to the HRIS active headcount and explain any difference on the dashboard footer.",
+            "Send each department head their overdue list with names and due dates on the first business day of the month."
+          ],
+          "done": "the monthly dashboard reconciles to HRIS headcount, exposes unassigned covered workers and puts named overdue lists with department heads."
+        },
+        {
+          "step": "Escalate delinquency with consequences that bite",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "At 15 days overdue escalate to the learner's manager; at 30 days to the department head; at 45 days to the executive committee member for that function.",
+            "For producers, instruct the Commission Analyst to hold commission payments and suspend new business acceptance at 30 days overdue.",
+            "For employees in the financial crime, claims and new business teams, agree with the HR Business Partner that system access to covered-product transactions is reviewed at 45 days overdue.",
+            "Approve any exemption in writing, naming the individual, the reason and an expiry date no more than 60 days out."
+          ],
+          "done": "delinquency escalates on the 15/30/45-day ladder with commission holds for producers and every exemption is named, reasoned and time-limited."
+        },
+        {
+          "step": "Run targeted training after an incident or advisory",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "actions": [
+            "On each FinCEN advisory, independent test finding or internal incident, decide within 10 business days whether targeted training is needed and record the decision.",
+            "Where it is, define the affected population precisely (for example claims examiners who released payouts without a current screen) and the specific behaviour to change.",
+            "Have the Instructional Designer build a short module or a live session and deliver it within 60 days of the advisory or finding.",
+            "Record attendance and assessment results against the incident or finding so the corrective action can be evidenced as closed."
+          ],
+          "done": "each advisory, finding or incident has a dated training decision and, where needed, delivery inside 60 days linked to the corrective action."
+        },
+        {
+          "step": "Refresh content annually against the current typologies",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "actions": [
+            "Before the annual cycle opens, compare the course content to the refreshed risk assessment, the year's SAR typologies and the independent test findings.",
+            "Rewrite any scenario that no longer reflects the business — for example after a new annuity product launch or a block acquisition.",
+            "Re-verify every citation, threshold and day count against the current e-CFR text and update where FinCEN has amended the rule.",
+            "Route the refreshed version through counsel review and record the new content version and effective date."
+          ],
+          "done": "the content version released for the new cycle is dated, reflects the current risk assessment and typologies, and has verified citations."
+        },
+        {
+          "step": "Feed training outcomes back into the written controls",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Take the question-level failure rates, learner questions and post-incident training findings and identify controls that staff cannot execute as written.",
+            "Where a procedure is the cause, raise a change to the written policy or internal control in the GRC policy module with the training evidence attached.",
+            "Confirm the changed procedure is reflected in the next content version so the course and the procedure never diverge.",
+            "Record the loop — finding, procedure change, content change — in the annual program review pack."
+          ],
+          "done": "every recurring assessment failure or learner confusion results in either a procedure change or a content change, recorded in the review pack."
+        },
+        {
+          "step": "Report training coverage to the AML Oversight Committee and the board",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "app": "board portal",
+          "actions": [
+            "Report annual completion by covered population and by producer channel, new-joiner 30-day compliance, average assessment score and open exemptions.",
+            "Show completion against the 100% and 98% thresholds by name of function, not as a single blended number.",
+            "Present open training exceptions with owner and remediation date and seek the committee's acceptance or rejection of any extension.",
+            "Include the training section in the annual board program submission so re-approval rests on evidenced coverage."
+          ],
+          "done": "completion is reported by function against its threshold, exceptions are tabled with owners, and the training section forms part of the board submission."
+        },
+        {
+          "step": "Retain training evidence for five years",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Export the annual completion register (name, worker or NPN id, job code, module, version, completion date, assessment score) and file it under BSA-AML / Training / <year>.",
+            "File the dated course content versions, the curriculum matrix, live-session attendance registers and producer acknowledgements alongside it.",
+            "Apply the 5-year retention label measured from the training date, per 31 CFR 1010.430(d).",
+            "Confirm the index supports retrieval by individual name, NPN, module version and completion date, and run an annual retrieval test on 5 records."
+          ],
+          "done": "the completion register, content versions and acknowledgements are filed under a 5-year label and retrievable by name, NPN and module version."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the covered-population training obligation register",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Extract every worker active at any point in the year with job code, hire date, termination date and internal move history.",
+            "Extract every producer appointed during the year with NPN, appointment date and state from the appointment file.",
+            "Apply the approved covered/not-covered job-code tagging to build the obligation register, and reconcile the register headcount to the HRIS active headcount and the NIPR appointment count."
+          ],
+          "done": "the obligation register reconciles to HRIS headcount and the NIPR appointment count and is signed as complete."
+        },
+        {
+          "step": "Reconcile the obligation register to LMS assignments and completions",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "learning management system",
+          "actions": [
+            "Left-join the obligation register to the LMS assignment table on worker id or NPN and list every covered person with no assignment.",
+            "Join again to the completion table and list every assignment not completed by its due date, with days overdue.",
+            "Compute completion percentages by function and compare to the 100% and 98% thresholds.",
+            "Treat a covered person with no assignment as a control design failure, not a delinquency, and report it separately."
+          ],
+          "done": "unassigned covered people, overdue assignments and by-function completion rates are quantified against the thresholds."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of the financial crime team, 100% of new joiners into covered roles and 100% of approved exemptions.",
+            "Take 30 employees and 20 producers by seeded random selection from the remaining covered population.",
+            "Record the seed, the strata, the population sizes and the selection date so the sample can be re-drawn identically."
+          ],
+          "done": "the sample is reproducible and covers the whole financial crime team, all new joiners and all exemptions plus a random draw."
+        },
+        {
+          "step": "Recompute the 30-day new-joiner and annual deadlines",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled new joiner or internal mover, recompute the due date as hire or move date plus 30 calendar days and compare it to the LMS completion date.",
+            "For the annual cycle, confirm each sampled completion date falls on or before 31 December of the training year.",
+            "For producers, recompute appointment date plus 30 days and compare to the completion or certificate date.",
+            "Log every completion after the recomputed deadline as an exception with the day count, not as a rounding difference."
+          ],
+          "done": "every sampled deadline is recomputed from the source date and on-time or late is concluded with a day count."
+        },
+        {
+          "step": "Test the curriculum against the risk assessment and the rule",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Take the current risk assessment's medium and high typologies for covered products and confirm each is taught in at least one module assigned to the roles that would encounter it.",
+            "Read the released content version and confirm it states the CTR 15-calendar-day deadline, the SAR 30-calendar-day deadline and the 60-day no-suspect extension correctly.",
+            "Confirm the confidentiality content states the 31 CFR 1025.320(d) prohibition and that the escalation route names the AML case queue.",
+            "Flag any typology with no coverage and any stale citation or day count as a content finding."
+          ],
+          "done": "every medium and high typology is evidenced in an assigned module and every stated deadline and citation is verified as current."
+        },
+        {
+          "step": "Verify completion records back to their evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For sampled employees, open the LMS record and confirm the module version, completion timestamp and assessment score are present and the score meets the 80% pass mark.",
+            "For live sessions, trace the completion flag to the signed attendance register rather than accepting the LMS flag alone.",
+            "For producers relying on an external certificate, open the certificate and confirm the provider, the producer name and NPN, and the completion date.",
+            "Flag any completion recorded by an administrator override with no underlying evidence."
+          ],
+          "done": "each sampled completion traces to an assessment score, a signed attendance register or an inspected external certificate."
+        },
+        {
+          "step": "Test delinquency escalation and exemption discipline",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "For each overdue case in the population, confirm the 15/30/45-day escalation notices were actually sent and to whom.",
+            "For overdue producers, confirm the commission hold was applied and the date it took effect, and check whether new business was accepted while overdue.",
+            "Read every approved exemption and confirm it names the individual, the reason and an expiry no more than 60 days out, with the Head of Compliance's signature.",
+            "Treat any expired exemption still relied on as an exception."
+          ],
+          "done": "escalation notices, commission holds and time-limited signed exemptions are evidenced for every overdue case."
+        },
+        {
+          "step": "Test the post-advisory and post-incident training loop",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "List every FinCEN advisory, independent test finding and internal AML incident in the year.",
+            "For each, confirm a dated decision on targeted training exists within 10 business days and, where training was required, that delivery occurred within 60 days.",
+            "Trace the attendance record back to the corrective action so the action's closure rests on evidenced delivery.",
+            "Flag any corrective action closed on a training commitment with no delivery evidence."
+          ],
+          "done": "every advisory, finding and incident has a dated training decision and, where required, evidenced delivery inside 60 days."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception — unassigned covered role, late new joiner, overdue producer, stale content citation, unevidenced completion, expired exemption — with the population affected.",
+            "Assign a root cause (job-code tagging gap, HRIS-to-LMS feed break, appointment file not reconciled to NIPR, content review calendar missed) and a named owner.",
+            "Set a remediation date and require a completion sweep where a whole role or channel was unassigned.",
+            "Carry every open exception into the next annual test as a mandatory retest row."
+          ],
+          "done": "every exception has an issue with the affected population, a root cause, an owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the training test",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute completion by function against the 100% and 98% thresholds and the new-joiner 30-day compliance rate.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — with the workpaper references behind each figure.",
+            "Have the Internal Auditor, who sits outside financial crime and Learning & Development and authored none of the content, sign the workpaper as independent reviewer.",
+            "Report the conclusion to the AML Oversight Committee before the board's annual program re-approval and file the signed workpaper under BSA-AML / Training."
+          ],
+          "done": "a signed workpaper with by-function completion rates, a stated conclusion and a committee reporting date is filed before board re-approval."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-049-C05",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Chief Audit Executive",
+          "value": "Owns delivery of the independent AML test required by 31 CFR 1025.210(b)(4), its reporting to senior management and the Audit Committee, and the tracking of corrective actions to documented closure; reports functionally to the Audit Committee, not to the AML function"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 31 CFR 1025.210(b)(4) requiring independent testing by company personnel or an outside party, read with 1025.210(b)(1), re-verified in the current e-CFR at scoping, and benchmarked to the FFIEC BSA/AML Examination Manual testing modules used to shape the work programme"
+        },
+        "In-scope processes": {
+          "value": "Independent testing of the whole AML program for covered products — the risk assessment, written policies and internal controls, the designated officer's authority, transaction monitoring and thresholds, OFAC screening, SAR timeliness and quality, training coverage, recordkeeping and prior-year action closure"
+        },
+        "In-scope systems": {
+          "app": "AuditBoard",
+          "value": "The engagement, work programme, workpapers, findings, ratings and management actions with owners and dates are held in AuditBoard; evidence is pulled from Actimize, the screening system, the LMS, the case system and the policy administration platform"
+        },
+        "Compliance procedure documented": {
+          "value": "Independent AML Testing Procedure — annual risk-based scoping, independence declaration, the work programme covering each 1025.210(b) pillar plus 1025.320, sampling standard, finding severity definitions, reporting route to senior management and the Audit Committee, and the corrective-action closure evidence standard"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Audit Committee as part of the annual audit plan, re-approved annually, and amended when the risk assessment or a regulatory examination changes the required scope"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Testing performed at least annually and completed before the board's annual AML program re-approval; the report issued to senior management within 30 days of fieldwork close; management actions agreed within 30 days of report issue; high-severity actions remediated within 90 days of agreement"
+        },
+        "Deadline reminders configured": {
+          "value": "AuditBoard raises reminders at 60 and 30 days before the annual testing due date, chases action owners at 30, 14 and 7 days before each action due date, and escalates any high-severity action passing its due date to the Chief Audit Executive the next business day"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "The scoping memo, independence declaration, work programme, workpapers and samples, the issued report, senior management and Audit Committee minutes, and the action closure evidence retained 5 years from the report date per 31 CFR 1010.430"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "AuditBoard",
+          "value": "Testing not performed in the year, scope areas dropped without Audit Committee approval, findings closed without evidence, and actions extended more than twice are logged as testing-process exceptions with root cause and remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Audit Executive",
+          "value": "Signs off closure of every high-severity finding after inspecting the remediation evidence, and approves any extension of an action due date with a written reason"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The prior and current year AML test engagements, every finding raised and every management action open at any point in the year, plus the scope areas required by 31 CFR 1025.210(b)(1)-(4) and 1025.320 mapped to the work programme"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on a year with no independent test, on any pillar of 1025.210(b) left untested without Audit Committee approval, and on any finding closed with no evidence attached; more than 20% of high-severity actions past due, or any action extended more than twice, fails the control"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "The obligation is annual; the quality-assurance review of the testing process runs annually after report issue, with quarterly action-ageing reviews at the Audit Committee between engagements"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Chief Risk Officer",
+          "value": "Reviewer must be outside Internal Audit and must not have performed any fieldwork; where the annual test is outsourced, the reviewer challenges the provider's independence and scope"
+        },
+        "Evidence location for test results": {
+          "value": "The AML independent testing engagement file in AuditBoard, with the issued report, workpapers, action tracker export and Audit Committee minute extract copied to the compliance evidence repository under BSA-AML / Independent Testing / <year>"
+        },
+        "Regulator-ready documentation": {
+          "value": "The scoping memo, independence declaration, work programme, issued report with ratings, management responses with owners and dates, and closure evidence, producible to a FinCEN or IRS SB/SE BSA examiner within 5 business days as the 1025.210(b)(4) evidence pack"
+        },
+        "Regulator response path": {
+          "value": "Chief Audit Executive presents the testing methodology and findings to examiners; the Financial Crime AML Officer answers on remediation status; Regulatory Counsel reviews any written response and the Audit Committee chair is briefed before submission"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Scope the annual test from the risk assessment and prior findings",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "AuditBoard",
+          "actions": [
+            "Read the current AML risk assessment, the prior year's report, open management actions and any regulatory examination findings, and list the areas rated medium or high.",
+            "Draft the scoping memo covering each pillar of 31 CFR 1025.210(b)(1)-(4) plus 1025.320 SAR reporting and OFAC screening, and state the coverage depth for each.",
+            "Justify in writing any pillar covered by reliance on other work rather than direct testing; a pillar cannot be dropped without Audit Committee approval.",
+            "Set the fieldwork window so the report issues before the board's annual AML program re-approval date.",
+            "Table the scoping memo at the Audit Committee and record its approval."
+          ],
+          "done": "an Audit Committee-approved scoping memo covers every 1025.210(b) pillar and 1025.320, with any reliance justified and the timing tied to board re-approval."
+        },
+        {
+          "step": "Establish and document independence",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Have every assigned auditor sign an independence declaration confirming they have not worked in the financial crime function, designed AML controls or adjudicated alerts in the last 12 months.",
+            "Confirm the engagement reports to the Audit Committee and that the Financial Crime AML Officer has no role in staffing, scoping, rating or issuing the report.",
+            "Where the work is outsourced, obtain the provider's independence confirmation, the lead reviewer's BSA/AML credentials and confirm the provider does not also build or tune the company's AML controls.",
+            "File the declarations in the engagement file before fieldwork starts."
+          ],
+          "done": "signed independence declarations are on file for every reviewer before fieldwork, and the reporting line to the Audit Committee is documented."
+        },
+        {
+          "step": "Build the work programme from the rule text",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "AuditBoard",
+          "actions": [
+            "Write one test step per requirement: written policies and internal controls (b)(1), designated officer (b)(2), training (b)(3), independent testing history (b)(4), and SAR detection and filing (1025.320).",
+            "For each step state the population, the sampling method and size, the evidence to inspect and the pass criteria before fieldwork begins.",
+            "Add steps for OFAC screening completeness, monitoring feed integrity, threshold change control and the 5-year recordkeeping requirement.",
+            "Have the Chief Audit Executive approve the work programme and lock it so scope changes require a documented amendment."
+          ],
+          "done": "the approved work programme carries one test step per statutory requirement with population, sample and pass criteria stated in advance."
+        },
+        {
+          "step": "Test the program design against the rule and the risk assessment",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Read the board-approved AML program and confirm every clause of 1025.210(b) maps to a named procedure, owner and evidence artifact.",
+            "Confirm the board resolution designating the AML officer is current, names SAR-filing authority and covers every day of the period.",
+            "Trace each medium and high typology in the risk assessment to a detection scenario, a control or an accepted risk decision.",
+            "Confirm the covered/not-covered product determinations carry citations and that new products passed the AML design gate before first issue."
+          ],
+          "done": "each statutory clause, typology and product determination is traced to a documented control or an evidenced acceptance."
+        },
+        {
+          "step": "Test SAR and screening operation on a documented sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Draw a seeded sample of cases, filings and screening alerts, recording seed, population size and strata in the workpaper.",
+            "Recompute the 30/60-calendar-day SAR clock from the underlying detection evidence and compare it to the BSA E-Filing acknowledgement date.",
+            "Re-screen sampled parties against the OFAC list version in force at the original screen date and re-adjudicate a sample of closed false positives.",
+            "Record each re-performance conclusion in the workpaper with the evidence captured, before reading the original disposition."
+          ],
+          "done": "sampled SAR clocks and screening decisions are independently re-performed with captured evidence and a documented, reproducible sample."
+        },
+        {
+          "step": "Test training coverage and recordkeeping",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "learning management system",
+          "actions": [
+            "Reconcile the HRIS covered-population extract and the NIPR producer appointment list to LMS assignments and completions and quantify the gaps.",
+            "Recompute the 30-day new-joiner deadline for sampled joiners and compare to the completion date.",
+            "Test retention by requesting five records at random — a filed SAR with its acknowledgement, a screening log, a program version, a completion register and a blocked-property report — and record whether each came back inside one business day.",
+            "Confirm the retention labels applied match the 5-year requirement measured from the correct start date."
+          ],
+          "done": "training gaps are quantified, joiner deadlines recomputed, and a live retrieval test proves the 5-year records come back."
+        },
+        {
+          "step": "Write findings with severity, cause and regulatory consequence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "AuditBoard",
+          "actions": [
+            "Write each finding as condition, criteria (the exact CFR cite), cause, effect and recommendation, with the workpaper reference attached.",
+            "Rate severity against the defined scale: high where a statutory requirement is not met or a filing was late, medium where the control operates but with gaps, low for documentation.",
+            "Quantify the population affected — transactions unmonitored, payouts unscreened, filings late, staff untrained — rather than describing it qualitatively.",
+            "Validate the factual accuracy of each finding with the Financial Crime AML Officer without ceding control of the rating."
+          ],
+          "done": "every finding carries condition, CFR criteria, cause, effect, a quantified population, a severity rating and a workpaper reference."
+        },
+        {
+          "step": "Agree management actions with named owners and dates",
+          "by": "Financial Crime AML Officer",
+          "role": "Financial Crime AML Officer",
+          "app": "AuditBoard",
+          "actions": [
+            "Respond to each finding with a specific action, a named individual owner and a due date — 90 days from agreement for high-severity findings.",
+            "Reject 'noted' or 'accepted' as a response; where the risk is genuinely accepted, escalate the acceptance to the Chief Risk Officer for written approval.",
+            "State the evidence that will prove closure — a rerun report, a configuration screenshot, a completion register — at the point the action is agreed, not at closure.",
+            "Load actions into the tracker within 30 days of report issue."
+          ],
+          "done": "every finding has an owned, dated action in the tracker with the closure evidence defined up front, loaded within 30 days of issue."
+        },
+        {
+          "step": "Deliver the report to senior management and the Audit Committee",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "board portal",
+          "actions": [
+            "Issue the report within 30 days of fieldwork close to the Chief Executive Officer, Chief Risk Officer, Head of Compliance and Financial Crime AML Officer.",
+            "Table it at the Audit Committee with the overall program opinion, the finding count by severity and the prior-year action status.",
+            "Minute the committee's challenge and any direction, including any instruction to re-test an area, and publish the pack to the board portal.",
+            "Confirm the board sees the report before it re-approves the AML program, so re-approval is informed by the testing outcome."
+          ],
+          "done": "the report is issued within 30 days of fieldwork close, minuted at the Audit Committee, and seen by the board before program re-approval."
+        },
+        {
+          "step": "Track corrective actions to their due dates",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "AuditBoard",
+          "actions": [
+            "Run the action tracker weekly and chase owners at 30, 14 and 7 days before due date.",
+            "Escalate any high-severity action passing its due date to the Chief Audit Executive the next business day with the owner named.",
+            "Require a written reason and a Chief Audit Executive approval for any extension; a second extension escalates to the Audit Committee, and a third is not permitted.",
+            "Publish an action-ageing report to the AML Oversight Committee each quarter showing open, overdue and extended counts by severity."
+          ],
+          "done": "actions are chased on the 30/14/7-day ladder, overdue high-severity items escalate next business day and extensions carry written approvals."
+        },
+        {
+          "step": "Validate remediation evidence before closing a finding",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Inspect the evidence named at agreement — the rerun monitoring report, the screening configuration screenshot, the updated procedure version, the completion register — rather than accepting the owner's assertion.",
+            "Re-perform a small sample of the remediated control: for a threshold fix, re-run the aggregation on 5 parties; for a screening gap, re-screen 5 payouts.",
+            "Where the evidence does not demonstrate the fix, reopen the action with a new due date and record why it failed validation.",
+            "Record the validation date, the evidence reference and the validator on the action before closure."
+          ],
+          "done": "no finding closes without inspected evidence, a small re-performance and a named validator recorded on the action."
+        },
+        {
+          "step": "Sign off closure of high-severity findings",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Review the validation evidence personally for every high-severity finding and record the sign-off date on the action.",
+            "Confirm the underlying regulatory exposure is closed, not merely documented — a late SAR finding closes only when the timeliness metric has held for two consecutive months.",
+            "Report closures and remaining open high-severity items to the Audit Committee each quarter.",
+            "Carry any unclosed high-severity finding into the next year's scope as a mandatory retest area."
+          ],
+          "done": "every high-severity closure carries a personal CAE sign-off resting on sustained metric evidence, with open items carried into next year's scope."
+        },
+        {
+          "step": "Escalate a year with no test or a dropped scope area",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Compare the scoping memo's covered areas to the work actually performed and list any pillar of 1025.210(b) that went untested.",
+            "Where testing did not occur in the year, raise it immediately to the Audit Committee chair as a breach of 31 CFR 1025.210(b)(4), not as a plan slippage.",
+            "Record the exposure period and require a catch-up engagement with a committed completion date.",
+            "Log the issue in the GRC platform with root cause and owner and report it in the annual board program submission."
+          ],
+          "done": "any untested pillar or missed year is raised to the Audit Committee chair as a regulatory breach with a committed catch-up date."
+        },
+        {
+          "step": "Report the testing outcome into the board program re-approval",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "board portal",
+          "actions": [
+            "Prepare the testing section of the annual board program submission: the opinion, finding counts by severity, prior-year closure rate and open high-severity items.",
+            "State plainly whether the program as operated meets each requirement of 31 CFR 1025.210(b) and 1025.320.",
+            "Recommend to the board any condition attached to re-approval, such as a re-test date for an unclosed high-severity area.",
+            "Record the board's decision and any conditions in the engagement file."
+          ],
+          "done": "the board re-approval pack carries a stated per-requirement opinion, open high-severity items and any re-approval conditions, all minuted."
+        },
+        {
+          "step": "Retain the engagement file for five years",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Export the engagement file — scoping memo, independence declarations, work programme, workpapers with samples and seeds, issued report, management responses, action tracker and closure evidence — from AuditBoard.",
+            "File it under BSA-AML / Independent Testing / <year> together with the Audit Committee minute extract.",
+            "Apply the 5-year retention label measured from the report issue date, per 31 CFR 1010.430(d).",
+            "Confirm the index supports retrieval by report year, finding id and CFR citation, and run an annual retrieval test on the prior two engagements."
+          ],
+          "done": "the full engagement file is exported, filed under a 5-year label and retrievable by report year, finding id and CFR citation."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of engagements, findings and actions",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "AuditBoard",
+          "actions": [
+            "Extract the AML testing engagements for the current and prior year with scoping dates, fieldwork dates and report issue dates.",
+            "Extract every finding raised with severity, CFR citation, owner, due date, extensions and closure date, and every action open at any point in the year.",
+            "Reconcile the finding and action counts to the Audit Committee packs tabled during the year and resolve any difference before sampling."
+          ],
+          "done": "the engagement, finding and action population reconciles to the Audit Committee packs and is signed as complete."
+        },
+        {
+          "step": "Reconcile the work performed to the approved scope",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Map each work programme step to the requirement it covers — 1025.210(b)(1), (b)(2), (b)(3), (b)(4) and 1025.320 — plus OFAC screening and recordkeeping.",
+            "List any pillar with no completed step, and check whether the Audit Committee approved the omission in the minutes.",
+            "Confirm the fieldwork close and report issue dates fall before the board's AML program re-approval date.",
+            "Treat an untested pillar with no minuted approval as an automatic control failure."
+          ],
+          "done": "every statutory pillar maps to a completed step or a minuted committee approval, and the timing precedes board re-approval."
+        },
+        {
+          "step": "Draw and document the finding and action sample",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Take 100% of high-severity findings, 100% of actions extended more than once and 100% of findings closed in the year.",
+            "Take 15 medium and low findings by seeded random selection from the remainder.",
+            "Record the seed, the strata, the population sizes and the selection date so the sample can be re-drawn identically."
+          ],
+          "done": "the sample is reproducible and covers all high-severity findings, all extended actions and all closures plus a random draw."
+        },
+        {
+          "step": "Test independence of the reviewers who performed the work",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Read each assigned reviewer's signed independence declaration and check the date precedes fieldwork start.",
+            "Cross-check the reviewer names against the HRIS position history and the AML case system for any alert adjudication or control design in the last 12 months.",
+            "Where the work was outsourced, confirm the provider does not also build, tune or operate any AML control for the company.",
+            "Confirm the Financial Crime AML Officer had no role in staffing, scoping, rating or issuing the report."
+          ],
+          "done": "every reviewer's independence is evidenced by a pre-fieldwork declaration corroborated against position and case history."
+        },
+        {
+          "step": "Re-perform sampled test steps to confirm the conclusion holds",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "For five sampled work programme steps, re-draw the sample from the recorded seed and confirm it reproduces the same rows.",
+            "Re-perform two steps end to end — for example recompute a SAR 30-day clock and re-screen a payout party — and compare to the recorded conclusion.",
+            "Confirm each workpaper holds the evidence it cites rather than a reference to evidence held elsewhere.",
+            "Flag any conclusion the underlying evidence does not support, including 'no exceptions noted' on a step with no visible testing."
+          ],
+          "done": "sampled steps reproduce from their seeds, two re-performed steps agree with the recorded conclusion, and unsupported conclusions are flagged."
+        },
+        {
+          "step": "Test finding quality, severity and quantification",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Check each sampled finding states condition, criteria with the exact CFR cite, cause, effect and recommendation.",
+            "Confirm severity follows the defined scale — a late SAR filing or an untested pillar cannot be rated medium or low.",
+            "Confirm the population affected is quantified in numbers and value rather than described qualitatively.",
+            "Flag any finding downgraded after management review with no documented rationale."
+          ],
+          "done": "every sampled finding is complete, correctly rated against the scale and quantified, with any downgrade documented."
+        },
+        {
+          "step": "Recompute the reporting and remediation deadline maths",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Recompute report issue date minus fieldwork close date and compare to the 30-day standard.",
+            "Recompute action load date minus report issue date and compare to the 30-day standard.",
+            "For high-severity findings, recompute agreement date plus 90 days and compare to the actual closure date, counting each extension separately.",
+            "Compute the percentage of high-severity actions past due at year end and compare to the 20% threshold."
+          ],
+          "done": "issue, load and remediation intervals are recomputed against the 30/30/90-day standards and the past-due percentage is measured against 20%."
+        },
+        {
+          "step": "Inspect the evidence behind every sampled closure",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "actions": [
+            "Open each sampled closed action and inspect the evidence attached against the closure evidence defined when the action was agreed.",
+            "Confirm a named validator other than the action owner recorded the validation date.",
+            "For high-severity closures, confirm the Chief Audit Executive sign-off exists and rests on sustained metric evidence rather than a single point-in-time artefact.",
+            "Reopen in the tracker any closure whose evidence does not demonstrate the fix, and record the reason."
+          ],
+          "done": "every sampled closure has evidence matching the agreed standard, a segregated validator and, for high severity, a CAE sign-off on sustained evidence."
+        },
+        {
+          "step": "Log testing-process exceptions with root cause, owner and date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one issue per exception — pillar untested, independence not evidenced, finding under-rated, action closed without evidence, action extended more than twice, report issued late.",
+            "Assign a root cause (audit resourcing, scope negotiated down, closure evidence standard not defined at agreement, tracker discipline) and a named owner.",
+            "Set a remediation date and, where a statutory pillar went untested, require a catch-up engagement with a committed date.",
+            "Carry every open exception into the next annual quality review as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a root cause, an owner, a remediation date and, for untested pillars, a committed catch-up engagement."
+        },
+        {
+          "step": "Conclude, sign and report the quality review of the AML test",
+          "by": "Chief Risk Officer",
+          "role": "Chief Risk Officer",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Compute pillar coverage, the closure-evidence pass rate and the percentage of high-severity actions past due against the zero-tolerance and 20% thresholds.",
+            "Write the conclusion — effective, effective with exceptions, or ineffective — citing the workpaper references behind each figure.",
+            "Sign the workpaper as the independent reviewer, confirming no involvement in the fieldwork under review.",
+            "Report the conclusion to the Audit Committee alongside the annual AML test report and file the signed workpaper under BSA-AML / Independent Testing."
+          ],
+          "done": "a signed workpaper with pillar coverage, closure-evidence pass rate, a stated conclusion and an Audit Committee reporting date is on file."
+        }
+      ]
+    }
+  ]
+}

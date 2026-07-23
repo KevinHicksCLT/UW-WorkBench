@@ -1,0 +1,2623 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-058-C09",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Configuration Engineer",
+          "value": "Owns every system-rule change that enforces SFIP stand-alone issuance and the 60-day proof-of-loss clock in the admin platforms; escalates scope conflicts to Head of IT."
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 44 CFR 62.23(i)(1) and the NFIP Claims Manual (June 2025 edition) re-read against the FEMA Flood Handbook postings at each configuration change; SFIP Homeowner Flood Form language (89 FR 8272; proposed 44 CFR 61 App A(4)) checked for endorsement prohibitions."
+        },
+        "In-scope processes": {
+          "value": "Policy issuance rule engine (block SFIP being added as an endorsement to any non-flood policy) and claims intake/adjustment timers (60-day proof-of-loss deadline, NFIP Claims Manual adjustment codes) across Policy Administration Platform and Guidewire ClaimCenter."
+        },
+        "In-scope systems": {
+          "app": "Policy Administration Platform",
+          "value": "Policy Administration Platform underwriting rule engine; Guidewire ClaimCenter claim-timer and adjustment-code configuration; changes tracked in the CMDB."
+        },
+        "Compliance procedure documented": {
+          "value": "NFIP System Configuration Control Procedure — trigger, rule mapping, build, UAT, CAB approval, deploy, post-deployment verification."
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by Head of IT and Head of Compliance; re-approved on every NFIP Claims Manual bulletin or WYO Arrangement amendment."
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Configuration changes triggered by a Claims Manual bulletin must be live before the bulletin's stated effective date; the in-system 60-day proof-of-loss timer and the 60-days-after-loss adjustment window are hard-coded, non-overridable fields."
+        },
+        "Deadline reminders configured": {
+          "value": "ClaimCenter fires adjuster queue alerts at day 45 and day 55 of an open claim missing proof of loss, and auto-flags the file at day 60."
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Configuration change tickets, UAT scripts, CAB approval and post-deployment verification screenshots retained 7 years from the rule's retirement in the compliance evidence repository."
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "value": "Configuration defects (e.g., a state allowing SFIP endorsement, a missing timer) are logged as ITSM incidents with severity, root cause and fix-forward date."
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of IT",
+          "value": "Head of IT signs off on every configuration defect fix before the ticket is closed."
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All NFIP-tagged configuration change tickets closed in the quarter across Policy Administration Platform and Guidewire ClaimCenter."
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any live rule permitting SFIP issuance by endorsement, or any claim missing the 60-day proof-of-loss timer, is a fail."
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per-change; test runs quarterly over that quarter's closed-change population plus 100% of changes touching the proof-of-loss timer."
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "QA Analyst",
+          "value": "Reviewer did not build or peer-review the sampled configuration change."
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly configuration-test workpaper in the compliance evidence repository."
+        },
+        "Regulator-ready documentation": {
+          "value": "Change tickets, UAT evidence and CMDB extract, presentable to FEMA/NFIP Bureau within 5 business days of request."
+        },
+        "Regulator response path": {
+          "value": "Head of IT coordinates the technical response; Regulatory Reporting Manager clears the response to FEMA/NFIP before it is sent."
+        }
+      },
+      "checklist": [
+        {
+          "step": "Intake the triggering rule change and open a configuration ticket",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Read the triggering source — an NFIP Claims Manual bulletin, a WYO Financial Assistance/Subsidy Arrangement amendment, or an SFIP form revision (e.g., 89 FR 8272) — and identify the exact rule text that changed.",
+            "In the ITSM platform open Change ▸ New Change Request, tag Category = 'NFIP/Flood' and paste the bulletin or Federal Register citation into the description.",
+            "Ask the Regulatory Filing Specialist to confirm the rule's effective date and whether it applies to new business only or new + in-force.",
+            "Attach the source bulletin/citation PDF to the change ticket."
+          ],
+          "done": "the change ticket carries the source citation, effective date and in-force/new-business scope."
+        },
+        {
+          "step": "Map the rule to the exact system field or timer it must control",
+          "by": "Business Systems Analyst",
+          "role": "Business Systems Analyst",
+          "actions": [
+            "In Policy Administration Platform open the product configuration workbench for the flood/SFIP product and locate the policy-type and endorsement-eligibility fields.",
+            "In Guidewire ClaimCenter open Administration ▸ Claim Rules and locate the proof-of-loss timer and the NFIP Claims Manual adjustment-code list.",
+            "Document on the ticket the exact field/rule ID, its current value and the required new value.",
+            "Confirm with the Claims Director / Manager that the mapped ClaimCenter rule matches how adjusters actually work the file."
+          ],
+          "done": "the ticket names the exact field/rule ID in each system and the before/after values."
+        },
+        {
+          "step": "Configure Policy Administration Platform to block SFIP issuance by endorsement",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "In the product configuration workbench, set the flood/SFIP product's issuance rule so the SFIP can only be created as a stand-alone policy transaction, never attached as an endorsement to a homeowners, dwelling or commercial policy.",
+            "Add a hard-stop validation message referencing 44 CFR 62.23(i)(1) that fires if an underwriter attempts to endorse flood coverage onto another policy.",
+            "Save the configuration to the lower (test) environment and record the build ID on the ticket."
+          ],
+          "done": "the lower environment shows the SFIP stand-alone hard-stop live and the build ID is logged."
+        },
+        {
+          "step": "Configure ClaimCenter's proof-of-loss timer and Claims Manual adjustment codes",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "Guidewire ClaimCenter",
+          "actions": [
+            "In Administration ▸ Claim Rules, set the proof-of-loss due-date field to date-of-loss + 60 days, non-editable by adjusters.",
+            "Load the current NFIP Claims Manual (June 2025) adjustment-code table into the claim activity picklist so adjusters cannot select a retired code.",
+            "Configure the day-45 and day-55 queue alerts and the day-60 file flag referenced in the generic answers.",
+            "Save to the lower environment and record the build ID."
+          ],
+          "done": "the lower environment enforces the 60-day timer and the current Claims Manual codes, with alerts configured."
+        },
+        {
+          "step": "Peer-review the build against the ticket's field mapping",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "actions": [
+            "Compare the lower-environment configuration in both systems field-by-field against the ticket's before/after values.",
+            "Confirm no unrelated fields were changed by diffing the configuration export against the prior version.",
+            "Sign the peer-review checklist and attach it to the ticket."
+          ],
+          "done": "the peer review is signed and the diff shows only the intended fields changed."
+        },
+        {
+          "step": "Execute UAT scripts proving the rule fires correctly",
+          "by": "QA Automation Engineer",
+          "role": "QA Automation Engineer",
+          "actions": [
+            "Run a test case attempting to add SFIP coverage as an endorsement to a test homeowners policy in Policy Administration Platform and confirm the hard-stop fires with the correct citation message.",
+            "Run a test case creating a flood claim in ClaimCenter with a loss date 61 days in the past and confirm the file auto-flags at day 60.",
+            "Run a negative test confirming a retired Claims Manual adjustment code cannot be selected.",
+            "Attach the UAT script results and screenshots to the ticket."
+          ],
+          "done": "all UAT scripts pass and evidence is attached to the ticket."
+        },
+        {
+          "step": "Take the change through Change Advisory Board approval",
+          "by": "Change Coordinator",
+          "role": "Change Coordinator",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Present the ticket, UAT evidence and peer review at the CAB session, referencing the citation and the effective date deadline.",
+            "Record the CAB approval decision and any conditions on the ticket.",
+            "Schedule the production deployment window ahead of the rule's effective date."
+          ],
+          "done": "CAB approval is recorded on the ticket with a scheduled deployment date that beats the effective date."
+        },
+        {
+          "step": "Deploy the configuration to production",
+          "by": "Release Coordinator",
+          "role": "Release Coordinator",
+          "actions": [
+            "Deploy the approved configuration package to Policy Administration Platform and Guidewire ClaimCenter production during the scheduled window.",
+            "Confirm the deployment log shows both systems on the new build ID.",
+            "Notify the Configuration Engineer that deployment completed."
+          ],
+          "done": "production shows both systems on the approved build ID."
+        },
+        {
+          "step": "Verify the live rule in production",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "actions": [
+            "Re-run the SFIP endorsement hard-stop and the 60-day claim-flag test in the production environment using a controlled test policy/claim, then delete the test records per data-handling procedure.",
+            "Screenshot the passing results and attach them to the ticket.",
+            "Update the CMDB configuration item record with the new build ID and effective date."
+          ],
+          "done": "production verification screenshots are attached and the CMDB record is updated."
+        },
+        {
+          "step": "Notify downstream owners the rule is live",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "actions": [
+            "Email the Claims Director / Manager and Policy Admin Ops Lead confirming the effective date and what changed.",
+            "Notify the Compliance Manager so the training content in the WYO handling-requirements training item can be updated to reflect the new rule.",
+            "Post the change summary to the team's Confluence release-notes page."
+          ],
+          "done": "downstream owners and the Compliance Manager have written confirmation the rule is live."
+        },
+        {
+          "step": "Log any configuration exception",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "If UAT or production verification fails, open an incident ticket with severity, the specific field that failed, and root cause.",
+            "Assign a fix-forward owner and a re-test date.",
+            "Escalate to Head of IT if the failure risks a missed regulatory effective date."
+          ],
+          "done": "any failure is logged as an incident with owner, root cause and re-test date."
+        },
+        {
+          "step": "Retain the configuration record",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the ticket, peer review, UAT evidence, CAB approval and production verification screenshots into the compliance evidence repository under the rule's citation and effective date.",
+            "Apply the 7-year retention label."
+          ],
+          "done": "the full configuration record is filed and retention-labelled in the repository."
+        },
+        {
+          "step": "Reconcile the CMDB against the live rule set quarterly",
+          "by": "Systems Analyst",
+          "role": "Systems Analyst",
+          "actions": [
+            "Export the CMDB's NFIP-tagged configuration items and compare each to the live production rule value.",
+            "Flag and correct any CMDB record that has drifted from the live system."
+          ],
+          "done": "the CMDB matches the live system for every NFIP-tagged configuration item."
+        },
+        {
+          "step": "Re-validate the rule set on every Claims Manual bulletin",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "actions": [
+            "On each new NFIP Claims Manual bulletin, re-read the change against the live adjustment-code table and timer values.",
+            "Open a new change ticket if a discrepancy is found, repeating the configuration build/test/deploy steps."
+          ],
+          "done": "every bulletin is checked against the live configuration within 10 business days of publication."
+        },
+        {
+          "step": "Report configuration status to the compliance program",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "actions": [
+            "Prepare a monthly status summary of open, deployed and failed NFIP configuration changes.",
+            "Send it to the Compliance Manager for inclusion in the WYO oversight reporting pack."
+          ],
+          "done": "the monthly configuration status summary reaches the Compliance Manager."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of NFIP configuration changes for the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Extract every ticket tagged Category = 'NFIP/Flood' closed in the quarter from the ITSM platform.",
+            "Reconcile the extract count to the CAB meeting minutes for the same period.",
+            "Resolve any count difference with the Change Coordinator before sampling."
+          ],
+          "done": "the population is reconciled to CAB minutes and signed as complete."
+        },
+        {
+          "step": "Draw the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of tickets that touched the SFIP endorsement rule or the proof-of-loss timer.",
+            "Take a random sample of 10 additional tickets from the remaining population.",
+            "Record the seed and population size in the workpaper."
+          ],
+          "done": "the sample is drawn and reproducible, covering all timer/endorsement-rule tickets."
+        },
+        {
+          "step": "Re-perform the field mapping independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Re-read the source bulletin/citation for each sampled ticket and independently determine the field/rule that should have changed.",
+            "Compare to what the ticket recorded; any mismatch is an exception."
+          ],
+          "done": "each sampled ticket has an independent mapping note and any mismatch is logged."
+        },
+        {
+          "step": "Re-run the UAT scripts against production",
+          "by": "QA Analyst",
+          "role": "QA Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "For each sampled ticket, re-run the same SFIP endorsement hard-stop or 60-day claim-flag test directly in production (or the nearest refresh environment).",
+            "Capture screenshots of the result and compare to the original UAT evidence."
+          ],
+          "done": "each sampled rule is independently confirmed live and behaving as configured."
+        },
+        {
+          "step": "Verify CAB approval and deployment timing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm CAB approval exists and pre-dates the production deployment for each sampled ticket.",
+            "Confirm the deployment date is on or before the rule's regulatory effective date."
+          ],
+          "done": "no sampled change deployed after its regulatory effective date, and CAB approval pre-dates deployment."
+        },
+        {
+          "step": "Trace the CMDB record to the live system",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled ticket, compare the CMDB configuration-item value to the live production value.",
+            "Log any drift as an exception."
+          ],
+          "done": "the CMDB agrees with production for every sampled ticket, or the drift is logged."
+        },
+        {
+          "step": "Check retention and evidence completeness",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Confirm the ticket, peer review, UAT evidence, CAB approval and production verification are all filed in the repository for each sampled ticket.",
+            "Confirm the 7-year retention label is applied."
+          ],
+          "done": "every sampled ticket's evidence set is complete and retention-labelled."
+        },
+        {
+          "step": "Test the exception log for unresolved defects",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Pull all incident tickets raised against NFIP configuration changes in the period.",
+            "Confirm each has an owner, root cause and closed re-test, or is still open with a current target date."
+          ],
+          "done": "no incident ticket is stale without an owner or target date."
+        },
+        {
+          "step": "Log exceptions with root cause and owner",
+          "by": "Head of IT",
+          "role": "Head of IT",
+          "app": "ITSM platform (ServiceNow/Jira)",
+          "actions": [
+            "Raise a tracker issue for each testing exception with the ticket id, what was missed and the compliance impact.",
+            "Assign root cause and an owner with a remediation date."
+          ],
+          "done": "every exception has an issue, root cause, owner and remediation date."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance threshold for endorsement/timer rules.",
+            "Write the conclusion with evidence references and have the independent reviewer sign the workpaper.",
+            "Report results to the Compliance Committee and file the workpaper in the compliance evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-058-C10",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Compliance Manager",
+          "value": "Owns the annual NFIP/WYO handling-requirements training curriculum and the pass-rate that keeps the company eligible to write and re-enter the WYO Program."
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 44 CFR 62.23(i)(2)-(3) (adjuster authorization/Flood Control Number), 44 CFR Part 59/60 (floodplain criteria) and 44 CFR 62.24(c) (WYO participation criteria) re-read against the current NFIP Claims Manual and TRRP Plan editions before each annual cycle."
+        },
+        "In-scope processes": {
+          "value": "Annual training and competency sign-off for every claims adjuster, policy administration and accounting staff member who touches NFIP flood business, plus TRRP monthly output-tape/financial-statement preparers."
+        },
+        "In-scope systems": {
+          "app": "learning management system",
+          "value": "Course delivery, quiz scoring and completion tracking in the learning management system; training content sourced from the current NFIP Claims Manual and TRRP Plan documentation."
+        },
+        "Compliance procedure documented": {
+          "value": "NFIP/WYO Staff Training Procedure — curriculum content, audience mapping, annual delivery window, competency test, remediation for failures."
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by Head of Compliance; curriculum refreshed annually and on any NFIP Claims Manual or TRRP Plan bulletin."
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual cycle must close before the WYO Arrangement renewal date; new hires in an in-scope role must complete training within 30 days of start."
+        },
+        "Deadline reminders configured": {
+          "value": "LMS auto-reminders at 60/30/10 days before the annual cycle close date to managers of incomplete staff."
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Course rosters, quiz scores and completion certificates retained 5 years in the learning management system and mirrored to the compliance evidence repository."
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "Staff who do not complete or pass the competency test by the deadline are suspended from NFIP-touching transactions and logged with a remediation date."
+        },
+        "Remediation sign-off captured": {
+          "role": "Compliance Manager",
+          "value": "Compliance Manager signs off once a suspended staff member re-tests and passes."
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All staff flagged in the HRIS as holding an NFIP-touching role during the training year."
+        },
+        "Pass/fail thresholds": {
+          "value": "100% completion and a zero-error-tolerance pass on the Flood Control Number/adjuster-authorization module, mirroring the TRRP zero-error standard; any staff member below threshold is a fail."
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Tested annually at cycle close, aligned to the training obligation's own annual frequency."
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Audit Analyst",
+          "value": "Reviewer did not design or deliver the training content."
+        },
+        "Evidence location for test results": {
+          "value": "Annual training-test workpaper in the compliance evidence repository."
+        },
+        "Regulator-ready documentation": {
+          "value": "LMS completion export mapped to the HRIS role roster, produced within 5 business days of a FEMA/state exam request."
+        },
+        "Regulator response path": {
+          "value": "Compliance Manager owns the exam response; Head of Compliance clears it before submission."
+        }
+      },
+      "checklist": [
+        {
+          "step": "Identify the in-scope population from HRIS role tags",
+          "by": "HR Business Partner",
+          "role": "HR Business Partner",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Pull the roster of claims adjusters, policy administration and accounting staff tagged as NFIP-touching in the HRIS.",
+            "Cross-check the roster against the org chart with the Claims Director / Manager.",
+            "Flag new hires within the last 30 days.",
+            "Hand the confirmed list to the Compliance Manager."
+          ],
+          "done": "the roster of in-scope staff is confirmed complete against the org chart."
+        },
+        {
+          "step": "Refresh curriculum content against current NFIP Claims Manual and TRRP Plan",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Pull the current NFIP Claims Manual (June 2025) and TRRP Plan documentation.",
+            "Diff the new content against last year's course material.",
+            "Update modules covering adjuster authorization/Flood Control Number rules (44 CFR 62.23(i)(2)-(3)) and Part 59/60 floodplain criteria.",
+            "Route the updated slides to Regulatory Counsel for a citation check."
+          ],
+          "done": "the curriculum is updated and citation-checked against current source documents."
+        },
+        {
+          "step": "Build or refresh the course and competency quiz in the LMS",
+          "by": "Learning & Development Specialist",
+          "role": "Learning & Development Specialist",
+          "app": "learning management system",
+          "actions": [
+            "In the LMS course-authoring tool, create or update the 'NFIP WYO Handling Requirements' course.",
+            "Build a quiz bank testing Flood Control Number assignment, 60-day proof-of-loss handling and TRRP output-tape field standards.",
+            "Set the pass threshold to 100% on the Flood Control Number/adjuster-authorization module.",
+            "Publish the course to the assigned-learner group."
+          ],
+          "done": "the course and quiz are published in the LMS with the pass threshold set."
+        },
+        {
+          "step": "Assign the course to every in-scope staff member",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "learning management system",
+          "actions": [
+            "Bulk-assign the course to the HRIS-sourced roster in the LMS assignment screen.",
+            "Set the due date ahead of the WYO Arrangement renewal date.",
+            "Configure the assignment group to auto-sync new hires."
+          ],
+          "done": "100% of the in-scope roster shows an assigned, due-dated course."
+        },
+        {
+          "step": "Deliver instructor-led sessions for adjusters and accounting",
+          "by": "Trainer",
+          "role": "Trainer",
+          "actions": [
+            "Schedule live sessions covering NFIP Claims Manual adjustment standards and WYO Accounting Procedures Manual ledger separation.",
+            "Record attendance in the LMS session log.",
+            "Record the session and post it in the LMS for staff who could not attend live."
+          ],
+          "done": "attendance is logged in the LMS for every scheduled session."
+        },
+        {
+          "step": "Track completion against the due date",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "learning management system",
+          "actions": [
+            "Run the LMS completion dashboard weekly during the cycle.",
+            "Identify staff below 100% progress.",
+            "Escalate incomplete staff to their manager via Microsoft Teams / Email."
+          ],
+          "done": "weekly completion tracking is documented with escalations sent for incomplete staff."
+        },
+        {
+          "step": "Administer the competency quiz and score it",
+          "by": "Learning & Development Specialist",
+          "role": "Learning & Development Specialist",
+          "app": "learning management system",
+          "actions": [
+            "Release the quiz only after course-module completion.",
+            "Auto-score the quiz in the LMS.",
+            "Flag any score below 100% on the Flood Control Number module for remediation."
+          ],
+          "done": "every completer has a recorded quiz score, and sub-threshold scores are flagged."
+        },
+        {
+          "step": "Remediate failed or incomplete staff",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Assign a remediation session and a re-test within 10 business days.",
+            "Request the Claims Director / Manager suspend the staff member from NFIP-touching transactions in the interim.",
+            "Document the suspension and lift dates."
+          ],
+          "done": "every failed or incomplete staff member has a remediation date and, if suspended, a documented lift date."
+        },
+        {
+          "step": "Confirm the suspension is enforced in the operating system",
+          "by": "Configuration Engineer",
+          "role": "Configuration Engineer",
+          "actions": [
+            "Verify the suspended staff member's NFIP transaction permissions are disabled in Policy Administration Platform / ClaimCenter until remediation clears.",
+            "Re-enable access only on the Compliance Manager's written clearance."
+          ],
+          "done": "system access reflects the suspension and is re-enabled only on written clearance."
+        },
+        {
+          "step": "Close the annual cycle and generate the completion report",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "learning management system",
+          "actions": [
+            "Export the final completion/pass report from the LMS.",
+            "Reconcile the count to the original HRIS roster.",
+            "Note any residual gaps and their remediation date."
+          ],
+          "done": "the closed-cycle report reconciles to the HRIS roster with no unexplained gaps."
+        },
+        {
+          "step": "Certify training status supports WYO Arrangement renewal",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Review the closed-cycle completion report.",
+            "Sign a certification memo confirming staff readiness ahead of the WYO Arrangement renewal filing.",
+            "Send the memo to the Regulatory Reporting Manager."
+          ],
+          "done": "a signed certification memo is delivered ahead of the WYO renewal filing."
+        },
+        {
+          "step": "Log exceptions with disposition",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Log any staff member who never completed the cycle as an exception with root cause and disposition (role change, leave, termination).",
+            "Retain the disposition note in the repository."
+          ],
+          "done": "every non-completion has a logged disposition."
+        },
+        {
+          "step": "Retain training evidence",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Export rosters, quiz scores and certificates from the LMS.",
+            "File the evidence in the compliance evidence repository under the training year.",
+            "Apply the 5-year retention label."
+          ],
+          "done": "the full evidence set is filed and retention-labelled."
+        },
+        {
+          "step": "Add the module to new-hire onboarding",
+          "by": "HR Business Partner",
+          "role": "HR Business Partner",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Add the NFIP WYO course to the new-hire onboarding checklist for in-scope roles.",
+            "Confirm the 30-day completion rule is enforced by an HRIS workflow gate."
+          ],
+          "done": "the onboarding checklist enforces the 30-day completion rule for new hires."
+        },
+        {
+          "step": "Report training status to the compliance program",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Prepare a summary of completion rate, quiz pass rate and open exceptions.",
+            "Present the summary to the Compliance Committee at its next sitting."
+          ],
+          "done": "the summary reaches the Compliance Committee."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Extract the HRIS roster of NFIP-touching roles as of cycle close.",
+            "Reconcile the roster to the LMS assignment list.",
+            "Resolve differences with the Compliance Manager before sampling."
+          ],
+          "done": "the population is reconciled between HRIS and LMS."
+        },
+        {
+          "step": "Draw the sample",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Take 100% of staff who failed or were suspended.",
+            "Take a random sample of 15 additional completers."
+          ],
+          "done": "the sample is drawn covering all failures."
+        },
+        {
+          "step": "Re-verify completion and score",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "learning management system",
+          "actions": [
+            "For each sampled staff member, pull the LMS transcript.",
+            "Confirm the completion date and quiz score match the closed-cycle report."
+          ],
+          "done": "the transcript matches the report for every sampled record, or an exception is logged."
+        },
+        {
+          "step": "Test remediation and suspension enforcement",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "For sampled failures, confirm a remediation date and a re-test result exist.",
+            "Where suspended, confirm system access was disabled for the suspension window."
+          ],
+          "done": "remediation and suspension are evidenced for every sampled failure."
+        },
+        {
+          "step": "Re-perform a quiz question against current source",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pick 5 competency-quiz questions.",
+            "Verify the correct answer against the current NFIP Claims Manual/TRRP Plan text."
+          ],
+          "done": "all sampled questions match current source text or are flagged for content update."
+        },
+        {
+          "step": "Confirm new-hire timing",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Sample 5 new hires in in-scope roles.",
+            "Confirm course completion within 30 days of start date."
+          ],
+          "done": "all sampled new hires met the 30-day rule or are logged as exceptions."
+        },
+        {
+          "step": "Trace the certification memo",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the Head of Compliance certification memo pre-dates the WYO Arrangement renewal filing date."
+          ],
+          "done": "the memo pre-dates the renewal filing."
+        },
+        {
+          "step": "Check evidence retention",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Confirm rosters, scores and certificates are filed and retention-labelled for the sampled population."
+          ],
+          "done": "evidence is complete and labelled for every sampled record."
+        },
+        {
+          "step": "Log exceptions",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Raise an issue for each exception with root cause and owner.",
+            "Set a remediation date."
+          ],
+          "done": "every exception has an issue, owner and remediation date."
+        },
+        {
+          "step": "Conclude and sign",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Compute the completion/pass rate against the 100% threshold.",
+            "Write the conclusion; have the independent reviewer sign.",
+            "Report results to the Compliance Committee."
+          ],
+          "done": "a signed workpaper is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-058-C11",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "value": "Owns intake, tracking and root-cause remediation of every flood-policyholder complaint, including those routed through FEMA/NFIP channels."
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 44 CFR Part 59/60 general provisions, 44 CFR 62.23(i) WYO customer-service standards and 44 CFR 62.24(c) participation criteria re-read at each policy refresh."
+        },
+        "In-scope processes": {
+          "value": "Complaint intake (direct, state DOI referral, FEMA/NFIP referral), classification, investigation, response and root-cause remediation for all NFIP flood business."
+        },
+        "In-scope systems": {
+          "app": "workflow/case management tool",
+          "value": "Complaint case management in the workflow/case management tool; intake also captured via the Customer Self-Service Portal and Contact Center."
+        },
+        "Compliance procedure documented": {
+          "value": "Flood Complaint Handling Procedure — intake channels, classification taxonomy, response SLA, FEMA referral handling, root-cause and remediation logging."
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by Head of Compliance; reviewed annually."
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Each complaint is tracked to the state's required response window (commonly 10-20 business days) and to any FEMA/NFIP-specified inquiry response date."
+        },
+        "Deadline reminders configured": {
+          "value": "The case management tool alerts the assigned Complaints Specialist at 50% and 80% of the response window elapsed."
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Complaint log, correspondence and resolution notes retained 5 years and available to FEMA on request."
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "Complaints closed past the response window or missing a root-cause code are logged as exceptions."
+        },
+        "Remediation sign-off captured": {
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "value": "Sign-off required on every root-cause remediation action before the case is closed."
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All flood-tagged complaint cases opened or closed in the quarter in the case management tool, including FEMA/NFIP-referred cases."
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for missed response windows on FEMA-referred complaints; 5% or lower missed-window rate on all other complaints."
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Continuous obligation tested monthly against the rolling open/closed case population."
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Officer",
+          "value": "Reviewer did not handle any sampled complaint."
+        },
+        "Evidence location for test results": {
+          "value": "Monthly complaint-test workpaper in the compliance evidence repository."
+        },
+        "Regulator-ready documentation": {
+          "value": "Complaint log export with root-cause codes and resolution dates, producible within 5 business days for a FEMA Financial Control Plan review or state exam."
+        },
+        "Regulator response path": {
+          "value": "Market Conduct / Consumer Compliance Manager owns the response; General Counsel clears any admission of a missed deadline."
+        }
+      },
+      "checklist": [
+        {
+          "step": "Capture every complaint at first point of contact",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "app": "Customer Self-Service Portal",
+          "actions": [
+            "Log complaints received via the portal, Contact Center, mail or state DOI referral into the workflow/case management tool the same business day.",
+            "Capture policy number, Flood Control Number, complaint category and channel.",
+            "Confirm the complainant receives a written acknowledgment."
+          ],
+          "done": "every complaint is logged same-day with policy/Flood Control Number and channel."
+        },
+        {
+          "step": "Classify the complaint against the flood-specific taxonomy",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "actions": [
+            "Tag the category: claims handling, premium/billing, policy issuance or service.",
+            "Tag whether it was FEMA/NFIP-referred.",
+            "Route claims-handling complaints to the Claims Director / Manager for input."
+          ],
+          "done": "every complaint has a category tag and a routing decision recorded."
+        },
+        {
+          "step": "Set the response-window clock",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Identify the applicable state's response-window requirement, or the FEMA-specified date for a referred inquiry.",
+            "Set the case due date in the tool.",
+            "Confirm the 50%/80% alert triggers are active on the case."
+          ],
+          "done": "every case has a due date and active alerts."
+        },
+        {
+          "step": "Investigate the underlying facts",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "actions": [
+            "Pull the policy file from Policy Administration Platform and, where claims-related, the claim file from Guidewire ClaimCenter.",
+            "Interview the handling adjuster or underwriter.",
+            "Document the investigation findings on the case."
+          ],
+          "done": "the case file documents the facts investigated and their source."
+        },
+        {
+          "step": "Draft and clear the response",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "actions": [
+            "Draft the written response addressing each point raised.",
+            "Route the draft to the Market Conduct / Consumer Compliance Manager for review.",
+            "Route to General Counsel if the complaint alleges a regulatory violation."
+          ],
+          "done": "the response is reviewed and, where required, cleared by counsel before sending."
+        },
+        {
+          "step": "Send the response within the tracked window",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "actions": [
+            "Send the response via the same channel the complaint arrived on.",
+            "Log the send date in the case management tool.",
+            "Confirm the send date beats the due date set earlier."
+          ],
+          "done": "the response is sent and the send date is on or before the due date."
+        },
+        {
+          "step": "Route FEMA/NFIP-referred complaints to the correct channel",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "Confirm the FEMA/NFIP referral reference number is recorded on the case.",
+            "Respond through the FEMA-specified channel.",
+            "Copy the Regulatory Reporting Manager on the response."
+          ],
+          "done": "FEMA-referred complaints carry the referral number and a response through the correct channel."
+        },
+        {
+          "step": "Code the root cause",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "actions": [
+            "Assign a root-cause code at case close: claims handling error, communication gap, system defect, agent error, or policy misunderstanding.",
+            "Link the code to the investigation notes."
+          ],
+          "done": "every closed case carries a root-cause code linked to its investigation notes."
+        },
+        {
+          "step": "Identify complaints requiring remediation beyond the individual case",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "Review root-cause codes weekly for clusters (3 or more complaints, same code, same product/state within 90 days).",
+            "Open a remediation item for any cluster found."
+          ],
+          "done": "clusters are identified weekly and a remediation item exists for each."
+        },
+        {
+          "step": "Drive the remediation to closure",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Assign the remediation item to the accountable process owner (e.g., Claims Director / Manager, or Configuration Engineer for a system defect).",
+            "Set a target date and track to completion."
+          ],
+          "done": "every remediation item has an owner, target date and completion status."
+        },
+        {
+          "step": "Verify the fix actually resolved the root cause",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "Monitor the complaint category for 90 days post-remediation.",
+            "Confirm the cluster does not recur."
+          ],
+          "done": "a 90-day post-remediation check is documented showing the cluster did not recur, or further action is opened."
+        },
+        {
+          "step": "Maintain the complaint log for FEMA/state availability",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Export the full complaint log monthly.",
+            "Confirm all required fields are populated.",
+            "File the export in the compliance evidence repository."
+          ],
+          "done": "a complete monthly complaint log export is filed and field-complete."
+        },
+        {
+          "step": "Log exceptions with disposition",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "actions": [
+            "For any case that missed its response window or lacks a root-cause code, log an exception with cause and disposition."
+          ],
+          "done": "every exception is logged with cause and disposition."
+        },
+        {
+          "step": "Report complaint trends to Market Conduct leadership",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "Prepare a monthly complaint-trend summary by category, root cause and response-window performance.",
+            "Present the summary to the Compliance Committee."
+          ],
+          "done": "the monthly trend summary reaches the Compliance Committee."
+        },
+        {
+          "step": "Retain complaint records per requirement",
+          "by": "Complaints Specialist",
+          "role": "Complaints Specialist",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Apply the 5-year retention label to closed cases.",
+            "Confirm searchability by policy number and Flood Control Number."
+          ],
+          "done": "closed cases are retention-labelled and searchable."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Extract all flood-tagged complaints opened/closed in the quarter.",
+            "Reconcile the count to the monthly log exports."
+          ],
+          "done": "the population is reconciled to the monthly exports."
+        },
+        {
+          "step": "Draw the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of FEMA/NFIP-referred complaints.",
+            "Take a random sample of 20 additional complaints."
+          ],
+          "done": "the sample is drawn covering all FEMA-referred cases."
+        },
+        {
+          "step": "Re-check response timing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled case, recompute the due date from the applicable state/FEMA rule.",
+            "Compare the recomputed due date to the actual send date."
+          ],
+          "done": "timing is recomputed and compared for every sampled case."
+        },
+        {
+          "step": "Verify investigation quality",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm each sampled case's response addresses every point raised.",
+            "Trace the response back to the policy/claim file referenced."
+          ],
+          "done": "response completeness is verified against the source file for every sampled case."
+        },
+        {
+          "step": "Verify root-cause coding accuracy",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Independently assign a root-cause code to each sampled case from the investigation notes.",
+            "Compare to the code recorded on the case."
+          ],
+          "done": "coding agreement or a documented mismatch exists for every sampled case."
+        },
+        {
+          "step": "Confirm cluster detection worked",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently re-run the 3-in-90-days cluster logic against the quarter's population.",
+            "Compare the result to the remediation items opened."
+          ],
+          "done": "any missed cluster is identified as an exception."
+        },
+        {
+          "step": "Trace remediation items to closure evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each remediation item touching a sampled case, confirm an owner, target date and closure evidence exist."
+          ],
+          "done": "every sampled remediation item has complete closure evidence."
+        },
+        {
+          "step": "Check FEMA referral handling",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Confirm each FEMA-referred sampled case shows the referral number.",
+            "Confirm the response went through the FEMA-specified channel."
+          ],
+          "done": "referral number and correct channel are confirmed for every sampled FEMA case."
+        },
+        {
+          "step": "Log exceptions with root cause and owner",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "compliance evidence repository",
+          "actions": ["Raise an issue per exception with root cause, owner and remediation date."],
+          "done": "every exception has an issue, root cause, owner and date."
+        },
+        {
+          "step": "Conclude, sign and report",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the missed-window rate against the threshold.",
+            "Write the conclusion; have the independent reviewer sign.",
+            "Report to the Compliance Committee."
+          ],
+          "done": "a signed workpaper is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-058-C12",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Internal Auditor",
+          "value": "Owns the annual audit of flood-policy notice samples (renewal, nonrenewal/cancellation, claims proof-of-loss instruction notices) for content and timing accuracy against SFIP and Claims Manual requirements."
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 44 CFR 62.23(i)(1) and the NFIP Claims Manual (June 2025) re-read for adjustment/notice standards; SFIP Homeowner Flood Form content requirements (89 FR 8272; proposed 44 CFR 61 App A(4)) checked against current notice templates."
+        },
+        "In-scope processes": {
+          "value": "Notice generation and delivery for flood policy renewal, nonrenewal/cancellation, and claim proof-of-loss instructions, across Policy Administration Platform and Guidewire ClaimCenter correspondence."
+        },
+        "In-scope systems": {
+          "app": "Policy Administration Platform",
+          "value": "Notice templates and generation logs in Policy Administration Platform and ClaimCenter correspondence module; audit workpapers held in AuditBoard."
+        },
+        "Compliance procedure documented": {
+          "value": "Annual Notice Content & Timing Audit Procedure — population build, sample selection, template-to-requirement comparison, timing recomputation, findings and remediation tracking."
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by Chief Audit Executive; scope refreshed annually against the current SFIP form and Claims Manual edition."
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Audit must close and report before the WYO Arrangement's annual compliance attestation date; sampled notices are checked against the 60-day proof-of-loss and the 60-days-after-loss adjustment windows."
+        },
+        "Deadline reminders configured": {
+          "value": "AuditBoard workplan milestone alerts at fieldwork start, draft-findings and report-issuance dates."
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Workpapers, template comparisons and finding evidence retained 7 years in AuditBoard and the compliance evidence repository."
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "AuditBoard",
+          "value": "Content or timing defects are logged as audit findings with severity, root cause and management action plan."
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Audit Executive",
+          "value": "Chief Audit Executive signs off closing each finding once management's action plan is verified complete."
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All distinct flood notice templates in production (renewal, nonrenewal/cancellation, proof-of-loss instruction) plus a transactional sample of notices actually sent in the audit period."
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for a template missing a required SFIP content element or a transactional notice sent outside its required timing window."
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Annual audit, matching the obligation's own annual frequency, with interim spot-checks if a Claims Manual bulletin changes notice requirements mid-year."
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Chief Audit Executive",
+          "value": "Reviewer did not perform the fieldwork or draft the findings."
+        },
+        "Evidence location for test results": {
+          "value": "Annual audit report and workpapers in AuditBoard, mirrored to the compliance evidence repository."
+        },
+        "Regulator-ready documentation": {
+          "value": "Final audit report with findings and remediation status, producible for a FEMA Financial Control Plan review within 5 business days."
+        },
+        "Regulator response path": {
+          "value": "Chief Audit Executive owns the audit-report response; General Counsel clears any finding referencing a potential violation before external release."
+        }
+      },
+      "checklist": [
+        {
+          "step": "Scope the audit universe of flood notices",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Pull the list of every notice template used for flood/SFIP policies from Policy Administration Platform's template library.",
+            "Confirm with the Policy Admin Ops Lead which templates are currently active.",
+            "Document template ID, purpose and last-revised date for each."
+          ],
+          "done": "a complete, dated inventory of active flood notice templates exists."
+        },
+        {
+          "step": "Map each template's required content elements to the source rule",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "For each template, list the content elements required by the SFIP Homeowner Flood Form (89 FR 8272) and the NFIP Claims Manual, e.g., Flood Control Number, proof-of-loss deadline language, appeal-rights language.",
+            "Cite the source section for each required element."
+          ],
+          "done": "each template has a content checklist with cited source elements."
+        },
+        {
+          "step": "Compare each template against its required-content checklist",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Open each template in Policy Administration Platform's template viewer.",
+            "Check off each required element as present, absent or inaccurate.",
+            "Screenshot any gap found."
+          ],
+          "done": "every template has a documented pass/fail against its content checklist with screenshots for gaps."
+        },
+        {
+          "step": "Build the transactional notice population for the audit period",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Extract from Policy Administration Platform and ClaimCenter every renewal, nonrenewal/cancellation and proof-of-loss instruction notice generated in the audit period, with generation date and mailing/send date."
+          ],
+          "done": "a reconciled transactional population with generation and send dates exists."
+        },
+        {
+          "step": "Draw the transactional sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Select a statistically representative sample (minimum 40, or 10% of population, whichever is greater) stratified by notice type.",
+            "Record the seed and selection date."
+          ],
+          "done": "the sample is drawn, documented and reproducible."
+        },
+        {
+          "step": "Verify content accuracy on sampled notices",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Open each sampled notice as actually generated, not just the template.",
+            "Confirm the policy-specific fields (Flood Control Number, dates, amounts) are correct and complete."
+          ],
+          "done": "content accuracy is confirmed or logged as a finding for every sampled notice."
+        },
+        {
+          "step": "Recompute the required timing for each sampled notice",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For renewal notices, recompute the required mailing lead time ahead of the expiration date.",
+            "For proof-of-loss instruction notices, recompute against the 60-day-from-loss window.",
+            "Compare each recomputed date to the actual send date."
+          ],
+          "done": "timing is recomputed and compared to the actual send date for every sampled notice."
+        },
+        {
+          "step": "Confirm delivery evidence exists",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "For each sampled notice, confirm a delivery/mailing confirmation or portal-delivery log entry exists in the system of record."
+          ],
+          "done": "delivery evidence is confirmed present for every sampled notice or logged as a gap."
+        },
+        {
+          "step": "Interview the process owner on any gap found",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For every content or timing gap, interview the Policy Admin Ops Lead or Claims Director / Manager to determine root cause."
+          ],
+          "done": "every gap has a documented root-cause interview."
+        },
+        {
+          "step": "Draft findings and severity ratings",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Draft a finding for each gap with a severity rating (high/medium/low) based on regulatory/customer impact.",
+            "Attach supporting evidence."
+          ],
+          "done": "every gap has a drafted, severity-rated finding with evidence."
+        },
+        {
+          "step": "Obtain management response and action plans",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Route draft findings to the accountable process owner for a written response.",
+            "Obtain a remediation action plan with target dates."
+          ],
+          "done": "every finding has a management response and target date."
+        },
+        {
+          "step": "Quality-review the workpapers",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Review the workpapers for completeness and consistency with the audit procedure.",
+            "Sign off before report issuance."
+          ],
+          "done": "workpapers are reviewed and signed off by the Chief Audit Executive."
+        },
+        {
+          "step": "Issue the final audit report",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "AuditBoard",
+          "actions": [
+            "Publish the final report with findings, severity and action plans in AuditBoard.",
+            "Distribute the report to the Compliance Committee and Head of Compliance."
+          ],
+          "done": "the final report is issued and distributed."
+        },
+        {
+          "step": "Track findings to closure",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "AuditBoard",
+          "actions": [
+            "Monitor each finding's action-plan target date.",
+            "Verify closure evidence before marking a finding closed."
+          ],
+          "done": "every finding shows verified closure evidence before it is marked closed."
+        },
+        {
+          "step": "Retain the audit record",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the final report, workpapers and closure evidence in the compliance evidence repository.",
+            "Apply the 7-year retention label."
+          ],
+          "done": "the audit record is filed and retention-labelled."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Rebuild the notice population independently",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Re-extract the transactional notice population from Policy Administration Platform/ClaimCenter for the same audit period.",
+            "Compare the count to the audit workpaper's population."
+          ],
+          "done": "the population count reconciles to the workpaper or a difference is explained."
+        },
+        {
+          "step": "Re-draw a QA sample from the audit's own sample",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": ["Select 10 notices from the original audit sample for re-performance."],
+          "done": "a QA sample is drawn and documented."
+        },
+        {
+          "step": "Re-perform the content check",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Independently re-check the 10 QA-sampled notices against the content checklist without referencing the auditor's conclusion first."
+          ],
+          "done": "independent content conclusions are documented for each QA-sampled notice."
+        },
+        {
+          "step": "Re-perform the timing recomputation",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Independently recompute required timing for the QA sample.",
+            "Compare the recomputation to the auditor's figures."
+          ],
+          "done": "timing recomputation matches or a discrepancy is logged."
+        },
+        {
+          "step": "Compare QA results to the original findings",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compare independent conclusions to the audit workpaper's conclusions for each QA-sampled notice.",
+            "Log any disagreement."
+          ],
+          "done": "the agreement rate is computed and any disagreement is logged."
+        },
+        {
+          "step": "Verify finding severity ratings are consistent",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Review the severity-rating methodology applied across all findings for consistency."
+          ],
+          "done": "severity ratings are confirmed consistent or corrected."
+        },
+        {
+          "step": "Verify management action plans are realistic and owned",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Confirm each action plan names a specific owner and a target date within a reasonable remediation window."
+          ],
+          "done": "every action plan has a named owner and reasonable target date."
+        },
+        {
+          "step": "Confirm evidence retention compliance",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Confirm the report, workpapers and QA re-performance notes are filed and retention-labelled."
+          ],
+          "done": "evidence is filed and labelled."
+        },
+        {
+          "step": "Log exceptions from the QA review",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "AuditBoard",
+          "actions": [
+            "Raise an issue for any QA disagreement with root cause and corrective action to the audit methodology."
+          ],
+          "done": "every QA disagreement has a logged issue with corrective action."
+        },
+        {
+          "step": "Conclude and report the QA review",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Write a QA conclusion on the reliability of the annual notice audit.",
+            "Report the conclusion to the Audit Committee."
+          ],
+          "done": "a signed QA conclusion is reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-058-C13",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Corporate Secretary",
+          "value": "Owns the board and committee structure (full Board, Audit Committee, Risk Committee) that provides oversight of the WYO flood program, including charter currency and meeting cadence."
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 44 CFR 62.23(j) (WYO records/access), 44 CFR 62.23(j)(3) (WYO Accounting Procedures Manual oversight) and Part 59/60 general provisions re-read at each annual charter refresh."
+        },
+        "In-scope processes": {
+          "value": "Board and committee composition, charter maintenance, meeting cadence and minute-taking covering WYO program oversight, ledger-separation attestations and FEMA access-to-records commitments."
+        },
+        "In-scope systems": {
+          "app": "board portal",
+          "value": "Charters, meeting materials, attendance and minutes maintained in the board portal."
+        },
+        "Compliance procedure documented": {
+          "value": "Board & Committee Governance Maintenance Procedure — charter review cycle, composition/independence checks, meeting cadence, minute approval workflow."
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Board Governance Lead and General Counsel; reviewed annually."
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Charters reviewed annually ahead of the first board meeting of the fiscal year; minutes approved within 45 days of each meeting."
+        },
+        "Deadline reminders configured": {
+          "value": "Board portal sends charter-review and minute-approval reminders at 30/15/5 days before due."
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Charters, meeting materials, attendance records and approved minutes retained permanently per the company's board-record policy in the board portal."
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "A missed quorum, an expired charter or a late-approved minute is logged as a governance exception with remediation date."
+        },
+        "Remediation sign-off captured": {
+          "role": "Corporate Secretary",
+          "value": "Corporate Secretary signs off once the exception (e.g., late minutes, lapsed charter) is remediated."
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All Board and committee meetings held, and all charters in force, during the review period."
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for an expired/unreviewed charter or a meeting lacking documented quorum."
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Continuous obligation tested annually against the full-year meeting and charter population."
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "General Counsel",
+          "value": "Reviewer did not prepare the minutes or charters being tested."
+        },
+        "Evidence location for test results": {
+          "value": "Annual governance-structure test workpaper in the compliance evidence repository."
+        },
+        "Regulator-ready documentation": {
+          "value": "Charter and minute extract producible for a FEMA WYO Arrangement records-access request within 5 business days."
+        },
+        "Regulator response path": {
+          "value": "Corporate Secretary owns the records-access response; General Counsel clears the release."
+        }
+      },
+      "checklist": [
+        {
+          "step": "Inventory the required board/committee structure",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "actions": [
+            "Confirm the Board, Audit Committee and Risk Committee (or equivalent) exist and are populated per the bylaws and any WYO Arrangement oversight expectation.",
+            "Document composition and independence status for each body."
+          ],
+          "done": "an inventory of required bodies and their current composition exists."
+        },
+        {
+          "step": "Review each charter for currency",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "app": "board portal",
+          "actions": [
+            "Open each charter in the board portal.",
+            "Compare its scope (including WYO/flood-program oversight language) to current regulatory expectations.",
+            "Flag stale sections."
+          ],
+          "done": "every charter is reviewed and flagged sections are identified."
+        },
+        {
+          "step": "Update and route charters for approval",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "actions": [
+            "Draft charter updates addressing flagged sections.",
+            "Route the draft to General Counsel for legal review.",
+            "Schedule the item for board approval."
+          ],
+          "done": "updated charters are legally reviewed and scheduled for board approval."
+        },
+        {
+          "step": "Obtain board approval of updated charters",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "actions": [
+            "Present charter updates at the scheduled board meeting.",
+            "Record the vote in the minutes.",
+            "Publish the approved charter to the board portal."
+          ],
+          "done": "the approved charter is published with a recorded vote."
+        },
+        {
+          "step": "Schedule the annual meeting cadence",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "board portal",
+          "actions": [
+            "Set the calendar of Board and committee meetings for the fiscal year in the board portal.",
+            "Confirm the cadence meets the charter's minimum-meetings requirement."
+          ],
+          "done": "the full-year meeting calendar is set and meets charter minimums."
+        },
+        {
+          "step": "Prepare and distribute meeting materials",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "actions": [
+            "Compile the agenda, WYO program oversight report and prior minutes.",
+            "Distribute via the board portal at least 5 business days before each meeting."
+          ],
+          "done": "materials are distributed at least 5 business days ahead of each meeting."
+        },
+        {
+          "step": "Confirm quorum and record attendance",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "actions": [
+            "At each meeting, confirm quorum per the charter/bylaws.",
+            "Record attendance in the board portal."
+          ],
+          "done": "quorum and attendance are recorded for every meeting."
+        },
+        {
+          "step": "Draft minutes capturing WYO oversight discussion",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "actions": [
+            "Draft minutes documenting the WYO program report, any ledger-separation attestation discussed, and decisions taken.",
+            "Route the draft for review within 10 business days."
+          ],
+          "done": "draft minutes reflecting WYO oversight content are routed within 10 business days."
+        },
+        {
+          "step": "Route minutes for approval",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "actions": [
+            "Circulate draft minutes to attendees for comment.",
+            "Present the minutes for formal approval at the next meeting."
+          ],
+          "done": "minutes are approved within 45 days of the meeting."
+        },
+        {
+          "step": "Publish approved minutes to the board portal",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "board portal",
+          "actions": [
+            "Upload the final approved minutes.",
+            "Apply access controls consistent with board-record policy."
+          ],
+          "done": "approved minutes are published and access-controlled."
+        },
+        {
+          "step": "Track committee membership changes",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "actions": [
+            "Log any resignation, appointment or independence-status change.",
+            "Update the board portal roster the same week."
+          ],
+          "done": "the roster reflects every membership change within the week it occurred."
+        },
+        {
+          "step": "Confirm FEMA records-access commitment is honored",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Review any FEMA request for board-level WYO oversight records.",
+            "Confirm the board portal can produce the requested charter/minute extract."
+          ],
+          "done": "a records-access readiness check is documented at least annually."
+        },
+        {
+          "step": "Log governance exceptions",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Log any missed quorum, late minute approval or lapsed charter as an exception with remediation date."
+          ],
+          "done": "every exception is logged with a remediation date."
+        },
+        {
+          "step": "Retain governance records",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "board portal",
+          "actions": [
+            "Confirm charters, materials and minutes are retained per the board-record retention policy.",
+            "Confirm records remain searchable."
+          ],
+          "done": "records are retained and searchable per policy."
+        },
+        {
+          "step": "Report governance status to the Compliance program",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "actions": [
+            "Prepare a summary of charter currency, meeting cadence adherence and open exceptions.",
+            "Share the summary with Head of Compliance."
+          ],
+          "done": "the summary reaches Head of Compliance."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "board portal",
+          "actions": [
+            "Extract every Board/committee meeting held and every charter in force during the period."
+          ],
+          "done": "the population is extracted and reconciled to the board portal calendar."
+        },
+        {
+          "step": "Draw the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of committee charters.",
+            "Take a random sample of 6 meetings across Board and committees."
+          ],
+          "done": "the sample is drawn covering all charters."
+        },
+        {
+          "step": "Re-verify quorum for sampled meetings",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare recorded attendance to the charter's quorum requirement for each sampled meeting."
+          ],
+          "done": "quorum is confirmed or an exception logged for every sampled meeting."
+        },
+        {
+          "step": "Re-verify minute approval timing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute the days between meeting date and minute approval date.",
+            "Compare to the 45-day standard."
+          ],
+          "done": "timing is recomputed for every sampled meeting."
+        },
+        {
+          "step": "Verify charter currency",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Independently compare each sampled charter's content to current regulatory expectations (44 CFR 62.23(j), Part 59/60)."
+          ],
+          "done": "every sampled charter is confirmed current or flagged."
+        },
+        {
+          "step": "Trace WYO oversight content in minutes",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm sampled minutes document the WYO program oversight report and any ledger-separation attestation discussion."
+          ],
+          "done": "WYO oversight content is confirmed present or logged as a gap."
+        },
+        {
+          "step": "Verify roster accuracy",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the board portal roster to actual meeting attendee lists for independence/composition accuracy."
+          ],
+          "done": "the roster matches attendee composition or an exception is logged."
+        },
+        {
+          "step": "Test records-access readiness",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Simulate a FEMA records request and time how long it takes to produce the charter/minute extract from the board portal."
+          ],
+          "done": "the extract is produced within the 5-business-day target or a gap is logged."
+        },
+        {
+          "step": "Log exceptions",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Raise an issue for each testing exception with root cause, owner and remediation date."
+          ],
+          "done": "every exception has an issue, owner and date."
+        },
+        {
+          "step": "Conclude and report",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Write the conclusion with evidence references.",
+            "Have the independent reviewer sign.",
+            "Report to the Board Governance Lead and Compliance Committee."
+          ],
+          "done": "a signed workpaper is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-058-C14",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Corporate Secretary",
+          "value": "Owns preparation and timely filing of the Corporate Governance Annual Disclosure (CGAD) and any holding-company Form B/C amendment triggered by an ownership, control or WYO-program-relevant change."
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — filing obligations cross-checked against the domiciliary state's CGAD/holding-company statute and, where the change touches WYO eligibility, against 44 CFR 62.23(i)(1)/62.24(c) program-participation criteria."
+        },
+        "In-scope processes": {
+          "value": "Annual CGAD preparation and filing; event-driven Form B/C amendment filing for any change in control, officer/director change, or WYO-relevant governance change."
+        },
+        "In-scope systems": {
+          "app": "Internal Regulatory System",
+          "value": "Filing drafts, approvals and submission confirmations tracked in the Internal Regulatory System; final filings submitted to the domiciliary state insurance department."
+        },
+        "Compliance procedure documented": {
+          "value": "Governance Disclosure Filing Procedure — trigger identification, drafting, legal review, executive sign-off, submission, confirmation retention."
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by General Counsel; reviewed annually ahead of the CGAD due date."
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "CGAD due by the domiciliary state's specified annual date (commonly June 1); Form B/C amendments due within the state's specified window (commonly 15-30 days) of the triggering event."
+        },
+        "Deadline reminders configured": {
+          "value": "Internal Regulatory System sends milestone alerts at 60/30/10 days before the CGAD due date and within 2 business days of a logged triggering event for amendments."
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Filed disclosures, approval trail and state confirmation receipts retained 7 years in the Internal Regulatory System and compliance evidence repository."
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "A late or unfiled disclosure is logged as an exception with root cause and self-report assessment."
+        },
+        "Remediation sign-off captured": {
+          "role": "General Counsel",
+          "value": "General Counsel signs off on every late-filing remediation and any required self-report to the domiciliary regulator."
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The annual CGAD filing plus every Form B/C amendment triggered in the period, per the Internal Regulatory System's filing log."
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for a missed CGAD or amendment deadline."
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Annual filing tested at year-end; event-driven amendments tested quarterly against triggering events logged in the period."
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Regulatory Counsel",
+          "value": "Reviewer did not draft or submit the sampled filing."
+        },
+        "Evidence location for test results": {
+          "value": "Annual governance-filing test workpaper in the compliance evidence repository."
+        },
+        "Regulator-ready documentation": {
+          "value": "Filed disclosure plus state confirmation receipt, producible within 5 business days of a regulator inquiry."
+        },
+        "Regulator response path": {
+          "value": "Corporate Secretary owns the regulator response; General Counsel clears any communication regarding a late filing."
+        }
+      },
+      "checklist": [
+        {
+          "step": "Identify the annual CGAD trigger and event-driven triggers",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "actions": [
+            "Calendar the domiciliary state's CGAD due date.",
+            "Monitor Board/HR records for control changes, officer/director changes or WYO-relevant governance changes that trigger a Form B/C amendment."
+          ],
+          "done": "the CGAD due date is calendared and a trigger-monitoring log is active."
+        },
+        {
+          "step": "Gather source content for the CGAD",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "actions": [
+            "Request governance-framework descriptions from the Board Governance Lead.",
+            "Request risk-management descriptions from the Chief Risk Officer.",
+            "Request internal-control descriptions from the Controller.",
+            "Compile the content per the NAIC CGAD model outline."
+          ],
+          "done": "source content from each contributing function is compiled per the CGAD outline."
+        },
+        {
+          "step": "Draft the disclosure",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Draft the CGAD (or Form B/C amendment) in the Internal Regulatory System.",
+            "Cite the domiciliary statute and, where relevant, the WYO participation criteria affected."
+          ],
+          "done": "a complete draft exists in the Internal Regulatory System with citations."
+        },
+        {
+          "step": "Legal review of the draft",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Review the draft for statutory completeness and accuracy.",
+            "Return comments or approve."
+          ],
+          "done": "General Counsel has approved or returned the draft with comments addressed."
+        },
+        {
+          "step": "Executive sign-off",
+          "by": "Chief Executive Officer",
+          "role": "Chief Executive Officer",
+          "actions": [
+            "Route the approved draft for CEO (or designated executive) signature per the statute's certification requirement."
+          ],
+          "done": "the draft carries the required executive signature."
+        },
+        {
+          "step": "Submit the filing to the domiciliary state",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Submit via the state's designated portal or the NAIC's system where applicable.",
+            "Record the submission date and confirmation/tracking number."
+          ],
+          "done": "the filing is submitted with a recorded confirmation number."
+        },
+        {
+          "step": "Confirm receipt/acceptance",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Follow up with the domiciliary state within 10 business days if no acceptance confirmation is received.",
+            "Log the acceptance date."
+          ],
+          "done": "acceptance is confirmed and logged, or a follow-up is documented."
+        },
+        {
+          "step": "Log the filing in the Internal Regulatory System",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Record filing type, due date, submission date, confirmation number and status."
+          ],
+          "done": "the filing log entry is complete with all fields populated."
+        },
+        {
+          "step": "Track event-driven triggers as they occur",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "actions": [
+            "On each logged trigger (control change, officer/director change), open a new filing record.",
+            "Calendar the state's amendment deadline."
+          ],
+          "done": "every logged trigger has a corresponding filing record and calendared deadline."
+        },
+        {
+          "step": "Prepare and file the amendment",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Repeat the draft, legal review, sign-off and submission steps for the amendment within the state's window."
+          ],
+          "done": "the amendment is filed within the state's window with confirmation logged."
+        },
+        {
+          "step": "Notify affected stakeholders of filing status",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "actions": [
+            "Email the Head of Compliance and the Board Governance Lead confirming the filing is complete."
+          ],
+          "done": "stakeholders receive written confirmation of the completed filing."
+        },
+        {
+          "step": "Log exceptions with disposition",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Log any missed deadline as an exception with root cause.",
+            "Open a self-report assessment with General Counsel if the deadline was missed."
+          ],
+          "done": "every missed deadline is logged with a self-report assessment where required."
+        },
+        {
+          "step": "Retain the filing evidence",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "compliance evidence repository",
+          "actions": [
+            "File the draft, approvals, submission and confirmation receipt.",
+            "Apply the 7-year retention label."
+          ],
+          "done": "the full filing package is retained and labelled."
+        },
+        {
+          "step": "Reconcile the filing calendar quarterly",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "actions": [
+            "Compare the Internal Regulatory System's filing log to the master compliance calendar.",
+            "Correct any drift."
+          ],
+          "done": "the filing log and compliance calendar are reconciled quarterly."
+        },
+        {
+          "step": "Report filing status to the compliance program",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "actions": [
+            "Prepare a summary of filings made, upcoming and any exceptions.",
+            "Present the summary to the Compliance Committee."
+          ],
+          "done": "the summary reaches the Compliance Committee."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Extract every CGAD and Form B/C filing logged in the year.",
+            "Reconcile to Board minutes referencing triggering events."
+          ],
+          "done": "the population is reconciled to Board minutes."
+        },
+        {
+          "step": "Draw the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of event-driven amendments.",
+            "Test the annual CGAD in full as a population of one."
+          ],
+          "done": "the sample includes the CGAD and every amendment."
+        },
+        {
+          "step": "Re-verify the trigger identification",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "For each sampled amendment, confirm the triggering event was correctly identified.",
+            "Confirm the deadline was correctly calendared from the event date."
+          ],
+          "done": "trigger and deadline are verified for every sampled amendment."
+        },
+        {
+          "step": "Re-verify content completeness",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Compare the filed content to the current CGAD model outline / statute requirements."
+          ],
+          "done": "completeness is confirmed or a gap logged for every sampled filing."
+        },
+        {
+          "step": "Trace submission and confirmation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the submission date and confirmation number in the Internal Regulatory System match the actual state filing record."
+          ],
+          "done": "submission is traced to the state record for every sampled filing."
+        },
+        {
+          "step": "Recompute deadline compliance",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute the days between the triggering event and the filing date.",
+            "Compare to the state's required window."
+          ],
+          "done": "timing is recomputed and compared for every sampled filing."
+        },
+        {
+          "step": "Verify sign-off completeness",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm General Counsel review and executive signature exist for each sampled filing."
+          ],
+          "done": "sign-offs are confirmed present for every sampled filing."
+        },
+        {
+          "step": "Check evidence retention",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Confirm the draft, approvals and confirmation receipt are filed and retention-labelled."
+          ],
+          "done": "evidence is complete and labelled for every sampled filing."
+        },
+        {
+          "step": "Log exceptions",
+          "by": "Corporate Secretary",
+          "role": "Corporate Secretary",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Raise an issue for each exception with root cause, owner and remediation date."
+          ],
+          "done": "every exception has an issue, owner and date."
+        },
+        {
+          "step": "Conclude, sign and report",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Compute the on-time filing rate against the zero-tolerance threshold.",
+            "Write the conclusion; have the independent reviewer sign.",
+            "Report to the Compliance Committee."
+          ],
+          "done": "a signed workpaper is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-058-C15",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "HR Business Partner",
+          "value": "Owns the fitness-and-propriety assessment for every newly appointed officer and director, and periodic refresh assessments, supporting the company's WYO program eligibility and holding-company governance standing."
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — assessed against the domiciliary state's holding-company/fit-and-proper standard and 44 CFR 62.23(j)/Part 59-60 general program-participation expectations, re-read at each appointment cycle."
+        },
+        "In-scope processes": {
+          "value": "Background screening, disclosure review and independence/conflict check for every officer and director appointment or reappointment."
+        },
+        "In-scope systems": {
+          "app": "HRIS (Workday/SuccessFactors)",
+          "value": "Assessment workflow, document upload and sign-off tracked in the HRIS; background-check vendor results attached to the candidate record."
+        },
+        "Compliance procedure documented": {
+          "value": "Officer/Director Fitness & Propriety Assessment Procedure — trigger, background screen, disclosure review, legal sign-off, periodic refresh."
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by Chief HR Officer and General Counsel; reviewed annually."
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Assessment must complete before the appointment is effective; refresh assessments run every 3 years or on a material adverse-information trigger."
+        },
+        "Deadline reminders configured": {
+          "value": "HRIS workflow alert fires when an appointment is initiated without a completed assessment, blocking the effective-date step."
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Assessment records, background-check results and sign-offs retained 7 years after the individual leaves the role."
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "An appointment made effective without a completed assessment is logged as a governance exception with immediate remediation."
+        },
+        "Remediation sign-off captured": {
+          "role": "Employment Counsel",
+          "value": "Employment Counsel signs off closing any exception once the assessment is completed retroactively and any adverse finding is resolved."
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All officer and director appointments, reappointments and periodic refresh assessments completed in the period, per the HRIS."
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for an appointment made effective without a completed, signed-off assessment."
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Tested per appointment cycle; sampled quarterly against the quarter's appointment/refresh population."
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Chief HR Officer",
+          "value": "Reviewer did not conduct the sampled assessment."
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly fitness-and-propriety test workpaper in the compliance evidence repository."
+        },
+        "Regulator-ready documentation": {
+          "value": "Assessment records producible for a domiciliary state exam or FEMA WYO Arrangement records request within 5 business days."
+        },
+        "Regulator response path": {
+          "value": "HR Business Partner owns assembling the response; Employment Counsel clears it before release."
+        }
+      },
+      "checklist": [
+        {
+          "step": "Detect the trigger",
+          "by": "HR Business Partner",
+          "role": "HR Business Partner",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Monitor Board and executive-appointment records in the HRIS for a new officer/director nomination or a 3-year refresh due date.",
+            "Open an assessment case."
+          ],
+          "done": "an assessment case is opened for every nomination and every refresh due date."
+        },
+        {
+          "step": "Collect disclosure information from the candidate",
+          "by": "HR Business Partner",
+          "role": "HR Business Partner",
+          "actions": [
+            "Send the standard fitness-and-propriety disclosure questionnaire (prior regulatory actions, criminal history, financial history, conflicts of interest) to the candidate.",
+            "Set a response due date."
+          ],
+          "done": "a completed disclosure questionnaire is on file for every candidate."
+        },
+        {
+          "step": "Commission the background screen",
+          "by": "HR Business Partner",
+          "role": "HR Business Partner",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Engage the approved background-check vendor through the HRIS integration.",
+            "Scope the check to criminal, credit, regulatory-sanctions and civil-litigation records."
+          ],
+          "done": "a background-check request is on file with the vendor for every candidate."
+        },
+        {
+          "step": "Review the background-check results",
+          "by": "HR Business Partner",
+          "role": "HR Business Partner",
+          "actions": [
+            "Review the vendor report on return.",
+            "Flag any adverse finding (regulatory sanction, undisclosed litigation, credit issue) for legal review."
+          ],
+          "done": "every vendor report is reviewed with adverse findings flagged."
+        },
+        {
+          "step": "Legal review of disclosures and adverse findings",
+          "by": "Employment Counsel",
+          "role": "Employment Counsel",
+          "actions": [
+            "Assess any flagged item against the domiciliary state's fit-and-proper standard.",
+            "Determine whether it is disqualifying, mitigable or immaterial.",
+            "Document the determination."
+          ],
+          "done": "a documented legal determination exists for every flagged item."
+        },
+        {
+          "step": "Independence and conflict-of-interest check for directors",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "actions": [
+            "Cross-check the candidate against related-party and material-relationship disclosures.",
+            "Confirm independence classification where applicable."
+          ],
+          "done": "an independence determination is documented for every director candidate."
+        },
+        {
+          "step": "Compile the assessment record",
+          "by": "HR Business Partner",
+          "role": "HR Business Partner",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Assemble the disclosure form, background-check result, legal determination and independence check into a single assessment record in the HRIS."
+          ],
+          "done": "a complete assessment record exists in the HRIS."
+        },
+        {
+          "step": "Obtain sign-off before the appointment is made effective",
+          "by": "Chief HR Officer",
+          "role": "Chief HR Officer",
+          "actions": [
+            "Review the complete assessment record.",
+            "Sign off approving or declining the appointment before HR processes the effective date."
+          ],
+          "done": "sign-off is recorded before the appointment effective date is set."
+        },
+        {
+          "step": "Block premature effective-dating",
+          "by": "HR Business Partner",
+          "role": "HR Business Partner",
+          "actions": [
+            "Confirm the HRIS workflow will not allow the appointment's effective date to be set without the sign-off step complete."
+          ],
+          "done": "the system-enforced block is confirmed active."
+        },
+        {
+          "step": "Notify Corporate Secretary for board-record and CGAD purposes",
+          "by": "HR Business Partner",
+          "role": "HR Business Partner",
+          "actions": [
+            "Send the completed assessment summary, not the underlying sensitive data, to the Corporate Secretary for inclusion in board records and the next CGAD."
+          ],
+          "done": "Corporate Secretary receives the assessment summary."
+        },
+        {
+          "step": "Schedule the 3-year refresh",
+          "by": "HR Business Partner",
+          "role": "HR Business Partner",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Set a recurring HRIS reminder for the refresh date.",
+            "Repeat the disclosure, background-screen, legal-review and sign-off steps at that date or on an adverse-information trigger."
+          ],
+          "done": "a refresh reminder is set and the refresh completes on schedule."
+        },
+        {
+          "step": "Monitor for material adverse information between cycles",
+          "by": "Employment Counsel",
+          "role": "Employment Counsel",
+          "actions": [
+            "Subscribe to an adverse-media/sanctions monitoring feed for current officers and directors.",
+            "Open an out-of-cycle assessment on any hit."
+          ],
+          "done": "an out-of-cycle assessment is opened on any adverse-media/sanctions hit."
+        },
+        {
+          "step": "Log exceptions with disposition",
+          "by": "HR Business Partner",
+          "role": "HR Business Partner",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Log any appointment made effective before assessment completion as an exception.",
+            "Document the retroactive completion and any remediation."
+          ],
+          "done": "every exception is logged with retroactive completion evidence."
+        },
+        {
+          "step": "Retain assessment records",
+          "by": "HR Business Partner",
+          "role": "HR Business Partner",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "File assessment records in the HRIS document repository.",
+            "Apply the 7-year-after-departure retention rule.",
+            "Restrict access to HR and Legal."
+          ],
+          "done": "records are retained, access-restricted and labelled per the retention rule."
+        },
+        {
+          "step": "Report assessment program status",
+          "by": "Chief HR Officer",
+          "role": "Chief HR Officer",
+          "actions": [
+            "Prepare a summary of appointments assessed, refreshes completed and open exceptions.",
+            "Report the summary to the Compliance Committee."
+          ],
+          "done": "the summary reaches the Compliance Committee."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Extract every officer/director appointment, reappointment and refresh completed in the period."
+          ],
+          "done": "the population is extracted and reconciled to Board minutes."
+        },
+        {
+          "step": "Draw the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of new appointments.",
+            "Take a random sample of 5 refresh assessments."
+          ],
+          "done": "the sample is drawn covering all new appointments."
+        },
+        {
+          "step": "Re-verify assessment completeness",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the disclosure form, background-check result, legal determination and sign-off are all present for each sampled record."
+          ],
+          "done": "completeness is confirmed for every sampled record."
+        },
+        {
+          "step": "Re-verify timing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the sign-off date precedes the appointment's effective date for each sampled record."
+          ],
+          "done": "timing is confirmed or an exception logged for every sampled record."
+        },
+        {
+          "step": "Re-review adverse findings independently",
+          "by": "Chief HR Officer",
+          "role": "Chief HR Officer",
+          "actions": [
+            "Independently re-assess any flagged adverse finding against the fit-and-proper standard.",
+            "Compare to the original determination."
+          ],
+          "done": "independent re-assessment matches or a discrepancy is logged for every flagged finding."
+        },
+        {
+          "step": "Verify independence determinations",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Independently check director-candidate related-party disclosures against the recorded independence classification."
+          ],
+          "done": "independence classification is confirmed or an exception logged."
+        },
+        {
+          "step": "Confirm the system block worked",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For the sampled appointments, confirm no appointment was effective-dated in the HRIS before the sign-off timestamp."
+          ],
+          "done": "no premature effective-dating is found, or an exception is logged."
+        },
+        {
+          "step": "Check evidence retention and access control",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "HRIS (Workday/SuccessFactors)",
+          "actions": [
+            "Confirm records are retained, labelled and access-restricted per the procedure."
+          ],
+          "done": "retention and access controls are confirmed for every sampled record."
+        },
+        {
+          "step": "Log exceptions",
+          "by": "Chief HR Officer",
+          "role": "Chief HR Officer",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Raise an issue for each exception with root cause, owner and remediation date."
+          ],
+          "done": "every exception has an issue, owner and date."
+        },
+        {
+          "step": "Conclude, sign and report",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Compute the on-time, complete-assessment rate against the zero-tolerance threshold.",
+            "Write the conclusion; have the independent reviewer sign.",
+            "Report to the Compliance Committee."
+          ],
+          "done": "a signed workpaper is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-058-C16",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Board Governance Lead",
+          "value": "Owns the annual cycle that brings every governance policy (Code of Conduct, Enterprise Risk Management policy, Compliance policy, WYO flood-program oversight policy) to the Board for review and approval."
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — policy scope checked against 44 CFR 62.23(i)(1)/Claims Manual obligations and 44 CFR 62.24(c) WYO participation criteria, plus the domiciliary state's corporate-governance expectations, at each annual cycle."
+        },
+        "In-scope processes": {
+          "value": "Annual identification, redline, executive review and Board approval of every governance policy touching WYO/flood-program oversight, risk and compliance."
+        },
+        "In-scope systems": {
+          "app": "board portal",
+          "value": "Policy drafts, redlines, approval votes and the approved-policy library maintained in the board portal."
+        },
+        "Compliance procedure documented": {
+          "value": "Annual Governance Policy Review & Approval Procedure — inventory, owner review, redline, legal check, Board approval, publication."
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by General Counsel; reviewed annually as part of the same cycle it governs."
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Every in-scope policy must be re-approved, or affirmatively continued, within 12 months of its last Board approval date."
+        },
+        "Deadline reminders configured": {
+          "value": "Board portal alerts the Board Governance Lead 90/60/30 days before any policy's 12-month approval anniversary."
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Approved policy versions and Board approval votes retained permanently in the board portal and mirrored to the compliance evidence repository."
+        },
+        "Violations/exceptions logged with disposition": {
+          "value": "A policy that lapses past its 12-month approval anniversary is logged as a governance exception with an interim-effectiveness decision."
+        },
+        "Remediation sign-off captured": {
+          "role": "General Counsel",
+          "value": "General Counsel signs off on the interim-effectiveness decision and confirms it is cured at the next scheduled Board meeting."
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All governance policies in the approved-policy library with an approval anniversary falling in the review period."
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance for a policy operating past its 12-month approval anniversary without a Board decision on file."
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Annual obligation tested annually against the full policy library."
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Chief Audit Executive",
+          "value": "Reviewer did not draft or present any sampled policy to the Board."
+        },
+        "Evidence location for test results": {
+          "value": "Annual governance-policy test workpaper in the compliance evidence repository."
+        },
+        "Regulator-ready documentation": {
+          "value": "Approved-policy library extract with version and approval-date history, producible within 5 business days of a regulator request."
+        },
+        "Regulator response path": {
+          "value": "Board Governance Lead owns assembling the response; General Counsel clears it before release."
+        }
+      },
+      "checklist": [
+        {
+          "step": "Inventory the governance policy library and anniversaries",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "app": "board portal",
+          "actions": [
+            "Pull every governance policy from the board portal library.",
+            "List each policy's last Board approval date and 12-month anniversary.",
+            "Flag policies due in the next quarter."
+          ],
+          "done": "a complete inventory with approval anniversaries and due-for-review flags exists."
+        },
+        {
+          "step": "Assign owners for redline review",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "actions": [
+            "Assign each policy to its content owner (Head of Compliance for the Compliance policy, Chief Risk Officer for the ERM policy, General Counsel for the Code of Conduct).",
+            "Set a redline-due date ahead of the anniversary."
+          ],
+          "done": "every policy has a named owner and a redline-due date."
+        },
+        {
+          "step": "Redline each policy against current requirements",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Compare the current policy text to any regulatory change, e.g., a new Claims Manual bulletin affecting the WYO oversight policy.",
+            "Mark up changes with tracked changes in the board portal."
+          ],
+          "done": "a tracked-changes redline exists for every policy due for review."
+        },
+        {
+          "step": "Legal review of redlines",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Review each redline for legal sufficiency and consistency with other governance documents.",
+            "Approve or return with comments."
+          ],
+          "done": "every redline has a documented legal review outcome."
+        },
+        {
+          "step": "Route redlines through executive review",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "actions": [
+            "Circulate approved redlines to the relevant executive (Head of Compliance, Chief Risk Officer, Chief HR Officer) for sign-off before Board presentation."
+          ],
+          "done": "executive sign-off is on file for every redline before Board presentation."
+        },
+        {
+          "step": "Build the Board meeting policy package",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "app": "board portal",
+          "actions": [
+            "Compile the redlined policies, executive sign-offs and a summary of changes into the board meeting materials.",
+            "Distribute at least 5 business days ahead of the meeting."
+          ],
+          "done": "the policy package is distributed at least 5 business days before the meeting."
+        },
+        {
+          "step": "Present policies for Board discussion",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "actions": [
+            "Present each policy's material changes at the scheduled Board meeting.",
+            "Capture Board questions and requested revisions."
+          ],
+          "done": "presentation and any requested revisions are documented in the meeting record."
+        },
+        {
+          "step": "Incorporate requested revisions",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Revise the policy per Board feedback.",
+            "Re-route the policy for a follow-up vote if the Board did not approve it on first presentation."
+          ],
+          "done": "revised policies are re-routed and re-presented until approved."
+        },
+        {
+          "step": "Record the Board approval vote",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "actions": [
+            "Record the vote (unanimous/majority, abstentions, dissents) in the minutes.",
+            "Capture the approval date on the policy record."
+          ],
+          "done": "the vote and approval date are recorded in the minutes and on the policy record."
+        },
+        {
+          "step": "Publish the approved policy",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "app": "board portal",
+          "actions": [
+            "Version the approved policy.",
+            "Publish it to the board portal's approved-policy library.",
+            "Retire the prior version with a superseded flag."
+          ],
+          "done": "the new version is published and the prior version is flagged superseded."
+        },
+        {
+          "step": "Communicate the approved policy to affected staff",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Notify affected teams (Compliance, Claims, Risk) of the updated policy and any operational change required.",
+            "Confirm acknowledgment where required."
+          ],
+          "done": "affected teams are notified with acknowledgment tracked where required."
+        },
+        {
+          "step": "Handle a policy that misses its anniversary",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Where a redline is not ready in time, document an interim-effectiveness decision continuing the current policy.",
+            "Set a cure date at the next scheduled Board meeting."
+          ],
+          "done": "any missed anniversary has a documented interim decision and cure date."
+        },
+        {
+          "step": "Log exceptions with disposition",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Log any lapsed policy or missed step as an exception with root cause and cure date."
+          ],
+          "done": "every exception is logged with a cure date."
+        },
+        {
+          "step": "Retain the approval record",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "app": "board portal",
+          "actions": [
+            "File the redline, executive sign-off, meeting materials and minutes excerpt for each approved policy in the compliance evidence repository as well as the board portal."
+          ],
+          "done": "the full approval record is retained in both systems."
+        },
+        {
+          "step": "Report policy governance status",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "actions": [
+            "Prepare a summary of policies approved, pending and lapsed.",
+            "Present the summary to the Compliance Committee."
+          ],
+          "done": "the summary reaches the Compliance Committee."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "board portal",
+          "actions": [
+            "Extract every policy with an approval anniversary in the review period from the board portal library."
+          ],
+          "done": "the population is extracted and reconciled to the library."
+        },
+        {
+          "step": "Draw the sample",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Take 100% of policies touching WYO/flood-program oversight.",
+            "Take a random sample of 5 additional policies."
+          ],
+          "done": "the sample is drawn covering all WYO-relevant policies."
+        },
+        {
+          "step": "Re-verify the 12-month approval timing",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Recompute the days between the current approval date and the prior approval date for each sampled policy.",
+            "Compare to the 12-month standard."
+          ],
+          "done": "timing is recomputed for every sampled policy."
+        },
+        {
+          "step": "Re-verify redline and legal review evidence",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Confirm a tracked-changes redline and a documented legal review exist for each sampled policy."
+          ],
+          "done": "evidence is confirmed present or an exception logged for every sampled policy."
+        },
+        {
+          "step": "Re-verify executive sign-off",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Confirm the relevant executive sign-off exists and pre-dates the Board presentation date."
+          ],
+          "done": "sign-off timing is confirmed for every sampled policy."
+        },
+        {
+          "step": "Trace the Board vote to the minutes",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Confirm the recorded vote and approval date in the policy record matches the actual Board minutes."
+          ],
+          "done": "vote and date match the minutes for every sampled policy, or an exception is logged."
+        },
+        {
+          "step": "Verify publication and version control",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Confirm the approved version is published and the prior version is flagged superseded in the board portal."
+          ],
+          "done": "version control is confirmed for every sampled policy."
+        },
+        {
+          "step": "Check interim-effectiveness decisions",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "For any sampled policy that lapsed its anniversary, confirm a documented interim decision and cure date exist."
+          ],
+          "done": "interim decisions are confirmed for every lapsed sampled policy."
+        },
+        {
+          "step": "Log exceptions",
+          "by": "Board Governance Lead",
+          "role": "Board Governance Lead",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Raise an issue for each exception with root cause, owner and remediation date."
+          ],
+          "done": "every exception has an issue, owner and date."
+        },
+        {
+          "step": "Conclude, sign and report",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Compute the on-time approval rate against the zero-tolerance threshold.",
+            "Write the conclusion; have the independent reviewer sign.",
+            "Report to the Compliance Committee."
+          ],
+          "done": "a signed workpaper is filed and reported."
+        }
+      ]
+    }
+  ]
+}

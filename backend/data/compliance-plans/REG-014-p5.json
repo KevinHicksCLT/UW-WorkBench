@@ -1,0 +1,1552 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-014-C33",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Annuity Suitability Analyst",
+          "value": "Suitability Desk analyst builds the FINRA Rule 2330(c) principal package for every deferred variable annuity recommendation; the registered principal supervising VA business signs it, with escalation to the Head of Compliance on any senior-investor override"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — FINRA Rule 2330(b)-(c), Rule 2111 (reasonable-basis, customer-specific and quantitative suitability), Rule 4512(a)(1) customer account information and Reg BI 17 CFR 240.15l-1(a)(2)(ii) care obligation re-read at each annual procedure refresh, together with FINRA Regulatory Notices 07-53 and 20-18 and the FINRA senior-investor guidance that sets the age-65 enhanced-review trigger"
+        },
+        "In-scope processes": {
+          "value": "Deferred variable annuity new sales, 1035 exchanges, replacements and subsequent purchase payments — from order-ticket capture in the branch through principal approval, ending at transmittal of the application to the issuing insurer"
+        },
+        "In-scope systems": {
+          "app": "Salesforce FSC",
+          "value": "Salesforce FSC holds the VA order ticket, the Rule 2330 suitability form, the source-of-funds panel and the 65+ senior-investor flag; approved packages are archived to the document repository and the contract number is written back on issue"
+        },
+        "Compliance procedure documented": {
+          "value": "VA Principal Review Procedure SUIT-2330 — ticket intake and clock start, Rule 2111 customer-specific and quantitative tests, surrender-charge and exchange economics worksheet, the senior-investor enhanced module (source of funds, liquidity, time horizon vs surrender period), and the approve / return-for-deficiency / reject dispositions"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance and countersigned by the registered principal supervising variable annuity business; re-approved annually and on publication of any FINRA Regulatory Notice touching Rule 2330, Rule 2111 or Reg BI"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per sale — the principal review and approval must be completed no later than seven business days after the office of supervisory jurisdiction receives the customer-signed application, and in every case before the application is transmitted to the issuing insurer"
+        },
+        "Deadline reminders configured": {
+          "value": "Salesforce FSC queue alerts fire at business day 3 and business day 5 of the seven-business-day clock, with a day-6 escalation e-mail to the Compliance Manager; unapproved tickets past day 6 appear on the daily Suitability Desk aged-ticket dashboard"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Signed Rule 2330 suitability form, the principal approval stamp with timestamp and CRD number, the senior-investor worksheet, source-of-funds evidence and the surrender-charge computation retained six years from the transaction date under SEC Rule 17a-4(b), with the first two years in an easily accessible place"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Tickets approved after the seventh business day, or transmitted to the insurer before principal approval, are raised as supervisory exceptions carrying the representative CRD number, the contract number, root cause and a remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs off every late principal approval, every overturned approval and every senior-investor transaction escalated above the Suitability Desk"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All deferred variable annuity applications, 1035 exchanges and subsequent purchase payments dated in the quarter per the Salesforce FSC order-ticket extract, reconciled to the insurer's issued-contract file and to the commission ledger"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on transmittal before principal approval and on approvals recorded after the seventh business day; documentation-defect rate on the Rule 2330 form must be at or below 2% of the sample, and any single senior-investor transaction missing the enhanced-review worksheet fails the quarter"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "The obligation is per sale; the test runs quarterly over that quarter's transactions with 100% coverage of tickets where the owner or annuitant is 65 or older and a seeded random sample of the remainder"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "The auditor holds no registered-principal role over variable annuity business and must not have approved, prepared or returned any sampled ticket"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly VA suitability test workpaper — population extract, 65+ census, sample seed, re-performance notes, deadline recomputation and exception log — filed in the compliance evidence repository under the quarter and the broker-dealer CRD"
+        },
+        "Regulator-ready documentation": {
+          "value": "Principal approval log export showing representative CRD, contract number, application signature date, OSJ receipt date and approval timestamp, plus the underlying Rule 2330 forms, producible for a FINRA Rule 8210 request or a cycle examination within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Broker-Dealer Compliance owns the FINRA Rule 8210 and cycle-exam response through the firm's FINRA Gateway super account administrator; Regulatory Counsel clears any statement acknowledging a late, missing or overturned principal approval before it is transmitted"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Capture the variable annuity order ticket and start the seven-business-day clock",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Open the Suitability Desk queue in Salesforce FSC and filter Record Type = 'VA Order Ticket', Status = 'Awaiting principal review'.",
+            "Record on the ticket header: customer-signature date on the application, the date the office of supervisory jurisdiction physically or electronically received it, the selling representative's name and CRD number, the issuing insurer, product name and share class.",
+            "Set the Review Due field to OSJ receipt date + 7 business days per FINRA Rule 2330(c) and confirm the day-3 and day-5 alerts have armed.",
+            "Ask the branch operations contact for the receipt-date evidence (imaging timestamp or courier log) and attach it — never accept the representative's own stated date."
+          ],
+          "done": "the ticket shows signature date, evidenced OSJ receipt date, representative CRD and a Review Due date seven business days out."
+        },
+        {
+          "step": "Confirm the customer profile is complete to Rule 4512 and Rule 2111 standard",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Open the Customer Profile tab and check every Rule 2111(a) factor is populated: age, other investments, financial situation and needs, tax status, investment objectives, investment experience, investment time horizon, liquidity needs and risk tolerance.",
+            "Check the Rule 4512(a)(1) account-record fields — name, tax identification number, address, date of birth, employment status, annual income, net worth and the trusted contact person.",
+            "Reject blanks and 'N/A' entries back to the representative the same day rather than inferring values.",
+            "Compare stated income and net worth to the prior application from the same customer in the last 24 months and query any movement over 25%."
+          ],
+          "done": "every Rule 2111 factor and Rule 4512 account field is populated with a value the representative can evidence, with no blanks or 'N/A'."
+        },
+        {
+          "step": "Establish and evidence the source of funds",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "actions": [
+            "On the Source of Funds panel, classify each dollar as new money, existing brokerage or advisory assets, a 1035 exchange from another annuity, a qualified plan rollover, a life insurance surrender, or a reverse mortgage / home equity draw.",
+            "For exchange or surrender money, obtain the surrendering carrier's contract statement showing contract number, issue date, current account value, surrender value and the remaining surrender charge schedule.",
+            "For rollover money, obtain the plan or IRA statement and record whether the funds were already tax-deferred — a tax-deferred-to-tax-deferred purchase must carry a written non-tax rationale.",
+            "Flag reverse-mortgage, home-equity or recent-inheritance funding to the Compliance Manager as a standing red flag under FINRA senior-investor guidance.",
+            "Attach every statement to the ticket in the Source Documents section."
+          ],
+          "done": "each funding dollar is classified, evidenced by a carrier or plan statement, and any borrowed or home-equity funding is flagged."
+        },
+        {
+          "step": "Compute the surrender-charge and exchange economics",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Open the VA exchange worksheet and enter the existing contract's account value, surrender value, surrender-charge percentage and remaining surrender period in years.",
+            "Enter the proposed contract's mortality and expense charge, administrative fee, sub-account weighted expense ratio, rider charges and its own surrender-charge schedule and duration.",
+            "Compute the dollar surrender charge incurred, the annual cost difference in basis points and dollars, and the break-even period in years.",
+            "Compute the loss of any existing guaranteed benefit — enhanced death benefit amount, guaranteed living benefit base, or a bonus subject to recapture.",
+            "Paste the completed worksheet into the ticket and state in one sentence why the customer is better off after the charges."
+          ],
+          "done": "the worksheet shows surrender charge in dollars, annual cost differential, break-even years and lost guarantees, with a written economic rationale."
+        },
+        {
+          "step": "Test the exchange against the FINRA Rule 2330(b)(1)(A)(iii) thirty-six-month rule",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Query the customer's exchange history in Salesforce FSC and in the surrendering carrier's statement for any deferred variable annuity exchanged within the preceding 36 months.",
+            "Where a prior exchange exists inside 36 months, record the prior contract number, exchange date and the reason then given, and require a written second-level justification from the representative.",
+            "Confirm the customer has not already used up a surrender-charge-free window on the existing contract that would make waiting cheaper — state the waiting date if so.",
+            "Route every inside-36-month exchange to the Compliance Manager for mandatory review regardless of dollar size."
+          ],
+          "done": "the 36-month exchange history is documented and any repeat exchange carries a written second-level justification and Compliance Manager routing."
+        },
+        {
+          "step": "Run the senior-investor enhanced review module for owners or annuitants aged 65 and over",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "actions": [
+            "Where the owner or annuitant is 65 or older on the application date, open the Senior Investor Worksheet on the ticket — it is mandatory and cannot be waived by the representative.",
+            "Record the customer's income sources (Social Security, pension, required minimum distributions), monthly essential expenses, and the liquid assets remaining after the purchase.",
+            "Confirm the purchase does not push annuity holdings above the firm's concentration limit of 50% of liquid net worth, and record the computed percentage.",
+            "Record any diminished-capacity or undue-influence indicators observed — confusion about the product, a third party directing the transaction, or a recent change in the named beneficiary — and the trusted contact person on file under Rule 4512(a)(1)(F).",
+            "Where the surrender period ends after the customer's age 85, require a written statement of why the money is not needed inside that period."
+          ],
+          "done": "every 65+ transaction carries a completed Senior Investor Worksheet with income, remaining liquid assets, the concentration percentage and a capacity observation."
+        },
+        {
+          "step": "Test liquidity need and time horizon against the surrender period",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "actions": [
+            "Read the stated time horizon from the customer profile and compare it to the proposed contract's surrender-charge duration in years.",
+            "Compute the emergency reserve remaining after the purchase and confirm it covers at least six months of the customer's stated essential expenses.",
+            "Record the contract's free-withdrawal allowance (commonly 10% of account value per year) and test it against any known near-term cash need — a house purchase, medical costs, or an RMD schedule.",
+            "Where time horizon is shorter than the surrender period, mark the ticket Return for Deficiency and state the mismatch in years."
+          ],
+          "done": "time horizon meets or exceeds the surrender period, the six-month reserve test is documented, and any mismatch is returned rather than approved."
+        },
+        {
+          "step": "Evaluate share class, riders and cost against reasonably available alternatives",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "actions": [
+            "List the share classes the issuing insurer offers on this contract (B, C, L, I / advisory) with their surrender schedules and total annual cost, and record why the recommended class beats the alternatives for this customer.",
+            "For every elected rider — guaranteed lifetime withdrawal benefit, enhanced death benefit, long-term-care rider — record its annual charge in basis points and the specific customer need it answers.",
+            "Confirm the customer is not paying for a benefit they cannot use, such as a living-benefit rider with a deferral period longer than the stated time horizon.",
+            "Record the Reg BI care-obligation conclusion in one paragraph: why this contract, this share class and this rider set is in the customer's best interest and not merely suitable."
+          ],
+          "done": "share class, each rider charge and the reasonably-available-alternatives comparison are documented with a written best-interest conclusion."
+        },
+        {
+          "step": "Verify the selling representative's registration, state licence and product training",
+          "by": "Producer Licensing Coordinator",
+          "role": "Producer Licensing Coordinator",
+          "app": "NIPR (Producer Licensing)",
+          "actions": [
+            "In NIPR Gateway run a Producer Database inquiry on the representative's NPN and confirm an active resident or non-resident life licence with a variable-products line of authority in the customer's state.",
+            "Confirm the appointment with the issuing insurer is active in that state, and where the state requires appointment before solicitation, confirm the appointment date pre-dates the application date.",
+            "Confirm in FINRA Gateway that the Series 6 or 7 and Series 63/66 registrations are active and that no statutory disqualification or pending U4 disclosure blocks the sale.",
+            "Confirm the state four-hour annuity training and the carrier's product-specific training are on file and dated before the application date.",
+            "Write the licence, appointment and training verification result onto the ticket with the date checked."
+          ],
+          "done": "the ticket records an active licence, an active appointment, active FINRA registrations and pre-dated product training for the selling representative."
+        },
+        {
+          "step": "Assemble the principal review package",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "OpenText Document Mgmt",
+          "actions": [
+            "Compile into a single indexed package: the signed application, the Rule 2330 suitability form, the customer profile print, the source-of-funds statements, the exchange worksheet, the Senior Investor Worksheet where applicable, the disclosure delivery receipts and the licensing verification.",
+            "Name the package <contract or ticket id>-<customer surname>-<application date> and file it in the VA Suitability folder in the document repository.",
+            "Write a one-page reviewer summary stating the recommendation, the funding source, the exchange status, the senior flag and the open questions.",
+            "Move the ticket status to 'Ready for principal' and record the handoff timestamp."
+          ],
+          "done": "a single indexed package with a one-page summary sits in the repository and the ticket reads 'Ready for principal' with a timestamp."
+        },
+        {
+          "step": "Principal reviews the recommendation and records an approve, return or reject disposition",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Open the ticket in Salesforce FSC and read the package before looking at the analyst's conclusion, forming an independent view on the Rule 2111 customer-specific and quantitative tests.",
+            "Confirm the Rule 2330(b)(1) determinations are all satisfied on the record: the customer has been informed of the material features, the customer would benefit from certain features such as tax deferral, annuitization or a death or living benefit, and the contract as a whole is suitable.",
+            "For 65+ transactions, sign the Senior Investor Worksheet personally and record the specific reason the product remains in the customer's best interest.",
+            "Select a disposition — Approve, Return for Deficiency or Reject — and type the reason; an approval with no typed reason is not accepted by the form.",
+            "Apply the principal approval stamp carrying name, CRD number and the system timestamp, and confirm the timestamp falls on or before the Review Due date."
+          ],
+          "done": "a named registered principal has stamped an approve, return or reject decision with a typed reason on or before the seventh business day."
+        },
+        {
+          "step": "Return deficient tickets to the representative and manage the re-review",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Where the disposition is Return for Deficiency, list the missing items field by field on the ticket and set a 2-business-day response due date for the representative.",
+            "Notify the representative and the branch manager through the ticket notification and record the notification timestamp.",
+            "Do not restart the seven-business-day clock — the original OSJ receipt date governs, so escalate to the Head of Compliance if the response will land past day 7.",
+            "On resubmission, re-read the changed fields only and record a second disposition with its own timestamp."
+          ],
+          "done": "every returned ticket has an itemised deficiency list, a notified representative and a second dated disposition against the original clock."
+        },
+        {
+          "step": "Release the approved application to the issuing insurer and record the identifiers",
+          "by": "New Business Case Manager",
+          "role": "New Business Case Manager",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Confirm the principal approval stamp is present before transmitting — the transmit action is blocked in the workflow without it, and manual override requires a Head of Compliance ticket.",
+            "Transmit the application package to the issuing insurer and record the transmittal timestamp and channel on the ticket.",
+            "On contract issue, write the insurer's contract number, issue date and initial premium back onto the ticket so the approval and the contract are joined by identifier.",
+            "Reconcile the transmitted set weekly against the approved set and investigate any transmittal with no matching approval as a breach."
+          ],
+          "done": "no application leaves the firm without a principal stamp, and every issued contract number is written back against its approval record."
+        },
+        {
+          "step": "Escalate rejections, overrides and senior-investor red flags",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Review every Reject disposition and every inside-36-month exchange weekly, and record whether the representative shows a pattern across customers.",
+            "Where a red flag of diminished capacity or undue influence was recorded, decide within 2 business days whether to place a temporary hold on the disbursement under FINRA Rule 2165 and notify the trusted contact.",
+            "Open a heightened-supervision plan on any representative with two or more rejected or returned VA tickets in a rolling quarter, naming the supervising principal and the review frequency.",
+            "Report rejection counts, senior-investor volumes and inside-36-month exchange counts to the Compliance Committee each quarter."
+          ],
+          "done": "rejections and red flags carry a dated decision, capacity concerns have a Rule 2165 determination, and repeat offenders sit under a named heightened-supervision plan."
+        },
+        {
+          "step": "Retain the approved suitability file for the full retention period",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Move the closed package — suitability form, principal stamp, senior worksheet, source-of-funds evidence and exchange worksheet — into the compliance evidence repository indexed by contract number, representative CRD and application date.",
+            "Apply the six-year SEC Rule 17a-4(b) retention label with a write-once, non-rewriteable storage attribute and confirm the first two years are held in the easily accessible tier.",
+            "Test retrieval quarterly by pulling three random records and timing the retrieval to prove a same-day production capability.",
+            "Confirm the index exposes search by customer name, contract number, CRD and 65+ flag for exam response."
+          ],
+          "done": "the file is stored write-once under a six-year label, retrievable same day and searchable by contract number, CRD and senior flag."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of variable annuity transactions for the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Extract from Salesforce FSC every VA order ticket with an application-signature date inside the quarter, with fields: ticket id, customer, owner and annuitant dates of birth, representative CRD, insurer, product, premium, exchange flag and OSJ receipt date.",
+            "Add subsequent purchase payments and 1035 exchanges, which are separately subject to Rule 2330 and are commonly excluded from new-business extracts.",
+            "Derive the 65+ census by computing owner and annuitant age at the application date rather than trusting the stored senior flag.",
+            "Sign the extract as complete, recording the query, the run date and the row count."
+          ],
+          "done": "the population carries every new sale, exchange and subsequent payment in the quarter with an independently derived 65+ census."
+        },
+        {
+          "step": "Reconcile the population to the insurer and commission records",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "billing/commission platform",
+          "actions": [
+            "Pull the quarter's paid VA first-year commission records by representative CRD and contract number from the commission platform.",
+            "Pull the issuing insurers' contract-issue confirmations for the same period and match on contract number.",
+            "Match all three sources and list any contract paid a commission or confirmed as issued with no corresponding order ticket — those are the highest-risk rows and enter the sample automatically.",
+            "Resolve or document every unmatched row before drawing the sample; an unreconciled population invalidates the test."
+          ],
+          "done": "ticket, commission and insurer records reconcile item for item, with every unmatched contract explained or carried into the sample."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of transactions where the owner or annuitant is 65 or older at the application date.",
+            "Take 100% of 1035 exchanges occurring within 36 months of a prior exchange, and 100% of unmatched commission-only rows.",
+            "Take 30 further rows by seeded random selection from the remaining population, with a floor of 45 rows in total.",
+            "Record the seed value, population size, strata counts and selection date in the workpaper so the sample can be redrawn identically."
+          ],
+          "done": "the sample is reproducible from a recorded seed and covers every 65+ and repeat-exchange transaction in the quarter."
+        },
+        {
+          "step": "Recompute the seven-business-day principal review clock",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled row, take the evidenced OSJ receipt date and add seven business days using the firm's published holiday calendar — recompute rather than reading the stored Review Due field.",
+            "Compare the recomputed due date to the principal approval timestamp and record the variance in business days.",
+            "Test the receipt date itself against the underlying imaging or courier evidence; a receipt date later than the imaging timestamp is a clock-manipulation finding, not a data-quality issue.",
+            "List every approval landing after day 7 as an automatic exception with no judgement applied."
+          ],
+          "done": "each sampled approval carries an independently recomputed due date, an evidenced receipt date and a stated business-day variance."
+        },
+        {
+          "step": "Re-perform the suitability determination without reading the analyst's conclusion",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Open the sampled ticket's customer profile, source-of-funds panel and product features with the analyst summary and principal reason field hidden.",
+            "Reach an independent conclusion on the Rule 2330(b)(1) determinations — informed of material features, benefit from tax deferral, annuitization or a death or living benefit, and overall suitability.",
+            "Reveal the recorded determination and compare; a right conclusion supported by an unevidenced profile field still counts as an exception.",
+            "Screenshot the profile screen relied on into the workpaper with the ticket id visible."
+          ],
+          "done": "every sampled row has an independent re-performance note, a captured source screen and a recorded agree or exception."
+        },
+        {
+          "step": "Recompute the surrender-charge and exchange economics",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "For every sampled exchange, rebuild the worksheet from the surrendering carrier's statement: account value, surrender value, surrender-charge percentage and remaining years.",
+            "Recompute the dollar surrender charge, the annual cost differential in basis points and the break-even period, and compare each to the filed worksheet.",
+            "Confirm any lost guaranteed benefit — enhanced death benefit amount or living-benefit base — was quantified rather than described.",
+            "Flag any break-even period that exceeds the customer's stated time horizon as a substantive suitability exception, separate from arithmetic differences."
+          ],
+          "done": "recomputed surrender charge, cost differential and break-even agree with the filed worksheet, and any break-even beyond the time horizon is flagged."
+        },
+        {
+          "step": "Test the senior-investor enhanced review on the 65+ stratum",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "Confirm a completed Senior Investor Worksheet exists for every 65+ transaction and that it is personally signed by a registered principal, not initialled by the analyst.",
+            "Recompute the annuity concentration percentage from the stated liquid net worth and compare it to the firm's 50% limit.",
+            "Confirm the remaining liquid reserve covers at least six months of stated essential expenses and that the surrender period end date was tested against the customer's age.",
+            "Confirm the trusted contact person field under Rule 4512(a)(1)(F) is populated or a documented customer refusal is on file.",
+            "Read the capacity observation and confirm any recorded red flag produced a documented Rule 2165 hold decision."
+          ],
+          "done": "every 65+ transaction shows a principal-signed worksheet, a recomputed concentration percentage, a reserve test and a resolved capacity observation."
+        },
+        {
+          "step": "Trace approvals to identifiers and prove nothing was transmitted before approval",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "For each sampled row, pull the transmittal timestamp from the new-business workflow and compare it to the principal approval timestamp.",
+            "Confirm the approval record, the transmitted application and the issued contract carry the same contract number, representative CRD and premium amount.",
+            "Test the workflow control itself by attempting a transmit on a test ticket with no approval stamp and confirming the system blocks it.",
+            "Record any transmittal preceding approval as a reportable breach of FINRA Rule 2330(c), not a documentation exception."
+          ],
+          "done": "no sampled application was transmitted before its approval timestamp and the system block is proven to work."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one GRC issue per exception carrying ticket id, contract number, representative CRD, the rule breached and the customer impact.",
+            "Assign a root cause from the fixed list — late OSJ receipt logging, incomplete customer profile, missing senior worksheet, unquantified exchange economics, or clock breach — and name an owner.",
+            "Set a remediation date and, for any transmittal-before-approval or 65+ worksheet gap, open a customer-remediation assessment with Regulatory Counsel covering rescission or fee reimbursement.",
+            "Carry each open issue into the next quarter's sample as a mandatory retest row."
+          ],
+          "done": "every exception has a GRC issue, a listed root cause, a named owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report the results",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Compute the documentation-defect rate against the 2% threshold and the clock-breach count against the zero threshold.",
+            "State the conclusion — effective, effective with exceptions, or ineffective — with the workpaper references supporting it.",
+            "Have the Internal Auditor, who approved no sampled ticket and holds no principal role over VA business, sign the workpaper.",
+            "Report the exception rate, the 65+ findings and any Rule 2330(c) breaches to the Compliance Committee at its next sitting and feed the outcome into the annual Rule 3120 supervisory controls report."
+          ],
+          "done": "a signed workpaper states the conclusion, the defect and breach rates, and the committee reporting date."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-014-C34",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Producer Compliance Manager",
+          "value": "Distribution Compliance owns both halves of this control — the pre-solicitation product-training gate on every variable-product producer, and the written Rule 3110(b)(4) correspondence review programme covering those producers' customer communications"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — FINRA Rule 3110(b)(4) (review of correspondence and internal communications), Rule 2210(b)(2) (correspondence supervision in lieu of principal pre-approval), Rule 1240(b) Firm Element and the NAIC Suitability in Annuity Transactions Model Regulation §6 four-hour annuity course plus product-specific training, each checked against the current adoption text in every state where the firm solicits"
+        },
+        "In-scope processes": {
+          "value": "Producer onboarding and ongoing appointment maintenance for variable annuity and variable life distribution — no quote, illustration, seminar or application may be taken before product-specific and state annuity training is evidenced — plus continuous surveillance and documented review of those producers' correspondence"
+        },
+        "In-scope systems": {
+          "app": "Cornerstone LMS",
+          "value": "Cornerstone LMS holds course assignments, completion dates and certificates; completions feed the solicitation block enforced in the producer management system and mirrored to the Broker & Agent Portal, while correspondence is journalled to the surveillance archive for lexicon review"
+        },
+        "Compliance procedure documented": {
+          "value": "Producer Training Gate and Correspondence Supervision Procedure DIST-3110 — the course catalogue mapped by product and state, evidence standards for third-party training vendors, the automatic appointment hold, and the correspondence sampling methodology naming the lexicon set, sampling rate, reviewer qualification and disposition codes"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved jointly by the Head of Distribution and the Head of Compliance; re-approved annually and re-issued on each new variable product launch or state training bulletin, with the lexicon set reviewed semi-annually against complaint themes"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Continuous — training must be evidenced before the first solicitation; the state four-hour annuity course is tracked to each producer's licence renewal cycle; product-specific training must be re-run within 6 months of any material product change; flagged correspondence must be dispositioned within 3 business days of surveillance capture"
+        },
+        "Deadline reminders configured": {
+          "value": "Cornerstone LMS sends completion reminders at 60, 30 and 7 days before a producer's training expiry, an automatic solicitation hold applies at expiry, and a daily lapsed-training exception report reaches Distribution Compliance by 08:00; the correspondence queue ages items red at 3 business days"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Course completion certificates, state four-hour annuity CE transcripts, carrier product-training confirmations, producer attestations and the dated correspondence review log with reviewer identity and disposition retained six years under SEC Rule 17a-4(b), and per each state's producer-record retention rule"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any quote, illustration, seminar or application taken by a producer without evidenced training, and any flagged correspondence left undispositioned past 3 business days, is logged with the producer CRD and NPN, the affected transaction, root cause and a remediation date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Distribution",
+          "value": "Signs the reinstatement of any producer whose solicitation rights were suspended for lapsed training and closes each correspondence review exception after confirming customer impact was assessed"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All producers holding an active variable-product appointment at any point in the quarter, joined to every VA and VUL application, illustration and quote they generated, together with the full journalled correspondence set for those producers"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero applications, illustrations or seminars from producers without evidenced product and state training; correspondence review coverage must meet or exceed the sampling rate stated in DIST-3110 and every reviewed item must carry a named reviewer and a disposition code — any flagged item with no disposition is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "The obligation is continuous; the training gate is tested monthly against the exception report and the correspondence review programme is tested quarterly over that quarter's journalled population"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Officer",
+          "value": "The reviewer sits outside Distribution Compliance, performed none of the sampled correspondence reviews and granted none of the sampled training waivers"
+        },
+        "Evidence location for test results": {
+          "value": "Monthly training-gate exception pack and the quarterly correspondence review test workpaper filed in the compliance evidence repository, indexed by producer CRD and by state"
+        },
+        "Regulator-ready documentation": {
+          "value": "Producer training matrix (CRD, NPN, course, completion date, state, product) plus the correspondence review log showing reviewer, review date and disposition, exportable for a FINRA cycle exam or a state market conduct training-verification request within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Distribution Compliance drafts the response, the Head of Compliance approves it, and Regulatory Counsel clears any answer conceding an untrained solicitation or an unreviewed correspondence population before it is filed with FINRA or the state insurance department"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Maintain the product and state training matrix",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Build one matrix row per variable product per state listing the required items: the state four-hour annuity course, the carrier product-specific training, the firm's Reg BI and Rule 2330 module, and the Firm Element unit for that product line.",
+            "Read each state's current adoption of the NAIC Suitability in Annuity Transactions Model §6 and record whether the state requires training before solicitation or before appointment, and whether reciprocity applies to a course taken in another state.",
+            "Load the matrix into Cornerstone LMS as an assignment rule keyed on product code and the producer's licensed states.",
+            "Re-read the matrix each quarter against state bulletins and record the review date and reviewer on the matrix header."
+          ],
+          "done": "every product-state pair has a named required course set, a reciprocity note and a dated quarterly review."
+        },
+        {
+          "step": "Build and assign the product-specific training curriculum",
+          "by": "Learning Development Manager",
+          "role": "Learning Development Manager",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Take the product specification from the Insurance Product Manager and build a module covering contract features, fees and charges, surrender schedule, rider mechanics, the guaranteed and non-guaranteed elements, and the disclosure package the producer must deliver.",
+            "Add an assessment with a documented pass mark of 70% and a maximum of two retakes before a coaching referral.",
+            "Set the curriculum to auto-assign in Cornerstone LMS the moment a producer is added to that product's distribution group.",
+            "Set the recertification interval and confirm the module version number appears on the completion certificate so a completion can be tied to the version taught."
+          ],
+          "done": "each variable product has a versioned module with an assessment, an auto-assign rule and a recertification interval."
+        },
+        {
+          "step": "Verify state licence, appointment and the four-hour annuity course",
+          "by": "Producer Licensing Coordinator",
+          "role": "Producer Licensing Coordinator",
+          "app": "NIPR (Producer Licensing)",
+          "actions": [
+            "In NIPR Gateway run a Producer Database inquiry by NPN for each producer and confirm an active life licence with variable-products authority in every state they solicit.",
+            "In NIPR Gateway run Appointment Renewal and Appointment Inquiry for each state to confirm carrier appointments are active and not lapsed for non-payment.",
+            "Pull the state CE transcript and confirm the one-time four-hour annuity training is recorded, noting the completion date and provider course number.",
+            "Where a state requires appointment before solicitation, record the appointment effective date on the producer record as the earliest permitted solicitation date.",
+            "Write the verification result and check date into the producer management record."
+          ],
+          "done": "each producer record shows an active licence, active appointments, the dated four-hour course and an earliest permitted solicitation date per state."
+        },
+        {
+          "step": "Reconcile carrier product-training confirmations from the training vendors",
+          "by": "Distribution Operations Manager",
+          "role": "Distribution Operations Manager",
+          "app": "agency/producer management system",
+          "actions": [
+            "Load the weekly completion feed from each third-party annuity training vendor (RegEd, Sircon, Quest CE) into the producer management system, matched on NPN.",
+            "Compare vendor completions to Cornerstone LMS records and list producers evidenced in one system and not the other.",
+            "Accept only completion records that carry the provider name, course number, completion date and the producer NPN — a self-attestation e-mail is not evidence.",
+            "Send unmatched producers to the Producer Compliance Manager the same day for follow-up before their next solicitation."
+          ],
+          "done": "vendor and LMS completion records reconcile by NPN, and every accepted record carries provider, course number and date."
+        },
+        {
+          "step": "Apply the automatic solicitation block for untrained or lapsed producers",
+          "by": "Distribution Operations Manager",
+          "role": "Distribution Operations Manager",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Configure the producer status rule so that a missing or expired required course sets Solicitation Status = 'Blocked' on the producer record within one overnight cycle.",
+            "Push the blocked status to the Broker & Agent Portal so the producer sees a plain-language message naming the missing course and the link to launch it.",
+            "Suppress the producer from carrier appointment submissions and from marketing campaign audiences while blocked.",
+            "Require a Producer Compliance Manager action, not a help-desk action, to lift a block, and stamp the lift with a name and reason."
+          ],
+          "done": "an expired or missing course blocks the producer overnight and only a named compliance action can lift it."
+        },
+        {
+          "step": "Gate the quote and illustration tools at the point of use",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Configure the illustration tool to check Solicitation Status and product-training completion before rendering an illustration for a variable product.",
+            "Return a blocking message naming the missing course rather than a generic error, so the producer can self-serve.",
+            "Log every blocked attempt with producer NPN, product, state and timestamp into the attempt log — blocked attempts are the leading indicator of untrained selling.",
+            "Send the weekly blocked-attempt summary to the Producer Compliance Manager and to the responsible sales manager."
+          ],
+          "done": "the illustration tool refuses untrained producers, names the missing course, and every blocked attempt is logged and reported weekly."
+        },
+        {
+          "step": "Gate application acceptance at new business",
+          "by": "New Business Case Manager",
+          "role": "New Business Case Manager",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Add a good-order check that reads the producer's training status as at the application signature date, not as at the processing date.",
+            "Set applications from untrained producers to Not In Good Order with reason code 'PRODUCER TRAINING NOT EVIDENCED' and hold them out of issue.",
+            "Notify Distribution Compliance and the writing agency the same day, naming the missing course and the application number.",
+            "Never re-date the application to a post-training date — record the true dates and escalate the transaction for a compliance decision."
+          ],
+          "done": "applications signed before training completion are held NIGO with the true dates preserved and Distribution Compliance notified."
+        },
+        {
+          "step": "Run the daily lapsed and expiring training report",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Power BI",
+          "actions": [
+            "Publish a daily dashboard with three panes: expired training with active appointments, training expiring in 30 days, and producers who transacted in the last 7 days while blocked.",
+            "Work the third pane first — every row there is a potential untrained solicitation and needs a transaction-level answer that day.",
+            "Send the 30-day pane to the responsible sales managers as a named list, not an aggregate count.",
+            "Record the daily run in the control log so a missed day is visible to testers."
+          ],
+          "done": "the dashboard runs daily, transacted-while-blocked rows are cleared same day, and each run is logged."
+        },
+        {
+          "step": "Re-train the field after a material product change",
+          "by": "Insurance Product Manager",
+          "role": "Insurance Product Manager",
+          "actions": [
+            "Notify the Learning Development Manager in writing of any change to fees, surrender schedule, rider mechanics, investment options or guaranteed elements, with the effective date.",
+            "Classify the change as material or non-material against the written test in DIST-3110 and record the classification and rationale.",
+            "For material changes, require the updated module to be completed within 6 months of the effective date, with a solicitation block on non-completers at that date.",
+            "Withdraw the superseded module version so no producer can satisfy the requirement with obsolete content."
+          ],
+          "done": "each product change carries a written materiality call, a re-training deadline and the withdrawal of the superseded module version."
+        },
+        {
+          "step": "Define the written correspondence review methodology",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "actions": [
+            "Write into DIST-3110 the Rule 3110(b)(4) methodology: which communications are captured, the lexicon set, the sampling rate for non-flagged items, the reviewer qualification (registered principal), the review turnaround and the disposition codes.",
+            "Build the lexicon around variable-product risk language — 'guaranteed return', 'no risk', 'principal protected', 'free', 'better than a CD', 'switch', 'surrender', 'bonus' — plus senior-investor and complaint terms.",
+            "Set an elevated sampling rate for producers under heightened supervision and for those in their first 12 months of variable-product selling, and state the rates numerically.",
+            "Record the reviewer's independence rule: a reviewer may not review the correspondence of a producer whose production they are compensated on."
+          ],
+          "done": "the written procedure states the lexicon, the numeric sampling rates, reviewer qualification, turnaround and disposition codes."
+        },
+        {
+          "step": "Work the daily correspondence surveillance queue",
+          "by": "Marketing Compliance Analyst",
+          "role": "Marketing Compliance Analyst",
+          "app": "Microsoft 365 / SharePoint",
+          "actions": [
+            "Open the surveillance queue fed by the journalled e-mail, portal message and archived text traffic for variable-product producers.",
+            "Work items in age order and read the full thread, not the flagged snippet, before dispositioning.",
+            "Apply a disposition code — No Action, Coach, Escalate to Principal, Complaint, or Rule 2210 violation — and type the reason with the specific phrase relied on.",
+            "Clear every flagged item within 3 business days of capture; escalate anything still open at day 3 to the Producer Compliance Manager.",
+            "Where a communication promises performance, understates risk, or omits fees and surrender charges, treat it as a Rule 2210(d)(1) content breach and pull the producer's other recent correspondence."
+          ],
+          "done": "every flagged item is dispositioned within 3 business days with a named reviewer, a code and the specific phrase relied on."
+        },
+        {
+          "step": "Review the non-flagged sample to the stated rate",
+          "by": "Marketing Compliance Analyst",
+          "role": "Marketing Compliance Analyst",
+          "actions": [
+            "Draw the non-flagged correspondence sample at the rate stated in DIST-3110, weighted to producers in their first 12 months and those under heightened supervision.",
+            "Record for each sampled item the reviewer name, review date, disposition and the producer CRD in the correspondence review log.",
+            "Where the sample surfaces a theme — an unapproved sales idea, a recurring comparison to bank deposits — raise it to the Producer Compliance Manager for a field-wide notice.",
+            "Report monthly review counts, coverage against the stated rate, and disposition mix to the Head of Compliance."
+          ],
+          "done": "the non-flagged sample is drawn at the stated rate and every item carries reviewer, date and disposition in the log."
+        },
+        {
+          "step": "Pre-approve retail communications about variable products",
+          "by": "Marketing Compliance Analyst",
+          "role": "Marketing Compliance Analyst",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Require every seminar deck, producer-created flyer and social post about a variable product to pass through the advertising review queue before first use.",
+            "Test each piece against Rule 2210(d)(1) content standards and Rule 2211 — fair and balanced, risks stated alongside benefits, no projection of performance, fees and surrender charges disclosed, and the prospectus offer present.",
+            "Record a registered principal's pre-use approval with name, date and the version approved, and stamp the version number on the artwork.",
+            "Refuse producer-modified versions of approved material and log the attempt against the producer's record."
+          ],
+          "done": "no variable-product retail piece reaches a customer without a dated principal pre-use approval tied to a stamped version."
+        },
+        {
+          "step": "Escalate untrained solicitations and correspondence violations",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Open a tracker issue for every confirmed untrained solicitation, naming the producer CRD and NPN, the customers affected and the transactions taken.",
+            "Decide within 5 business days whether the affected customers need contacting, whether the transaction stands, and whether a state notification is required under that state's training rule.",
+            "Place producers with a repeat training lapse or a Rule 2210 content breach under a named heightened-supervision plan with an elevated correspondence sampling rate.",
+            "Report untrained-solicitation counts and correspondence disposition trends to the Compliance Committee quarterly."
+          ],
+          "done": "every untrained solicitation has a tracker issue, a 5-business-day customer-impact decision and, where repeated, a heightened-supervision plan."
+        },
+        {
+          "step": "Retain the training and correspondence review evidence",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Archive completion certificates, state CE transcripts, vendor confirmations and the monthly correspondence review log into the compliance evidence repository indexed by producer CRD, NPN and state.",
+            "Apply the six-year SEC Rule 17a-4(b) retention label and confirm the correspondence archive itself is held in a non-rewriteable, non-erasable format.",
+            "Keep the withdrawn module versions alongside the current one so a historical completion can be tied to the content actually taught.",
+            "Test retrieval quarterly by pulling one producer's full training and correspondence history end to end."
+          ],
+          "done": "training and review evidence is archived under a six-year non-rewriteable label and a full producer history can be retrieved on demand."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the producer and transaction population for the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "agency/producer management system",
+          "actions": [
+            "Extract every producer holding an active variable-product appointment at any point in the quarter, with CRD, NPN, licensed states, appointment effective dates and solicitation status history.",
+            "Join to every VA and VUL application, illustration and quote generated in the quarter with the producer NPN and the event date.",
+            "Include terminated producers who transacted before leaving — they are routinely dropped from active-status extracts and are a common gap.",
+            "Sign the extract as complete with the query, run date and row counts."
+          ],
+          "done": "the population covers every appointed and terminated producer and each transaction they generated in the quarter."
+        },
+        {
+          "step": "Reconcile the population to the licensing and LMS sources of record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "NIPR (Producer Licensing)",
+          "actions": [
+            "Run a bulk NIPR Producer Database inquiry on the population NPNs and compare licence status, lines of authority and appointment status to the internal producer records.",
+            "Compare Cornerstone LMS completion records to the third-party vendor feed for the same NPNs and list every one-sided record.",
+            "Investigate every producer showing an internal 'trained' status with no NIPR-visible licence or no vendor completion record.",
+            "Resolve or document every difference before sampling — an unreconciled roster invalidates the training-gate conclusion."
+          ],
+          "done": "internal producer status reconciles to NIPR and to vendor completion records with every difference explained."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of producers who transacted while their solicitation status was Blocked, and 100% of producers in their first 12 months of variable-product selling.",
+            "Take 25 further producers by seeded random selection, and for each draw 10 correspondence items — half flagged, half non-flagged.",
+            "Take 100% of items that received a Complaint or Rule 2210 violation disposition in the quarter.",
+            "Record the seed, strata sizes, population size and selection date so the sample can be redrawn identically."
+          ],
+          "done": "the sample is reproducible from a recorded seed and covers every transacted-while-blocked producer and every violation disposition."
+        },
+        {
+          "step": "Re-perform the training gate as at the transaction date",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "For each sampled transaction, open the producer's Cornerstone LMS transcript and read the completion date of the required product module and the state four-hour course.",
+            "Compare each completion date to the application signature, illustration or seminar date — not the processing date.",
+            "Confirm the completed module version was the version current at that transaction date, using the version number on the certificate.",
+            "Record any transaction preceding completion as an automatic exception with the day gap stated."
+          ],
+          "done": "each sampled transaction shows a training completion date and module version that pre-date it, or is logged with a stated day gap."
+        },
+        {
+          "step": "Test that the automatic block and the tool gates actually work",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Take a test producer record, expire a required course, and confirm Solicitation Status flips to Blocked within one overnight cycle.",
+            "Attempt to render a variable-product illustration on the blocked test record and confirm the tool refuses and names the missing course.",
+            "Submit a test application from the blocked record and confirm new business sets it Not In Good Order with the training reason code.",
+            "Pull the block-lift audit trail for the quarter and confirm every lift carries a Producer Compliance Manager name and a typed reason — help-desk lifts are a control failure."
+          ],
+          "done": "the block applies overnight, all three gates refuse the blocked record, and every block lift is attributable to a named compliance action."
+        },
+        {
+          "step": "Test correspondence review coverage against the stated sampling rate",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take the total journalled correspondence volume for sampled producers from the archive and the reviewed count from the correspondence review log.",
+            "Recompute the coverage percentage and compare it to the numeric rate stated in DIST-3110, including the elevated rates for first-year and heightened-supervision producers.",
+            "Confirm the lexicon in production matches the lexicon in the approved procedure — an undocumented lexicon change silently reduces the flagged population.",
+            "List any producer whose correspondence was never surveilled because their address was missing from the journalling rule."
+          ],
+          "done": "actual review coverage is recomputed against the procedure's stated rates and every unjournalled producer address is listed."
+        },
+        {
+          "step": "Re-perform the correspondence review judgement on the sample",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Read each sampled correspondence item in full with the recorded disposition hidden, and reach an independent disposition.",
+            "Test against Rule 2210(d)(1) content standards and Rule 2211: are the risks stated with the benefits, is performance projected, are fees and surrender charges omitted, is a prospectus offered.",
+            "Reveal the recorded disposition and compare — a 'No Action' on an item promising a guaranteed return is a substantive exception, not a grading difference.",
+            "Confirm the reviewer was a registered principal and was not compensated on the sampled producer's production."
+          ],
+          "done": "each sampled item has an independent disposition, a comparison to the recorded one, and a verified independent reviewer."
+        },
+        {
+          "step": "Recompute the review turnaround and the expiry reminder arithmetic",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "For each sampled flagged item, compute capture date to disposition date in business days and compare to the 3-business-day standard.",
+            "For each sampled producer, recompute the training expiry date from the completion date plus the recertification interval and compare it to the stored expiry.",
+            "Confirm the 60, 30 and 7-day reminders were actually sent by pulling the LMS notification log for those producers.",
+            "List every item disposed past day 3 and every producer whose stored expiry is later than the recomputed expiry."
+          ],
+          "done": "turnaround and expiry dates are independently recomputed and every reminder is evidenced in the notification log."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise one issue per exception carrying producer CRD and NPN, the transaction or correspondence identifier, the rule breached and the customer impact.",
+            "Assign a root cause from the fixed list — vendor feed not loaded, state matrix stale, journalling rule missing an address, lexicon drift, reviewer capacity — and name an owner.",
+            "For confirmed untrained solicitations, open a customer-impact assessment with Regulatory Counsel covering whether the state requires notification and whether the sale stands.",
+            "Carry each open issue into the next quarter's sample as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a listed root cause, a named owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report the results",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Compute the untrained-solicitation count against the zero threshold and correspondence coverage against the procedure's stated rate.",
+            "State the conclusion — effective, effective with exceptions, or ineffective — with workpaper references for each finding.",
+            "Have the Compliance Officer, who sits outside Distribution Compliance and performed none of the sampled reviews, sign the workpaper.",
+            "Report the results to the Compliance Committee and feed the correspondence findings into the annual Rule 3120 supervisory controls report and the next Firm Element needs analysis."
+          ],
+          "done": "a signed workpaper states the conclusion, the untrained-solicitation count and coverage percentage, with a committee reporting date."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-014-C35",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Distribution Operations Manager",
+          "value": "Distribution owns point-of-sale delivery of the disclosure package and the delivery receipt; the Marketing Compliance Analyst owns the content standards of the pieces delivered and the FINRA Advertising Regulation filings"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — FINRA Rule 2210(d)(1) content standards and 2210(c)(3) filing timelines, Rule 2211 variable life and variable annuity communications, Rule 1240(b) Firm Element, Rule 2266 SIPC information, Securities Act Rule 498A initial and updating summary prospectuses, and the Reg BI Form CRS delivery rule, all re-read at the annual procedure refresh completed by December 31"
+        },
+        "In-scope processes": {
+          "value": "Every variable annuity and variable life solicitation and application — Form CRS and the Reg BI disclosure at or before the recommendation, the statutory or Rule 498A initial summary prospectus and the state Buyer's Guide at or before application signature, and the SIPC website address and telephone number at account opening and annually thereafter"
+        },
+        "In-scope systems": {
+          "app": "DocuSign",
+          "value": "DocuSign carries the disclosure envelope and produces the timestamped delivery certificate and signed acknowledgement; the certificate is indexed to the contract number in the policy administration platform and archived to the compliance evidence repository"
+        },
+        "Compliance procedure documented": {
+          "value": "Point-of-Sale Disclosure Delivery Procedure DIST-2210 — the required-document matrix by product, state and account type, the delivery-timing rules relative to recommendation and signature, e-delivery consent capture, receipt filing standards, the annual SIPC notice run and the annual Firm Element needs analysis"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance with Regulatory Counsel concurrence; refreshed annually by December 31 alongside the Firm Element needs analysis and re-issued on each prospectus supplement or state Buyer's Guide revision"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Form CRS at or before the recommendation and within 30 days of any customer request; prospectus and Buyer's Guide at or before application signature; retail communications concerning variable products filed with FINRA Advertising Regulation within 10 business days of first use; prospectus supplements pushed to the field within 10 business days of the SEC filing; the annual SIPC notice and the Firm Element needs analysis, written plan and delivery completed by December 31"
+        },
+        "Deadline reminders configured": {
+          "value": "Envelope-age alerts on any application whose delivery certificate is missing after 3 business days; a 10-business-day countdown timer opened on each new retail communication at first use; a 30-day timer on each Form CRS request; and a December 31 calendar gate covering the annual SIPC notice run and the Firm Element needs analysis and plan"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Timestamped DocuSign delivery certificates, signed acknowledgement forms, e-delivery consents, the annual SIPC mailing file with the address list, the FINRA Advertising Regulation filing acknowledgements and the Firm Element needs analysis and plan retained six years under SEC Rule 17a-4(b), with advertising files retained three years from last use under Rule 2210(b)(4)"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Missing, late or wrong-version disclosure deliveries are logged per contract with the producer CRD, the specific document missing, the day count past the required delivery point, root cause and the corrective re-delivery date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs off every corrective re-delivery, every late FINRA Advertising Regulation filing and the annual attestation that the December 31 Firm Element and SIPC obligations were met"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All variable annuity and variable life applications signed in the quarter joined to their DocuSign envelopes, plus all retail communications first used in the quarter, plus the full annual SIPC notice distribution list and the Firm Element completion roster"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero applications signed without a prospectus and Buyer's Guide delivery receipt dated on or before the signature date; zero recommendations with no Form CRS delivery; zero retail communications filed with FINRA later than 10 business days after first use; the annual SIPC notice must reach 100% of customer accounts of record"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "The obligation is per sale for point-of-sale delivery and annual for the SIPC notice and Firm Element; testing is quarterly over that quarter's applications and communications, with a January test of the December 31 annual obligations"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "The auditor sits outside Distribution and Marketing Compliance and neither assembled nor approved any sampled disclosure package or communication"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly disclosure-delivery test workpaper and the January annual-obligations workpaper — population extracts, sample seed, envelope certificates, filing acknowledgements and the exception log — in the compliance evidence repository indexed by contract number"
+        },
+        "Regulator-ready documentation": {
+          "value": "Per-contract disclosure delivery report showing document, version, delivery timestamp and signature timestamp, plus the FINRA Advertising Regulation filing acknowledgements and the SIPC mailing file, producible for a FINRA cycle exam or a state market conduct disclosure request within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Distribution Compliance assembles the delivery evidence, Broker-Dealer Compliance responds to FINRA through the firm's Gateway contact, Market Conduct Compliance responds to state departments, and Regulatory Counsel clears any response conceding a missed prospectus or Buyer's Guide delivery"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Maintain the required-document matrix by product, state and account type",
+          "by": "Marketing Compliance Analyst",
+          "role": "Marketing Compliance Analyst",
+          "actions": [
+            "Build one matrix row per product and state listing: statutory or Rule 498A initial summary prospectus, the underlying fund prospectuses or summary prospectuses, the state annuity Buyer's Guide, the state replacement notice, the disclosure statement, Form CRS, the Reg BI disclosure and the SIPC notice.",
+            "Record against each document the required delivery point — at or before the recommendation, at or before signature, at delivery of the contract, or annually.",
+            "Add the state variants that differ, notably the NAIC Buyer's Guide adoption and any state-specific senior-suitability or replacement form.",
+            "Re-read the matrix quarterly against state bulletins and SEC prospectus filings, and stamp the header with the reviewer and date."
+          ],
+          "done": "each product-state pair lists every required document with its delivery point and a dated quarterly review."
+        },
+        {
+          "step": "Control the prospectus and summary prospectus versions in circulation",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "document management repository",
+          "actions": [
+            "Monitor the issuing insurer's EDGAR filings for each contract's 485(a)/485(b) registration statement amendments, N-VPFS filings and Rule 498A initial summary prospectus updates.",
+            "On each new effective version, load the PDF into the document repository with the effective date and the SEC accession number in the metadata.",
+            "Retire the superseded version within 10 business days of the new one taking effect so no producer can pull an obsolete document.",
+            "Confirm the Rule 498A initial summary prospectus carries the required Key Information Table and the link to the online statutory prospectus before releasing it."
+          ],
+          "done": "only the current effective prospectus version is available, superseded versions are retired within 10 business days, and each version carries its accession number."
+        },
+        {
+          "step": "Deliver Form CRS and the Reg BI disclosure at or before the recommendation",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Check the customer record in Salesforce FSC for an existing Form CRS delivery; where none exists, deliver the current Form CRS before any variable-product recommendation is made.",
+            "Deliver the Reg BI disclosure covering the scope of services, the material fees and costs, the type and scope of the relationship and the material conflicts including variable-product compensation differentials.",
+            "Record the delivery method, timestamp and document version on the customer record so the delivery can be compared to the recommendation timestamp.",
+            "Where a customer requests Form CRS separately, deliver it within 30 days of the request and log the request and delivery dates."
+          ],
+          "done": "a Form CRS and Reg BI disclosure delivery timestamp exists that pre-dates the recommendation, and any standalone request is met inside 30 days."
+        },
+        {
+          "step": "Capture the customer's e-delivery consent before using electronic delivery",
+          "by": "New Business Case Manager",
+          "role": "New Business Case Manager",
+          "app": "DocuSign",
+          "actions": [
+            "Where electronic delivery is proposed, present the electronic consent disclosure covering the systems requirements, the right to withdraw consent and the right to a paper copy at no charge.",
+            "Capture the affirmative consent as its own signed DocuSign element and record the e-mail address consented to.",
+            "Where consent is refused or the e-mail bounces, switch the customer to paper delivery and record the mailing date and address.",
+            "Re-confirm the e-mail address on any bounce and never treat an undelivered envelope as a completed delivery."
+          ],
+          "done": "electronic delivery is used only where an affirmative, signed consent and a working address are on file, otherwise paper delivery is evidenced."
+        },
+        {
+          "step": "Assemble the point-of-sale disclosure envelope for the specific product and state",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "app": "DocuSign",
+          "actions": [
+            "Read the required-document matrix row for the product, state and account type and pull each document at its current version from the document repository.",
+            "Build the DocuSign envelope with the prospectus, fund prospectuses, Buyer's Guide, disclosure statement, replacement notice where applicable, and the customer acknowledgement page listing every document by name and version.",
+            "Set the acknowledgement page to require the customer's signature and date, and set the envelope to record a per-document open timestamp.",
+            "Send the envelope before the application signing envelope so the delivery timestamp necessarily precedes the signature."
+          ],
+          "done": "the envelope contains every matrix-required document at its current version and is sent ahead of the application signing envelope."
+        },
+        {
+          "step": "Deliver the state annuity Buyer's Guide and the replacement notice",
+          "by": "Distribution Specialist",
+          "role": "Distribution Specialist",
+          "actions": [
+            "Deliver the Buyer's Guide edition the customer's state has adopted — not the national default — at or before application signature, and record the edition date.",
+            "Where the sale replaces an existing annuity or life policy, deliver the state replacement notice and obtain both the customer's and the producer's signature on it.",
+            "Send the replacement notice to the existing carrier inside the state's window, commonly 5 business days from application receipt, and keep the transmission proof.",
+            "Where a state requires the Buyer's Guide at or before the time of application only for certain product types, record the state rule text relied on."
+          ],
+          "done": "the state-adopted Buyer's Guide edition and any replacement notice are delivered and evidenced, with carrier notification proof for replacements."
+        },
+        {
+          "step": "Capture and file the delivery receipt against the contract",
+          "by": "New Business Case Manager",
+          "role": "New Business Case Manager",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Pull the DocuSign certificate of completion showing recipient, e-mail address, per-document view timestamps, signature timestamp and IP address.",
+            "Index it to the application number and, on issue, to the contract number so the receipt and the contract share identifiers.",
+            "Compare the delivery timestamp to the application signature timestamp and reject to NIGO any file where delivery is later.",
+            "File the certificate and the signed acknowledgement into the contract folder in the document repository."
+          ],
+          "done": "each contract carries a certificate whose delivery timestamp pre-dates the signature timestamp, indexed by contract number."
+        },
+        {
+          "step": "Gate issue on a complete disclosure package",
+          "by": "New Business Case Manager",
+          "role": "New Business Case Manager",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Add a good-order rule that checks the matrix-required document list against the received receipts before the contract can be issued.",
+            "Set incomplete files to Not In Good Order with reason code 'DISCLOSURE RECEIPT MISSING' naming the specific document.",
+            "Notify the producer and the writing agency the same day with the missing document name and the corrective path.",
+            "Escalate any file still incomplete after 3 business days to Distribution Compliance for exception logging."
+          ],
+          "done": "no contract issues without every matrix-required receipt, and incomplete files are named, notified and escalated at day 3."
+        },
+        {
+          "step": "Deliver the SIPC website address and telephone number at account opening and annually",
+          "by": "Annuity Service Specialist",
+          "role": "Annuity Service Specialist",
+          "app": "CRM (Salesforce/Dynamics)",
+          "actions": [
+            "At account opening, deliver the SIPC website address and telephone number with the statement that the customer may obtain the SIPC brochure on request, and record the delivery on the account record.",
+            "Build the annual distribution list from all customer accounts of record as at the run date and reconcile the count to the account master before sending.",
+            "Run the annual notice through the statement insert or an e-delivery campaign before December 31 and retain the mailing file, the bounce report and the remail evidence.",
+            "Fulfil every brochure request received and log the request and fulfilment dates."
+          ],
+          "done": "SIPC information is evidenced at each account opening and the annual run reaches 100% of accounts of record with a retained mailing file."
+        },
+        {
+          "step": "File retail communications about variable products with FINRA within ten business days of first use",
+          "by": "Marketing Compliance Analyst",
+          "role": "Marketing Compliance Analyst",
+          "app": "workflow/case management tool",
+          "actions": [
+            "On the date a variable-product retail communication is first used, open a filing task with a 10-business-day countdown per Rule 2210(c)(3).",
+            "Submit the piece through the FINRA Advertising Regulation Electronic Filing System with the required cover information — the actual or anticipated first-use date, the registered principal approval date and the associated registration statement.",
+            "Attach the acknowledgement and any FINRA comment letter to the piece's record, and hold the piece from further use until comments are cleared.",
+            "Record the filing reference number against the version number so the filed version and the used version can be matched."
+          ],
+          "done": "every variable-product retail communication has a filing reference dated within 10 business days of first use, with comments cleared before further use."
+        },
+        {
+          "step": "Push prospectus supplements and material changes to the field",
+          "by": "Distribution Operations Manager",
+          "role": "Distribution Operations Manager",
+          "app": "Broker & Agent Portal",
+          "actions": [
+            "Within 10 business days of an insurer's prospectus supplement or 485(b) amendment taking effect, replace the document in the portal library and post a field notice naming what changed.",
+            "Force-expire the superseded document link so a cached producer bookmark cannot deliver the old version.",
+            "For contracts already in flight but not yet issued, re-deliver the updated prospectus and capture a fresh acknowledgement.",
+            "Record the push date, the version replaced and the number of in-flight contracts re-papered."
+          ],
+          "done": "the current version is the only version available within 10 business days, and every in-flight contract received a re-delivery."
+        },
+        {
+          "step": "Complete the annual Firm Element needs analysis and written training plan",
+          "by": "Learning Development Manager",
+          "role": "Learning Development Manager",
+          "app": "Cornerstone LMS",
+          "actions": [
+            "Run the Rule 1240(b) needs analysis using the year's inputs: the firm's variable-product mix, customer complaints, correspondence review themes, supervisory exceptions, regulatory developments and prior-year Firm Element gaps.",
+            "Write the training plan naming the covered registered persons, the products, services and strategies addressed, the delivery method and the completion deadline.",
+            "Assign and deliver the Firm Element units in Cornerstone LMS and drive completion to 100% of covered registered persons by December 31.",
+            "Retain the needs analysis document, the written plan, the completion roster and the materials as the Rule 1240(b) evidence file."
+          ],
+          "done": "a dated needs analysis, a written plan and a December 31 completion roster at 100% of covered persons exist in the evidence file."
+        },
+        {
+          "step": "Log and correct missed or late disclosure deliveries",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise an issue per affected contract naming the document missed, the required delivery point, the actual delivery date and the day count late.",
+            "Re-deliver the missing document with a cover letter stating what was omitted and re-open the free-look period where the state requires it.",
+            "Assign a root cause — stale matrix row, wrong state edition, envelope sent after signing, consent bounce — and an owner.",
+            "Report late and missed deliveries monthly by producer so repeat offenders reach heightened supervision."
+          ],
+          "done": "every missed delivery has an issue, a documented re-delivery, a free-look decision, a root cause and a named owner."
+        },
+        {
+          "step": "Review the annual disclosure obligations against the December 31 gate",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "In the first week of December, review the SIPC annual distribution status, the Firm Element completion percentage and the matrix refresh status against the December 31 deadline.",
+            "Where completion is below 100%, name the outstanding persons and accounts and require daily reporting until closed.",
+            "Sign the annual attestation that the SIPC notice, the Firm Element needs analysis and plan, and the procedure refresh were completed inside the calendar year.",
+            "Report the attestation and any missed element to the Compliance Committee at its January sitting."
+          ],
+          "done": "a signed annual attestation covering SIPC, Firm Element and the procedure refresh exists with any shortfall named and reported."
+        },
+        {
+          "step": "Retain the delivery, filing and annual-obligation evidence",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Archive DocuSign certificates, signed acknowledgements, e-delivery consents, the SIPC mailing file, FINRA filing acknowledgements and the Firm Element evidence file, indexed by contract number, producer CRD and calendar year.",
+            "Apply the six-year SEC Rule 17a-4(b) label to customer-file records and the three-year-from-last-use label to advertising records under Rule 2210(b)(4).",
+            "Keep every superseded prospectus and Buyer's Guide edition so a historical delivery can be tied to the version actually sent.",
+            "Test retrieval quarterly by pulling three contracts and producing their full disclosure package end to end."
+          ],
+          "done": "delivery, filing and annual evidence is archived under the correct retention labels with superseded versions preserved and same-day retrieval proven."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of applications and communications for the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Extract every variable annuity and variable life application with a signature date inside the quarter, with application number, contract number, product, state, account type, producer CRD and signature timestamp.",
+            "Extract every retail communication first used in the quarter from the advertising review log with its version, first-use date and approval date.",
+            "Add replacement transactions separately, since they carry extra state notice obligations that the standard extract omits.",
+            "Sign the extract as complete with the queries, run date and row counts."
+          ],
+          "done": "the population covers every application, replacement and first-used communication in the quarter with a signed completeness note."
+        },
+        {
+          "step": "Reconcile the application population to issued contracts and envelope records",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "DocuSign",
+          "actions": [
+            "Pull the DocuSign envelope list for the quarter and match envelopes to applications on application number.",
+            "Reconcile the application count to the insurer's issued-contract confirmations and to the commission ledger, listing any contract issued with no envelope.",
+            "Investigate every application with no envelope — those are candidates for wet-signature or off-system delivery and enter the sample automatically.",
+            "Resolve or document every unmatched row before sampling."
+          ],
+          "done": "applications, envelopes and issued contracts reconcile, with every envelope-less contract carried into the sample."
+        },
+        {
+          "step": "Draw and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of replacement transactions and 100% of applications with no matching DocuSign envelope.",
+            "Take 100% of retail communications whose filing acknowledgement is missing or dated more than 10 business days after first use.",
+            "Take 30 further applications by seeded random selection, stratified so every state and product in the population is represented at least once.",
+            "Record the seed, strata, population size and selection date so the sample can be redrawn identically."
+          ],
+          "done": "the sample is reproducible from a recorded seed and covers every replacement and every envelope-less or late-filed item."
+        },
+        {
+          "step": "Re-perform the required-document determination for each sampled application",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "For each sampled application, independently derive the required document list from the product, state and account type using the state's own rule text — not the firm's matrix.",
+            "Compare the derived list to the matrix row used at the time and flag any document the matrix omitted.",
+            "Confirm the state-adopted Buyer's Guide edition was the one delivered, by edition date.",
+            "Treat a matrix omission as a systemic exception affecting every contract in that state, not a single-file finding."
+          ],
+          "done": "each sampled application has an independently derived document list and any matrix omission is scoped across the affected state."
+        },
+        {
+          "step": "Trace each required document to a timestamped delivery receipt",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "DocuSign",
+          "actions": [
+            "Open the DocuSign certificate of completion for the sampled application and read the per-document view timestamps, the recipient e-mail and the signature timestamp.",
+            "Confirm each required document appears in the envelope at the version current on the delivery date, matched to the document repository version metadata.",
+            "Confirm the signed acknowledgement page names every document delivered rather than referring generically to 'disclosure materials'.",
+            "Capture the certificate into the workpaper with the application number visible."
+          ],
+          "done": "each required document traces to a per-document timestamp at the correct version, with a document-naming acknowledgement captured."
+        },
+        {
+          "step": "Recompute the delivery-timing tests against every deadline",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Compare the prospectus and Buyer's Guide delivery timestamps to the application signature timestamp and record any delivery on or after signature as a fail.",
+            "Compare the Form CRS delivery timestamp to the first recorded recommendation timestamp in the CRM and record any later delivery as a fail.",
+            "For each sampled Form CRS request, recompute request date plus 30 days and compare to the fulfilment date.",
+            "For each sampled communication, recompute first-use date plus 10 business days using the firm's holiday calendar and compare to the FINRA filing acknowledgement date.",
+            "For replacements, recompute the state's carrier-notification window from the application receipt date and compare to the transmission proof."
+          ],
+          "done": "every delivery, request, filing and replacement-notice deadline is independently recomputed with the day variance stated."
+        },
+        {
+          "step": "Test the content standards on sampled communications",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Read each sampled retail communication against Rule 2210(d)(1) and Rule 2211 with the reviewer's disposition hidden: is it fair and balanced, are risks presented with benefits, is performance projected, are fees and surrender charges disclosed, is a prospectus offered.",
+            "Confirm a registered principal approved the exact version used, by version number and approval date, before first use.",
+            "Confirm the version filed with FINRA is the version actually used — a filed draft with a different used version is an exception.",
+            "Confirm any FINRA comment letter was cleared before the piece continued in use."
+          ],
+          "done": "each sampled piece has an independent content assessment, a pre-use principal approval on the used version, and a matched filed version."
+        },
+        {
+          "step": "Test the annual SIPC notice and Firm Element completion",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Reconcile the annual SIPC distribution list count to the account master as at the run date and list any account not on the list.",
+            "Confirm the notice carried the SIPC website address, the telephone number and the statement that the brochure is available on request.",
+            "Pull the bounce and remail report and confirm every undelivered address was re-sent or converted to paper.",
+            "Reconcile the Firm Element completion roster to the covered-registered-person population from the registration system and confirm 100% completion by December 31, listing any late completer with the date."
+          ],
+          "done": "the SIPC list reconciles to the account master with bounces cleared, and Firm Element completion is proven at 100% by December 31 or the shortfall is listed."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise one issue per exception carrying the contract or communication identifier, the document or filing missed, the day count late and the customer impact.",
+            "Assign a root cause from the fixed list — matrix omission, wrong state edition, envelope sequencing, stale prospectus version, missed 10-business-day filing timer, bounced e-delivery — and name an owner.",
+            "For missed prospectus or Buyer's Guide deliveries, open a remediation covering re-delivery and a free-look reopening decision with Regulatory Counsel.",
+            "Carry each open issue into the next quarter's sample as a mandatory retest row."
+          ],
+          "done": "every exception has an issue, a root cause, a named owner, a remediation date and a free-look decision where required."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report the results",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Compute the late-or-missing delivery count against the zero threshold and the late FINRA filing count against the 10-business-day standard.",
+            "State the conclusion — effective, effective with exceptions, or ineffective — with the workpaper references behind each finding.",
+            "Have the Internal Auditor, who assembled and approved none of the sampled packages or communications, sign the workpaper.",
+            "Report results to the Compliance Committee and feed the findings into the next Firm Element needs analysis and the annual Rule 3120 supervisory controls report."
+          ],
+          "done": "a signed workpaper states the conclusion, the missed-delivery and late-filing counts, and the committee reporting date."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-014-C36",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Compliance Manager",
+          "value": "Compliance runs the quarterly supervisory sample-test over variable annuity sales, with heightened scrutiny of senior-investor recommendations; results roll into the annual Rule 3120 supervisory controls report signed by the Head of Compliance"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — FINRA Rule 3110(a)-(b) supervisory system and written supervisory procedures, Rule 3110(c) internal inspections, Rule 3120 supervisory control testing, Rule 2330(d) surveillance procedures for deferred variable annuity exchanges, Rule 2111 and Reg BI 17 CFR 240.15l-1(a)(2)(iv) compliance obligation, re-read at each annual WSP refresh"
+        },
+        "In-scope processes": {
+          "value": "Post-sale supervisory review of every deferred variable annuity transaction — new sales, 1035 exchanges and subsequent purchase payments — across all branches and offices of supervisory jurisdiction, with a dedicated senior-investor stratum covering owners and annuitants aged 65 and over"
+        },
+        "In-scope systems": {
+          "app": "Snowflake Data Cloud",
+          "value": "Snowflake holds the joined VA transaction, customer demographic, suitability-review and complaint data from which the quarterly population and the surveillance metrics are built; the exception dashboard is published in Power BI and findings are managed in the GRC platform"
+        },
+        "Compliance procedure documented": {
+          "value": "VA Supervisory Testing Procedure SUP-3120 — quarterly population build, the risk-ranking model, the senior-investor 100% stratum, the exchange-velocity surveillance thresholds required by Rule 2330(d), the branch inspection module, disposition codes and the escalation ladder"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance as part of the written supervisory procedures; re-approved annually with the Rule 3120 report and amended within 30 days of any change to the firm's variable-product line-up or supervisory structure"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Quarterly — the population is cut on the first business day after quarter end, testing completes within 30 calendar days of quarter end, findings are reported to the Compliance Committee at its next sitting, and the annual Rule 3120 report reaches senior management within the firm's stated annual cycle"
+        },
+        "Deadline reminders configured": {
+          "value": "Calendar tasks at quarter end minus 5 days for the population build, day 15 for sample completion, and day 25 for draft findings, with automatic escalation to the Head of Compliance on day 30 if the quarter's testing is not signed"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Population extracts, the risk-ranking output, the sample seed and selection log, per-transaction review notes, branch inspection reports and the signed quarterly conclusion retained six years under SEC Rule 17a-4(b), with inspection reports retained per Rule 3110(c)(2)"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "value": "Each supervisory finding is logged with the representative CRD, the branch, the contract number, the rule implicated, a root cause and a remediation date, and repeat findings drive a named heightened-supervision plan"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs the quarterly conclusion, every heightened-supervision plan opened or closed, and the annual Rule 3120 supervisory controls report"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All deferred variable annuity new sales, 1035 exchanges and subsequent purchase payments with a transaction date in the quarter, reconciled to issued contracts and the commission ledger, joined to customer age, funding source, branch and representative"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero transactions with no principal approval on file; documentation-defect rate at or below 2% of the sample; any branch with a defect rate above 10%, or any representative with three or more findings in a rolling four quarters, fails and triggers a branch inspection or heightened supervision"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Testing runs quarterly, matching the stated obligation frequency, with 100% coverage of the senior-investor stratum and of transactions breaching the exchange-velocity thresholds, and a seeded random sample of the remainder"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Internal Audit performs an independent overlay on the quarterly test, having supervised none of the sampled transactions and holding no reporting line into Distribution"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly VA supervisory testing workpaper — population, risk ranking, sample seed, review notes, branch inspection reports and the signed conclusion — filed in the compliance evidence repository by quarter and branch"
+        },
+        "Regulator-ready documentation": {
+          "value": "Quarterly supervisory testing report with population counts, sample composition, exception detail by branch and representative, and the annual Rule 3120 supervisory controls report, producible for a FINRA cycle exam or a Rule 8210 request within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Broker-Dealer Compliance owns the FINRA exam and Rule 8210 response through the firm's Gateway contact; Market Conduct Compliance handles any parallel state annuity-suitability inquiry; Regulatory Counsel clears any response disclosing a supervisory failure or a representative-level pattern"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Refresh the written supervisory procedures for variable annuity sales",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Re-read the VA sections of the written supervisory procedures against FINRA Rules 3110, 3120, 2330 and Reg BI, and record the date and reviewer on the document header.",
+            "Name in the procedures the supervising principal for each branch and office of supervisory jurisdiction, with a designated alternate.",
+            "State the numeric sampling rates, the senior-investor 100% rule and the exchange-velocity thresholds so the test is reproducible by a third party.",
+            "Amend the procedures within 30 days of any new variable product, branch opening or change of supervising principal."
+          ],
+          "done": "the WSP carries a dated review, a named principal per branch, numeric sampling rates and a 30-day amendment record."
+        },
+        {
+          "step": "Build the quarterly transaction population",
+          "by": "Data Analyst",
+          "role": "Data Analyst",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Run the quarterly extract on the first business day after quarter end joining VA transactions to customer demographics, funding source, branch, representative CRD and the suitability review record.",
+            "Include new sales, 1035 exchanges, replacements and subsequent purchase payments — subsequent payments are the most commonly omitted category.",
+            "Derive customer age at the transaction date rather than reading a stored senior flag, and derive tenure of the representative in variable-product selling.",
+            "Reconcile the row count to the issued-contract file and the commission ledger and publish the reconciliation alongside the extract."
+          ],
+          "done": "a reconciled quarterly population exists on the first business day after quarter end with derived age and representative tenure."
+        },
+        {
+          "step": "Risk-rank the population before sampling",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Power BI",
+          "actions": [
+            "Score every transaction on the documented risk factors: owner or annuitant aged 65+, 1035 exchange, exchange within 36 months of a prior exchange, surrender charge incurred, premium above 50% of stated liquid net worth, reverse-mortgage or home-equity funding, and a representative with a prior finding.",
+            "Publish the ranked list with the score components visible so a reviewer can see why a row scored high.",
+            "Compute branch-level and representative-level concentration metrics — exchange rate, average surrender charge incurred, senior share of premium.",
+            "Hand the ranked list and the concentration metrics to the Compliance Manager with the outliers named."
+          ],
+          "done": "every transaction carries a visible risk score and branch and representative concentration metrics are published with outliers named."
+        },
+        {
+          "step": "Run the Rule 2330(d) exchange surveillance thresholds",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "Power BI",
+          "actions": [
+            "Compute per representative: the number of VA exchanges in the quarter, the exchange share of their VA transactions, and the count of customers exchanged within 36 months of a prior exchange.",
+            "Apply the thresholds stated in SUP-3120 and list every representative who breaches one, with the transactions behind the breach.",
+            "Compare each breaching representative to their prior four quarters to distinguish a spike from a standing pattern.",
+            "Escalate every threshold breach to the supervising principal with a written request for explanation inside 5 business days."
+          ],
+          "done": "exchange-velocity thresholds are computed per representative, breaches are listed with underlying transactions and escalated for written explanation."
+        },
+        {
+          "step": "Draw the quarterly supervisory sample",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Take 100% of transactions in the senior-investor stratum (owner or annuitant 65+) and 100% of exchange-velocity threshold breaches.",
+            "Take 100% of transactions from representatives with an open finding or a heightened-supervision plan.",
+            "Take a seeded random sample of the remaining population at the rate stated in SUP-3120, with each branch represented at least once.",
+            "Record the seed, strata counts, population size and draw date in the workpaper so the sample can be redrawn identically."
+          ],
+          "done": "the sample is reproducible from a recorded seed and covers every senior transaction, threshold breach and open-finding representative."
+        },
+        {
+          "step": "Review each sampled transaction against the best-interest standard",
+          "by": "Annuity Suitability Analyst",
+          "role": "Annuity Suitability Analyst",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Open the sampled ticket and read the customer profile, the source of funds, the exchange worksheet and the product features before reading the original conclusion.",
+            "Test the Rule 2111 customer-specific and quantitative factors and the Reg BI care obligation, and record whether the recommendation remains defensible on the facts as documented.",
+            "Check that the file evidences the customer's need for the specific features paid for — tax deferral, annuitization, a death benefit or a living benefit.",
+            "Assign a disposition code — Satisfactory, Documentation Defect, Supervisory Finding or Suitability Concern — with a typed reason.",
+            "Escalate every Suitability Concern to the Compliance Manager the same day."
+          ],
+          "done": "every sampled transaction has an independent review note, a disposition code and a typed reason, with concerns escalated same day."
+        },
+        {
+          "step": "Apply the senior-investor heightened review module to the 65+ stratum",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "For every 65+ transaction, re-test the source of funds, the liquidity position after purchase, the stated time horizon against the surrender-charge duration, and the annuity concentration against the 50% liquid-net-worth limit.",
+            "Confirm the Senior Investor Worksheet is signed by a registered principal and that the reason the product stays in the customer's best interest is specific to the customer, not boilerplate.",
+            "Check the trusted contact field under Rule 4512(a)(1)(F) and any recorded capacity or undue-influence observation, and confirm any red flag produced a Rule 2165 hold decision.",
+            "Where the surrender period ends beyond the customer's age 85, confirm a written statement explains why the funds are not needed inside that period.",
+            "Log any 65+ transaction failing these tests as a Supervisory Finding regardless of dollar size."
+          ],
+          "done": "each 65+ transaction is re-tested on funds, liquidity, horizon, concentration and capacity, with failures logged as supervisory findings."
+        },
+        {
+          "step": "Correlate complaints and rescissions with the sampled representatives",
+          "by": "Complaints Manager",
+          "role": "Complaints Manager",
+          "app": "workflow/case management tool",
+          "actions": [
+            "Extract the quarter's customer complaints, free-look cancellations and early surrenders on variable products by representative CRD and branch.",
+            "Match them to the sampled representatives and add any representative with two or more complaints in the quarter to the sample regardless of risk score.",
+            "Read the complaint narratives for recurring themes — a misunderstood surrender charge, an unexpected rider cost, a promise of guaranteed return — and record the theme.",
+            "Confirm every reportable complaint was recorded for FINRA Rule 4530 reporting and reflected on the representative's Form U4 where required."
+          ],
+          "done": "complaints, free-look cancellations and early surrenders are matched to representatives, themes recorded, and Rule 4530 reporting confirmed."
+        },
+        {
+          "step": "Conduct the branch and OSJ inspection module",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "For branches flagged by defect rate or complaint volume, run the Rule 3110(c) inspection covering safeguarding of customer funds, customer account records, supervisory review of transactions and correspondence, and the handling of customer complaints.",
+            "Interview the supervising principal on how they evidence their Rule 2330(c) reviews and how they handle a returned ticket.",
+            "Test five customer files on site end to end — application, suitability form, disclosure receipts, principal approval, complaint history.",
+            "Write a dated inspection report naming the branch, the principal, the tests performed, the findings and the remediation dates."
+          ],
+          "done": "each flagged branch has a dated Rule 3110(c) inspection report with tests performed, findings and remediation dates."
+        },
+        {
+          "step": "Open heightened supervision on representatives with a pattern",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Open a plan on any representative with three or more findings in a rolling four quarters, a threshold breach unexplained after 5 business days, or a Suitability Concern involving a senior investor.",
+            "Name in the plan the supervising principal, the pre-approval requirement on all future VA business, the elevated correspondence sampling rate and the review period.",
+            "Notify the representative and the branch manager in writing and record their acknowledgement.",
+            "Set a formal exit test at the end of the review period — a clean 100% review of that period's transactions — before the plan closes."
+          ],
+          "done": "every pattern representative sits under a written plan with a named principal, pre-approval requirement, review period and an exit test."
+        },
+        {
+          "step": "Feed findings back into the suitability desk and the training programme",
+          "by": "Producer Compliance Manager",
+          "role": "Producer Compliance Manager",
+          "actions": [
+            "Summarise the quarter's disposition mix and the top three defect causes and send them to the Suitability Desk and the Learning Development Manager.",
+            "Where a defect is systemic — a profile field routinely left blank, an exchange worksheet routinely unquantified — change the form or the system validation rather than issuing a reminder.",
+            "Feed the top defect causes into the next Firm Element needs analysis as named topics.",
+            "Record the change made and the date so the next quarter's test can measure whether it worked."
+          ],
+          "done": "the quarter's top defect causes are fed to training and the desk, with a recorded systemic fix and a date for measurement."
+        },
+        {
+          "step": "Track remediation of every open finding to closure",
+          "by": "Compliance Analyst",
+          "role": "Compliance Analyst",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Confirm every finding has a GRC issue carrying the contract number, representative CRD, branch, rule implicated, root cause, owner and remediation date.",
+            "Chase owners at 15 and 25 days past quarter end and escalate anything unclosed at 30 days to the Head of Compliance.",
+            "Confirm customer-impacting findings carry a customer remediation decision — re-papering, fee reimbursement or rescission — cleared by Regulatory Counsel.",
+            "Carry every open finding into the next quarter's sample as a mandatory retest row."
+          ],
+          "done": "every finding has a complete GRC record, a chased owner, a customer-impact decision where relevant and a retest commitment."
+        },
+        {
+          "step": "Report the quarterly results to the Compliance Committee",
+          "by": "Compliance Manager",
+          "role": "Compliance Manager",
+          "actions": [
+            "Prepare the quarterly pack: population counts, sample composition, defect rate by branch and by representative, senior-investor findings, exchange-velocity breaches and open remediation.",
+            "Show the trend across the last four quarters so a deteriorating branch is visible rather than a single-quarter number.",
+            "Table the pack at the next Compliance Committee sitting and record the minute reference and any committee direction.",
+            "Distribute the branch extracts to each supervising principal with their own numbers named."
+          ],
+          "done": "a four-quarter trended pack is tabled with a recorded minute reference and per-branch extracts distributed."
+        },
+        {
+          "step": "Roll the quarters into the annual Rule 3120 supervisory controls report",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Consolidate the four quarterly tests into the Rule 3120 report covering the supervisory controls tested, the results, any significant compliance problems identified and the amendments made to the WSPs in response.",
+            "State the tests performed on the senior-investor stratum and the Rule 2330(d) exchange surveillance explicitly, since these are the areas examiners open on.",
+            "Present the report to senior management and record the presentation date and attendees.",
+            "Sign the report and file it with the quarterly workpapers as the annual evidence set."
+          ],
+          "done": "a signed Rule 3120 report consolidates the four quarters, names the WSP amendments made and records the senior-management presentation date."
+        },
+        {
+          "step": "Retain the supervisory testing evidence",
+          "by": "Records Manager",
+          "role": "Records Manager",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Archive the population extracts, reconciliations, risk-ranking output, sample seed log, per-transaction review notes, branch inspection reports, heightened-supervision plans and the signed conclusions by quarter and branch.",
+            "Apply the six-year SEC Rule 17a-4(b) retention label and hold the branch inspection reports per Rule 3110(c)(2).",
+            "Confirm the index supports retrieval by quarter, branch, representative CRD and contract number for exam response.",
+            "Test retrieval each quarter by reproducing one prior quarter's sample from its recorded seed."
+          ],
+          "done": "the quarter's evidence is archived under a six-year label, retrievable by branch and CRD, and a prior sample has been reproduced from its seed."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Rebuild the quarterly population independently",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Snowflake Data Cloud",
+          "actions": [
+            "Write an independent query against the VA transaction tables for the quarter rather than re-running the compliance team's query, and compare row counts.",
+            "Confirm subsequent purchase payments, replacements and transactions from terminated representatives are all present.",
+            "Recompute customer age at the transaction date and compare the derived senior stratum to the one compliance used.",
+            "List and investigate every row present in one population and not the other before proceeding."
+          ],
+          "done": "an independently built population reconciles to the compliance population with every difference explained."
+        },
+        {
+          "step": "Reconcile the population to the source of record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "billing/commission platform",
+          "actions": [
+            "Match the population to the insurers' issued-contract confirmations on contract number and to the commission ledger on representative CRD and premium.",
+            "List any contract that was issued or paid a commission and is absent from the supervisory population — those transactions were never reviewed.",
+            "Reconcile total premium across the three sources and explain any variance above 1%.",
+            "Sign the reconciliation and attach it to the workpaper as the completeness evidence."
+          ],
+          "done": "population, issued contracts and commissions reconcile item for item and in total, with a signed completeness note."
+        },
+        {
+          "step": "Draw the independent overlay sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of population rows absent from the compliance sample that met a mandatory-inclusion rule — senior stratum, threshold breach, open-finding representative.",
+            "Take 20 rows the compliance team reviewed and passed, by seeded random selection, to re-perform their judgement.",
+            "Take 100% of branches whose defect rate exceeded 10% for the branch inspection test.",
+            "Record the seed, strata and draw date so the overlay sample can be redrawn identically."
+          ],
+          "done": "the overlay sample is reproducible and covers every mandatory-inclusion row the compliance sample missed."
+        },
+        {
+          "step": "Re-perform the risk ranking and the sampling arithmetic",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Microsoft Excel",
+          "actions": [
+            "Rebuild the risk score for 25 rows from the documented factor weights and compare to the published score, investigating any difference.",
+            "Recompute the sampling rate actually achieved — sample rows divided by population rows — and compare to the rate stated in SUP-3120.",
+            "Confirm the senior stratum was taken at 100% by comparing the derived senior count to the reviewed senior count.",
+            "Redraw the compliance sample from its recorded seed and confirm it reproduces exactly — a non-reproducible sample invalidates the quarter."
+          ],
+          "done": "risk scores, the achieved sampling rate and the 100% senior coverage are recomputed and the compliance sample reproduces from its seed."
+        },
+        {
+          "step": "Re-perform the supervisory judgement on passed transactions",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "Salesforce FSC",
+          "actions": [
+            "Open each overlay-sampled transaction with the compliance disposition hidden and reach an independent conclusion on Rule 2111 and the Reg BI care obligation.",
+            "Reveal the recorded disposition and record every case where a Satisfactory was given on a file with an unevidenced profile field or an unquantified exchange.",
+            "Test whether the typed reason is specific to the customer or repeated verbatim across files — boilerplate reasons are a supervisory failure in themselves.",
+            "Capture the reviewed screens into the workpaper with the ticket id visible."
+          ],
+          "done": "each re-performed transaction has an independent conclusion, a comparison to the recorded disposition and a boilerplate test result."
+        },
+        {
+          "step": "Re-perform the Rule 2330(d) exchange surveillance computation",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Recompute per representative the exchange count, the exchange share of VA transactions and the inside-36-month exchange count from the raw transaction data.",
+            "Compare to the published surveillance output and list any representative whose breach the production report missed.",
+            "Confirm every published breach received a written principal explanation inside 5 business days and read the explanations for adequacy.",
+            "Treat a threshold quietly widened without a WSP amendment as a control-design finding."
+          ],
+          "done": "exchange-velocity metrics are independently recomputed, missed breaches are listed and every breach has a timely written explanation."
+        },
+        {
+          "step": "Test the branch inspection module against Rule 3110(c)",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm every branch meeting the inspection trigger received a dated inspection report inside the quarter.",
+            "Read three reports and confirm they cover the Rule 3110(c)(2) minimum content — safeguarding of funds, account records, supervisory review of transactions and correspondence, and complaint handling.",
+            "Confirm the inspection was performed by someone not supervising that branch and not compensated on its production.",
+            "Trace three findings from an inspection report through to a GRC issue and a closure date."
+          ],
+          "done": "every triggered branch has a compliant, independently performed inspection report whose findings trace to closed issues."
+        },
+        {
+          "step": "Recompute the deadline and threshold maths for the quarter",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Compare the population build date to the first business day after quarter end and the signed conclusion date to quarter end plus 30 calendar days.",
+            "Recompute the defect rate by branch and by representative from the raw disposition data and compare to the 2% and 10% thresholds.",
+            "Recompute the rolling four-quarter finding count per representative and confirm every representative at three or more sits under a heightened-supervision plan.",
+            "List any threshold breach that did not produce the required escalation, with the day count of delay."
+          ],
+          "done": "build and completion dates, defect rates and rolling finding counts are independently recomputed against every stated threshold."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "GRC platform (Archer/ServiceNow GRC)",
+          "actions": [
+            "Raise one GRC issue per exception carrying the quarter, branch, representative CRD, contract number where applicable, the rule implicated and the customer impact.",
+            "Assign a root cause from the fixed list — incomplete population, missed mandatory-inclusion row, boilerplate disposition, unescalated threshold breach, overdue inspection — and name an owner.",
+            "For exceptions showing an unreviewed customer transaction, open a catch-up review of that transaction and a customer-impact assessment with Regulatory Counsel.",
+            "Carry every open issue into the next quarter's overlay sample as a mandatory retest row."
+          ],
+          "done": "every exception has a GRC issue, a listed root cause, a named owner, a remediation date and a retest commitment."
+        },
+        {
+          "step": "Conclude, obtain independent sign-off and report the results",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Compute the overlay exception rate and the count of unreviewed mandatory-inclusion transactions against the zero threshold.",
+            "State the conclusion — effective, effective with exceptions, or ineffective — with the workpaper references supporting each finding.",
+            "Have the Internal Auditor, who supervised none of the sampled transactions and reports outside Distribution, sign the workpaper.",
+            "Report the conclusion to the Compliance Committee, record the minute reference, and carry the findings into the annual Rule 3120 supervisory controls report presented to senior management."
+          ],
+          "done": "a signed workpaper states the conclusion, the overlay exception rate and the unreviewed-transaction count, with a committee minute reference."
+        }
+      ]
+    }
+  ]
+}
