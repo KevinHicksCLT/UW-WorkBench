@@ -1,0 +1,1710 @@
+{
+  "area": "Operational Resilience",
+  "tasks": [
+    {
+      "taskId": "f564ba82-b1ae-47d5-a31a-3f1e22b0e570",
+      "verifier": "Operational Resilience Lead",
+      "generic": {
+        "Defined scope/population": "All open vulnerabilities on the resilience register awaiting an impact tolerance assessment.",
+        "In-scope period": "Current resilience assessment cycle for all in-scope important business services.",
+        "Required fields populated and valid": "Each vulnerability record shows scenario assumptions, tolerance score and breach flag.",
+        "Control totals or record counts reconcile": "Count of scored vulnerabilities matches the open vulnerability register total.",
+        "Evidence retained with timestamp/version": "Scoring assumptions and scenario parameters are dated and saved on the record in Archer GRC.",
+        "Exceptions logged with disposition": "Vulnerabilities routed to the Lead for prioritisation are logged with routing date.",
+        "Test population": "Sample of vulnerabilities flagged as tolerance breaches in the current cycle.",
+        "Pass/fail thresholds": "Pass if every breach vulnerability has a score, rationale and Lead routing recorded.",
+        "Exception handling path": "Unscored or disputed vulnerabilities escalate to the Operational Resilience Lead.",
+        "Documented acceptance criteria": "Assessment is complete only when every open vulnerability has a score and breach flag.",
+        "Evidence location": "Resilience vulnerability register in Archer GRC."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Open the resilience vulnerability register in Archer GRC",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Log into Archer GRC and navigate to the resilience vulnerability register module.",
+            "Filter the register to vulnerabilities without a recorded impact tolerance score.",
+            "Done when the unscored vulnerability list is displayed."
+          ],
+          "verify": [
+            "Check the filtered list against the register's total open vulnerability count.",
+            "Pass when the unscored list matches the expected open population."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Score each vulnerability against the impact tolerance metric",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Open each vulnerability record and review the linked business service's approved impact tolerance metric.",
+            "Score projected disruption duration, data loss, financial and customer harm against the threshold.",
+            "Enter the numeric score into the vulnerability record's assessment field.",
+            "Done when every vulnerability in the sample carries a tolerance score."
+          ],
+          "verify": [
+            "Recalculate one score independently from the scenario inputs.",
+            "Pass when the recalculated score matches the recorded score."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Flag tolerance-breach vulnerabilities in the register",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Compare each scored vulnerability to its service's tolerance threshold.",
+            "Set the breach flag to Yes for any vulnerability projected to exceed the threshold.",
+            "Done when every scored vulnerability shows a breach flag value."
+          ],
+          "verify": [
+            "Spot-check a flagged and an unflagged vulnerability against the threshold math.",
+            "Pass when the flag value matches the threshold comparison."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record assumptions and scenario parameters against the record",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Enter the scenario parameters and assumptions used for the assessment into the vulnerability record.",
+            "Save the entry with the assessment date.",
+            "Done when assumptions are saved and timestamped on the record."
+          ],
+          "verify": [
+            "Open the record and confirm the assumptions field is populated and dated.",
+            "Pass when assumptions and a timestamp are both present."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Attach the breach rationale to the business service entry",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Draft a short rationale explaining why the vulnerability breaches the impact tolerance.",
+            "Attach the rationale to the corresponding important business service entry in Archer GRC.",
+            "Done when the rationale is linked to the business service record."
+          ],
+          "verify": [
+            "Open the business service entry and confirm the rationale attachment is visible.",
+            "Pass when the rationale is attached and readable."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Route tolerance-breach vulnerabilities to the Operational Resilience Lead",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Select all vulnerabilities flagged as tolerance breaches in the current cycle.",
+            "Send the routing notification to the Operational Resilience Lead via the Archer GRC workflow.",
+            "Done when every breach vulnerability shows a routed-for-review status."
+          ],
+          "verify": [
+            "Check the workflow log for a routing action against each breach vulnerability.",
+            "Pass when all breach vulnerabilities show a routed status and recipient."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Confirm receipt and prioritisation queue placement",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Open the routed vulnerability queue in Archer GRC.",
+            "Confirm each routed vulnerability appears with its score, flag and rationale intact.",
+            "Done when the Lead confirms the queue is complete and accurate."
+          ],
+          "verify": [
+            "Cross-check the queue count against the number of breach vulnerabilities routed.",
+            "Pass when the queue count matches the routed count exactly."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "00a42f4e-1562-4ebf-9ae2-3cf7aeba4cb7",
+      "verifier": "Business Continuity Manager",
+      "generic": {
+        "Defined scope/population": "All tolerance-breach vulnerabilities in the register requiring a remediation investment plan.",
+        "In-scope period": "Current remediation planning cycle following vulnerability prioritisation.",
+        "Required fields populated and valid": "Each remediation plan names an action owner, target completion date and estimated cost.",
+        "Control totals or record counts reconcile": "Count of drafted remediation plans matches the number of tolerance-breach vulnerabilities.",
+        "Evidence retained with timestamp/version": "Remediation plan documents are version-dated in SharePoint and linked in Archer GRC.",
+        "Exceptions logged with disposition": "Vulnerabilities without a feasible remediation option are logged with the blocking reason.",
+        "Test population": "Sample of tolerance-breach vulnerabilities from the current remediation cycle.",
+        "Pass/fail thresholds": "Pass if every breach vulnerability has a costed plan with owner and date.",
+        "Exception handling path": "Infeasible or unresourced plans route to the Business Continuity Manager for review.",
+        "Documented acceptance criteria": "Planning is complete only when every breach vulnerability has an approved-for-review plan.",
+        "Evidence location": "Remediation plan documents in SharePoint, referenced from Archer GRC."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the list of tolerance-breach vulnerabilities from Archer GRC",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Open the vulnerability register in Archer GRC and filter to tolerance-breach status.",
+            "Export the filtered list for remediation planning.",
+            "Done when the tolerance-breach list is confirmed against the register."
+          ],
+          "verify": [
+            "Compare the exported count to the register's breach-flag filter count.",
+            "Pass when the two counts match exactly."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Draft a remediation plan for each tolerance-breach vulnerability",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Create a remediation plan document in SharePoint for each breach vulnerability.",
+            "Name the accountable action owner, target completion date and estimated cost.",
+            "Done when a draft plan exists for every breach vulnerability."
+          ],
+          "verify": [
+            "Open a sample plan and confirm owner, date and cost fields are filled.",
+            "Pass when all three fields are present and readable."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Size the investment ask for each remediation option",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Estimate headcount, capex and vendor spend required for each remediation option.",
+            "Enter the sized investment ask into the vulnerability register entry.",
+            "Done when every plan carries a sized investment estimate."
+          ],
+          "verify": [
+            "Recheck one sized estimate against its underlying cost inputs.",
+            "Pass when the estimate reconciles to the inputs used."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Sequence remediation actions by severity and dependency",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Order the draft remediation plans by tolerance-breach severity tier.",
+            "Adjust the sequence for any technical or resourcing dependencies between actions.",
+            "Done when the sequenced remediation order is saved."
+          ],
+          "verify": [
+            "Confirm the highest-severity breaches appear first in the sequence.",
+            "Pass when severity ordering is correct with dependencies respected."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the remediation plan reference in Archer GRC",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Copy the SharePoint document link for each remediation plan.",
+            "Paste the reference into the corresponding vulnerability record in Archer GRC.",
+            "Done when every vulnerability record links to its remediation plan document."
+          ],
+          "verify": [
+            "Click through a sample link from Archer GRC to confirm it opens the correct plan.",
+            "Pass when the linked document matches the vulnerability record."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Circulate the draft plan to the Business Continuity Manager",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Send the draft remediation investment plan to the Business Continuity Manager via SharePoint sharing.",
+            "Request feasibility review before submission for approval.",
+            "Done when the plan is shared and a review request is logged."
+          ],
+          "verify": [
+            "Check the SharePoint share log for the review request.",
+            "Pass when the share and request are both recorded with a date."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Complete feasibility review and record findings",
+          "actor": "Business Continuity Manager",
+          "sop": [
+            "Review each draft plan for resourcing and delivery feasibility.",
+            "Record approval, rejection or requested changes against the plan document.",
+            "Done when every draft plan carries a feasibility review outcome."
+          ],
+          "verify": [
+            "Confirm each plan document shows a reviewer name and outcome.",
+            "Pass when all circulated plans have a recorded feasibility outcome."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "9a65a0c5-bd8c-4d09-97f1-a47b71aeed45",
+      "verifier": "Operational Resilience Analyst",
+      "generic": {
+        "Defined scope/population": "All vulnerabilities pending validation sign-off from their assigned management lead.",
+        "In-scope period": "Current vulnerability validation review window.",
+        "Required fields populated and valid": "Each vulnerability entry shows a management lead sign-off or a logged dispute.",
+        "Control totals or record counts reconcile": "Count of validated entries matches the number of vulnerabilities scheduled for review.",
+        "Evidence retained with timestamp/version": "Sign-off or dispute comments are timestamped against the register entry in Archer GRC.",
+        "Exceptions logged with disposition": "Disputed findings are logged with the lead's rationale and routed for resolution.",
+        "Test population": "Sample of vulnerability entries due for management lead validation this cycle.",
+        "Pass/fail thresholds": "Pass if every entry shows a sign-off or a logged dispute with rationale.",
+        "Exception handling path": "Outstanding validations past the review window are chased to closure.",
+        "Documented acceptance criteria": "Validation is complete only when every entry has sign-off or disposition recorded.",
+        "Evidence location": "Vulnerability register in Archer GRC with session notes in SharePoint."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Schedule validation review sessions with management leads",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Identify the business unit, technology and third-party leads named as owners on each vulnerability.",
+            "Send meeting invites for validation review sessions to each lead.",
+            "Done when sessions are scheduled with all named leads."
+          ],
+          "verify": [
+            "Check the calendar for confirmed sessions against the list of named leads.",
+            "Pass when every lead has an accepted or scheduled session."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Walk each lead through their assigned vulnerability entries",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Present each vulnerability entry assigned to the lead during the session.",
+            "Capture the lead's sign-off or dispute directly in the register.",
+            "Done when every presented entry shows a sign-off or dispute value."
+          ],
+          "verify": [
+            "Review the register after the session for a recorded outcome per entry.",
+            "Pass when every discussed entry has sign-off or dispute recorded."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record disputed findings and rationale in the register",
+          "actor": "Business Continuity Analyst",
+          "sop": [
+            "Capture the lead's stated reason for disputing a finding.",
+            "Enter the dispute and rationale as a comment on the register entry.",
+            "Done when every dispute has a recorded rationale comment."
+          ],
+          "verify": [
+            "Open a disputed entry and confirm the rationale comment is present.",
+            "Pass when the rationale explains the basis for the dispute."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Update the vulnerability owner field once accountability is confirmed",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Confirm which lead has accepted accountability for the vulnerability.",
+            "Update the owner field on the register entry to that lead's name.",
+            "Done when the owner field reflects the confirmed accountable lead."
+          ],
+          "verify": [
+            "Cross-check the owner field against the session sign-off notes.",
+            "Pass when the recorded owner matches the confirming lead."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Chase outstanding validations to closure",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Identify vulnerabilities still awaiting sign-off past the agreed review window.",
+            "Send a follow-up reminder to the responsible lead via SharePoint or email.",
+            "Done when every outstanding validation has a follow-up logged."
+          ],
+          "verify": [
+            "Check the register for a follow-up date against each outstanding entry.",
+            "Pass when no entry is outstanding without a logged follow-up."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Close out the validation cycle in the register",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Confirm every entry now carries a sign-off or a resolved dispute.",
+            "Mark the validation cycle as complete in Archer GRC.",
+            "Done when the cycle status is set to complete."
+          ],
+          "verify": [
+            "Count entries lacking sign-off or dispute before closing the cycle.",
+            "Pass when zero entries remain without a recorded outcome."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjm7d10ookfgzlls2a9nh",
+      "verifier": "Chief Risk Officer",
+      "generic": {
+        "Defined scope/population": "All remediation actions that have missed their committed milestone by more than the escalation threshold.",
+        "In-scope period": "Current month's Board Risk Committee reporting cycle.",
+        "Required fields populated and valid": "Escalation paper names the overdue remediation, root cause, revised date and residual exposure.",
+        "Control totals or record counts reconcile": "Count of escalated remediations matches the number flagged overdue beyond threshold.",
+        "Evidence retained with timestamp/version": "Escalation paper is version-dated and filed in the board portal pack.",
+        "Exceptions logged with disposition": "Remediations not escalated despite being overdue are logged with the reason held back.",
+        "Test population": "Sample of remediation actions overdue beyond the escalation threshold this cycle.",
+        "Pass/fail thresholds": "Pass if every overdue remediation past threshold has an escalation paper filed.",
+        "Exception handling path": "Disputed root cause or date estimates route back to the action owner before filing.",
+        "Documented acceptance criteria": "Escalation is complete only when the Committee decision is recorded against the action.",
+        "Evidence location": "Board Risk Committee pack in the board portal, decision logged in Archer GRC."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Identify remediation actions overdue beyond the escalation threshold",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Open the remediation tracker in Archer GRC and filter to overdue actions.",
+            "Compare each overdue action's days-late figure against the defined escalation threshold.",
+            "Done when the list of threshold-breaching remediations is confirmed."
+          ],
+          "verify": [
+            "Recheck one action's days-late calculation against its milestone date.",
+            "Pass when the calculation matches the filtered result."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Draft the delay escalation paper for each overdue remediation",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Name the overdue remediation, root cause and revised completion date in the paper.",
+            "State the residual risk exposure created by the delay.",
+            "Done when a draft escalation paper exists for every threshold-breaching action."
+          ],
+          "verify": [
+            "Review a draft paper for all four required fields.",
+            "Pass when root cause, revised date and exposure are all present."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Attach the escalation paper to the Board Risk Committee pack",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Log into the board portal and open the upcoming Committee meeting pack.",
+            "Upload the escalation paper ahead of the scheduled meeting cutoff.",
+            "Done when the paper appears in the published meeting pack."
+          ],
+          "verify": [
+            "Open the board portal pack and confirm the paper is listed.",
+            "Pass when the escalation paper is visible in the pack before the meeting."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Present the escalation and capture the Committee decision",
+          "actor": "Chief Risk Officer",
+          "sop": [
+            "Present the escalation paper's root cause and exposure to the Committee.",
+            "Note the Committee's decision to accept delay, demand acceleration, or reassign owner.",
+            "Done when a decision is recorded for the meeting."
+          ],
+          "verify": [
+            "Check the meeting minutes for a recorded decision against the escalation item.",
+            "Pass when the decision matches one of the three defined outcomes."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the Committee decision against the remediation action",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Enter the Committee's decision into the remediation action record in Archer GRC.",
+            "Note any conditions attached to the decision.",
+            "Done when the decision is saved on the remediation record."
+          ],
+          "verify": [
+            "Open the remediation record and confirm the decision field is populated.",
+            "Pass when the recorded decision matches the meeting minutes."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Update the remediation status and revised milestone",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Set the remediation action's status to reflect the Committee outcome.",
+            "Enter the revised milestone date if acceleration or a new date was agreed.",
+            "Done when status and revised date are both updated."
+          ],
+          "verify": [
+            "Compare the updated milestone date to the Committee's agreed date.",
+            "Pass when the recorded date matches what the Committee approved."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Confirm Enterprise Risk Manager awareness of the outcome",
+          "actor": "Enterprise Risk Manager",
+          "sop": [
+            "Review the updated remediation record and Committee decision.",
+            "Confirm the residual risk exposure is reflected in the enterprise risk view.",
+            "Done when the Enterprise Risk Manager confirms the record is current."
+          ],
+          "verify": [
+            "Cross-check the enterprise risk view against the remediation record.",
+            "Pass when the two are consistent for this action."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "0e33972a-7abd-40bc-a596-a2174a220178",
+      "verifier": "Chief Risk Officer",
+      "generic": {
+        "Defined scope/population": "The full resilience investment and remediation plan across all prioritised vulnerabilities.",
+        "In-scope period": "Current investment plan approval cycle.",
+        "Required fields populated and valid": "Investment plan package shows total cost, prioritised vulnerability list and tolerance impact.",
+        "Control totals or record counts reconcile": "Prioritised vulnerability count in the package matches the register's ranked list.",
+        "Evidence retained with timestamp/version": "Approval decision, conditions and date are filed as a version-dated record.",
+        "Exceptions logged with disposition": "Rejected or conditionally approved items are logged with the condition to close out.",
+        "Test population": "The current cycle's resilience investment plan submission.",
+        "Pass/fail thresholds": "Pass if the plan carries a CRO decision, date and any conditions recorded.",
+        "Exception handling path": "Unresolved budget disputes route back to the Operational Resilience Lead before resubmission.",
+        "Documented acceptance criteria": "Approval is complete only when the signed decision is filed against the register.",
+        "Evidence location": "Signed approval record in Archer GRC, package filed in the board portal."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Package the remediation investment plan for sign-off",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Compile the total cost, prioritised vulnerability list and expected tolerance impact.",
+            "Assemble the package into a single submission document.",
+            "Done when the package is complete and ready for routing."
+          ],
+          "verify": [
+            "Check the package for all three required components.",
+            "Pass when cost, vulnerability list and tolerance impact are all present."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Route the investment plan to the Chief Risk Officer for approval",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Open the GRC platform's approval workflow for the investment plan.",
+            "Submit the package to the Chief Risk Officer for decision.",
+            "Done when the workflow shows the plan pending CRO approval."
+          ],
+          "verify": [
+            "Check the workflow status for the pending-approval state.",
+            "Pass when the CRO is shown as the assigned approver."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Review and decide on the investment plan",
+          "actor": "Chief Risk Officer",
+          "sop": [
+            "Review the packaged cost, vulnerability list and tolerance impact.",
+            "Approve, reject or approve with conditions in the GRC workflow.",
+            "Done when a decision is recorded in the workflow."
+          ],
+          "verify": [
+            "Open the workflow and confirm a decision status is set.",
+            "Pass when the decision is one of approve, reject or conditional."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Capture the approver's decision, conditions and date",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Record the CRO's decision, any conditions and the approval date on the plan record.",
+            "Save the record in Archer GRC.",
+            "Done when decision, conditions and date are all captured."
+          ],
+          "verify": [
+            "Open the plan record and confirm all three fields are populated.",
+            "Pass when the recorded date matches the workflow decision timestamp."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record approved budget adjustments",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Compare the approved budget to the original remediation cost estimate.",
+            "Log any adjustment amount and reason against the cost estimate.",
+            "Done when the adjustment is recorded or marked not applicable."
+          ],
+          "verify": [
+            "Recalculate the adjustment from approved versus original figures.",
+            "Pass when the recorded adjustment matches the recalculation."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "File the signed approval as supporting evidence",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Attach the signed approval record to the resilience vulnerability register.",
+            "Confirm the attachment is linked from the register's summary view.",
+            "Done when the signed record is filed and linked."
+          ],
+          "verify": [
+            "Open the register summary and confirm the approval attachment opens correctly.",
+            "Pass when the filed record matches the signed approval."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "1053ca2e-8988-4479-bfe3-54229a0208dd",
+      "verifier": "Operational Resilience Analyst",
+      "generic": {
+        "Defined scope/population": "All open vulnerabilities on the register requiring a likelihood and severity score.",
+        "In-scope period": "Current risk-scoring cycle prior to remediation planning.",
+        "Required fields populated and valid": "Every open vulnerability carries a likelihood score, severity score and priority tier.",
+        "Control totals or record counts reconcile": "Scored vulnerability count matches the total open vulnerability register population.",
+        "Evidence retained with timestamp/version": "Scoring matrix version and scoring date are recorded against each vulnerability.",
+        "Exceptions logged with disposition": "Material rating changes versus the prior period are flagged and logged with reason.",
+        "Test population": "Sample of open vulnerabilities scored in the current cycle.",
+        "Pass/fail thresholds": "Pass if every vulnerability has a likelihood score, severity score and tier assigned.",
+        "Exception handling path": "Vulnerabilities with unresolved scoring disputes route to the Operational Resilience Lead.",
+        "Documented acceptance criteria": "Prioritisation is complete only when the ranked list is published for planning.",
+        "Evidence location": "Vulnerability register and heat map in Archer GRC and Power BI."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Score each vulnerability on likelihood and severity",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Open each open vulnerability record in Archer GRC.",
+            "Score likelihood and severity using the approved scoring matrix.",
+            "Done when every open vulnerability has both scores entered."
+          ],
+          "verify": [
+            "Recheck one scored vulnerability against the matrix definitions.",
+            "Pass when the score matches the matrix criteria for that vulnerability."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Plot scored vulnerabilities on the resilience heat map",
+          "actor": "Risk Analyst",
+          "sop": [
+            "Export scored vulnerabilities into the Power BI resilience heat map report.",
+            "Refresh the report to plot each vulnerability by likelihood and severity.",
+            "Done when all scored vulnerabilities appear on the heat map."
+          ],
+          "verify": [
+            "Count the plotted points against the exported vulnerability count.",
+            "Pass when the two counts match exactly."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Assign a priority tier to each vulnerability",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Read each vulnerability's position on the heat map.",
+            "Set the priority tier field to Critical, High, Medium or Low in the register.",
+            "Done when every scored vulnerability has a tier assigned."
+          ],
+          "verify": [
+            "Spot-check a tier assignment against its heat map position.",
+            "Pass when the tier matches the expected heat map quadrant."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Cross-check tier assignments against the prior period",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Compare each vulnerability's current tier to its prior-period tier.",
+            "Flag any vulnerability with a material tier change for review.",
+            "Done when all flagged rating changes are logged."
+          ],
+          "verify": [
+            "Review the flagged list against the tier comparison output.",
+            "Pass when every material change is captured in the flagged list."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Publish the ranked vulnerability list",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Sort the register by priority tier and likelihood/severity score.",
+            "Publish the ranked list to the resilience governance forum.",
+            "Done when the ranked list is published and accessible."
+          ],
+          "verify": [
+            "Open the published list and confirm the sort order is correct.",
+            "Pass when Critical items appear ahead of lower tiers."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the ranked list feeds remediation planning",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Share the published ranked list reference with the Operational Resilience Lead.",
+            "Confirm the list is the input used for the next remediation planning cycle.",
+            "Done when the Lead confirms receipt of the ranked list."
+          ],
+          "verify": [
+            "Check for a confirmation reply or log entry from the Lead.",
+            "Pass when confirmation of receipt is recorded."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl2oi1otwkfgzew401w6x",
+      "verifier": "Operational Resilience Lead",
+      "generic": {
+        "Defined scope/population": "All vulnerabilities marked Closed in the register following prior remediation.",
+        "In-scope period": "Trailing 12-month period since each vulnerability's remediation closure.",
+        "Required fields populated and valid": "Each closed vulnerability shows an annual re-assessment date and reviewer.",
+        "Control totals or record counts reconcile": "Count of re-assessed vulnerabilities matches the closed-vulnerability population due this cycle.",
+        "Evidence retained with timestamp/version": "Re-assessment scoring and control re-test results are dated in Archer GRC.",
+        "Exceptions logged with disposition": "Vulnerabilities reopened due to residual risk drift are logged with the reopening reason.",
+        "Test population": "Sample of closed vulnerabilities due their annual re-assessment.",
+        "Pass/fail thresholds": "Pass if every closed vulnerability shows a dated re-assessment within the last 12 months.",
+        "Exception handling path": "Vulnerabilities failing the control re-test are reopened and routed to remediation.",
+        "Documented acceptance criteria": "Re-assessment is complete only when the annual summary is archived.",
+        "Evidence location": "Resilience evidence repository and vulnerability register in Archer GRC."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the prior-year vulnerability register",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Open Archer GRC and filter the register to vulnerabilities closed over 12 months ago.",
+            "Export the list of closed vulnerabilities due for annual re-assessment.",
+            "Done when the due-for-re-assessment list is confirmed."
+          ],
+          "verify": [
+            "Check the exported list against the register's closed-status filter.",
+            "Pass when the list matches the filter count exactly."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Re-score each remediated item's residual risk",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Reassess each closed vulnerability's residual risk after its implemented controls.",
+            "Enter the updated residual risk score into the register.",
+            "Done when every due vulnerability has an updated residual score."
+          ],
+          "verify": [
+            "Recheck one residual score against the current control state.",
+            "Pass when the score reflects the control's current effectiveness."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Re-test remediation actions closed in the prior 12 months",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Select the control implemented for each closed remediation action.",
+            "Re-test the control to confirm it remains effective.",
+            "Done when every re-tested control has a pass or fail outcome."
+          ],
+          "verify": [
+            "Review the re-test evidence for a clear pass or fail result.",
+            "Pass when the outcome is documented and unambiguous."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record the annual re-assessment date and reviewer",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Confirm the re-assessment results for each vulnerability with the Analyst.",
+            "Enter the re-assessment date and reviewer name on each vulnerability record.",
+            "Done when every re-assessed vulnerability shows a date and reviewer."
+          ],
+          "verify": [
+            "Open a sample record and confirm date and reviewer fields are populated.",
+            "Pass when both fields are present and the date is within 12 months."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Reopen vulnerabilities where residual risk breaches tolerance",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Identify vulnerabilities where the re-scored residual risk exceeds impact tolerance.",
+            "Change the vulnerability status back to Open in the register.",
+            "Done when every tolerance-breaching item is reopened."
+          ],
+          "verify": [
+            "Compare the reopened list against the residual risk re-score results.",
+            "Pass when every breaching item appears in the reopened list."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Archive the annual re-assessment summary",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Compile the annual re-assessment results into a summary document.",
+            "Save the summary in the resilience evidence repository.",
+            "Done when the summary is archived and retrievable."
+          ],
+          "verify": [
+            "Retrieve the archived summary and confirm it covers all due vulnerabilities.",
+            "Pass when the summary is complete and accessible in the repository."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "5afa118c-f5f4-41bf-9c2d-391df66eea7c",
+      "verifier": "Business Continuity Analyst",
+      "generic": {
+        "Defined scope/population": "All important business services with a published service map in Confluence.",
+        "In-scope period": "Current service map review cycle.",
+        "Required fields populated and valid": "Newly identified vulnerabilities show a service map reference and dependency type.",
+        "Control totals or record counts reconcile": "Count of reviewed service maps matches the total important business service population.",
+        "Evidence retained with timestamp/version": "Reviewed service map version and review date are recorded against the business service.",
+        "Exceptions logged with disposition": "Service maps found out of date are logged and routed for republishing.",
+        "Test population": "Sample of important business service maps reviewed this cycle.",
+        "Pass/fail thresholds": "Pass if every reviewed service map yields a logged vulnerability or a no-findings note.",
+        "Exception handling path": "Concentration risks found in third-party dependencies route to the vendor register owner.",
+        "Documented acceptance criteria": "Review is complete only when every service map's dependency chain is walked end-to-end.",
+        "Evidence location": "Vulnerability register in Archer GRC, service maps in Confluence."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the current service map for each business service",
+          "actor": "Business Continuity Analyst",
+          "sop": [
+            "Open Confluence and locate the published service map for each important business service.",
+            "Confirm the map covers people, process, technology and third-party dependencies.",
+            "Done when all in-scope service maps are opened for review."
+          ],
+          "verify": [
+            "Check each map's last-updated date against the review cycle window.",
+            "Pass when every map opened is the current published version."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Walk the dependency chain to find single points of failure",
+          "actor": "Business Continuity Analyst",
+          "sop": [
+            "Trace the mapped dependency chain end-to-end for each business service.",
+            "Note any single point of failure or missing redundancy found.",
+            "Done when every dependency chain has been walked and notes captured."
+          ],
+          "verify": [
+            "Review the notes for at least one finding or an explicit no-findings statement.",
+            "Pass when every walked chain has a documented outcome."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Cross-reference third-party dependencies against the vendor register",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "List the third-party dependencies shown on each service map.",
+            "Compare each against the vendor register for concentration risk.",
+            "Done when every third-party dependency has been cross-referenced."
+          ],
+          "verify": [
+            "Spot-check one cross-reference against the vendor register entry.",
+            "Pass when the comparison result matches the vendor register data."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Log newly identified vulnerabilities in the register",
+          "actor": "Business Continuity Analyst",
+          "sop": [
+            "Create a new entry in the resilience vulnerability register for each finding.",
+            "Reference the source service map against the new entry.",
+            "Done when every finding is logged with a service map reference."
+          ],
+          "verify": [
+            "Open a logged entry and confirm the service map reference is present.",
+            "Pass when the reference matches the map the finding came from."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm the reviewed service map matches the latest published version",
+          "actor": "Business Continuity Analyst",
+          "sop": [
+            "Check the Confluence version history for the service map reviewed.",
+            "Confirm no newer version was published after the review started.",
+            "Done when version currency is confirmed for every reviewed map."
+          ],
+          "verify": [
+            "Compare the review date to the map's last-published date.",
+            "Pass when the reviewed version is the latest as of the review date."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Hand off logged vulnerabilities for scoring",
+          "actor": "Business Continuity Analyst",
+          "sop": [
+            "Notify the Operational Resilience Analyst that new vulnerabilities are logged.",
+            "Confirm the new entries are visible in the shared register view.",
+            "Done when the Analyst confirms receipt of the new entries."
+          ],
+          "verify": [
+            "Check the register for the new entries' visibility to the Analyst team.",
+            "Pass when all logged entries appear in the shared view."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjlx410ktkfgzoz5fz4pq",
+      "verifier": "Business Continuity Manager",
+      "generic": {
+        "Defined scope/population": "All open remediation actions with a committed milestone date in the tracker.",
+        "In-scope period": "Current monthly resilience governance reporting cycle.",
+        "Required fields populated and valid": "Every open remediation action shows status, percent complete and next milestone date.",
+        "Control totals or record counts reconcile": "Tracked action count matches the total open remediation action population.",
+        "Evidence retained with timestamp/version": "Status update date and evidence of progress are recorded against each action.",
+        "Exceptions logged with disposition": "Amber and red actions are flagged with the owner chased and a response logged.",
+        "Test population": "Sample of open remediation actions due for status update this cycle.",
+        "Pass/fail thresholds": "Pass if every open action shows a current status and updated milestone where applicable.",
+        "Exception handling path": "Actions with no owner response are escalated per the resilience governance escalation path.",
+        "Documented acceptance criteria": "Tracking is complete only when the dashboard is published for the governance meeting.",
+        "Evidence location": "Remediation tracker in Archer GRC, dashboard in Power BI."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the current status of every open remediation action",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Open the remediation tracker in Archer GRC.",
+            "Export the status and milestone date for every open action.",
+            "Done when the current status list is exported."
+          ],
+          "verify": [
+            "Check the export count against the tracker's open-action total.",
+            "Pass when the counts match exactly."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Flag amber and red remediation actions",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Compare each action's due date to today's date and its started status.",
+            "Mark amber for due within two weeks and not started, red for overdue.",
+            "Done when every open action has an amber, red, or green flag."
+          ],
+          "verify": [
+            "Spot-check one flagged action against the amber/red definition.",
+            "Pass when the flag matches the defined threshold rule."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Chase action owners for updated status on amber and red items",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Identify the assigned owner for each amber or red action.",
+            "Request an updated status and evidence of progress from the owner.",
+            "Done when every amber or red item has a chase request logged."
+          ],
+          "verify": [
+            "Check the tracker for a logged chase date against each amber/red item.",
+            "Pass when no amber or red item is missing a chase record."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Update the milestone tracker with latest status",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Enter the owner's updated status and percent complete into the tracker.",
+            "Revise the milestone date where the owner has confirmed a change.",
+            "Done when every action's tracker entry reflects the latest update."
+          ],
+          "verify": [
+            "Compare the tracker entry to the owner's reported update.",
+            "Pass when the entry matches what the owner reported."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Publish the remediation progress dashboard",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Refresh the Power BI remediation progress dashboard from the updated tracker.",
+            "Publish the dashboard ahead of the monthly governance meeting.",
+            "Done when the dashboard is published and accessible."
+          ],
+          "verify": [
+            "Open the published dashboard and confirm it reflects the latest tracker data.",
+            "Pass when dashboard figures match the tracker as of publish time."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the dashboard with the Business Continuity Manager",
+          "actor": "Business Continuity Manager",
+          "sop": [
+            "Review the published dashboard ahead of the governance meeting.",
+            "Confirm amber/red items and their chase status are accurately shown.",
+            "Done when the Manager confirms the dashboard is accurate."
+          ],
+          "verify": [
+            "Cross-check a sample amber/red item on the dashboard against the tracker.",
+            "Pass when the dashboard entry matches the tracker record."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl2fo1opjkfgzuh0l3bva",
+      "verifier": "Operational Resilience Analyst",
+      "generic": {
+        "Defined scope/population": "All vulnerabilities with a completed remediation action awaiting register closure.",
+        "In-scope period": "Current remediation closeout cycle.",
+        "Required fields populated and valid": "Closed vulnerability shows status, closure date, reviewer and updated residual risk score.",
+        "Control totals or record counts reconcile": "Count of closed entries matches the number of remediations confirmed complete.",
+        "Evidence retained with timestamp/version": "Closure evidence and validation date are attached and timestamped on the record.",
+        "Exceptions logged with disposition": "Vulnerabilities lacking valid closure evidence remain open with the gap logged.",
+        "Test population": "Sample of vulnerabilities with a completed remediation action this cycle.",
+        "Pass/fail thresholds": "Pass if every closed vulnerability has evidence, closure date and reviewer recorded.",
+        "Exception handling path": "Incomplete closure evidence routes back to the remediation action owner.",
+        "Documented acceptance criteria": "Update is complete only when the closed vulnerability is off the active backlog view.",
+        "Evidence location": "Vulnerability register and closure evidence in Archer GRC."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm closure evidence is attached to the vulnerability record",
+          "actor": "Business Continuity Analyst",
+          "sop": [
+            "Open the vulnerability record for the completed remediation action.",
+            "Confirm the control test result and implementation sign-off are attached.",
+            "Done when closure evidence is confirmed present."
+          ],
+          "verify": [
+            "Open the attachment and confirm it shows a pass result and sign-off.",
+            "Pass when both the test result and sign-off are present and legible."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Re-score residual risk after remediation",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Assess the vulnerability's residual risk now that remediation is implemented.",
+            "Update the priority tier to reflect the new residual risk score.",
+            "Done when the residual score and tier are both updated."
+          ],
+          "verify": [
+            "Recheck the new score against the post-remediation control state.",
+            "Pass when the score reflects the implemented control accurately."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Change the vulnerability status to Closed",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Confirm the closure evidence has been validated as sufficient.",
+            "Change the status field from Open or In Remediation to Closed.",
+            "Done when the status field shows Closed."
+          ],
+          "verify": [
+            "Open the record and confirm the status field reads Closed.",
+            "Pass when the status matches the validated closure evidence."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record the closure date and validating reviewer",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Enter today's date as the closure date on the register entry.",
+            "Enter the name of the reviewer who validated the closure evidence.",
+            "Done when both fields are recorded on the entry."
+          ],
+          "verify": [
+            "Open the entry and confirm closure date and reviewer are both present.",
+            "Pass when the reviewer name matches who validated the evidence."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Remove the closed vulnerability from the active backlog view",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Open the active remediation backlog view in Archer GRC.",
+            "Confirm the newly closed vulnerability no longer appears in the view.",
+            "Done when the backlog view excludes the closed vulnerability."
+          ],
+          "verify": [
+            "Search the backlog view for the closed vulnerability's ID.",
+            "Pass when the closed vulnerability does not appear in the search."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Notify the Business Continuity Analyst of closure",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Send a closure notification referencing the vulnerability ID and closure date.",
+            "Confirm the Business Continuity Analyst acknowledges the closure.",
+            "Done when acknowledgement is received and logged."
+          ],
+          "verify": [
+            "Check for a logged acknowledgement against the closure notification.",
+            "Pass when acknowledgement is recorded with a date."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "54522516-e779-4cc3-bb76-b92468f70498",
+      "verifier": "Operational Risk Manager",
+      "generic": {
+        "Defined scope/population": "All scored vulnerabilities lacking an assigned remediation action in the current period.",
+        "In-scope period": "Current period's vulnerability scoring cycle.",
+        "Required fields populated and valid": "Every scored vulnerability without a completed remediation appears in the backlog with a target quarter.",
+        "Control totals or record counts reconcile": "Backlog entry count matches the number of scored vulnerabilities lacking a remediation action.",
+        "Evidence retained with timestamp/version": "Backlog ranking and publication date are recorded in the resilience governance forum record.",
+        "Exceptions logged with disposition": "Vulnerabilities that cannot be scheduled this period are logged with the capacity constraint reason.",
+        "Test population": "Sample of unscheduled vulnerabilities eligible for the current backlog ranking.",
+        "Pass/fail thresholds": "Pass if every eligible vulnerability appears in the backlog with a priority tier and target quarter.",
+        "Exception handling path": "Disputed rankings route back to the Operational Resilience Analyst for re-scoring.",
+        "Documented acceptance criteria": "Prioritisation is complete only when the ranked backlog is published to governance.",
+        "Evidence location": "Remediation backlog in Archer GRC, capacity view in Power BI."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull vulnerabilities lacking an assigned remediation action",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Open Archer GRC and filter scored vulnerabilities with no remediation action assigned.",
+            "Export the unscheduled vulnerability list.",
+            "Done when the unscheduled list is confirmed against the register."
+          ],
+          "verify": [
+            "Check the exported count against the register's no-action filter.",
+            "Pass when the counts match exactly."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Check remediation capacity for the period",
+          "actor": "Operational Risk Manager",
+          "sop": [
+            "Open the Power BI capacity view for the current remediation period.",
+            "Note the available remediation capacity by team and quarter.",
+            "Done when available capacity is confirmed for ranking."
+          ],
+          "verify": [
+            "Cross-check the capacity figure against the resourcing plan.",
+            "Pass when the capacity figure is current and matches the resourcing plan."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Rank unscheduled vulnerabilities into the backlog",
+          "actor": "Operational Risk Manager",
+          "sop": [
+            "Order the unscheduled vulnerabilities by priority tier and available capacity.",
+            "Enter the ranked position into the remediation backlog in Archer GRC.",
+            "Done when every unscheduled vulnerability has a backlog rank."
+          ],
+          "verify": [
+            "Spot-check one ranked item against its priority tier.",
+            "Pass when higher-tier items rank ahead of lower-tier items."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Assign a target remediation quarter to each backlog item",
+          "actor": "Operational Risk Manager",
+          "sop": [
+            "Match each ranked item to a remediation window based on capacity and priority.",
+            "Enter the target quarter into the backlog entry.",
+            "Done when every backlog item has a target quarter assigned."
+          ],
+          "verify": [
+            "Confirm the assigned quarter does not exceed the team's available capacity.",
+            "Pass when quarter assignments stay within capacity limits."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Obtain agreement on the backlog ranking before publication",
+          "actor": "Operational Risk Manager",
+          "sop": [
+            "Circulate the ranked backlog for review and agreement per the resilience governance process.",
+            "Incorporate any agreed changes to the ranking or target quarter.",
+            "Done when the ranking is confirmed agreed and finalised."
+          ],
+          "verify": [
+            "Check for a recorded agreement confirmation against the finalised backlog.",
+            "Pass when agreement is confirmed before publication."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Publish the ranked remediation backlog to the governance forum",
+          "actor": "Operational Risk Manager",
+          "sop": [
+            "Finalise the agreed backlog document.",
+            "Publish it to the resilience governance forum for the period.",
+            "Done when the backlog is published and accessible to governance."
+          ],
+          "verify": [
+            "Open the published backlog and confirm it matches the agreed ranking.",
+            "Pass when the published version reflects the final agreed ranking."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "bacf9605-28ec-45fb-9cc0-4e7c9428c509",
+      "verifier": "Operational Resilience Lead",
+      "generic": {
+        "Defined scope/population": "All draft vulnerability findings pending control owner review this cycle.",
+        "In-scope period": "Current findings validation response window.",
+        "Required fields populated and valid": "Every finding shows control owner acceptance or a logged, adjudicated dispute.",
+        "Control totals or record counts reconcile": "Validated finding count matches the total draft findings distributed for review.",
+        "Evidence retained with timestamp/version": "Control owner response and adjudication decision are dated in Archer GRC or AuditBoard.",
+        "Exceptions logged with disposition": "Contested findings are logged with the control owner's rationale and adjudication outcome.",
+        "Test population": "Sample of draft findings distributed to control owners this cycle.",
+        "Pass/fail thresholds": "Pass if every finding has an acceptance or an adjudicated dispute recorded.",
+        "Exception handling path": "Findings without a response within the window escalate to the Operational Resilience Lead.",
+        "Documented acceptance criteria": "Validation is complete only when the findings list is locked for prioritisation.",
+        "Evidence location": "Findings register in AuditBoard, adjudication record in Archer GRC."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Distribute draft vulnerability findings to control owners",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Identify the named control owner for each affected business service in AuditBoard.",
+            "Send the draft finding to each control owner for review.",
+            "Done when every draft finding is distributed to its control owner."
+          ],
+          "verify": [
+            "Check the distribution log for a sent record against every draft finding.",
+            "Pass when every finding shows a distribution record."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm control owner review within the response window",
+          "actor": "Business Continuity Manager",
+          "sop": [
+            "Track control owner responses against the defined response window.",
+            "Confirm each finding shows either acceptance or contest.",
+            "Done when every distributed finding has a response recorded."
+          ],
+          "verify": [
+            "Check response timestamps against the response window deadline.",
+            "Pass when every finding has a response logged within or flagged past the window."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record contested findings and route for adjudication",
+          "actor": "Business Continuity Manager",
+          "sop": [
+            "Capture the control owner's rationale for contesting the finding.",
+            "Route the contested finding to the Operational Resilience Lead for adjudication.",
+            "Done when every contested finding is routed with rationale attached."
+          ],
+          "verify": [
+            "Open a contested finding and confirm the rationale and routing are present.",
+            "Pass when both the rationale and routing status are recorded."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Adjudicate contested findings",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Review the control owner's rationale for each contested finding in Archer GRC.",
+            "Record the adjudication decision to uphold, amend or withdraw the finding.",
+            "Done when every contested finding has an adjudication decision."
+          ],
+          "verify": [
+            "Check that each contested finding shows a final adjudication outcome.",
+            "Pass when the outcome is one of uphold, amend or withdraw."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Assign remediation accountability for validated findings",
+          "actor": "Third-Party Risk Manager",
+          "sop": [
+            "Identify the named owner responsible for remediating each validated finding.",
+            "Enter the accountable owner against the finding record.",
+            "Done when every validated finding has an assigned remediation owner."
+          ],
+          "verify": [
+            "Open a sample validated finding and confirm an owner name is recorded.",
+            "Pass when the owner field is populated for all validated findings."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Lock the validated findings list",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Confirm every finding shows acceptance or adjudicated disposition and an assigned owner.",
+            "Set the findings list status to locked in AuditBoard.",
+            "Done when the list is locked and ready for prioritisation."
+          ],
+          "verify": [
+            "Attempt to edit a locked finding and confirm editing is blocked.",
+            "Pass when the list is locked and no unresolved findings remain."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "01e4d0da-084e-4a80-afe0-73c4c9b62610",
+      "verifier": "Operational Resilience Analyst",
+      "generic": {
+        "Defined scope/population": "All mapped dependencies for important business services requiring a tolerance assessment.",
+        "In-scope period": "Current dependency assessment cycle following service mapping.",
+        "Required fields populated and valid": "Each important business service dependency shows a plausible-disruption assessment against tolerance.",
+        "Control totals or record counts reconcile": "Assessed dependency count matches the total mapped dependency population.",
+        "Evidence retained with timestamp/version": "Disruption scenario modelling and gap rationale are dated on the business service entry.",
+        "Exceptions logged with disposition": "Dependencies unable to be modelled are logged with the reason and follow-up owner.",
+        "Test population": "Sample of mapped dependencies assessed this cycle.",
+        "Pass/fail thresholds": "Pass if every dependency has a modelled disruption outcome against its tolerance.",
+        "Exception handling path": "Flagged resilience gaps hand off to vulnerability identification for formal logging.",
+        "Documented acceptance criteria": "Assessment is complete only when every dependency has a modelled outcome recorded.",
+        "Evidence location": "Business service entries and dependency assessments in Archer GRC."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the mapped dependency list for each business service",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Open the service map for each important business service in Archer GRC.",
+            "Extract the full list of mapped dependencies.",
+            "Done when the dependency list is confirmed for all in-scope services."
+          ],
+          "verify": [
+            "Check the extracted list against the service map's dependency count.",
+            "Pass when the counts match for every service."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Model plausible disruption duration for each dependency",
+          "actor": "Business Continuity Analyst",
+          "sop": [
+            "Define a plausible disruption scenario for each mapped dependency.",
+            "Estimate the disruption duration under that scenario.",
+            "Done when every dependency has a modelled disruption duration."
+          ],
+          "verify": [
+            "Recheck one modelled duration against the scenario assumptions used.",
+            "Pass when the duration is consistent with the stated assumptions."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Compare modelled disruption against the service's impact tolerance",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Compare each dependency's modelled disruption duration to its service's tolerance threshold.",
+            "Note whether the disruption would breach the threshold.",
+            "Done when every dependency has a tolerance comparison result."
+          ],
+          "verify": [
+            "Spot-check a comparison result against the raw duration and threshold figures.",
+            "Pass when the result correctly reflects the comparison."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Flag dependencies that breach impact tolerance as resilience gaps",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Mark any dependency whose modelled disruption breaches tolerance as a resilience gap.",
+            "Record the flag on the business service entry.",
+            "Done when every breaching dependency is flagged as a gap."
+          ],
+          "verify": [
+            "Confirm the flagged gaps match the breaching comparison results.",
+            "Pass when no breaching dependency is left unflagged."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the gap rationale against the business service entry",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Document the affected dependency, scenario and rationale for each flagged gap.",
+            "Attach the rationale to the business service entry in Archer GRC.",
+            "Done when every flagged gap has a documented rationale."
+          ],
+          "verify": [
+            "Open a flagged gap and confirm the rationale references the correct dependency.",
+            "Pass when the rationale is complete and attached."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Hand off flagged gaps for formal vulnerability logging",
+          "actor": "Business Continuity Analyst",
+          "sop": [
+            "Compile the list of flagged resilience gaps ready for handoff.",
+            "Send the list to the vulnerability identification step for formal register entry.",
+            "Done when every flagged gap is confirmed logged as a vulnerability."
+          ],
+          "verify": [
+            "Check the vulnerability register for a new entry against each handed-off gap.",
+            "Pass when every flagged gap has a corresponding register entry."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjui614f5kfgzf1jt91z9",
+      "verifier": "Enterprise Risk Manager",
+      "generic": {
+        "Defined scope/population": "All important business services with a proposed impact tolerance pending owner confirmation.",
+        "In-scope period": "Current impact tolerance confirmation cycle before the next scenario-testing period.",
+        "Required fields populated and valid": "Each important business service shows a service-owner-confirmed impact tolerance with confirmation date.",
+        "Control totals or record counts reconcile": "Confirmed tolerance count matches the total important business service population.",
+        "Evidence retained with timestamp/version": "Confirmation email or sign-off and date are retained in SharePoint and linked in Archer GRC.",
+        "Exceptions logged with disposition": "Disputed thresholds are logged with the requested adjustment and resolution outcome.",
+        "Test population": "Sample of business services requiring tolerance confirmation this cycle.",
+        "Pass/fail thresholds": "Pass if every service shows a confirmed tolerance with confirming owner and date.",
+        "Exception handling path": "Disputed thresholds route to the Enterprise Risk Manager for resolution before finalising.",
+        "Documented acceptance criteria": "Confirmation is complete only when tolerances are locked as the testing baseline.",
+        "Evidence location": "Impact tolerance register in Archer GRC, confirmations in SharePoint."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Circulate proposed impact tolerances to service owners",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Identify the named service owner for each important business service.",
+            "Send the proposed impact tolerance metric and threshold to each owner via SharePoint.",
+            "Done when every service owner has received the proposed tolerance."
+          ],
+          "verify": [
+            "Check the SharePoint share log for a sent record to every service owner.",
+            "Pass when every owner shows a delivery record."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Capture service owner confirmation or requested adjustment",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Collect each service owner's written confirmation or adjustment request.",
+            "Enter the response against the corresponding tolerance record in Archer GRC.",
+            "Done when every service owner's response is recorded."
+          ],
+          "verify": [
+            "Open a tolerance record and confirm a response is logged.",
+            "Pass when the response matches the owner's written reply."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Resolve disputed thresholds with the Enterprise Risk Manager",
+          "actor": "Enterprise Risk Manager",
+          "sop": [
+            "Review each disputed threshold and the service owner's adjustment request.",
+            "Agree a final threshold with the service owner before finalising.",
+            "Done when every disputed threshold has a resolved final value."
+          ],
+          "verify": [
+            "Check the resolved threshold against the documented agreement.",
+            "Pass when the final threshold matches what was agreed."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record the confirmation date and confirming owner",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Enter the confirmation date and the confirming service owner's name on the tolerance entry.",
+            "Save the entry in Archer GRC.",
+            "Done when every tolerance entry shows a date and confirming owner."
+          ],
+          "verify": [
+            "Open a sample entry and confirm date and owner fields are populated.",
+            "Pass when both fields match the recorded confirmation."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Lock confirmed impact tolerances as the testing baseline",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Confirm every important business service has a finalised, confirmed tolerance.",
+            "Set the tolerance register to locked for the next scenario-testing cycle.",
+            "Done when the register is locked with no outstanding confirmations."
+          ],
+          "verify": [
+            "Attempt to edit a locked tolerance and confirm editing is restricted.",
+            "Pass when the register is locked and every service has a confirmed value."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Notify stakeholders that tolerances are finalised",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Prepare a summary of the finalised impact tolerances for the resilience governance forum.",
+            "Distribute the summary to stakeholders ahead of the next testing cycle.",
+            "Done when the summary is distributed and acknowledged."
+          ],
+          "verify": [
+            "Check for acknowledgement receipts from key stakeholders.",
+            "Pass when the summary is confirmed received by the governance forum."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "ca1d0e74-1544-4271-9ef1-a626482e037e",
+      "verifier": "Business Continuity Analyst",
+      "generic": {
+        "Defined scope/population": "All important business services requiring a published people/process/technology/third-party map.",
+        "In-scope period": "Current service mapping build or refresh cycle.",
+        "Required fields populated and valid": "Each important business service links to a published, owner-approved service map.",
+        "Control totals or record counts reconcile": "Published map count matches the total important business service population.",
+        "Evidence retained with timestamp/version": "Service map version and owner sign-off date are recorded in Confluence and Archer GRC.",
+        "Exceptions logged with disposition": "Services without a complete asset mapping are logged with the missing dependency type.",
+        "Test population": "Sample of important business services mapped or refreshed this cycle.",
+        "Pass/fail thresholds": "Pass if every service map covers people, process, technology and third-party assets with sign-off.",
+        "Exception handling path": "Unresolved gaps in the delivery chain route back for further asset identification.",
+        "Documented acceptance criteria": "Mapping is complete only when the business service owner has signed off the map.",
+        "Evidence location": "Service maps in Confluence, linked business service records in Archer GRC."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "List each business service's end-to-end delivery chain",
+          "actor": "Business Continuity Analyst",
+          "sop": [
+            "Identify each important business service in scope for mapping.",
+            "List its end-to-end delivery chain across people, process, technology and third-party.",
+            "Done when every in-scope service has a documented delivery chain."
+          ],
+          "verify": [
+            "Check the delivery chain list for all four asset categories per service.",
+            "Pass when every service's chain covers all four categories."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Identify the applications, facilities and staffing groups delivering each service",
+          "actor": "Operational Resilience Analyst",
+          "sop": [
+            "Review each business service's delivery chain for the specific applications used.",
+            "Identify the facilities and staffing groups that deliver the service.",
+            "Done when applications, facilities and staffing are identified for every service."
+          ],
+          "verify": [
+            "Cross-check identified applications against the application catalog.",
+            "Pass when every named application exists in the application catalog."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Identify named third-party providers against the vendor register",
+          "actor": "Third-Party Risk Manager",
+          "sop": [
+            "Identify the third-party providers and outsourced arrangements each service depends on.",
+            "Cross-reference each provider against the vendor register.",
+            "Done when every third-party dependency is matched to a vendor register entry."
+          ],
+          "verify": [
+            "Spot-check one identified provider against its vendor register entry.",
+            "Pass when the provider details match the vendor register record."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Publish the completed service map in Confluence",
+          "actor": "Business Continuity Analyst",
+          "sop": [
+            "Compile the delivery chain, applications, facilities and third-party findings into a service map page.",
+            "Publish the page in Confluence.",
+            "Done when the service map page is published."
+          ],
+          "verify": [
+            "Open the published page and confirm all four asset categories are documented.",
+            "Pass when the page is live and complete."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Link the service map from the business service record",
+          "actor": "Business Continuity Analyst",
+          "sop": [
+            "Copy the Confluence page link for the published service map.",
+            "Paste the link into the business service's record in Archer GRC.",
+            "Done when the business service record links to the published map."
+          ],
+          "verify": [
+            "Click the link from Archer GRC and confirm it opens the correct map.",
+            "Pass when the linked page matches the business service."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm sign-off from the business service owner",
+          "actor": "Business Continuity Analyst",
+          "sop": [
+            "Send the published service map to the business service owner for review.",
+            "Capture the owner's sign-off or requested changes.",
+            "Done when every published map has an owner sign-off recorded."
+          ],
+          "verify": [
+            "Check the map record for a sign-off name and date.",
+            "Pass when sign-off is present for every published map."
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fju9a14c8kfgzdngnq5ht",
+      "verifier": "Chief Risk Officer",
+      "generic": {
+        "Defined scope/population": "All important business services requiring an approved impact tolerance threshold.",
+        "In-scope period": "Current impact tolerance-setting cycle ahead of board approval.",
+        "Required fields populated and valid": "Each important business service has an approved impact tolerance threshold with effective date and approver.",
+        "Control totals or record counts reconcile": "Approved tolerance count matches the total important business service population.",
+        "Evidence retained with timestamp/version": "Impact tolerance paper and board approval are version-dated in the board portal.",
+        "Exceptions logged with disposition": "Tolerances not approved on first submission are logged with the requested revision.",
+        "Test population": "Sample of important business services with a tolerance set this cycle.",
+        "Pass/fail thresholds": "Pass if every service has a board-approved threshold with an effective date.",
+        "Exception handling path": "Unapproved or contested tolerances route back through Enterprise Risk Manager review.",
+        "Documented acceptance criteria": "Setting is complete only when thresholds are recorded in the impact tolerance register.",
+        "Evidence location": "Impact tolerance register in Archer GRC, approval pack in the board portal."
+      },
+      "steps": [
+        {
+          "n": 1,
+          "title": "Define the impact tolerance metric for each business service",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Identify the important business services requiring a tolerance metric.",
+            "Define the maximum tolerable disruption duration, data loss and customer/financial harm metric.",
+            "Done when every in-scope service has a defined tolerance metric."
+          ],
+          "verify": [
+            "Check each defined metric against the service's criticality classification.",
+            "Pass when the metric type matches the service's risk profile."
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Set the quantitative threshold for each metric",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Reference the risk appetite statement for the acceptable threshold range.",
+            "Set the specific quantitative threshold for each defined metric.",
+            "Done when every metric has a set numeric threshold."
+          ],
+          "verify": [
+            "Compare the set threshold against the risk appetite statement's range.",
+            "Pass when the threshold falls within the approved range."
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Draft the impact tolerance paper for Enterprise Risk Manager review",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Compile the proposed metrics and thresholds into an impact tolerance paper.",
+            "Send the paper to the Enterprise Risk Manager for review.",
+            "Done when the paper is drafted and sent for review."
+          ],
+          "verify": [
+            "Check for a review response from the Enterprise Risk Manager.",
+            "Pass when a review outcome is logged against the paper."
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Review and endorse the impact tolerance paper",
+          "actor": "Enterprise Risk Manager",
+          "sop": [
+            "Review the proposed metrics and thresholds against enterprise risk appetite.",
+            "Endorse the paper or request changes before CRO submission.",
+            "Done when an endorsement or change request is recorded."
+          ],
+          "verify": [
+            "Confirm the paper shows an endorsement decision from the Enterprise Risk Manager.",
+            "Pass when the decision is recorded with a date."
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Route proposed tolerances through the board approval workflow",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Submit the endorsed impact tolerance paper into the board portal approval workflow.",
+            "Confirm the submission reaches the Chief Risk Officer and Board for the material decision.",
+            "Done when the workflow shows the paper pending board approval."
+          ],
+          "verify": [
+            "Check the board portal workflow status for pending-approval state.",
+            "Pass when the paper is shown routed to the correct approvers."
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Obtain Chief Risk Officer and board approval",
+          "actor": "Chief Risk Officer",
+          "sop": [
+            "Review the impact tolerance paper and proposed thresholds.",
+            "Approve the paper via the board approval workflow.",
+            "Done when an approval decision is recorded in the board portal."
+          ],
+          "verify": [
+            "Check the board portal for a recorded approval decision and date.",
+            "Pass when the decision shows approved with a date."
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Record approved thresholds in the impact tolerance register",
+          "actor": "Operational Resilience Lead",
+          "sop": [
+            "Enter each approved impact tolerance threshold into the register in Archer GRC.",
+            "Record the effective date and approver for each entry.",
+            "Done when every service's approved threshold is recorded with an effective date."
+          ],
+          "verify": [
+            "Open the register and confirm every service shows a threshold, date and approver.",
+            "Pass when all three fields are present and match the board decision."
+          ]
+        }
+      ]
+    }
+  ]
+}
