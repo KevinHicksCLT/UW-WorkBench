@@ -1,0 +1,2838 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-058-C01",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Controller",
+          "value": "Owns the WYO monthly financial reporting control environment (output tape build, GL reconciliation, BSA submission); escalates TRRP failures to the CFO"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 44 CFR 62.23(j) (WYO records/access) and the current WYO Financial Assistance/Subsidy Arrangement Financial Control Plan, re-read at the start of each annual control-matrix refresh (rep jurisdiction: FEMA NFIP)"
+        },
+        "In-scope processes": {
+          "value": "Monthly WYO output tape build, GL-to-tape reconciliation, and financial statement submission to the NFIP Bureau and Statistical Agent (BSA), for every writing company/NAIC co-code participating in the WYO Program"
+        },
+        "In-scope systems": {
+          "app": "SAP S/4HANA (GL)",
+          "value": "General ledger plus the WYO output-tape extract/build utility that feeds the monthly BSA submission; reconciliations worked in BlackLine"
+        },
+        "Compliance procedure documented": {
+          "value": "WYO Monthly Financial Reporting Control Procedure — tape build, reconciliation tie-out, TRRP error-code resolution, BSA submission and evidence retention"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the CFO; reviewed annually and on any FEMA/BSA Financial Control Plan bulletin"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Monthly — output tape and financial statements are due to the BSA on the BSA's published monthly cycle close date, typically within the first 10 business days after month end"
+        },
+        "Deadline reminders configured": {
+          "value": "BSA submission calendar alerts at month-end minus 5 business days and at the BSA cycle close date, tracked in the close/consolidation tool"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Control matrix, monthly reconciliations, TRRP error reports and BSA acceptance confirmations retained 7 years per the WYO Financial Assistance/Subsidy Arrangement records/access clause"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "TRRP rejections and reconciliation breaks logged with error code, root cause and re-submission date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Controller",
+          "value": "Controller signs off every TRRP re-submission and every control deficiency remediation before the next monthly cycle closes"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All monthly WYO output-tape submissions and GL reconciliations for the fiscal year, across every writing company/NAIC co-code"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance on TRRP errors per the BSA's zero-error-tolerance standard; any unresolved reconciling item over $1,000 or aged past one monthly cycle is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is monthly; control testing performed monthly against that month's full population, plus an annual walkthrough of the control matrix"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Must not have prepared or reviewed the sampled monthly reconciliation"
+        },
+        "Evidence location for test results": {
+          "value": "Monthly ICFR test workpaper in the compliance evidence repository, cross-referenced to the control matrix"
+        },
+        "Regulator-ready documentation": {
+          "value": "Control matrix, monthly test workpapers and BSA acceptance confirmations, presentable to a FEMA operational review within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Controller owns the FEMA/BSA response; CFO clears any control-deficiency disclosure before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Stand up and version the WYO ICFR control matrix",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "Open the prior-year control matrix workbook in Microsoft Excel and list every control step from output-tape extract through BSA acceptance.",
+            "For each control record the control owner, frequency, the GL account ranges and cost centers it covers, and the SAP S/4HANA (GL) transaction codes used to pull the source data.",
+            "Compare the current WYO Financial Control Plan bulletin against last year's matrix and flag any new or retired control requirement.",
+            "Route the draft matrix to the CFO for annual approval and record the approval date on the cover tab."
+          ],
+          "done": "the control matrix is current against the latest Financial Control Plan, every control has a named owner and GL scope, and the CFO approval date is recorded."
+        },
+        {
+          "step": "Extract the monthly WYO output tape from the general ledger",
+          "by": "Accountant",
+          "role": "Accountant",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "In SAP S/4HANA open the GL extract report for the WYO transaction code range and run it for the closed accounting month.",
+            "Build the output tape in the NFIP-prescribed record layout (policy transaction, premium, loss and expense records) and save it under <company>-<yyyymm>-tape.txt.",
+            "Cross-check the record count on the tape against the transaction count in the policy administration system for the same month.",
+            "Ask the Policy Admin Ops Lead to explain any count difference before the tape moves to reconciliation."
+          ],
+          "done": "the output tape is built in the prescribed layout and its record count is explained against the policy admin system for the month."
+        },
+        {
+          "step": "Reconcile the output tape to the general ledger",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "app": "BlackLine (Close)",
+          "actions": [
+            "Open a new BlackLine reconciliation task for the month and load the GL trial balance alongside the output-tape summary totals.",
+            "Tie premium written, losses paid/incurred and expense totals on the tape to the corresponding GL account balances line by line.",
+            "Book and document any reclass or true-up entry needed to bring the tape into agreement with the GL.",
+            "Attach the signed-off reconciliation to the BlackLine task and route it to the Controller for review."
+          ],
+          "done": "every tape total ties to its GL account with reclass entries documented, and the reconciliation is attached in BlackLine."
+        },
+        {
+          "step": "Resolve TRRP error codes before re-submission",
+          "by": "Accountant",
+          "role": "Accountant",
+          "actions": [
+            "Run the tape through the internal TRRP pre-edit check and capture the returned error/warning codes.",
+            "Look up each code in the current NFIP TRRP Plan of Operations error-code table and identify the source field or transaction causing it.",
+            "Correct the source transaction in SAP S/4HANA or the policy administration system, not just the tape file, and re-extract.",
+            "Log every error code, its cause and its fix on the monthly TRRP error log."
+          ],
+          "done": "the tape passes the pre-edit check with zero unresolved error codes and every prior error is logged with its root cause."
+        },
+        {
+          "step": "Submit the tape and financial statements to the NFIP Bureau and Statistical Agent",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Log the submission package (tape file, monthly financial statement, reconciliation summary) into the Internal Regulatory System's WYO filing tracker.",
+            "Transmit the package to the BSA through the designated NFIP submission channel ahead of the published cycle close date.",
+            "Record the BSA transmission confirmation number and timestamp on the filing tracker entry.",
+            "Notify the CFO if the transmission is not acknowledged within one business day."
+          ],
+          "done": "the package is transmitted before the BSA cycle close date and a BSA confirmation number is recorded in the filing tracker."
+        },
+        {
+          "step": "Confirm BSA acceptance and clear any rejection",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Check the BSA acceptance report for the month against the transmitted package.",
+            "For any rejected record, pull the rejection reason code, correct the underlying transaction and re-submit within the BSA's cure window.",
+            "Update the filing tracker status to Accepted only after a clean BSA acceptance report is on file.",
+            "Escalate to the CFO any rejection that cannot be cured before the next monthly cycle opens."
+          ],
+          "done": "the filing tracker shows Accepted with a clean BSA acceptance report, or an escalated, owned cure plan for any unresolved rejection."
+        },
+        {
+          "step": "Write the monthly control narrative and evidence packet",
+          "by": "Controls Analyst",
+          "role": "Controls Analyst",
+          "actions": [
+            "Summarize what was tested, what broke and how it was fixed for the month against each control in the matrix.",
+            "Attach the reconciliation, error log, transmission confirmation and BSA acceptance report to the packet.",
+            "File the packet against the corresponding control-matrix row so the evidence trail is one click from the control."
+          ],
+          "done": "a complete evidence packet exists for the month, linked to every control-matrix row it supports."
+        },
+        {
+          "step": "Perform the quarterly control walkthrough",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Select one month's evidence packet per control per quarter and re-perform the control steps end to end.",
+            "Interview the control owner on any step where the walkthrough does not match the documented procedure.",
+            "Update the control matrix narrative where the actual process has drifted from what is written.",
+            "Record the walkthrough result (operating as designed / design gap / no evidence) against each control."
+          ],
+          "done": "every control has a quarterly walkthrough result recorded, with any design gap logged for remediation."
+        },
+        {
+          "step": "Log control deficiencies and severity-rate them",
+          "by": "Controls Analyst",
+          "role": "Controls Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for every walkthrough or reconciliation deficiency with the control id, what failed and the financial statement line it affects.",
+            "Rate severity as deficiency, significant deficiency or material weakness using the CFO-approved severity criteria.",
+            "Assign an owner and a remediation date, escalating any significant deficiency or material weakness to the CFO the same week."
+          ],
+          "done": "every deficiency is logged, severity-rated and has an owner and remediation date, with significant items escalated to the CFO."
+        },
+        {
+          "step": "Remediate and re-test the deficient control",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Implement the agreed fix (procedure change, system control, additional review step) with the control owner.",
+            "Re-perform the control on the next monthly cycle's evidence and confirm the deficiency did not recur.",
+            "Close the tracker issue only after two consecutive clean monthly cycles for reconciliation controls.",
+            "Update the control matrix with the revised procedure and the remediation date."
+          ],
+          "done": "the tracker issue is closed only after two clean cycles and the control matrix reflects the remediated procedure."
+        },
+        {
+          "step": "Roll up the control matrix status for the annual ICFR assertion",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Aggregate the year's walkthrough results, deficiencies and remediation status by control.",
+            "Draft the ICFR effectiveness assertion covering the WYO financial reporting cycle for CFO sign-off.",
+            "Attach the control matrix, evidence index and open-item list as supporting schedules."
+          ],
+          "done": "a CFO-signed ICFR effectiveness assertion exists for the WYO financial reporting cycle, supported by the year's control matrix evidence."
+        },
+        {
+          "step": "Brief the Audit Committee on control effectiveness",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Prepare a one-page summary of control testing coverage, deficiency count by severity, and remediation status for the WYO reporting cycle.",
+            "Present the summary at the next scheduled Audit Committee session.",
+            "Record committee questions and any directed follow-up action in the meeting minutes."
+          ],
+          "done": "the Audit Committee has received and minuted the control effectiveness summary for the period."
+        },
+        {
+          "step": "Retain the control evidence for the required period",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Move the year's control matrix, monthly evidence packets and deficiency log into the compliance evidence repository under the fiscal year.",
+            "Apply the 7-year retention label per the WYO Financial Assistance/Subsidy Arrangement records/access clause.",
+            "Confirm the repository index is searchable by control id and by month."
+          ],
+          "done": "the year's control evidence is filed, labelled for 7-year retention and searchable by control id and month."
+        },
+        {
+          "step": "Update the procedure for any FEMA Financial Control Plan bulletin",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Monitor FEMA/BSA bulletins for changes to the output-tape layout, error codes or submission cadence.",
+            "Redline the Monthly Financial Reporting Control Procedure against the bulletin and route it for CFO re-approval.",
+            "Communicate the change to the Accountant and Senior Accountant performing the monthly cycle before it takes effect."
+          ],
+          "done": "the procedure reflects the latest bulletin, is re-approved by the CFO, and performers were briefed before the next monthly cycle."
+        },
+        {
+          "step": "Confirm continued WYO Program authorization to write",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Verify the current fiscal year's TRRP pass status is on file before the WYO Financial Assistance/Subsidy Arrangement renewal date.",
+            "Where any monthly cycle failed TRRP zero-error tolerance, confirm the cure was accepted by the BSA before the renewal date.",
+            "Attach the TRRP pass evidence to the Arrangement renewal package sent to the CFO and General Counsel."
+          ],
+          "done": "TRRP pass evidence for the fiscal year is attached to the Arrangement renewal package before the renewal deadline."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of monthly reporting cycles for the fiscal year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "Extract from SAP S/4HANA the list of monthly WYO output-tape submissions and reconciliations for every writing company/NAIC co-code in the fiscal year.",
+            "Reconcile the count of monthly cycles to the filing tracker in the Internal Regulatory System — 12 per company with no gaps.",
+            "Resolve any missing or duplicate cycle before sampling begins."
+          ],
+          "done": "the population is reconciled to the filing tracker with no gaps or duplicates."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of months with a logged TRRP rejection or a reconciliation break over $1,000.",
+            "Take 4 additional months at random (seeded, reproducible) per writing company from the remaining population.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers every month with a logged rejection or material break."
+        },
+        {
+          "step": "Re-perform the GL-to-tape reconciliation for the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "BlackLine (Close)",
+          "actions": [
+            "Open the BlackLine reconciliation task for each sampled month and independently re-tie tape totals to the GL trial balance.",
+            "Recompute any reclass or true-up entry booked during the cycle and confirm it clears to zero.",
+            "Flag any difference between the re-performance and the filed reconciliation as an exception."
+          ],
+          "done": "each sampled month is independently re-tied with differences flagged as exceptions."
+        },
+        {
+          "step": "Confirm TRRP error resolution on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the TRRP error log for each sampled month and match each logged code to its source-transaction fix.",
+            "Confirm the corrected transaction, not just the tape file, was updated in SAP S/4HANA or the policy administration system.",
+            "Confirm the re-submitted tape achieved a clean pre-edit check before transmission."
+          ],
+          "done": "every logged TRRP error in the sample traces to a source-transaction fix and a clean re-submission."
+        },
+        {
+          "step": "Trace each sampled submission to BSA acceptance",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "In the Internal Regulatory System filing tracker, open the sampled month's submission record.",
+            "Confirm a BSA transmission confirmation number and a clean BSA acceptance report exist for the month.",
+            "For any rejection, confirm the cure was submitted and accepted inside the BSA cure window.",
+            "Capture the acceptance report into the workpaper."
+          ],
+          "done": "every sampled month traces to a captured BSA acceptance report, with cures shown inside the cure window."
+        },
+        {
+          "step": "Re-perform the control walkthrough on a sub-sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Select 5 controls from the control matrix and re-perform each against the sampled month's evidence packet.",
+            "Interview the control owner where the re-performance does not match the documented procedure.",
+            "Note any design gap separately from a one-off execution error."
+          ],
+          "done": "the sub-sample of controls is independently re-performed with design gaps separated from execution errors."
+        },
+        {
+          "step": "Verify the retention labelling on the sampled evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Open the compliance evidence repository entry for each sampled month.",
+            "Confirm the 7-year retention label is applied and the packet is searchable by control id and month.",
+            "Flag any missing or mislabelled packet as an exception."
+          ],
+          "done": "every sampled month's evidence packet is retention-labelled and searchable, or flagged as an exception."
+        },
+        {
+          "step": "Recompute the deadline maths against the BSA cycle calendar",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled month, recompute the BSA cycle close date from the published BSA calendar.",
+            "Compare the recomputed date to the actual transmission timestamp on the filing tracker.",
+            "Note any submission transmitted after the cycle close date as a timeliness exception, independent of any content exception."
+          ],
+          "done": "every sampled month's transmission timing is recomputed and compared to the BSA cycle calendar."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Controls Analyst",
+          "role": "Controls Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the month, company, what was missed and the affected control.",
+            "Assign a root cause and an owner, and set a remediation date.",
+            "Carry every open exception into the next quarter's walkthrough as a mandatory retest item."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and a mandatory retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the exception rate and compare it to the zero-tolerance threshold for TRRP errors and the $1,000 reconciliation threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have an independent reviewer who performed none of the sampled re-performances sign the workpaper.",
+            "Report the conclusion and any open deficiencies to the Audit Committee and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate exists, and results are reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-058-C02",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Chief Audit Executive",
+          "value": "Owns the annual control-testing plan over claims adjustment compliance with the NFIP Claims Manual; escalates unremediated deficiencies to the Audit Committee"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 44 CFR 62.23(i)(1) and the current NFIP Claims Manual (June 2025 edition) plus applicable claims guidance bulletins, re-read at the start of each annual test cycle (rep jurisdiction: FEMA NFIP)"
+        },
+        "In-scope processes": {
+          "value": "Flood claim intake through adjustment, reserve setting, payment and closure for every SFIP claim across all writing companies participating in the WYO Program"
+        },
+        "In-scope systems": {
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "value": "Flood claim files, adjuster worksheets, reserve history and payment records"
+        },
+        "Compliance procedure documented": {
+          "value": "Claims Manual Compliance Control Testing Procedure — annual test plan, sample selection, re-adjudication method and deficiency remediation workflow"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Audit Executive; reviewed annually and on every NFIP Claims Manual or bulletin update"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual test cycle closes within 60 days of fiscal year end; any claim reversed for non-reimbursement is escalated within 60 days of loss discovery per the WYO reversal clock"
+        },
+        "Deadline reminders configured": {
+          "value": "Internal Audit annual plan calendar alert at test-cycle kickoff and at the 60-day closure deadline, tracked in AuditBoard"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Test plan, sample files, re-adjudication notes and deficiency remediation records retained 7 years per the WYO Financial Assistance/Subsidy Arrangement records/access clause"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Claims adjusted inconsistent with the Claims Manual are logged as findings with root cause, reimbursement impact and remediation owner"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Audit Executive",
+          "value": "Chief Audit Executive signs off every remediation plan and confirms retest before the finding is closed"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All flood claims closed in the test period across every writing company, drawn from the claims management platform closed-claims register"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any claim adjusted inconsistent with the Claims Manual and subject to reversal/non-reimbursement is a fail; an exception rate above 2% triggers an expanded sample"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is continuous claim-by-claim adjustment; control testing performed annually over the full closed-claim population with quarterly interim pulls"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Claims Director / Manager",
+          "value": "Must not have adjusted or approved any sampled claim"
+        },
+        "Evidence location for test results": {
+          "value": "Annual claims compliance test workpaper in AuditBoard, cross-referenced to the closed-claims register"
+        },
+        "Regulator-ready documentation": {
+          "value": "Test plan, sample results and remediation log, presentable to a FEMA operational review or Claims Manual audit within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Chief Audit Executive owns the FEMA response coordination; Claims Director / Manager clears any adjustment-practice representation before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Build the annual claims-compliance test plan",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "AuditBoard",
+          "actions": [
+            "In AuditBoard create the annual audit entry for NFIP Claims Manual compliance testing and set the scope to every writing company's flood claims.",
+            "Read the current NFIP Claims Manual (June 2025) table of contents and any claims guidance bulletins issued since the last cycle, and list the standards to be tested (coverage determination, ACV/RCV, proof-of-loss handling, appeals).",
+            "Set the test-cycle timeline, sample size targets and the 60-day closure deadline in the AuditBoard project plan.",
+            "Route the plan to the Chief Claims Officer for review and comment before kickoff."
+          ],
+          "done": "an AuditBoard audit entry exists with scope, standards list, timeline and Chief Claims Officer review comments recorded."
+        },
+        {
+          "step": "Pull the closed-claims register for the test period",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "In the claims platform open the closed-claims report and filter Line of Business = Flood/SFIP and Close Date within the test period.",
+            "Export claim number, adjuster, coverage determination, ACV/RCV basis, reserve history and paid amount for every record.",
+            "Reconcile the exported count to the claims platform's summary dashboard for the same filters.",
+            "Save the register into the audit workpaper folder."
+          ],
+          "done": "the closed-claims register is exported, reconciled to the platform dashboard, and filed in the workpaper folder."
+        },
+        {
+          "step": "Draw the annual sample",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Stratify the register by claim size and coverage determination type (paid in full, denied, partial, appealed).",
+            "Select a random (seeded, reproducible) sample from each stratum, weighting toward large-loss and denied claims.",
+            "Add 100% of claims already flagged by claims quality assurance review during the period.",
+            "Record the seed, population size and stratum counts in the workpaper."
+          ],
+          "done": "a stratified, reproducible sample is drawn covering every stratum and all claims quality assurance flags."
+        },
+        {
+          "step": "Re-adjudicate coverage determination on each sampled claim",
+          "by": "Claims Examiner",
+          "role": "Claims Examiner",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "Open the claim file in the claims platform and read the policy declarations, the loss report and the adjuster's coverage notes.",
+            "Independently determine coverage against the current SFIP Homeowner Flood Form language without first reading the adjuster's conclusion.",
+            "Compare your determination to the filed determination and note any difference on the sample worksheet.",
+            "Cite the specific Claims Manual chapter and page relied on for the determination."
+          ],
+          "done": "each sampled claim has an independent coverage re-determination with a cited Claims Manual reference."
+        },
+        {
+          "step": "Re-perform the ACV/RCV and payment calculation",
+          "by": "Claims Examiner",
+          "role": "Claims Examiner",
+          "actions": [
+            "Recompute actual cash value or replacement cost value using the same estimating basis (Xactimate/CCC line items) recorded on the claim.",
+            "Compare the recomputed figure to the paid amount on the register and flag any variance over 5%.",
+            "Confirm depreciation and deductible were applied per the Claims Manual's stated methodology.",
+            "Note the variance reason (data entry, judgement call, Claims Manual deviation) on the worksheet."
+          ],
+          "done": "each sampled claim's payment calculation is recomputed and any variance over 5% is reasoned and noted."
+        },
+        {
+          "step": "Test proof-of-loss and documentation completeness",
+          "by": "Claims Analyst",
+          "role": "Claims Analyst",
+          "actions": [
+            "Confirm a signed proof of loss (or the file's documented basis for waiver) exists in the claim file for each sampled claim.",
+            "Confirm photos, the adjuster's inspection report and any engineering/elevation certificate referenced in the file are attached.",
+            "Flag any claim missing required documentation as a documentation exception, separate from a coverage or payment exception."
+          ],
+          "done": "documentation completeness is confirmed or exceptioned for every sampled claim."
+        },
+        {
+          "step": "Interview the adjuster on flagged claims",
+          "by": "Claims Director / Manager",
+          "role": "Claims Director / Manager",
+          "actions": [
+            "For every claim where re-adjudication disagrees with the filed determination, interview the adjuster who worked it.",
+            "Document the adjuster's stated rationale and compare it against the Claims Manual chapter cited.",
+            "Determine whether the disagreement is a genuine Claims Manual inconsistency or a documentation gap."
+          ],
+          "done": "every disagreement is interviewed and classified as a Claims Manual inconsistency or a documentation gap."
+        },
+        {
+          "step": "Log every confirmed inconsistency as a finding",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker finding per confirmed inconsistency with claim number, the Claims Manual section violated and the reimbursement impact.",
+            "Rate severity by dollar impact and by whether the claim is subject to NFIP reversal/non-reimbursement.",
+            "Assign the finding to the responsible claims team lead with a remediation date."
+          ],
+          "done": "every confirmed inconsistency is logged as a rated finding with an owner and remediation date."
+        },
+        {
+          "step": "Build and approve the remediation plan",
+          "by": "Chief Claims Officer",
+          "role": "Chief Claims Officer",
+          "actions": [
+            "For each finding, define the corrective action: re-adjudicate and pay the correct amount, retrain the adjuster, or update the claims procedure.",
+            "Set a remediation date for each action and confirm the Claims Quality Assurance / Training Manager will retest.",
+            "Sign the remediation plan before it goes back to Internal Audit for tracking."
+          ],
+          "done": "a signed remediation plan with corrective actions and dates exists for every finding."
+        },
+        {
+          "step": "Retrain adjusters on Claims Manual gaps surfaced by the test",
+          "by": "Claims Quality Assurance / Training Manager",
+          "role": "Claims Quality Assurance / Training Manager",
+          "actions": [
+            "Build a targeted training module covering the specific Claims Manual sections that generated findings.",
+            "Deliver the training to the affected adjuster team and record attendance.",
+            "Re-review 5 of that adjuster's subsequent claims within 30 days to confirm the correction stuck."
+          ],
+          "done": "targeted training is delivered with attendance recorded, and a 30-day post-training re-review is completed."
+        },
+        {
+          "step": "Retest closed findings before sign-off",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Pull the corrected claim file or the next-cycle claims for the same adjuster/issue.",
+            "Confirm the corrective action was actually applied, not just documented as planned.",
+            "Close the tracker finding only when the retest passes."
+          ],
+          "done": "every finding is retested and closed only after the retest confirms the correction."
+        },
+        {
+          "step": "Assess whether any reversed/non-reimbursed claim requires a self-report",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Review findings that resulted in claim reversal or non-reimbursement risk under the WYO Arrangement.",
+            "Determine whether the pattern requires proactive disclosure to the NFIP Bureau and Statistical Agent.",
+            "Document the self-report decision and rationale, with sign-off from the Chief Audit Executive."
+          ],
+          "done": "a documented, signed self-report decision exists for any finding carrying reversal/non-reimbursement risk."
+        },
+        {
+          "step": "Roll up the annual test results for the Audit Committee",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Summarize sample size, exception rate, findings by severity and remediation status.",
+            "Compare the exception rate to the 2% expanded-sample threshold and note whether it was triggered.",
+            "Present the summary at the next Audit Committee session and record minutes."
+          ],
+          "done": "the Audit Committee has received and minuted the annual claims-compliance test summary."
+        },
+        {
+          "step": "Update the claims procedures library for confirmed gaps",
+          "by": "Claims Director / Manager",
+          "role": "Claims Director / Manager",
+          "actions": [
+            "Redline the internal claims adjustment procedure for every confirmed Claims Manual inconsistency.",
+            "Route the redline for Chief Claims Officer approval and publish the updated procedure to the adjuster team.",
+            "Record the effective date of the procedure update."
+          ],
+          "done": "the claims procedure is updated, approved and published with an effective date for every confirmed gap."
+        },
+        {
+          "step": "Retain the test evidence for the required period",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Move the test plan, sample worksheets, interview notes and remediation log into the compliance evidence repository under the fiscal year.",
+            "Apply the 7-year retention label and confirm the repository index is searchable by claim number.",
+            "Close out the AuditBoard project entry with a final status."
+          ],
+          "done": "the test evidence is filed, retention-labelled, searchable by claim number, and the AuditBoard entry is closed."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of closed flood claims for the fiscal year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "Extract the closed-claims report for Line of Business = Flood/SFIP for the full fiscal year across every writing company.",
+            "Reconcile the extract count to the finance closed-claims summary for the same period.",
+            "Resolve any count difference before sampling."
+          ],
+          "done": "the population is reconciled to the finance summary with no unresolved differences."
+        },
+        {
+          "step": "Select the independent test sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Stratify the population by claim size and determination type independently of Claims Quality Assurance's own sample.",
+            "Draw a random (seeded, reproducible) sample of at least 40 claims, including 100% of the prior test's open findings.",
+            "Record the seed and stratum counts in the workpaper."
+          ],
+          "done": "an independent, reproducible sample of at least 40 claims is drawn, including all prior-cycle open findings."
+        },
+        {
+          "step": "Independently re-adjudicate coverage on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "Open each sampled claim without reading the original test's conclusion first.",
+            "Determine coverage against the current SFIP Homeowner Flood Form and cite the Claims Manual chapter relied on.",
+            "Compare to both the original adjuster's determination and the first-line test's conclusion, flagging any three-way disagreement."
+          ],
+          "done": "each sampled claim carries an independent coverage determination compared against both prior conclusions."
+        },
+        {
+          "step": "Recompute ACV/RCV and payment for the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute the payment using the estimating line items in the claim file, independent of the first-line recompute.",
+            "Compare to the paid amount and to the first-line test's recomputed figure; flag any variance over 5%.",
+            "Document the estimating basis used for the recompute."
+          ],
+          "done": "payment is independently recomputed for the sample with variances over 5% flagged and documented."
+        },
+        {
+          "step": "Trace documentation completeness on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm proof of loss, inspection report and supporting photos/engineering reports are present in each sampled file.",
+            "Confirm any waiver of proof of loss is itself documented and Claims Manual-compliant.",
+            "Log missing documentation as a distinct exception category."
+          ],
+          "done": "documentation completeness is independently confirmed or exceptioned for the sample."
+        },
+        {
+          "step": "Verify finding disposition and remediation for prior-cycle exceptions",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Pull every open finding from the prior test cycle from the issue tracker.",
+            "Confirm the remediation plan was executed and the retraining/re-adjudication actually occurred.",
+            "Re-test a sample of the affected adjuster's subsequent claims to confirm the correction held."
+          ],
+          "done": "prior-cycle findings are confirmed remediated or re-flagged as still open."
+        },
+        {
+          "step": "Verify the self-report assessment for reversal-risk findings",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the Regulatory Counsel self-report decision memo for any finding carrying reversal/non-reimbursement risk.",
+            "Confirm the decision rationale is documented and signed by the Chief Audit Executive.",
+            "Flag any reversal-risk finding lacking a documented decision as an exception."
+          ],
+          "done": "every reversal-risk finding has a documented, signed self-report decision or is flagged as an exception."
+        },
+        {
+          "step": "Recompute the exception rate against the pass/fail threshold",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compute the exception rate across coverage, payment and documentation categories for the independent sample.",
+            "Compare to the 2% expanded-sample threshold; if exceeded, pull an additional 20-claim sample from the same population.",
+            "Document the expansion decision and its results if triggered."
+          ],
+          "done": "the exception rate is computed and, if over threshold, an expanded sample is drawn and documented."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception distinct from any first-line finding it corroborates or contradicts.",
+            "Assign a root cause and an owner, and set a remediation date.",
+            "Carry unresolved exceptions into the next quarter's interim pull as mandatory retest items."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references from the independent sample.",
+            "Have a reviewer segregated from the sample re-performance sign the workpaper.",
+            "Report the conclusion, exception rate and any self-report decisions to the Audit Committee and file the workpaper in AuditBoard."
+          ],
+          "done": "a signed workpaper with a stated conclusion exists and results are reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-058-C03",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Chief Audit Executive",
+          "value": "Owns pre-engagement verification of the external auditor's independence and rotation status for the WYO annual audited financial statement engagement"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — the WYO Financial Assistance/Subsidy Arrangement Financial Control Plan's audited-statement requirement and Art. III.C ULAE/ALAE reimbursement provisions, re-read at each engagement letter renewal (rep jurisdiction: FEMA NFIP)"
+        },
+        "In-scope processes": {
+          "value": "Selection, engagement-letter review and annual re-verification of the independent CPA firm performing the WYO audited annual financial statement audit"
+        },
+        "In-scope systems": {
+          "app": "AuditBoard",
+          "value": "External auditor independence tracker and engagement-letter repository"
+        },
+        "Compliance procedure documented": {
+          "value": "External Auditor Independence and Rotation Verification Procedure — independence questionnaire, partner-rotation check, non-audit services pre-approval"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Audit Committee; reviewed annually before the audit engagement letter is signed"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per engagement — independence and rotation verification must close before the engagement letter is countersigned and before annual audit fieldwork begins"
+        },
+        "Deadline reminders configured": {
+          "value": "AuditBoard alert at 60 days before the prior engagement letter's anniversary to start the independence re-verification"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Independence questionnaire, partner-rotation schedule and Audit Committee approval minutes retained 7 years per the WYO Arrangement records/access clause"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any independence impairment or missed rotation is logged with the affected engagement and the remediation (partner change, engagement pause)"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Audit Executive",
+          "value": "Chief Audit Executive signs off any remediation before the engagement letter is countersigned"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The current-year external audit engagement and the prior three years' engagement letters and independence questionnaires"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any lead or concurring partner exceeding the 5-year rotation limit, or any unresolved independence impairment, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per engagement; verification tested at each annual engagement letter renewal"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Regulatory Counsel",
+          "value": "Must not have prepared the independence questionnaire or negotiated the engagement letter"
+        },
+        "Evidence location for test results": {
+          "value": "Annual auditor-independence workpaper in AuditBoard, cross-referenced to the engagement letter"
+        },
+        "Regulator-ready documentation": {
+          "value": "Independence questionnaire, rotation schedule and Audit Committee approval minutes, presentable within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Chief Audit Executive owns the response; General Counsel clears any representation about auditor independence before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Open the annual independence verification file",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "AuditBoard",
+          "actions": [
+            "In AuditBoard create the annual External Auditor Independence entry tied to the upcoming engagement letter renewal.",
+            "Pull the prior three years' engagement letters and independence questionnaires into the entry for reference.",
+            "Set the verification deadline to 60 days before the engagement letter anniversary."
+          ],
+          "done": "an AuditBoard entry exists with the prior three years' records attached and the 60-day deadline set."
+        },
+        {
+          "step": "Issue the independence questionnaire to the audit firm",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Send the firm's engagement partner the current-year independence questionnaire covering financial interests, non-audit services performed and family relationships with company officers.",
+            "Set a 10-business-day response deadline and log the send date in AuditBoard.",
+            "Follow up with the engagement partner if the questionnaire is not returned within the deadline."
+          ],
+          "done": "the questionnaire is sent with a logged deadline and follows up if not returned on time."
+        },
+        {
+          "step": "Verify lead and concurring partner rotation",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Pull the partner-rotation schedule the firm maintains and confirm the lead and concurring partner tenure on this engagement.",
+            "Compare tenure to the applicable rotation limit and flag any partner approaching or past the limit.",
+            "Request the firm's succession plan for any partner within one year of the rotation limit."
+          ],
+          "done": "partner tenure is verified against the rotation limit with a succession plan on file for any partner near the limit."
+        },
+        {
+          "step": "Review non-audit services for independence impairment",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "List every non-audit service the firm or its network performed for the company in the prior 12 months.",
+            "Assess each service against the independence rules that apply to the audit engagement.",
+            "Flag any service requiring pre-approval that was not pre-approved by the Audit Committee."
+          ],
+          "done": "every non-audit service is listed, assessed and any pre-approval gap is flagged."
+        },
+        {
+          "step": "Obtain Audit Committee pre-approval for planned non-audit services",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Present the firm's proposed non-audit services for the coming year to the Audit Committee.",
+            "Record the committee's approval or denial of each proposed service in the minutes.",
+            "Communicate any denial to the audit firm before the service is performed."
+          ],
+          "done": "Audit Committee approval or denial is recorded in minutes for every proposed non-audit service before it is performed."
+        },
+        {
+          "step": "Confirm the engagement letter reflects the verified independence status",
+          "by": "General Counsel",
+          "role": "General Counsel",
+          "actions": [
+            "Review the draft engagement letter against the questionnaire results and rotation schedule.",
+            "Confirm the letter's scope excludes any service the Audit Committee denied.",
+            "Route the letter for Audit Committee chair countersignature only after independence is confirmed."
+          ],
+          "done": "the engagement letter is reviewed against verified independence status before it is routed for countersignature."
+        },
+        {
+          "step": "Present the independence findings to the Audit Committee",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Summarize the questionnaire results, rotation status and any flagged impairment for the committee.",
+            "Have the committee formally reaffirm auditor independence before the engagement letter is signed.",
+            "Record the reaffirmation in the meeting minutes."
+          ],
+          "done": "the Audit Committee has formally reaffirmed independence and it is recorded in minutes."
+        },
+        {
+          "step": "Countersign and file the engagement letter",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Route the finalized engagement letter for Audit Committee chair signature via DocuSign.",
+            "File the countersigned letter in the AuditBoard entry alongside the independence questionnaire and rotation schedule.",
+            "Notify the Controller that fieldwork may begin only after the letter is fully executed."
+          ],
+          "done": "the engagement letter is countersigned, filed with supporting evidence, and fieldwork clearance is communicated."
+        },
+        {
+          "step": "Log any independence impairment as an exception",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for any impairment or missed rotation identified during verification.",
+            "Document the remediation taken (partner change, service withdrawal, engagement delay) and its date.",
+            "Route the issue to the Chief Audit Executive for sign-off before closure."
+          ],
+          "done": "every impairment is logged with a documented remediation and Chief Audit Executive sign-off."
+        },
+        {
+          "step": "Monitor independence through the audit cycle",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Require the engagement partner to disclose any new non-audit service request or personnel change mid-cycle.",
+            "Re-assess independence against any disclosed change within 5 business days.",
+            "Escalate any new impairment to the Chief Audit Executive immediately."
+          ],
+          "done": "mid-cycle disclosures are re-assessed within 5 business days and any new impairment is escalated immediately."
+        },
+        {
+          "step": "Track the multi-year rotation calendar",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Maintain a forward rotation calendar showing each partner's expected rotation year.",
+            "Flag any upcoming rotation to the Chief Audit Executive 12 months ahead of the limit.",
+            "Update the calendar immediately when a firm notifies of a partner change."
+          ],
+          "done": "a forward rotation calendar exists with 12-month advance flags and is kept current on firm notifications."
+        },
+        {
+          "step": "Reconcile the audit fee to the pre-approved scope",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Compare the invoiced audit and non-audit fees to the amounts and scope the Audit Committee pre-approved.",
+            "Flag any fee or scope overrun to the Chief Audit Executive before payment.",
+            "Document the resolution of any flagged overrun."
+          ],
+          "done": "invoiced fees are reconciled to pre-approved scope with any overrun flagged and resolved before payment."
+        },
+        {
+          "step": "Communicate the verification result to the audit firm",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Send the audit firm written confirmation that independence and rotation verification is complete for the engagement year.",
+            "Note any condition attached to the confirmation (e.g., a service restriction).",
+            "File the confirmation with the engagement letter."
+          ],
+          "done": "written confirmation of verification completion is sent to the firm and filed with the engagement letter."
+        },
+        {
+          "step": "Refresh the procedure for any FEMA or professional-standards change",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Monitor for changes to applicable independence/rotation standards or FEMA Financial Control Plan audit provisions.",
+            "Redline the verification procedure and route for Audit Committee approval.",
+            "Communicate the updated procedure to Internal Audit and Regulatory Counsel before the next engagement cycle."
+          ],
+          "done": "the procedure is updated, Audit Committee-approved and communicated before the next engagement cycle."
+        },
+        {
+          "step": "Retain the independence evidence for the required period",
+          "by": "Audit Analyst",
+          "role": "Audit Analyst",
+          "actions": [
+            "Move the questionnaire, rotation schedule, non-audit service log and Audit Committee minutes into the compliance evidence repository.",
+            "Apply the 7-year retention label and confirm the record is searchable by engagement year.",
+            "Close the AuditBoard entry with a final status."
+          ],
+          "done": "the independence evidence is filed, retention-labelled, searchable by engagement year, and the AuditBoard entry is closed."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of audit engagements to test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "AuditBoard",
+          "actions": [
+            "Pull every external audit and non-audit engagement letter from AuditBoard for the prior three years.",
+            "Reconcile the count to the Audit Committee minutes approving each engagement.",
+            "Resolve any unreconciled engagement before sampling."
+          ],
+          "done": "the engagement population is reconciled to Audit Committee minutes with no gaps."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of engagements within two years of a partner rotation limit.",
+            "Take all non-audit service engagements from the prior 12 months.",
+            "Record the population and selection rationale in the workpaper."
+          ],
+          "done": "the sample covers 100% of near-limit rotations and all recent non-audit engagements, documented in the workpaper."
+        },
+        {
+          "step": "Independently re-verify partner tenure",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Request the firm's independent quality-control confirmation of lead and concurring partner tenure for each sampled engagement.",
+            "Compare to the tenure recorded in the internal rotation calendar.",
+            "Flag any discrepancy as an exception."
+          ],
+          "done": "partner tenure is independently confirmed by the firm and reconciled to the internal calendar."
+        },
+        {
+          "step": "Re-assess non-audit service independence impact",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Re-read each sampled non-audit service against the independence rules without referencing the original assessment.",
+            "Confirm Audit Committee pre-approval exists and pre-dates the service performance.",
+            "Flag any service performed before pre-approval was granted as a fail, not a documentation gap."
+          ],
+          "done": "each sampled non-audit service is independently re-assessed with pre-approval timing confirmed."
+        },
+        {
+          "step": "Confirm the independence questionnaire was fully completed and signed",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Open each sampled engagement's questionnaire and confirm every question is answered, not left blank.",
+            "Confirm the engagement partner's signature and date are present.",
+            "Flag incomplete questionnaires as an exception regardless of the substantive answers given."
+          ],
+          "done": "questionnaire completeness and signature are confirmed for every sampled engagement."
+        },
+        {
+          "step": "Verify Audit Committee reaffirmation minutes",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the committee minutes for each sampled engagement year and confirm a formal independence reaffirmation is recorded.",
+            "Confirm the reaffirmation date pre-dates the engagement letter countersignature.",
+            "Flag any engagement letter signed before reaffirmation as a fail."
+          ],
+          "done": "reaffirmation minutes are verified to pre-date the engagement letter for every sampled engagement."
+        },
+        {
+          "step": "Recompute fee reconciliation against pre-approved scope",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "Pull invoiced audit and non-audit fees from the general ledger for each sampled engagement.",
+            "Compare to the Audit Committee pre-approved fee/scope on file.",
+            "Flag any overrun not separately re-approved."
+          ],
+          "done": "fees are recomputed and compared to pre-approved scope with unresolved overruns flagged."
+        },
+        {
+          "step": "Trace exception disclosures to remediation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Pull every impairment or rotation exception logged during the period.",
+            "Confirm the documented remediation (partner change, service withdrawal) actually occurred before the next engagement milestone.",
+            "Flag any remediation that was only planned, not executed, as still open."
+          ],
+          "done": "logged exceptions are traced to executed remediation or flagged as still open."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the engagement, what failed and the independence rule implicated.",
+            "Assign a root cause and an owner, and set a remediation date.",
+            "Carry unresolved exceptions into the next engagement's verification as mandatory checks."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and carry-forward commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Write the conclusion (independence maintained / maintained with exceptions / impaired) with evidence references.",
+            "Have an independent reviewer who did not perform the sample re-verification sign the workpaper.",
+            "Report the conclusion to the Audit Committee and file the workpaper in AuditBoard."
+          ],
+          "done": "a signed workpaper with a stated conclusion exists and results are reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-058-C04",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Controller",
+          "value": "Owns filing of the WYO annual audited financial statements and auditor communications with the NFIP Bureau and Statistical Agent"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — WYO Financial Assistance/Subsidy Arrangement Art. III.C (ULAE/ALAE reimbursement) and the audited-statement filing requirement of the current Financial Control Plan, re-read each filing cycle (rep jurisdiction: FEMA NFIP)"
+        },
+        "In-scope processes": {
+          "value": "Year-end close, external audit fieldwork, and filing of the audited annual financial statements and management/auditor communication letters with the BSA"
+        },
+        "In-scope systems": {
+          "app": "financial reporting repository",
+          "value": "Audited statement package, management representation letter and auditor communication letters"
+        },
+        "Compliance procedure documented": {
+          "value": "Annual Audited Statement Filing Procedure — close, audit fieldwork support, statement finalization, BSA filing and communications retention"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the CFO; reviewed annually before year-end close kicks off"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Annual — audited statements and auditor communications due to the BSA per the Financial Control Plan filing calendar, generally within 90 days of fiscal year end"
+        },
+        "Deadline reminders configured": {
+          "value": "Close/consolidation tool alerts at fiscal year end plus 30/60/75 days counting toward the 90-day BSA filing deadline"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Audited statements, management representation letter, auditor communication letters and BSA filing confirmation retained 7 years per the WYO Arrangement records/access clause"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any late or incomplete filing is logged with the cause and the corrective filing date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Controller",
+          "value": "Controller signs off any late-filing remediation and confirms BSA acceptance before closing the exception"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All annual audited statement filings and auditor communication letters filed with the BSA in the prior three fiscal years"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any filing submitted after the 90-day deadline, or any communication letter missing from the BSA package, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is annual; test performed once per fiscal year immediately following each filing"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Must not have prepared or filed the audited statement package"
+        },
+        "Evidence location for test results": {
+          "value": "Annual filing-verification workpaper in the compliance evidence repository, cross-referenced to the financial reporting repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Audited statements, communication letters and BSA filing confirmation, presentable within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Controller owns the BSA response; CFO clears any restatement or late-filing disclosure before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Kick off the year-end close for the WYO audited statement cycle",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "BlackLine (Close)",
+          "actions": [
+            "In BlackLine open the year-end close task list and add the WYO audited-statement filing milestone with its 90-day BSA deadline.",
+            "Assign close tasks (trial balance lock, reserve certification, intercompany eliminations) to the Senior Accountant and Accountant with due dates that leave time for audit fieldwork.",
+            "Confirm the fiscal year end trial balance is locked in SAP S/4HANA before fieldwork begins."
+          ],
+          "done": "the close task list is built with the BSA deadline milestone and the trial balance is locked before fieldwork starts."
+        },
+        {
+          "step": "Support external audit fieldwork with the PBC (prepared-by-client) list",
+          "by": "Senior Accountant",
+          "role": "Senior Accountant",
+          "actions": [
+            "Build the PBC list from the audit firm's request and assign each item an internal owner and due date.",
+            "Deliver supporting schedules (reserve rollforwards, premium and loss detail, reinsurance recoverables) to the audit team by the agreed dates.",
+            "Log every PBC item's delivery date and the audit team's follow-up questions."
+          ],
+          "done": "every PBC item is delivered by its due date with follow-up questions logged."
+        },
+        {
+          "step": "Draft the management representation letter",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Draft the representation letter using the audit firm's template, addressing WYO-specific representations (Claims Manual compliance, TRRP status, reinsurance recoverables).",
+            "Route the draft to the CFO and General Counsel for review before signature.",
+            "Sign and deliver the letter to the audit firm ahead of report issuance."
+          ],
+          "done": "a CFO- and General Counsel-reviewed management representation letter is signed and delivered before report issuance."
+        },
+        {
+          "step": "Finalize the audited annual financial statements",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Incorporate the audit firm's final adjustments into the statement package in the financial reporting repository.",
+            "Confirm the statements tie to the year-end trial balance and the WYO monthly output tape totals for the fiscal year.",
+            "Obtain CFO sign-off on the finalized statement package."
+          ],
+          "done": "the finalized, CFO-signed statement package ties to the trial balance and the year's output tape totals."
+        },
+        {
+          "step": "Collect the auditor communication letters",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Request from the audit firm the required communication letters (report on internal control matters, communication with those charged with governance, any management letter).",
+            "Confirm each letter is dated on or before the audit report date.",
+            "File the letters alongside the statement package in the financial reporting repository."
+          ],
+          "done": "all required auditor communication letters are collected, correctly dated and filed with the statement package."
+        },
+        {
+          "step": "Assemble the BSA filing package",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "actions": [
+            "Combine the audited statements, management representation letter and auditor communication letters into the BSA-prescribed package format.",
+            "Check the package against the Financial Control Plan's filing checklist for completeness.",
+            "Route the assembled package to the Controller for final release approval."
+          ],
+          "done": "the package is assembled to the Financial Control Plan checklist and approved for release by the Controller."
+        },
+        {
+          "step": "File the package with the NFIP Bureau and Statistical Agent",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Log the package into the Internal Regulatory System's WYO annual filing tracker.",
+            "Transmit the package to the BSA through the designated NFIP annual filing channel before the 90-day deadline.",
+            "Record the transmission confirmation number and timestamp on the tracker entry."
+          ],
+          "done": "the package is transmitted before the 90-day deadline with a confirmation number recorded in the tracker."
+        },
+        {
+          "step": "Confirm BSA receipt and completeness acknowledgement",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Check the BSA acknowledgement report against the transmitted package for completeness.",
+            "Resolve any request for a missing exhibit or clarification within the BSA's stated response window.",
+            "Update the filing tracker to Accepted once the BSA confirms completeness."
+          ],
+          "done": "the filing tracker shows Accepted with a completeness acknowledgement from the BSA."
+        },
+        {
+          "step": "Distribute the filed statements internally",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Share the final filed package with the CFO, Chief Audit Executive and Board Governance Lead.",
+            "Note any audit adjustment or communication-letter matter that requires Board or Audit Committee attention.",
+            "Confirm receipt from each recipient."
+          ],
+          "done": "the filed package is distributed to CFO, Chief Audit Executive and Board Governance Lead with receipt confirmed."
+        },
+        {
+          "step": "Escalate any deadline-at-risk situation",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Monitor close and audit-fieldwork progress against the 90-day BSA deadline weekly during the filing cycle.",
+            "Where the deadline is at risk, escalate to the CFO within one business day with the cause and a recovery plan.",
+            "Where a filing extension is available under the Financial Control Plan, request it in writing before the deadline passes."
+          ],
+          "done": "any at-risk deadline is escalated within one business day with a recovery plan or a written extension request filed before the deadline."
+        },
+        {
+          "step": "Log any late or incomplete filing as an exception",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for any filing submitted after the deadline or returned incomplete by the BSA.",
+            "Document the root cause and the corrective filing date.",
+            "Route the issue to the Controller for sign-off before closure."
+          ],
+          "done": "every late or incomplete filing is logged with a root cause and Controller-signed corrective filing date."
+        },
+        {
+          "step": "Reconcile ULAE/ALAE reimbursement claims to the filed statements",
+          "by": "Reinsurance Accountant",
+          "role": "Reinsurance Accountant",
+          "actions": [
+            "Compare the ULAE/ALAE reimbursement amounts claimed under WYO Arrangement Art. III.C to the figures in the filed audited statements.",
+            "Resolve any discrepancy with the Controller before the reimbursement claim is submitted.",
+            "File the reconciliation with the annual filing package."
+          ],
+          "done": "ULAE/ALAE reimbursement figures are reconciled to the filed statements and any discrepancy is resolved before submission."
+        },
+        {
+          "step": "Present the filing outcome to the Audit Committee",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Summarize filing timeliness, audit adjustments and any communication-letter matters for the committee.",
+            "Present at the next scheduled Audit Committee session and record minutes.",
+            "Note any directed follow-up action."
+          ],
+          "done": "the Audit Committee has received and minuted the annual filing outcome summary."
+        },
+        {
+          "step": "Update the filing procedure for any Financial Control Plan change",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Monitor FEMA/BSA bulletins for changes to the audited-statement filing format or deadline.",
+            "Redline the filing procedure and route it for CFO re-approval before the next cycle.",
+            "Communicate the change to the close team and the audit firm liaison."
+          ],
+          "done": "the procedure reflects the latest bulletin, is CFO re-approved, and the team is briefed before the next cycle."
+        },
+        {
+          "step": "Retain the filing evidence for the required period",
+          "by": "Statutory Reporting Manager",
+          "role": "Statutory Reporting Manager",
+          "actions": [
+            "Move the statement package, representation letter, communication letters and BSA confirmation into the compliance evidence repository under the fiscal year.",
+            "Apply the 7-year retention label per the WYO Arrangement records/access clause.",
+            "Confirm the repository index is searchable by fiscal year."
+          ],
+          "done": "the filing evidence is filed, retention-labelled and searchable by fiscal year."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of annual filings to test",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Pull the WYO annual filing tracker for the prior three fiscal years across every writing company.",
+            "Reconcile the count to the financial reporting repository's statement package index.",
+            "Resolve any unreconciled filing before sampling."
+          ],
+          "done": "the population is reconciled between the filing tracker and the reporting repository."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of filings flagged late or incomplete by the BSA.",
+            "Take one additional fiscal year at random per writing company from the remaining population.",
+            "Record the seed and population size in the workpaper."
+          ],
+          "done": "the sample covers all flagged filings plus a random additional year per company, documented in the workpaper."
+        },
+        {
+          "step": "Recompute filing timeliness against the 90-day deadline",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Recompute the 90-day deadline from each sampled fiscal year end.",
+            "Compare to the actual BSA transmission timestamp on the filing tracker.",
+            "Flag any filing transmitted after the recomputed deadline as an exception."
+          ],
+          "done": "filing timeliness is independently recomputed and compared for every sampled filing."
+        },
+        {
+          "step": "Verify package completeness against the Financial Control Plan checklist",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Open each sampled package and check it against the current Financial Control Plan filing checklist item by item.",
+            "Confirm every required communication letter is present and correctly dated.",
+            "Flag any missing or mis-dated item as an exception."
+          ],
+          "done": "package completeness is independently checked against the current checklist for every sampled filing."
+        },
+        {
+          "step": "Re-tie the filed statements to the trial balance and output tape totals",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "SAP S/4HANA (GL)",
+          "actions": [
+            "Pull the year-end trial balance from SAP S/4HANA for each sampled fiscal year.",
+            "Tie the filed audited statement totals to the trial balance and to the sum of the year's monthly output tapes.",
+            "Flag any untied difference as an exception."
+          ],
+          "done": "filed statement totals are independently re-tied to the trial balance and output tapes for every sampled year."
+        },
+        {
+          "step": "Confirm the management representation letter timing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the representation letter is signed and dated on or before the audit report date for each sampled year.",
+            "Confirm CFO and General Counsel review is evidenced before signature.",
+            "Flag any late-signed or unreviewed letter as an exception."
+          ],
+          "done": "representation letter timing and review are confirmed for every sampled year."
+        },
+        {
+          "step": "Trace exception disclosures to remediation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Pull every late or incomplete filing exception logged in the tracker for the sample period.",
+            "Confirm the corrective filing date recorded actually resolved the BSA's completeness request.",
+            "Flag any exception without a confirmed resolution as still open."
+          ],
+          "done": "logged exceptions are traced to confirmed resolution or flagged as still open."
+        },
+        {
+          "step": "Recompute the ULAE/ALAE reconciliation on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently recompute the ULAE/ALAE reimbursement figures from the filed statements for each sampled year.",
+            "Compare to the amount actually claimed under WYO Arrangement Art. III.C.",
+            "Flag any unreconciled difference as an exception."
+          ],
+          "done": "ULAE/ALAE figures are independently recomputed and compared for every sampled year."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Controller",
+          "role": "Controller",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the fiscal year, what failed and the filing impact.",
+            "Assign a root cause and an owner, and set a remediation date.",
+            "Carry unresolved exceptions into the next annual filing cycle as mandatory pre-checks."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and carry-forward commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the exception rate and compare to the zero-late-filing threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have an independent reviewer who performed none of the sampled re-performance sign the workpaper.",
+            "Report the conclusion to the Audit Committee and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion exists and results are reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-058-C05",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Owns monitoring for declared flood catastrophes and activating the accelerated NFIP Bureau and Statistical Agent data-call cadence"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 44 CFR 62.23(i), (j)(3) and the current WYO Financial Control Plan catastrophe claims reporting provisions, re-read at the start of each hurricane/flood season (rep jurisdiction: FEMA NFIP)"
+        },
+        "In-scope processes": {
+          "value": "Catastrophe declaration monitoring, data-call activation and cadence tracking for every declared flood event affecting NFIP-insured risks"
+        },
+        "In-scope systems": {
+          "app": "Catastrophe Data Provider",
+          "value": "Catastrophe declaration feed cross-referenced against Moody's RMS event footprints and the claims platform's flood exposure by ZIP/county"
+        },
+        "Compliance procedure documented": {
+          "value": "Catastrophe Data Call Monitoring Procedure — declaration monitoring, cadence activation, calendar build and reporting-team handoff"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance; reviewed annually before hurricane season and after any FEMA cadence bulletin"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Event-driven — the accelerated reporting cadence FEMA directs following declaration, tracked from the declaration date until the BSA stands down the event"
+        },
+        "Deadline reminders configured": {
+          "value": "Regulatory reporting calendar alert within 24 hours of any FEMA flood catastrophe declaration affecting an in-force NFIP book"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Data call calendar, declaration notices and cadence-activation records retained 7 years per the WYO Arrangement records/access clause"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any missed or late-detected declaration is logged with the detection gap and the process fix"
+        },
+        "Remediation sign-off captured": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Regulatory Reporting Manager signs off any detection-gap remediation before the next catastrophe season"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All FEMA flood catastrophe declarations in the test period affecting a state or county where the company writes NFIP business"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any declaration affecting in-force exposure not detected and logged within 24 hours is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is event-driven; monitoring effectiveness tested quarterly plus after every declared event"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Regulatory Reporting Analyst",
+          "value": "Must not be the analyst who ran the original declaration monitoring for the sampled event"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly monitoring-effectiveness workpaper in the compliance evidence repository, cross-referenced to the data call calendar"
+        },
+        "Regulator-ready documentation": {
+          "value": "Data call calendar, declaration notices and cadence-activation log, presentable within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Reporting Manager owns the BSA response; Head of Compliance clears any cadence-miss disclosure before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Configure the catastrophe declaration monitoring feed",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Catastrophe Data Provider",
+          "actions": [
+            "In the Catastrophe Data Provider console, subscribe to FEMA major disaster declaration alerts filtered to flood/severe storm events.",
+            "Cross-configure the feed against Moody's RMS event footprint layers so declarations auto-flag against the company's in-force flood exposure by ZIP/county.",
+            "Route the alert output to the Regulatory Reporting distribution list and the Regulatory Reporting Manager."
+          ],
+          "done": "the declaration feed is subscribed, cross-configured against exposure footprints, and routed to the reporting distribution list."
+        },
+        {
+          "step": "Confirm exposure overlap on every new declaration",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "On receipt of a declaration alert, query the claims platform for in-force SFIP policy counts in the declared counties.",
+            "Confirm whether the company has an active book in the affected area within 4 hours of the alert.",
+            "Log the exposure-confirmation result and timestamp on the data call calendar entry for the event."
+          ],
+          "done": "exposure overlap is confirmed within 4 hours of every declaration and logged on the calendar entry."
+        },
+        {
+          "step": "Activate the accelerated reporting cadence",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Read the FEMA/BSA bulletin or Financial Control Plan section directing the cadence for the declared event type.",
+            "Set the reporting frequency (e.g., weekly or bi-weekly claim counts and loss estimates) on the data call calendar for the event.",
+            "Notify Claims Operations and Regulatory Reporting Analyst staff of the activated cadence and its first due date."
+          ],
+          "done": "the cadence is set on the calendar per the FEMA bulletin and Claims Operations is notified of the first due date."
+        },
+        {
+          "step": "Open the event tracking folder",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Create an event folder in the compliance evidence repository named for the FEMA disaster declaration number.",
+            "File the declaration notice, exposure-confirmation log and cadence-activation record into the folder.",
+            "Link the folder to the data call calendar entry."
+          ],
+          "done": "an event folder exists with declaration notice, exposure log and cadence record, linked to the calendar."
+        },
+        {
+          "step": "Coordinate the cat data-call handoff to Claims Operations",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Brief Claims Operations on the required data fields (claim counts, paid/incurred losses, reserve estimates) and the cadence deadline.",
+            "Confirm Claims Operations has the correct event peril code and declaration number to filter claims correctly.",
+            "Set the first cadence check-in meeting within 48 hours of activation."
+          ],
+          "done": "Claims Operations is briefed with correct filters and a check-in meeting is set within 48 hours."
+        },
+        {
+          "step": "Monitor for cadence changes mid-event",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Watch for FEMA/BSA bulletins that escalate or de-escalate the reporting cadence as the event develops.",
+            "Update the data call calendar within 4 hours of any cadence change.",
+            "Notify Claims Operations of the revised cadence and next due date immediately."
+          ],
+          "done": "cadence changes are reflected on the calendar within 4 hours and Claims Operations is notified immediately."
+        },
+        {
+          "step": "Track cadence compliance through the event lifecycle",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Check off each cadence deadline on the calendar as Claims Operations submits its data.",
+            "Follow up same-day on any deadline not met.",
+            "Escalate a repeated miss to the Head of Compliance."
+          ],
+          "done": "every cadence deadline is tracked to completion with same-day follow-up on misses and escalation of repeats."
+        },
+        {
+          "step": "Confirm the BSA stand-down notice",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Watch for the FEMA/BSA notice ending the accelerated cadence for the event.",
+            "Confirm the final cadence submission was accepted before closing the event.",
+            "Update the data call calendar entry to Closed with the stand-down date."
+          ],
+          "done": "the event calendar entry is closed with a confirmed stand-down date and a final accepted submission."
+        },
+        {
+          "step": "Log any missed or late-detected declaration",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for any declaration not detected and logged within 24 hours.",
+            "Document the detection gap (feed lag, missed alert, misconfigured filter) and the fix applied.",
+            "Route to the Regulatory Reporting Manager for sign-off."
+          ],
+          "done": "every missed or late detection is logged with a documented gap, fix and manager sign-off."
+        },
+        {
+          "step": "Run the pre-season monitoring readiness check",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Before each hurricane/flood season, test the declaration feed with a simulated alert and confirm it routes correctly.",
+            "Confirm the exposure-overlap query against the claims platform still returns correct results.",
+            "Refresh the Claims Operations contact list and escalation path."
+          ],
+          "done": "a pre-season readiness test confirms the feed, exposure query and contact list are functioning correctly."
+        },
+        {
+          "step": "Reconcile the event's total submitted data to the claims platform",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "At event closure, sum all cadence submissions for claim counts and paid/incurred losses.",
+            "Reconcile the sum to the claims platform's final event-tagged totals.",
+            "Document and resolve any difference before filing the closure record."
+          ],
+          "done": "cumulative submitted totals are reconciled to the claims platform at event closure with differences resolved."
+        },
+        {
+          "step": "Brief leadership on event reporting performance",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Summarize detection time, cadence compliance and any missed deadlines for the event.",
+            "Present the summary to the Head of Compliance and Chief Risk Officer.",
+            "Record any directed process improvement."
+          ],
+          "done": "leadership has received the event reporting performance summary with any directed improvement recorded."
+        },
+        {
+          "step": "Update the monitoring procedure for lessons learned",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Redline the Catastrophe Data Call Monitoring Procedure for any gap surfaced by the event.",
+            "Approve the updated procedure before the next season.",
+            "Communicate the change to Regulatory Reporting and Claims Operations."
+          ],
+          "done": "the procedure is updated, approved and communicated before the next season."
+        },
+        {
+          "step": "Verify vendor feed reliability annually",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Catastrophe Data Provider",
+          "actions": [
+            "Review the Catastrophe Data Provider's uptime and alert-delivery record for the prior 12 months.",
+            "Raise any reliability concern with the vendor account team and document the response.",
+            "Confirm backup monitoring (manual FEMA.gov declaration check) is documented as a fallback."
+          ],
+          "done": "vendor reliability is reviewed annually with a documented fallback monitoring method."
+        },
+        {
+          "step": "Retain the event monitoring evidence",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Confirm each closed event folder carries the 7-year retention label in the compliance evidence repository.",
+            "Confirm the folder is searchable by FEMA declaration number.",
+            "Archive the season's data call calendar into the repository."
+          ],
+          "done": "closed event folders are retention-labelled, searchable by declaration number, and the season calendar is archived."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of flood catastrophe declarations for the period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Catastrophe Data Provider",
+          "actions": [
+            "Independently query FEMA's disaster declaration history for flood/severe storm events in the test period.",
+            "Cross-reference each declaration against the company's in-force book to identify events with genuine exposure overlap.",
+            "Reconcile this independent list to the company's data call calendar."
+          ],
+          "done": "an independently built declaration population is reconciled to the company's data call calendar."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of events where exposure overlap existed and detection took longer than 24 hours per company records.",
+            "Take 3 additional events at random from the reconciled population.",
+            "Record the seed and population size in the workpaper."
+          ],
+          "done": "the sample covers all detection-gap events plus 3 random events, documented in the workpaper."
+        },
+        {
+          "step": "Independently recompute the detection-time gap",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled event, record the FEMA declaration timestamp from the public declaration record.",
+            "Compare it to the exposure-confirmation timestamp logged on the company's data call calendar.",
+            "Flag any gap exceeding 24 hours as an exception."
+          ],
+          "done": "detection-time gaps are independently recomputed and flagged for every sampled event."
+        },
+        {
+          "step": "Verify cadence activation matched the FEMA bulletin",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Re-read the FEMA/BSA bulletin for each sampled event's directed cadence.",
+            "Compare to the cadence actually set on the company's data call calendar.",
+            "Flag any mismatch in frequency or start date as an exception."
+          ],
+          "done": "cadence activation is independently verified against the bulletin for every sampled event."
+        },
+        {
+          "step": "Trace cadence submissions to Claims Operations records",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "Pull each sampled event's cadence submissions and trace the claim counts and loss figures to the claims platform's event-tagged data.",
+            "Confirm each submission was made on or before its calendar due date.",
+            "Flag any untraceable figure or late submission as an exception."
+          ],
+          "done": "cadence submissions are traced to claims platform data with timeliness confirmed for every sampled event."
+        },
+        {
+          "step": "Recompute the reconciliation of cumulative submitted totals",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently sum all cadence submissions for each sampled event.",
+            "Compare to the claims platform's final event-tagged totals at closure.",
+            "Flag any unresolved difference as an exception."
+          ],
+          "done": "cumulative totals are independently recomputed and compared for every sampled event."
+        },
+        {
+          "step": "Confirm the stand-down and closure record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the FEMA/BSA stand-down notice for each sampled event is on file.",
+            "Confirm the data call calendar entry was closed only after the stand-down notice date.",
+            "Flag any event closed prematurely as an exception."
+          ],
+          "done": "closure timing is confirmed against the stand-down notice for every sampled event."
+        },
+        {
+          "step": "Verify retention labelling and searchability",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Open the compliance evidence repository entry for each sampled event.",
+            "Confirm the 7-year retention label is applied and the folder is searchable by FEMA declaration number.",
+            "Flag any missing or mislabelled folder as an exception."
+          ],
+          "done": "retention labelling and searchability are confirmed for every sampled event's folder."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the declaration number, what failed and the reporting impact.",
+            "Assign a root cause and an owner, and set a remediation date.",
+            "Carry unresolved exceptions into the next season's readiness check as mandatory items."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and carry-forward commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Compute the exception rate and compare to the 24-hour detection threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have an independent reviewer who performed none of the sampled re-performance sign the workpaper.",
+            "Report the conclusion to the Chief Risk Officer and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion exists and results are reported to the Chief Risk Officer."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-058-C06",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Claims Director / Manager",
+          "value": "Owns compiling and submitting flood claims data within FEMA cat data-call deadlines and cooperating with the triennial FIA operational review"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 44 CFR 62.23(j)(2) (FIA operational review cooperation), re-read at the start of each data call and ahead of each review cycle (rep jurisdiction: FEMA NFIP)"
+        },
+        "In-scope processes": {
+          "value": "Claims-data compilation and submission for FEMA catastrophe data calls, and provision of records/staff/system access for the Federal Insurance Administrator's operational review of underwriting, claims and financial operations"
+        },
+        "In-scope systems": {
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "value": "Flood claim data extraction for data-call submission and for operational-review record production"
+        },
+        "Compliance procedure documented": {
+          "value": "Claims Data Call and FIA Operational Review Cooperation Procedure — extraction, submission, review support and access provisioning"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Claims Officer; reviewed annually and ahead of each FIA review cycle"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Event-driven data calls per the active cadence; FIA operational review occurs at least once every three years per 44 CFR 62.23(j)(2)"
+        },
+        "Deadline reminders configured": {
+          "value": "Claims platform task alerts against each cadence due date; a 3-year rolling calendar entry tracking the next mandatory FIA review window"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Data-call submissions, extraction logs and FIA review record-production logs retained 7 years per the WYO Arrangement records/access clause"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any missed data-call deadline or incomplete FIA record request is logged with the cause and the corrective action"
+        },
+        "Remediation sign-off captured": {
+          "role": "Claims Director / Manager",
+          "value": "Claims Director / Manager signs off any remediation before the next data call or review milestone"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All cat data-call submissions in the test period and, in a review year, all record requests made by the FIA operational review team"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any data-call submission after its cadence deadline, or any FIA record/access request not fulfilled within the reviewer's stated window, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Data-call testing performed after every declared event; FIA cooperation testing performed once per 3-year review cycle"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Must not have compiled or submitted the sampled data-call file"
+        },
+        "Evidence location for test results": {
+          "value": "Data-call and FIA cooperation test workpaper in the compliance evidence repository, cross-referenced to the claims platform extraction logs"
+        },
+        "Regulator-ready documentation": {
+          "value": "Submission logs, extraction files and FIA record-production logs, presentable within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Claims Director / Manager owns the FEMA/FIA response; Chief Claims Officer clears any access-provisioning representation before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Receive the activated data-call cadence and assign a compiler",
+          "by": "Claims Director / Manager",
+          "role": "Claims Director / Manager",
+          "actions": [
+            "On notice from Regulatory Reporting that a cat cadence is active, assign a Claims Analyst as the data-call compiler for the event.",
+            "Confirm the compiler has the FEMA declaration number and required data fields (claim counts, paid/incurred, reserve estimates).",
+            "Set the first submission deadline in the claims platform task list."
+          ],
+          "done": "a compiler is assigned with the correct event identifiers and the first deadline is scheduled."
+        },
+        {
+          "step": "Extract the event-tagged claims data",
+          "by": "Claims Analyst",
+          "role": "Claims Analyst",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "In the claims platform open the catastrophe reporting query and filter by the FEMA declaration/event code.",
+            "Export claim counts, paid losses, case reserves and IBNR estimate by state and county.",
+            "Reconcile the export record count to the platform's event dashboard total."
+          ],
+          "done": "the event-tagged extract is reconciled to the platform dashboard total before compilation continues."
+        },
+        {
+          "step": "Validate the extract for completeness and accuracy",
+          "by": "Claims Analyst",
+          "role": "Claims Analyst",
+          "actions": [
+            "Spot-check 10 claims against the source claim file to confirm the reserve and paid figures match.",
+            "Confirm no in-scope claim was excluded by an incorrect peril-code filter.",
+            "Correct any data-entry or filter error found and re-run the extract."
+          ],
+          "done": "the extract passes the spot-check with any filter or data error corrected before submission."
+        },
+        {
+          "step": "Format and submit the data-call file",
+          "by": "Claims Analyst",
+          "role": "Claims Analyst",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Format the validated extract into the layout specified by the active FEMA cadence bulletin.",
+            "Log the file into the Internal Regulatory System's data-call tracker and transmit it before the cadence deadline.",
+            "Record the transmission confirmation and timestamp on the tracker entry."
+          ],
+          "done": "the formatted file is transmitted before the deadline with a confirmation recorded in the tracker."
+        },
+        {
+          "step": "Confirm submission acceptance and clear rejections",
+          "by": "Claims Director / Manager",
+          "role": "Claims Director / Manager",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Check the acceptance report for the submission against the transmitted file.",
+            "Correct and re-submit any rejected record within the same cadence window.",
+            "Update the tracker to Accepted once confirmed."
+          ],
+          "done": "the tracker shows Accepted with rejections cleared inside the same cadence window."
+        },
+        {
+          "step": "Maintain the 3-year FIA operational review readiness calendar",
+          "by": "Claims Director / Manager",
+          "role": "Claims Director / Manager",
+          "actions": [
+            "Track the date of the last completed FIA operational review and calculate the next mandatory review window.",
+            "Confirm underwriting, claims and financial operations records are indexed and retrievable ahead of the window.",
+            "Brief the Chief Claims Officer annually on readiness status."
+          ],
+          "done": "the 3-year review calendar is maintained and readiness is briefed to the Chief Claims Officer annually."
+        },
+        {
+          "step": "Receive and log the FIA operational review notice",
+          "by": "Claims Director / Manager",
+          "role": "Claims Director / Manager",
+          "actions": [
+            "On receipt of a review notice, log the review scope, start date and the FIA review team's initial record request list.",
+            "Assign an internal liaison to coordinate all record production and system/staff access requests.",
+            "Confirm the review timeline with General Counsel before access is provisioned."
+          ],
+          "done": "the review is logged, a liaison is assigned, and the timeline is confirmed with General Counsel."
+        },
+        {
+          "step": "Provision system and record access for the review team",
+          "by": "Claims Director / Manager",
+          "role": "Claims Director / Manager",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "Request read-only reviewer access to the claims platform and underwriting/financial systems from IT Security, scoped to the review's stated data.",
+            "Confirm access is provisioned before the review's on-site or remote start date.",
+            "Log every system granted and the access-expiry date tied to the review's end date."
+          ],
+          "done": "scoped, time-boxed reviewer access is provisioned before the review start date and logged."
+        },
+        {
+          "step": "Produce records against the FIA request list",
+          "by": "Claims Analyst",
+          "role": "Claims Analyst",
+          "actions": [
+            "Track each record request on a production log with owner and due date.",
+            "Pull the requested claim files, underwriting files or financial schedules from the source system and deliver them within the reviewer's stated window.",
+            "Log the delivery date and reviewer acknowledgement for each item."
+          ],
+          "done": "every FIA record request is logged, produced and acknowledged within the reviewer's stated window."
+        },
+        {
+          "step": "Make staff available for FIA interviews",
+          "by": "Claims Director / Manager",
+          "role": "Claims Director / Manager",
+          "actions": [
+            "Schedule requested staff interviews (adjusters, underwriters, finance staff) within the review timeline.",
+            "Brief interviewees on the review's scope and remind them to answer factually from the record.",
+            "Log interview dates and attendees."
+          ],
+          "done": "requested staff interviews are scheduled within the review timeline and logged."
+        },
+        {
+          "step": "Track open review items to closure",
+          "by": "Claims Director / Manager",
+          "role": "Claims Director / Manager",
+          "actions": [
+            "Maintain a single open-items list for every outstanding record request or reviewer question.",
+            "Follow up daily during the active review period on any item past its due date.",
+            "Confirm the FIA review team marks each item resolved before it is removed from the list."
+          ],
+          "done": "the open-items list is actively tracked with reviewer confirmation before any item is closed."
+        },
+        {
+          "step": "Revoke reviewer access at review close",
+          "by": "Claims Director / Manager",
+          "role": "Claims Director / Manager",
+          "actions": [
+            "Confirm the review's end date with the FIA review lead.",
+            "Request IT Security revoke all reviewer system access on or before that date.",
+            "Log the revocation confirmation."
+          ],
+          "done": "reviewer access is revoked on or before the confirmed review end date, with revocation logged."
+        },
+        {
+          "step": "Log any missed data-call deadline or access-provisioning gap",
+          "by": "Claims Analyst",
+          "role": "Claims Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for any missed cadence deadline or any FIA record request not fulfilled on time.",
+            "Document the root cause and the corrective action taken.",
+            "Route to the Claims Director / Manager for sign-off."
+          ],
+          "done": "every missed deadline or access gap is logged with a documented cause and manager sign-off."
+        },
+        {
+          "step": "Respond to any FIA operational review findings",
+          "by": "Chief Claims Officer",
+          "role": "Chief Claims Officer",
+          "actions": [
+            "Review the FIA operational review report for findings or corrective-action requests.",
+            "Build a remediation plan with owners and dates for each finding.",
+            "Submit the remediation plan to FEMA within the timeframe the review report specifies."
+          ],
+          "done": "a remediation plan is built and submitted to FEMA within the report's specified timeframe."
+        },
+        {
+          "step": "Retain the data-call and review evidence",
+          "by": "Claims Analyst",
+          "role": "Claims Analyst",
+          "actions": [
+            "Move data-call submission files, acceptance reports, and (in a review year) the record-production log and FIA report into the compliance evidence repository.",
+            "Apply the 7-year retention label and confirm searchability by event/declaration number and review year.",
+            "Archive the readiness calendar and open-items list."
+          ],
+          "done": "data-call and review evidence is filed, retention-labelled and searchable by event and review year."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of data-call submissions and review record requests",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Internal Regulatory System",
+          "actions": [
+            "Pull the data-call tracker for every cadence submission in the test period across all writing companies.",
+            "In a review year, pull the FIA record-production log for every request made.",
+            "Reconcile counts to the claims platform extraction logs and resolve any gap before sampling."
+          ],
+          "done": "the population is reconciled to source extraction logs with no unresolved gaps."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of submissions flagged late or rejected, and 100% of FIA record requests flagged past-due.",
+            "Take 5 additional on-time submissions at random from the remaining population.",
+            "Record the seed and population size in the workpaper."
+          ],
+          "done": "the sample covers all flagged items plus 5 random on-time items, documented in the workpaper."
+        },
+        {
+          "step": "Independently re-extract and compare the data-call figures",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+          "actions": [
+            "Re-run the event-tagged claims query in the claims platform independently for each sampled submission.",
+            "Compare claim counts and paid/incurred figures to the submitted file.",
+            "Flag any variance as an exception and identify whether it stems from timing or a filter error."
+          ],
+          "done": "each sampled submission's figures are independently re-extracted and compared, with variances explained."
+        },
+        {
+          "step": "Recompute submission timeliness against the cadence deadline",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the cadence deadline in effect for each sampled event from the data call calendar.",
+            "Compare to the actual transmission timestamp in the Internal Regulatory System.",
+            "Flag any submission after the deadline as an exception."
+          ],
+          "done": "timeliness is independently recomputed and compared for every sampled submission."
+        },
+        {
+          "step": "Verify FIA record-production timeliness on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled FIA request, compare the request date and the reviewer's stated window to the actual delivery date logged.",
+            "Confirm reviewer acknowledgement of receipt is on file.",
+            "Flag any late or unacknowledged delivery as an exception."
+          ],
+          "done": "FIA record-production timeliness is independently verified for the sample with acknowledgements confirmed."
+        },
+        {
+          "step": "Verify access provisioning and revocation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "IAM platform (SailPoint/Okta/Azure AD)",
+          "actions": [
+            "Pull the access-grant and revocation log from the IAM platform for the sampled review's reviewer accounts.",
+            "Confirm access was scoped to the review data and revoked on or before the logged review end date.",
+            "Flag any access left open past the review end date as an exception."
+          ],
+          "done": "access provisioning and revocation are independently verified against the IAM log for the sampled review."
+        },
+        {
+          "step": "Trace the FIA remediation plan to actual corrective action",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "In a review year, pull the FIA operational review report findings and the company's remediation plan.",
+            "Confirm each corrective action was implemented by its committed date.",
+            "Flag any unimplemented or late corrective action as an exception."
+          ],
+          "done": "remediation plan actions are traced to implementation with unimplemented items flagged."
+        },
+        {
+          "step": "Verify retention labelling and searchability",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Open the compliance evidence repository entry for each sampled submission or review record.",
+            "Confirm the 7-year retention label is applied and the item is searchable by event/declaration number.",
+            "Flag any missing or mislabelled record as an exception."
+          ],
+          "done": "retention labelling and searchability are confirmed for every sampled item."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Chief Claims Officer",
+          "role": "Chief Claims Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the event/request, what failed and the impact.",
+            "Assign a root cause and an owner, and set a remediation date.",
+            "Carry unresolved exceptions into the next cadence or review cycle as mandatory items."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and carry-forward commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Chief Audit Executive",
+          "role": "Chief Audit Executive",
+          "actions": [
+            "Compute the exception rate and compare to the zero-late/zero-unfulfilled threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have an independent reviewer who performed none of the sampled re-performance sign the workpaper.",
+            "Report the conclusion to the Audit Committee and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion exists and results are reported to the Audit Committee."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-058-C07",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Policy Forms Specialist",
+          "value": "Owns building and maintaining the SFIP and all NFIP-required notices/disclosures in the policy administration form library, preserving government wording and timing"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 44 CFR Part 61 Appendix A (SFIP notice provisions) and the current NFIP Flood Insurance Manual, plus 44 CFR 62.24(c) WYO participation criteria, re-read at each form-library refresh (rep jurisdiction: FEMA NFIP)"
+        },
+        "In-scope processes": {
+          "value": "Form-library build and maintenance for the SFIP and every NFIP-required notice/disclosure (renewal, non-renewal/expiration, coverage limitations, mandatory-purchase/flood-hazard) issued with a flood policy"
+        },
+        "In-scope systems": {
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "value": "Form library and correspondence templates that render the SFIP and required notices at issuance, renewal and non-renewal"
+        },
+        "Compliance procedure documented": {
+          "value": "NFIP Notice and Disclosure Form Library Procedure — government-text intake, form-library build, correspondence trigger mapping and change control"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance; reviewed on every NFIP Flood Insurance Manual update and annually otherwise"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per change — the form library must be updated before the effective date of any FEMA-mandated wording or timing change to the SFIP or its required notices"
+        },
+        "Deadline reminders configured": {
+          "value": "Form-library change calendar alert on publication of any NFIP Flood Insurance Manual bulletin affecting notice wording or timing"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Form-library version history, government-text source captures and sign-offs retained 7 years per the WYO Arrangement records/access clause"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any form-library entry found to deviate from current government wording is logged with the deviation and the correction date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Policy Forms Specialist",
+          "value": "Policy Forms Specialist signs off every wording correction before the corrected form is republished"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every SFIP and required-notice template in the form library, across all product variants and delivery channels"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any template that deviates from the current government wording, in any respect, is a fail — zero tolerance"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per-change; full form-library verification performed annually plus immediately after any bulletin-driven update"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Regulatory Counsel",
+          "value": "Must not have built or edited the sampled template"
+        },
+        "Evidence location for test results": {
+          "value": "Annual form-library verification workpaper in the compliance evidence repository, cross-referenced to the policy administration form library"
+        },
+        "Regulator-ready documentation": {
+          "value": "Form-library version history and government-text source captures, presentable within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Policy Forms Specialist owns the FEMA response coordination; Regulatory Counsel clears any wording-deviation disclosure before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Capture the current government wording for each required item",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "actions": [
+            "Download the current SFIP (Homeowner Flood Form and Dwelling/General Property forms) and every required notice/disclosure from the current NFIP Flood Insurance Manual.",
+            "Save each as a dated PDF capture named <form>-<yyyy-mm-dd>.pdf in the form-library source folder.",
+            "Note the Manual section and revision date each capture came from."
+          ],
+          "done": "a dated government-text capture exists for every required form and notice, sourced to its Manual section and revision date."
+        },
+        {
+          "step": "Build or update the templates in the policy administration form library",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "In the policy administration system open Product Configuration ▸ Forms Library and locate or create the entry for each SFIP/notice template.",
+            "Enter the government wording verbatim, character for character, with no company boilerplate inserted into the operative text.",
+            "Map merge fields (insured name, property address, coverage limits, effective dates) to the correct policy data elements.",
+            "Save the template as a new version rather than overwriting the prior approved version."
+          ],
+          "done": "each template is built or updated verbatim with correctly mapped merge fields, saved as a new version."
+        },
+        {
+          "step": "Map each notice to its triggering correspondence event",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "In the correspondence configuration, confirm the renewal notice fires on the renewal-offer batch, the non-renewal/expiration notice fires on the non-renewal decision event, and mandatory-purchase/flood-hazard disclosures fire at new-business issuance.",
+            "Confirm the SFIP itself is attached to every issuance and renewal packet, never merged into or replacing another policy's forms.",
+            "Test-fire each trigger in the non-production environment and confirm the correct template renders."
+          ],
+          "done": "every notice fires from the correct event and each trigger was test-fired successfully in non-production."
+        },
+        {
+          "step": "Verify timing rules against the required lead time",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Read the required delivery lead time for each notice (e.g., renewal notice lead days, non-renewal notice lead days) from the current Manual section.",
+            "Configure the correspondence batch schedule in the policy administration system to generate each notice within that lead time ahead of the triggering date.",
+            "Confirm the configured lead time on a test policy by checking the generated notice date against the policy's renewal/expiration date."
+          ],
+          "done": "each notice's batch schedule is configured to the required lead time and confirmed on a test policy."
+        },
+        {
+          "step": "Run a side-by-side comparison against the government text",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "actions": [
+            "Render a sample of each updated template with test data and place it side by side with the dated government-text capture.",
+            "Compare every clause, heading and disclosure statement word for word.",
+            "Log any discrepancy and correct the template before proceeding to review."
+          ],
+          "done": "every updated template passes a word-for-word side-by-side comparison against the government-text capture."
+        },
+        {
+          "step": "Route the updated templates for compliance review",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Independently review each updated template against the government-text capture without relying on the preparer's comparison notes.",
+            "Confirm the timing configuration matches the required lead time.",
+            "Approve or reject each template with written comments; rejected templates return to the Policy Forms Specialist for correction."
+          ],
+          "done": "every updated template carries a written Regulatory Counsel approval or a documented rejection with corrections made."
+        },
+        {
+          "step": "Promote approved templates to production",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Migrate the approved template version from the non-production environment to production using the standard release process.",
+            "Confirm the effective date of the new template version aligns with the FEMA-mandated effective date.",
+            "Retire the prior version so it can no longer be selected for new correspondence, retaining it in version history."
+          ],
+          "done": "the approved template is live in production on the mandated effective date, with the prior version retired but retained."
+        },
+        {
+          "step": "Confirm the SFIP is never issued as an endorsement to another policy",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "actions": [
+            "Review the policy administration system's product bundling rules to confirm flood coverage cannot be selected as an endorsement on a homeowners or commercial package policy.",
+            "Test-attempt to add flood coverage as an endorsement in the non-production environment and confirm the system blocks it.",
+            "Document the block test result."
+          ],
+          "done": "the system is confirmed to block flood coverage from being added by endorsement, with the block test documented."
+        },
+        {
+          "step": "Log any wording or timing deviation found",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for any deviation found during comparison or review, naming the template and the specific clause.",
+            "Document the correction made and the date the corrected template went live.",
+            "Route to the Head of Compliance for sign-off before closure."
+          ],
+          "done": "every deviation is logged with the correction and its go-live date, signed off by the Head of Compliance."
+        },
+        {
+          "step": "Notify Claims and Customer Service of any material change",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "actions": [
+            "Where a notice's coverage-limitation wording changes, brief Claims Operations and the Contact Center on the new language before it goes live.",
+            "Update any internal script or FAQ that quotes the old wording.",
+            "Confirm the briefing occurred before the new template's effective date."
+          ],
+          "done": "Claims and Customer Service are briefed on material wording changes before the new template goes live."
+        },
+        {
+          "step": "Sample-check live correspondence after go-live",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Pull 5 live-issued notices generated after the new template went live from the correspondence archive.",
+            "Confirm the rendered document matches the approved template exactly, including merge-field population.",
+            "Escalate any rendering defect to the Policy Admin Ops Lead immediately."
+          ],
+          "done": "5 live notices are confirmed to match the approved template exactly, with any defect escalated immediately."
+        },
+        {
+          "step": "Maintain the form-library version history",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "actions": [
+            "Confirm every template version, its effective date range and its approver are recorded in the version history log.",
+            "Reconcile the version history to the policy administration system's own change log quarterly.",
+            "Resolve any discrepancy between the two logs."
+          ],
+          "done": "the version history is complete, reconciled quarterly to the system change log, with discrepancies resolved."
+        },
+        {
+          "step": "Review the full form library against the current Manual annually",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Once a year, independently re-download the current NFIP Flood Insurance Manual and compare it section by section to the form-library index.",
+            "Identify any Manual section not yet reflected in the library.",
+            "Open a form-library update task for each gap found."
+          ],
+          "done": "an annual full-library review is complete with an update task opened for every identified gap."
+        },
+        {
+          "step": "Brief the Head of Compliance on form-library status",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "actions": [
+            "Summarize the year's template updates, deviations found and corrections made.",
+            "Present the summary to the Head of Compliance.",
+            "Record any directed follow-up action."
+          ],
+          "done": "the Head of Compliance has received the annual form-library status summary with follow-up actions recorded."
+        },
+        {
+          "step": "Retain the form-library evidence",
+          "by": "Policy Forms Specialist",
+          "role": "Policy Forms Specialist",
+          "actions": [
+            "Move government-text captures, side-by-side comparison notes, approvals and version history into the compliance evidence repository.",
+            "Apply the 7-year retention label and confirm searchability by form name and effective date.",
+            "Archive the annual full-library review record."
+          ],
+          "done": "form-library evidence is filed, retention-labelled and searchable by form name and effective date."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of form-library templates in force",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Extract the full list of live SFIP and required-notice templates from the form library, with version and effective date.",
+            "Reconcile the count to the version history log maintained by Policy Forms Specialist.",
+            "Resolve any unreconciled template before sampling."
+          ],
+          "done": "the template population is reconciled to the version history log with no gaps."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of templates updated in the test period.",
+            "Take 5 additional templates at random from those unchanged in the period.",
+            "Record the seed and population size in the workpaper."
+          ],
+          "done": "the sample covers all updated templates plus 5 random unchanged templates, documented in the workpaper."
+        },
+        {
+          "step": "Independently re-download and compare government text",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently download the current NFIP Flood Insurance Manual and 44 CFR Part 61 Appendix A text for each sampled template.",
+            "Compare word for word against the live template rendering, without referencing the original comparison notes.",
+            "Flag any deviation, however minor, as an exception."
+          ],
+          "done": "each sampled template is independently compared word for word with deviations flagged."
+        },
+        {
+          "step": "Re-verify correspondence trigger and timing configuration",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "For each sampled template, independently trace the configured triggering event and lead-time setting in the policy administration system.",
+            "Compare to the required lead time stated in the current Manual section.",
+            "Flag any mismatch as an exception."
+          ],
+          "done": "trigger and timing configuration are independently re-verified for the sample."
+        },
+        {
+          "step": "Trace live-issued correspondence to the approved template",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull 3 live-issued notices per sampled template from the correspondence archive.",
+            "Confirm the rendered document matches the approved template version in force on the issue date.",
+            "Flag any live document that does not match the approved version as an exception."
+          ],
+          "done": "live-issued correspondence is traced to the correct approved template version for the sample."
+        },
+        {
+          "step": "Confirm the endorsement-block control",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "In a non-production environment, independently attempt to add flood coverage as an endorsement to a non-flood policy.",
+            "Confirm the system blocks the attempt.",
+            "Flag any successful endorsement attempt as a critical exception."
+          ],
+          "done": "the endorsement block is independently re-tested and confirmed, or flagged as a critical exception."
+        },
+        {
+          "step": "Verify Regulatory Counsel approval evidence on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm a written Regulatory Counsel approval exists for each sampled template version and pre-dates its go-live date.",
+            "Flag any template live without a pre-dated approval as an exception."
+          ],
+          "done": "Regulatory Counsel approval timing is confirmed for every sampled template version."
+        },
+        {
+          "step": "Verify retention labelling and searchability",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Open the compliance evidence repository entry for each sampled template.",
+            "Confirm the 7-year retention label is applied and the record is searchable by form name and effective date.",
+            "Flag any missing or mislabelled record as an exception."
+          ],
+          "done": "retention labelling and searchability are confirmed for every sampled template's evidence."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the template, the specific deviation and the affected notice.",
+            "Assign a root cause and an owner, and set a remediation date.",
+            "Carry unresolved exceptions into the next annual review as mandatory retest items."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance wording-deviation threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have an independent reviewer who performed none of the sampled re-performance sign the workpaper.",
+            "Report the conclusion to the Market Conduct / Consumer Compliance Manager and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion exists and results are reported to the Market Conduct / Consumer Compliance Manager."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-058-C08",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Policy Admin Ops Lead",
+          "value": "Owns operational generation and delivery of NFIP-required notices (renewal, non-renewal/expiration, mandatory-purchase/flood-hazard) within statutory timeframes"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 44 CFR Part 61 Appendix A (SFIP notice provisions) and the current NFIP Flood Insurance Manual notice-timing tables, re-read each time the batch schedule is configured (rep jurisdiction: FEMA NFIP)"
+        },
+        "In-scope processes": {
+          "value": "Batch generation, delivery and logging of every NFIP-required notice for every in-force and lapsing SFIP policy"
+        },
+        "In-scope systems": {
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "value": "Correspondence batch engine that generates and dispatches notices, with delivery logged to the notice log"
+        },
+        "Compliance procedure documented": {
+          "value": "Statutory Notice Generation and Delivery Procedure — batch scheduling, delivery-channel confirmation, exception handling and notice-log retention"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance; reviewed annually and on any Manual notice-timing update"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Event-driven per policy — each notice must generate and dispatch within the statutory lead time ahead of its triggering renewal, expiration or issuance date"
+        },
+        "Deadline reminders configured": {
+          "value": "Daily batch-exception report reviewed each morning; any policy approaching its notice deadline without a generated notice is flagged same day"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Notice log, delivery confirmations and batch-exception resolutions retained 7 years per the WYO Arrangement records/access clause"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any notice generated late, undelivered, or delivered to a bad address is logged with the cause and the cure sent"
+        },
+        "Remediation sign-off captured": {
+          "role": "Policy Admin Ops Lead",
+          "value": "Policy Admin Ops Lead signs off every cure notice and every batch-process fix before the exception is closed"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All statutory notices due for generation and delivery in the test period, across every policy lifecycle event type"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any notice not generated and dispatched within its statutory lead time is a fail; delivery to a confirmed bad address without a cure attempt is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Obligation is per policy event; testing performed monthly over that month's population of due notices"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Must not operate or monitor the correspondence batch process"
+        },
+        "Evidence location for test results": {
+          "value": "Monthly notice-delivery test workpaper in the compliance evidence repository, cross-referenced to the notice log"
+        },
+        "Regulator-ready documentation": {
+          "value": "Notice log, delivery confirmations and exception resolutions, presentable within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Policy Admin Ops Lead owns the market conduct/exam response; Market Conduct / Consumer Compliance Manager clears any late-notice disclosure before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Configure the daily/weekly notice batch schedule",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "In the policy administration system open Correspondence Batch Scheduling and confirm a job exists for each notice type (renewal, non-renewal/expiration, mandatory-purchase/flood-hazard).",
+            "Set each job's run cadence so it captures every policy reaching its statutory lead-time window before the next run.",
+            "Confirm the job's template reference points to the current approved form-library version."
+          ],
+          "done": "a batch job exists for every notice type, scheduled to catch every policy in its lead-time window and pointed at the current approved template."
+        },
+        {
+          "step": "Run the batch and capture the generation log",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Execute the scheduled batch job and export the generation log listing every policy processed, notice type and generated document id.",
+            "Reconcile the count of policies processed to the count of policies due in the eligibility query for that run.",
+            "File the generation log in the notice log for the run date."
+          ],
+          "done": "the generation log is reconciled to the eligibility query and filed for the run date."
+        },
+        {
+          "step": "Dispatch the notices through the confirmed delivery channel",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "actions": [
+            "Confirm each policyholder's delivery preference (mail vs. e-delivery) on the policy record before dispatch.",
+            "Route mail notices to the print/mail vendor queue and e-delivery notices to the customer portal/email dispatch queue.",
+            "Capture the dispatch confirmation (vendor batch id or e-delivery send id) for each notice on the notice log."
+          ],
+          "done": "every notice is dispatched through the correct confirmed channel with a dispatch confirmation logged."
+        },
+        {
+          "step": "Confirm delivery and flag bad addresses",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "actions": [
+            "Pull the print/mail vendor's delivery/return report and the e-delivery platform's bounce report for the batch.",
+            "Flag any returned mail or bounced e-delivery notice on the notice log with the reason code.",
+            "Open a re-delivery task for each flagged notice."
+          ],
+          "done": "delivery/bounce reports are reviewed with every failure flagged and a re-delivery task opened."
+        },
+        {
+          "step": "Cure bad-address deliveries",
+          "by": "Correspondence Clerk",
+          "role": "Correspondence Clerk",
+          "actions": [
+            "Search the policy record, CRM and any recent claim contact for an updated address or email.",
+            "Where an updated address is found, correct the policy record and re-dispatch the notice.",
+            "Where no updated contact is found, escalate to the Policy Administrator for outbound phone contact before the statutory deadline passes."
+          ],
+          "done": "every bad-address delivery is either corrected and re-dispatched, or escalated for phone contact before the deadline."
+        },
+        {
+          "step": "Run the daily batch-exception report",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "actions": [
+            "Each morning, review the batch-exception report for jobs that failed to run, ran short, or errored on a subset of policies.",
+            "Re-run any failed or short job the same day and confirm the reconciled count on re-run.",
+            "Escalate any exception that cannot be cleared same-day to the Head of Compliance."
+          ],
+          "done": "the daily exception report is reviewed with same-day re-run or escalation for every exception."
+        },
+        {
+          "step": "Monitor for policies approaching their statutory deadline without a generated notice",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "actions": [
+            "Run a daily query for policies within 5 days of their statutory notice deadline with no generated notice on file.",
+            "Manually trigger notice generation for any policy the query surfaces.",
+            "Log the manual trigger and its cause on the notice log."
+          ],
+          "done": "no policy reaches its statutory deadline without either an automated or a manually triggered notice, logged either way."
+        },
+        {
+          "step": "Log any late-generated or undelivered notice as an exception",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for any notice generated or dispatched after its statutory lead time.",
+            "Document the root cause (batch failure, bad address, late eligibility flag) and the cure taken.",
+            "Route to the Market Conduct / Consumer Compliance Manager for sign-off."
+          ],
+          "done": "every late or undelivered notice is logged with a documented cause and cure, signed off by the Market Conduct / Consumer Compliance Manager."
+        },
+        {
+          "step": "Reconcile the monthly notice log to the policy lifecycle events",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "actions": [
+            "At month end, pull every renewal, non-renewal and new-business event from the policy administration system for the month.",
+            "Confirm each event has a corresponding notice-log entry with a generation and dispatch timestamp.",
+            "List any event missing a notice-log entry as an exception for same-week remediation."
+          ],
+          "done": "every lifecycle event for the month is matched to a notice-log entry, with gaps remediated the same week."
+        },
+        {
+          "step": "Verify the notice content matches the approved template",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Pull 10 generated notices at random from the month's batch and compare rendered content to the currently approved form-library template.",
+            "Confirm merge fields populated correctly (coverage limits, effective dates, insured name/address).",
+            "Escalate any rendering defect to the Policy Admin Ops Lead for immediate correction."
+          ],
+          "done": "10 sampled notices match the approved template with correct merge-field population, and any defect is escalated immediately."
+        },
+        {
+          "step": "Brief Market Conduct on notice-delivery performance",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "actions": [
+            "Summarize monthly generation volume, exception count and cure rate.",
+            "Present the summary to the Market Conduct / Consumer Compliance Manager.",
+            "Record any directed process improvement."
+          ],
+          "done": "the Market Conduct / Consumer Compliance Manager has received the monthly notice-delivery performance summary."
+        },
+        {
+          "step": "Update the batch schedule for any Manual timing change",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "actions": [
+            "Monitor for NFIP Flood Insurance Manual updates that change notice lead-time requirements.",
+            "Redline the batch schedule configuration and route it for Head of Compliance approval.",
+            "Test the updated schedule in non-production before promoting to production."
+          ],
+          "done": "the batch schedule reflects the latest Manual timing requirement, approved and tested before production promotion."
+        },
+        {
+          "step": "Test disaster-recovery failover for the notice batch process",
+          "by": "Disaster Recovery Manager",
+          "role": "Disaster Recovery Manager",
+          "actions": [
+            "Confirm the correspondence batch engine is included in the annual DR test scope.",
+            "Verify notices due during a simulated outage window are queued and generated once systems recover, without exceeding the statutory deadline.",
+            "Document the DR test result for the notice batch process."
+          ],
+          "done": "the annual DR test confirms notice generation resumes without breaching statutory deadlines, documented in the DR test record."
+        },
+        {
+          "step": "Audit the delivery-preference data quality",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "actions": [
+            "Quarterly, sample policies for a valid mailing address or e-delivery consent on file.",
+            "Flag policies with incomplete delivery-preference data to the Correspondence Clerk for outreach.",
+            "Track the completion rate of outreach follow-up."
+          ],
+          "done": "a quarterly delivery-preference data-quality sample is run with outreach tracked to completion."
+        },
+        {
+          "step": "Retain the notice-delivery evidence",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "actions": [
+            "Move the notice log, generation logs, delivery/bounce reports and exception resolutions into the compliance evidence repository under the month.",
+            "Apply the 7-year retention label and confirm searchability by policy number and notice type.",
+            "Confirm the month is closed out in the notice log index."
+          ],
+          "done": "notice-delivery evidence is filed, retention-labelled, searchable by policy and notice type, and the month is closed out."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of statutory notices due in the test period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Independently query the policy administration system for every renewal, non-renewal and new-business event in the test month.",
+            "Reconcile the count to the notice log's lifecycle-event reconciliation for the same month.",
+            "Resolve any unreconciled event before sampling."
+          ],
+          "done": "the population of due notices is reconciled to the notice log with no unresolved gaps."
+        },
+        {
+          "step": "Select the sample and document the selection method",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of notices logged as an exception (late, bad address, undelivered) in the month.",
+            "Take 25 additional notices at random (seeded, reproducible) from the on-time population.",
+            "Record the seed and population size in the workpaper."
+          ],
+          "done": "the sample covers all exceptions plus 25 random on-time notices, documented in the workpaper."
+        },
+        {
+          "step": "Recompute generation timing against the statutory lead time",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled notice, pull the statutory lead-time requirement from the current NFIP Flood Insurance Manual.",
+            "Recompute the required generation window from the triggering event date and compare to the actual generation timestamp on the notice log.",
+            "Flag any notice generated outside the required window as an exception."
+          ],
+          "done": "generation timing is independently recomputed and compared for every sampled notice."
+        },
+        {
+          "step": "Trace dispatch and delivery confirmation on the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the dispatch confirmation (vendor batch id or e-delivery send id) for each sampled notice.",
+            "Confirm delivery/bounce report status and, for any bounce, confirm a re-delivery task was opened and closed with a cure.",
+            "Flag any notice without a dispatch confirmation or an unresolved bounce as an exception."
+          ],
+          "done": "dispatch and delivery status are independently traced for the sample with unresolved bounces flagged."
+        },
+        {
+          "step": "Independently compare notice content to the approved template",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Open each sampled notice's rendered document and the approved form-library template version in force on the generation date.",
+            "Compare content and merge-field population field by field.",
+            "Flag any content mismatch or merge-field error as an exception."
+          ],
+          "done": "notice content is independently compared to the approved template for every sampled notice."
+        },
+        {
+          "step": "Re-perform the manual-trigger monitoring check",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently query for any policy in the test month that reached its statutory deadline with no notice-log entry.",
+            "Compare to the operational team's daily monitoring query results for the same period.",
+            "Flag any policy the independent query finds that the operational monitoring missed."
+          ],
+          "done": "the manual-trigger monitoring control is independently re-performed with any missed policy flagged."
+        },
+        {
+          "step": "Verify exception resolution and sign-off",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Pull every exception logged for the sampled notices from the tracker.",
+            "Confirm the documented cure was actually applied (address corrected, notice re-sent, escalation resolved).",
+            "Flag any exception without a confirmed cure as still open."
+          ],
+          "done": "logged exceptions are traced to a confirmed cure or flagged as still open."
+        },
+        {
+          "step": "Verify retention labelling and searchability",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Open the compliance evidence repository entry for the test month.",
+            "Confirm the 7-year retention label is applied and records are searchable by policy number and notice type.",
+            "Flag any missing or mislabelled record as an exception."
+          ],
+          "done": "retention labelling and searchability are confirmed for the test month's evidence."
+        },
+        {
+          "step": "Log every exception with root cause, owner and remediation date",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the policy number, notice type and what failed.",
+            "Assign a root cause and an owner, and set a remediation date.",
+            "Carry unresolved exceptions into the next month's test as mandatory retest items."
+          ],
+          "done": "every exception has an issue, root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Market Conduct / Consumer Compliance Manager",
+          "role": "Market Conduct / Consumer Compliance Manager",
+          "actions": [
+            "Compute the exception rate for the month and compare to the zero-late-notice threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) with evidence references.",
+            "Have an independent reviewer who performed none of the sampled re-performance sign the workpaper.",
+            "Report the conclusion to the Head of Compliance and file the workpaper in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion exists and results are reported to the Head of Compliance."
+        }
+      ]
+    }
+  ]
+}

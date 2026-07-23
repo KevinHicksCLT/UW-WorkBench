@@ -1,0 +1,2814 @@
+{
+  "items": [
+    {
+      "itemCode": "REG-060-C01",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Appointed Actuary",
+          "value": "Owns the MLR rebate-liability reserve computation each period and certifies the numerator/denominator build before it is booked; escalates data gaps to the Chief Actuary"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 45 CFR 158.140 (numerator), 158.150 (denominator), 158.130/158.161 (credibility adjustment and premium/tax deductions), 158.240/158.241 (rebate calculation) re-read each calculation cycle for the current benefit year's MLR rule text"
+        },
+        "In-scope processes": {
+          "value": "Individual-market MLR numerator/denominator build, credibility adjustment and rebate-liability reserve computation, run at each statutory quarter-end and finalized for the annual MLR report, for every state/market combination the issuer writes"
+        },
+        "In-scope systems": {
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "value": "Fed from the claims and premium data warehouse; reserve output posted to the general ledger via the statutory close process"
+        },
+        "Compliance procedure documented": {
+          "value": "MLR Rebate-Liability Reserve Computation Procedure — data pull, numerator/denominator build, credibility adjustment, reserve booking, peer review, certification"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Actuary; reviewed annually and whenever CMS updates the MLR annual reporting form or Subpart B methodology"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Quarterly reserve re-estimate at each statutory quarter-end; final computation must be locked in time to feed the July 31 HHS MLR annual report"
+        },
+        "Deadline reminders configured": {
+          "value": "Valuation close calendar alerts at T-30/T-15/T-5 business days before each quarter-end close and before the July 31 MLR filing handoff"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Data extracts, numerator/denominator workpapers, credibility-adjustment support and the certification memo retained 10 years per CMS MLR recordkeeping expectations"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any quarter closed without a certified reserve, or any post-close restatement of the rebate liability, is logged with root cause and remediation owner"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Actuary",
+          "value": "Signs off every restated reserve and every exception before it is cleared"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every state/market MLR reserve computation booked in the period, reconciled to the statutory financial statement and the claims/premium data warehouse extract used to build it"
+        },
+        "Pass/fail thresholds": {
+          "value": "Recomputed rebate percentage must tie to the booked reserve within 0.1 percentage point; any variance beyond that, or any unsupported credibility adjustment, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Tested quarterly alongside the reserve re-estimate, with a full re-performance at year-end ahead of the MLR annual report submission"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Reserving Actuary",
+          "value": "Reviewer must not have built or peer-reviewed the sampled quarter's numerator/denominator workpaper"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly MLR reserve test workpaper (population extract, recomputation, variance analysis, exceptions) filed in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Reserve workpapers plus the certification memo, packaged so a CMS or state DOI inquiry into the MLR calculation can be answered within 5 business days"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Reporting owns the CMS/DOI inquiry response; the Appointed Actuary clears any methodology explanation before it is sent"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Pull the market-level premium and claims population for the reporting period",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "In the actuarial modeling platform open the MLR data model and refresh the claims and premium extract from the enterprise data warehouse for the individual-market block, split by state.",
+            "Filter to earned premium and incurred claims transactions dated within the MLR reporting year, including run-out claims paid after period end.",
+            "Ask the Data Analyst to confirm the extract row count matches the source claims system's period-end control total.",
+            "Save the reconciled extract to the MLR workpaper folder named <state>-<market>-<year>-source-extract."
+          ],
+          "done": "the premium and claims extract is refreshed, filtered to the reporting year and reconciled to the source system control total for every state."
+        },
+        {
+          "step": "Build the MLR numerator per 45 CFR 158.140",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Sum incurred claims, plus the fraud-recovery, ICD-10, and HIT adjustments 158.140 permits, into the numerator workpaper tab.",
+            "Add allowed quality-improvement activity expense per the 158.150 definition, tagging each expense line with its QIA category.",
+            "Exclude any expense the regulation excludes (e.g., non-QIA administrative cost) and note the exclusion basis on the row.",
+            "Total the numerator by state and market and cross-cast to the source extract to confirm no claims lines were dropped."
+          ],
+          "done": "the numerator workpaper totals incurred claims plus allowed QIA expense by state/market, cross-cast to the source extract."
+        },
+        {
+          "step": "Build the MLR denominator per 45 CFR 158.150",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Total earned premium by state and market from the extract.",
+            "Deduct federal and state taxes, licensing and regulatory fees permitted under 158.161, itemizing each deduction on its own row with the statutory basis.",
+            "Cross-check the tax and fee figures against the Tax Analyst's filed returns for the same period.",
+            "Total the adjusted denominator by state/market."
+          ],
+          "done": "the denominator workpaper totals adjusted earned premium by state/market with every tax/fee deduction itemized and cross-checked to filed returns."
+        },
+        {
+          "step": "Apply the credibility adjustment per 45 CFR 158.130",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Determine the member-life-year count for each state/market block and classify it as non-credible, partially credible or fully credible per the 158.130 table.",
+            "Apply the prescribed credibility adjustment factor and, where applicable, the deductible-factor adjustment.",
+            "Document the classification and factor applied on the workpaper with the member-life-year count that drove it.",
+            "Flag any block that crosses a credibility threshold since the prior period for extra scrutiny."
+          ],
+          "done": "every state/market block carries a documented credibility classification and adjustment factor tied to its member-life-year count."
+        },
+        {
+          "step": "Compute the preliminary rebate percentage and reserve",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Compute the MLR = (credibility-adjusted numerator) / denominator for each state/market.",
+            "Compare to the applicable standard (80% individual/small group, 85% large group) and compute the shortfall where MLR is below standard per 158.240.",
+            "Apply the 158.241 rebate formula (shortfall × earned premium) to derive the aggregate rebate liability.",
+            "Divide the aggregate liability across enrollees per the prescribed per-enrollee method and record the per-enrollee average."
+          ],
+          "done": "MLR, shortfall and rebate liability are computed and compared to the applicable standard for every state/market."
+        },
+        {
+          "step": "Reconcile the computation to the statutory financial statement",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Compare the numerator's incurred claims total to the statutory Annual Statement Underwriting and Investment Exhibit claims incurred line.",
+            "Compare the denominator's earned premium total to the statutory premium earned line for the same block.",
+            "Investigate and document any variance over 1% between the MLR workpaper and the statutory blank.",
+            "Sign off that the MLR data ties to the statutory financials before the reserve is booked."
+          ],
+          "done": "numerator and denominator totals are reconciled to the statutory financial statement with variances over 1% explained and signed off."
+        },
+        {
+          "step": "Book the rebate-liability reserve",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Post the computed rebate-liability reserve to the designated MLR liability account in the general ledger, by state/market.",
+            "Attach the workpaper reference number to the journal entry memo field.",
+            "Have the Financial Analyst confirm the posted amount matches the workpaper total before the entry is finalized."
+          ],
+          "done": "the rebate-liability reserve is posted to the general ledger by state/market and matches the workpaper total."
+        },
+        {
+          "step": "Document the methodology and assumptions memo",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Write a methodology memo covering data sources, numerator/denominator construction, credibility classification and any judgmental adjustments.",
+            "State the prior-period comparison and explain any methodology change.",
+            "File the memo alongside the workpaper in the MLR reserve folder."
+          ],
+          "done": "a dated methodology memo covering data, construction and judgmental adjustments is filed with the workpaper."
+        },
+        {
+          "step": "Route the workpaper for peer review",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Independently re-foot the numerator and denominator totals and re-derive the credibility factor from the member-life-year count.",
+            "Compare the reviewer's rebate percentage to the preparer's; investigate any difference beyond rounding.",
+            "Note review comments on the workpaper and confirm each is resolved before sign-off."
+          ],
+          "done": "an independent peer review of the numerator, denominator and credibility factor is documented with comments resolved."
+        },
+        {
+          "step": "Obtain Chief Actuary certification",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Review the workpaper, methodology memo and peer-review notes.",
+            "Certify the reserve is computed in accordance with 45 CFR Subpart B and sign the certification page.",
+            "Return unresolved items to the Appointed Actuary rather than certifying around them."
+          ],
+          "done": "the Chief Actuary has signed a dated certification of the reserve computation."
+        },
+        {
+          "step": "Re-run the computation at each subsequent quarter-end",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Refresh the source extract for the newest quarter and re-run the full numerator/denominator/credibility/reserve build.",
+            "Carry forward prior-quarter figures for trend comparison on the same workpaper tab.",
+            "Route the refreshed computation through the same peer-review and certification steps."
+          ],
+          "done": "each quarter's reserve is recomputed from a refreshed extract and carried through peer review and certification."
+        },
+        {
+          "step": "Explain quarter-over-quarter reserve movement",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Compare the current quarter's MLR and reserve to the prior quarter by state/market.",
+            "Attribute the movement to claims development, premium growth, credibility-tier changes or methodology changes.",
+            "Record the attribution on the workpaper for the Controller's quarter-end review."
+          ],
+          "done": "quarter-over-quarter reserve movement is attributed by driver and recorded on the workpaper."
+        },
+        {
+          "step": "Prepare the year-end handoff package for the MLR annual report team",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Assemble the final numerator, denominator, credibility factor and rebate calculation for the full benefit year by state/market.",
+            "Hand the package to Regulatory Reporting with the certification memo and the reconciliation to the statutory blank.",
+            "Confirm the handoff occurs early enough for the report team to meet the July 31 HHS filing deadline."
+          ],
+          "done": "the final MLR calculation package is handed to Regulatory Reporting with time to spare before July 31."
+        },
+        {
+          "step": "Log any restatement or late reserve",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Where a prior-period reserve is restated, open a tracker issue with the change amount, cause and affected filings.",
+            "Assess whether the restatement requires an amended MLR report and route that assessment to Regulatory Counsel.",
+            "Record the disposition and closure date on the tracker issue."
+          ],
+          "done": "every restatement is logged with cause, amended-filing assessment and closure date."
+        },
+        {
+          "step": "Archive the reserve workpapers to the evidence repository",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the final workpaper, methodology memo, peer-review notes and certification to the compliance evidence repository.",
+            "Apply the 10-year retention label and index by state, market and reporting year.",
+            "Confirm the record is retrievable by a search on state and reporting year."
+          ],
+          "done": "the complete reserve record is archived, retention-labelled and retrievable by state and reporting year."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of MLR reserve computations for the period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Extract every state/market MLR reserve computation booked in the period from the actuarial modeling platform.",
+            "Reconcile the count and total booked reserve to the general ledger MLR liability account balance.",
+            "Resolve any difference between the extract and the ledger before sampling."
+          ],
+          "done": "the population is reconciled to the general ledger MLR liability balance and signed as complete."
+        },
+        {
+          "step": "Reconcile the source data to the statutory financial statement",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the numerator and denominator source totals to the corresponding statutory Annual Statement exhibit lines.",
+            "Recompute the variance percentage and confirm it is within the 1% tolerance the procedure sets.",
+            "List any state/market where the source data does not tie as an exception."
+          ],
+          "done": "source data is reconciled to the statutory blank with variances over tolerance listed as exceptions."
+        },
+        {
+          "step": "Select and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of state/market blocks classified as non-credible or partially credible.",
+            "Take a random sample of 8 fully-credible blocks, minimum 15 blocks total.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers every non/partially-credible block."
+        },
+        {
+          "step": "Re-perform the numerator, denominator and credibility calculation for the sample",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Independently rebuild the numerator, denominator and credibility factor for each sampled block from the raw extract, without referencing the preparer's workpaper.",
+            "Compare the re-performed MLR and rebate liability to the booked figure; any variance beyond 0.1 percentage point is a fail.",
+            "Capture the re-performance calculation into the test workpaper."
+          ],
+          "done": "each sampled block has an independent re-performance with the pass/fail threshold applied."
+        },
+        {
+          "step": "Trace tax and fee deductions to filed returns",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled block, trace the 158.161 tax/fee deductions to the Tax Analyst's filed return for the same period.",
+            "Confirm the deducted amount and statutory basis match the filed return.",
+            "Flag any deduction that cannot be traced to a filed return."
+          ],
+          "done": "every sampled tax/fee deduction is traced to a filed return or flagged."
+        },
+        {
+          "step": "Verify the credibility classification against the member-life-year count",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Recompute member-life-years for each sampled block from the source extract.",
+            "Compare against the 158.130 credibility table to confirm the classification and factor used were correct.",
+            "Flag any block sitting within 2% of a credibility-tier boundary for extra scrutiny."
+          ],
+          "done": "the credibility classification is independently verified for every sampled block."
+        },
+        {
+          "step": "Trace the booked reserve to the general ledger",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "actions": [
+            "Pull the general ledger journal entry for each sampled block's reserve.",
+            "Confirm the posted amount matches the workpaper total and carries the correct workpaper reference.",
+            "Note any unexplained difference between the workpaper and the ledger posting."
+          ],
+          "done": "every sampled reserve is traced to a matching general ledger posting."
+        },
+        {
+          "step": "Confirm peer review and certification exist for every sampled block",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Check each sampled block's workpaper carries a dated peer-review note from the Reserving Actuary.",
+            "Check the Chief Actuary certification page is signed and dated before the reserve was booked.",
+            "List any block missing either sign-off as an exception."
+          ],
+          "done": "peer review and certification are confirmed present and correctly sequenced for every sampled block."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue for each exception with the state/market, what failed and the dollar impact.",
+            "Assign a root cause (data extract gap, wrong credibility tier, missing sign-off, tax deduction unsupported) and an owner.",
+            "Set a remediation date and carry unresolved items into the next test cycle as mandatory retests."
+          ],
+          "done": "every exception is logged with root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate against the pass/fail threshold.",
+            "Write the conclusion (effective / effective with exceptions / ineffective) referencing the evidence.",
+            "Have the independent reviewer, who authored none of the sampled workpapers, sign the test workpaper.",
+            "File the signed workpaper in the compliance evidence repository and report the result to the Compliance Committee."
+          ],
+          "done": "a signed test workpaper with a stated conclusion and exception rate is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-060-C02",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Appointed Actuary",
+          "value": "Owns preparation and signature of the actuarial memorandum supporting the Unified Rate Review Template (URRT) filing; escalates unresolvable pricing questions to the Chief Actuary"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 45 CFR 154.215 (rate filing documentation, Parts I-III and URRT) re-read against the current CMS rate review instructions each filing cycle"
+        },
+        "In-scope processes": {
+          "value": "Annual individual-market rate development → URRT completion → actuarial memorandum drafting and certification, for every state and product the issuer files a rate change in"
+        },
+        "In-scope systems": {
+          "app": "Regulatory Filing Portal (SERFF)",
+          "value": "URRT and actuarial memorandum submitted through SERFF (or CMS's Rate Review module in HIOS for effective-rate-review states); rate development modeled in the actuarial modeling platform"
+        },
+        "Compliance procedure documented": {
+          "value": "Rate Filing Actuarial Memorandum Procedure — data assembly, URRT population, memorandum drafting, internal review, Appointed Actuary certification"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Actuary; reviewed annually against CMS's published URRT instructions for the upcoming plan year"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "State-specific rate filing deadlines ahead of the plan year's effective date, generally spring submission windows set by each state's SERFF filing rules and CMS's federal rate filing deadline"
+        },
+        "Deadline reminders configured": {
+          "value": "Rate filing calendar alerts at T-60/T-30/T-10 days ahead of each state's submission deadline"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "URRT workbook, actuarial memorandum, supporting pricing exhibits and the signed certification retained 7 years from the rate's withdrawal or superseding filing"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "A memorandum submitted without certification, or a late filing, is logged as a compliance exception with root cause and corrective action"
+        },
+        "Remediation sign-off captured": {
+          "role": "Chief Actuary",
+          "value": "Signs off any late or corrected rate filing before resubmission"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All rate filings (initial and any amendment) submitted in the plan year across every state/product combination"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any filed URRT/memorandum without a dated Appointed Actuary certification predating submission is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Tested annually over the full filing season population, with 100% review of any filing that drew a CMS/state objection"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Reserving Actuary",
+          "value": "Reviewer must not have drafted or certified any sampled memorandum"
+        },
+        "Evidence location for test results": {
+          "value": "Annual rate-filing certification test workpaper filed in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Filed URRT, memorandum and SERFF/HIOS submission confirmation, retrievable within 5 business days of a CMS or state DOI request"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Filing Specialist owns CMS/state rate-review correspondence; the Appointed Actuary clears any substantive pricing response"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Assemble the rate development data package",
+          "by": "Pricing Actuary",
+          "role": "Pricing Actuary",
+          "app": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "actions": [
+            "Pull the base-period claims, membership and premium experience for the individual-market block from the actuarial modeling platform.",
+            "Apply trend, benefit-change and demographic adjustment factors per the pricing methodology.",
+            "Ask the Data Analyst to confirm the base-period membership count matches the enrollment system's period-end count.",
+            "Save the reconciled data package to the rate filing workpaper folder."
+          ],
+          "done": "a reconciled base-period data package with trend and adjustment factors applied is filed in the rate workpaper folder."
+        },
+        {
+          "step": "Populate the Unified Rate Review Template",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "actions": [
+            "Open the current-year URRT workbook published by CMS and enter the base-period experience, trend factors and proposed rate change by plan.",
+            "Complete Worksheets 1 and 2 with the plan-level rate increase, projected loss ratio and membership.",
+            "Cross-check every proposed rate figure against the pricing actuary's data package for consistency."
+          ],
+          "done": "the URRT is fully populated and every proposed rate ties to the underlying pricing data package."
+        },
+        {
+          "step": "Draft the actuarial memorandum (Parts I-III)",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "actions": [
+            "Draft Part I (general information), Part II (proposed rate change) and Part III (experience and projections) per the 154.215 documentation requirements.",
+            "Include the trend assumptions, benefit changes, risk-adjustment and reinsurance impacts, and administrative expense load.",
+            "Have the Pricing Actuary review the memorandum against the data package for numerical consistency."
+          ],
+          "done": "the memorandum covers Parts I-III with assumptions consistent with the URRT and the underlying data package."
+        },
+        {
+          "step": "Confirm each state's specific rate filing requirements",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "In SERFF open Industry ▸ Filing Rules for the state and select Health, Rate/Rule filing type.",
+            "Note any state-specific rate filing checklist items beyond the federal URRT/memorandum, such as a state actuarial certification form.",
+            "Confirm whether the state performs effective rate review or defers to CMS's federal review."
+          ],
+          "done": "state-specific filing requirements and the review authority (state vs CMS) are recorded for each filing state."
+        },
+        {
+          "step": "Route the memorandum for internal actuarial review",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Independently recompute the projected loss ratio from the URRT inputs and compare to the memorandum's stated figure.",
+            "Check the trend and administrative expense assumptions against the company's most recent experience study.",
+            "Log review comments and confirm each is resolved before the memorandum moves to certification."
+          ],
+          "done": "an independent internal review is documented with all comments resolved."
+        },
+        {
+          "step": "Certify and sign the actuarial memorandum",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Review the finalized URRT and memorandum against the 154.215 documentation checklist.",
+            "Sign the actuarial certification page attesting the rate development follows Actuarial Standards of Practice.",
+            "Date the certification and confirm it predates the SERFF/HIOS submission."
+          ],
+          "done": "a dated, signed certification exists and predates submission."
+        },
+        {
+          "step": "Submit the URRT and memorandum through SERFF or the CMS Rate Review module",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "In SERFF, create a new Rate/Rule filing for the state, attach the URRT workbook, memorandum and any state-specific certification form.",
+            "For states relying on CMS federal rate review, additionally upload the URRT to CMS's HIOS Rate Review module by the federal deadline.",
+            "Submit and record the SERFF tracking number (and HIOS confirmation number where applicable) on the rate filing log."
+          ],
+          "done": "the filing is submitted with a recorded SERFF tracking number and, where applicable, a HIOS confirmation number."
+        },
+        {
+          "step": "Track the filing through review to disposition",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Monitor the SERFF filing status and respond to any state objection letter within the state's stated response window.",
+            "Loop in the Appointed Actuary for any objection questioning a pricing assumption.",
+            "Record the final disposition (Approved/Filed/Disapproved) and effective date on the rate filing log."
+          ],
+          "done": "the filing log shows the final disposition, effective date and every objection response."
+        },
+        {
+          "step": "Reconcile the certified rates to the pricing system before go-live",
+          "by": "Pricing Actuary",
+          "role": "Pricing Actuary",
+          "actions": [
+            "Compare the approved rate tables to what is configured in the rating engine.",
+            "Flag and correct any discrepancy before the plan year's effective date.",
+            "Obtain sign-off from the Product / Filing Actuary that the configured rates match the approved filing."
+          ],
+          "done": "configured rates match the approved filing before the effective date, with sign-off on file."
+        },
+        {
+          "step": "Maintain the rate filing tracking log",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Add a row per state/product filing with submission date, certification date, tracking number and disposition.",
+            "Link each row to its workpaper folder.",
+            "Review the log monthly during filing season for stale open filings."
+          ],
+          "done": "the log carries one complete, linked row per filing and is reviewed monthly during filing season."
+        },
+        {
+          "step": "Handle rate filing amendments",
+          "by": "Product / Filing Actuary",
+          "role": "Product / Filing Actuary",
+          "actions": [
+            "Where CMS or a state requires a rate revision, update the URRT and memorandum to reflect the revised figures.",
+            "Route the amendment through the same internal review and Appointed Actuary certification steps as the original filing.",
+            "Resubmit through SERFF/HIOS referencing the original tracking number."
+          ],
+          "done": "every amendment is re-certified and resubmitted with a reference to the original filing."
+        },
+        {
+          "step": "Escalate filings at risk of missing the deadline",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compare each open filing's current status to the state's submission deadline at each T-30 checkpoint.",
+            "Escalate any filing at risk to the Chief Actuary and Chief Compliance Officer within one business day of identifying the risk.",
+            "Record the escalation decision and outcome on the filing log."
+          ],
+          "done": "every at-risk filing is escalated with a recorded decision before the deadline passes."
+        },
+        {
+          "step": "Confirm SBC and consumer disclosure documents reflect the approved rate change",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Compare the Summary of Benefits and Coverage premium disclosures to the approved rate filing.",
+            "Update consumer-facing materials before the plan year's open enrollment publication date.",
+            "Obtain Regulatory Counsel review of the updated disclosure language."
+          ],
+          "done": "consumer disclosures match the approved rates and are cleared by Regulatory Counsel before publication."
+        },
+        {
+          "step": "Log any late filing or certification gap",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Where a filing is submitted without a predating certification or after the state deadline, open a tracker issue.",
+            "Assign root cause and an owner, and set a remediation date.",
+            "Route to Regulatory Counsel for assessment of any required self-report."
+          ],
+          "done": "every late filing or certification gap is logged with root cause, owner and a Regulatory Counsel assessment."
+        },
+        {
+          "step": "Archive the rate filing package",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the URRT, memorandum, certification, SERFF/HIOS confirmation and disposition letter to the compliance evidence repository.",
+            "Apply the 7-year-from-withdrawal retention label.",
+            "Confirm the record is searchable by state, product and filing year."
+          ],
+          "done": "the complete rate filing package is archived, retention-labelled and searchable by state, product and year."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of rate filings submitted in the plan year",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "Extract every rate/rule filing submitted in SERFF for the plan year across all states and products.",
+            "Reconcile the extract to the internal rate filing tracking log.",
+            "Resolve any filing present in one source but not the other before sampling."
+          ],
+          "done": "the population is reconciled between SERFF and the internal log and signed as complete."
+        },
+        {
+          "step": "Reconcile each filing to a certification predating submission",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each population row to its Appointed Actuary certification date.",
+            "Confirm the certification date is earlier than the SERFF/HIOS submission date.",
+            "List unmatched or out-of-sequence rows as automatic exceptions."
+          ],
+          "done": "every filing is matched to a predating certification or listed as an exception."
+        },
+        {
+          "step": "Select and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of filings that drew a CMS or state objection.",
+            "Take a random sample of 10 additional filings from the remaining population, minimum 15 total.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers every objected filing."
+        },
+        {
+          "step": "Re-perform the URRT loss-ratio calculation for sampled filings",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "Independently recompute the projected loss ratio from the URRT's underlying trend and experience inputs.",
+            "Compare to the memorandum's stated figure; any variance beyond 0.5 percentage point is a fail.",
+            "Capture the recomputation into the test workpaper."
+          ],
+          "done": "each sampled filing has an independent loss-ratio re-performance with the pass/fail threshold applied."
+        },
+        {
+          "step": "Verify the memorandum's assumptions against the experience study",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the trend and administrative expense assumptions in each sampled memorandum to the company's contemporaneous experience study.",
+            "Flag any assumption materially inconsistent with the experience study without a documented rationale.",
+            "Note the finding in the workpaper."
+          ],
+          "done": "assumptions are checked against the experience study for every sampled filing, with inconsistencies flagged."
+        },
+        {
+          "step": "Trace the submission to SERFF/HIOS and confirm the disposition",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "In SERFF Filing Access, search each sampled tracking number and confirm the filed URRT/memorandum match the internal workpaper.",
+            "Confirm the disposition and effective date recorded in the log match SERFF.",
+            "Capture the SERFF filing detail screen into the workpaper."
+          ],
+          "done": "each sampled filing traces to a matching SERFF record with the correct disposition and effective date."
+        },
+        {
+          "step": "Confirm configured rates match the approved filing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled filing, compare the approved rate table to the rating engine configuration as of the effective date.",
+            "Flag any mismatch as a rate-implementation exception.",
+            "Record the comparison in the workpaper."
+          ],
+          "done": "configured rates are verified against the approved filing for every sampled filing."
+        },
+        {
+          "step": "Confirm consumer disclosure alignment",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare Summary of Benefits and Coverage premium figures for sampled filings to the approved rates.",
+            "Confirm Regulatory Counsel's disclosure review sign-off exists and predates publication.",
+            "Note any misalignment as an exception."
+          ],
+          "done": "consumer disclosures are confirmed aligned to approved rates for every sampled filing."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the state, product and what failed.",
+            "Assign root cause (late certification, unsupported assumption, rate-config mismatch) and an owner.",
+            "Set a remediation date and carry unresolved items into the next filing season as mandatory retests."
+          ],
+          "done": "every exception is logged with root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate and compare to the zero-tolerance certification threshold.",
+            "Write the conclusion with evidence references and report to the Compliance Committee.",
+            "Have the independent reviewer sign the test workpaper and file it in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-060-C03",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Regulatory Reporting Manager",
+          "value": "Owns the annual HHS MLR report submission by the July 31 deadline and its filing confirmation; escalates data readiness gaps to the Controller"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 45 CFR 158.110 and PHSA 2718(a) re-read against the current-year CMS MLR annual reporting form instructions before each submission"
+        },
+        "In-scope processes": {
+          "value": "MLR annual report data assembly (premium, claims, quality-improvement, tax and rebate data) → HHS MLR reporting-form completion → submission by state/market, for every state and market segment written"
+        },
+        "In-scope systems": {
+          "app": "Statutory Reporting (NAIC)",
+          "value": "Source financial data reconciled from the statutory annual statement; the completed form is submitted through the HHS MLR data-collection system"
+        },
+        "Compliance procedure documented": {
+          "value": "MLR Annual Report Filing Procedure — data assembly, form completion, review, submission, confirmation retention"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Controller; reviewed annually against the current-year CMS MLR reporting form instructions"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Statutory deadline of July 31 following the MLR reporting year, tracked on the regulatory filing calendar for every state/market"
+        },
+        "Deadline reminders configured": {
+          "value": "Filing calendar alerts at T-60/T-30/T-10/T-2 days before the July 31 HHS deadline"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Completed MLR reporting form, supporting data reconciliation and HHS submission confirmation retained 10 years per CMS MLR recordkeeping expectations"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "A missed or late July 31 submission, or a post-submission data correction, is logged as a compliance exception with root cause and corrective action"
+        },
+        "Remediation sign-off captured": {
+          "role": "Controller",
+          "value": "Signs off any late filing or corrected resubmission before it is sent to HHS"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "The full-year MLR annual report submission for every state/market the issuer wrote in the reporting year"
+        },
+        "Pass/fail thresholds": {
+          "value": "Zero tolerance — any state/market report not submitted by July 31, or submitted with data not reconciled to the statutory blank, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Tested annually immediately after the July 31 submission window closes"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have prepared or submitted the sampled state/market report"
+        },
+        "Evidence location for test results": {
+          "value": "Annual MLR filing test workpaper filed in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Submitted MLR reporting form, reconciliation workpaper and HHS submission confirmation, retrievable within 5 business days of a CMS inquiry"
+        },
+        "Regulator response path": {
+          "value": "Regulatory Reporting owns any CMS follow-up on the MLR annual report; the Controller clears any data correction before resubmission"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Confirm the current-year HHS MLR reporting form and instructions",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Download the current reporting-year MLR annual report form and instructions published by CMS.",
+            "Compare against the prior year's form for any new or changed data element.",
+            "Circulate the changes to the Controller and Appointed Actuary so upstream data pulls account for them."
+          ],
+          "done": "the current-year form and instructions are on file with changes from the prior year identified and circulated."
+        },
+        {
+          "step": "Assemble the premium, claims and expense data by state and market",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "Pull earned premium, incurred claims and quality-improvement expense from the statutory annual statement supplemental health exhibits.",
+            "Pull the rebate liability and credibility adjustment figures from the Appointed Actuary's certified MLR reserve workpaper.",
+            "Reconcile the assembled data set to the statutory blank line by line and document any adjustment."
+          ],
+          "done": "premium, claims, expense and rebate data are assembled and reconciled to the statutory blank by state/market."
+        },
+        {
+          "step": "Populate the HHS MLR annual reporting form",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Enter premium, claims, QIA, tax/fee and rebate data into the CMS-prescribed MLR reporting form fields for each state/market.",
+            "Complete the enrollee count and average rebate per enrollee fields using the Appointed Actuary's certified figures.",
+            "Cross-check every entered figure against the reconciled data set."
+          ],
+          "done": "the form is fully populated with figures tying to the reconciled data set for every state/market."
+        },
+        {
+          "step": "Route the completed form for actuarial and financial review",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Confirm the rebate calculation figures on the form match the certified MLR reserve workpaper exactly.",
+            "Confirm credibility adjustments and enrollee counts are correctly transcribed.",
+            "Sign off that the actuarial figures on the form are accurate."
+          ],
+          "done": "the Appointed Actuary has signed off that the form's actuarial figures match the certified workpaper."
+        },
+        {
+          "step": "Obtain Controller sign-off on the financial data",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Review the premium, claims, tax and expense figures on the form against the statutory annual statement.",
+            "Confirm no unreconciled variance remains.",
+            "Sign the internal financial data attestation before submission."
+          ],
+          "done": "the Controller has signed the financial data attestation with no unreconciled variance."
+        },
+        {
+          "step": "Route for final compliance review",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Review the completed form against the CMS instructions checklist for completeness.",
+            "Confirm all required state/market reports are included, none omitted.",
+            "Sign off that the filing package is ready for submission."
+          ],
+          "done": "the compliance review confirms completeness and every required state/market is included."
+        },
+        {
+          "step": "Submit the MLR annual report to HHS by July 31",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Submit the completed form through the HHS MLR data-collection system before the July 31 statutory deadline.",
+            "Download and save the system-generated submission confirmation number and timestamp.",
+            "Notify the Controller and Appointed Actuary that the filing is complete."
+          ],
+          "done": "the report is submitted before July 31 with a saved confirmation number and timestamp."
+        },
+        {
+          "step": "Log the filing on the regulatory filing calendar",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Record the submission date, confirmation number and filer of record on the filing calendar for every state/market.",
+            "Mark the July 31 milestone as closed for the reporting year.",
+            "Set the reminder cadence for next year's cycle."
+          ],
+          "done": "the filing calendar shows the closed milestone with confirmation number for every state/market."
+        },
+        {
+          "step": "Reconcile the submitted figures back to the general ledger rebate liability",
+          "by": "Controller",
+          "role": "Controller",
+          "actions": [
+            "Compare the rebate liability reported to HHS against the general ledger MLR liability account balance.",
+            "Investigate and resolve any variance before the next quarter's close.",
+            "Document the reconciliation in the close workpapers."
+          ],
+          "done": "the submitted rebate liability is reconciled to the general ledger balance with variances resolved."
+        },
+        {
+          "step": "Prepare and issue enrollee rebates where MLR falls below standard",
+          "by": "Billing Operations Manager",
+          "role": "Billing Operations Manager",
+          "actions": [
+            "For any state/market with a rebate due, pull the enrollee list eligible for a rebate per 158.240.",
+            "Calculate the per-enrollee rebate amount using the certified average and issue via premium credit or check per the prescribed method.",
+            "Confirm rebates are distributed by the regulatory deadline (generally September 30 following the MLR reporting year)."
+          ],
+          "done": "eligible enrollees receive their rebate by the statutory distribution deadline, using the certified per-enrollee amount."
+        },
+        {
+          "step": "Respond to any HHS data-validation query",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "actions": [
+            "Monitor the HHS MLR system for any post-submission data query or validation flag.",
+            "Coordinate with the Appointed Actuary and Controller to research and answer the query within the CMS-stated response window.",
+            "Log the query and response on the filing calendar."
+          ],
+          "done": "every HHS query is answered within the stated window and logged."
+        },
+        {
+          "step": "Handle any required amended MLR report",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Where a data error is discovered post-submission, prepare the corrected figures and route through the same actuarial/Controller/compliance review chain.",
+            "Submit the amendment through the HHS MLR system referencing the original confirmation number.",
+            "Recalculate any rebate impact and coordinate reissuance with Billing Operations."
+          ],
+          "done": "any amendment is re-reviewed, resubmitted with a reference to the original filing, and any rebate impact recalculated."
+        },
+        {
+          "step": "Escalate any risk to the July 31 deadline",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "At each T-10 checkpoint, compare data-readiness status to the deadline.",
+            "Escalate any state/market at risk to the Chief Compliance Officer and Controller within one business day.",
+            "Record the escalation and resulting decision on the filing calendar."
+          ],
+          "done": "any at-risk state/market is escalated with a recorded decision before July 31."
+        },
+        {
+          "step": "Log any missed deadline or data exception",
+          "by": "Regulatory Reporting Manager",
+          "role": "Regulatory Reporting Manager",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Open a tracker issue for any late submission or post-submission correction.",
+            "Assign root cause and owner, and route to Regulatory Counsel for a self-report assessment where the deadline was missed.",
+            "Set a remediation date and confirm closure."
+          ],
+          "done": "every missed deadline or data exception is logged with root cause, owner and remediation date."
+        },
+        {
+          "step": "Archive the filing package",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the submitted form, reconciliation workpaper, sign-offs and HHS confirmation to the compliance evidence repository.",
+            "Apply the 10-year retention label and index by state, market and reporting year.",
+            "Confirm the record is retrievable by state and reporting year."
+          ],
+          "done": "the complete filing package is archived, retention-labelled and retrievable by state and reporting year."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of required state/market MLR reports",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Extract every state/market combination the issuer wrote business in during the reporting year from the statutory annual statement.",
+            "Compare to the filing calendar's list of submitted reports.",
+            "List any state/market present in the statutory blank but missing from the filing calendar as an automatic exception."
+          ],
+          "done": "the population of required reports is reconciled to the statutory blank with omissions listed as exceptions."
+        },
+        {
+          "step": "Confirm each report was submitted by July 31",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull the HHS submission confirmation timestamp for each state/market report.",
+            "Compare the timestamp to the July 31 statutory deadline.",
+            "List any late submission as an automatic exception."
+          ],
+          "done": "every report's submission timestamp is verified against the July 31 deadline."
+        },
+        {
+          "step": "Select and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of state/market reports with a rebate due.",
+            "Take a random sample of 8 additional reports from the remainder, minimum 15 total.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers every rebate-due report."
+        },
+        {
+          "step": "Re-perform the reconciliation of reported figures to the statutory blank",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Statutory Reporting (NAIC)",
+          "actions": [
+            "For each sampled report, independently trace premium, claims and expense figures back to the statutory annual statement exhibits.",
+            "Recompute the variance percentage; anything beyond the procedure's tolerance is a fail.",
+            "Capture the recomputation into the test workpaper."
+          ],
+          "done": "each sampled report's figures are independently reconciled to the statutory blank with the threshold applied."
+        },
+        {
+          "step": "Verify actuarial and Controller sign-offs predate submission",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the Appointed Actuary and Controller sign-off dates on each sampled report predate the HHS submission timestamp.",
+            "Confirm the compliance review sign-off is also present and dated before submission.",
+            "List any report missing or out-of-sequence sign-off as an exception."
+          ],
+          "done": "sign-off sequencing is confirmed correct for every sampled report."
+        },
+        {
+          "step": "Recompute the rebate calculation and distribution for sampled rebate-due reports",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently recompute the per-enrollee rebate from the certified MLR figures.",
+            "Compare to the amount actually distributed by Billing Operations and confirm the distribution date is on or before September 30.",
+            "Flag any variance in amount or a late distribution as a compliance exception, not merely a documentation gap."
+          ],
+          "done": "rebate amount and distribution timing are independently verified for every sampled rebate-due report."
+        },
+        {
+          "step": "Trace the submission to the HHS confirmation record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the saved HHS confirmation number and timestamp exist for each sampled report.",
+            "Compare the confirmed data fields to what is on the internal workpaper to confirm no last-minute alteration occurred.",
+            "Capture the confirmation screen into the test workpaper."
+          ],
+          "done": "each sampled report traces to a matching, unaltered HHS confirmation record."
+        },
+        {
+          "step": "Check any amended report was properly re-reviewed",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For any sampled report that was later amended, confirm the amendment went through actuarial, Controller and compliance review before resubmission.",
+            "Confirm any rebate recalculation and reissuance was completed.",
+            "Note any amendment that skipped review as an exception."
+          ],
+          "done": "every sampled amendment is confirmed to have been re-reviewed and any rebate impact reissued."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the state/market and what failed.",
+            "Assign root cause (data gap, missed deadline, miscalculated rebate) and an owner.",
+            "Set a remediation date and, for missed deadlines, open a self-report assessment with Regulatory Counsel."
+          ],
+          "done": "every exception is logged with root cause, owner, remediation date and self-report assessment where applicable."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate against the zero-tolerance threshold.",
+            "Write the conclusion with evidence references and report to the Compliance Committee.",
+            "Have the independent reviewer sign the workpaper and file it in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-060-C04",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Underwriting Quality Analyst",
+          "value": "Owns the network adequacy monitoring cycle for qualified health plans and confirms the quantitative standards are met before each QHP certification cycle; escalates gaps to the Head of Compliance"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 45 CFR 156.230 re-read against the current CMS Letter to Issuers network adequacy standards (time/distance and appointment-wait-time tables) each plan year"
+        },
+        "In-scope processes": {
+          "value": "Provider network build and monitoring → quantitative network adequacy testing (time/distance, provider-to-enrollee ratios) → QHP certification network adequacy attestation, for every QHP service area"
+        },
+        "In-scope systems": {
+          "app": "Policy Administration Platform",
+          "value": "Provider directory and network data sourced from the provider contracting system; network adequacy analysis run against CMS's published standards"
+        },
+        "Compliance procedure documented": {
+          "value": "Network Adequacy Monitoring Procedure — provider data refresh, time/distance testing, gap identification, remediation, QHP attestation"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance; reviewed annually against the CMS Letter to Issuers network adequacy standards"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Network adequacy templates due with the annual QHP certification/recertification submission window (spring, ahead of the plan year)"
+        },
+        "Deadline reminders configured": {
+          "value": "QHP certification calendar alerts at T-90/T-45/T-15 days ahead of the network adequacy template submission deadline"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Provider directory extracts, time/distance test results, gap remediation records and the QHP attestation retained for the certification cycle plus 6 years"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any service area failing the quantitative standard without an approved exception is logged with root cause and remediation plan"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs off the remediation plan or exception request before QHP attestation is submitted"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every QHP service area's provider network as tested against the CMS time/distance and appointment-wait-time standards for the plan year"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any provider specialty/county combination failing the CMS time/distance threshold without a filed and approved exception is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Tested annually ahead of QHP certification, with a mid-year refresh where the provider directory changes materially"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have performed the sampled service area's time/distance testing"
+        },
+        "Evidence location for test results": {
+          "value": "Annual network adequacy test workpaper filed in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Time/distance test output, provider directory extract and any exception approval, retrievable within 5 business days of a CMS or state DOI inquiry"
+        },
+        "Regulator response path": {
+          "value": "Compliance Officer owns CMS/state network adequacy inquiries; the Underwriting Quality Analyst provides the underlying test data"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Refresh the provider directory extract for every QHP service area",
+          "by": "Underwriting Quality Analyst",
+          "role": "Underwriting Quality Analyst",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Pull the current in-network provider list by specialty, address and service area from the provider contracting system.",
+            "Confirm each provider record carries an active contract status and accepting-new-patients flag.",
+            "Ask the Data Quality Analyst to run a duplicate/stale-record check on the extract before testing begins."
+          ],
+          "done": "a cleaned, current provider directory extract exists for every QHP service area."
+        },
+        {
+          "step": "Run the CMS time/distance test by specialty and county",
+          "by": "Underwriting Quality Analyst",
+          "role": "Underwriting Quality Analyst",
+          "actions": [
+            "Load the provider extract into the network adequacy analysis tool and apply the current CMS time/distance thresholds by specialty type and county designation (large metro, metro, micro, rural, CEAC, extreme access).",
+            "Compute the percentage of enrollees within the threshold for each specialty/county combination.",
+            "List every combination failing the threshold on a gap-tracking sheet."
+          ],
+          "done": "time/distance results are computed for every specialty/county combination with failures listed on the gap-tracking sheet."
+        },
+        {
+          "step": "Run the appointment-wait-time and provider-to-enrollee ratio checks",
+          "by": "Underwriting Quality Analyst",
+          "role": "Underwriting Quality Analyst",
+          "actions": [
+            "Where the state or CMS standard includes appointment wait-time requirements, sample provider offices and confirm wait times against the standard via the credentialing team's provider survey.",
+            "Compute provider-to-enrollee ratios for primary care and behavioral health where applicable and compare to the standard.",
+            "Add any ratio or wait-time failure to the gap-tracking sheet."
+          ],
+          "done": "wait-time and ratio checks are completed with failures added to the gap-tracking sheet."
+        },
+        {
+          "step": "Investigate and close provider network gaps",
+          "by": "Contract Administrator",
+          "role": "Contract Administrator",
+          "actions": [
+            "For each gap, work with network contracting to add a provider in the deficient specialty/county or extend an existing provider's service area.",
+            "Where a new contract cannot be executed before the certification deadline, document the good-faith contracting effort (letters sent, providers contacted, dates).",
+            "Update the gap-tracking sheet with the closure date or the good-faith effort documentation."
+          ],
+          "done": "each gap is closed with a new contract or documented as a good-faith effort with supporting correspondence."
+        },
+        {
+          "step": "Prepare an exception request for any gap that cannot be closed",
+          "by": "Underwriting Quality Analyst",
+          "role": "Underwriting Quality Analyst",
+          "actions": [
+            "Draft an access-plan/exception narrative for each unclosed gap describing alternative access arrangements (telehealth, out-of-network coverage at in-network cost-share, single-case agreements).",
+            "Attach the good-faith contracting evidence to the exception request.",
+            "Route the exception request to the Head of Compliance for review before submission."
+          ],
+          "done": "every unclosed gap has a documented exception narrative with supporting evidence, routed for review."
+        },
+        {
+          "step": "Obtain Head of Compliance sign-off on remediation and exceptions",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Review the gap-tracking sheet, remediation actions and exception narratives.",
+            "Approve or reject each exception request, documenting the rationale.",
+            "Sign off that the network adequacy package is ready for the QHP certification submission."
+          ],
+          "done": "the Head of Compliance has signed off on remediation actions and every exception decision."
+        },
+        {
+          "step": "Complete the network adequacy template for QHP certification",
+          "by": "Underwriting Quality Analyst",
+          "role": "Underwriting Quality Analyst",
+          "actions": [
+            "Populate the CMS or state network adequacy template with the final provider directory extract and test results.",
+            "Attach the exception narratives for any approved exceptions.",
+            "Cross-check every field against the underlying test data before finalizing."
+          ],
+          "done": "the network adequacy template is complete and every field ties to the underlying test data."
+        },
+        {
+          "step": "Submit the network adequacy template with the QHP certification package",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "actions": [
+            "Attach the completed network adequacy template to the QHP certification/recertification submission.",
+            "Submit within the CMS certification window and save the submission confirmation.",
+            "Log the submission date and confirmation on the QHP certification tracker."
+          ],
+          "done": "the network adequacy template is submitted with the QHP package and a confirmation is logged."
+        },
+        {
+          "step": "Publish the provider directory to the public-facing site accurately",
+          "by": "Policy Administrator",
+          "role": "Policy Administrator",
+          "actions": [
+            "Confirm the certified network's provider list is published to the customer-facing provider directory before open enrollment.",
+            "Set the required update cadence (no less than monthly per CMS accuracy standards) and confirm the refresh job runs on schedule.",
+            "Spot-check a sample of published entries against the source contracting system for accuracy."
+          ],
+          "done": "the public provider directory reflects the certified network and refreshes on the required cadence."
+        },
+        {
+          "step": "Monitor mid-year network changes for material adequacy impact",
+          "by": "Underwriting Quality Analyst",
+          "role": "Underwriting Quality Analyst",
+          "actions": [
+            "Track provider terminations and contract non-renewals throughout the plan year.",
+            "Re-run the time/distance test for any county/specialty losing a provider that could breach the threshold.",
+            "Open a new gap-tracking entry for any breach identified mid-year."
+          ],
+          "done": "mid-year provider losses are monitored and re-tested, with any new breach tracked as a gap."
+        },
+        {
+          "step": "Issue continuity-of-care notices for material network changes",
+          "by": "Policy Administrator",
+          "role": "Policy Administrator",
+          "actions": [
+            "Where a provider termination affects enrollees in active treatment, generate the continuity-of-care notice required by the state/CMS standard.",
+            "Deliver the notice within the required timeframe and log the delivery date per enrollee.",
+            "File the notice log with the network adequacy evidence."
+          ],
+          "done": "continuity-of-care notices are generated, delivered within the required timeframe and logged."
+        },
+        {
+          "step": "Escalate any service area unable to meet the standard before the deadline",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "At the T-15 checkpoint, review any service area still failing the standard with no approved exception.",
+            "Escalate to the Head of Compliance and Chief Compliance Officer with options: further contracting effort, exception filing, or service-area withdrawal.",
+            "Record the decision and owner on the gap-tracking sheet."
+          ],
+          "done": "every unresolved service area is escalated with a recorded decision before the certification deadline."
+        },
+        {
+          "step": "Log any certification submitted without a closed or approved-exception gap",
+          "by": "Underwriting Quality Analyst",
+          "role": "Underwriting Quality Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Open a tracker issue for any gap that remained open and unexcepted at submission.",
+            "Assign root cause and owner and route to Regulatory Counsel for a self-report assessment.",
+            "Set a remediation date and track to closure."
+          ],
+          "done": "every unresolved gap at submission is logged with root cause, owner and remediation date."
+        },
+        {
+          "step": "Reconcile the final network adequacy evidence set",
+          "by": "Underwriting Quality Analyst",
+          "role": "Underwriting Quality Analyst",
+          "actions": [
+            "Confirm the provider extract, test results, gap-tracking sheet and exception approvals are all consistent as of the submission date.",
+            "Resolve any inconsistency before archiving.",
+            "Confirm the Head of Compliance sign-off is attached to the final set."
+          ],
+          "done": "the final evidence set is internally consistent and carries the Head of Compliance sign-off."
+        },
+        {
+          "step": "Archive the network adequacy package",
+          "by": "Underwriting Quality Analyst",
+          "role": "Underwriting Quality Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the provider extract, test results, gap-tracking sheet, exception narratives and submission confirmation to the compliance evidence repository.",
+            "Apply the certification-cycle-plus-6-years retention label.",
+            "Confirm the record is searchable by service area and plan year."
+          ],
+          "done": "the complete network adequacy package is archived, retention-labelled and searchable by service area and plan year."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of QHP service areas subject to network adequacy testing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Extract every QHP service area certified for the plan year from the QHP certification tracker.",
+            "Reconcile the count to the network adequacy templates submitted.",
+            "List any service area missing a submitted template as an automatic exception."
+          ],
+          "done": "the population of service areas is reconciled to submitted templates with omissions listed as exceptions."
+        },
+        {
+          "step": "Reconcile the provider directory extract to the contracting system of record",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy Administration Platform",
+          "actions": [
+            "Pull a fresh provider extract directly from the contracting system for a sample of service areas.",
+            "Compare provider counts by specialty to the extract used in the original testing.",
+            "Flag any material discrepancy as an exception."
+          ],
+          "done": "the provider extract is independently reconciled to the contracting system for the sample."
+        },
+        {
+          "step": "Select and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of service areas with any approved exception.",
+            "Take a random sample of 6 additional service areas from the remainder, minimum 10 total.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers every service area with an approved exception."
+        },
+        {
+          "step": "Re-perform the time/distance test for sampled service areas",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently rerun the time/distance calculation for each sampled specialty/county combination using the CMS-published thresholds.",
+            "Compare results to the original test output; any variance in pass/fail outcome is a fail.",
+            "Capture the recomputation into the test workpaper."
+          ],
+          "done": "each sampled specialty/county combination has an independent re-performance with pass/fail outcomes compared."
+        },
+        {
+          "step": "Verify exception approvals against the underlying good-faith evidence",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled exception, review the good-faith contracting correspondence and confirm it supports the narrative filed.",
+            "Confirm the Head of Compliance approval predates the QHP certification submission.",
+            "Flag any exception lacking adequate supporting evidence."
+          ],
+          "done": "every sampled exception is verified against supporting evidence and a predating approval."
+        },
+        {
+          "step": "Confirm continuity-of-care notices were issued where required",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For sampled service areas with a mid-year provider termination, confirm a continuity-of-care notice was generated and delivered within the required timeframe.",
+            "Trace delivery to the notice log with per-enrollee delivery dates.",
+            "Flag any missed or late notice as an exception."
+          ],
+          "done": "continuity-of-care notice issuance is confirmed for every sampled mid-year termination."
+        },
+        {
+          "step": "Verify the public provider directory matches the certified network",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Pull a snapshot of the published provider directory for sampled service areas.",
+            "Compare to the certified network's provider list from the submission.",
+            "Flag any provider listed inaccurately (terminated but still shown, or missing) as an exception."
+          ],
+          "done": "the public directory is verified against the certified network for every sampled service area."
+        },
+        {
+          "step": "Trace the submission to the QHP certification confirmation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Confirm the saved QHP certification submission confirmation exists for each sampled service area.",
+            "Compare the submitted template fields to the internal workpaper to confirm consistency.",
+            "Capture the confirmation record into the test workpaper."
+          ],
+          "done": "each sampled service area traces to a matching, consistent certification confirmation record."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the service area and what failed.",
+            "Assign root cause (stale provider data, unsupported exception, missed notice, directory inaccuracy) and an owner.",
+            "Set a remediation date and carry unresolved items into next year's certification as mandatory retests."
+          ],
+          "done": "every exception is logged with root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate against the pass/fail threshold.",
+            "Write the conclusion with evidence references and report to the Compliance Committee.",
+            "Have the independent reviewer sign the workpaper and file it in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-060-C05",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Actuarial Analyst",
+          "value": "Owns the quarterly reconciliation of CSR plan-variation cost-sharing data to policy admin extracts and escalates unresolved breaks to the Valuation Actuary"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 45 CFR 156.410/156.420 (CSR plan variations), 45 CFR 147.126 and PHSA 2711 (annual/lifetime limit prohibition context for EHB cost-sharing), and 45 CFR 156.130 (cost-sharing standards) re-read each reconciliation cycle"
+        },
+        "In-scope processes": {
+          "value": "Silver-plan CSR eligibility intake from the Marketplace (APTC/CSR eligibility file) → cost-sharing plan-variant assignment (73/87/94) in policy admin → reconciliation of assigned variant and cost-sharing amounts to enrollment/billing extracts, for every silver-tier QHP enrollee"
+        },
+        "In-scope systems": {
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "value": "CSR variant flag and cost-sharing parameters configured in the policy admin system; reconciled against the enterprise data warehouse enrollment extract"
+        },
+        "Compliance procedure documented": {
+          "value": "CSR Plan-Variation Reconciliation Procedure — eligibility file intake, variant assignment check, cost-sharing parameter validation, break investigation, sign-off"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Valuation Actuary; reviewed annually and whenever CMS updates the CSR eligibility categories or cost-sharing reduction schedule"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Quarterly reconciliation cycle, with a full-year reconciliation supporting the annual CSR data submission tied to the September 30 CMS reporting cadence"
+        },
+        "Deadline reminders configured": {
+          "value": "Reconciliation calendar alerts at T-15/T-5 days before each quarter-end close and ahead of the September 30 annual data deadline"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Eligibility file extracts, variant-assignment comparison and break-resolution workpapers retained 7 years"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any enrollee found with a mismatched CSR variant or incorrect cost-sharing parameter is logged with root cause and correction date"
+        },
+        "Remediation sign-off captured": {
+          "role": "Valuation Actuary",
+          "value": "Signs off the quarterly reconciliation and any bulk correction to CSR variant assignments"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "All silver-tier CSR-eligible enrollees active during the quarter, drawn from the policy admin extract and the Marketplace eligibility file"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any enrollee with a CSR variant or cost-sharing parameter in policy admin that does not match the Marketplace eligibility file is a fail; tolerance is zero for uncorrected breaks past one billing cycle"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Tested quarterly alongside the reconciliation cycle, with a full-population review ahead of the September 30 annual data submission"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have performed the sampled quarter's reconciliation"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly CSR reconciliation test workpaper filed in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Reconciliation workpaper, break log and correction evidence, retrievable within 5 business days of a CMS or state DOI inquiry"
+        },
+        "Regulator response path": {
+          "value": "Compliance Officer owns CMS/state inquiries into CSR administration; the Valuation Actuary provides the underlying reconciliation data"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Pull the current Marketplace CSR eligibility file",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Retrieve the current 834 enrollment/eligibility transaction feed from the Marketplace, filtering to silver-tier QHP enrollees with a CSR eligibility category (73/87/94/limited cost-sharing).",
+            "Confirm the feed is the latest reconciled version, not a stale prior cycle.",
+            "Load the eligibility file into the reconciliation workpaper, one row per enrollee."
+          ],
+          "done": "the current CSR eligibility file is loaded into the workpaper for every silver-tier enrollee."
+        },
+        {
+          "step": "Pull the policy admin CSR variant extract",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "In the policy admin system, run the CSR variant report showing each silver-tier enrollee's assigned plan variant and cost-sharing parameters (deductible, copay, MOOP).",
+            "Export the extract for the same enrollee population and period as the Marketplace file.",
+            "Confirm the extract carries the enrollee's HIOS ID / subscriber ID for matching."
+          ],
+          "done": "the policy admin CSR variant extract is exported with matching enrollee identifiers."
+        },
+        {
+          "step": "Match and compare the two data sets",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Match Marketplace eligibility rows to policy admin rows by HIOS ID/subscriber ID.",
+            "Compare the CSR eligibility category on the eligibility file to the assigned plan variant in policy admin.",
+            "Flag every mismatch, every unmatched Marketplace row, and every policy admin row with no corresponding Marketplace eligibility."
+          ],
+          "done": "every enrollee is matched and compared, with mismatches and unmatched rows flagged."
+        },
+        {
+          "step": "Validate the cost-sharing parameters for each matched variant",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "For each matched enrollee, compare the deductible, copay/coinsurance and MOOP configured in policy admin to the CMS-published cost-sharing reduction schedule for that variant.",
+            "Flag any configured parameter that does not match the published schedule.",
+            "Cross-check against 45 CFR 156.130's cost-sharing standards for the applicable metal tier."
+          ],
+          "done": "cost-sharing parameters are validated against the CMS schedule for every matched enrollee, with mismatches flagged."
+        },
+        {
+          "step": "Investigate flagged breaks",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "actions": [
+            "For each flagged enrollee, research whether the break is a timing lag (recent eligibility change not yet processed), a data-entry error, or a system configuration issue.",
+            "Classify each break and record the classification on the workpaper.",
+            "Escalate any pattern affecting more than a handful of enrollees to the Valuation Actuary."
+          ],
+          "done": "every flagged break is investigated, classified and any pattern escalated."
+        },
+        {
+          "step": "Correct the policy admin CSR assignment for confirmed breaks",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Update the enrollee's plan variant and cost-sharing parameters in policy admin to match the confirmed Marketplace eligibility.",
+            "Apply the correction with the correct effective date so retroactive claims can be reprocessed if needed.",
+            "Log the correction (before/after values, effective date, correcting user) on the break log."
+          ],
+          "done": "every confirmed break is corrected in policy admin with the correction logged."
+        },
+        {
+          "step": "Reprocess claims affected by retroactive CSR corrections",
+          "by": "Medical Claims Reviewer",
+          "role": "Medical Claims Reviewer",
+          "actions": [
+            "Identify claims paid at the wrong cost-sharing level during the period the enrollee's variant was misconfigured.",
+            "Recalculate the correct member cost-share and issuer-paid amount and reprocess/adjust the claim.",
+            "Issue any resulting refund or additional billing to the enrollee per the standard claims-adjustment process."
+          ],
+          "done": "claims affected by the correction window are identified, reprocessed and any member refund/billing issued."
+        },
+        {
+          "step": "Quantify the CSR advance-payment impact from corrections",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Estimate the change in CSR value delivered resulting from the corrections, for use in the next CSR advance-payment true-up.",
+            "Document the estimate methodology and the affected enrollee count.",
+            "Hand the estimate to Regulatory Reporting for the next CMS CSR reconciliation submission."
+          ],
+          "done": "the CSR advance-payment impact of corrections is estimated, documented and handed to Regulatory Reporting."
+        },
+        {
+          "step": "Reconcile unmatched Marketplace eligibility rows",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "actions": [
+            "For every Marketplace eligibility row with no policy admin match, confirm whether the enrollee was ever enrolled, is a duplicate, or reflects an enrollment processing delay.",
+            "Process any missed enrollment or correct any duplicate.",
+            "Log the resolution on the workpaper."
+          ],
+          "done": "every unmatched Marketplace row is resolved and logged."
+        },
+        {
+          "step": "Reconcile unmatched policy admin rows",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "actions": [
+            "For every policy admin CSR-variant row with no Marketplace eligibility match, confirm whether the enrollee's eligibility was terminated and policy admin was not updated.",
+            "Correct the plan variant to standard silver where CSR eligibility has lapsed, effective the correct termination date.",
+            "Log the resolution on the workpaper."
+          ],
+          "done": "every unmatched policy admin row is resolved and logged."
+        },
+        {
+          "step": "Obtain Valuation Actuary sign-off on the quarterly reconciliation",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Review the match rate, break count, corrections made and any unresolved items.",
+            "Confirm the break rate is within the procedure's tolerance or escalate if not.",
+            "Sign off on the quarterly reconciliation workpaper."
+          ],
+          "done": "the Valuation Actuary has signed off on the quarterly reconciliation with the break rate assessed."
+        },
+        {
+          "step": "Feed the reconciled data into the annual CSR data submission",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Aggregate the four quarters' reconciled CSR variant and cost-sharing data for the annual CMS CSR reporting cycle.",
+            "Confirm the aggregated data is consistent with the EDGE server risk-adjustment/CSR submissions for the same period.",
+            "Hand the reconciled package to Regulatory Reporting ahead of the September 30 submission deadline."
+          ],
+          "done": "the annual CSR data package is aggregated, cross-checked and handed off ahead of the September 30 deadline."
+        },
+        {
+          "step": "Escalate systemic configuration issues",
+          "by": "Valuation Actuary",
+          "role": "Valuation Actuary",
+          "actions": [
+            "Where breaks trace to a systemic policy admin configuration defect (e.g., wrong cost-sharing table mapped to a plan ID), escalate to IT and the Head of Compliance.",
+            "Track the defect fix through to deployment and re-test the affected population once resolved.",
+            "Record the defect, fix date and re-test result on the workpaper."
+          ],
+          "done": "systemic configuration defects are escalated, fixed and re-tested with the outcome recorded."
+        },
+        {
+          "step": "Log any break unresolved past one billing cycle",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Open a tracker issue for any break not corrected within one billing cycle of identification.",
+            "Assign root cause and owner and set a remediation date.",
+            "Escalate breaches open beyond two cycles to the Head of Compliance."
+          ],
+          "done": "every break unresolved past one billing cycle is logged with root cause, owner and remediation date."
+        },
+        {
+          "step": "Archive the quarterly reconciliation package",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the eligibility file, policy admin extract, comparison, break log and sign-off to the compliance evidence repository.",
+            "Apply the 7-year retention label and index by quarter.",
+            "Confirm the record is searchable by enrollee and quarter."
+          ],
+          "done": "the complete reconciliation package is archived, retention-labelled and searchable by enrollee and quarter."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of silver-tier CSR-eligible enrollees for the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently extract the Marketplace eligibility file and the policy admin CSR variant extract for the tested quarter.",
+            "Reconcile row counts between the two independent extracts and the population used in the original reconciliation.",
+            "Resolve any count difference before sampling."
+          ],
+          "done": "the tested population is independently extracted and reconciled to the original reconciliation's population."
+        },
+        {
+          "step": "Reconcile the population to the CSR advance-payment submission",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the enrollee count and CSR variant mix to the corresponding CMS CSR advance-payment/EDGE submission for the same period.",
+            "Investigate and document any material difference.",
+            "List unresolved differences as exceptions."
+          ],
+          "done": "the population is reconciled to the CMS submission with differences investigated."
+        },
+        {
+          "step": "Select and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of enrollees flagged as a break in the original reconciliation.",
+            "Take a random sample of 25 additional enrollees from the matched population, minimum 40 total.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers every enrollee flagged as a break."
+        },
+        {
+          "step": "Re-perform the CSR variant match for the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Independently match each sampled enrollee's Marketplace eligibility category to their policy admin plan variant.",
+            "Compare the result to the original reconciliation's conclusion for that enrollee.",
+            "Any disagreement is a fail, logged in the test workpaper."
+          ],
+          "done": "each sampled enrollee has an independent re-performed match with disagreements logged."
+        },
+        {
+          "step": "Re-perform the cost-sharing parameter validation",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled enrollee, independently compare configured deductible, copay/coinsurance and MOOP to the CMS-published cost-sharing reduction schedule.",
+            "Flag any parameter mismatch not already captured in the original reconciliation.",
+            "Record the comparison in the test workpaper."
+          ],
+          "done": "cost-sharing parameters are independently re-validated for every sampled enrollee."
+        },
+        {
+          "step": "Trace corrected breaks to policy admin and claims reprocessing",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "For each sampled break that was corrected, confirm the policy admin record reflects the corrected variant with the right effective date.",
+            "Confirm affected claims were identified and reprocessed at the corrected cost-sharing level.",
+            "Confirm any member refund or additional billing was issued."
+          ],
+          "done": "corrected breaks are traced through policy admin and claims reprocessing to completion."
+        },
+        {
+          "step": "Recompute the break rate and compare to tolerance",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compute the break rate from the independently re-performed sample.",
+            "Compare to the procedure's stated tolerance and to the rate reported in the original reconciliation sign-off.",
+            "Flag a material understatement of the break rate in the original sign-off as a finding."
+          ],
+          "done": "the break rate is independently recomputed and compared to tolerance and to the original sign-off."
+        },
+        {
+          "step": "Verify unmatched-row resolution",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For a sub-sample of unmatched Marketplace and policy admin rows, confirm the documented resolution is supported by evidence (enrollment record, termination date).",
+            "Flag any resolution lacking supporting evidence.",
+            "Record findings in the test workpaper."
+          ],
+          "done": "unmatched-row resolutions are verified against supporting evidence for the sub-sample."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the enrollee (identifier only), what failed and the impact.",
+            "Assign root cause (unprocessed eligibility change, config defect, claims reprocessing gap) and an owner.",
+            "Set a remediation date and carry unresolved items into next quarter's test as mandatory retests."
+          ],
+          "done": "every exception is logged with root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate against the pass/fail threshold.",
+            "Write the conclusion with evidence references and report to the Compliance Committee.",
+            "Have the independent reviewer sign the workpaper and file it in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-060-C06",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Appointed Actuary",
+          "value": "Owns the response to any CMS, state DOI or Marketplace inquiry touching valuation, MLR, rate or CSR administration matters; escalates unresolved technical questions to the Chief Actuary"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — the specific regulatory basis of each inquiry is re-verified against the current text of the citation the regulator references (drawing from 45 CFR 156.410/156.420, 147.126/PHSA 2711, 156.130, and the valuation citations in 158.130-158.241 and 154.215 as applicable) before a response is drafted"
+        },
+        "In-scope processes": {
+          "value": "Intake and substantive response to every regulator valuation-related inquiry (data calls, market conduct exam questions, CSR/MLR data validation queries, rate objection follow-ups), across all states and CMS"
+        },
+        "In-scope systems": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Every inquiry logged with received date, regulator, topic, response owner and due date"
+        },
+        "Compliance procedure documented": {
+          "value": "Regulator Valuation Inquiry Response Procedure — intake, technical research, drafting, legal/actuarial review, submission, log closure"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Chief Actuary and Head of Compliance; reviewed annually"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Response deadline set by the regulator's letter or the CMS/state system's stated response window (commonly 10-30 business days), tracked per inquiry"
+        },
+        "Deadline reminders configured": {
+          "value": "Inquiry tracker alerts at the midpoint and 3 business days before each inquiry's response deadline"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Inquiry correspondence, research workpapers and the final response retained 7 years from closure"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any response sent past the regulator's deadline is logged as a compliance exception with root cause and corrective action"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs off any late response and the corrective action to prevent recurrence"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every regulator valuation-related inquiry received and closed in the period, per the inquiry tracker"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any response sent after the regulator's stated deadline, or any response not reviewed by Regulatory Counsel where required, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Tested quarterly over that quarter's closed inquiries, since the obligation is event-driven"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have drafted or reviewed any sampled response"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly inquiry-response test workpaper filed in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "The inquiry tracker export and underlying correspondence, retrievable within 5 business days of an examiner request"
+        },
+        "Regulator response path": {
+          "value": "Head of Compliance owns escalated or sensitive inquiries; the Appointed Actuary owns the technical content of any valuation response"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Log the inquiry on receipt",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "On receipt of a CMS, state DOI or Marketplace inquiry, create a tracker entry with the received date, regulator, channel (letter, portal message, phone), topic and stated response deadline.",
+            "Attach the original inquiry document or message to the tracker entry.",
+            "Assign a response owner based on the inquiry topic (Appointed Actuary for valuation/MLR/rate; Valuation Actuary for CSR data)."
+          ],
+          "done": "every inquiry is logged with source, deadline and an assigned owner on the day it is received."
+        },
+        {
+          "step": "Classify the inquiry and confirm the applicable citation",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Read the inquiry and identify which regulatory provision it concerns (MLR calculation, rate filing, network adequacy, CSR administration).",
+            "Re-read the current text of that provision to confirm the company's understanding before drafting a response.",
+            "Note the citation and provision text on the tracker entry."
+          ],
+          "done": "the inquiry is classified against a specific, re-verified citation."
+        },
+        {
+          "step": "Gather the underlying data and workpapers relevant to the inquiry",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Pull the relevant certified workpaper (MLR reserve, rate filing memorandum, network adequacy test, CSR reconciliation) covering the period the inquiry references.",
+            "Extract the specific figures or records the regulator is asking about.",
+            "Cross-check the extracted figures against the source system before including them in the draft response."
+          ],
+          "done": "the specific data the inquiry asks about is pulled and cross-checked against source."
+        },
+        {
+          "step": "Draft the technical response",
+          "by": "Appointed Actuary",
+          "role": "Appointed Actuary",
+          "actions": [
+            "Write a direct answer to each question the regulator asked, referencing the specific workpaper and citation.",
+            "Avoid volunteering information beyond the scope of the question.",
+            "Attach supporting exhibits (extracts, calculations) referenced in the response."
+          ],
+          "done": "a draft response answers each question directly with supporting exhibits attached."
+        },
+        {
+          "step": "Route the draft for Regulatory Counsel review",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Review the draft for any statement that could constitute an admission of non-compliance and confirm the framing is accurate and defensible.",
+            "Confirm no privileged material is inadvertently included.",
+            "Approve the draft or return with required edits."
+          ],
+          "done": "Regulatory Counsel has reviewed and approved the draft before it is finalized."
+        },
+        {
+          "step": "Obtain Chief Actuary sign-off on technical accuracy",
+          "by": "Chief Actuary",
+          "role": "Chief Actuary",
+          "actions": [
+            "Review the final draft's actuarial statements and figures for accuracy.",
+            "Confirm the response is consistent with the certified workpapers it references.",
+            "Sign off before submission."
+          ],
+          "done": "the Chief Actuary has signed off on the technical accuracy of the final response."
+        },
+        {
+          "step": "Submit the response through the regulator's designated channel",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Submit the response through the same channel the inquiry arrived on (SERFF objection response, CMS portal message, formal letter) before the stated deadline.",
+            "Save the submission confirmation or delivery receipt.",
+            "Update the tracker entry with the submission date and confirmation reference."
+          ],
+          "done": "the response is submitted through the correct channel before the deadline with a saved confirmation."
+        },
+        {
+          "step": "Track any regulator follow-up question",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Monitor for a follow-up question or acknowledgment from the regulator.",
+            "Log any follow-up as a linked tracker entry referencing the original inquiry.",
+            "Route the follow-up through the same drafting/review/sign-off chain."
+          ],
+          "done": "any follow-up is logged, linked to the original inquiry and routed through the same review chain."
+        },
+        {
+          "step": "Escalate any inquiry suggesting a broader compliance gap",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Where the inquiry's substance suggests a control gap broader than the single question asked, open an internal review separate from the response itself.",
+            "Assess whether a self-report to the regulator is warranted with Regulatory Counsel.",
+            "Track the internal review to closure independently of the inquiry response."
+          ],
+          "done": "any inquiry suggesting a broader gap triggers a separate internal review with a self-report assessment."
+        },
+        {
+          "step": "Escalate any inquiry at risk of missing its deadline",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "At the midpoint of the response window, review open inquiries against their deadlines.",
+            "Escalate any at risk to the Chief Compliance Officer and request additional resource or a deadline extension from the regulator where permitted.",
+            "Record the escalation outcome on the tracker entry."
+          ],
+          "done": "every at-risk inquiry is escalated with a recorded outcome before the deadline."
+        },
+        {
+          "step": "Close the tracker entry once the regulator confirms receipt or the matter is resolved",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "actions": [
+            "Confirm the regulator has acknowledged the response or the inquiry channel shows the matter closed.",
+            "Set the tracker entry status to Closed with the closure date.",
+            "File the complete correspondence trail in the tracker entry."
+          ],
+          "done": "the tracker entry is set to Closed with a full correspondence trail attached."
+        },
+        {
+          "step": "Review closed inquiries quarterly for recurring themes",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Pull all inquiries closed in the quarter and group by topic.",
+            "Identify any recurring theme suggesting a process improvement is needed.",
+            "Route identified themes to the relevant process owner for action."
+          ],
+          "done": "closed inquiries are reviewed quarterly for recurring themes with action items routed to owners."
+        },
+        {
+          "step": "Update the response procedure based on lessons learned",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Where a recurring theme or a late response reveals a procedural gap, update the Regulator Valuation Inquiry Response Procedure.",
+            "Communicate the update to the response owners.",
+            "Version and date the updated procedure."
+          ],
+          "done": "the procedure is updated, versioned and communicated whenever a recurring theme or late response reveals a gap."
+        },
+        {
+          "step": "Log any late response",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Where a response is submitted after the stated deadline, open a compliance exception on the tracker entry.",
+            "Assign root cause and owner and set a remediation date.",
+            "Route to the Head of Compliance for sign-off on the corrective action."
+          ],
+          "done": "every late response is logged as an exception with root cause, owner, remediation date and Head of Compliance sign-off."
+        },
+        {
+          "step": "Archive the inquiry and response record",
+          "by": "Regulatory Reporting Analyst",
+          "role": "Regulatory Reporting Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the inquiry, draft, review sign-offs, final response and submission confirmation to the compliance evidence repository.",
+            "Apply the 7-year retention label and index by regulator and topic.",
+            "Confirm the record is searchable by regulator, topic and closure date."
+          ],
+          "done": "the complete inquiry record is archived, retention-labelled and searchable by regulator, topic and closure date."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of inquiries closed in the period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Extract every inquiry marked Closed in the tracker for the quarter.",
+            "Reconcile the count to any independent log of correspondence received (mailroom, portal notification log) for the same period.",
+            "Resolve any inquiry present in one source but not the other before sampling."
+          ],
+          "done": "the population of closed inquiries is reconciled to an independent correspondence source."
+        },
+        {
+          "step": "Confirm every inquiry has a logged received date and deadline",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Check each population row for a received date, regulator, topic and stated deadline.",
+            "List any row missing a required field as an exception.",
+            "Note whether the deadline was regulator-stated or internally assumed."
+          ],
+          "done": "every population row is checked for complete intake fields."
+        },
+        {
+          "step": "Select and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of inquiries flagged as late or as triggering a broader internal review.",
+            "Take a random sample of 10 additional inquiries from the remainder, minimum 15 total.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers every late or escalated inquiry."
+        },
+        {
+          "step": "Verify the response was submitted before the deadline",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Compare the submission confirmation date/time to the regulator-stated deadline for each sampled inquiry.",
+            "Any response submitted after the deadline is a fail, regardless of whether the regulator objected.",
+            "Record the comparison in the test workpaper."
+          ],
+          "done": "submission timing is independently verified against the deadline for every sampled inquiry."
+        },
+        {
+          "step": "Re-perform the technical accuracy check on the sample",
+          "by": "Reserving Actuary",
+          "role": "Reserving Actuary",
+          "actions": [
+            "For each sampled response, independently pull the certified workpaper it references and confirm the figures cited in the response match.",
+            "Flag any figure in the response that does not match its cited source.",
+            "Capture the comparison into the test workpaper."
+          ],
+          "done": "technical accuracy is independently re-verified against source workpapers for every sampled response."
+        },
+        {
+          "step": "Confirm Regulatory Counsel and Chief Actuary sign-off exist and predate submission",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Check each sampled response for a dated Regulatory Counsel review approval and Chief Actuary sign-off.",
+            "Confirm both sign-off dates predate the submission date.",
+            "List any missing or out-of-sequence sign-off as an exception."
+          ],
+          "done": "sign-off presence and sequencing are confirmed for every sampled response."
+        },
+        {
+          "step": "Verify escalated inquiries received the required internal review",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled inquiry flagged as suggesting a broader gap, confirm a separate internal review was opened and tracked.",
+            "Confirm a self-report assessment with Regulatory Counsel is documented.",
+            "Flag any escalated inquiry lacking a documented internal review."
+          ],
+          "done": "internal review and self-report assessment are confirmed for every sampled escalated inquiry."
+        },
+        {
+          "step": "Confirm the evidence archive is complete for the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Confirm the compliance evidence repository holds the inquiry, draft, sign-offs, final response and confirmation for each sampled inquiry.",
+            "Confirm the 7-year retention label is applied.",
+            "Flag any missing document as an exception."
+          ],
+          "done": "the archive is confirmed complete and retention-labelled for every sampled inquiry."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the inquiry reference and what failed.",
+            "Assign root cause (late intake, missing sign-off, inaccurate figure, incomplete archive) and an owner.",
+            "Set a remediation date and carry unresolved items into next quarter's test as mandatory retests."
+          ],
+          "done": "every exception is logged with root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate against the pass/fail threshold.",
+            "Write the conclusion with evidence references and report to the Compliance Committee.",
+            "Have the independent reviewer sign the workpaper and file it in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-060-C07",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Product Filing Specialist",
+          "value": "Owns building the CSR plan-variation and EHB cost-sharing disclosures into every silver-tier form, Summary of Benefits and Coverage and correspondence template; escalates ambiguous drafting calls to Regulatory Counsel"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 45 CFR 156.410/156.420 (CSR plan variation content requirements), 45 CFR 147.126/PHSA 2711 (no lifetime/annual dollar limit on essential health benefits) and 45 CFR 156.130 (cost-sharing standards) re-read against the current SBC template and Uniform Glossary each form cycle"
+        },
+        "In-scope processes": {
+          "value": "Form/template change intake → CSR variant and no-lifetime/annual-limit disclosure language build → SBC and Evidence of Coverage drafting → filing, for every silver-tier plan variant and every EHB-bearing form"
+        },
+        "In-scope systems": {
+          "app": "document management repository",
+          "value": "SBC, Evidence of Coverage and correspondence templates drafted and version-controlled in the document/form template repository, filed to states via SERFF where required"
+        },
+        "Compliance procedure documented": {
+          "value": "CSR/EHB Disclosure Drafting Procedure — variant inventory, required disclosure language mapping, SBC/EOC drafting, legal review, filing"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance; reviewed annually against the current CMS SBC template and Uniform Glossary release"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Per form change — disclosure build must close before the SBC/EOC filing deadline ahead of open enrollment publication, and before the target form effective date"
+        },
+        "Deadline reminders configured": {
+          "value": "Form change tracker alerts at T-60/T-30/T-10 days ahead of the open-enrollment publication date"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Form inventory, disclosure language mapping, drafts and legal sign-off retained 7 years from form withdrawal"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any published SBC/EOC missing required CSR variant or no-limit disclosure language is logged as a compliance exception with root cause and corrective action"
+        },
+        "Remediation sign-off captured": {
+          "role": "Regulatory Counsel",
+          "value": "Signs off every corrected disclosure before republication"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every silver-tier plan variant's SBC, Evidence of Coverage and EHB-bearing correspondence template published or updated in the period"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any variant's SBC/EOC missing the correct cost-sharing figures for its variant, or containing an annual/lifetime dollar limit on an essential health benefit, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Tested with every form change cycle (per change), plus a full annual review ahead of the next open enrollment"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Compliance Analyst",
+          "value": "Reviewer must not have drafted the sampled form"
+        },
+        "Evidence location for test results": {
+          "value": "Per-cycle disclosure build test workpaper filed in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Form inventory, mapping and legal sign-off, retrievable within 5 business days of a market conduct exam request"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct Compliance owns exam responses on disclosure content; Regulatory Counsel clears any admission of a defective form"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Inventory every form that must carry CSR variant or EHB no-limit disclosure language",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "List every silver-tier plan variant (standard, 73%, 87%, 94%, limited cost-sharing) and every form tied to it: SBC, Evidence of Coverage, Schedule of Benefits, enrollment confirmation letter.",
+            "Cross-reference the plan variant list to the certified QHP filing to confirm no variant is missing a form set.",
+            "Log each form/variant pair on the disclosure build tracker."
+          ],
+          "done": "every variant/form pair is inventoried on the disclosure build tracker with no variant missing a form set."
+        },
+        {
+          "step": "Map the required disclosure language for each form",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "For each variant, pull the CMS-published cost-sharing figures (deductible, MOOP, copay/coinsurance schedule) for that variant.",
+            "Map the current CMS SBC template's required fields and the Uniform Glossary terms that must appear.",
+            "Confirm no field will state or imply a lifetime or annual dollar limit on any essential health benefit category, per 147.126/PHSA 2711."
+          ],
+          "done": "required disclosure language and figures are mapped per variant with no dollar-limit language present."
+        },
+        {
+          "step": "Draft the Summary of Benefits and Coverage for each variant",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Populate the current CMS SBC template with the variant-specific cost-sharing figures and coverage examples.",
+            "Run the SBC through the CMS-required calculator/coverage-examples tool to generate the standardized examples.",
+            "Cross-check every populated figure against the mapped source data before finalizing the draft."
+          ],
+          "done": "an SBC draft exists per variant with figures cross-checked against the mapped source data."
+        },
+        {
+          "step": "Draft the Evidence of Coverage and Schedule of Benefits language",
+          "by": "Wordings Coverage Specialist",
+          "role": "Wordings Coverage Specialist",
+          "actions": [
+            "Insert the variant-specific cost-sharing schedule into the Evidence of Coverage and Schedule of Benefits template.",
+            "Insert the required CSR eligibility and variant-assignment explanation language per 156.410/156.420.",
+            "Confirm EHB category descriptions carry no annual or lifetime dollar cap language anywhere in the document."
+          ],
+          "done": "the Evidence of Coverage and Schedule of Benefits carry the correct variant schedule and no dollar-cap language."
+        },
+        {
+          "step": "Draft the enrollee correspondence templates referencing CSR/EHB terms",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Update the enrollment confirmation, ID card cover letter and renewal notice templates to reference the correct variant name and cost-sharing summary.",
+            "Confirm no correspondence template references a discontinued dollar-limit provision.",
+            "Route the updated templates into the correspondence template library with version control."
+          ],
+          "done": "correspondence templates carry the correct variant references and are version-controlled in the template library."
+        },
+        {
+          "step": "Route the drafts for Regulatory Counsel review",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Review each SBC, EOC and correspondence draft against the 156.410/156.420, 147.126/PHSA 2711 and 156.130 requirements.",
+            "Confirm the required disclosure language is present, accurate and unambiguous.",
+            "Approve or return with required edits, documenting the review date."
+          ],
+          "done": "Regulatory Counsel has reviewed and approved every draft, with the review date documented."
+        },
+        {
+          "step": "Route the drafts for actuarial cost-sharing accuracy check",
+          "by": "Actuarial Analyst",
+          "role": "Actuarial Analyst",
+          "actions": [
+            "Independently verify every dollar figure in each draft against the CMS-published cost-sharing reduction schedule for the variant.",
+            "Flag any figure that does not match the published schedule.",
+            "Confirm corrections are made before the draft moves to filing."
+          ],
+          "done": "every dollar figure is independently verified against the CMS schedule before filing."
+        },
+        {
+          "step": "File the SBC and Evidence of Coverage where filing is required",
+          "by": "Regulatory Filing Specialist",
+          "role": "Regulatory Filing Specialist",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "In SERFF, attach the final SBC and Evidence of Coverage to the applicable form filing for each state that requires form filing.",
+            "Submit and record the SERFF tracking number.",
+            "Track the filing to disposition before the form is published for open enrollment."
+          ],
+          "done": "the SBC and EOC are filed where required with a tracked disposition before publication."
+        },
+        {
+          "step": "Publish the approved forms ahead of open enrollment",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Load the final approved SBC, EOC and correspondence templates into the document generation system for each variant.",
+            "Confirm the correct template is mapped to the correct plan ID/variant code so enrollees receive the matching document.",
+            "Publish ahead of the open enrollment start date."
+          ],
+          "done": "approved forms are loaded, correctly mapped to plan ID/variant and published before open enrollment starts."
+        },
+        {
+          "step": "Spot-check the published mapping before go-live",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Generate a sample SBC and EOC for each variant through the live document generation system.",
+            "Compare the generated document to the approved final draft field by field.",
+            "Correct any mapping error before open enrollment opens to the public."
+          ],
+          "done": "a generated sample per variant matches the approved final draft before go-live."
+        },
+        {
+          "step": "Update the disclosure build tracker with filing and publication status",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Record filing tracking numbers, approval dates and publication dates for each variant/form pair.",
+            "Flag any variant/form pair not yet published as open enrollment approaches.",
+            "Review the tracker weekly during the pre-open-enrollment period."
+          ],
+          "done": "the tracker reflects filing and publication status for every variant/form pair, reviewed weekly pre-open-enrollment."
+        },
+        {
+          "step": "Handle mid-year cost-sharing schedule updates from CMS",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Monitor CMS releases for any mid-year update to the CSR cost-sharing schedule.",
+            "Where an update applies, re-run the mapping, drafting, review and filing steps for the affected variant.",
+            "Republish corrected forms before the update's effective date."
+          ],
+          "done": "any mid-year CMS schedule update triggers a re-run of the drafting and filing cycle before its effective date."
+        },
+        {
+          "step": "Escalate any form change that cannot clear review before the publication deadline",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Compare open review items to the open-enrollment publication deadline at each T-10 checkpoint.",
+            "Escalate any at-risk variant to the Chief Compliance Officer with options: delay publication, use prior-approved language with a correction notice, or add resource to clear review.",
+            "Record the decision on the disclosure build tracker."
+          ],
+          "done": "every at-risk form change is escalated with a recorded decision before the publication deadline."
+        },
+        {
+          "step": "Log any published form found missing required disclosure language",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Open a tracker issue for any published SBC/EOC/correspondence found missing required CSR or EHB disclosure language.",
+            "Assign root cause and owner, and route to Regulatory Counsel for a corrective-notice assessment.",
+            "Set a remediation date and track republication to completion."
+          ],
+          "done": "every defective published form is logged with root cause, owner, remediation date and a corrective-notice assessment."
+        },
+        {
+          "step": "Archive the disclosure build package",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the form inventory, mapping, drafts, legal and actuarial sign-offs and filing confirmations to the compliance evidence repository.",
+            "Apply the 7-year-from-withdrawal retention label.",
+            "Confirm the record is searchable by variant and plan year."
+          ],
+          "done": "the complete disclosure build package is archived, retention-labelled and searchable by variant and plan year."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of variant/form pairs published or updated in the period",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Extract every silver-tier variant/form pair from the disclosure build tracker with a publication or update date in the period.",
+            "Reconcile the count to the certified QHP filing's list of variants.",
+            "List any variant missing a form pair as an automatic exception."
+          ],
+          "done": "the population is reconciled to the certified QHP variant list with omissions listed as exceptions."
+        },
+        {
+          "step": "Reconcile filed forms to the SERFF filing log",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Regulatory Filing Portal (SERFF)",
+          "actions": [
+            "For states requiring form filing, confirm each population row has a matching SERFF tracking number and approved disposition.",
+            "List any row missing a filing or disposition as an exception.",
+            "Capture the SERFF filing detail into the workpaper."
+          ],
+          "done": "filed forms are reconciled to SERFF with omissions listed as exceptions."
+        },
+        {
+          "step": "Select and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of variants that underwent a mid-year cost-sharing schedule update.",
+            "Take a random sample of 8 additional variant/form pairs from the remainder, minimum 15 total.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers every mid-year-updated variant."
+        },
+        {
+          "step": "Re-verify the dollar figures against the CMS cost-sharing schedule",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled SBC/EOC, independently pull the CMS-published cost-sharing schedule for the variant and compare every dollar figure.",
+            "Flag any mismatch as a fail.",
+            "Capture the comparison into the test workpaper."
+          ],
+          "done": "dollar figures are independently re-verified against the CMS schedule for every sampled document."
+        },
+        {
+          "step": "Confirm no annual or lifetime dollar-limit language is present",
+          "by": "Regulatory Counsel",
+          "role": "Regulatory Counsel",
+          "actions": [
+            "Read each sampled SBC, EOC and correspondence template in full for any statement of an annual or lifetime dollar limit on an essential health benefit category.",
+            "Flag any such statement, including in coverage examples or exclusions language, as a fail under 147.126/PHSA 2711.",
+            "Record the finding in the test workpaper."
+          ],
+          "done": "every sampled document is read in full and confirmed free of prohibited dollar-limit language."
+        },
+        {
+          "step": "Verify the generated document matches the plan ID/variant mapping",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Generate a fresh sample document for each sampled variant through the live document generation system.",
+            "Compare the generated document to the approved final draft field by field.",
+            "Flag any mapping drift between the approved draft and what is actually being issued to enrollees."
+          ],
+          "done": "generated documents are independently compared to approved drafts for every sampled variant, with drift flagged."
+        },
+        {
+          "step": "Confirm Regulatory Counsel and actuarial sign-off predate publication",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Check each sampled form for a dated Regulatory Counsel approval and actuarial cost-sharing verification.",
+            "Confirm both sign-off dates predate the publication date.",
+            "List any missing or out-of-sequence sign-off as an exception."
+          ],
+          "done": "sign-off presence and sequencing are confirmed for every sampled form."
+        },
+        {
+          "step": "Trace correspondence templates to actual enrollee mailings",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For a sub-sample of enrollees in each sampled variant, pull the actual correspondence sent from the mailing/print vendor log.",
+            "Confirm the correct variant-specific template was used.",
+            "Flag any enrollee who received the wrong variant's correspondence."
+          ],
+          "done": "actual mailings are traced to the correct variant template for the sub-sample."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the variant/form and what failed.",
+            "Assign root cause (stale schedule data, mapping drift, missing sign-off, prohibited language) and an owner.",
+            "Set a remediation date and, for any prohibited dollar-limit language found, route to Regulatory Counsel for a corrective-notice decision."
+          ],
+          "done": "every exception is logged with root cause, owner, remediation date and a corrective-notice decision where applicable."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate against the pass/fail threshold.",
+            "Write the conclusion with evidence references and report to the Compliance Committee.",
+            "Have the independent reviewer sign the workpaper and file it in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion and exception rate is filed and reported."
+        }
+      ]
+    },
+    {
+      "itemCode": "REG-060-C08",
+      "templates": ["Regulation compliance checklist", "Regulation verification testing"],
+      "generic": {
+        "Accountable obligation owner": {
+          "role": "Policy Administrator",
+          "value": "Owns generation and timely delivery of every CSR eligibility, variant-assignment and EHB-related notice to enrollees; escalates system-generation failures to the Policy Admin Ops Lead"
+        },
+        "Citation verified against current regulatory text": {
+          "value": "Yes — 45 CFR 156.410/156.420 (CSR variant notice content), 45 CFR 147.126/PHSA 2711 (EHB no-limit context) and 45 CFR 156.130 re-read against the current CMS notice-timing guidance each notice cycle"
+        },
+        "In-scope processes": {
+          "value": "Enrollment/eligibility-change trigger → CSR variant/eligibility notice generation → delivery within the statutory timeframe → delivery confirmation logging, for every silver-tier enrollee with a CSR-relevant event"
+        },
+        "In-scope systems": {
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "value": "Notice generation triggered by enrollment/eligibility events in policy admin; delivery tracked in the correspondence/print-mail vendor system"
+        },
+        "Compliance procedure documented": {
+          "value": "CSR/EHB Notice Generation and Delivery Procedure — trigger event catalog, notice mapping, generation, delivery, confirmation logging, exception handling"
+        },
+        "Compliance procedure approved": {
+          "value": "Approved by the Head of Compliance; reviewed annually against CMS notice-timing guidance"
+        },
+        "Filing/reporting deadlines tracked": {
+          "value": "Event-driven — each notice must be generated and delivered within the statutory/CMS-guidance timeframe from the triggering event (commonly within a fixed number of calendar days of the eligibility change)"
+        },
+        "Deadline reminders configured": {
+          "value": "Automated policy admin workflow alert on every eligibility-change event with a countdown to the notice delivery deadline"
+        },
+        "Evidence retained per the retention requirement": {
+          "value": "Notice generation log, content snapshot and delivery confirmation retained 7 years per enrollee"
+        },
+        "Violations/exceptions logged with disposition": {
+          "app": "regulatory filing/issue tracker",
+          "value": "Any notice generated late, delivered late, or not generated at all for a triggering event is logged with root cause and remediation"
+        },
+        "Remediation sign-off captured": {
+          "role": "Head of Compliance",
+          "value": "Signs off any bulk remediation mailing sent to correct a missed or late notice population"
+        },
+        "Test population (in-scope transactions, filings, or records)": {
+          "value": "Every CSR-relevant eligibility-change event in the period, drawn from the policy admin event log, matched to its required notice"
+        },
+        "Pass/fail thresholds": {
+          "value": "Any triggering event without a generated notice, or with a notice delivered outside the statutory timeframe, is a fail"
+        },
+        "Compliance test frequency matched to the obligation frequency": {
+          "value": "Tested quarterly over that quarter's triggering events, since the obligation is event-driven"
+        },
+        "Independent reviewer (segregated from the performer)": {
+          "role": "Internal Auditor",
+          "value": "Reviewer must not have processed any sampled notice"
+        },
+        "Evidence location for test results": {
+          "value": "Quarterly notice-delivery test workpaper filed in the compliance evidence repository"
+        },
+        "Regulator-ready documentation": {
+          "value": "Notice log export with generation/delivery timestamps, retrievable within 5 business days of a market conduct exam request"
+        },
+        "Regulator response path": {
+          "value": "Market Conduct Compliance owns exam responses on notice timeliness; Policy Admin Ops Lead provides the underlying generation/delivery data"
+        }
+      },
+      "checklist": [
+        {
+          "step": "Maintain the catalog of events that trigger a CSR/EHB notice",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "actions": [
+            "List every enrollment/eligibility event requiring a notice: initial CSR variant assignment, variant change, CSR eligibility termination, annual re-determination, and any EHB-related coverage change.",
+            "Map each event type to its required notice template and statutory/CMS-guidance delivery timeframe.",
+            "Review the catalog annually against CMS's current notice-timing guidance and update as needed."
+          ],
+          "done": "the trigger-event catalog is current, mapped to notice templates and delivery timeframes, and reviewed annually."
+        },
+        {
+          "step": "Confirm the policy admin system generates a notice automatically on each trigger",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "In policy admin, verify the workflow rule fires the correct notice template whenever a catalogued trigger event is processed.",
+            "Spot-check a test transaction of each trigger type in a non-production environment to confirm the correct notice fires.",
+            "Log the verification date and result on the notice generation control log."
+          ],
+          "done": "automatic notice generation is verified for every trigger type with a logged test result."
+        },
+        {
+          "step": "Generate the notice content with the correct enrollee-specific data",
+          "by": "Policy Administrator",
+          "role": "Policy Administrator",
+          "actions": [
+            "Confirm the generated notice populates the enrollee's correct CSR variant, effective date and cost-sharing summary from the trigger event.",
+            "Confirm the notice includes the required explanation of the change and the enrollee's appeal/contact rights.",
+            "Flag any notice with a blank or clearly incorrect data field for manual correction before release."
+          ],
+          "done": "each generated notice carries correct enrollee-specific data with no blank or incorrect fields released."
+        },
+        {
+          "step": "Queue the notice for delivery within the statutory timeframe",
+          "by": "Policy Administrator",
+          "role": "Policy Administrator",
+          "actions": [
+            "Confirm the notice is queued to the print/mail or electronic delivery vendor the same business day it is generated.",
+            "Set the delivery method per the enrollee's on-file preference (mail vs. electronic, where permitted).",
+            "Verify the queue timestamp against the trigger event date to confirm the timeframe can still be met."
+          ],
+          "done": "the notice is queued for delivery the same business day, via the enrollee's preferred method, within the required timeframe."
+        },
+        {
+          "step": "Confirm delivery and capture the confirmation",
+          "by": "Correspondence Clerk",
+          "role": "Correspondence Clerk",
+          "actions": [
+            "Retrieve the delivery confirmation (mail file acceptance, electronic delivery receipt) from the print/mail vendor system.",
+            "Match the confirmation to the enrollee and trigger event on the notice log.",
+            "Flag any notice returned as undeliverable for follow-up address research."
+          ],
+          "done": "a delivery confirmation is captured and matched to the enrollee and trigger event for every notice."
+        },
+        {
+          "step": "Follow up on undeliverable notices",
+          "by": "Correspondence Clerk",
+          "role": "Correspondence Clerk",
+          "actions": [
+            "For any notice returned undeliverable, research the enrollee's current address via the Marketplace eligibility file or member portal.",
+            "Re-issue the notice to the corrected address and log the re-issue date.",
+            "Escalate to the Policy Admin Ops Lead if a valid address cannot be found within 5 business days."
+          ],
+          "done": "every undeliverable notice is researched, re-issued where possible, and escalated if unresolved within 5 business days."
+        },
+        {
+          "step": "Log the notice on the enrollee's notice history",
+          "by": "Policy Administrator",
+          "role": "Policy Administrator",
+          "actions": [
+            "Record the trigger event, notice type, generation date, delivery method and delivery confirmation date on the enrollee's notice history in policy admin.",
+            "Confirm the notice content snapshot is retained alongside the log entry.",
+            "Make the notice history visible to Contact Center Agents handling enrollee inquiries."
+          ],
+          "done": "each notice is logged on the enrollee's notice history with a retained content snapshot, visible to the contact center."
+        },
+        {
+          "step": "Monitor the notice generation queue daily for stuck or failed jobs",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "actions": [
+            "Review the automated notice generation job log each business day for failures or stuck records.",
+            "Investigate and clear any failure within one business day.",
+            "Re-run generation for any trigger event affected by a system failure."
+          ],
+          "done": "the generation queue is reviewed daily with failures cleared within one business day and affected notices regenerated."
+        },
+        {
+          "step": "Reconcile the notice log against the trigger-event log weekly",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "actions": [
+            "Pull the full list of CSR-relevant trigger events processed in the week from policy admin.",
+            "Match each event to a generated and delivered notice on the notice log.",
+            "List any event without a matching notice for immediate investigation."
+          ],
+          "done": "trigger events are reconciled weekly to the notice log with unmatched events investigated immediately."
+        },
+        {
+          "step": "Investigate and remediate any missed notice found in the weekly reconciliation",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "actions": [
+            "Determine the root cause of the missed notice (workflow rule gap, data error, vendor failure).",
+            "Generate and deliver the missed notice as soon as identified, noting the delay on the log.",
+            "Fix the root cause so the same trigger type does not recur."
+          ],
+          "done": "every missed notice found is remediated with a documented root cause and a fix to prevent recurrence."
+        },
+        {
+          "step": "Report notice delivery performance monthly",
+          "by": "Policy Admin Ops Lead",
+          "role": "Policy Admin Ops Lead",
+          "actions": [
+            "Compute the on-time delivery rate against the statutory timeframe for the month's trigger events.",
+            "Present the rate and any missed-notice remediation status to the Head of Compliance.",
+            "Track the rate trend month over month."
+          ],
+          "done": "an on-time delivery rate is computed, reported to the Head of Compliance and trended monthly."
+        },
+        {
+          "step": "Update notice templates when CMS revises required content",
+          "by": "Product Filing Specialist",
+          "role": "Product Filing Specialist",
+          "actions": [
+            "Monitor CMS guidance for changes to required CSR/EHB notice content or timing.",
+            "Update the notice template and the trigger-event catalog to reflect the change.",
+            "Route the updated template through Regulatory Counsel review before it goes live."
+          ],
+          "done": "notice templates and the trigger catalog are updated and counsel-reviewed whenever CMS revises requirements."
+        },
+        {
+          "step": "Escalate any systemic delivery failure",
+          "by": "Head of Compliance",
+          "role": "Head of Compliance",
+          "actions": [
+            "Where the monthly on-time rate falls below the internal target, convene the Policy Admin Ops Lead and IT to identify the systemic cause.",
+            "Approve a remediation plan and, where a population of enrollees was affected, approve a bulk corrective mailing.",
+            "Assess with Regulatory Counsel whether a self-report is warranted."
+          ],
+          "done": "any systemic delivery failure triggers a remediation plan, corrective mailing where needed, and a self-report assessment."
+        },
+        {
+          "step": "Log every notice missed or delivered outside the timeframe",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Open a tracker issue for each missed or late notice with the enrollee identifier, trigger event and delay.",
+            "Assign root cause and owner and set a remediation date.",
+            "Confirm closure once the notice is delivered and logged."
+          ],
+          "done": "every missed or late notice is logged with root cause, owner, remediation date and confirmed closure."
+        },
+        {
+          "step": "Archive the quarterly notice log",
+          "by": "Policy Administration Analyst",
+          "role": "Policy Administration Analyst",
+          "app": "compliance evidence repository",
+          "actions": [
+            "Upload the quarter's notice log, delivery confirmations and reconciliation workpaper to the compliance evidence repository.",
+            "Apply the 7-year retention label and index by enrollee and quarter.",
+            "Confirm the record is searchable by enrollee and trigger event type."
+          ],
+          "done": "the quarterly notice log is archived, retention-labelled and searchable by enrollee and trigger event type."
+        }
+      ],
+      "testing": [
+        {
+          "step": "Build the population of CSR-relevant trigger events for the quarter",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "actions": [
+            "Independently extract every catalogued trigger event processed in policy admin during the quarter.",
+            "Reconcile the count to the weekly reconciliation workpapers produced during the quarter.",
+            "Resolve any count difference before sampling."
+          ],
+          "done": "the population of trigger events is independently extracted and reconciled to the weekly reconciliations."
+        },
+        {
+          "step": "Match every trigger event to a generated and delivered notice",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Match each trigger event to a notice log entry with a generation date and delivery confirmation.",
+            "List every unmatched trigger event as an automatic exception.",
+            "Compute the overall match rate for the quarter."
+          ],
+          "done": "every trigger event is matched to a notice or listed as an exception, with a computed match rate."
+        },
+        {
+          "step": "Select and document the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "Take 100% of trigger events logged as a missed or late notice.",
+            "Take a random sample of 25 additional matched notices, minimum 40 total.",
+            "Record the seed, population size and selection date in the workpaper."
+          ],
+          "done": "the sample is drawn, reproducible and covers every missed or late notice."
+        },
+        {
+          "step": "Recompute delivery timeliness for the sample",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled notice, recompute the elapsed time from the trigger event date to the delivery confirmation date.",
+            "Compare to the statutory/CMS-guidance timeframe for that notice type; any breach is a fail.",
+            "Capture the recomputation into the test workpaper."
+          ],
+          "done": "delivery timeliness is independently recomputed and compared to the required timeframe for every sampled notice."
+        },
+        {
+          "step": "Verify notice content accuracy against the trigger event data",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled notice, compare the CSR variant, effective date and cost-sharing summary stated in the notice content snapshot to the actual trigger event data in policy admin.",
+            "Flag any content inaccuracy as a fail.",
+            "Record the comparison in the test workpaper."
+          ],
+          "done": "notice content is independently verified against the trigger event data for every sampled notice."
+        },
+        {
+          "step": "Trace delivery confirmations to the print/mail vendor system",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For each sampled notice, pull the underlying delivery confirmation record directly from the print/mail or electronic delivery vendor system.",
+            "Confirm it matches the confirmation logged in policy admin.",
+            "Flag any notice logged as delivered with no corresponding vendor record."
+          ],
+          "done": "delivery confirmations are traced to the vendor system of record for every sampled notice."
+        },
+        {
+          "step": "Verify undeliverable-notice follow-up was completed",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "actions": [
+            "For sampled notices originally returned undeliverable, confirm address research, re-issue and any required escalation occurred within the procedure's timeframes.",
+            "Flag any undeliverable notice with no documented follow-up.",
+            "Record the finding in the test workpaper."
+          ],
+          "done": "undeliverable-notice follow-up is verified for every applicable sampled notice."
+        },
+        {
+          "step": "Verify remediation of any prior-identified missed notice",
+          "by": "Internal Auditor",
+          "role": "Internal Auditor",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Pull all missed/late-notice tracker issues opened in the quarter.",
+            "Confirm each carries a root cause, owner, remediation date and evidence the notice was ultimately delivered.",
+            "Flag any issue open past its remediation date without escalation."
+          ],
+          "done": "every missed-notice tracker issue is confirmed remediated or flagged if overdue without escalation."
+        },
+        {
+          "step": "Log exceptions with root cause, owner and remediation date",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "app": "regulatory filing/issue tracker",
+          "actions": [
+            "Raise a tracker issue per exception with the enrollee identifier, trigger event and what failed.",
+            "Assign root cause (workflow gap, vendor failure, content error, address issue) and an owner.",
+            "Set a remediation date and carry unresolved items into next quarter's test as mandatory retests."
+          ],
+          "done": "every exception is logged with root cause, owner, remediation date and retest commitment."
+        },
+        {
+          "step": "Conclude, sign and report the test",
+          "by": "Compliance Officer",
+          "role": "Compliance Officer",
+          "actions": [
+            "Compute the exception rate and the on-time delivery rate against the pass/fail threshold.",
+            "Write the conclusion with evidence references and report to the Compliance Committee.",
+            "Have the independent reviewer sign the workpaper and file it in the evidence repository."
+          ],
+          "done": "a signed workpaper with a stated conclusion, exception rate and on-time delivery rate is filed and reported."
+        }
+      ]
+    }
+  ]
+}
