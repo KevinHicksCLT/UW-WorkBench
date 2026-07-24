@@ -37,6 +37,7 @@ import { api } from '../../lib/api';
 import { useCompany } from '../../lib/company';
 import { useDialogs } from '../../lib/dialogs';
 import { useOpenRole } from '../../lib/roleDrawer';
+import { useViewState } from '../../lib/viewState';
 import MetricsSidebar, {
   MetricsDrawer,
   type Dashboard,
@@ -89,10 +90,13 @@ function OrgMapCanvasInner({
   const { companyId } = useCompany();
 
   // Drill state. The company starts open (segments visible), like the VS map.
-  const [companyOpen, setCompanyOpen] = useState(true);
-  const [selSegName, setSelSegName] = useState<string | null>(null);
-  const [selDivId, setSelDivId] = useState<string | null>(null);
-  const [selDeptId, setSelDeptId] = useState<string | null>(null); // LOOSE = direct-to-division roles
+  // Persisted per session (lib/viewState) so leaving the tab and returning
+  // restores the exact drill; the metrics panel below re-fetches off it.
+  const [companyOpen, setCompanyOpen] = useViewState<boolean>('org.map.companyOpen', true);
+  const [selSegName, setSelSegName] = useViewState<string | null>('org.map.segment', null);
+  const [selDivId, setSelDivId] = useViewState<string | null>('org.map.division', null);
+  // LOOSE = direct-to-division roles
+  const [selDeptId, setSelDeptId] = useViewState<string | null>('org.map.department', null);
 
   // ── Edit state (identical model to MapCanvas) ────────────────────────────────
   const [editMode, setEditMode] = useState(false);
@@ -136,9 +140,10 @@ function OrgMapCanvasInner({
     pendingRoleOrder.size;
   const [rename, setRename] = useState<RenameState | null>(null);
 
-  // Right-hand metrics panel.
-  const [base, setBase] = useState<{ level: string; id: string } | null>(null);
-  const [ovStack, setOvStack] = useState<{ level: string; id: string }[]>([]);
+  // Right-hand metrics panel — the open target + its drill stack persist too,
+  // so the sidebar comes back exactly as left (the fetch effect keys off them).
+  const [base, setBase] = useViewState<{ level: string; id: string } | null>('org.map.base', null);
+  const [ovStack, setOvStack] = useViewState<{ level: string; id: string }[]>('org.map.stack', []);
   const [dash, setDash] = useState<Dashboard | null>(null);
   const [dashLoading, setDashLoading] = useState(false);
   const [drawerSection, setDrawerSection] = useState<MetricSection | null>(null);

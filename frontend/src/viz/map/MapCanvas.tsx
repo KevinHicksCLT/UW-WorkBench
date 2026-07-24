@@ -39,6 +39,7 @@ import { api } from '../../lib/api';
 import { useCompany } from '../../lib/company';
 import { useDialogs } from '../../lib/dialogs';
 import { useOpenRole } from '../../lib/roleDrawer';
+import { useOnChange, useViewState } from '../../lib/viewState';
 import {
   SHOW_METRICS_SIDEBAR,
   DRAGGABLE_TYPES,
@@ -480,14 +481,26 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
   }, [level, focusedSubStep, focusedStep?.id, focusedVs?.id]);
 
   // Sidebar-internal drill stack (e.g. department — these aren't map nodes, so
-  // they navigate inside the dashboard rather than the canvas).
-  const [ovStack, setOvStack] = useState<{ level: string; id: string }[]>([]);
+  // they navigate inside the dashboard rather than the canvas). Persisted per
+  // session (lib/viewState) with the rest of the map drill.
+  const [ovStack, setOvStack] = useViewState<{ level: string; id: string }[]>(
+    'explorer.map.stack',
+    [],
+  );
   const dashTarget = ovStack.length ? ovStack[ovStack.length - 1] : metricTarget;
 
-  // Map navigation resets the sidebar drill stack.
-  useEffect(() => {
-    setOvStack([]);
-  }, [metricTarget?.level, metricTarget?.id]);
+  // Map navigation resets the sidebar drill stack — change-only, keyed off a
+  // SETTLED target: while restored focus ids are still resolving to nodes
+  // (flow fetches in flight) the target reads null→value, which must not
+  // count as navigation and wipe the restored stack.
+  const targetSettled =
+    (!focusedVsId || Boolean(focusedVs)) &&
+    (!focusedStepId || Boolean(focusedStep)) &&
+    (!(level >= 4 && focusedSubStepId) || Boolean(focusedSubStep));
+  useOnChange(
+    targetSettled ? `${metricTarget?.level ?? ''}:${metricTarget?.id ?? ''}` : undefined,
+    () => setOvStack([]),
+  );
 
   // Any change of the focused entity makes the drawer's snapshot stale — close it.
   useEffect(() => {

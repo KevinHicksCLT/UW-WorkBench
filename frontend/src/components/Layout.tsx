@@ -3,7 +3,14 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { useCompany } from '../lib/company';
 import { api } from '../lib/api';
-import { navGroups, activeGroup, prefetchPathFor, type NavGroup } from '../lib/navigation';
+import {
+  navGroups,
+  activeGroup,
+  prefetchPathFor,
+  rememberTabLocation,
+  tabReturnTo,
+  type NavGroup,
+} from '../lib/navigation';
 import { useBreadcrumbHeader } from '../lib/breadcrumbs';
 import { useScrollRestore } from '../lib/viewState';
 import SearchBox from './SearchBox';
@@ -89,12 +96,20 @@ export default function Layout({ children }: { children: ReactNode }) {
 
   const { resetToTab } = useBreadcrumbHeader();
 
+  // Record every location as its owning tab's return point (lib/navigation),
+  // so clicking a nav tab lands back exactly where the user left that tab.
+  useEffect(() => {
+    rememberTabLocation(location.pathname, location.search);
+  }, [location.pathname, location.search]);
+
   const here = (key: string) => location.pathname.includes(key);
-  // Nav-menu navigation is an explicit fresh start — re-root the breadcrumb
-  // trail at the chosen tab (no-op for non-tab URLs like the drill-down rows).
+  // Nav-menu navigation re-roots the breadcrumb trail at the chosen tab and
+  // returns to the tab's recorded location (tab you're already in → its base;
+  // non-tab URLs like the drill-down rows pass through unchanged).
   const go = (url: string) => {
-    resetToTab(url);
-    navigate(url);
+    const dest = tabReturnTo(url, location.pathname);
+    resetToTab(dest);
+    navigate(dest);
     setMobileMenuOpen(false);
   };
 
@@ -117,12 +132,16 @@ export default function Layout({ children }: { children: ReactNode }) {
       const p = prefetchPathFor(to, companyId);
       if (p) api.prefetch(p);
     };
+    // `to` is the tab's base path; the actual destination is the tab's
+    // recorded return point (lib/navigation) so a tab click lands back where
+    // the user left that tab. Clicking the active tab resets to the base.
+    const dest = tabReturnTo(to, location.pathname);
     return (
       <Link
-        to={to}
+        to={dest}
         onMouseEnter={warm}
         onFocus={warm}
-        onClick={() => resetToTab(to)}
+        onClick={() => resetToTab(dest)}
         aria-current={active ? 'page' : undefined}
         className={
           'relative inline-flex items-center h-9 -mb-px px-0.5 text-sm whitespace-nowrap border-b-2 transition-colors duration-150 ' +

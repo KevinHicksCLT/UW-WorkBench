@@ -1,6 +1,7 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
+import { useViewState } from '../lib/viewState';
 import { TocBack, TocView, type TocRow } from './TocView';
 import { ErrorMessage, LoadingState } from './ui';
 
@@ -46,8 +47,23 @@ export default function ProductDrillToc({ leading }: { leading?: ReactNode }) {
   const navigate = useNavigate();
   const [table, setTable] = useState<ProductTable | null>(null);
   const [error, setError] = useState('');
-  // Drill stack of opened node ids, one entry per descended level.
-  const [stack, setStack] = useState<ProductTreeNode[]>([]);
+  // Drill stack persisted as node IDS (lib/viewState) so leaving the tab and
+  // returning restores the exact descent; the nodes themselves are re-resolved
+  // from the freshly loaded tree (a stale id past a rename/removal prunes the
+  // descent at that level instead of pointing at a dead node).
+  const [stackIds, setStackIds] = useViewState<string[]>('productModels.toc.stack', []);
+  const stack = useMemo(() => {
+    if (!table) return [];
+    const out: ProductTreeNode[] = [];
+    let source = table.roots;
+    for (const id of stackIds) {
+      const node = source.find((c) => c.id === id);
+      if (!node) break;
+      out.push(node);
+      source = node.children;
+    }
+    return out;
+  }, [table, stackIds]);
 
   useEffect(() => {
     api
@@ -68,8 +84,8 @@ export default function ProductDrillToc({ leading }: { leading?: ReactNode }) {
   const rowsSource = open ? open.children : table.roots;
   const rowLevel = depth + 1;
 
-  const push = (n: ProductTreeNode) => setStack((s) => [...s, n]);
-  const pop = () => setStack((s) => s.slice(0, -1));
+  const push = (n: ProductTreeNode) => setStackIds((s) => [...s, n.id]);
+  const pop = () => setStackIds((s) => s.slice(0, -1));
   const backLabel =
     stack.length >= 2
       ? stack[stack.length - 2].name

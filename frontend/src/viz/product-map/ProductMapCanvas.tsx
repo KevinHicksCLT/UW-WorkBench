@@ -40,6 +40,7 @@ import { useApi } from '../../lib/useApi';
 import { api } from '../../lib/api';
 import { useCompany } from '../../lib/company';
 import { useDialogs } from '../../lib/dialogs';
+import { useViewState } from '../../lib/viewState';
 import { ErrorMessage, LoadingState } from '../../components/ui';
 import { PLUS_GAP_SPREAD, type GapState, type RenameState } from '../map/constants';
 import { DragGhost, RenameEditor, MapEditToolbar, MoveFlashBanner } from '../map/MapChrome';
@@ -102,13 +103,18 @@ function ProductMapCanvasInner({
   const dialogs = useDialogs();
 
   // Drill state. The company starts open (segments visible), like the org map.
-  const [companyOpen, setCompanyOpen] = useState(true);
-  const [selSegId, setSelSegId] = useState<string | null>(null);
-  const [selLobId, setSelLobId] = useState<string | null>(null);
-  const [selProductId, setSelProductId] = useState<string | null>(null);
-  const [selVersionId, setSelVersionId] = useState<string | null>(null);
+  // Persisted per session (lib/viewState) so leaving the tab and returning
+  // restores the exact drill path and open component sidebar.
+  const [companyOpen, setCompanyOpen] = useViewState<boolean>('product.map.companyOpen', true);
+  const [selSegId, setSelSegId] = useViewState<string | null>('product.map.segment', null);
+  const [selLobId, setSelLobId] = useViewState<string | null>('product.map.lob', null);
+  const [selProductId, setSelProductId] = useViewState<string | null>('product.map.product', null);
+  const [selVersionId, setSelVersionId] = useViewState<string | null>('product.map.version', null);
   // L5 leaf: opens the docked component sidebar instead of drilling deeper.
-  const [selComponentId, setSelComponentId] = useState<string | null>(null);
+  const [selComponentId, setSelComponentId] = useViewState<string | null>(
+    'product.map.component',
+    null,
+  );
 
   // ── Edit state (identical model to OrgMapCanvas / MapCanvas) ─────────────────
   const [editMode, setEditMode] = useState(false);
