@@ -3,12 +3,10 @@ import { useBreadcrumbHeader, type Crumb } from '../lib/breadcrumbs';
 import { useSmartBack } from '../lib/navBack';
 
 // ── Global breadcrumb bar ────────────────────────────────────────────────────
-// The single breadcrumb of the app — a slim row in the Layout header, below
-// the tab bar. Shows the visited-path trail (lib/breadcrumbs), which persists
-// across tab jumps so every crumb leads back to exactly where the user was.
-// Map views claim the bar and portal their own drill breadcrumb into the slot
-// div instead (the slot stays mounted — hidden — so portals always have a
-// target). Hidden entirely on Home (empty trail, nothing claimed).
+// THE breadcrumb of the app — a slim row in the Layout header, below the tab
+// bar. Shows the visited-path trail (lib/breadcrumbs), which persists across
+// tab jumps so every crumb leads back to exactly where the user was. Hidden
+// on Home (empty trail). No other surface renders a competing trail.
 
 // Long trails collapse the middle: Home › … › last four crumbs.
 const MAX_CRUMBS = 6;
@@ -18,9 +16,9 @@ function visibleCrumbs(trail: Crumb[]): (Crumb | null)[] {
 }
 
 export default function BreadcrumbBar() {
-  const { trail, headerClaimed, setHeaderSlot } = useBreadcrumbHeader();
+  const { trail } = useBreadcrumbHeader();
   const back = useSmartBack();
-  const show = headerClaimed || trail.length > 0;
+  const show = trail.length > 0;
 
   return (
     <div
@@ -40,13 +38,7 @@ export default function BreadcrumbBar() {
       >
         ←
       </button>
-      {/* Portal target for map drill breadcrumbs — always mounted. */}
-      <div
-        ref={setHeaderSlot}
-        className={headerClaimed ? 'flex items-center flex-wrap min-w-0' : 'hidden'}
-      />
-
-      {!headerClaimed && trail.length > 0 && (
+      {trail.length > 0 && (
         <nav className="flex items-center whitespace-nowrap" aria-label="Breadcrumb">
           {visibleCrumbs(trail).map((c, i) => {
             if (c === null) {

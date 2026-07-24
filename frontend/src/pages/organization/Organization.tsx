@@ -1,5 +1,4 @@
 import { useSearchParams } from 'react-router-dom';
-import { useHeaderBreadcrumbSlot } from '../../lib/breadcrumbs';
 import OrgDrillToc from '../../components/OrgDrillToc';
 import OrgListExplorer from '../../components/OrgListExplorer';
 import OrgMapCanvas from '../../viz/org-map/OrgMapCanvas';
@@ -58,10 +57,6 @@ export default function Organization() {
     );
   };
 
-  // In map view the drill breadcrumb claims the GLOBAL header bar (Layout's
-  // BreadcrumbBar) and OrgMapCanvas portals into it — no in-page header strip.
-  const crumbSlot = useHeaderBreadcrumbSlot(view === 'map');
-
   const pillOptions = [
     { key: 'toc' as const, label: 'TOC' },
     { key: 'map' as const, label: 'Map' },
@@ -90,7 +85,7 @@ export default function Organization() {
           <OrgListExplorer />
         ) : view === 'map' ? (
           // Map view: a literal drill-down map of the org spine, full-bleed.
-          <OrgMapCanvas breadcrumbSlot={crumbSlot} />
+          <OrgMapCanvas />
         ) : (
           // Detail surface (deep links only): the OrgTable drill-down, in a
           // scrollable centered container. Top padding clears the floating toggle.

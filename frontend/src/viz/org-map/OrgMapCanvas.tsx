@@ -16,7 +16,6 @@
 //   viz/map/MapChrome.tsx         — shared ghost / rename / toolbar / banner
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import {
   ReactFlow,
   Background,
@@ -50,8 +49,6 @@ import {
   gridHeight,
   LOOSE,
   ROW_GAP_Y,
-  CRUMB,
-  CRUMB_SEP,
   type Division,
   type OrgData,
   type OrgDragState,
@@ -76,13 +73,7 @@ import { DragGhost, RenameEditor, MapEditToolbar, MoveFlashBanner } from '../map
 const ORG_LEVEL_LABEL: Record<number, string> = { 1: 'segment', 2: 'division', 3: 'team' };
 const ORG_MAX_LEVEL = 3;
 
-type Props = { breadcrumbSlot?: HTMLElement | null };
-
-function OrgMapCanvasInner({
-  data,
-  breadcrumbSlot,
-  onSaved,
-}: Props & { data: OrgData; onSaved: () => void }) {
+function OrgMapCanvasInner({ data, onSaved }: { data: OrgData; onSaved: () => void }) {
   const rf = useReactFlow();
   const paneW = useStore((s) => s.width);
   const paneH = useStore((s) => s.height);
@@ -351,22 +342,6 @@ function OrgMapCanvasInner({
     if (next && next !== LOOSE) openMetrics('department', id, hexOf(selSegName));
     else if (selDivId) openMetrics('division', selDivId, hexOf(selSegName));
   }
-
-  const crumbClear = useCallback(() => {
-    setSelSegName(null);
-    setSelDivId(null);
-    setSelDeptId(null);
-    closeMetrics();
-  }, []);
-  const crumbToSegment = () => {
-    setSelDivId(null);
-    setSelDeptId(null);
-    if (selSegName) openMetrics('domain', selSegName, hexOf(selSegName));
-  };
-  const crumbToDivision = () => {
-    setSelDeptId(null);
-    if (selDivId) openMetrics('division', selDivId, hexOf(selSegName));
-  };
 
   // ── Build nodes and edges (from the display arrays) ──────────────────────────
   const { nodes, edges } = useMemo(() => {
@@ -1002,85 +977,6 @@ function OrgMapCanvasInner({
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div style={{ position: 'relative', height: '100%', display: 'flex' }}>
-      {breadcrumbSlot &&
-        createPortal(
-          selSegName ? (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <button onClick={crumbClear} className="focus-crumb-ancestor" style={CRUMB}>
-                {sentenceCase(data.company.name)}
-              </button>
-              <span style={CRUMB_SEP}>›</span>
-              {!selDivision ? (
-                <span className="focus-crumb-active" style={CRUMB}>
-                  {sentenceCase(selSegName)}
-                </span>
-              ) : (
-                <button onClick={crumbToSegment} className="focus-crumb-ancestor" style={CRUMB}>
-                  {sentenceCase(selSegName)}
-                </button>
-              )}
-              {selDivision && (
-                <>
-                  <span style={CRUMB_SEP}>›</span>
-                  {!selTeam ? (
-                    <span className="focus-crumb-active" style={CRUMB}>
-                      {sentenceCase(selDivision.name)}
-                    </span>
-                  ) : (
-                    <button
-                      onClick={crumbToDivision}
-                      className="focus-crumb-ancestor"
-                      style={CRUMB}
-                    >
-                      {sentenceCase(selDivision.name)}
-                    </button>
-                  )}
-                </>
-              )}
-              {selTeam && (
-                <>
-                  <span style={CRUMB_SEP}>›</span>
-                  <span className="focus-crumb-active" style={CRUMB}>
-                    {sentenceCase(selTeam.name)}
-                  </span>
-                </>
-              )}
-              <button
-                onClick={crumbClear}
-                aria-label="Clear focus"
-                style={{
-                  marginLeft: 6,
-                  width: 18,
-                  height: 18,
-                  borderRadius: 5,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 10,
-                  color: '#a3a3a3',
-                  background: 'transparent',
-                  border: '1px solid #eaeaea',
-                  cursor: 'pointer',
-                }}
-              >
-                ✕
-              </button>
-            </div>
-          ) : (
-            <span className="text-[11px] text-[#666666]">
-              Click a segment to drill into divisions, teams and roles.
-            </span>
-          ),
-          breadcrumbSlot,
-        )}
-
       <div
         className={'rf-stage rf-stage--map' + (editMode ? ' rf-stage--edit' : '')}
         style={{ flex: 1, position: 'relative', minWidth: 0 }}
@@ -1150,7 +1046,7 @@ function OrgMapCanvasInner({
 
 // ── Data wrapper + provider ──────────────────────────────────────────────────
 
-export default function OrgMapCanvas({ breadcrumbSlot }: Props) {
+export default function OrgMapCanvas() {
   const { data, error, loading, refetch } = useApi<OrgData>('/explorer/org-table');
 
   if (loading && !data) {
@@ -1171,7 +1067,7 @@ export default function OrgMapCanvas({ breadcrumbSlot }: Props) {
 
   return (
     <ReactFlowProvider>
-      <OrgMapCanvasInner data={data} breadcrumbSlot={breadcrumbSlot} onSaved={refetch} />
+      <OrgMapCanvasInner data={data} onSaved={refetch} />
     </ReactFlowProvider>
   );
 }

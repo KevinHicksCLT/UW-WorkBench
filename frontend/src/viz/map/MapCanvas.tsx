@@ -12,10 +12,9 @@
 //   viz/map/buildGraph.ts    — the two-pass node/edge layout builder
 //   viz/map/useMapCamera.ts  — fit/center helpers + drill-driven camera effects
 //   viz/map/useMapDragDrop.ts— edit-mode pointer drag/drop gesture
-//   viz/map/MapBreadcrumb.tsx / viz/map/MapChrome.tsx — presentational chrome
+//   viz/map/MapChrome.tsx — presentational chrome
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import {
   ReactFlow,
   Background,
@@ -58,7 +57,6 @@ import { useMapFocus } from './useMapFocus';
 import { useStagedDisplay } from './useStagedDisplay';
 import { useMapCamera } from './useMapCamera';
 import { useMapDragDrop } from './useMapDragDrop';
-import MapBreadcrumb from './MapBreadcrumb';
 import { DragGhost, RenameEditor, MapEditToolbar, MoveFlashBanner } from './MapChrome';
 
 // ── Inner canvas ─────────────────────────────────────────────────────────────
@@ -66,12 +64,11 @@ import { DragGhost, RenameEditor, MapEditToolbar, MoveFlashBanner } from './MapC
 type Props = {
   divisions: DivisionSummary[];
   companyName: string;
-  breadcrumbSlot?: HTMLElement | null;
   focusVsId?: string | null;
   onMoved?: () => void;
 };
 
-function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onMoved }: Props) {
+function MapCanvasInner({ divisions, companyName, focusVsId, onMoved }: Props) {
   const rf = useReactFlow();
   const paneW = useStore((s) => s.width);
   const paneH = useStore((s) => s.height);
@@ -142,11 +139,6 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
     onVsClick,
     onStepClick,
     onSubStepClick,
-    crumbToL0,
-    crumbToL1,
-    crumbToL2,
-    crumbToL3,
-    crumbToDomains,
   } = useMapFocus(divisions, focusVsId);
 
   // Right-hand metrics dashboard (per-level, spreadsheet-derived).
@@ -903,26 +895,6 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div style={{ position: 'relative', height: '100%', display: 'flex' }}>
-      {/* Breadcrumb — rendered into the page header via portal (lives in the header, not over the canvas). */}
-      {breadcrumbSlot &&
-        createPortal(
-          <MapBreadcrumb
-            companyName={companyName}
-            selectedDomain={selectedDomain}
-            level={level}
-            focusedDivision={focusedDivision}
-            focusedVs={focusedVs}
-            focusedStep={focusedStep}
-            focusedSubStep={focusedSubStep ?? null}
-            crumbToDomains={crumbToDomains}
-            crumbToL0={crumbToL0}
-            crumbToL1={crumbToL1}
-            crumbToL2={crumbToL2}
-            crumbToL3={crumbToL3}
-          />,
-          breadcrumbSlot,
-        )}
-
       {/* Fetch loading indicator */}
       {(flowLoading || vsFlowLoading) && (
         <div
@@ -1032,19 +1004,12 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
 
 // ── Provider wrapper ──────────────────────────────────────────────────────────
 
-export default function MapCanvas({
-  divisions,
-  companyName,
-  breadcrumbSlot,
-  focusVsId,
-  onMoved,
-}: Props) {
+export default function MapCanvas({ divisions, companyName, focusVsId, onMoved }: Props) {
   return (
     <ReactFlowProvider>
       <MapCanvasInner
         divisions={divisions}
         companyName={companyName}
-        breadcrumbSlot={breadcrumbSlot}
         focusVsId={focusVsId}
         onMoved={onMoved}
       />

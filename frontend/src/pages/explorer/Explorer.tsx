@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../../lib/api';
-import { useHeaderBreadcrumbSlot } from '../../lib/breadcrumbs';
 import MapCanvas from '../../viz/map/MapCanvas';
 import ListExplorer from '../../components/ListExplorer';
 import { TocBack, TocView, ViewPills, type TocRow } from '../../components/TocView';
@@ -244,10 +243,6 @@ export default function Explorer() {
     [navigate],
   );
 
-  // In map view the drill breadcrumb claims the GLOBAL header bar (Layout's
-  // BreadcrumbBar) and MapCanvas portals into it — no in-page header strip.
-  const crumbSlot = useHeaderBreadcrumbSlot(view === 'map');
-
   // Variant lens (map view) — Market › Segment › LOB › Cross-cutting, every
   // axis defaulting to the generic model. Picks live in the URL like the rest
   // of the view state; generic picks are simply absent params.
@@ -344,7 +339,6 @@ export default function Explorer() {
           <MapCanvas
             divisions={divisions}
             companyName={companyName}
-            breadcrumbSlot={crumbSlot}
             focusVsId={focusVsId}
             onMoved={loadOverview}
           />

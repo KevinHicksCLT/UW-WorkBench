@@ -20,7 +20,6 @@
 //   viz/map/MapChrome.tsx                 — shared ghost / rename / toolbar / banner
 
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import {
   ReactFlow,
   Background,
@@ -66,14 +65,11 @@ import {
   type ProductVersionData,
   type ProductComponentData,
 } from './productNodes';
-import { ProductBreadcrumb } from './ProductBreadcrumb';
 import { ProductComponentSidebar } from './ProductComponentSidebar';
 import { useProductCamera } from './useProductCamera';
 import { useProductDragDrop } from './useProductDragDrop';
 
 // ── Inner canvas ─────────────────────────────────────────────────────────────
-
-type Props = { breadcrumbSlot?: Element | null };
 
 // A staged same-level arrival rendered under its new parent before Save (its
 // real children/detail fill in on Save's refetch).
@@ -91,11 +87,7 @@ function synthNode(id: string, name: string, levelNumber: number): ProductNode {
   };
 }
 
-function ProductMapCanvasInner({
-  data,
-  breadcrumbSlot,
-  onSaved,
-}: Props & { data: ProductData; onSaved: () => void }) {
+function ProductMapCanvasInner({ data, onSaved }: { data: ProductData; onSaved: () => void }) {
   const rf = useReactFlow();
   const paneW = useStore((s) => s.width);
   const paneH = useStore((s) => s.height);
@@ -259,29 +251,6 @@ function ProductMapCanvasInner({
   function onComponentClick(id: string) {
     setSelComponentId(selComponentId === id ? null : id);
   }
-
-  const crumbClear = useCallback(() => {
-    setSelSegId(null);
-    setSelLobId(null);
-    setSelProductId(null);
-    setSelVersionId(null);
-    setSelComponentId(null);
-  }, []);
-  const crumbToSegment = () => {
-    setSelLobId(null);
-    setSelProductId(null);
-    setSelVersionId(null);
-    setSelComponentId(null);
-  };
-  const crumbToLob = () => {
-    setSelProductId(null);
-    setSelVersionId(null);
-    setSelComponentId(null);
-  };
-  const crumbToProduct = () => {
-    setSelVersionId(null);
-    setSelComponentId(null);
-  };
 
   // ── Build nodes and edges (from the staged display arrays) ──────────────────
   const { nodes, edges } = useMemo(() => {
@@ -941,35 +910,14 @@ function ProductMapCanvasInner({
     else if (node.type === 'productComponent') onComponentClick(node.id.replace(/^comp:/, ''));
   };
 
-  // ── Breadcrumb (portals into breadcrumbSlot when provided, else inline) ─────
-  const crumb = (
-    <ProductBreadcrumb
-      companyName={data.company.name}
-      level1Name={levelName(data.levels, 1)}
-      selSegment={selSegment}
-      selLob={selLob}
-      selProduct={selProduct}
-      selVersion={selVersion}
-      onClear={crumbClear}
-      onToSegment={crumbToSegment}
-      onToLob={crumbToLob}
-      onToProduct={crumbToProduct}
-    />
-  );
-
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div style={{ position: 'relative', height: '100%', display: 'flex' }}>
-      {breadcrumbSlot && createPortal(crumb, breadcrumbSlot)}
-
       <div
         className={'rf-stage rf-stage--map' + (editMode ? ' rf-stage--edit' : '')}
         style={{ flex: 1, position: 'relative', minWidth: 0 }}
         onPointerDownCapture={onStagePointerDown}
       >
-        {!breadcrumbSlot && (
-          <div style={{ position: 'absolute', top: 8, left: 12, zIndex: 5 }}>{crumb}</div>
-        )}
         <ReactFlow
           nodes={displayNodes}
           edges={displayEdges}
@@ -1025,7 +973,7 @@ function ProductMapCanvasInner({
 
 // ── Data wrapper + provider ──────────────────────────────────────────────────
 
-export default function ProductMapCanvas({ breadcrumbSlot }: Props) {
+export default function ProductMapCanvas() {
   const { data, error, loading, refetch } = useApi<ProductData>('/product-spine/table');
 
   if (loading && !data) {
@@ -1046,7 +994,7 @@ export default function ProductMapCanvas({ breadcrumbSlot }: Props) {
 
   return (
     <ReactFlowProvider>
-      <ProductMapCanvasInner data={data} breadcrumbSlot={breadcrumbSlot} onSaved={refetch} />
+      <ProductMapCanvasInner data={data} onSaved={refetch} />
     </ReactFlowProvider>
   );
 }
