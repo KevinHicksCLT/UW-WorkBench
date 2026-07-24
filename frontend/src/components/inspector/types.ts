@@ -140,6 +140,20 @@ export const TABS: Tab[] = [
   'Governance',
 ];
 
+// Display names for the tab strip — the Checklist/Testing plan tabs surface
+// under the client's terms (sub-tasks) while the internal tab keys stay put.
+export const TAB_LABELS: Record<Tab, string> = {
+  Overview: 'Overview',
+  Work: 'Work',
+  Tasks: 'Tasks',
+  Roles: 'Roles',
+  Applications: 'Applications',
+  Deliverables: 'Deliverables',
+  Checklist: 'Sub-tasks',
+  Testing: 'Sub-task testing',
+  Governance: 'Governance',
+};
+
 export const RACI = ['Responsible', 'Accountable', 'Consulted', 'Informed'];
 
 // Live count for a tab badge.
@@ -156,9 +170,11 @@ export function tabCount(d: Payload, t: Tab): number | null {
     case 'Deliverables':
       return d.counts.deliverables;
     case 'Checklist':
-      return d.counts.checklist;
+      // At a task, count only the item-specific steps the tab renders
+      // (generic template keys are hidden at the UI level).
+      return d.plan ? d.plan.checklist.filter((r) => !r.generic).length : d.counts.checklist;
     case 'Testing':
-      return d.counts.testing;
+      return d.plan ? d.plan.testing.filter((r) => !r.generic).length : d.counts.testing;
     case 'Governance':
       return d.counts.standards + d.counts.regulations;
     default:

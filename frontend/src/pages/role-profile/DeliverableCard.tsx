@@ -25,7 +25,7 @@ export default function DeliverableCard({
   return (
     <Card
       variant="elevated"
-      className={`overflow-hidden ${open ? 'border-l-4 border-l-[#10b981]' : ''}`}
+      className={`overflow-hidden ${open ? 'border-l-4 border-l-[#cbd5e1]' : ''}`}
     >
       <button
         onClick={() => setOpen((v) => !v)}
@@ -49,7 +49,7 @@ export default function DeliverableCard({
         >
           <path d="M9 18l6-6-6-6" />
         </svg>
-        <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#047857] bg-[#d1fae5] rounded px-1.5 py-0.5 flex-shrink-0">
+        <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#525252] bg-[#f0f1f3] rounded px-1.5 py-0.5 flex-shrink-0">
           Deliverable
         </span>
         <span className="min-w-0 flex-1 text-sm font-semibold text-[#171717] truncate">

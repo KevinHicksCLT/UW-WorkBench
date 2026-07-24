@@ -1,9 +1,10 @@
 /**
- * Plan matrix block (Checklist / Testing) for the Work Library page — the
- * key/value grid with suppressible generic keys and drag-reorderable
- * item-specific steps. Extracted verbatim from WorkLibrary.tsx.
+ * Plan matrix block (Sub-tasks / Sub-task testing) for the Work Library page —
+ * the numbered key/value grid of item-specific steps, drag-reorderable.
+ * Generic template keys are intentionally NOT rendered here (they stay in the
+ * DB and the API — this is a UI-level simplification).
  */
-import { Fragment, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { useDialogs } from '../../lib/dialogs';
 import { LinkButton } from '../../components/ui';
@@ -13,36 +14,31 @@ import {
   moveItem,
   DragHandle,
   type Answer,
-  type Section,
   type SubjectType,
 } from './shared';
-import { ValueCell } from './controls';
 import { ProcedureCells } from './ProcedureCells';
 
-// ── Plan matrix block (Checklist / Testing) ──────────────────────────────
+// ── Plan matrix block (Sub-tasks / Sub-task testing) ─────────────────────
 
 export function PlanBlock({
   title,
-  sections,
   customRows,
   blockKind,
   subject,
   refetch,
 }: {
   title: string;
-  sections: Section[];
   customRows: Answer[];
   blockKind: 'CHECKLIST' | 'TEST';
   subject: { type: SubjectType; id: string };
   refetch: () => void;
 }) {
   const dialogs = useDialogs();
+  const noun = blockKind === 'CHECKLIST' ? 'sub-task' : 'sub-task test';
   const base = `/work-library/plan/${subject.type}/${subject.id}`;
   const saveRows = (rows: Record<string, unknown>[]) =>
     api.put(`${base}/answers`, { rows }).then(refetch);
-  // Drag-reorder the item-specific steps (generic order comes from the template
-  // and is reordered in the Templates tab, propagating everywhere). Order is
-  // applied locally on release, then persisted.
+  // Drag-reorder the steps. Order is applied locally on release, then persisted.
   const [orderedCustom, setOrderedCustom] = useState<Answer[]>(customRows);
   useEffect(() => {
     setOrderedCustom(customRows);
@@ -53,7 +49,6 @@ export function PlanBlock({
     saveRows(next.map((r, i) => ({ id: r.id, sortOrder: 100 + i })));
   });
 
-  let n = 0;
   return (
     <div className="rounded-xl border border-[#dfe3e8] overflow-hidden mb-4 bg-white">
       <div className="px-3 py-2 bg-[#f7f8fa] border-b border-[#e5e5e5] text-[13px] font-semibold text-[#171717]">
@@ -67,147 +62,46 @@ export function PlanBlock({
           <col style={{ width: 40 }} />
         </colgroup>
         <tbody>
-          {/* Generic vs specific steps are called out as labeled bands. */}
-          {sections.some((s) => s.keys.length > 0) && (
-            <tr>
-              <td
-                colSpan={4}
-                className="border border-[#e8ebee] bg-[#f2f6fb] px-3 py-1.5 text-left"
-              >
-                <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#4a6b96]">
-                  Generic steps
-                </span>
-                <span className="text-[10.5px] text-[#8a94a0] ml-2">
-                  from the pattern — shared by every item using it
-                </span>
+          {orderedCustom.map((r, ci) => (
+            <tr key={r.id} className="border-t border-[#eef1f4]" style={sort.rowStyle(ci)}>
+              <td className="border border-[#e8ebee] px-2 py-2.5 text-right align-top text-[11px] text-[#525252] whitespace-nowrap">
+                <DragHandle {...sort.handleProps(ci)} />
+                {ci + 1}
+              </td>
+              <td className="border border-[#e8ebee] px-2 py-1.5 text-left align-top">
+                <CustomKeyInput
+                  row={r}
+                  onSave={(key) => saveRows([{ id: r.id, customKey: key }])}
+                />
+              </td>
+              <td className="border border-[#e8ebee] px-2 py-1.5 text-left align-top">
+                <ProcedureCells
+                  current={r}
+                  onSave={(patch) => saveRows([{ id: r.id, ...patch }])}
+                />
+              </td>
+              <td className="border border-[#e8ebee] px-2 py-2.5 align-top text-center">
+                <button
+                  className="text-[#dc2626] hover:text-[#b91c1c]"
+                  title={`Delete this ${noun}`}
+                  onClick={() => api.delete(`${base}/answers/${r.id}`).then(refetch)}
+                >
+                  ✕
+                </button>
               </td>
             </tr>
-          )}
-          {sections.map((s) => (
-            <Fragment key={s.id}>
-              {sections.length > 1 && (
-                <tr>
-                  <td
-                    colSpan={4}
-                    className="border border-[#e8ebee] bg-[#fafbfc] px-3 py-2 text-left text-[11px] font-medium text-[#8a94a0]"
-                  >
-                    {s.name}
-                  </td>
-                </tr>
-              )}
-              {s.keys.map((k) => {
-                const suppressed = k.answer?.suppressed;
-                if (!suppressed) n += 1;
-                const num = n;
-                return (
-                  <tr key={k.id} className="border-t border-[#eef1f4]">
-                    <td className="border border-[#e8ebee] px-2 py-2.5 text-right align-top text-[11px] text-[#a3a3a3]">
-                      {suppressed ? '' : num}
-                    </td>
-                    <td
-                      className={
-                        'border border-[#e8ebee] px-3 py-2.5 text-left align-top ' +
-                        (suppressed ? 'text-[#c0c6cc] line-through' : 'text-[#8a94a0]')
-                      }
-                    >
-                      {k.key}
-                    </td>
-                    <td className="border border-[#e8ebee] px-2 py-1.5 text-left align-top">
-                      {suppressed ? (
-                        <span className="text-[11px] text-[#a3a3a3] px-2 py-1.5 inline-block">
-                          Removed for this item
-                        </span>
-                      ) : (
-                        <ValueCell
-                          valueKind={k.valueKind}
-                          current={k.answer}
-                          onSave={(patch) => saveRows([{ templateKeyId: k.id, ...patch }])}
-                        />
-                      )}
-                    </td>
-                    <td className="border border-[#e8ebee] px-2 py-2.5 align-top text-center">
-                      {suppressed ? (
-                        <button
-                          className="text-[11px] text-[#1d4ed8]"
-                          onClick={() => saveRows([{ templateKeyId: k.id, suppressed: false }])}
-                        >
-                          restore
-                        </button>
-                      ) : (
-                        <button
-                          className="text-[#dc2626] hover:text-[#b91c1c]"
-                          title="Remove this generic step for this item"
-                          onClick={() => saveRows([{ templateKeyId: k.id, suppressed: true }])}
-                        >
-                          ✕
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </Fragment>
           ))}
-          {orderedCustom.length > 0 && (
-            <tr>
-              <td
-                colSpan={4}
-                className="border border-[#e8ebee] bg-[#f4f9f4] px-3 py-1.5 text-left"
-              >
-                <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#3f7d55]">
-                  Specific steps
-                </span>
-                <span className="text-[10.5px] text-[#8a94a0] ml-2">added for this item only</span>
-              </td>
-            </tr>
-          )}
-          {orderedCustom.map((r, ci) => {
-            n += 1;
-            const num = n;
-            return (
-              <tr key={r.id} className="border-t border-[#eef1f4]" style={sort.rowStyle(ci)}>
-                <td className="border border-[#e8ebee] px-2 py-2.5 text-right align-top text-[11px] text-[#a3a3a3] whitespace-nowrap">
-                  <DragHandle {...sort.handleProps(ci)} />
-                  {num}
-                </td>
-                <td className="border border-[#e8ebee] px-2 py-1.5 text-left align-top">
-                  <CustomKeyInput
-                    row={r}
-                    onSave={(key) => saveRows([{ id: r.id, customKey: key }])}
-                  />
-                </td>
-                <td className="border border-[#e8ebee] px-2 py-1.5 text-left align-top">
-                  <ProcedureCells
-                    current={r}
-                    onSave={(patch) => saveRows([{ id: r.id, ...patch }])}
-                  />
-                </td>
-                <td className="border border-[#e8ebee] px-2 py-2.5 align-top text-center">
-                  <button
-                    className="text-[#dc2626] hover:text-[#b91c1c]"
-                    title="Delete this specific step"
-                    onClick={() => api.delete(`${base}/answers/${r.id}`).then(refetch)}
-                  >
-                    ✕
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
           <tr className="border-t border-[#eef1f4]">
             <td colSpan={4} className="border border-[#e8ebee] px-3 py-2">
               <LinkButton
                 className="text-[12px]"
                 onClick={async () => {
-                  const step = await dialogs.prompt({ title: 'Add specific step', label: 'Step' });
+                  const step = await dialogs.prompt({ title: `Add ${noun}`, label: 'Step' });
                   if (step?.trim()) await saveRows([{ customKey: step.trim(), kind: blockKind }]);
                 }}
               >
-                + Add specific step
+                + Add {noun}
               </LinkButton>
-              <span className="text-[10.5px] text-[#a3a3a3] ml-2.5">
-                Generic steps come from the pattern — removable, not addable
-              </span>
             </td>
           </tr>
         </tbody>

@@ -23,7 +23,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { DOMAIN_HEX } from '../viz/model';
 import { SkeletonLoader } from './ui';
-import { TABS, tabCount, type Payload, type Tab } from './inspector/types';
+import { TABS, TAB_LABELS, tabCount, type Payload, type Tab } from './inspector/types';
 import { OverviewTab, GovernancePanel } from './inspector/OverviewTab';
 import { WorkTab } from './inspector/WorkTab';
 import { TasksTab, RolesTab, AppsTab, DeliverablesTab } from './inspector/entityTabs';
@@ -295,7 +295,7 @@ export default function Inspector({
                     : 'text-[#737575] hover:bg-[#fafafa]')
                 }
               >
-                {t}
+                {TAB_LABELS[t]}
                 {n != null && (
                   <span
                     className={
