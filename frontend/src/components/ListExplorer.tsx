@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useViewState } from '../lib/viewState';
 import { DOMAIN_HEX, type DivisionSummary } from '../viz/model';
 import { api } from '../lib/api';
 import Inspector from './Inspector';
@@ -156,13 +157,25 @@ export default function ListExplorer({
   const [error, setError] = useState<string | null>(null);
 
   // Header filters — a multi-selection per column; [] = no constraint (All).
-  const [domainSel, setDomainSel] = useState<string[]>([]);
-  const [divisionSel, setDivisionSel] = useState<string[]>([]);
-  const [vsSel, setVsSel] = useState<string[]>([]);
-  const [subSel, setSubSel] = useState<string[]>([]);
-  const [stepSel, setStepSel] = useState<string[]>([]);
-  const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<Sort>({ col: 'vs', dir: 1 });
+  // Persisted per session (lib/viewState) so leaving the tab and returning
+  // restores the exact narrowed view; a ?focus deep link states its own
+  // filter intent, so it skips restoring the selections.
+  const restoreSel = !focusVsId;
+  const [domainSel, setDomainSel] = useViewState<string[]>(
+    'explorer.list.domainSel',
+    [],
+    restoreSel,
+  );
+  const [divisionSel, setDivisionSel] = useViewState<string[]>(
+    'explorer.list.divisionSel',
+    [],
+    restoreSel,
+  );
+  const [vsSel, setVsSel] = useViewState<string[]>('explorer.list.vsSel', [], restoreSel);
+  const [subSel, setSubSel] = useViewState<string[]>('explorer.list.subSel', [], restoreSel);
+  const [stepSel, setStepSel] = useViewState<string[]>('explorer.list.stepSel', [], restoreSel);
+  const [search, setSearch] = useViewState<string>('explorer.list.search', '', restoreSel);
+  const [sort, setSort] = useViewState<Sort>('explorer.list.sort', { col: 'vs', dir: 1 });
 
   // Right-hand inspector — same component the map docks. `base` = the cell
   // clicked in the sheet (a process node); the inspector handles its own drill.
@@ -394,7 +407,10 @@ export default function ListExplorer({
   );
 
   // A pick can be invalidated by a later pick in another column — drop it.
+  // Guarded on the loaded tree: while it is still fetching every option list
+  // is empty, and pruning then would wipe the selections just restored.
   const prune = (sel: string[], options: string[], set: (v: string[]) => void) => {
+    if (!tree) return;
     const kept = sel.filter((v) => options.includes(v));
     if (kept.length !== sel.length) set(kept);
   };

@@ -31,6 +31,19 @@ describe('rememberTabLocation', () => {
     rememberTabLocation('/settings', '');
     expect(window.sessionStorage).toHaveLength(0);
   });
+
+  it('owns every drill route: streams/divisions/departments record under their tab', () => {
+    // Detail routes whose path does not extend the tab's base path — mapped
+    // via GROUP_PATH_PREFIXES so they never sit outside a tab.
+    rememberTabLocation('/streams/vs1', '');
+    expect(loadViewState('nav.tab./overview')).toBe('/streams/vs1');
+    rememberTabLocation('/divisions/d1', '');
+    expect(loadViewState('nav.tab./organization')).toBe('/divisions/d1');
+    rememberTabLocation('/departments/dep1', '');
+    expect(loadViewState('nav.tab./organization')).toBe('/departments/dep1');
+    rememberTabLocation('/n/domain:abc', '?x=1');
+    expect(loadViewState('nav.tab./overview')).toBe('/n/domain:abc?x=1');
+  });
 });
 
 describe('tabReturnTo', () => {
@@ -65,7 +78,11 @@ describe('tabReturnTo', () => {
     expect(tabReturnTo('/', '/programs/p1')).toBe('/');
   });
 
-  it('passes non-tab paths through unchanged (mobile drill rows)', () => {
-    expect(tabReturnTo('/n/domain:abc', '/roles')).toBe('/n/domain:abc');
+  it('returns to a drill route recorded via a prefix mapping (TOC descent)', () => {
+    rememberTabLocation('/streams/vs1', '');
+    // Coming from another tab → the Value Streams tab lands on the stream page.
+    expect(tabReturnTo('/overview', '/portfolio')).toBe('/streams/vs1');
+    // Clicking Value Streams while ON the stream page resets to the base.
+    expect(tabReturnTo('/overview', '/streams/vs1')).toBe('/overview');
   });
 });

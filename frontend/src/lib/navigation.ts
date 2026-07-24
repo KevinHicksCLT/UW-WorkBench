@@ -64,11 +64,18 @@ const GROUP_SPECS: readonly GroupSpec[] = [
 ] as const;
 
 // Drill-down routes with no MENU_TREE node of their own — map them to the group
-// that owns them so the parent tab stays lit on a detail page.
+// that owns them so the parent tab stays lit, the breadcrumb roots correctly,
+// and the tab return point records them (EVERY drill route must be owned by a
+// tab; a route "sitting in space" breaks all three).
 const GROUP_PATH_PREFIXES: { prefix: string; groupId: string }[] = [
   { prefix: '/programs/', groupId: 'home' },
   { prefix: '/initiatives/', groupId: 'home' },
   { prefix: '/raid', groupId: 'home' },
+  { prefix: '/streams/', groupId: 'value-streams' },
+  { prefix: '/n/', groupId: 'value-streams' },
+  { prefix: '/divisions/', groupId: 'organization' },
+  { prefix: '/departments/', groupId: 'organization' },
+  { prefix: '/audit', groupId: 'admin' },
 ];
 
 const NODE_BY_KEY = new Map<MenuKey, MenuNode>(flattenMenuTree(MENU_TREE).map((n) => [n.key, n]));
