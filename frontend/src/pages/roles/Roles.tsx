@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useViewState } from '../../lib/viewState';
 import RoleEditorDrawer from '../../components/RoleEditorDrawer';
 import RolesListSheet from '../../components/RolesListSheet';
 import RolesOrgChart from '../../components/RolesOrgChart';
@@ -38,7 +39,8 @@ export default function Roles() {
     );
   };
   // Division picked on the TOC — the List opens pre-filtered to it.
-  const [preFilter, setPreFilter] = useState<string | null>(null);
+  // Persisted per session (lib/viewState) so returning restores the pre-filter.
+  const [preFilter, setPreFilter] = useViewState<string | null>('roles.preFilter', null);
 
   // SCRUM-34 — the add-role flow lives on the tab itself, not in Data Admin.
   const { permissions } = useAuth();

@@ -131,6 +131,7 @@ export default function Applications() {
 
       {view === 'toc' ? (
         <TocView
+          stateKey="applications.toc"
           rows={tocRows}
           nameLabel="Kind"
           countLabel="Applications"

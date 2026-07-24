@@ -748,6 +748,7 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
 
       {view === 'toc' ? (
         <TocView
+          stateKey={`work.${tab}.toc`}
           rows={tocRows}
           nameLabel={group.label}
           countLabel={tab === 'deliverables' ? 'Deliverables' : 'Tasks'}

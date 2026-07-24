@@ -1,9 +1,10 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
 import { useHeaderBreadcrumbSlot } from '../../lib/breadcrumbs';
 import { useOpenRole } from '../../lib/roleDrawer';
+import { useViewState } from '../../lib/viewState';
 import PageHeader from '../../components/PageHeader';
 import { Card, Chip, ErrorMessage, LoadingState } from '../../components/ui';
 
@@ -41,9 +42,10 @@ const LOOSE = '__loose'; // sentinel department id for roles reporting directly 
 export default function OrgTable() {
   const openRole = useOpenRole();
   const { data, error, loading } = useApi<OrgData>('/explorer/org-table');
-  const [divId, setDivId] = useState<string | null>(null);
-  const [deptId, setDeptId] = useState<string | null>(null); // null = none selected; LOOSE = direct roles
-  const [query, setQuery] = useState('');
+  // Persisted per session (lib/viewState) so returning restores the drill + search.
+  const [divId, setDivId] = useViewState<string | null>('orgTable.division', null);
+  const [deptId, setDeptId] = useViewState<string | null>('orgTable.department', null); // null = none selected; LOOSE = direct roles
+  const [query, setQuery] = useViewState('orgTable.q', '');
 
   // Deep-link: `?view=departments` (from the home "Departments" footprint tile)
   // lands on a flat grid of every department across divisions. Derived straight

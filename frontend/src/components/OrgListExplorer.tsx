@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { DOMAIN_HEX } from '../viz/model';
 import { api } from '../lib/api';
+import { useOnChange, useViewState } from '../lib/viewState';
 import { useOpenRoleDrawer, useRoleMutated } from '../lib/roleDrawer';
 import MetricsSidebar, {
   MetricsDrawer,
@@ -178,16 +179,23 @@ export default function OrgListExplorer() {
   const [error, setError] = useState<string | null>(null);
 
   // Header filters — a multi-selection per column; [] = no constraint (All).
-  const [domainSel, setDomainSel] = useState<string[]>([]);
-  const [divisionSel, setDivisionSel] = useState<string[]>([]);
-  const [deptSel, setDeptSel] = useState<string[]>([]);
-  const [roleSel, setRoleSel] = useState<string[]>([]);
-  const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<Sort>({ col: 'domain', dir: 1 });
+  // Persisted per session (lib/viewState) so returning restores the exact
+  // filter/sort/search/drill state; a `?role=` deep link pre-filters instead,
+  // so it skips restoring the selection columns.
+  const [domainSel, setDomainSel] = useViewState<string[]>('org.list.domainSel', [], !focusRoleId);
+  const [divisionSel, setDivisionSel] = useViewState<string[]>(
+    'org.list.divisionSel',
+    [],
+    !focusRoleId,
+  );
+  const [deptSel, setDeptSel] = useViewState<string[]>('org.list.deptSel', [], !focusRoleId);
+  const [roleSel, setRoleSel] = useViewState<string[]>('org.list.roleSel', [], !focusRoleId);
+  const [search, setSearch] = useViewState('org.list.search', '');
+  const [sort, setSort] = useViewState<Sort>('org.list.sort', { col: 'domain', dir: 1 });
 
   // Right-hand metrics panel — identical to the map / value-stream list.
-  const [base, setBase] = useState<{ level: string; id: string } | null>(null);
-  const [ovStack, setOvStack] = useState<{ level: string; id: string }[]>([]);
+  const [base, setBase] = useViewState<{ level: string; id: string } | null>('org.list.base', null);
+  const [ovStack, setOvStack] = useViewState<{ level: string; id: string }[]>('org.list.stack', []);
   const [dash, setDash] = useState<Dashboard | null>(null);
   const [dashLoading, setDashLoading] = useState(false);
   const [drawerSection, setDrawerSection] = useState<MetricSection | null>(null);
@@ -361,22 +369,16 @@ export default function OrgListExplorer() {
   );
 
   // A pick can be invalidated by a later pick in another column — drop it.
+  // useOnChange (not useEffect): on mount the options are still the empty
+  // ['All'] placeholder, and a plain effect would wipe the restored selections.
   const prune = (sel: string[], options: string[], set: (v: string[]) => void) => {
     const kept = sel.filter((v) => options.includes(v));
     if (kept.length !== sel.length) set(kept);
   };
-  useEffect(() => {
-    prune(domainSel, domainOptions, setDomainSel);
-  }, [domainOptions, domainSel]);
-  useEffect(() => {
-    prune(divisionSel, divisionOptions, setDivisionSel);
-  }, [divisionOptions, divisionSel]);
-  useEffect(() => {
-    prune(deptSel, deptOptions, setDeptSel);
-  }, [deptOptions, deptSel]);
-  useEffect(() => {
-    prune(roleSel, roleOptions, setRoleSel);
-  }, [roleOptions, roleSel]);
+  useOnChange(domainOptions, () => prune(domainSel, domainOptions, setDomainSel));
+  useOnChange(divisionOptions, () => prune(divisionSel, divisionOptions, setDivisionSel));
+  useOnChange(deptOptions, () => prune(deptSel, deptOptions, setDeptSel));
+  useOnChange(roleOptions, () => prune(roleSel, roleOptions, setRoleSel));
 
   // Visible rows: filters + sort (chain order as the tie-break).
   const needle = search.trim().toLowerCase();

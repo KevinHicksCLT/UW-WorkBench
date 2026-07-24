@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import PageHeader from '../../components/PageHeader';
 import type { AdminEntity } from '../../lib/adminTypes';
+import { useViewState } from '../../lib/viewState';
 import { Card, ErrorMessage, Select } from '../../components/ui';
 
 // Read-only audit log viewer. Every create/update/delete made through the admin
@@ -63,7 +64,8 @@ function DiffView({ raw }: { raw: string | null }) {
 
 export default function AuditTrail({ embedded }: { embedded?: boolean } = {}) {
   const [entities, setEntities] = useState<AdminEntity[]>([]);
-  const [filter, setFilter] = useState('');
+  // Persisted per session (lib/viewState) so returning restores the type filter.
+  const [filter, setFilter] = useViewState('auditTrail.filter', '');
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

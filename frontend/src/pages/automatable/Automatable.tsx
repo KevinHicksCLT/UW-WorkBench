@@ -5,6 +5,7 @@ import { withCompany } from '../../lib/portfolio';
 import PageHeader from '../../components/PageHeader';
 import { SCORE_LABEL, SCORE_COLOR, SCORE_DESC, automatablePct } from '../../lib/automatable';
 import { Card, EmptyState, ErrorMessage, LoadingState } from '../../components/ui';
+import { useViewState } from '../../lib/viewState';
 
 // A-03 — Automatable is a SNAPSHOT of where the company sits in its AI
 // transformation, not a task list. It answers "how much of the work can an AI
@@ -47,7 +48,11 @@ export default function Automatable() {
   const [data, setData] = useState<WorkData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [dim, setDim] = useState<(typeof ROLLUP_DIMS)[number]['key']>('division');
+  // Persisted per session (lib/viewState) so returning restores the rollup dimension.
+  const [dim, setDim] = useViewState<(typeof ROLLUP_DIMS)[number]['key']>(
+    'automatable.dim',
+    'division',
+  );
 
   useEffect(() => {
     setLoading(true);

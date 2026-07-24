@@ -6,6 +6,7 @@ import { useCompany } from '../../lib/company';
 import { useApi } from '../../lib/useApi';
 import { withCompany, Tile } from '../../lib/portfolio';
 import { BackButton } from '../../components/ui';
+import { useViewState } from '../../lib/viewState';
 import { RegulationBrowser } from './compliance/RegulationBrowser';
 import { ItemDrawer } from './compliance/ItemDrawer';
 import { COMPLIANCE_LENS_KEY, type ComplianceSummary } from './compliance/shared';
@@ -26,19 +27,14 @@ const LENSES = [
   ['federal', 'Federal'],
   ['state', 'State'],
 ] as const;
-const initialLens = (): string => {
-  const saved = sessionStorage.getItem(COMPLIANCE_LENS_KEY);
-  return LENSES.some(([v]) => v === saved) ? (saved ?? '') : '';
-};
-
 export default function Compliance() {
   useRegisterCrumb('Compliance');
   const { companyId } = useCompany();
-  const [lens, setLensState] = useState<string>(initialLens);
-  const setLens = (v: string) => {
-    sessionStorage.setItem(COMPLIANCE_LENS_KEY, v);
-    setLensState(v);
-  };
+  // Persisted per session (lib/viewState); the Regulations landing page also
+  // writes this key so its Compliance tile deep-links into the active lens.
+  const [savedLens, setLens] = useViewState<string>(COMPLIANCE_LENS_KEY, '');
+  // Guard against a stale persisted value that is no longer a valid lens.
+  const lens = LENSES.some(([v]) => v === savedLens) ? savedLens : '';
   const [openItemId, setOpenItemId] = useState<string | null>(null);
   // Bumped after any mutation so the tiles and both views refetch.
   const [reloadKey, setReloadKey] = useState(0);

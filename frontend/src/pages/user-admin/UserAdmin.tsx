@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../lib/auth';
+import { useViewState } from '../../lib/viewState';
 import { useCompany } from '../../lib/company';
 import PageHeader from '../../components/PageHeader';
 import UsersAdmin from '../../components/user-admin/UsersAdmin';
@@ -42,10 +43,14 @@ export default function UserAdmin() {
   }, [isSiteAdmin]);
 
   // Deep-linkable view (e.g. /user-admin?view=integrations); defaults to Users.
+  // Persisted per session (lib/viewState); an explicit ?view= deep link wins
+  // over the restored value.
   const [searchParams] = useSearchParams();
   const initialView = searchParams.get('view');
-  const [view, setView] = useState<ViewKey>(
+  const [view, setView] = useViewState<ViewKey>(
+    'userAdmin.view',
     sections.some((s) => s.key === initialView) ? (initialView as ViewKey) : 'users',
+    !initialView,
   );
 
   return (

@@ -6,6 +6,7 @@ import { can } from '../../lib/permissions';
 import { useCompany } from '../../lib/company';
 import { withCompany } from '../../lib/portfolio';
 import { Card, StatusPill } from '../../components/ui';
+import { useOnChange, useViewState } from '../../lib/viewState';
 import { HeaderComboFilter } from '../../components/Sheet';
 import { ListSearch } from '../../components/sheet/headerControls';
 import {
@@ -99,14 +100,24 @@ export function RequirementsTable({
   const MARKET_OPTS = ['All', 'Personal', 'Commercial', BOTH_MARKETS_LABEL];
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
 
-  const [regulator, setRegulator] = useState<string[]>([]);
-  const [market, setMarket] = useState<string[]>([]);
-  const [group, setGroup] = useState<string[]>([]);
-  const [regime, setRegime] = useState<string[]>([]);
-  const [category, setCategory] = useState<string[]>([]);
-  const [owner, setOwner] = useState<string[]>([]);
-  const [search, setSearch] = useState('');
-  const [debounced, setDebounced] = useState('');
+  // Filter selections persist per session (lib/viewState), scoped by the
+  // baseParams so each surface (lens tab, regime page, catalog) keeps its own
+  // state — a lens switch still remounts (parent `key=`) into a clean scope.
+  const scope = Object.entries(baseParams)
+    .map(([k, v]) => `${k}=${v}`)
+    .sort()
+    .join('&');
+  const vk = (name: string) => `regReq.${scope ? `${scope}.` : ''}${name}`;
+  const [regulator, setRegulator] = useViewState<string[]>(vk('regulator'), []);
+  const [market, setMarket] = useViewState<string[]>(vk('market'), []);
+  const [group, setGroup] = useViewState<string[]>(vk('group'), []);
+  const [regime, setRegime] = useViewState<string[]>(vk('regime'), []);
+  const [category, setCategory] = useViewState<string[]>(vk('category'), []);
+  const [owner, setOwner] = useViewState<string[]>(vk('owner'), []);
+  const [search, setSearch] = useViewState(vk('search'), '');
+  // Seed from the (possibly restored) search so the first fetch is already
+  // scoped — the debounce effect then no-ops on mount.
+  const [debounced, setDebounced] = useState(() => search.trim());
 
   const [rows, setRows] = useState<ReqRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -257,10 +268,12 @@ export function RequirementsTable({
   // The scoped set carries LOB data — drives whether the LOB column/filter shows.
   const hasLob = filters.groups.length > 0;
   const gridCols = hasLob ? GRID_LOB : GRID_NO_LOB;
-  // Drop any active LOB filter when the current scope has no LOB.
-  useEffect(() => {
+  // Drop any active LOB filter when the current scope loses LOB data.
+  // useOnChange (not useEffect): hasLob is false until the filter options load,
+  // and a plain effect would wipe a restored group selection on mount.
+  useOnChange(hasLob, () => {
     if (!hasLob && group[0]) setGroup([]);
-  }, [hasLob, group]);
+  });
 
   return (
     <div>

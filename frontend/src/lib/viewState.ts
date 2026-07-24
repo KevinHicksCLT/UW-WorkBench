@@ -106,6 +106,34 @@ export function useViewState<T>(
   return [value, setValue];
 }
 
+/**
+ * Runs `effect` when `value` CHANGES between renders — never on mount. The
+ * companion to useViewState for "a scope switch resets dependent state"
+ * effects: a plain `useEffect(..., [value])` also fires on mount, which would
+ * wipe state that useViewState just restored.
+ *
+ * `undefined` means "not settled yet" (e.g. derived from data still loading):
+ * while undefined the hook is unarmed, and the FIRST defined value arms it
+ * silently — so the loading→loaded transition never counts as a change and
+ * never fires a reset over freshly restored state. Use `null` (not undefined)
+ * when "empty" is a real value that should participate in change detection.
+ */
+export function useOnChange<T>(value: T | undefined, effect: () => void): void {
+  const prev = useRef(value);
+  const cb = useRef(effect);
+  cb.current = effect;
+  useEffect(() => {
+    if (value === undefined) return; // unarmed while the value is unsettled
+    if (prev.current === undefined) {
+      prev.current = value; // first settled value arms silently
+      return;
+    }
+    if (Object.is(prev.current, value)) return;
+    prev.current = value;
+    cb.current();
+  }, [value]);
+}
+
 // How long the restore loop keeps waiting for async content to grow tall
 // enough to accept the saved offset before settling for a clamped best effort.
 // Timer-based (not rAF): rAF stalls in backgrounded/hidden tabs, which would

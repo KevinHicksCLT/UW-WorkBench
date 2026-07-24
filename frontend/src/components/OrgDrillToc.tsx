@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
+import { useViewState } from '../lib/viewState';
 import { TocBack, TocView, type TocRow } from './TocView';
 import { ErrorMessage, LoadingState } from './ui';
 
@@ -43,9 +44,10 @@ export default function OrgDrillToc({
   const [segments, setSegments] = useState<TocSegment[] | null>(null);
   const [error, setError] = useState('');
   // Drill stack; departmentId '' = the direct-to-division bucket.
-  const [segmentId, setSegmentId] = useState<string | null>(null);
-  const [divisionId, setDivisionId] = useState<string | null>(null);
-  const [departmentId, setDepartmentId] = useState<string | null>(null);
+  // Persisted per session (lib/viewState) so returning restores the drill depth.
+  const [segmentId, setSegmentId] = useViewState<string | null>('org.toc.segment', null);
+  const [divisionId, setDivisionId] = useViewState<string | null>('org.toc.division', null);
+  const [departmentId, setDepartmentId] = useViewState<string | null>('org.toc.department', null);
 
   useEffect(() => {
     api
@@ -77,6 +79,7 @@ export default function OrgDrillToc({
       }));
     return (
       <TocView
+        stateKey="org.toc.roles"
         rows={rows}
         nameLabel="Role"
         countLabel="Value streams"
@@ -120,6 +123,7 @@ export default function OrgDrillToc({
         : 'All divisions';
     return (
       <TocView
+        stateKey="org.toc.departments"
         rows={rows}
         nameLabel="Department"
         countLabel="Roles"
@@ -157,6 +161,7 @@ export default function OrgDrillToc({
       }));
     return (
       <TocView
+        stateKey="org.toc.divisions"
         rows={rows}
         nameLabel="Division"
         countLabel="Roles"
@@ -191,6 +196,7 @@ export default function OrgDrillToc({
     }));
   return (
     <TocView
+      stateKey="org.toc.segments"
       rows={rows}
       nameLabel="Segment"
       countLabel="Roles"

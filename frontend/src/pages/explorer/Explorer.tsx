@@ -5,6 +5,7 @@ import { useHeaderBreadcrumbSlot } from '../../lib/breadcrumbs';
 import MapCanvas from '../../viz/map/MapCanvas';
 import ListExplorer from '../../components/ListExplorer';
 import { TocBack, TocView, ViewPills, type TocRow } from '../../components/TocView';
+import { useViewState } from '../../lib/viewState';
 import type { DivisionSummary } from '../../viz/model';
 import { Chip, ErrorMessage, LoadingState } from '../../components/ui';
 import {
@@ -37,7 +38,8 @@ function ValueStreamToc({
 }) {
   const [streams, setStreams] = useState<TreeStream[] | null>(null);
   const [error, setError] = useState('');
-  const [domain, setDomain] = useState<string | null>(null);
+  // Persisted per session (lib/viewState) so returning restores the drilled domain.
+  const [domain, setDomain] = useViewState<string | null>('explorer.tocDomain', null);
   useEffect(() => {
     api
       .get<{ divisions: TreeStream[] }>('/explorer/tree')
@@ -76,6 +78,7 @@ function ValueStreamToc({
           text={`${domain} · ${rows.length} value streams · ${rows.reduce((a, r) => a + r.count, 0)} processes`}
         />
         <TocView
+          stateKey="explorer.toc.streams"
           rows={rows}
           nameLabel="Value stream"
           countLabel="Processes"
@@ -117,6 +120,7 @@ function ValueStreamToc({
         text={`${rows.length} domains · ${streams.length} value streams · ${rows.reduce((a, r) => a + r.count, 0)} processes`}
       />
       <TocView
+        stateKey="explorer.toc.domains"
         rows={rows}
         nameLabel="Domain"
         countLabel="Processes"

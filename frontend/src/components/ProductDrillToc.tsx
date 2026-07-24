@@ -145,6 +145,7 @@ export default function ProductDrillToc({ leading }: { leading?: ReactNode }) {
 
   return (
     <TocView
+      stateKey="productModels.toc"
       rows={rows}
       nameLabel={levelName(rowLevel, cap.unit)}
       countLabel={cap.count}

@@ -9,6 +9,7 @@ import {
   clearViewState,
   loadViewState,
   saveViewState,
+  useOnChange,
   useScrollRestore,
   useViewState,
 } from '../../src/lib/viewState';
@@ -122,6 +123,56 @@ describe('useViewState', () => {
     }
     render(<Lazy />);
     expect(value()).toBe('computed');
+  });
+});
+
+// ── useOnChange ──────────────────────────────────────────────────────────────
+
+describe('useOnChange', () => {
+  function ChangeProbe({ value, effect }: { value: string; effect: () => void }) {
+    useOnChange(value, effect);
+    return null;
+  }
+
+  it('does not fire on mount (must not wipe state useViewState just restored)', () => {
+    const effect = vi.fn();
+    render(<ChangeProbe value="a" effect={effect} />);
+    expect(effect).not.toHaveBeenCalled();
+  });
+
+  it('fires when the value changes, once per change', () => {
+    const effect = vi.fn();
+    const view = render(<ChangeProbe value="a" effect={effect} />);
+    view.rerender(<ChangeProbe value="b" effect={effect} />);
+    expect(effect).toHaveBeenCalledTimes(1);
+    view.rerender(<ChangeProbe value="b" effect={effect} />); // no change
+    expect(effect).toHaveBeenCalledTimes(1);
+    view.rerender(<ChangeProbe value="c" effect={effect} />);
+    expect(effect).toHaveBeenCalledTimes(2);
+  });
+
+  it('stays unarmed while undefined; the first settled value arms silently', () => {
+    // The loading→loaded transition of a data-derived key must not read as a
+    // change (it would wipe state useViewState just restored).
+    const effect = vi.fn();
+    function Settling({ value }: { value: string | undefined }) {
+      useOnChange(value, effect);
+      return null;
+    }
+    const view = render(<Settling value={undefined} />);
+    view.rerender(<Settling value="loaded-key" />); // arming, not a change
+    expect(effect).not.toHaveBeenCalled();
+    view.rerender(<Settling value="other-key" />); // a real change
+    expect(effect).toHaveBeenCalledTimes(1);
+  });
+
+  it('always runs the LATEST effect callback', () => {
+    const first = vi.fn();
+    const second = vi.fn();
+    const view = render(<ChangeProbe value="a" effect={first} />);
+    view.rerender(<ChangeProbe value="b" effect={second} />);
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledTimes(1);
   });
 });
 
