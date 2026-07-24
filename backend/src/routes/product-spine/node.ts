@@ -7,6 +7,7 @@
 import type { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../../db/prisma.js';
 import { activeCompany } from '../explorer/helpers.js';
+import { isHiddenComponent, sanitizeAttributes } from './helpers.js';
 
 const NODE_SELECT = {
   id: true,
@@ -65,7 +66,7 @@ export function registerProductNodeRoutes(router: Router): void {
         description: n.description,
         status: n.status,
         sortOrder: n.sortOrder,
-        attributes: n.attributes,
+        attributes: sanitizeAttributes(n.attributes),
       });
 
       res.json({
@@ -75,7 +76,9 @@ export function registerProductNodeRoutes(router: Router): void {
           name: e.ancestor.displayValue,
           levelNumber: e.ancestor.productLevelType.levelNumber,
         })),
-        children: children.map((c) => ({ ...shape(c), childCount: c._count.children })),
+        children: children
+          .filter((c) => !isHiddenComponent(c.productLevelType.levelNumber, c.displayValue))
+          .map((c) => ({ ...shape(c), childCount: c._count.children })),
         levels: levels.map((l) => ({
           levelNumber: l.levelNumber,
           dbValue: l.dbValue,

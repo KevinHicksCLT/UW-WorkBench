@@ -10,6 +10,7 @@ import { useOpenRole } from '../../lib/roleDrawer';
 import { SkeletonLoader } from '../ui';
 import ProcedureValue from '../ProcedureValue';
 import { AddPicker, Empty, LinkOut, DetachBtn } from './atoms';
+import { stripStepNumber } from './planTabs';
 import type { AfterFn, Payload, PlanRow, TiedPlan } from './types';
 
 // ── Deliverable chain payload (mirrors GET /inspector/:nodeId/chain) ─────────
@@ -117,26 +118,20 @@ export function WorkTab({
   );
 }
 
-// Chain plan row — defined value → green ✓, missing key → red ✗.
-const ChainPlanLine = ({ r }: { r: PlanRow }) => (
+// Chain plan row — numbered step; the title reads at full contrast.
+const ChainPlanLine = ({ r, num }: { r: PlanRow; num: number }) => (
   <div className="flex items-start gap-1.5">
-    <span
-      className={
-        (r.defined ? 'text-[#1e9e6a]' : 'text-[#dc2626]') + ' text-[12px] mt-px flex-shrink-0'
-      }
-    >
-      {r.defined ? '✓' : '✗'}
-    </span>
+    <span className="text-[10.5px] tabular-nums text-[#6b7785] mt-px flex-shrink-0">{num}.</span>
     <span className="text-[11.5px] leading-snug">
       {r.defined ? (
         <>
-          <span className="text-[#8a94a0]">{r.key}: </span>
+          <span className="font-medium text-[#374151]">{stripStepNumber(r.key)}: </span>
           <span className="text-[#171717]">
             <ProcedureValue value={r.value ?? ''} />
           </span>
         </>
       ) : (
-        <span className="text-[#6b7785]">{r.key}</span>
+        <span className="font-medium text-[#374151]">{stripStepNumber(r.key)}</span>
       )}
     </span>
   </div>
@@ -232,9 +227,9 @@ function MiniHead({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Checklist / Testing rendered as distinct sub-cards so the two blocks read
-// separately. Generic pattern keys sit in a labeled group above the divider;
-// item-specific steps in their own labeled group below it.
+// Sub-tasks / Sub-task testing rendered as distinct sub-cards so the two
+// blocks read separately. Only the item-specific steps surface — generic
+// pattern keys are hidden at the UI level (the data stays in the DB).
 function PlanBlock({
   label,
   accent,
@@ -248,17 +243,9 @@ function PlanBlock({
   border: string;
   rows: PlanRow[];
 }) {
-  const generic = rows.filter((r) => r.generic);
   const specific = rows.filter((r) => !r.generic);
-  const defined = rows.filter((r) => r.defined).length;
-  const groupLabel = (text: string) => (
-    <div
-      className="text-[8px] font-bold uppercase tracking-[0.08em]"
-      style={{ color: accent, opacity: 0.75 }}
-    >
-      {text}
-    </div>
-  );
+  if (specific.length === 0) return null;
+  const defined = specific.filter((r) => r.defined).length;
   return (
     <div
       className="rounded-md mt-1.5"
@@ -272,20 +259,12 @@ function PlanBlock({
           {label}
         </span>
         <span className="text-[9px]" style={{ color: accent }}>
-          {defined}/{rows.length} ✓
+          {defined}/{specific.length}
         </span>
       </div>
       <div className="px-2 pb-2 pt-1 flex flex-col gap-1">
-        {generic.length > 0 && groupLabel('Generic steps · pattern')}
-        {generic.map((r, i) => (
-          <ChainPlanLine key={`g${i}`} r={r} />
-        ))}
-        {generic.length > 0 && specific.length > 0 && (
-          <div className="my-0.5" style={{ borderTop: `1px dashed ${border}` }} />
-        )}
-        {specific.length > 0 && groupLabel('Specific steps · this task')}
         {specific.map((r, i) => (
-          <ChainPlanLine key={`s${i}`} r={r} />
+          <ChainPlanLine key={`s${i}`} r={r} num={i + 1} />
         ))}
       </div>
     </div>
@@ -322,7 +301,7 @@ function TiedBlock({
           {label}
         </span>
         <span className="text-[9px]" style={{ color: accent }}>
-          {items.length} · {defined}/{rows.length} ✓
+          {items.length} · {defined}/{rows.length}
         </span>
       </div>
       <div className="px-2 pb-2 pt-1 flex flex-col gap-1">
@@ -334,7 +313,7 @@ function TiedBlock({
               {s.source && <span className="text-[#a3a3a3] font-normal"> · {s.source}</span>}
             </div>
             {[...s.checklist, ...s.testing].map((r, i) => (
-              <ChainPlanLine key={i} r={r} />
+              <ChainPlanLine key={i} r={r} num={i + 1} />
             ))}
             {!s.checklist.length && !s.testing.length && (
               <div className="text-[10px] text-[#a3a3a3]">No evidence steps yet</div>
@@ -350,11 +329,13 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
   const openRole = useOpenRole();
   const [open, setOpen] = useState(true);
   const tied = [...t.standards, ...t.regulations];
+  const checklist = t.checklist.filter((r) => !r.generic);
+  const testing = t.testing.filter((r) => !r.generic);
   const kids =
-    t.roles.length + t.applications.length + t.checklist.length + t.testing.length + tied.length;
+    t.roles.length + t.applications.length + checklist.length + testing.length + tied.length;
   const allRows = [
-    ...t.checklist,
-    ...t.testing,
+    ...checklist,
+    ...testing,
     ...tied.flatMap((x) => [...x.checklist, ...x.testing]),
   ];
   const defined = allRows.filter((r) => r.defined).length;
@@ -388,7 +369,7 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
         <span className="text-[11.5px] font-semibold text-[#4c1d95] flex-1 min-w-0">{t.name}</span>
         {allRows.length > 0 && (
           <span className="text-[9px] text-[#7c5db8]">
-            {defined}/{allRows.length} ✓
+            {defined}/{allRows.length}
           </span>
         )}
       </button>
@@ -430,22 +411,22 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
               )}
             </button>
           ))}
-          {t.checklist.length > 0 && (
+          {checklist.length > 0 && (
             <PlanBlock
-              label="Checklist"
+              label="Sub-tasks"
               accent="#1e9e6a"
               bg="#f2faf6"
               border="#cbead9"
-              rows={t.checklist}
+              rows={checklist}
             />
           )}
-          {t.testing.length > 0 && (
+          {testing.length > 0 && (
             <PlanBlock
-              label="Testing"
+              label="Sub-task testing"
               accent="#1d4ed8"
               bg="#f0f5fe"
               border="#cdddf5"
-              rows={t.testing}
+              rows={testing}
             />
           )}
           {t.standards.length > 0 && (

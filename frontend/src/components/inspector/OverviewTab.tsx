@@ -28,8 +28,8 @@ export function OverviewTab({
     { label: 'Applications', n: data.counts.applications, tab: 'Applications' },
     { label: 'Deliverables', n: data.counts.deliverables, tab: 'Deliverables' },
     { label: 'Tasks', n: data.counts.tasks, tab: 'Tasks' },
-    { label: 'Checklist items', n: data.counts.checklist, tab: 'Checklist' },
-    { label: 'Testing templates', n: data.counts.testing, tab: 'Testing' },
+    { label: 'Sub-tasks', n: data.counts.checklist, tab: 'Checklist' },
+    { label: 'Sub-task testing', n: data.counts.testing, tab: 'Testing' },
   ];
   return (
     <div>
