@@ -133,7 +133,7 @@ describe('RoleProfile', () => {
     renderPage();
     expect(screen.queryByText('Pull in-force extract')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: /Extract in-force data/ }));
-    expect(screen.getByText(/Checklist · in order/i)).toBeTruthy();
+    expect(screen.getByText(/Sub-tasks · in order/i)).toBeTruthy();
     expect(screen.getByText('Pull in-force extract')).toBeTruthy();
     expect(screen.getByText('Validate record counts')).toBeTruthy();
   });

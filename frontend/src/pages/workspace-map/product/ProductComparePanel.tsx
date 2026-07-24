@@ -30,7 +30,7 @@ const COL_W = 250;
  *  and the per-version element counts live up in the Current overview card. */
 function VersionHead({ version }: { version: VersionColumn }) {
   return (
-    <div style={{ padding: '8px 10px', borderRight: '1px solid #f1f1f1', minWidth: 0 }}>
+    <div style={{ padding: '8px 10px', borderRight: '1px solid #dcdfe4', minWidth: 0 }}>
       <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.3 }}>{version.name}</div>
       <div style={{ fontSize: 10.5, color: '#a3a3a3', marginTop: 1 }}>{version.productName}</div>
     </div>
@@ -250,13 +250,18 @@ export default function ProductComparePanel(props: Props) {
       )}
 
       {/* Version identification strip — separated from the component rows but
-          on the same grid, so each head sits exactly above its column. */}
+          on the same grid, so each head sits exactly above its column. Sticky:
+          it pins to the top of the board scroller and stays readable as the
+          matrix scrolls beneath it. */}
       <div
         style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 5,
           background: '#fff',
           border: '1px solid #eaeaea',
           borderRadius: 14,
-          boxShadow: '0 1px 4px rgba(0,0,0,.05)',
+          boxShadow: '0 2px 8px rgba(0,0,0,.08)',
           // 12px panel padding + 1px inner-box border = the matrix's content
           // inset, so the strip's columns sit exactly over the matrix columns.
           padding: '0 13px',
@@ -303,7 +308,7 @@ export default function ProductComparePanel(props: Props) {
           gap: 10,
         }}
       >
-        <div style={{ border: '1px solid #f1f1f1', borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ border: '1px solid #dcdfe4', borderRadius: 10, overflow: 'hidden' }}>
           {comparison.rows.map((row) => {
             const groups = matchFilter
               ? row.groups.filter((g) => g.status === matchFilter)
@@ -363,8 +368,8 @@ export default function ProductComparePanel(props: Props) {
                     padding: '8px 10px',
                     background: '#fcfcfc',
                     border: 'none',
-                    borderBottom: '1px solid #f1f1f1',
-                    borderTop: rowPads?.[row.component] ? '1px solid #f1f1f1' : undefined,
+                    borderBottom: '1px solid #dcdfe4',
+                    borderTop: rowPads?.[row.component] ? '1px solid #dcdfe4' : undefined,
                     cursor: 'pointer',
                     font: 'inherit',
                     textAlign: 'left',
@@ -392,8 +397,8 @@ export default function ProductComparePanel(props: Props) {
                 style={{
                   display: 'grid',
                   gridTemplateColumns: `${LABEL_W}px 1fr`,
-                  borderBottom: '1px solid #f1f1f1',
-                  borderTop: rowPads?.[row.component] ? '1px solid #f1f1f1' : undefined,
+                  borderBottom: '1px solid #dcdfe4',
+                  borderTop: rowPads?.[row.component] ? '1px solid #dcdfe4' : undefined,
                   opacity: matchFilter && groups.length === 0 ? 0.4 : 1,
                   marginTop: rowPads?.[row.component] || undefined,
                 }}
@@ -417,7 +422,24 @@ export default function ProductComparePanel(props: Props) {
                   </div>
                   {counts}
                 </button>
-                <div>
+                <div style={{ position: 'relative' }}>
+                  {/* Full-height column separators — one line per version
+                      boundary, spanning the whole expanded band. */}
+                  {versions.map((v, i) => (
+                    <span
+                      key={v.id}
+                      aria-hidden
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        bottom: 0,
+                        left: i * COL_W,
+                        width: 1,
+                        background: '#dcdfe4',
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  ))}
                   {groups.map((g, gi) => {
                     // Connector anchor lives on the RIGHTMOST populated cell,
                     // not the full-width row: a concept missing from the
@@ -436,7 +458,7 @@ export default function ProductComparePanel(props: Props) {
                           display: 'grid',
                           gridTemplateColumns: `repeat(${versions.length}, ${COL_W}px)`,
                           alignItems: 'start',
-                          borderTop: gi > 0 ? '1px dashed #f1f1f1' : undefined,
+                          borderTop: gi > 0 ? '1px dashed #dcdfe4' : undefined,
                           // SCRUM-259: level this concept row with its normalize card.
                           marginTop: rowPads?.[`${row.component}:${g.key}`] || undefined,
                         }}
@@ -447,7 +469,7 @@ export default function ProductComparePanel(props: Props) {
                             data-anchor={
                               i === lastFilled ? `bf:${row.component}:${g.key}` : undefined
                             }
-                            style={{ padding: 6, borderLeft: '1px solid #f1f1f1', minWidth: 0 }}
+                            style={{ padding: 6, minWidth: 0 }}
                           >
                             {g.perVersion[v.id] ? (
                               <ElementCard
@@ -470,10 +492,7 @@ export default function ProductComparePanel(props: Props) {
                       }}
                     >
                       {versions.map((v) => (
-                        <div
-                          key={v.id}
-                          style={{ padding: 6, borderLeft: '1px solid #f1f1f1', minWidth: 0 }}
-                        >
+                        <div key={v.id} style={{ padding: 6, minWidth: 0 }}>
                           <span style={{ fontSize: 10, color: '#d4d4d4', padding: '2px 4px' }}>
                             —
                           </span>

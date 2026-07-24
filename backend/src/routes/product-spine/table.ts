@@ -11,6 +11,7 @@ import type { Router, Request, Response, NextFunction } from 'express';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../../db/prisma.js';
 import { activeCompany } from '../explorer/helpers.js';
+import { isHiddenComponent, sanitizeAttributes } from './helpers.js';
 
 interface ProductTreeNode {
   id: string;
@@ -31,7 +32,7 @@ export function registerProductTableRoutes(router: Router): void {
       const company = await activeCompany(req);
       if (!company) return res.status(404).json({ error: 'No company' });
 
-      const [levelTypes, nodes] = await Promise.all([
+      const [levelTypes, allNodes] = await Promise.all([
         prisma.productLevelType.findMany({
           where: { companyId: company.id },
           orderBy: { levelNumber: 'asc' },
@@ -52,6 +53,12 @@ export function registerProductTableRoutes(router: Router): void {
           },
         }),
       ]);
+
+      // The 'Product Taxonomy' model component is hidden from every product
+      // view (workspace board + Products tab); the rows stay in the DB.
+      const nodes = allNodes.filter(
+        (n) => !isHiddenComponent(n.productLevelType.levelNumber, n.displayValue),
+      );
 
       const byParent = new Map<string | null, typeof nodes>();
       for (const n of nodes) {
@@ -77,7 +84,7 @@ export function registerProductTableRoutes(router: Router): void {
             description: n.description,
             status: n.status,
             sortOrder: n.sortOrder,
-            attributes: n.attributes,
+            attributes: sanitizeAttributes(n.attributes),
             rollup,
             children,
           };

@@ -17,17 +17,8 @@ import type { ProfileTask, RoleProfilePayload } from './types';
 // role works in → deliverable cards grouped under their value stream, each
 // expanding to the numbered task list with validation controls.
 
-/** Fixed palette cycled over the role's value streams (participation order). */
-const STREAM_PALETTE = [
-  '#6366f1', // indigo
-  '#0ea5e9', // sky
-  '#10b981', // emerald
-  '#f59e0b', // amber
-  '#8b5cf6', // violet
-  '#f43f5e', // rose
-  '#14b8a6', // teal
-  '#fb923c', // orange
-];
+/** Neutral stream marker — the page follows the app's neutral palette. */
+const STREAM_DOT = '#94a3b8';
 
 type Filter = 'all' | 'unreviewed';
 
@@ -80,7 +71,7 @@ export default function RoleProfile() {
       <div>
         <PageHeader title="Role profile" />
         <ErrorMessage>{error === 'Not found' ? 'No such role.' : error}</ErrorMessage>
-        <Link to="/roles" className="text-sm text-[#4338ca] underline">
+        <Link to="/roles" className="text-sm text-[#1d4ed8] underline">
           Back to Roles
         </Link>
       </div>
@@ -93,13 +84,6 @@ export default function RoleProfile() {
   const reviewed = taskSummary.filter((t) => t.validation.status !== 'UNREVIEWED').length;
   const unreviewed = total - reviewed;
   const pct = total === 0 ? 0 : Math.round((reviewed / total) * 100);
-
-  const streamColor = new Map(
-    data.participation.map((p, i) => [
-      p.valueStreamName,
-      STREAM_PALETTE[i % STREAM_PALETTE.length],
-    ]),
-  );
 
   // Value-stream groups descend the process tree L2 → L3 → L4: inside each
   // stream, deliverable cards cluster under an "L3 → L4" sub-header (the modal
@@ -144,7 +128,7 @@ export default function RoleProfile() {
       onClick={() => setFilter(f)}
       className={`px-2 py-0.5 text-[11px] rounded-md transition-colors duration-150 ${
         filter === f
-          ? 'bg-[#065f46] text-white font-medium'
+          ? 'bg-[#eaf1fe] text-[#1d4ed8] font-semibold'
           : 'text-[#525252] hover:bg-[#f5f5f5] border border-transparent'
       }`}
     >
@@ -176,7 +160,7 @@ export default function RoleProfile() {
         {data.division && (
           <Link
             to={`/divisions/${data.division.id}`}
-            className="text-[11px] text-[#4338ca] hover:underline"
+            className="text-[11px] text-[#1d4ed8] hover:underline"
           >
             {data.division.name}
           </Link>
@@ -184,7 +168,7 @@ export default function RoleProfile() {
         {data.department && (
           <Link
             to={`/departments/${data.department.id}`}
-            className="text-[11px] text-[#4338ca] hover:underline"
+            className="text-[11px] text-[#1d4ed8] hover:underline"
           >
             {data.department.name}
           </Link>
@@ -192,14 +176,14 @@ export default function RoleProfile() {
       </div>
 
       {/* Role description callout */}
-      <div className="rounded-lg border border-[#e0e7ff] border-l-4 border-l-[#6366f1] bg-[#eef2ff] px-4 py-3 mb-3">
-        <div className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#4338ca] mb-1">
+      <div className="rounded-lg border border-[#e2e6ea] border-l-4 border-l-[#cbd5e1] bg-[#fbfcfd] px-4 py-3 mb-3">
+        <div className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#8a94a0] mb-1">
           Role description
         </div>
         {data.description ? (
-          <p className="text-[13px] text-[#3730a3] leading-relaxed">{data.description}</p>
+          <p className="text-[13px] text-[#374151] leading-relaxed">{data.description}</p>
         ) : (
-          <p className="text-[13px] text-[#818cf8]">
+          <p className="text-[13px] text-[#a3a3a3]">
             No description yet — profile enrichment hasn't been applied to this role.
           </p>
         )}
@@ -209,7 +193,7 @@ export default function RoleProfile() {
       <Card variant="elevated" className="px-4 py-3 mb-3">
         <div className="flex items-center gap-6 flex-wrap">
           <div>
-            <div className="text-2xl font-bold text-[#065f46] tnum leading-tight">{pct}%</div>
+            <div className="text-2xl font-bold text-[#171717] tnum leading-tight">{pct}%</div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3]">
               Reviewed · {reviewed}/{total}
             </div>
@@ -230,7 +214,7 @@ export default function RoleProfile() {
           <div className="flex-1 min-w-[180px]">
             <div className="h-2 rounded-full bg-[#e5e7eb] overflow-hidden mb-1.5">
               <div
-                className="h-full rounded-full bg-[#10b981] transition-all duration-300"
+                className="h-full rounded-full bg-[#1e9e6a] transition-all duration-300"
                 style={{ width: `${pct}%` }}
               />
             </div>
@@ -245,9 +229,9 @@ export default function RoleProfile() {
 
       {/* Applications the role works in (task-level NodeAppUsage roll-up) */}
       {data.applications.length > 0 && (
-        <div className="rounded-lg border border-[#fde68a] bg-[#fffbeb] px-4 py-3 mb-4">
-          <div className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#b45309] mb-2">
-            ● Applications you work in
+        <div className="rounded-lg border border-[#e2e6ea] bg-[#fbfcfd] px-4 py-3 mb-4">
+          <div className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#8a94a0] mb-2">
+            Applications you work in
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {data.applications.map((a) => (
@@ -255,10 +239,10 @@ export default function RoleProfile() {
                 key={a.id}
                 to={`/applications?focus=${encodeURIComponent(a.id)}`}
                 title={a.name}
-                className="flex items-center justify-between gap-2 rounded-md border border-[#fcd34d] bg-white px-2.5 py-1.5 hover:border-[#f59e0b] hover:shadow-sm transition-all duration-150"
+                className="flex items-center justify-between gap-2 rounded-md border border-[#e5e5e5] bg-white px-2.5 py-1.5 hover:border-[#d4d4d4] hover:shadow-sm transition-all duration-150"
               >
                 <span className="text-[12px] font-medium text-[#171717] truncate">{a.name}</span>
-                <span className="text-[10px] font-semibold text-[#b45309] bg-[#fef3c7] rounded px-1.5 py-px tnum flex-shrink-0">
+                <span className="text-[10px] font-semibold text-[#525252] bg-[#f0f1f3] rounded px-1.5 py-px tnum flex-shrink-0">
                   {a.taskCount} task{a.taskCount === 1 ? '' : 's'}
                 </span>
               </Link>
@@ -280,7 +264,7 @@ export default function RoleProfile() {
                   <div className="flex items-center gap-2 mb-1.5">
                     <span
                       className="h-2 w-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: streamColor.get(g.valueStreamName) ?? '#a3a3a3' }}
+                      style={{ backgroundColor: STREAM_DOT }}
                       aria-hidden="true"
                     />
                     <Link
