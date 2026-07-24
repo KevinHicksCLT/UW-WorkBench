@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useBreadcrumbHeader, type Crumb } from '../lib/breadcrumbs';
+import { useSmartBack } from '../lib/navBack';
 
 // ── Global breadcrumb bar ────────────────────────────────────────────────────
 // The single breadcrumb of the app — a slim row in the Layout header, below
@@ -18,12 +19,32 @@ function visibleCrumbs(trail: Crumb[]): (Crumb | null)[] {
 
 export default function BreadcrumbBar() {
   const { trail, headerClaimed, setHeaderSlot } = useBreadcrumbHeader();
+  const back = useSmartBack();
   const show = headerClaimed || trail.length > 0;
 
   return (
-    <div className={(show ? 'flex' : 'hidden') + ' items-center min-h-[26px] px-4 sm:px-6 py-0.5 border-b border-[#eaeaea] bg-white overflow-x-auto'}>
+    <div
+      className={
+        (show ? 'flex' : 'hidden') +
+        ' items-center min-h-[26px] px-4 sm:px-6 py-0.5 border-b border-[#eaeaea] bg-white overflow-x-auto'
+      }
+    >
+      {/* Always-visible back affordance — one predictable place to go back
+          from any drill level (smart back: history, else in-app fallback). */}
+      <button
+        type="button"
+        onClick={back}
+        aria-label="Go back"
+        title="Back to the previous screen"
+        className="mr-2 shrink-0 inline-flex h-[18px] w-[18px] items-center justify-center rounded border border-[#eaeaea] bg-white text-[11px] leading-none text-[#525252] hover:border-[#d4d4d4] hover:text-[#171717] transition-colors duration-150"
+      >
+        ←
+      </button>
       {/* Portal target for map drill breadcrumbs — always mounted. */}
-      <div ref={setHeaderSlot} className={headerClaimed ? 'flex items-center flex-wrap min-w-0' : 'hidden'} />
+      <div
+        ref={setHeaderSlot}
+        className={headerClaimed ? 'flex items-center flex-wrap min-w-0' : 'hidden'}
+      />
 
       {!headerClaimed && trail.length > 0 && (
         <nav className="flex items-center whitespace-nowrap" aria-label="Breadcrumb">
@@ -41,9 +62,13 @@ export default function BreadcrumbBar() {
               <span key={c.to + i} className="inline-flex items-center">
                 {i > 0 && <span style={{ color: '#d4d4d4', margin: '0 4px' }}>›</span>}
                 {isLast ? (
-                  <span className="focus-crumb-active" aria-current="page">{c.label}</span>
+                  <span className="focus-crumb-active" aria-current="page">
+                    {c.label}
+                  </span>
                 ) : (
-                  <Link to={c.to} className="focus-crumb-ancestor">{c.label}</Link>
+                  <Link to={c.to} className="focus-crumb-ancestor">
+                    {c.label}
+                  </Link>
                 )}
               </span>
             );

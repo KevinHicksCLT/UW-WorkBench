@@ -778,7 +778,7 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
           loading={loading}
           unit="deliverables"
           leading={viewToggle}
-          defaultFilters={preFilter ? { [preFilter.col]: preFilter.value } : undefined}
+          forceFilters={preFilter ? { [preFilter.col]: preFilter.value } : undefined}
           onRowClick={(d) => openDrill('deliverable', d.id)}
           summarize={(v) =>
             `${new Set(v.map((d) => d.valueStreamName).filter(Boolean)).size} value streams`
@@ -795,7 +795,7 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
             loading={loading}
             unit="tasks"
             leading={viewToggle}
-            defaultFilters={preFilter ? { [preFilter.col]: preFilter.value } : undefined}
+            forceFilters={preFilter ? { [preFilter.col]: preFilter.value } : undefined}
             onRowClick={(t) => openDrill('task', t.id)}
             summarize={(v) => {
               const a = automatablePct(v.map((t) => t.agentScore));

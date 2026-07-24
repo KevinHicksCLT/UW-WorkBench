@@ -5,6 +5,7 @@ import { useCompany } from '../lib/company';
 import { api } from '../lib/api';
 import { navGroups, activeGroup, prefetchPathFor, type NavGroup } from '../lib/navigation';
 import { useBreadcrumbHeader } from '../lib/breadcrumbs';
+import { useScrollRestore } from '../lib/viewState';
 import SearchBox from './SearchBox';
 import AssistantWidget from './AssistantWidget';
 import FeedbackWidget from './FeedbackWidget';
@@ -37,6 +38,23 @@ export default function Layout({ children }: { children: ReactNode }) {
     location.pathname === '/roles' ||
     location.pathname === '/organization' ||
     location.pathname === '/product-models';
+
+  // Scroll restoration for the detail-page scroller (<main overflow-auto>):
+  // keyed by pathname+search so returning to a page — browser Back, a
+  // breadcrumb, or a nav link — lands at the exact offset the user left, while
+  // a first visit starts at the top. The `role` drawer param is an overlay on
+  // the same page, and `focus` deep links do their own row-centering scroll —
+  // neither may fork or fight the restore.
+  const mainRef = useRef<HTMLElement | null>(null);
+  const scrollParams = new URLSearchParams(location.search);
+  scrollParams.delete('role');
+  const hasFocus = scrollParams.has('focus');
+  const scrollSearch = scrollParams.toString();
+  useScrollRestore(
+    mainRef,
+    isExplorer ? null : `main:${location.pathname}${scrollSearch ? `?${scrollSearch}` : ''}`,
+    !hasFocus,
+  );
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -531,7 +549,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       ) : (
         // Detail pages: scrollable, full-width container (no max-width cap —
         // wide screens get content, not gutters).
-        <main className="flex-1 overflow-auto bg-[#fafafa] safe-px">
+        <main ref={mainRef} className="flex-1 overflow-auto bg-[#fafafa] safe-px">
           <div className="px-4 sm:px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             {children}
           </div>

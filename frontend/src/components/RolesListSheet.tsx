@@ -106,10 +106,11 @@ const cols: SheetCol<RoleRow>[] = [
 
 export default function RolesListSheet({
   leading,
-  defaultFilters,
+  forceFilters,
 }: {
   leading?: ReactNode;
-  defaultFilters?: Record<string, string>;
+  // Drill intent from the Roles TOC — overlays any restored sheet state.
+  forceFilters?: Record<string, string>;
 }) {
   const { data, error, loading, refetch } = useApi<{ rows: RoleRow[] }>('/roles');
   const rows = data?.rows ?? [];
@@ -133,7 +134,7 @@ export default function RolesListSheet({
           loading={loading}
           unit="rows"
           leading={leading}
-          defaultFilters={defaultFilters}
+          forceFilters={forceFilters}
           onRowClick={(r) => openRole(r.roleId)}
           summarize={(v) =>
             `${new Set(v.map((r) => r.roleId)).size} roles · ${new Set(v.map((r) => r.department).filter(Boolean)).size} departments`

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { BackButton } from '../../../src/components/ui/BackButton';
@@ -11,6 +11,17 @@ vi.mock('react-router-dom', async (importOriginal) => {
 
 const BASE =
   'rounded-md border border-[#eaeaea] bg-white px-3 py-1.5 text-xs font-medium text-[#171717] hover:border-[#d4d4d4] transition-colors duration-150';
+
+function setHistoryIdx(idx: number | null) {
+  window.history.replaceState(idx === null ? null : { idx }, '');
+}
+
+beforeEach(() => {
+  navigate.mockClear();
+});
+afterEach(() => {
+  setHistoryIdx(null);
+});
 
 describe('BackButton', () => {
   it('emits the base class contract and appends className verbatim', () => {
@@ -32,7 +43,17 @@ describe('BackButton', () => {
     expect(screen.getByRole('button', { name: '← Back' }).className).toBe(BASE);
   });
 
-  it('navigates one history entry back on click', () => {
+  it('renders a custom label after the arrow', () => {
+    render(
+      <MemoryRouter>
+        <BackButton label="Back to Regulations" />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('button', { name: '← Back to Regulations' })).toBeTruthy();
+  });
+
+  it('navigates one history entry back when in-app history exists', () => {
+    setHistoryIdx(2);
     render(
       <MemoryRouter>
         <BackButton />
@@ -40,5 +61,27 @@ describe('BackButton', () => {
     );
     screen.getByRole('button', { name: '← Back' }).click();
     expect(navigate).toHaveBeenCalledWith(-1);
+  });
+
+  it('falls back to the given destination on a fresh deep link (no in-app history)', () => {
+    setHistoryIdx(0);
+    render(
+      <MemoryRouter>
+        <BackButton fallback="/metrics" />
+      </MemoryRouter>,
+    );
+    screen.getByRole('button', { name: '← Back' }).click();
+    expect(navigate).toHaveBeenCalledWith('/metrics');
+  });
+
+  it('defaults the fallback to home', () => {
+    setHistoryIdx(null);
+    render(
+      <MemoryRouter>
+        <BackButton />
+      </MemoryRouter>,
+    );
+    screen.getByRole('button', { name: '← Back' }).click();
+    expect(navigate).toHaveBeenCalledWith('/');
   });
 });

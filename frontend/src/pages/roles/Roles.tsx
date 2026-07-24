@@ -87,7 +87,7 @@ export default function Roles() {
           <RolesListSheet
             key={`roles-${preFilter ?? ''}-${refreshKey}`}
             leading={pills}
-            defaultFilters={preFilter ? { division: preFilter } : undefined}
+            forceFilters={preFilter ? { division: preFilter } : undefined}
           />
         ) : (
           <>
