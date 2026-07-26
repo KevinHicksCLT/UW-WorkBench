@@ -54,7 +54,14 @@ export default function Standards() {
   const [view, setView] = useViewState<'toc' | 'list'>('standards.view', 'toc');
   const [items, setItems] = useState<FlatItem[] | null>(null);
   const [q, setQ] = useViewState('standards.q', '');
-  const [sel, setSel] = useState<FlatItem | null>(null);
+  // The open drawer persists as an id (lib/viewState) and re-resolves from the
+  // loaded rows, so drilling out of the drawer and coming back reopens it.
+  const [selId, setSelId] = useViewState<string | null>('standards.sel', null);
+  const sel = useMemo(
+    () => (selId ? (items?.find((i) => i.id === selId) ?? null) : null),
+    [selId, items],
+  );
+  const setSel = (r: FlatItem | null) => setSelId(r ? r.id : null);
 
   useEffect(() => {
     api

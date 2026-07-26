@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useCompany } from '../../lib/company';
 import { useOpenRole } from '../../lib/roleDrawer';
+import { useViewState } from '../../lib/viewState';
 import PageHeader from '../../components/PageHeader';
 import ProcedureValue from '../../components/ProcedureValue';
 import { withCompany } from '../../lib/portfolio';
@@ -543,13 +544,34 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
       .finally(() => setLoading(false));
   }, [companyId, companyLoading]);
 
-  // Open a row's drill-down in the sidebar by fetching its detail.
+  // Open a row's drill-down in the sidebar by fetching its detail. The open
+  // target persists per tab (lib/viewState), so drilling out of the sidebar
+  // (e.g. to a role page) and coming back reopens the same sidebar.
+  const [detailRef, setDetailRef] = useViewState<{
+    kind: 'deliverable' | 'task';
+    id: string;
+  } | null>(`work.${tab}.detail`, null);
   function openDrill(kind: 'deliverable' | 'task', id: string) {
+    setDetailRef({ kind, id });
     api
       .get<Detail>(withCompany(`/work/${kind}/${id}`, companyId))
       .then(setDetail)
       .catch(() => {});
   }
+  const closeDrill = () => {
+    setDetail(null);
+    setDetailRef(null);
+  };
+  // Restore the open sidebar on mount (refetch — the detail is server data).
+  const rearmedDetail = useRef(false);
+  useEffect(() => {
+    if (rearmedDetail.current || companyLoading || !detailRef) return;
+    rearmedDetail.current = true;
+    api
+      .get<Detail>(withCompany(`/work/${detailRef.kind}/${detailRef.id}`, companyId))
+      .then(setDetail)
+      .catch(() => {});
+  }, [companyLoading, detailRef, companyId]);
 
   const { deliverables, tasks } = data;
 
@@ -809,7 +831,7 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
       {detail && (
         <Sidebar
           title={detail.kind === 'deliverable' ? 'Deliverable' : 'Task'}
-          onClose={() => setDetail(null)}
+          onClose={closeDrill}
         >
           <DetailBody detail={detail} />
         </Sidebar>

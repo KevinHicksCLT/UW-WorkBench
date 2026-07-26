@@ -2,7 +2,8 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useViewState } from '../lib/viewState';
-import { TocBack, TocView, type TocRow } from './TocView';
+import { useBackHandler } from '../lib/navBack';
+import { TocView, type TocRow } from './TocView';
 import { ErrorMessage, LoadingState } from './ui';
 
 // OrgDrillToc — the org spine as a gold-standard TOC descent, mirroring the
@@ -56,6 +57,24 @@ export default function OrgDrillToc({
       .catch((e) => setError(e.message ?? 'Failed to load'));
   }, []);
 
+  // The header's back button pops the deepest drill level (lib/navBack); at
+  // the root it falls through to history. No in-page back pill.
+  useBackHandler(() => {
+    if (departmentId != null) {
+      setDepartmentId(null);
+      return true;
+    }
+    if (divisionId != null) {
+      setDivisionId(null);
+      return true;
+    }
+    if (segmentId != null) {
+      setSegmentId(null);
+      return true;
+    }
+    return false;
+  });
+
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
   if (!segments) return <LoadingState message="Loading organization…" className="animate-pulse" />;
 
@@ -85,12 +104,7 @@ export default function OrgDrillToc({
         countLabel="Value streams"
         unit="roles"
         searchPlaceholder="Search role…"
-        leading={
-          <>
-            {leading}
-            <TocBack label={division.name} onClick={() => setDepartmentId(null)} />
-          </>
-        }
+        leading={leading}
         totals={`${division.name} · ${dept?.name ?? ''} · ${rows.length} roles`}
       />
     );
@@ -117,10 +131,6 @@ export default function OrgDrillToc({
         onClick: () => setDepartmentId(''),
       });
     }
-    const backLabel =
-      startAt === 'segment' && segmentId
-        ? (segments.find((s) => s.id === segmentId)?.name ?? 'All divisions')
-        : 'All divisions';
     return (
       <TocView
         stateKey="org.toc.departments"
@@ -130,12 +140,7 @@ export default function OrgDrillToc({
         extraLabel="Division"
         unit="departments"
         searchPlaceholder="Search department…"
-        leading={
-          <>
-            {leading}
-            <TocBack label={backLabel} onClick={() => setDivisionId(null)} />
-          </>
-        }
+        leading={leading}
         totals={`${division.name} · ${rows.length} departments · ${division.roleCount} roles`}
       />
     );
@@ -168,12 +173,7 @@ export default function OrgDrillToc({
         extraLabel={openSegment ? 'Departments' : 'Segment'}
         unit="divisions"
         searchPlaceholder="Search division…"
-        leading={
-          <>
-            {leading}
-            {openSegment && <TocBack label="All segments" onClick={() => setSegmentId(null)} />}
-          </>
-        }
+        leading={leading}
         totals={
           openSegment
             ? `${openSegment.name} · ${rows.length} divisions · ${openSegment.roleCount} roles`

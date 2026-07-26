@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
 import { useOpenRole } from '../../lib/roleDrawer';
+import { useViewState } from '../../lib/viewState';
 import PageHeader from '../../components/PageHeader';
 import SkillViewer from '../../components/SkillViewer';
 import { skillLabel } from '../../lib/skills';
@@ -61,19 +62,14 @@ export default function StandardArea() {
   const { id } = useParams();
   const openRole = useOpenRole();
   const { data, error, loading } = useApi<Data>(id ? `/explorer/standards/${id}` : null);
-  const [q, setQ] = useState('');
-  const [viewSkill, setViewSkill] = useState<string | null>(null);
-  const [open, setOpen] = useState<Set<string>>(new Set());
+  // Search, open skill panel and expanded rows persist per area
+  // (lib/viewState) so drilling out and coming back restores the exact view.
+  const [q, setQ] = useViewState<string>(`standardArea.${id}.q`, '');
+  const [viewSkill, setViewSkill] = useViewState<string | null>(`standardArea.${id}.skill`, null);
+  const [openArr, setOpenArr] = useViewState<string[]>(`standardArea.${id}.open`, []);
+  const open = useMemo(() => new Set(openArr), [openArr]);
   const toggle = (k: string) =>
-    setOpen((p) => {
-      const n = new Set(p);
-      if (n.has(k)) {
-        n.delete(k);
-      } else {
-        n.add(k);
-      }
-      return n;
-    });
+    setOpenArr((p) => (p.includes(k) ? p.filter((x) => x !== k) : [...p, k]));
 
   // Filter + group standards by category (the in-area grouping).
   const groups = useMemo(() => {

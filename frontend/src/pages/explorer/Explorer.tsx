@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../../lib/api';
+import { useBackHandler } from '../../lib/navBack';
 import MapCanvas from '../../viz/map/MapCanvas';
 import ListExplorer from '../../components/ListExplorer';
-import { TocBack, TocView, ViewPills, type TocRow } from '../../components/TocView';
+import { TocView, ViewPills, type TocRow } from '../../components/TocView';
 import { useViewState } from '../../lib/viewState';
 import type { DivisionSummary } from '../../viz/model';
 import { Chip, ErrorMessage, LoadingState } from '../../components/ui';
@@ -46,6 +47,14 @@ function ValueStreamToc({
       .catch((e) => setError(e.message ?? 'Failed to load'));
   }, []);
 
+  // The header's back button pops the domain drill (lib/navBack); at the root
+  // it falls through to history. No in-page back pill.
+  useBackHandler(() => {
+    if (domain === null) return false;
+    setDomain(null);
+    return true;
+  });
+
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
   if (!streams) return <LoadingState message="Loading value streams…" className="animate-pulse" />;
 
@@ -84,12 +93,7 @@ function ValueStreamToc({
           extraLabel="Process areas"
           unit="value streams"
           searchPlaceholder="Search value stream…"
-          leading={
-            <>
-              {leading}
-              <TocBack label="All domains" onClick={() => setDomain(null)} />
-            </>
-          }
+          leading={leading}
         />
       </>
     );

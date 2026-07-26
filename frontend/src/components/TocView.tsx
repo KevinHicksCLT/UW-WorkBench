@@ -117,19 +117,6 @@ export function TocView({
   );
 }
 
-/** Small "back up one TOC level" chip, rendered next to the view pills. */
-export function TocBack({ label, onClick }: { label: string; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="rounded-full border border-[#eaeaea] bg-white px-3 py-1.5 text-xs font-medium text-[#525252] hover:border-[#d4d4d4] hover:text-[#171717] transition-colors duration-150"
-    >
-      ← {label}
-    </button>
-  );
-}
-
 function TocChevron() {
   return (
     <svg

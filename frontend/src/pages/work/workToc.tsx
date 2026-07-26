@@ -7,6 +7,7 @@
  * the old localStorage bridge.* values are migrated by PreferencesProvider.
  */
 import { useEffect, useMemo, useState } from 'react';
+import { useBackHandler } from '../../lib/navBack';
 import { usePreferences } from '../../lib/preferences';
 import { useOnChange, useViewState } from '../../lib/viewState';
 import type { TocRow } from '../../components/TocView';
@@ -61,6 +62,15 @@ export function useWorkToc(
     setView('toc');
     setPreFilter(null);
     setDrillValue(null);
+  });
+
+  // The header's back button steps a drilled group back to the TOC
+  // (lib/navBack); otherwise it falls through to history.
+  useBackHandler(() => {
+    if (view !== 'drill') return false;
+    setView('toc');
+    setDrillValue(null);
+    return true;
   });
   // Sync the grouping when the tab switches or the async preference load lands
   // (kept separate from the view reset so a background save can't yank the

@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
+import { useViewState } from '../../lib/viewState';
 import Inspector from '../../components/Inspector';
 import PageHeader from '../../components/PageHeader';
 import { ListSearch } from '../../components/Sheet';
@@ -25,17 +26,19 @@ type Data = {
 export default function StreamDetail() {
   const { id } = useParams();
   const { data, error, loading } = useApi<Data>(id ? `/explorer/streams/${id}` : null);
-  const [q, setQ] = useState('');
-  const [open, setOpen] = useState<Set<string>>(new Set());
+  // Search, expanded rows and the open Inspector persist per stream
+  // (lib/viewState) so drilling out (e.g. to a role page) and coming back
+  // lands on the same expanded view with the sidebar still open.
+  const [q, setQ] = useViewState<string>(`stream.${id}.q`, '');
+  const [openArr, setOpenArr] = useViewState<string[]>(`stream.${id}.open`, []);
+  const open = useMemo(() => new Set(openArr), [openArr]);
   // Task clicked → the canonical Inspector sidebar over this page (tasks only).
-  const [inspectorNode, setInspectorNode] = useState<string | null>(null);
+  const [inspectorNode, setInspectorNode] = useViewState<string | null>(
+    `stream.${id}.inspector`,
+    null,
+  );
   const toggle = (k: string) =>
-    setOpen((p) => {
-      const n = new Set(p);
-      if (n.has(k)) n.delete(k);
-      else n.add(k);
-      return n;
-    });
+    setOpenArr((p) => (p.includes(k) ? p.filter((x) => x !== k) : [...p, k]));
 
   // Search prunes the tree: an L4 stays when it or one of its tasks matches;
   // an L3 stays when any of its L4s survive.

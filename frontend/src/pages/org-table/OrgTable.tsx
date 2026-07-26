@@ -1,10 +1,10 @@
 import { useMemo, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
+import { useBackHandler } from '../../lib/navBack';
 import { useOpenRole } from '../../lib/roleDrawer';
 import { useViewState } from '../../lib/viewState';
 import PageHeader from '../../components/PageHeader';
-import { TocBack } from '../../components/TocView';
 import { Card, Chip, ErrorMessage, LoadingState } from '../../components/ui';
 
 // ── Box drill-down: Divisions → Teams (departments) → Roles ─────────────────
@@ -142,6 +142,20 @@ export default function OrgTable() {
   const goTeams = () => {
     setDeptId(null);
   };
+
+  // The header's back button pops the drill one level (lib/navBack); at the
+  // root it falls through to history. No in-page back pill.
+  useBackHandler(() => {
+    if (deptId != null) {
+      goTeams();
+      return true;
+    }
+    if (divId != null) {
+      goDivisions();
+      return true;
+    }
+    return false;
+  });
   // Open a role found via search — jump into its team so the surrounding context
   // resolves normally behind the drawer.
   const openRoleFromSearch = (r: {
@@ -162,14 +176,6 @@ export default function OrgTable() {
 
   return (
     <div>
-      {/* In-page drill-up affordance (the global BreadcrumbBar handles the
-          cross-page trail; this steps the state-driven drill back one level). */}
-      {division && (
-        <TocBack
-          label={deptId ? division.name : 'All divisions'}
-          onClick={deptId ? goTeams : goDivisions}
-        />
-      )}
       {!division ? (
         // ── Level 1: all divisions, grouped by segment ───────────────────────
         <>

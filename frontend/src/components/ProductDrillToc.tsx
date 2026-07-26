@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
+import { useBackHandler } from '../lib/navBack';
 import { useViewState } from '../lib/viewState';
-import { TocBack, TocView, type TocRow } from './TocView';
+import { TocView, type TocRow } from './TocView';
 import { ErrorMessage, LoadingState } from './ui';
 
 // ProductDrillToc — the product spine as a TOC descent, mirroring OrgDrillToc:
@@ -72,6 +73,14 @@ export default function ProductDrillToc({ leading }: { leading?: ReactNode }) {
       .catch((e) => setError(e.message ?? 'Failed to load'));
   }, []);
 
+  // The header's back button pops the drill one level (lib/navBack); at the
+  // root it falls through to history. No in-page back pill.
+  useBackHandler(() => {
+    if (stackIds.length === 0) return false;
+    setStackIds((s) => s.slice(0, -1));
+    return true;
+  });
+
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
   if (!table) return <LoadingState message="Loading product models…" className="animate-pulse" />;
 
@@ -85,11 +94,6 @@ export default function ProductDrillToc({ leading }: { leading?: ReactNode }) {
   const rowLevel = depth + 1;
 
   const push = (n: ProductTreeNode) => setStackIds((s) => [...s, n.id]);
-  const pop = () => setStackIds((s) => s.slice(0, -1));
-  const backLabel =
-    stack.length >= 2
-      ? stack[stack.length - 2].name
-      : `All ${/s$/i.test(lc(1, 'segments')) ? lc(1, 'segments') : `${lc(1, 'segments')}s`}`;
 
   // Per-level row shaping: count column + extra column + click-through.
   const shape = (n: ProductTreeNode): TocRow => {
@@ -168,12 +172,7 @@ export default function ProductDrillToc({ leading }: { leading?: ReactNode }) {
       extraLabel={cap.extra}
       unit={cap.unit}
       searchPlaceholder={`Search ${cap.unit}…`}
-      leading={
-        <>
-          {leading}
-          {open && <TocBack label={backLabel} onClick={pop} />}
-        </>
-      }
+      leading={leading}
       totals={totals}
     />
   );
