@@ -1,5 +1,4 @@
 import { useSearchParams } from 'react-router-dom';
-import { useHeaderBreadcrumbSlot } from '../../lib/breadcrumbs';
 import ProductDrillToc from '../../components/ProductDrillToc';
 import ProductListExplorer from '../../components/ProductListExplorer';
 import ProductMapCanvas from '../../viz/product-map/ProductMapCanvas';
@@ -33,10 +32,6 @@ export default function ProductModelHierarchy() {
     );
   };
 
-  // In map view the drill breadcrumb claims the GLOBAL header bar (Layout's
-  // BreadcrumbBar) and ProductMapCanvas portals into it.
-  const crumbSlot = useHeaderBreadcrumbSlot(view === 'map');
-
   const pillOptions = [
     { key: 'toc' as const, label: 'TOC' },
     { key: 'map' as const, label: 'Map' },
@@ -63,7 +58,7 @@ export default function ProductModelHierarchy() {
         ) : view === 'list' ? (
           <ProductListExplorer />
         ) : (
-          <ProductMapCanvas breadcrumbSlot={crumbSlot} />
+          <ProductMapCanvas />
         )}
       </div>
     </div>

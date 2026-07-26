@@ -5,6 +5,7 @@ import { useCompany } from '../../lib/company';
 import PageHeader from '../../components/PageHeader';
 import { Card, EmptyState, ErrorMessage, LoadingState } from '../../components/ui';
 import { MODES, HEAT } from '../../lib/aiAdoption';
+import { useViewState } from '../../lib/viewState';
 
 // Metrics — the AI program in two stages (D6.3), both DB-driven:
 //   Stage 1 "Analysis coverage" — how much of the operating model (value
@@ -133,7 +134,8 @@ export default function ActiveAI() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [dimension, setDimension] = useState<DimensionKey>('division');
+  // Persisted per session (lib/viewState) so returning restores the rollup dimension.
+  const [dimension, setDimension] = useViewState<DimensionKey>('activeAI.dimension', 'division');
 
   useEffect(() => {
     if (companyLoading) return;

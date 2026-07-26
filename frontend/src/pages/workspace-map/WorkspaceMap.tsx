@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { LoadingState, ErrorMessage, EmptyState } from '../../components/ui';
+import { useOnChange, useViewState } from '../../lib/viewState';
 import { useBoardList, useBoardDetails, type Lens } from './useBoard';
 import { FlowEdges, useEdges, type EdgeSpec } from './FlowEdges';
 import LensBar, { type WorkspaceLens } from './LensBar';
@@ -118,7 +119,14 @@ function lensFromDomain(d?: string): WorkspaceLens {
 }
 
 export default function WorkspaceMap({ initialDomain }: { initialDomain?: string }) {
-  const [lens, setLens] = useState<WorkspaceLens>(lensFromDomain(initialDomain));
+  // The active lens persists per session (lib/viewState) so returning to the
+  // Workspace tab restores the board the user left. An explicit ?domain= deep
+  // link states its own intent and wins over the restored lens.
+  const [lens, setLens] = useViewState<WorkspaceLens>(
+    'workspace.lens',
+    lensFromDomain(initialDomain),
+    !initialDomain,
+  );
   // A crash inside one comparison must never blank the whole tab — the
   // boundary shows a reset that remounts the board with fresh state.
   const [boardKey, setBoardKey] = useState(0);
@@ -149,18 +157,26 @@ export default function WorkspaceMap({ initialDomain }: { initialDomain?: string
 }
 
 function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => void }) {
-  const [boardId, setBoardId] = useState<string | null>(null);
-  // The picked comparison set (null = the active board's own apps) and which
-  // of them the Brownfield panel is currently walking.
-  const [pickedAppIds, setPickedAppIds] = useState<Set<string> | null>(null);
-  const [activeAppId, setActiveAppId] = useState<string | null>(null);
-  const [screenName, setScreenName] = useState<string | null>(null);
+  // Board scope + comparison picks persist per session (lib/viewState) so the
+  // tab restores exactly on return. Picks stored as an array (Sets don't
+  // serialize); null = the active board's own apps.
+  const [boardId, setBoardId] = useViewState<string | null>('workspace.app.boardId', null);
+  const [pickedArr, setPickedArr] = useViewState<string[] | null>('workspace.app.picked', null);
+  const pickedAppIds = useMemo(() => (pickedArr ? new Set(pickedArr) : null), [pickedArr]);
+  const [activeAppId, setActiveAppId] = useViewState<string | null>(
+    'workspace.app.activeApp',
+    null,
+  );
+  const [screenName, setScreenName] = useViewState<string | null>('workspace.app.screen', null);
   const [selected, setSelected] = useState<Finding | null>(null);
   const [zoom, setZoom] = useState(1);
   // One expand/collapse state per LAYER, shared by all three columns: opening
   // "UI" anywhere opens the UI row in the panel, the Normalize section and the
   // Greenfield floor together, so the whole band reads as one row.
-  const [expandedLayers, setExpandedLayers] = useState<Partial<Record<Layer, boolean>>>({});
+  const [expandedLayers, setExpandedLayers] = useViewState<Partial<Record<Layer, boolean>>>(
+    'workspace.app.expanded',
+    {},
+  );
   const toggleLayer = (layer: Layer) => setExpandedLayers((c) => ({ ...c, [layer]: !c[layer] }));
 
   const { data: boards, loading: listLoading, error: listError } = useBoardList({ lens });
@@ -205,29 +221,36 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     () => [...new Set(selectedOptions.map((o) => o.boardId))],
     [selectedOptions],
   );
-  const selectionKey = useMemo(() => [...selectedAppIds].sort().join('+'), [selectedAppIds]);
+  // Undefined while the board list is loading, so the loading→loaded
+  // transition never reads as a comparison change (see useOnChange contract).
+  const selectionKey = useMemo(
+    () => (boards ? [...selectedAppIds].sort().join('+') : undefined),
+    [boards, selectedAppIds],
+  );
 
   const { data: details, loading, error, refetch } = useBoardDetails(involvedBoardIds);
 
-  // A board switch resets the whole comparison scope.
-  useEffect(() => {
-    setPickedAppIds(null);
+  // A board switch resets the whole comparison scope — change-only
+  // (lib/viewState useOnChange), so a restored board keeps its restored
+  // picks/expansion on mount.
+  useOnChange(boardId, () => {
+    setPickedArr(null);
     setActiveAppId(null);
     setScreenName(null);
     setSelected(null);
     setExpandedLayers({});
-  }, [boardId]);
+  });
 
   // A different comparison (app added/removed) starts collapsed again.
-  useEffect(() => {
+  useOnChange(selectionKey, () => {
     setSelected(null);
     setExpandedLayers({});
-  }, [selectionKey]);
+  });
 
   // A screen switch starts collapsed again (the counts live in the headers).
-  useEffect(() => {
+  useOnChange(screenName, () => {
     setExpandedLayers({});
-  }, [screenName]);
+  });
 
   // Merge the involved boards into one comparison, scoped to the picked apps.
   // Normalize/Greenfield read this full scope; the Brownfield panel narrows
@@ -283,13 +306,13 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
   const addApp = (id: string) => {
     const next = new Set(selectedAppIds);
     next.add(id);
-    setPickedAppIds(next);
+    setPickedArr([...next]);
   };
   const removeApp = (id: string) => {
     if (selectedAppIds.size === 1) return; // at least one application stays
     const next = new Set(selectedAppIds);
     next.delete(id);
-    setPickedAppIds(next);
+    setPickedArr([...next]);
     if (activeAppId === id) setActiveAppId(null);
   };
   const replaceApp = (oldId: string, newId: string) => {
@@ -297,7 +320,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     const next = new Set(selectedAppIds);
     next.delete(oldId);
     next.add(newId);
-    setPickedAppIds(next);
+    setPickedArr([...next]);
     if (activeAppId === oldId) setActiveAppId(null);
   };
 
@@ -349,7 +372,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     const rect = canvas.getBoundingClientRect();
     const naturalW = rect.width / (zoomRef.current || 1);
     if (naturalW <= 0) return;
-    fittedFor.current = selectionKey;
+    fittedFor.current = selectionKey ?? null;
     const fit = Math.min(1, (scroller.clientWidth - 8) / naturalW);
     setZoom(Math.max(READABLE_FIT_MIN, Math.round(fit * 100) / 100));
   }, [merged, selectionKey]);
@@ -628,7 +651,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
   // connectors run horizontally instead of criss-crossing diagonals.
   const pads = useLayerAlignment(
     canvasRef,
-    merged ? selectionKey : null,
+    merged ? (selectionKey ?? null) : null,
     merged?.components ?? [],
     zoom,
     innerAlign.byLayer,

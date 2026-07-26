@@ -120,6 +120,9 @@ const REQUESTS = [
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // The page persists mailbox/selection via lib/viewState (sessionStorage) —
+  // clear it so state never leaks between tests.
+  sessionStorage.clear();
   apiMock.get.mockImplementation((path: string) => {
     if (path === '/approvals/requests?box=inbox') return Promise.resolve(REQUESTS);
     if (path === '/me/preferences') return Promise.resolve({});

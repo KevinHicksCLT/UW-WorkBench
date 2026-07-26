@@ -5,10 +5,11 @@
  * canonical Sheet; clicking one opens the RequestDrawer with the held payload,
  * assignment ladder, and the Approve / Reject / Cancel actions.
  */
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { APPROVAL_STATUS_LABELS } from '@cascade/shared';
 import { useAuth } from '../../lib/auth';
 import { useApi } from '../../lib/useApi';
+import { useViewState } from '../../lib/viewState';
 import { fmt } from '../../lib/format';
 import PageHeader from '../../components/PageHeader';
 import { Sheet, SheetCell, type SheetCol } from '../../components/Sheet';
@@ -24,8 +25,10 @@ const BOX_SUBTITLES: Record<ApprovalBox, string> = {
 
 export default function Approvals() {
   const { user } = useAuth();
-  const [box, setBox] = useState<ApprovalBox>('inbox');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Persisted per session (lib/viewState) so returning restores the mailbox
+  // and the open request.
+  const [box, setBox] = useViewState<ApprovalBox>('approvals.box', 'inbox');
+  const [selectedId, setSelectedId] = useViewState<string | null>('approvals.selectedId', null);
 
   const boxes = useMemo(() => {
     const all: { key: ApprovalBox; label: string }[] = [

@@ -6,6 +6,7 @@ import { useOpenRole } from '../../lib/roleDrawer';
 import { Sheet, SheetCell, ListSearch, type SheetCol } from '../../components/Sheet';
 import StandardDrawer from '../../components/StandardDrawer';
 import { ViewPills } from '../../components/TocView';
+import { useViewState } from '../../lib/viewState';
 import { Card, EmptyState, ErrorMessage, LoadingState } from '../../components/ui';
 
 // Standards — the company's department standards, in two views:
@@ -48,10 +49,19 @@ export default function Standards() {
   const { data, error, loading } = useApi<Data>('/explorer/standards');
   const navigate = useNavigate();
   const openRole = useOpenRole();
-  const [view, setView] = useState<'toc' | 'list'>('toc');
+  // Persisted per session (lib/viewState) so returning restores the TOC|List
+  // choice and the TOC search.
+  const [view, setView] = useViewState<'toc' | 'list'>('standards.view', 'toc');
   const [items, setItems] = useState<FlatItem[] | null>(null);
-  const [q, setQ] = useState('');
-  const [sel, setSel] = useState<FlatItem | null>(null);
+  const [q, setQ] = useViewState('standards.q', '');
+  // The open drawer persists as an id (lib/viewState) and re-resolves from the
+  // loaded rows, so drilling out of the drawer and coming back reopens it.
+  const [selId, setSelId] = useViewState<string | null>('standards.sel', null);
+  const sel = useMemo(
+    () => (selId ? (items?.find((i) => i.id === selId) ?? null) : null),
+    [selId, items],
+  );
+  const setSel = (r: FlatItem | null) => setSelId(r ? r.id : null);
 
   useEffect(() => {
     api

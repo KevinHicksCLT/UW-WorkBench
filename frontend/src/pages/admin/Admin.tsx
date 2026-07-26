@@ -9,6 +9,7 @@ import SignalCatalog from '../../components/SignalCatalog';
 import AdminSection from '../../components/admin/AdminSection';
 import AdminAssistant from '../../components/admin/AdminAssistant';
 import { ADMIN_TABS } from '../../lib/adminConfig';
+import { useViewState } from '../../lib/viewState';
 import type { AdminEntity } from '../../lib/adminTypes';
 import { Button, Card, ErrorMessage } from '../../components/ui';
 
@@ -46,12 +47,16 @@ export default function Admin() {
   const [sectionKey, setSectionKey] = useState<string>(ADMIN_TABS[0].sections[0].key);
   // Deep-linkable view (e.g. /admin?view=signals from the dashboard's
   // "Trackable signals" footprint stat); defaults to the Configure studio.
+  // Persisted per session (lib/viewState); an explicit ?view= deep link wins
+  // over the restored value.
   const [searchParams] = useSearchParams();
   const initialView = searchParams.get('view');
-  const [view, setView] = useState<'studio' | 'signals' | 'audit' | 'dictionary'>(
+  const [view, setView] = useViewState<'studio' | 'signals' | 'audit' | 'dictionary'>(
+    'admin.view',
     initialView === 'signals' || initialView === 'audit' || initialView === 'dictionary'
       ? initialView
       : 'studio',
+    !initialView,
   );
   const [navCollapsed, setNavCollapsed] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);

@@ -15,6 +15,7 @@ import type { EffectivePermissions, MenuKey, MenuNode } from '@cascade/shared';
 import { MENU_TREE, flattenMenuTree } from '@cascade/shared';
 import { canRead, menuKeyForPath } from './permissions';
 import { withCompany } from './portfolio';
+import { loadViewState, saveViewState } from './viewState';
 
 export type NavItem = { key: MenuKey; label: string; path: string };
 
@@ -63,11 +64,18 @@ const GROUP_SPECS: readonly GroupSpec[] = [
 ] as const;
 
 // Drill-down routes with no MENU_TREE node of their own — map them to the group
-// that owns them so the parent tab stays lit on a detail page.
+// that owns them so the parent tab stays lit, the breadcrumb roots correctly,
+// and the tab return point records them (EVERY drill route must be owned by a
+// tab; a route "sitting in space" breaks all three).
 const GROUP_PATH_PREFIXES: { prefix: string; groupId: string }[] = [
   { prefix: '/programs/', groupId: 'home' },
   { prefix: '/initiatives/', groupId: 'home' },
   { prefix: '/raid', groupId: 'home' },
+  { prefix: '/streams/', groupId: 'value-streams' },
+  { prefix: '/n/', groupId: 'value-streams' },
+  { prefix: '/divisions/', groupId: 'organization' },
+  { prefix: '/departments/', groupId: 'organization' },
+  { prefix: '/audit', groupId: 'admin' },
 ];
 
 const NODE_BY_KEY = new Map<MenuKey, MenuNode>(flattenMenuTree(MENU_TREE).map((n) => [n.key, n]));
@@ -144,6 +152,45 @@ export function baseTabChild(pathname: string): NavItem | null {
     if (child.path !== '/' && pathname === child.path) return child;
   }
   return null;
+}
+
+// ── Tab return points ────────────────────────────────────────────────────────
+// The central "land back where you left" rule for the top nav (desktop tabs,
+// sub-tabs and the mobile menu all route through it): every location is
+// recorded under its owning group AND sub-tab, and a nav click returns to the
+// recorded location instead of the tab's bare base path. Clicking the tab you
+// are already inside is the explicit reset to its base. Combined with
+// lib/viewState page persistence this makes EVERY return path — tab link,
+// breadcrumb, browser Back — restore the exact view.
+const TAB_RETURN_NS = 'nav.tab.';
+
+/** Record `pathname+search` as the return point of its owning group/sub-tab. */
+export function rememberTabLocation(pathname: string, search: string): void {
+  const gc = groupCrumbFor(pathname);
+  if (!gc) return;
+  const sp = new URLSearchParams(search);
+  sp.delete('role'); // the role drawer is an overlay, never part of the return point
+  const qs = sp.toString();
+  const here = pathname + (qs ? `?${qs}` : '');
+  saveViewState(TAB_RETURN_NS + gc.group.path, here);
+  if (gc.child.path !== gc.group.path) saveViewState(TAB_RETURN_NS + gc.child.path, here);
+}
+
+/**
+ * Where a click on the nav tab at `tabPath` should land, given the current
+ * route: the tab's recorded return point when coming from elsewhere, or the
+ * bare base path when already inside the tab (an explicit reset). Non-tab
+ * paths pass through unchanged, so menu rows for drill routes stay safe.
+ */
+export function tabReturnTo(tabPath: string, currentPathname: string): string {
+  const inScope =
+    tabPath === '/'
+      ? groupCrumbFor(currentPathname)?.group.path === '/'
+      : currentPathname === tabPath ||
+        currentPathname.startsWith(`${tabPath}/`) ||
+        groupCrumbFor(currentPathname)?.group.path === tabPath;
+  if (inScope) return tabPath;
+  return loadViewState<string>(TAB_RETURN_NS + tabPath) ?? tabPath;
 }
 
 // Tab → the page's primary list endpoint, warmed on hover/focus so the page

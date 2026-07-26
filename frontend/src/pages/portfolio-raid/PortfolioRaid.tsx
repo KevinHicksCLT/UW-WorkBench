@@ -235,10 +235,8 @@ export default function PortfolioRaid({
         rowKey={(r) => r.id}
         loading={loading}
         unit="items"
-        defaultFilters={{
-          status: 'OPEN',
-          ...(TYPES.includes(linkedType) ? { type: linkedType } : {}),
-        }}
+        defaultFilters={{ status: 'OPEN' }}
+        forceFilters={TYPES.includes(linkedType) ? { type: linkedType } : undefined}
         summarize={(v) =>
           TYPES.map(
             (t) =>

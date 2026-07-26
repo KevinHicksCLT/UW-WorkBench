@@ -1,4 +1,3 @@
-import { Fragment } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
 import { useRegisterCrumb } from '../../lib/breadcrumbs';
@@ -71,35 +70,15 @@ export default function ProductNodeDetail() {
 }
 
 function NodeDetailBody({ data }: { data: NodeDetailData }) {
-  const { node, ancestors, children, levels } = data;
+  const { node, children, levels } = data;
   // Contribute the node to the global visited-path trail (what PageHeader does).
   useRegisterCrumb(node.name);
   const caption = levelCaption(levels, node.levelNumber);
 
   return (
     <div>
-      {/* Ancestry breadcrumb — tab root › each ancestor › this node. */}
-      <nav aria-label="Breadcrumb" className="mb-3 flex flex-wrap items-center gap-1 text-xs">
-        <Link to="/product-models" className="text-[#a3a3a3] hover:text-[#171717] hover:underline">
-          Product Models
-        </Link>
-        {ancestors.map((a) => (
-          <Fragment key={a.id}>
-            <CrumbChevron />
-            <Link
-              to={`/product-models/nodes/${a.id}`}
-              className="text-[#a3a3a3] hover:text-[#171717] hover:underline"
-              title={levelCaption(levels, a.levelNumber)}
-            >
-              {a.name}
-            </Link>
-          </Fragment>
-        ))}
-        <CrumbChevron />
-        <span className="font-medium text-[#525252]">{node.name}</span>
-      </nav>
-
-      {/* Header — level caption chip, node name, status, description. */}
+      {/* Header — level caption chip, node name, status, description. The
+          global BreadcrumbBar is the only trail; no in-page ancestry crumb. */}
       <div className="mb-4">
         <div className="flex flex-wrap items-center gap-2 mb-1.5">
           <Chip variant="soft">{caption}</Chip>
@@ -119,14 +98,6 @@ function NodeDetailBody({ data }: { data: NodeDetailData }) {
         <ChildrenSection node={node} childRows={children} levels={levels} />
       )}
     </div>
-  );
-}
-
-function CrumbChevron() {
-  return (
-    <span className="text-[#d4d4d4]" aria-hidden="true">
-      &rsaquo;
-    </span>
   );
 }
 

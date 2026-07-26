@@ -13,9 +13,9 @@ import { baseTabChild, groupCrumbFor } from './navigation';
 //   - clicking a tab in the top nav (Layout calls resetToTab — an explicit
 //     fresh start),
 //   - navigating to a URL already in the trail (back-nav → truncate to it).
-// Pages contribute their crumb via PageHeader (useRegisterCrumb). Drill-driven
-// surfaces (the Value Streams / Organization maps) can CLAIM the header bar
-// and portal their richer drill breadcrumb into it (useHeaderBreadcrumbSlot).
+// Pages contribute their crumb via PageHeader (useRegisterCrumb). This is the
+// ONE breadcrumb of the app — drill-driven surfaces (maps, TOCs) express their
+// position through their own persisted view state, never a second trail.
 
 export type Crumb = { to: string; label: string };
 
@@ -42,18 +42,12 @@ type Ctx = {
   trail: Crumb[];
   register: (to: string, label: string) => void;
   resetToTab: (to: string) => void;
-  headerSlot: HTMLElement | null;
-  setHeaderSlot: (el: HTMLElement | null) => void;
-  headerClaimed: boolean;
-  claimHeader: (claimed: boolean) => void;
 };
 const BreadcrumbContext = createContext<Ctx | null>(null);
 
 export function BreadcrumbProvider({ children }: { children: ReactNode }) {
   const { pathname, search } = useLocation();
   const [trail, setTrail] = useState<Crumb[]>([]);
-  const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
-  const [headerClaimed, claimHeader] = useState(false);
 
   // Structural update on navigation. Key behaviours:
   //   - Home is the root — no crumb.
@@ -120,9 +114,7 @@ export function BreadcrumbProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <BreadcrumbContext.Provider
-      value={{ trail, register, resetToTab, headerSlot, setHeaderSlot, headerClaimed, claimHeader }}
-    >
+    <BreadcrumbContext.Provider value={{ trail, register, resetToTab }}>
       {children}
     </BreadcrumbContext.Provider>
   );
@@ -139,29 +131,12 @@ export function useRegisterCrumb(label: string) {
   }, [register, pathname, search, label]);
 }
 
-// Layout's view of the breadcrumb header: the trail to render, the slot
-// element to mount (pages portal into it), whether a page has claimed it,
-// and the reset hook for top-nav clicks.
+// Layout's view of the breadcrumb header: the trail to render and the reset
+// hook for top-nav clicks.
 export function useBreadcrumbHeader() {
   const ctx = useContext(BreadcrumbContext);
   return {
     trail: ctx?.trail ?? [],
-    headerClaimed: ctx?.headerClaimed ?? false,
-    setHeaderSlot: ctx?.setHeaderSlot ?? (() => {}),
     resetToTab: ctx?.resetToTab ?? (() => {}),
   };
-}
-
-// A drill-driven page (map view) claims the global header bar while `active`,
-// hiding the visited trail, and gets the element to portal its own breadcrumb
-// into. Returns null while inactive.
-export function useHeaderBreadcrumbSlot(active: boolean): HTMLElement | null {
-  const ctx = useContext(BreadcrumbContext);
-  const claim = ctx?.claimHeader;
-  useEffect(() => {
-    if (!active || !claim) return;
-    claim(true);
-    return () => claim(false);
-  }, [active, claim]);
-  return active ? (ctx?.headerSlot ?? null) : null;
 }

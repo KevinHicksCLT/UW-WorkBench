@@ -1,5 +1,6 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { ListSearch } from './Sheet';
+import { useViewState } from '../lib/viewState';
 import { Card, EmptyState } from './ui';
 
 /**
@@ -32,6 +33,7 @@ export function TocView({
   leading,
   totals,
   actions,
+  stateKey,
 }: {
   rows: TocRow[];
   nameLabel: string;
@@ -42,8 +44,12 @@ export function TocView({
   leading?: ReactNode; // view pills (TOC | List …), leftmost in the strip
   totals?: string; // module totals text (e.g. "13 areas · 95 categories · 1010 standards")
   actions?: ReactNode; // extra right-side controls (e.g. Work's group picker)
+  /** Unique per-surface key — persists the search per session (lib/viewState). */
+  stateKey?: string;
 }) {
-  const [q, setQ] = useState('');
+  // Persisted per session (lib/viewState) so returning to the surface restores
+  // the search; no stateKey = plain transient state.
+  const [q, setQ] = useViewState(stateKey ? `${stateKey}.q` : null, '');
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     if (!needle) return rows;
@@ -108,19 +114,6 @@ export function TocView({
         )}
       </Card>
     </>
-  );
-}
-
-/** Small "back up one TOC level" chip, rendered next to the view pills. */
-export function TocBack({ label, onClick }: { label: string; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="rounded-full border border-[#eaeaea] bg-white px-3 py-1.5 text-xs font-medium text-[#525252] hover:border-[#d4d4d4] hover:text-[#171717] transition-colors duration-150"
-    >
-      ← {label}
-    </button>
   );
 }
 

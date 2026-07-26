@@ -16,7 +16,6 @@
 //   viz/map/MapChrome.tsx         — shared ghost / rename / toolbar / banner
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import {
   ReactFlow,
   Background,
@@ -37,6 +36,7 @@ import { api } from '../../lib/api';
 import { useCompany } from '../../lib/company';
 import { useDialogs } from '../../lib/dialogs';
 import { useOpenRole } from '../../lib/roleDrawer';
+import { useViewState } from '../../lib/viewState';
 import MetricsSidebar, {
   MetricsDrawer,
   type Dashboard,
@@ -49,8 +49,6 @@ import {
   gridHeight,
   LOOSE,
   ROW_GAP_Y,
-  CRUMB,
-  CRUMB_SEP,
   type Division,
   type OrgData,
   type OrgDragState,
@@ -75,13 +73,7 @@ import { DragGhost, RenameEditor, MapEditToolbar, MoveFlashBanner } from '../map
 const ORG_LEVEL_LABEL: Record<number, string> = { 1: 'segment', 2: 'division', 3: 'team' };
 const ORG_MAX_LEVEL = 3;
 
-type Props = { breadcrumbSlot?: HTMLElement | null };
-
-function OrgMapCanvasInner({
-  data,
-  breadcrumbSlot,
-  onSaved,
-}: Props & { data: OrgData; onSaved: () => void }) {
+function OrgMapCanvasInner({ data, onSaved }: { data: OrgData; onSaved: () => void }) {
   const rf = useReactFlow();
   const paneW = useStore((s) => s.width);
   const paneH = useStore((s) => s.height);
@@ -89,10 +81,13 @@ function OrgMapCanvasInner({
   const { companyId } = useCompany();
 
   // Drill state. The company starts open (segments visible), like the VS map.
-  const [companyOpen, setCompanyOpen] = useState(true);
-  const [selSegName, setSelSegName] = useState<string | null>(null);
-  const [selDivId, setSelDivId] = useState<string | null>(null);
-  const [selDeptId, setSelDeptId] = useState<string | null>(null); // LOOSE = direct-to-division roles
+  // Persisted per session (lib/viewState) so leaving the tab and returning
+  // restores the exact drill; the metrics panel below re-fetches off it.
+  const [companyOpen, setCompanyOpen] = useViewState<boolean>('org.map.companyOpen', true);
+  const [selSegName, setSelSegName] = useViewState<string | null>('org.map.segment', null);
+  const [selDivId, setSelDivId] = useViewState<string | null>('org.map.division', null);
+  // LOOSE = direct-to-division roles
+  const [selDeptId, setSelDeptId] = useViewState<string | null>('org.map.department', null);
 
   // ── Edit state (identical model to MapCanvas) ────────────────────────────────
   const [editMode, setEditMode] = useState(false);
@@ -136,9 +131,10 @@ function OrgMapCanvasInner({
     pendingRoleOrder.size;
   const [rename, setRename] = useState<RenameState | null>(null);
 
-  // Right-hand metrics panel.
-  const [base, setBase] = useState<{ level: string; id: string } | null>(null);
-  const [ovStack, setOvStack] = useState<{ level: string; id: string }[]>([]);
+  // Right-hand metrics panel — the open target + its drill stack persist too,
+  // so the sidebar comes back exactly as left (the fetch effect keys off them).
+  const [base, setBase] = useViewState<{ level: string; id: string } | null>('org.map.base', null);
+  const [ovStack, setOvStack] = useViewState<{ level: string; id: string }[]>('org.map.stack', []);
   const [dash, setDash] = useState<Dashboard | null>(null);
   const [dashLoading, setDashLoading] = useState(false);
   const [drawerSection, setDrawerSection] = useState<MetricSection | null>(null);
@@ -346,22 +342,6 @@ function OrgMapCanvasInner({
     if (next && next !== LOOSE) openMetrics('department', id, hexOf(selSegName));
     else if (selDivId) openMetrics('division', selDivId, hexOf(selSegName));
   }
-
-  const crumbClear = useCallback(() => {
-    setSelSegName(null);
-    setSelDivId(null);
-    setSelDeptId(null);
-    closeMetrics();
-  }, []);
-  const crumbToSegment = () => {
-    setSelDivId(null);
-    setSelDeptId(null);
-    if (selSegName) openMetrics('domain', selSegName, hexOf(selSegName));
-  };
-  const crumbToDivision = () => {
-    setSelDeptId(null);
-    if (selDivId) openMetrics('division', selDivId, hexOf(selSegName));
-  };
 
   // ── Build nodes and edges (from the display arrays) ──────────────────────────
   const { nodes, edges } = useMemo(() => {
@@ -997,85 +977,6 @@ function OrgMapCanvasInner({
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div style={{ position: 'relative', height: '100%', display: 'flex' }}>
-      {breadcrumbSlot &&
-        createPortal(
-          selSegName ? (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <button onClick={crumbClear} className="focus-crumb-ancestor" style={CRUMB}>
-                {sentenceCase(data.company.name)}
-              </button>
-              <span style={CRUMB_SEP}>›</span>
-              {!selDivision ? (
-                <span className="focus-crumb-active" style={CRUMB}>
-                  {sentenceCase(selSegName)}
-                </span>
-              ) : (
-                <button onClick={crumbToSegment} className="focus-crumb-ancestor" style={CRUMB}>
-                  {sentenceCase(selSegName)}
-                </button>
-              )}
-              {selDivision && (
-                <>
-                  <span style={CRUMB_SEP}>›</span>
-                  {!selTeam ? (
-                    <span className="focus-crumb-active" style={CRUMB}>
-                      {sentenceCase(selDivision.name)}
-                    </span>
-                  ) : (
-                    <button
-                      onClick={crumbToDivision}
-                      className="focus-crumb-ancestor"
-                      style={CRUMB}
-                    >
-                      {sentenceCase(selDivision.name)}
-                    </button>
-                  )}
-                </>
-              )}
-              {selTeam && (
-                <>
-                  <span style={CRUMB_SEP}>›</span>
-                  <span className="focus-crumb-active" style={CRUMB}>
-                    {sentenceCase(selTeam.name)}
-                  </span>
-                </>
-              )}
-              <button
-                onClick={crumbClear}
-                aria-label="Clear focus"
-                style={{
-                  marginLeft: 6,
-                  width: 18,
-                  height: 18,
-                  borderRadius: 5,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 10,
-                  color: '#a3a3a3',
-                  background: 'transparent',
-                  border: '1px solid #eaeaea',
-                  cursor: 'pointer',
-                }}
-              >
-                ✕
-              </button>
-            </div>
-          ) : (
-            <span className="text-[11px] text-[#666666]">
-              Click a segment to drill into divisions, teams and roles.
-            </span>
-          ),
-          breadcrumbSlot,
-        )}
-
       <div
         className={'rf-stage rf-stage--map' + (editMode ? ' rf-stage--edit' : '')}
         style={{ flex: 1, position: 'relative', minWidth: 0 }}
@@ -1145,7 +1046,7 @@ function OrgMapCanvasInner({
 
 // ── Data wrapper + provider ──────────────────────────────────────────────────
 
-export default function OrgMapCanvas({ breadcrumbSlot }: Props) {
+export default function OrgMapCanvas() {
   const { data, error, loading, refetch } = useApi<OrgData>('/explorer/org-table');
 
   if (loading && !data) {
@@ -1166,7 +1067,7 @@ export default function OrgMapCanvas({ breadcrumbSlot }: Props) {
 
   return (
     <ReactFlowProvider>
-      <OrgMapCanvasInner data={data} breadcrumbSlot={breadcrumbSlot} onSaved={refetch} />
+      <OrgMapCanvasInner data={data} onSaved={refetch} />
     </ReactFlowProvider>
   );
 }

@@ -8,7 +8,7 @@
 // showing everything under that version — header facts, ancestry, and the L5
 // model components with their elements. Read-only. Data: GET /product-spine/table.
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useApi } from '../lib/useApi';
 import ProductDetailPanel from './product-list/ProductDetailPanel';
 import {
@@ -17,6 +17,7 @@ import {
   type ProductTableData,
   type VersionRow,
 } from './product-list/model';
+import { useViewState } from '../lib/viewState';
 import { Sheet, SheetCell, type SheetCol } from './Sheet';
 import { ErrorMessage, StatusPill } from './ui';
 
@@ -24,7 +25,9 @@ const DASH = '—';
 
 export default function ProductListExplorer() {
   const { data, error, loading } = useApi<ProductTableData>('/product-spine/table');
-  const [selected, setSelected] = useState<VersionRow | null>(null);
+  // The open drawer persists as an id (lib/viewState) and re-resolves from the
+  // loaded rows, so drilling out of the drawer and coming back reopens it.
+  const [selectedId, setSelectedId] = useViewState<string | null>('product.list.selected', null);
 
   const levels = useMemo(
     () => [...(data?.levels ?? [])].sort((a, b) => a.levelNumber - b.levelNumber),
@@ -34,6 +37,10 @@ export default function ProductListExplorer() {
     levels.find((l) => l.levelNumber === levelNumber)?.name ?? fallback;
 
   const rows = useMemo(() => flattenVersions(data?.roots ?? []), [data]);
+  const selected = useMemo(
+    () => (selectedId ? (rows.find((r) => r.id === selectedId) ?? null) : null),
+    [selectedId, rows],
+  );
 
   // Column captions depend on the payload's editable level names, so the
   // config is memoized on `levels` rather than hoisted to module scope.
@@ -129,7 +136,7 @@ export default function ProductListExplorer() {
                     new Set(v.map((r) => `${r.lob}|${r.product}`)).size
                   } products`
                 }
-                onRowClick={(r) => setSelected((prev) => (prev?.id === r.id ? null : r))}
+                onRowClick={(r) => setSelectedId((prev) => (prev === r.id ? null : r.id))}
                 selectedKey={selected?.id ?? null}
               />
             )}
@@ -142,7 +149,7 @@ export default function ProductListExplorer() {
         <ProductDetailPanel
           row={selected}
           componentLevelName={caption(5, 'Model Components')}
-          onClose={() => setSelected(null)}
+          onClose={() => setSelectedId(null)}
         />
       )}
     </div>

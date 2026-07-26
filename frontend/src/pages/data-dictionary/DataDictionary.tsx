@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import PageHeader from '../../components/PageHeader';
 import { GLOSSARY, type GlossaryGroup } from '../../lib/glossary';
+import { useViewState } from '../../lib/viewState';
 import { Card, Input } from '../../components/ui';
 
 // Data dictionary — a plain-language glossary of the terms used across the
@@ -12,25 +13,24 @@ const anchorId = (group: string) => 'g-' + group.toLowerCase().replace(/[^a-z0-9
 // `embedded` skips the page header so the dictionary can be hosted inside another
 // page (e.g. the Data Admin tab) without a duplicate title.
 export default function DataDictionary({ embedded = false }: { embedded?: boolean } = {}) {
-  const [filter, setFilter] = useState('');
+  // Persisted per session (lib/viewState) so returning restores the search.
+  const [filter, setFilter] = useViewState('dataDictionary.filter', '');
 
   // Filter terms by a case-insensitive match on the term, its alias, or its
   // definition. A group is kept only if it has at least one matching term.
   const shown = useMemo<GlossaryGroup[]>(() => {
     const q = filter.trim().toLowerCase();
     if (!q) return GLOSSARY;
-    return GLOSSARY
-      .map((g) => ({
-        ...g,
-        terms: g.terms.filter(
-          (t) =>
-            t.term.toLowerCase().includes(q) ||
-            (t.aka?.toLowerCase().includes(q) ?? false) ||
-            t.definition.toLowerCase().includes(q) ||
-            (t.values?.some((v) => v.toLowerCase().includes(q)) ?? false),
-        ),
-      }))
-      .filter((g) => g.terms.length > 0);
+    return GLOSSARY.map((g) => ({
+      ...g,
+      terms: g.terms.filter(
+        (t) =>
+          t.term.toLowerCase().includes(q) ||
+          (t.aka?.toLowerCase().includes(q) ?? false) ||
+          t.definition.toLowerCase().includes(q) ||
+          (t.values?.some((v) => v.toLowerCase().includes(q)) ?? false),
+      ),
+    })).filter((g) => g.terms.length > 0);
   }, [filter]);
 
   const totalTerms = GLOSSARY.reduce((n, g) => n + g.terms.length, 0);
@@ -63,7 +63,9 @@ export default function DataDictionary({ embedded = false }: { embedded?: boolea
                     className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-md text-sm text-[#525252] hover:bg-[#fafafa] hover:text-[#171717] transition-colors duration-150"
                   >
                     <span className="truncate">{g.group}</span>
-                    <span className="text-[10px] tnum text-[#a3a3a3] flex-shrink-0">{g.terms.length}</span>
+                    <span className="text-[10px] tnum text-[#a3a3a3] flex-shrink-0">
+                      {g.terms.length}
+                    </span>
                   </a>
                 ))}
                 {shown.length === 0 && (
@@ -77,7 +79,12 @@ export default function DataDictionary({ embedded = false }: { embedded?: boolea
         {/* Glossary */}
         <section className="flex-1 min-w-0 space-y-6">
           {shown.map((g) => (
-            <Card key={g.group} id={anchorId(g.group)} variant="elevated" className="overflow-hidden scroll-mt-4">
+            <Card
+              key={g.group}
+              id={anchorId(g.group)}
+              variant="elevated"
+              className="overflow-hidden scroll-mt-4"
+            >
               <div className="px-5 py-3 border-b border-[#eaeaea] bg-[#fafafa]">
                 <h2 className="text-sm font-semibold text-[#171717]">{g.group}</h2>
                 <p className="text-[11px] text-[#666666] mt-0.5">{g.blurb}</p>
@@ -87,7 +94,9 @@ export default function DataDictionary({ embedded = false }: { embedded?: boolea
                   <div key={t.term} className="px-5 py-4 sm:flex sm:gap-6">
                     <dt className="sm:w-48 flex-shrink-0 mb-1 sm:mb-0">
                       <span className="text-sm font-semibold text-[#171717]">{t.term}</span>
-                      {t.aka && <span className="block text-[11px] text-[#a3a3a3] mt-0.5">{t.aka}</span>}
+                      {t.aka && (
+                        <span className="block text-[11px] text-[#a3a3a3] mt-0.5">{t.aka}</span>
+                      )}
                     </dt>
                     <dd className="min-w-0 flex-1">
                       <p className="text-sm text-[#525252] leading-relaxed">{t.definition}</p>
@@ -110,7 +119,10 @@ export default function DataDictionary({ embedded = false }: { embedded?: boolea
             </Card>
           ))}
           {shown.length === 0 && (
-            <Card variant="elevated" className="px-5 py-10 text-center text-sm text-[#a3a3a3] italic">
+            <Card
+              variant="elevated"
+              className="px-5 py-10 text-center text-sm text-[#a3a3a3] italic"
+            >
               No terms match “{filter}”.
             </Card>
           )}

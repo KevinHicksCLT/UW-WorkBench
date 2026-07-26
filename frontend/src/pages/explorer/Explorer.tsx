@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../../lib/api';
-import { useHeaderBreadcrumbSlot } from '../../lib/breadcrumbs';
+import { useBackHandler } from '../../lib/navBack';
 import MapCanvas from '../../viz/map/MapCanvas';
 import ListExplorer from '../../components/ListExplorer';
-import { TocBack, TocView, ViewPills, type TocRow } from '../../components/TocView';
+import { TocView, ViewPills, type TocRow } from '../../components/TocView';
+import { useViewState } from '../../lib/viewState';
 import type { DivisionSummary } from '../../viz/model';
 import { Chip, ErrorMessage, LoadingState } from '../../components/ui';
 import {
@@ -37,13 +38,22 @@ function ValueStreamToc({
 }) {
   const [streams, setStreams] = useState<TreeStream[] | null>(null);
   const [error, setError] = useState('');
-  const [domain, setDomain] = useState<string | null>(null);
+  // Persisted per session (lib/viewState) so returning restores the drilled domain.
+  const [domain, setDomain] = useViewState<string | null>('explorer.tocDomain', null);
   useEffect(() => {
     api
       .get<{ divisions: TreeStream[] }>('/explorer/tree')
       .then((t) => setStreams(t.divisions ?? []))
       .catch((e) => setError(e.message ?? 'Failed to load'));
   }, []);
+
+  // The header's back button pops the domain drill (lib/navBack); at the root
+  // it falls through to history. No in-page back pill.
+  useBackHandler(() => {
+    if (domain === null) return false;
+    setDomain(null);
+    return true;
+  });
 
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
   if (!streams) return <LoadingState message="Loading value streams…" className="animate-pulse" />;
@@ -76,18 +86,14 @@ function ValueStreamToc({
           text={`${domain} · ${rows.length} value streams · ${rows.reduce((a, r) => a + r.count, 0)} processes`}
         />
         <TocView
+          stateKey="explorer.toc.streams"
           rows={rows}
           nameLabel="Value stream"
           countLabel="Processes"
           extraLabel="Process areas"
           unit="value streams"
           searchPlaceholder="Search value stream…"
-          leading={
-            <>
-              {leading}
-              <TocBack label="All domains" onClick={() => setDomain(null)} />
-            </>
-          }
+          leading={leading}
         />
       </>
     );
@@ -117,6 +123,7 @@ function ValueStreamToc({
         text={`${rows.length} domains · ${streams.length} value streams · ${rows.reduce((a, r) => a + r.count, 0)} processes`}
       />
       <TocView
+        stateKey="explorer.toc.domains"
         rows={rows}
         nameLabel="Domain"
         countLabel="Processes"
@@ -240,10 +247,6 @@ export default function Explorer() {
     [navigate],
   );
 
-  // In map view the drill breadcrumb claims the GLOBAL header bar (Layout's
-  // BreadcrumbBar) and MapCanvas portals into it — no in-page header strip.
-  const crumbSlot = useHeaderBreadcrumbSlot(view === 'map');
-
   // Variant lens (map view) — Market › Segment › LOB › Cross-cutting, every
   // axis defaulting to the generic model. Picks live in the URL like the rest
   // of the view state; generic picks are simply absent params.
@@ -340,7 +343,6 @@ export default function Explorer() {
           <MapCanvas
             divisions={divisions}
             companyName={companyName}
-            breadcrumbSlot={crumbSlot}
             focusVsId={focusVsId}
             onMoved={loadOverview}
           />

@@ -1,9 +1,9 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCompany } from '../../lib/company';
 import { useApi } from '../../lib/useApi';
 import { withCompany, Tile } from '../../lib/portfolio';
 import { useRegisterCrumb } from '../../lib/breadcrumbs';
+import { saveViewState, useViewState } from '../../lib/viewState';
 import { RequirementsTable } from './RequirementsTable';
 import { COMPLIANCE_LENS_KEY } from './compliance/shared';
 
@@ -457,13 +457,10 @@ export const LOB_HELP: Record<string, string> = {
   REINSURANCE: 'Assumed and ceded reinsurance',
 };
 
-// The active lens survives drill-down navigation (sessionStorage) so history
-// back lands the user on the lens they left, not the default.
+// The active lens survives drill-down navigation (persisted per session via
+// lib/viewState) so history back lands the user on the lens they left, not
+// the default.
 const TAB_KEY = 'regulations.lens';
-const initialTab = (): Tab => {
-  const saved = sessionStorage.getItem(TAB_KEY);
-  return TABS.includes(saved as Tab) ? (saved as Tab) : 'International';
-};
 
 const LENS_PARAM: Record<Tab, string> = {
   International: 'international',
@@ -474,11 +471,9 @@ const LENS_PARAM: Record<Tab, string> = {
 export default function Regulations() {
   const navigate = useNavigate();
   const { companyId } = useCompany();
-  const [tab, setTabState] = useState<Tab>(initialTab);
-  const setTab = (t: Tab) => {
-    sessionStorage.setItem(TAB_KEY, t);
-    setTabState(t);
-  };
+  const [savedTab, setTab] = useViewState<Tab>(TAB_KEY, 'International');
+  // Guard against a stale persisted value that is no longer a valid lens.
+  const tab: Tab = TABS.includes(savedTab) ? savedTab : 'International';
   useRegisterCrumb('Regulations');
 
   // Per-lens headline stats — the cards reflect the active tab.
@@ -531,7 +526,7 @@ export default function Regulations() {
               hint={`items across ${compliance.regulations.toLocaleString()} ${tab.toLowerCase()} regulations`}
               onClick={() => {
                 // Land the register on the lens the user was looking at.
-                sessionStorage.setItem(COMPLIANCE_LENS_KEY, LENS_PARAM[tab]);
+                saveViewState(COMPLIANCE_LENS_KEY, LENS_PARAM[tab]);
                 navigate('/regulations/compliance');
               }}
             />

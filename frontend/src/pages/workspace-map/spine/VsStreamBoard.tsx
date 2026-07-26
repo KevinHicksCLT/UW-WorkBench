@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { EmptyState, ErrorMessage, LoadingState } from '../../../components/ui';
 import { useApi } from '../../../lib/useApi';
+import { useOnChange, useViewState } from '../../../lib/viewState';
 import LensBar, { type WorkspaceLens } from '../LensBar';
 import { AMBER, INDIGO } from '../types';
 import { Picker, ConsolidationRail, type PoolOption } from './SpineBoard';
@@ -221,15 +222,21 @@ export default function VsStreamBoard({
   onLens: (l: WorkspaceLens) => void;
 }) {
   const { data: streams, loading: listLoading, error: listError } = useStreamList();
-  const [ids, setIds] = useState<string[]>([]);
-  const [byProduct, setByProduct] = useState(false);
+  // Compared streams + drill state persist per session (lib/viewState) so the
+  // tab restores exactly on return.
+  const [ids, setIds] = useViewState<string[]>('workspace.vs.ids', []);
+  const [byProduct, setByProduct] = useViewState<boolean>('workspace.vs.byProduct', false);
   /** Per lane: which stage slot is expanded (progressive drill, one at a time). */
-  const [openStage, setOpenStage] = useState<Record<string, string | null>>({});
+  const [openStage, setOpenStage] = useViewState<Record<string, string | null>>(
+    'workspace.vs.openStage',
+    {},
+  );
 
   useEffect(() => {
     if (streams && streams.length > 1 && ids.length === 0) setIds([streams[0].id, streams[1].id]);
-  }, [streams, ids.length]);
-  useEffect(() => setOpenStage({}), [ids.join(','), byProduct]);
+  }, [streams, ids.length, setIds]);
+  // Change-only: a restored comparison keeps its restored drill on mount.
+  useOnChange(`${ids.join(',')}|${byProduct}`, () => setOpenStage({}));
 
   const { data: details, loading, error } = useStreamDetails(ids);
   const { data: productData } = useApi<{

@@ -1,9 +1,9 @@
-import { useMemo, useState, type ReactNode } from 'react';
-import { createPortal } from 'react-dom';
+import { useMemo, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
-import { useHeaderBreadcrumbSlot } from '../../lib/breadcrumbs';
+import { useBackHandler } from '../../lib/navBack';
 import { useOpenRole } from '../../lib/roleDrawer';
+import { useViewState } from '../../lib/viewState';
 import PageHeader from '../../components/PageHeader';
 import { Card, Chip, ErrorMessage, LoadingState } from '../../components/ui';
 
@@ -41,9 +41,10 @@ const LOOSE = '__loose'; // sentinel department id for roles reporting directly 
 export default function OrgTable() {
   const openRole = useOpenRole();
   const { data, error, loading } = useApi<OrgData>('/explorer/org-table');
-  const [divId, setDivId] = useState<string | null>(null);
-  const [deptId, setDeptId] = useState<string | null>(null); // null = none selected; LOOSE = direct roles
-  const [query, setQuery] = useState('');
+  // Persisted per session (lib/viewState) so returning restores the drill + search.
+  const [divId, setDivId] = useViewState<string | null>('orgTable.division', null);
+  const [deptId, setDeptId] = useViewState<string | null>('orgTable.department', null); // null = none selected; LOOSE = direct roles
+  const [query, setQuery] = useViewState('orgTable.q', '');
 
   // Deep-link: `?view=departments` (from the home "Departments" footprint tile)
   // lands on a flat grid of every department across divisions. Derived straight
@@ -134,10 +135,6 @@ export default function OrgTable() {
       : null;
   const rolesInView = deptId === LOOSE ? (division?.looseRoles ?? []) : (dept?.roles ?? []);
 
-  // While drilled into a division, the state-driven drill breadcrumb claims
-  // the global header bar (same pattern as the map views) — no in-page crumb.
-  const headerSlot = useHeaderBreadcrumbSlot(division != null);
-
   const goDivisions = () => {
     setDivId(null);
     setDeptId(null);
@@ -145,6 +142,20 @@ export default function OrgTable() {
   const goTeams = () => {
     setDeptId(null);
   };
+
+  // The header's back button pops the drill one level (lib/navBack); at the
+  // root it falls through to history. No in-page back pill.
+  useBackHandler(() => {
+    if (deptId != null) {
+      goTeams();
+      return true;
+    }
+    if (divId != null) {
+      goDivisions();
+      return true;
+    }
+    return false;
+  });
   // Open a role found via search — jump into its team so the surrounding context
   // resolves normally behind the drawer.
   const openRoleFromSearch = (r: {
@@ -162,15 +173,9 @@ export default function OrgTable() {
   if (!data) return null;
 
   const t = data.totals;
-  const crumbs: { label: string; onClick?: () => void }[] = [
-    { label: 'Organization', onClick: divId ? goDivisions : undefined },
-  ];
-  if (division) crumbs.push({ label: division.name, onClick: deptId ? goTeams : undefined });
-  if (deptId) crumbs.push({ label: deptId === LOOSE ? 'Direct to division' : (dept?.name ?? '…') });
 
   return (
     <div>
-      {division && headerSlot && createPortal(<Crumbs crumbs={crumbs} />, headerSlot)}
       {!division ? (
         // ── Level 1: all divisions, grouped by segment ───────────────────────
         <>
@@ -393,59 +398,6 @@ function Box({
         Open <Chevron />
       </div>
     </Card>
-  );
-}
-
-// Same chevron + dark-pill + clear-focus treatment as the Value Streams map
-// breadcrumb (see MapCanvas.tsx / .focus-crumb-* in index.css). The ✕ resets to
-// the Roles base via the first crumb's handler (goDivisions).
-// Rendered into the global header bar (via portal), not in the page body.
-function Crumbs({ crumbs }: { crumbs: { label: string; onClick?: () => void }[] }) {
-  const clear = crumbs[0]?.onClick;
-  return (
-    <nav className="flex items-center flex-wrap" aria-label="Breadcrumb">
-      {crumbs.map((b, i) => {
-        const isLast = i === crumbs.length - 1;
-        return (
-          <span key={i} className="inline-flex items-center">
-            {i > 0 && <span style={{ color: '#d4d4d4', margin: '0 4px' }}>›</span>}
-            {isLast ? (
-              <span className="focus-crumb-active">{b.label}</span>
-            ) : b.onClick ? (
-              <button onClick={b.onClick} className="focus-crumb-ancestor">
-                {b.label}
-              </button>
-            ) : (
-              <span className="focus-crumb-ancestor" style={{ cursor: 'default' }}>
-                {b.label}
-              </span>
-            )}
-          </span>
-        );
-      })}
-      {clear && (
-        <button
-          onClick={clear}
-          aria-label="Clear focus"
-          style={{
-            marginLeft: 6,
-            width: 22,
-            height: 22,
-            borderRadius: 6,
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 12,
-            color: '#a3a3a3',
-            background: 'transparent',
-            border: '1px solid #eaeaea',
-            cursor: 'pointer',
-          }}
-        >
-          ✕
-        </button>
-      )}
-    </nav>
   );
 }
 

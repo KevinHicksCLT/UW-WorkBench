@@ -1,5 +1,5 @@
 // breadcrumbs — the visited-path trail: tab appends, page registration,
-// back-nav truncation, deep-link seeding, resetToTab, and the header claim.
+// back-nav truncation, deep-link seeding, and resetToTab.
 import { useEffect, type ReactNode } from 'react';
 import { describe, expect, it } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
@@ -7,7 +7,6 @@ import { MemoryRouter, useNavigate } from 'react-router-dom';
 import {
   BreadcrumbProvider,
   useBreadcrumbHeader,
-  useHeaderBreadcrumbSlot,
   useRegisterCrumb,
 } from '../../src/lib/breadcrumbs';
 
@@ -17,25 +16,19 @@ let navigateFn: (to: string) => void = () => {};
 let resetFn: (to: string) => void = () => {};
 
 function Probe() {
-  const { trail, resetToTab, headerClaimed } = useBreadcrumbHeader();
+  const { trail, resetToTab } = useBreadcrumbHeader();
   const navigate = useNavigate();
   navigateFn = navigate;
   resetFn = resetToTab;
   return (
     <div>
       <div data-testid="trail">{trail.map((c) => `${c.label}@${c.to}`).join(' | ')}</div>
-      <div data-testid="claimed">{String(headerClaimed)}</div>
     </div>
   );
 }
 
 function RegisterCrumb({ label }: { label: string }) {
   useRegisterCrumb(label);
-  return null;
-}
-
-function ClaimHeader({ active }: { active: boolean }) {
-  useHeaderBreadcrumbSlot(active);
   return null;
 }
 
@@ -144,32 +137,16 @@ describe('useRegisterCrumb', () => {
   });
 });
 
-describe('useHeaderBreadcrumbSlot', () => {
-  it('claims the header while active and releases it when deactivated', () => {
-    const view = renderTrail('/overview', <ClaimHeader active />);
-    expect(screen.getByTestId('claimed').textContent).toBe('true');
-
-    view.rerender(tree('/overview', <ClaimHeader active={false} />));
-    expect(screen.getByTestId('claimed').textContent).toBe('false');
-  });
-
-  it('does not claim while inactive', () => {
-    renderTrail('/overview', <ClaimHeader active={false} />);
-    expect(screen.getByTestId('claimed').textContent).toBe('false');
-  });
-});
-
 describe('useBreadcrumbHeader outside the provider', () => {
   it('returns safe defaults', () => {
     function Naked() {
-      const { trail: t, headerClaimed, setHeaderSlot, resetToTab } = useBreadcrumbHeader();
+      const { trail: t, resetToTab } = useBreadcrumbHeader();
       useEffect(() => {
-        setHeaderSlot(null); // no-op fallbacks must be callable
-        resetToTab('/roles');
-      }, [setHeaderSlot, resetToTab]);
-      return <div data-testid="naked">{`${t.length}:${headerClaimed}`}</div>;
+        resetToTab('/roles'); // no-op fallback must be callable
+      }, [resetToTab]);
+      return <div data-testid="naked">{`${t.length}`}</div>;
     }
     render(<Naked />);
-    expect(screen.getByTestId('naked').textContent).toBe('0:false');
+    expect(screen.getByTestId('naked').textContent).toBe('0');
   });
 });

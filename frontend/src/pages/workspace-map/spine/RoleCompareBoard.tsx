@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { EmptyState, ErrorMessage, LoadingState } from '../../../components/ui';
+import { useViewState } from '../../../lib/viewState';
 import LensBar, { type WorkspaceLens } from '../LensBar';
 import { AMBER, INDIGO } from '../types';
 import { Picker, ConsolidationRail, type PoolOption } from './SpineBoard';
@@ -61,9 +62,11 @@ export default function RoleCompareBoard({
   onLens: (l: WorkspaceLens) => void;
 }) {
   const { data: roles, loading: listLoading, error: listError } = useRoleList();
-  const [ids, setIds] = useState<string[]>([]);
-  const [division, setDivision] = useState('');
-  const [stream, setStream] = useState('');
+  // Compared roles + dropdown filters persist per session (lib/viewState) so
+  // the tab restores exactly on return.
+  const [ids, setIds] = useViewState<string[]>('workspace.role.ids', []);
+  const [division, setDivision] = useViewState<string>('workspace.role.division', '');
+  const [stream, setStream] = useViewState<string>('workspace.role.stream', '');
 
   useEffect(() => {
     if (!roles || roles.length < 2 || ids.length > 0) return;
@@ -73,7 +76,7 @@ export default function RoleCompareBoard({
     const first = busiest[0];
     const sibling = busiest.find((r) => r.id !== first.id && r.department === first.department);
     setIds([first.id, (sibling ?? busiest[1]).id]);
-  }, [roles, ids.length]);
+  }, [roles, ids.length, setIds]);
 
   const { data: details, loading, error } = useRoleDetails(ids);
 
