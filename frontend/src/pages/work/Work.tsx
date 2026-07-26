@@ -75,7 +75,6 @@ type WorkData = {
 type RoleRef = { id: string; name: string };
 type PlanRow = { key: string; value: string | null; defined: boolean; generic: boolean };
 type RoleSet = { roles: RoleRef[]; unresolved: string[] };
-type NamedRef = { id: string; name: string };
 type DeliverableTask = {
   id: string;
   title: string;
@@ -100,9 +99,6 @@ type DeliverableDetail = {
   contributorRoles: RoleRef[];
   planRollup: { defined: number; total: number } | null;
   tasks: DeliverableTask[];
-  applications: NamedRef[];
-  standards: NamedRef[];
-  regulations: NamedRef[];
 };
 type TaskDetail = {
   kind: 'task';
@@ -435,39 +431,6 @@ function DetailBody({ detail, onOpenTask }: { detail: Detail; onOpenTask?: (id: 
             </Link>
           </>
         )}
-      {/* Governance inherited from the tasks' process area (NodeStandard /
-          NodeRegulation on the task nodes — same source as the Tasks tab). */}
-      {detail.kind === 'deliverable' &&
-        (detail.standards.length > 0 || detail.regulations.length > 0) && (
-          <Field label={`Governance (${detail.standards.length + detail.regulations.length})`}>
-            <div className="flex flex-wrap gap-1.5">
-              {detail.standards.map((s) => (
-                <StatusPill key={s.id} tone="slate" className="text-xs" title="Standard">
-                  {s.name}
-                </StatusPill>
-              ))}
-              {detail.regulations.map((r) => (
-                <StatusPill key={r.id} tone="amber" className="text-xs" title="Regulation">
-                  {r.name}
-                </StatusPill>
-              ))}
-            </div>
-          </Field>
-        )}
-
-      {/* Applications the producing tasks run on (NodeAppUsage). */}
-      {detail.kind === 'deliverable' && detail.applications.length > 0 && (
-        <Field label={`Applications (${detail.applications.length})`}>
-          <div className="flex flex-wrap gap-1.5">
-            {detail.applications.map((app) => (
-              <StatusPill key={app.id} tone="blue" className="text-xs">
-                {app.name}
-              </StatusPill>
-            ))}
-          </div>
-        </Field>
-      )}
-
       {/* Linked work — each task row drills into the task detail. */}
       {detail.kind === 'deliverable' ? (
         <div>

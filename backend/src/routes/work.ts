@@ -4,7 +4,7 @@ import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireAnyPermission } from '../middleware/permissions.js';
 import { cacheResponses } from '../lib/responseCache.js';
-import { ancestorNames, appsForNodes, rolesForNodes } from '../lib/resolvers/index.js';
+import { ancestorNames, rolesForNodes } from '../lib/resolvers/index.js';
 import { taskPlans } from '../lib/workPlan.js';
 
 // Deliverables & Tasks API — the standalone work tracker behind the
@@ -326,25 +326,9 @@ router.get('/deliverable/:id', async (req: Request, res: Response, next: NextFun
     const taskNodeIds = d.nodeDeliverables
       .filter((n) => n.processNode?.isTask)
       .map((n) => n.processNodeId);
-    // One parallel round: locations, task roles, task apps, and the standards /
-    // regulations attached to the tasks (tasks are the single source of truth
-    // for governance links — see the list endpoint above).
-    const [loc, nodeRoles, appsByNode, nodeStds, nodeRegs] = await Promise.all([
+    const [loc, nodeRoles] = await Promise.all([
       ancestorNames(nodeIds),
       rolesForNodes(taskNodeIds),
-      appsForNodes(taskNodeIds),
-      taskNodeIds.length
-        ? prisma.nodeStandard.findMany({
-            where: { processNodeId: { in: taskNodeIds }, excluded: false },
-            select: { standard: { select: { id: true, name: true } } },
-          })
-        : [],
-      taskNodeIds.length
-        ? prisma.nodeRegulation.findMany({
-            where: { processNodeId: { in: taskNodeIds }, excluded: false },
-            select: { regulation: { select: { id: true, title: true } } },
-          })
-        : [],
     ]);
     const first = nodeIds[0];
     const a = first ? loc.get(first) : undefined;
@@ -390,15 +374,6 @@ router.get('/deliverable/:id', async (req: Request, res: Response, next: NextFun
         })
       : [];
 
-    // Distinct applications / standards / regulations across the tasks.
-    const appMap = new Map<string, { id: string; name: string }>();
-    for (const list of appsByNode.values())
-      for (const app of list) appMap.set(app.id, { id: app.id, name: app.name });
-    const dedupe = <T extends { id: string; name: string }>(rows: T[]) =>
-      [...new Map(rows.map((r) => [r.id, r])).values()].sort((x, y) =>
-        x.name.localeCompare(y.name),
-      );
-
     res.json({
       kind: 'deliverable',
       id: d.id,
@@ -418,9 +393,6 @@ router.get('/deliverable/:id', async (req: Request, res: Response, next: NextFun
       contributorRoles,
       planRollup: { defined: planDefined, total: planTotal },
       tasks,
-      applications: dedupe([...appMap.values()]),
-      standards: dedupe(nodeStds.map((s) => s.standard)),
-      regulations: dedupe(nodeRegs.map((r) => ({ id: r.regulation.id, name: r.regulation.title }))),
     });
   } catch (e) {
     next(e);
