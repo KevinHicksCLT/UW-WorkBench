@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useBreadcrumbHeader, type Crumb } from '../lib/breadcrumbs';
 import { useSmartBack } from '../lib/navBack';
 
@@ -18,7 +18,10 @@ function visibleCrumbs(trail: Crumb[]): (Crumb | null)[] {
 export default function BreadcrumbBar() {
   const { trail } = useBreadcrumbHeader();
   const back = useSmartBack();
-  const show = trail.length > 0;
+  const { pathname } = useLocation();
+  // The bar (and its back button) shows on every page except Home — even when
+  // the trail is empty (deep-linked or error pages), the way back stays visible.
+  const show = trail.length > 0 || pathname !== '/';
 
   return (
     <div
@@ -28,15 +31,16 @@ export default function BreadcrumbBar() {
       }
     >
       {/* Always-visible back affordance — one predictable place to go back
-          from any drill level (smart back: history, else in-app fallback). */}
+          from any drill level (smart back: history, else in-app fallback).
+          Dark pill so it reads as the primary way back, not chrome. */}
       <button
         type="button"
         onClick={back}
         aria-label="Go back"
         title="Back to the previous screen"
-        className="mr-2 shrink-0 inline-flex h-[18px] w-[18px] items-center justify-center rounded border border-[#eaeaea] bg-white text-[11px] leading-none text-[#525252] hover:border-[#d4d4d4] hover:text-[#171717] transition-colors duration-150"
+        className="mr-2 shrink-0 inline-flex h-[20px] items-center gap-1 rounded-full bg-[#171717] px-2.5 text-[11px] font-semibold leading-none text-white hover:bg-[#404040] transition-colors duration-150"
       >
-        ←
+        <span aria-hidden="true">←</span> Back
       </button>
       {trail.length > 0 && (
         <nav className="flex items-center whitespace-nowrap" aria-label="Breadcrumb">

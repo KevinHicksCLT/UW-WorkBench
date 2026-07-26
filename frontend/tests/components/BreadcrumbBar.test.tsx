@@ -53,6 +53,12 @@ describe('BreadcrumbBar', () => {
     expect(container.firstElementChild?.className).toContain('hidden');
   });
 
+  it('shows the back button even with an empty trail off Home (deep-linked page)', () => {
+    const { container } = mount('/divisions/x1'); // no crumb registered
+    expect(container.firstElementChild?.className).not.toContain('hidden');
+    expect(screen.getByRole('button', { name: 'Go back' })).toBeTruthy();
+  });
+
   it('renders the walked trail with the current page as the active crumb', () => {
     mount('/');
     act(() => navigateFn('/roles'));

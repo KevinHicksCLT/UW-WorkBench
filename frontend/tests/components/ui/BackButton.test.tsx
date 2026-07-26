@@ -10,7 +10,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
 });
 
 const BASE =
-  'rounded-md border border-[#eaeaea] bg-white px-3 py-1.5 text-xs font-medium text-[#171717] hover:border-[#d4d4d4] transition-colors duration-150';
+  'rounded-full bg-[#171717] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#404040] transition-colors duration-150';
 
 function setHistoryIdx(idx: number | null) {
   window.history.replaceState(idx === null ? null : { idx }, '');
