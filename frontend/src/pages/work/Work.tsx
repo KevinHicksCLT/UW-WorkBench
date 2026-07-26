@@ -12,13 +12,13 @@ import { TocView, ViewPills } from '../../components/TocView';
 import { useWorkToc, WorkGroupPicker } from './workToc';
 import WorkGroupDrill from './WorkGroupDrill';
 import { AutomatableMeter, SCORE_LABEL, SCORE_DESC, automatablePct } from '../../lib/automatable';
-import { EmptyState, StatusPill } from '../../components/ui';
+import { StatusPill } from '../../components/ui';
 
 // Deliverables / Tasks — the standalone work tracker, now two top-level tabs
 // (/deliverables and /tasks) rendering this same page with a `tab` prop:
 // Deliverables (one row per deliverable) and Tasks (one row per task), each in
 // the canonical Sheet format (see components/Sheet.tsx). Clicking a row opens
-// the right-hand drill-down sidebar — roles, value stream, downstream impact.
+// the right-hand drill-down sidebar — location, roles, governance, plan health.
 // Scoped to the active company.
 
 type Deliverable = {
@@ -46,7 +46,6 @@ type Task = {
   owner: string | null;
   contributors: string[];
   status: string;
-  priority: string;
   dueDate: string | null;
   source: string;
   deliverableId: string | null;
@@ -76,6 +75,14 @@ type WorkData = {
 type RoleRef = { id: string; name: string };
 type PlanRow = { key: string; value: string | null; defined: boolean; generic: boolean };
 type RoleSet = { roles: RoleRef[]; unresolved: string[] };
+type NamedRef = { id: string; name: string };
+type DeliverableTask = {
+  id: string;
+  title: string;
+  owner: string | null;
+  agentScore: number | null;
+  plan: { defined: number; total: number } | null;
+};
 type DeliverableDetail = {
   kind: 'deliverable';
   id: string;
@@ -83,25 +90,19 @@ type DeliverableDetail = {
   description: string | null;
   type: string;
   owner: string | null;
-  jiraKey: string | null;
   valueStream: { id: string; name: string; domain: string } | null;
   level3: string | null;
   level4: string | null;
+  division: string | null;
+  department: string | null;
   subProcesses: string[];
-  dataElements: string[];
-  inputs: { name: string; dataElements: string[]; roles: RoleSet }[];
-  assignedRoles: RoleRef[];
-  assignedExtra: string[];
   ownerRoles: RoleRef[];
   contributorRoles: RoleRef[];
   planRollup: { defined: number; total: number } | null;
-  tasks: { id: string; title: string; owner: string | null; priority: string }[];
-  downstream: {
-    valueStreamId: string;
-    valueStreamName: string;
-    subProcess: string | null;
-    roles: RoleSet;
-  }[];
+  tasks: DeliverableTask[];
+  applications: NamedRef[];
+  standards: NamedRef[];
+  regulations: NamedRef[];
 };
 type TaskDetail = {
   kind: 'task';
@@ -109,7 +110,6 @@ type TaskDetail = {
   title: string;
   description: string | null;
   owner: string | null;
-  priority: string;
   ownerRole: RoleRef | null;
   plan: { checklist: PlanRow[]; testing: PlanRow[]; defined: number; total: number } | null;
   jiraKey: string | null;
@@ -134,12 +134,6 @@ type TaskDetail = {
   }[];
 };
 type Detail = DeliverableDetail | TaskDetail;
-
-const PRIORITY_PILL: Record<string, string> = {
-  High: 'pill-red',
-  Medium: 'pill-amber',
-  Low: 'pill-slate',
-};
 
 // ── Drill-down primitives ─────────────────────────────────────────────────────
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -230,28 +224,68 @@ function Sidebar({
   );
 }
 
-function DetailBody({ detail }: { detail: Detail }) {
+// At-a-glance rollups for a deliverable — every number derives from the
+// deliverable's task rows (plan coverage from the Work Library, automatability
+// from ProcessNode scores). Nothing here is invented client-side.
+function DeliverableStats({ detail }: { detail: DeliverableDetail }) {
+  const auto = automatablePct(detail.tasks.map((t) => t.agentScore));
+  const plan = detail.planRollup;
+  const planPct = plan && plan.total > 0 ? Math.round((100 * plan.defined) / plan.total) : null;
+  const tiles = [
+    { label: 'Tasks', value: String(detail.tasks.length), sub: 'produce this deliverable' },
+    {
+      label: 'Plan keys',
+      value: planPct != null ? `${planPct}%` : '—',
+      sub: plan && plan.total > 0 ? `${plan.defined} of ${plan.total} defined` : 'no plan keys',
+    },
+    {
+      label: 'AI automatable',
+      value: auto ? `${auto.pct}%` : '—',
+      sub: auto ? `${auto.auto} of ${auto.scored} scored tasks` : 'not yet scored',
+    },
+  ];
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {tiles.map((t) => (
+        <div key={t.label} className="rounded-lg border border-[#eaeaea] p-2.5">
+          <div className="text-lg font-semibold text-[#171717] tnum leading-6">{t.value}</div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mt-0.5">
+            {t.label}
+          </div>
+          <div className="text-[11px] text-[#737373] mt-0.5">{t.sub}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function DetailBody({ detail, onOpenTask }: { detail: Detail; onOpenTask?: (id: string) => void }) {
+  // When every task shares one owner, name it once in the list header instead
+  // of repeating the same chip on all rows.
+  const commonOwner =
+    detail.kind === 'deliverable' &&
+    detail.tasks.length > 1 &&
+    new Set(detail.tasks.map((t) => t.owner).filter(Boolean)).size === 1 &&
+    detail.tasks.every((t) => t.owner)
+      ? detail.tasks[0].owner
+      : null;
   return (
     <div className="space-y-5">
       <div>
         <h3 className="text-base font-semibold text-[#171717]">{detail.title}</h3>
         {detail.description && <p className="text-sm text-[#666666] mt-1">{detail.description}</p>}
         <div className="flex flex-wrap gap-1.5 mt-2">
-          {detail.kind === 'deliverable' ? (
+          {detail.kind === 'deliverable' && (
             <StatusPill tone="slate" className="text-xs">
               {detail.type}
             </StatusPill>
-          ) : (
-            <span className={`${PRIORITY_PILL[detail.priority] ?? 'pill-slate'} text-xs`}>
-              {detail.priority}
-            </span>
           )}
           {detail.owner && (
             <StatusPill tone="slate" className="text-xs">
               Owner · {detail.owner}
             </StatusPill>
           )}
-          {detail.jiraKey && (
+          {detail.kind === 'task' && detail.jiraKey && (
             <StatusPill
               tone="blue"
               className="text-xs"
@@ -262,6 +296,8 @@ function DetailBody({ detail }: { detail: Detail }) {
           )}
         </div>
       </div>
+
+      {detail.kind === 'deliverable' && <DeliverableStats detail={detail} />}
 
       {/* Agent-automatability assessment (tasks only) */}
       {detail.kind === 'task' && (
@@ -284,8 +320,8 @@ function DetailBody({ detail }: { detail: Detail }) {
       )}
 
       {/* Where it lives in the operating model */}
-      <div className="grid grid-cols-2 gap-4">
-        <Field label="Process Level 3">
+      <div className="rounded-lg border border-[#eaeaea] p-3 grid grid-cols-2 gap-x-4 gap-y-3">
+        <Field label="Value stream (L2)">
           {detail.valueStream ? (
             <>
               {detail.valueStream.name}
@@ -297,7 +333,7 @@ function DetailBody({ detail }: { detail: Detail }) {
             <span className="text-[#a3a3a3]">—</span>
           )}
         </Field>
-        <Field label="Process Level 5">
+        <Field label="Process area (L3 · L4)">
           {detail.kind === 'deliverable' ? (
             detail.subProcesses.length ? (
               detail.subProcesses.join(', ')
@@ -308,6 +344,11 @@ function DetailBody({ detail }: { detail: Detail }) {
             (detail.subProcess ?? <span className="text-[#a3a3a3]">—</span>)
           )}
         </Field>
+        {detail.kind === 'deliverable' && (detail.division || detail.department) && (
+          <Field label="Org home">
+            {[detail.division, detail.department].filter(Boolean).join(' · ')}
+          </Field>
+        )}
       </div>
 
       {/* Roles — deliverables list every assigned role; a task shows just its
@@ -394,90 +435,90 @@ function DetailBody({ detail }: { detail: Detail }) {
             </Link>
           </>
         )}
-      {detail.kind === 'deliverable' && detail.planRollup && detail.planRollup.total > 0 && (
-        <Field label="Checklist & testing plans">
-          <div className="text-sm text-[#171717]">
-            {detail.planRollup.defined} of {detail.planRollup.total} keys defined across this
-            deliverable's tasks
-          </div>
-          <div className="h-1.5 rounded-full bg-[#eef1f4] mt-1.5">
-            <div
-              className="h-1.5 rounded-full bg-[#1e9e6a]"
-              style={{
-                width: `${Math.round((100 * detail.planRollup.defined) / detail.planRollup.total)}%`,
-              }}
-            />
-          </div>
-        </Field>
-      )}
-
-      {/* Linked work */}
-      {detail.kind === 'deliverable' ? (
-        <Field label={`Tasks (${detail.tasks.length})`}>
-          {detail.tasks.length === 0 ? (
-            <span className="text-[#a3a3a3]">No tasks</span>
-          ) : (
-            <ul className="space-y-1">
-              {detail.tasks.map((t) => (
-                <li key={t.id} className="flex items-center justify-between gap-2 text-sm">
-                  <span className="text-[#171717]">{t.title}</span>
-                  <span className="flex items-center gap-2 flex-shrink-0">
-                    {t.owner && <span className="text-xs text-[#a3a3a3]">{t.owner}</span>}
-                    <span className={`${PRIORITY_PILL[t.priority] ?? 'pill-slate'} text-xs`}>
-                      {t.priority}
-                    </span>
-                  </span>
-                </li>
+      {/* Governance inherited from the tasks' process area (NodeStandard /
+          NodeRegulation on the task nodes — same source as the Tasks tab). */}
+      {detail.kind === 'deliverable' &&
+        (detail.standards.length > 0 || detail.regulations.length > 0) && (
+          <Field label={`Governance (${detail.standards.length + detail.regulations.length})`}>
+            <div className="flex flex-wrap gap-1.5">
+              {detail.standards.map((s) => (
+                <StatusPill key={s.id} tone="slate" className="text-xs" title="Standard">
+                  {s.name}
+                </StatusPill>
               ))}
-            </ul>
-          )}
-        </Field>
-      ) : (
-        detail.deliverable && <Field label="Feeds deliverable">{detail.deliverable.title}</Field>
-      )}
+              {detail.regulations.map((r) => (
+                <StatusPill key={r.id} tone="amber" className="text-xs" title="Regulation">
+                  {r.name}
+                </StatusPill>
+              ))}
+            </div>
+          </Field>
+        )}
 
-      {/* Upstream inputs consumed by the producing sub-process (DT2) */}
-      {detail.kind === 'deliverable' && (detail.inputs?.length ?? 0) > 0 && (
-        <div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-2">
-            Inputs consumed ({detail.inputs.length})
-          </div>
-          <div className="space-y-2">
-            {detail.inputs.map((inp) => (
-              <div key={inp.name} className="rounded-lg border border-[#eaeaea] p-3">
-                <div className="text-sm font-medium text-[#171717]">{inp.name}</div>
-                {inp.dataElements.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-1.5">
-                    {inp.dataElements.map((e) => (
-                      <StatusPill key={e} tone="slate" className="text-xs">
-                        {e}
-                      </StatusPill>
-                    ))}
-                  </div>
-                )}
-                {(inp.roles.roles.length > 0 || inp.roles.unresolved.length > 0) && (
-                  <div className="mt-2">
-                    <RoleChips roles={inp.roles.roles} extra={inp.roles.unresolved} />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Data elements / outputs produced */}
-      {detail.kind === 'deliverable' && detail.dataElements.length > 0 && (
-        <Field label="Data elements">
+      {/* Applications the producing tasks run on (NodeAppUsage). */}
+      {detail.kind === 'deliverable' && detail.applications.length > 0 && (
+        <Field label={`Applications (${detail.applications.length})`}>
           <div className="flex flex-wrap gap-1.5">
-            {detail.dataElements.map((e) => (
-              <StatusPill key={e} tone="slate" className="text-xs">
-                {e}
+            {detail.applications.map((app) => (
+              <StatusPill key={app.id} tone="blue" className="text-xs">
+                {app.name}
               </StatusPill>
             ))}
           </div>
         </Field>
       )}
+
+      {/* Linked work — each task row drills into the task detail. */}
+      {detail.kind === 'deliverable' ? (
+        <div>
+          <div className="flex items-baseline justify-between gap-2 mb-1">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">
+              Tasks ({detail.tasks.length})
+            </div>
+            {commonOwner && (
+              <span className="text-[11px] text-[#a3a3a3]">all owned by {commonOwner}</span>
+            )}
+          </div>
+          {detail.tasks.length === 0 ? (
+            <span className="text-sm text-[#a3a3a3]">No tasks</span>
+          ) : (
+            <ul>
+              {detail.tasks.map((t) => (
+                <li key={t.id} className="border-b border-[#f5f5f5] last:border-0">
+                  <button
+                    type="button"
+                    onClick={() => onOpenTask?.(t.id)}
+                    className="w-full flex items-start justify-between gap-3 text-left py-1.5 group"
+                  >
+                    <span className="text-sm text-[#171717] group-hover:text-[#2563eb] transition-colors duration-150">
+                      {t.title}
+                    </span>
+                    <span className="flex items-center gap-2 flex-shrink-0 pt-0.5">
+                      {!commonOwner && t.owner && (
+                        <span className="text-xs text-[#a3a3a3]">{t.owner}</span>
+                      )}
+                      {t.plan && t.plan.total > 0 && (
+                        <span
+                          className={`text-[11px] tnum ${
+                            t.plan.defined === t.plan.total ? 'text-[#1e9e6a]' : 'text-[#b45309]'
+                          }`}
+                          title={`${t.plan.defined} of ${t.plan.total} checklist & testing keys defined`}
+                        >
+                          {t.plan.defined === t.plan.total ? '✓ ' : ''}
+                          {t.plan.defined}/{t.plan.total}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : (
+        detail.deliverable && <Field label="Feeds deliverable">{detail.deliverable.title}</Field>
+      )}
+
       {detail.kind === 'task' && detail.outputs.length > 0 && (
         <Field label="Outputs">
           <div className="flex flex-wrap gap-1.5">
@@ -488,39 +529,6 @@ function DetailBody({ detail }: { detail: Detail }) {
             ))}
           </div>
         </Field>
-      )}
-
-      {/* Downstream impact — deliverables only (where a work product flows next). */}
-      {detail.kind === 'deliverable' && (
-        <div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-2">
-            Downstream impact ({detail.downstream.length})
-          </div>
-          {detail.downstream.length === 0 ? (
-            <EmptyState
-              baseClassName="text-sm text-[#a3a3a3]"
-              message="Not consumed elsewhere in the operating model."
-            />
-          ) : (
-            <div className="space-y-2">
-              {detail.downstream.map((ds, i) => (
-                <div key={i} className="rounded-lg border border-[#eaeaea] p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium text-[#171717]">{ds.valueStreamName}</span>
-                  </div>
-                  {ds.subProcess && (
-                    <div className="text-xs text-[#a3a3a3] mt-0.5">{ds.subProcess}</div>
-                  )}
-                  {(ds.roles.roles.length > 0 || ds.roles.unresolved.length > 0) && (
-                    <div className="mt-2">
-                      <RoleChips roles={ds.roles.roles} extra={ds.roles.unresolved} />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       )}
     </div>
   );
@@ -833,7 +841,7 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
           title={detail.kind === 'deliverable' ? 'Deliverable' : 'Task'}
           onClose={closeDrill}
         >
-          <DetailBody detail={detail} />
+          <DetailBody detail={detail} onOpenTask={(id) => openDrill('task', id)} />
         </Sidebar>
       )}
     </div>
