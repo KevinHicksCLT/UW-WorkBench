@@ -237,7 +237,6 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
           owner: owner?.displayValue ?? null,
           contributors,
           status: 'OPEN',
-          priority: 'Medium',
           dueDate: null,
           source: 'step',
           deliverableId: deliv?.id ?? null,
@@ -333,10 +332,6 @@ router.get('/deliverable/:id', async (req: Request, res: Response, next: NextFun
     ]);
     const first = nodeIds[0];
     const a = first ? loc.get(first) : undefined;
-    const assignedRoles = d.roleDeliverables.map((r) => ({
-      id: r.role.id,
-      name: r.role.displayValue,
-    }));
     const ownerRoles = d.roleDeliverables
       .filter((r) => r.role_ === 'Owner')
       .map((r) => ({ id: r.role.id, name: r.role.displayValue }));
@@ -357,19 +352,26 @@ router.get('/deliverable/:id', async (req: Request, res: Response, next: NextFun
       ),
     ];
 
-    // The L4's grouped L5 task nodes are the deliverable's tasks.
+    // The L4's grouped L5 task nodes are the deliverable's tasks — each with
+    // its own automatability score and Work Library plan coverage (no invented
+    // fields; everything here is a DB row or derived from one).
     const tasks = taskNodeIds.length
       ? (
           await prisma.processNode.findMany({
             where: { id: { in: taskNodeIds } },
-            select: { id: true, displayValue: true },
+            orderBy: { displayValue: 'asc' },
+            select: { id: true, displayValue: true, automatability: true },
           })
-        ).map((n) => ({
-          id: n.id,
-          title: n.displayValue,
-          owner: nodeRoles.get(n.id)?.find((r) => r.role_ === 'Owner')?.name ?? null,
-          priority: 'Medium',
-        }))
+        ).map((n) => {
+          const plan = plans.get(n.id);
+          return {
+            id: n.id,
+            title: n.displayValue,
+            owner: nodeRoles.get(n.id)?.find((r) => r.role_ === 'Owner')?.name ?? null,
+            agentScore: n.automatability ? (SCORE_OF[n.automatability] ?? null) : null,
+            plan: plan ? { defined: plan.defined, total: plan.total } : null,
+          };
+        })
       : [];
 
     res.json({
@@ -379,22 +381,18 @@ router.get('/deliverable/:id', async (req: Request, res: Response, next: NextFun
       description: d.description,
       type: 'Deliverable',
       owner: ownerRoles[0]?.name ?? null,
-      jiraKey: null,
       valueStream: a?.valueStreamId
         ? { id: a.valueStreamId, name: a.valueStreamName, domain: a.domain }
         : null,
       level3: a?.l3 ?? null,
       level4: a?.l4 ?? null,
+      division: a?.division ?? null,
+      department: a?.department ?? null,
       subProcesses,
-      dataElements: [],
-      inputs: [],
-      assignedRoles,
-      assignedExtra: [],
       ownerRoles,
       contributorRoles,
       planRollup: { defined: planDefined, total: planTotal },
       tasks,
-      downstream: [],
     });
   } catch (e) {
     next(e);
@@ -446,7 +444,6 @@ router.get('/task/:id', async (req: Request, res: Response, next: NextFunction) 
       title: t.displayValue,
       description: t.description,
       owner: ownerRole?.displayValue ?? null,
-      priority: 'Medium',
       jiraKey: null,
       plan: plan
         ? {

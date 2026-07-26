@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Card, EmptyState, LinkButton, LoadingState } from './ui';
+import { useViewState } from '../lib/viewState';
 import {
   HeaderComboFilter,
   HeaderLabel,
@@ -89,6 +90,7 @@ export function Sheet<R>({
   rowKey,
   defaultSort,
   defaultFilters,
+  forceFilters,
   summarize,
   unit,
   loading,
@@ -110,6 +112,9 @@ export function Sheet<R>({
   sheetKey?: string;
   defaultSort?: Sort;
   defaultFilters?: Record<string, string>;
+  // Explicit filter intent (a deep link or a TOC drill): applied ON TOP of any
+  // restored view state, unlike defaultFilters which only seed a fresh view.
+  forceFilters?: Record<string, string>;
   // Extra entity totals for the strip (e.g. "13 areas · 96 categories"); the
   // row count is always appended.
   summarize?: (visible: R[]) => string;
@@ -129,21 +134,59 @@ export function Sheet<R>({
   stickyStrip?: boolean;
 }) {
   const filterCols = cols.filter((c) => c.filterable ?? !!(c.value || c.values));
+  // ── Restorable view state ──────────────────────────────────────────────────
+  // With a sheetKey, filters/sort/search persist per sheet (lib/viewState), so
+  // leaving and returning — browser Back, a breadcrumb, a cross-tab link —
+  // restores the exact view the user left. A ?focus deep link (scrollToKey)
+  // skips restoring filters/search: a restored filter could hide the focused
+  // row. forceFilters overlay whatever was restored (explicit intent wins).
+  const persistKey = sheetKey ? `sheet.${sheetKey}` : null;
+  const restoreFilters = !scrollToKey;
   // Per-column multi-selection; [] = All (no filter on that column).
-  const [sel, setSel] = useState<Record<string, string[]>>(() => {
-    const init: Record<string, string[]> = {};
-    for (const c of filterCols) {
-      const d = defaultFilters?.[c.key];
-      init[c.key] = d && d !== 'All' ? [d] : [];
-    }
-    return init;
-  });
+  const [sel, setSel] = useViewState<Record<string, string[]>>(
+    persistKey ? `${persistKey}.sel` : null,
+    () => {
+      const init: Record<string, string[]> = {};
+      for (const c of filterCols) {
+        const d = forceFilters?.[c.key] ?? defaultFilters?.[c.key];
+        init[c.key] = d && d !== 'All' ? [d] : [];
+      }
+      return init;
+    },
+    restoreFilters,
+  );
+  // Explicit filter intent overlays restored state. Runs per render (callers
+  // build the object inline) but bails with the previous state when the pick
+  // is already applied, so there is no update churn.
+  useEffect(() => {
+    if (!forceFilters) return;
+    setSel((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (const [k, v] of Object.entries(forceFilters)) {
+        if (!v || v === 'All') continue;
+        const cur = prev[k] ?? [];
+        if (cur.length !== 1 || cur[0] !== v) {
+          next[k] = [v];
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [forceFilters, setSel]);
   const firstSortable = cols.find((c) => c.sortable ?? !!(c.value || c.values));
-  const [sort, setSort] = useState<Sort>(defaultSort ?? { col: firstSortable?.key ?? '', dir: 1 });
+  const [sort, setSort] = useViewState<Sort>(
+    persistKey ? `${persistKey}.sort` : null,
+    defaultSort ?? { col: firstSortable?.key ?? '', dir: 1 },
+  );
   const [expanded, setExpanded] = useState<string | null>(null);
   // Free-text search across every column with a value (complements the per-
   // column combobox filters; narrows the visible rows only, not the dropdowns).
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useViewState<string>(
+    persistKey ? `${persistKey}.search` : null,
+    '',
+    restoreFilters,
+  );
 
   const colByKey = useMemo(() => new Map(cols.map((c) => [c.key, c])), [cols]);
   const valOf = (c: SheetCol<R>, r: R): string[] =>

@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useViewState } from '../../lib/viewState';
 import { useCompany } from '../../lib/company';
 import { useApi } from '../../lib/useApi';
 import { withCompany, Tile, SectionCard } from '../../lib/portfolio';
@@ -234,8 +235,10 @@ function CatalogBody({ overview, lens }: { overview: Overview | null; lens?: str
 
 // ── Compliance rules ─────────────────────────────────────────────────────────
 function RulesBody({ rows, loading }: { rows: RuleRow[] | null; loading: boolean }) {
-  const [query, setQuery] = useState('');
-  const [openRule, setOpenRule] = useState<string | null>(null);
+  // Persisted per session (lib/viewState) so returning restores the search and
+  // the expanded rule. RulesBody only renders for kind === 'rules'.
+  const [query, setQuery] = useViewState('regInsight.rules.q', '');
+  const [openRule, setOpenRule] = useViewState<string | null>('regInsight.rules.openRule', null);
   const byCategory = useMemo(() => tally(rows ?? [], (r) => label(r.category)), [rows]);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

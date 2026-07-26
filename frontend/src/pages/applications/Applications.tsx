@@ -5,9 +5,10 @@
 // with ?focus=<id> — the focused row is highlighted and scrolled into view.
 // Clicking a row drills into the application's own page (profile + codebase
 // scan). Data: GET /applications.
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
+import { useViewState } from '../../lib/viewState';
 import PageHeader from '../../components/PageHeader';
 import { Sheet, SheetCell, type SheetCol } from '../../components/Sheet';
 import { TocView, ViewPills, type TocRow } from '../../components/TocView';
@@ -74,7 +75,13 @@ export default function Applications() {
   // Click drills into the kind's detail page (its applications, grouped by
   // category) — the same descent as the Standards TOC. A ?focus deep link
   // needs the actual list, so it forces the List view.
-  const [view, setView] = useState<'toc' | 'list'>(focusId ? 'list' : 'toc');
+  // Persisted per session (lib/viewState) so returning to the tab restores the
+  // TOC|List choice; a ?focus deep link needs the list, so it skips restore.
+  const [view, setView] = useViewState<'toc' | 'list'>(
+    'applications.view',
+    focusId ? 'list' : 'toc',
+    !focusId,
+  );
   useEffect(() => {
     if (focusId) setView('list');
   }, [focusId]);
@@ -124,6 +131,7 @@ export default function Applications() {
 
       {view === 'toc' ? (
         <TocView
+          stateKey="applications.toc"
           rows={tocRows}
           nameLabel="Kind"
           countLabel="Applications"

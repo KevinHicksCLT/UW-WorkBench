@@ -7,7 +7,9 @@
  * the old localStorage bridge.* values are migrated by PreferencesProvider.
  */
 import { useEffect, useMemo, useState } from 'react';
+import { useBackHandler } from '../../lib/navBack';
 import { usePreferences } from '../../lib/preferences';
+import { useOnChange, useViewState } from '../../lib/viewState';
 import type { TocRow } from '../../components/TocView';
 
 export type WorkGroup = { key: string; label: string; unit: string; col: string };
@@ -44,16 +46,32 @@ export function useWorkToc(
   const prefKey = `work.toc.group.${tab}`;
   const saved = typeof prefs[prefKey] === 'string' ? (prefs[prefKey] as string) : null;
 
-  const [view, setView] = useState<'toc' | 'list' | 'drill'>('toc');
+  // Persisted per session and per tab (lib/viewState) so returning to the tab
+  // restores the exact view / drilled group / pre-filter left behind.
+  const [view, setView] = useViewState<'toc' | 'list' | 'drill'>(`work.${tab}.view`, 'toc');
   const [groupBy, setGroupBy] = useState<string>(saved ?? 'valueStream');
-  const [preFilter, setPreFilter] = useState<{ col: string; value: string } | null>(null);
+  const [preFilter, setPreFilter] = useViewState<{ col: string; value: string } | null>(
+    `work.${tab}.preFilter`,
+    null,
+  );
   // The group value being drilled into (view === 'drill').
-  const [drillValue, setDrillValue] = useState<string | null>(null);
-  useEffect(() => {
+  const [drillValue, setDrillValue] = useViewState<string | null>(`work.${tab}.drillValue`, null);
+  // Reset on a tab SWITCH only (useOnChange skips mount, which would wipe the
+  // restored state).
+  useOnChange(tab, () => {
     setView('toc');
     setPreFilter(null);
     setDrillValue(null);
-  }, [tab]);
+  });
+
+  // The header's back button steps a drilled group back to the TOC
+  // (lib/navBack); otherwise it falls through to history.
+  useBackHandler(() => {
+    if (view !== 'drill') return false;
+    setView('toc');
+    setDrillValue(null);
+    return true;
+  });
   // Sync the grouping when the tab switches or the async preference load lands
   // (kept separate from the view reset so a background save can't yank the
   // user out of a drilled-in list).

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { LoadingState, ErrorMessage, EmptyState, Select } from '../../../components/ui';
 import { useApi } from '../../../lib/useApi';
+import { useOnChange, useViewState } from '../../../lib/viewState';
 import LensBar, { type WorkspaceLens } from '../LensBar';
 import { FlowEdges, useEdges, type EdgeSpec } from '../FlowEdges';
 import { GREEN, AMBER, RED, READABLE_FIT_MIN } from '../types';
@@ -222,15 +223,25 @@ export default function ProductBoard({
   const { data: table, loading, error } = useApi<SpineTable>('/product-spine/table');
   const lobs: LobOption[] = useMemo(() => (table ? lobOptions(table) : []), [table]);
 
-  const [lobId, setLobId] = useState<string | null>(null);
-  const [pickedVersionIds, setPickedVersionIds] = useState<Set<string> | null>(null);
-  const [matchFilter, setMatchFilter] = useState<MatchStatus | null>(null);
+  // View state persists per session (lib/viewState) so leaving the tab and
+  // returning restores the exact comparison: LOB, picked versions, filter and
+  // expanded bands. Picks are stored as an array (Sets don't serialize).
+  const [lobId, setLobId] = useViewState<string | null>('workspace.product.lobId', null);
+  const [pickedArr, setPickedArr] = useViewState<string[] | null>('workspace.product.picked', null);
+  const pickedVersionIds = useMemo(() => (pickedArr ? new Set(pickedArr) : null), [pickedArr]);
+  const [matchFilter, setMatchFilter] = useViewState<MatchStatus | null>(
+    'workspace.product.matchFilter',
+    null,
+  );
   const [selected, setSelected] = useState<ElementGroup | null>(null);
   const [zoom, setZoom] = useState(1);
   // One expand/collapse state per model COMPONENT, shared by the Normalize
   // section and the Greenfield slot — an aligned band opens as one row
   // (mirrors the application board's synced layer expansion).
-  const [expandedComponents, setExpandedComponents] = useState<Record<string, boolean>>({});
+  const [expandedComponents, setExpandedComponents] = useViewState<Record<string, boolean>>(
+    'workspace.product.expanded',
+    {},
+  );
   const toggleComponent = (component: string) =>
     setExpandedComponents((c) => ({ ...c, [component]: !c[component] }));
 
@@ -239,14 +250,16 @@ export default function ProductBoard({
     if (lobs.length > 0 && (!lobId || !lobs.some((l) => l.id === lobId))) {
       setLobId((lobs.find((l) => l.versions.length > 1) ?? lobs[0]).id);
     }
-  }, [lobs, lobId]);
+  }, [lobs, lobId, setLobId]);
 
-  useEffect(() => {
-    setPickedVersionIds(null);
+  // An actual LOB switch resets the comparison scope — change-only, so a
+  // restored LOB doesn't wipe the restored picks on mount.
+  useOnChange(lobId, () => {
+    setPickedArr(null);
     setMatchFilter(null);
     setSelected(null);
     setExpandedComponents({});
-  }, [lobId]);
+  });
 
   const lob = lobs.find((l) => l.id === lobId) ?? null;
   const versionLevelName =
@@ -281,22 +294,29 @@ export default function ProductBoard({
     return m;
   }, [decisionRows]);
 
-  // A different comparison (version added/removed) starts collapsed again.
-  useEffect(() => {
+  // A different comparison (version added/removed) starts collapsed again —
+  // change-only, keyed by the stable selection signature; undefined while the
+  // spine is loading so the loading→loaded transition never counts as a
+  // change (it would wipe the expansion just restored by useViewState).
+  const selectionKey = useMemo(
+    () => (table ? [...selectedVersionIds].sort().join('+') : undefined),
+    [table, selectedVersionIds],
+  );
+  useOnChange(selectionKey, () => {
     setExpandedComponents({});
-  }, [selectedVersionIds]);
+  });
 
   const addVersion = (id: string) => {
     const next = new Set(selectedVersionIds);
     next.add(id);
-    setPickedVersionIds(next);
+    setPickedArr([...next]);
     setSelected(null);
   };
   const removeVersion = (id: string) => {
     if (selectedVersionIds.size === 1) return; // at least one version stays
     const next = new Set(selectedVersionIds);
     next.delete(id);
-    setPickedVersionIds(next);
+    setPickedArr([...next]);
     setSelected(null);
   };
   const replaceVersion = (oldId: string, newId: string) => {
@@ -304,7 +324,7 @@ export default function ProductBoard({
     const next = new Set(selectedVersionIds);
     next.delete(oldId);
     next.add(newId);
-    setPickedVersionIds(next);
+    setPickedArr([...next]);
     setSelected(null);
   };
 

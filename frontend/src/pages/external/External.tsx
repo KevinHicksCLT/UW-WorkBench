@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useViewState } from '../../lib/viewState';
 import { useNavigate } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
 import { useOpenRole } from '../../lib/roleDrawer';
@@ -35,7 +35,11 @@ export default function External() {
   const navigate = useNavigate();
   const openRole = useOpenRole();
   const items = data ?? [];
-  const [selected, setSelected] = useState<Interaction | null>(null);
+  // The open drawer persists as an id (lib/viewState) and re-resolves from the
+  // loaded rows, so drilling out of the drawer and coming back reopens it.
+  const [selectedId, setSelectedId] = useViewState<string | null>('external.selected', null);
+  const selected = selectedId ? (items.find((i) => i.id === selectedId) ?? null) : null;
+  const setSelected = (i: Interaction | null) => setSelectedId(i ? i.id : null);
 
   const cols: SheetCol<Interaction>[] = [
     {

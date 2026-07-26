@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
 import { useOpenRole } from '../../lib/roleDrawer';
+import { useViewState } from '../../lib/viewState';
 import PageHeader from '../../components/PageHeader';
 import { Card, EmptyState, ErrorMessage, LoadingState } from '../../components/ui';
 
@@ -36,17 +37,12 @@ type Data = {
 export default function DepartmentDetail() {
   const { id } = useParams();
   const { data: d, error, loading } = useApi<Data>(`/departments/${id}`);
-  const [open, setOpen] = useState<Set<string>>(new Set());
+  // Expanded roles persist per department (lib/viewState) so drilling out
+  // and coming back restores the exact view.
+  const [openArr, setOpenArr] = useViewState<string[]>(`dept.${id}.open`, []);
+  const open = useMemo(() => new Set(openArr), [openArr]);
   const toggle = (rid: string) =>
-    setOpen((p) => {
-      const n = new Set(p);
-      if (n.has(rid)) {
-        n.delete(rid);
-      } else {
-        n.add(rid);
-      }
-      return n;
-    });
+    setOpenArr((p) => (p.includes(rid) ? p.filter((x) => x !== rid) : [...p, rid]));
 
   if (loading) return <LoadingState baseClassName="text-slate-500" message="Loading department…" />;
   if (error) return <ErrorMessage baseClassName="text-red-600">{error}</ErrorMessage>;

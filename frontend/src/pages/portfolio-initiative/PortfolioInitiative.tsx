@@ -8,6 +8,7 @@ import { useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { isHeldResponse, notifyHeld } from '../../lib/approvals';
 import { useDialogs } from '../../lib/dialogs';
+import { useViewState } from '../../lib/viewState';
 import { STAGE_ORDER, STAGE_LABELS } from '../../lib/format';
 import PageHeader from '../../components/PageHeader';
 import { Button, Card, ErrorMessage, LoadingState, Select, StatusPill } from '../../components/ui';
@@ -39,7 +40,9 @@ export default function PortfolioInitiative() {
   const { id } = useParams();
   const dialogs = useDialogs();
   const [init, setInit] = useState<Initiative | null>(null);
-  const [tab, setTab] = useState<Tab>('Summary');
+  // Active tab persists per initiative (lib/viewState) so leaving the page and
+  // returning — any route back — lands on the same tab, not Summary.
+  const [tab, setTab] = useViewState<Tab>(`initiative.${id}.tab`, 'Summary');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 

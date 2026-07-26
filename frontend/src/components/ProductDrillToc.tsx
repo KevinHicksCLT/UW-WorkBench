@@ -1,7 +1,9 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
-import { TocBack, TocView, type TocRow } from './TocView';
+import { useBackHandler } from '../lib/navBack';
+import { useViewState } from '../lib/viewState';
+import { TocView, type TocRow } from './TocView';
 import { ErrorMessage, LoadingState } from './ui';
 
 // ProductDrillToc — the product spine as a TOC descent, mirroring OrgDrillToc:
@@ -46,8 +48,23 @@ export default function ProductDrillToc({ leading }: { leading?: ReactNode }) {
   const navigate = useNavigate();
   const [table, setTable] = useState<ProductTable | null>(null);
   const [error, setError] = useState('');
-  // Drill stack of opened node ids, one entry per descended level.
-  const [stack, setStack] = useState<ProductTreeNode[]>([]);
+  // Drill stack persisted as node IDS (lib/viewState) so leaving the tab and
+  // returning restores the exact descent; the nodes themselves are re-resolved
+  // from the freshly loaded tree (a stale id past a rename/removal prunes the
+  // descent at that level instead of pointing at a dead node).
+  const [stackIds, setStackIds] = useViewState<string[]>('productModels.toc.stack', []);
+  const stack = useMemo(() => {
+    if (!table) return [];
+    const out: ProductTreeNode[] = [];
+    let source = table.roots;
+    for (const id of stackIds) {
+      const node = source.find((c) => c.id === id);
+      if (!node) break;
+      out.push(node);
+      source = node.children;
+    }
+    return out;
+  }, [table, stackIds]);
 
   useEffect(() => {
     api
@@ -55,6 +72,14 @@ export default function ProductDrillToc({ leading }: { leading?: ReactNode }) {
       .then(setTable)
       .catch((e) => setError(e.message ?? 'Failed to load'));
   }, []);
+
+  // The header's back button pops the drill one level (lib/navBack); at the
+  // root it falls through to history. No in-page back pill.
+  useBackHandler(() => {
+    if (stackIds.length === 0) return false;
+    setStackIds((s) => s.slice(0, -1));
+    return true;
+  });
 
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
   if (!table) return <LoadingState message="Loading product models…" className="animate-pulse" />;
@@ -68,12 +93,7 @@ export default function ProductDrillToc({ leading }: { leading?: ReactNode }) {
   const rowsSource = open ? open.children : table.roots;
   const rowLevel = depth + 1;
 
-  const push = (n: ProductTreeNode) => setStack((s) => [...s, n]);
-  const pop = () => setStack((s) => s.slice(0, -1));
-  const backLabel =
-    stack.length >= 2
-      ? stack[stack.length - 2].name
-      : `All ${/s$/i.test(lc(1, 'segments')) ? lc(1, 'segments') : `${lc(1, 'segments')}s`}`;
+  const push = (n: ProductTreeNode) => setStackIds((s) => [...s, n.id]);
 
   // Per-level row shaping: count column + extra column + click-through.
   const shape = (n: ProductTreeNode): TocRow => {
@@ -145,18 +165,14 @@ export default function ProductDrillToc({ leading }: { leading?: ReactNode }) {
 
   return (
     <TocView
+      stateKey="productModels.toc"
       rows={rows}
       nameLabel={levelName(rowLevel, cap.unit)}
       countLabel={cap.count}
       extraLabel={cap.extra}
       unit={cap.unit}
       searchPlaceholder={`Search ${cap.unit}…`}
-      leading={
-        <>
-          {leading}
-          {open && <TocBack label={backLabel} onClick={pop} />}
-        </>
-      }
+      leading={leading}
       totals={totals}
     />
   );

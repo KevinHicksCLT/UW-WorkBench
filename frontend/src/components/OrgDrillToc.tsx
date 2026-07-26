@@ -1,7 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
-import { TocBack, TocView, type TocRow } from './TocView';
+import { useViewState } from '../lib/viewState';
+import { useBackHandler } from '../lib/navBack';
+import { TocView, type TocRow } from './TocView';
 import { ErrorMessage, LoadingState } from './ui';
 
 // OrgDrillToc — the org spine as a gold-standard TOC descent, mirroring the
@@ -43,9 +45,10 @@ export default function OrgDrillToc({
   const [segments, setSegments] = useState<TocSegment[] | null>(null);
   const [error, setError] = useState('');
   // Drill stack; departmentId '' = the direct-to-division bucket.
-  const [segmentId, setSegmentId] = useState<string | null>(null);
-  const [divisionId, setDivisionId] = useState<string | null>(null);
-  const [departmentId, setDepartmentId] = useState<string | null>(null);
+  // Persisted per session (lib/viewState) so returning restores the drill depth.
+  const [segmentId, setSegmentId] = useViewState<string | null>('org.toc.segment', null);
+  const [divisionId, setDivisionId] = useViewState<string | null>('org.toc.division', null);
+  const [departmentId, setDepartmentId] = useViewState<string | null>('org.toc.department', null);
 
   useEffect(() => {
     api
@@ -53,6 +56,24 @@ export default function OrgDrillToc({
       .then((t) => setSegments(t.segments))
       .catch((e) => setError(e.message ?? 'Failed to load'));
   }, []);
+
+  // The header's back button pops the deepest drill level (lib/navBack); at
+  // the root it falls through to history. No in-page back pill.
+  useBackHandler(() => {
+    if (departmentId != null) {
+      setDepartmentId(null);
+      return true;
+    }
+    if (divisionId != null) {
+      setDivisionId(null);
+      return true;
+    }
+    if (segmentId != null) {
+      setSegmentId(null);
+      return true;
+    }
+    return false;
+  });
 
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
   if (!segments) return <LoadingState message="Loading organization…" className="animate-pulse" />;
@@ -77,17 +98,13 @@ export default function OrgDrillToc({
       }));
     return (
       <TocView
+        stateKey="org.toc.roles"
         rows={rows}
         nameLabel="Role"
         countLabel="Value streams"
         unit="roles"
         searchPlaceholder="Search role…"
-        leading={
-          <>
-            {leading}
-            <TocBack label={division.name} onClick={() => setDepartmentId(null)} />
-          </>
-        }
+        leading={leading}
         totals={`${division.name} · ${dept?.name ?? ''} · ${rows.length} roles`}
       />
     );
@@ -114,24 +131,16 @@ export default function OrgDrillToc({
         onClick: () => setDepartmentId(''),
       });
     }
-    const backLabel =
-      startAt === 'segment' && segmentId
-        ? (segments.find((s) => s.id === segmentId)?.name ?? 'All divisions')
-        : 'All divisions';
     return (
       <TocView
+        stateKey="org.toc.departments"
         rows={rows}
         nameLabel="Department"
         countLabel="Roles"
         extraLabel="Division"
         unit="departments"
         searchPlaceholder="Search department…"
-        leading={
-          <>
-            {leading}
-            <TocBack label={backLabel} onClick={() => setDivisionId(null)} />
-          </>
-        }
+        leading={leading}
         totals={`${division.name} · ${rows.length} departments · ${division.roleCount} roles`}
       />
     );
@@ -157,18 +166,14 @@ export default function OrgDrillToc({
       }));
     return (
       <TocView
+        stateKey="org.toc.divisions"
         rows={rows}
         nameLabel="Division"
         countLabel="Roles"
         extraLabel={openSegment ? 'Departments' : 'Segment'}
         unit="divisions"
         searchPlaceholder="Search division…"
-        leading={
-          <>
-            {leading}
-            {openSegment && <TocBack label="All segments" onClick={() => setSegmentId(null)} />}
-          </>
-        }
+        leading={leading}
         totals={
           openSegment
             ? `${openSegment.name} · ${rows.length} divisions · ${openSegment.roleCount} roles`
@@ -191,6 +196,7 @@ export default function OrgDrillToc({
     }));
   return (
     <TocView
+      stateKey="org.toc.segments"
       rows={rows}
       nameLabel="Segment"
       countLabel="Roles"

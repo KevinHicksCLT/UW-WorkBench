@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useCompany } from '../../lib/company';
+import { useViewState } from '../../lib/viewState';
 import { fmt } from '../../lib/format';
 import PageHeader from '../../components/PageHeader';
 import { Button, ErrorMessage, LoadingState } from '../../components/ui';
@@ -40,10 +41,15 @@ export default function PortfolioProgram() {
   const [program, setProgram] = useState<Program | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [links, setLinks] = useState<LinkOptions | null>(null);
-  // ?tab=RAID etc. presets the open tab (the Home RAID-by-program widget deep-links here).
+  // ?tab=RAID etc. presets the open tab (the Home RAID-by-program widget
+  // deep-links here) and wins over the persisted tab; otherwise the tab
+  // persists per program (lib/viewState) so returning lands where you left.
   const linkedTab = params.get('tab') as Tab | null;
-  const [tab, setTab] = useState<Tab>(
-    linkedTab && TABS.includes(linkedTab) ? linkedTab : 'Workstreams',
+  const validLinked = linkedTab && TABS.includes(linkedTab) ? linkedTab : null;
+  const [tab, setTab] = useViewState<Tab>(
+    `program.${id}.tab`,
+    validLinked ?? 'Workstreams',
+    !validLinked,
   );
   const [showCreateWs, setShowCreateWs] = useState(false);
   const [createInitWs, setCreateInitWs] = useState<{ id: string; name: string } | null>(null);
