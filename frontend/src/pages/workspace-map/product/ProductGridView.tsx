@@ -42,12 +42,30 @@ export default function ProductGridView({
     'spine',
   );
   const [selId, setSelId] = useViewState<string | null>('workspace.product.gridSel', null);
+  // Which model-component columns render — null means all. Hidden columns stay
+  // in the delta/match numbers (they filter the VIEW, not the derivation).
+  const [pickedCols, setPickedCols] = useViewState<string[] | null>(
+    'workspace.product.gridCols',
+    null,
+  );
+  const [colsOpen, setColsOpen] = useState(false);
   const [closed, setClosed] = useState<Record<string, boolean>>({});
   const [cell, setCell] = useState<{ row: GridRow; component: string } | null>(null);
 
   const groups = useMemo(() => groupGridRows(model.rows, groupMode), [model, groupMode]);
   const sel = model.rows.find((r) => r.version.id === selId) ?? model.rows[0] ?? null;
-  const gridCols = `${NAME_W}px repeat(${model.components.length}, ${CELL_W}px) ${MATCH_W}px ${REC_W}px`;
+  const visibleComponents = useMemo(
+    () => (pickedCols ? model.components.filter((c) => pickedCols.includes(c)) : model.components),
+    [model.components, pickedCols],
+  );
+  const toggleCol = (c: string) => {
+    const cur = pickedCols ?? model.components;
+    const next = cur.includes(c) ? cur.filter((x) => x !== c) : [...cur, c];
+    // Never hide everything; back to full set stores null (all).
+    if (next.length === 0) return;
+    setPickedCols(next.length === model.components.length ? null : next);
+  };
+  const gridCols = `${NAME_W}px repeat(${visibleComponents.length}, ${CELL_W}px) ${MATCH_W}px ${REC_W}px`;
 
   return (
     <div style={{ display: 'flex', alignItems: 'stretch', height: '100%', minHeight: 0 }}>
@@ -63,56 +81,6 @@ export default function ProductGridView({
             flexShrink: 0,
           }}
         >
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 600,
-              letterSpacing: '.07em',
-              textTransform: 'uppercase',
-              color: '#a3a3a3',
-              flexShrink: 0,
-            }}
-          >
-            Sort
-          </span>
-          {['Segment', 'Line of business', 'Product offering', 'Version / scope'].map(
-            (label, i) => (
-              <span
-                key={label}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 5,
-                  height: 24,
-                  padding: '0 8px',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: 6,
-                  background: '#fff',
-                  fontSize: 10.5,
-                  color: '#171717',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                <span
-                  style={{
-                    width: 13,
-                    height: 13,
-                    borderRadius: 999,
-                    background: '#171717',
-                    color: '#fff',
-                    fontSize: 8,
-                    fontWeight: 800,
-                    lineHeight: '13px',
-                    textAlign: 'center',
-                  }}
-                >
-                  {i + 1}
-                </span>
-                {label}
-              </span>
-            ),
-          )}
-          <span style={{ width: 1, height: 18, background: '#eaeaea', margin: '0 4px' }} />
           <span
             style={{
               fontSize: 10,
@@ -167,6 +135,82 @@ export default function ProductGridView({
               );
             })}
           </div>
+          <span style={{ width: 1, height: 18, background: '#eaeaea', margin: '0 4px' }} />
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <button
+              type="button"
+              onClick={() => setColsOpen((o) => !o)}
+              style={{
+                font: 'inherit',
+                height: 24,
+                padding: '0 10px',
+                fontSize: 10.5,
+                cursor: 'pointer',
+                border: '1px solid #eaeaea',
+                borderRadius: 6,
+                background: colsOpen ? '#171717' : '#fff',
+                color: colsOpen ? '#fff' : '#525252',
+              }}
+            >
+              Columns · {visibleComponents.length}/{model.components.length} ▾
+            </button>
+            {colsOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 28,
+                  left: 0,
+                  zIndex: 5,
+                  background: '#fff',
+                  border: '1px solid #e5e5e5',
+                  borderRadius: 8,
+                  boxShadow: '0 8px 24px rgba(15,23,42,.14)',
+                  padding: '8px 10px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4,
+                  minWidth: 200,
+                }}
+              >
+                {model.components.map((c) => (
+                  <label
+                    key={c}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 7,
+                      fontSize: 11.5,
+                      color: '#171717',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={visibleComponents.includes(c)}
+                      onChange={() => toggleCol(c)}
+                    />
+                    {c}
+                  </label>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setPickedCols(null)}
+                  style={{
+                    font: 'inherit',
+                    fontSize: 10.5,
+                    color: '#0070AD',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    padding: '3px 0 0',
+                  }}
+                >
+                  Show all
+                </button>
+              </div>
+            )}
+          </div>
           <div style={{ flex: 1 }} />
           <span style={{ fontSize: 10.5, color: '#a3a3a3' }}>
             ✓ identical to canonical · Δn = n element groups differ · click a cell for its model
@@ -199,7 +243,7 @@ export default function ProductGridView({
               >
                 Product offering · version
               </div>
-              {model.components.map((c) => (
+              {visibleComponents.map((c) => (
                 <div
                   key={c}
                   title={c}
@@ -346,7 +390,11 @@ export default function ProductGridView({
                                   {r.productName} · {r.version.name}
                                 </span>
                               </button>
-                              {r.cells.map((c) => {
+                              {visibleComponents.map((compName) => {
+                                const c = r.cells.find((x) => x.component === compName) ?? {
+                                  component: compName,
+                                  delta: null,
+                                };
                                 const s = cellStyle(c.delta);
                                 return (
                                   <button

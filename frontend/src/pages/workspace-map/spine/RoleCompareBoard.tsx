@@ -1,11 +1,17 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { EmptyState, ErrorMessage, LoadingState } from '../../../components/ui';
 import { useDialogs } from '../../../lib/dialogs';
 import { useOnChange, useViewState } from '../../../lib/viewState';
 import LensBar, { type WorkspaceLens } from '../LensBar';
 import { AMBER, GREEN, INDIGO } from '../types';
 import { Picker, type PoolOption } from './SpineBoard';
-import { RoleColumn, TargetColumn, ROLE_COL_W } from './RoleTaskColumns';
+import {
+  AlignedTaskGrid,
+  RoleTaskModal,
+  TargetColumn,
+  ROLE_COL_W,
+  type OpenTask,
+} from './RoleTaskColumns';
 import {
   buildTarget,
   columnKeySets,
@@ -90,6 +96,7 @@ export default function RoleCompareBoard({
     'workspace.role.stepDecisions',
     {},
   );
+  const [openTask, setOpenTask] = useState<OpenTask | null>(null);
 
   useEffect(() => {
     if (!roles || roles.length < 2 || ids.length > 0) return;
@@ -201,7 +208,7 @@ export default function RoleCompareBoard({
   if (listError) return <ErrorMessage>{listError}</ErrorMessage>;
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
 
-  const gridCols = `repeat(${columns.length}, ${ROLE_COL_W}px) ${ROLE_COL_W + 20}px`;
+  const gridCols = `repeat(${columns.length}, ${ROLE_COL_W}px) ${ROLE_COL_W + 14}px`;
   const summary = columns
     .map((c, i) => `${roleShort(c.name)} ${decisionOf(i).toLowerCase()}`)
     .join(' · ');
@@ -280,7 +287,7 @@ export default function RoleCompareBoard({
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
-                padding: '9px 16px',
+                padding: '7px 14px',
                 borderBottom: '1px solid #eaeaea',
                 flexWrap: 'wrap',
               }}
@@ -364,9 +371,9 @@ export default function RoleCompareBoard({
               style={{
                 display: 'grid',
                 gridTemplateColumns: gridCols,
-                gap: 12,
+                gap: 10,
                 alignItems: 'stretch',
-                padding: '13px 16px',
+                padding: '10px 14px',
                 borderBottom: '1px solid #eaeaea',
                 background: '#fafafa',
               }}
@@ -588,13 +595,13 @@ export default function RoleCompareBoard({
               </div>
             </div>
 
-            {/* Column-by-column task view */}
+            {/* Stream-grouped, semantically aligned task view */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 10,
-                padding: '9px 16px',
+                padding: '7px 14px',
                 borderBottom: '1px solid #eaeaea',
               }}
             >
@@ -607,36 +614,32 @@ export default function RoleCompareBoard({
                   color: '#525252',
                 }}
               >
-                Every task, column by column
+                Every task, grouped by value stream
               </span>
               <span style={{ fontSize: 11, color: '#94a3b8' }}>
-                aligned under the cards above · each task can be moved, kept or dropped on its own
+                same work aligns on the same row across the roles · click any card for its full
+                detail
               </span>
             </div>
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: gridCols,
-                gap: 12,
-                alignItems: 'start',
-                padding: '14px 16px',
+                display: 'flex',
+                gap: 10,
+                alignItems: 'flex-start',
+                padding: '10px 14px',
                 background: '#fafafa',
               }}
             >
-              {columns.map((c, i) => (
-                <RoleColumn
-                  key={c.id}
-                  col={c}
-                  colIdx={i}
+              <div style={{ flex: 'none' }}>
+                <AlignedTaskGrid
                   columns={columns}
                   keySets={keySets}
                   going={going}
                   targetIdx={targetIdx}
                   filter={filter}
-                  stepDecisions={stepDecisions}
-                  onStepDecision={(key, d) => setStepDecisions((cur) => ({ ...cur, [key]: d }))}
+                  onOpenTask={setOpenTask}
                 />
-              ))}
+              </div>
               <TargetColumn steps={target.steps} />
             </div>
 
@@ -645,8 +648,8 @@ export default function RoleCompareBoard({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 16,
-                padding: '12px 16px',
+                gap: 14,
+                padding: '9px 14px',
                 background: '#f6faf7',
                 borderTop: '2px solid #a7f3d0',
                 flexWrap: 'wrap',
@@ -706,6 +709,19 @@ export default function RoleCompareBoard({
           </div>
         )}
       </div>
+
+      {openTask && columns[openTask.colIdx] && (
+        <RoleTaskModal
+          open={openTask}
+          columns={columns}
+          keySets={keySets}
+          going={going}
+          targetIdx={targetIdx}
+          stepDecisions={stepDecisions}
+          onStepDecision={(key, d) => setStepDecisions((cur) => ({ ...cur, [key]: d }))}
+          onClose={() => setOpenTask(null)}
+        />
+      )}
     </div>
   );
 }

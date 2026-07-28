@@ -1,228 +1,235 @@
+import { createPortal } from 'react-dom';
 import { AMBER, GREEN, INDIGO } from '../types';
+import { spineKey } from './spineCompare';
 import {
   stepFate,
+  roleShort,
   type RoleColumnInput,
+  type RoleTask,
   type StepDecision,
+  type StepFate,
   type TargetStep,
 } from './roleConsolidation';
 
-// The Roles lens' lower half — "every task, column by column": one column per
-// compared role, its steps grouped under their own L3 › L4 sub-process, each
-// carrying its computed fate and a per-step decision; the green target column
-// builds the resulting role from every surviving step.
+// The Roles lens' lower half — every task GROUPED BY VALUE STREAM, aligned
+// across the compared roles by semantic name match (spineKey): tasks that are
+// the same work sit on the same row, one cell per role; each role's own work
+// stacks below inside the stream section. Every card opens a detail modal.
+// The green target column builds the resulting role, grouped the same way.
 
-export const ROLE_COL_W = 280;
+export const ROLE_COL_W = 270;
 
-const FATE_STYLE: Record<string, { fg: string; bg: string }> = {
-  stays: { fg: '#047857', bg: '#f0fdf6' },
-  covered: { fg: INDIGO, bg: '#eef2ff' },
-  merges: { fg: INDIGO, bg: '#eef2ff' },
-  moves: { fg: AMBER, bg: '#fffbeb' },
+const FATE_STYLE: Record<StepFateKindKey, { fg: string; bg: string; edge: string }> = {
+  stays: { fg: '#047857', bg: '#f0fdf6', edge: GREEN },
+  covered: { fg: INDIGO, bg: '#eef2ff', edge: INDIGO },
+  merges: { fg: INDIGO, bg: '#eef2ff', edge: INDIGO },
+  moves: { fg: AMBER, bg: '#fffbeb', edge: AMBER },
 };
+type StepFateKindKey = StepFate['kind'];
 
-function StepDecisionButtons({
-  chosen,
-  onPick,
+export interface OpenTask {
+  colIdx: number;
+  task: RoleTask;
+}
+
+/** Compact clickable task card — the depth lives in the modal. */
+function TaskCardCompact({
+  task,
+  fate,
+  onOpen,
 }: {
-  chosen: StepDecision;
-  onPick: (d: StepDecision) => void;
+  task: RoleTask;
+  fate: StepFate;
+  onOpen: () => void;
 }) {
-  const options: [StepDecision, string][] = [
-    ['Move', '→ target'],
-    ['Keep', 'keep here'],
-    ['Drop', 'drop'],
-  ];
+  const style = FATE_STYLE[fate.kind];
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      style={{
+        font: 'inherit',
+        width: '100%',
+        boxSizing: 'border-box',
+        background: '#fff',
+        border: '1px solid #e2e8f0',
+        borderLeft: `3px solid ${style.edge}`,
+        borderRadius: 7,
+        padding: '5px 8px',
+        cursor: 'pointer',
+        textAlign: 'left',
+      }}
+    >
+      <div style={{ fontSize: 10.5, lineHeight: 1.3, color: '#171717' }}>{task.name}</div>
+      <div
+        style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4, flexWrap: 'wrap' }}
+      >
+        <span
+          style={{
+            fontSize: 8.5,
+            fontWeight: 700,
+            color: style.fg,
+            background: style.bg,
+            borderRadius: 4,
+            padding: '1px 5px',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {fate.label}
+        </span>
+        {fate.also.length > 0 && (
+          <span style={{ fontSize: 8.5, color: '#94a3b8' }}>also {fate.also.join(', ')}</span>
+        )}
+      </div>
+    </button>
+  );
+}
+
+function GapCell() {
   return (
     <div
       style={{
+        border: '1px dashed #e5e9f0',
+        borderRadius: 7,
+        padding: '5px 8px',
+        fontSize: 9,
+        color: '#c3cedb',
         display: 'flex',
-        gap: 4,
-        marginTop: 7,
-        borderTop: '1px solid #f4f6f8',
-        paddingTop: 6,
+        alignItems: 'center',
       }}
     >
-      {options.map(([key, label]) => {
-        const on = chosen === key;
-        return (
-          <button
-            key={key}
-            type="button"
-            onClick={() => onPick(key)}
-            style={{
-              font: 'inherit',
-              fontSize: 9,
-              fontWeight: 600,
-              cursor: 'pointer',
-              borderRadius: 5,
-              padding: '2px 7px',
-              color: on ? '#fff' : '#525252',
-              background: on
-                ? key === 'Drop'
-                  ? '#dc2626'
-                  : key === 'Move'
-                    ? INDIGO
-                    : '#525252'
-                : '#fff',
-              border: `1px solid ${on ? 'transparent' : '#e5e5e5'}`,
-            }}
-          >
-            {label}
-          </button>
-        );
-      })}
+      not in this role
     </div>
   );
 }
 
-export function RoleColumn({
-  col,
-  colIdx,
+/** The stream-grouped, semantically aligned task grid (role columns only —
+ *  the target column renders separately so the two stay side by side). */
+export function AlignedTaskGrid({
   columns,
   keySets,
   going,
   targetIdx,
   filter,
-  stepDecisions,
-  onStepDecision,
+  onOpenTask,
 }: {
-  col: RoleColumnInput;
-  colIdx: number;
   columns: RoleColumnInput[];
   keySets: Set<string>[];
   going: boolean[];
   targetIdx: number;
   filter: 'all' | 'multi' | 'single';
-  stepDecisions: Record<string, StepDecision>;
-  onStepDecision: (key: string, d: StepDecision) => void;
+  onOpenTask: (open: OpenTask) => void;
 }) {
-  interface Group {
-    name: string;
-    steps: { task: RoleColumnInput['tasks'][number]; n: number }[];
-  }
-  const groups: Group[] = [];
-  for (const t of col.tasks) {
-    const fate = stepFate(t, colIdx, columns, keySets, going, targetIdx);
-    if (filter === 'multi' && fate.also.length === 0) continue;
-    if (filter === 'single' && fate.also.length > 0) continue;
-    const gName = [t.l3, t.l4].filter(Boolean).join(' › ') || (t.valueStream ?? 'Unmapped');
-    let g = groups.find((x) => x.name === gName);
-    if (!g) {
-      g = { name: gName, steps: [] };
-      groups.push(g);
+  // Streams ordered by total volume across the compared roles.
+  const streamOrder = new Map<string, number>();
+  for (const c of columns)
+    for (const t of c.tasks) {
+      const vs = t.valueStream ?? 'Unmapped';
+      streamOrder.set(vs, (streamOrder.get(vs) ?? 0) + 1);
     }
-    g.steps.push({ task: t, n: g.steps.length + 1 });
-  }
+  const streams = [...streamOrder.entries()].sort((x, y) => y[1] - x[1]).map(([name]) => name);
+
+  const gridCols = `repeat(${columns.length}, ${ROLE_COL_W}px)`;
 
   return (
-    <div style={{ minWidth: 0, width: ROLE_COL_W }}>
-      {groups.map((g) => (
-        <div key={g.name} style={{ marginBottom: 11 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '0 2px 6px' }}>
-            <span
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {streams.map((stream) => {
+        // Per column: this stream's tasks keyed by spineKey.
+        const perCol = columns.map((c) =>
+          c.tasks.filter((t) => (t.valueStream ?? 'Unmapped') === stream),
+        );
+        // Aligned rows: keys carried by 2+ roles, in first-seen order.
+        const seen = new Set<string>();
+        const alignedKeys: string[] = [];
+        perCol.forEach((tasks) => {
+          for (const t of tasks) {
+            const k = spineKey(t.name);
+            if (seen.has(k)) continue;
+            seen.add(k);
+            const carriers = perCol.filter((list) => list.some((x) => spineKey(x.name) === k));
+            if (carriers.length > 1) alignedKeys.push(k);
+          }
+        });
+        const singles = perCol.map((tasks) =>
+          tasks.filter((t) => !alignedKeys.includes(spineKey(t.name))),
+        );
+        const total = perCol.reduce((n, l) => n + l.length, 0);
+        if (total === 0) return null;
+
+        const showAligned = filter !== 'single';
+        const showSingles = filter !== 'multi';
+
+        return (
+          <div key={stream}>
+            <div
               style={{
-                fontSize: 9,
-                fontWeight: 600,
-                letterSpacing: '.06em',
-                textTransform: 'uppercase',
-                color: '#64748b',
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: 8,
+                padding: '5px 2px 4px',
+                borderBottom: '1px solid #eef1f4',
+                marginBottom: 6,
               }}
             >
-              {g.name}
-            </span>
-            <span style={{ fontSize: 9, color: '#b6c2d1' }}>
-              {g.steps.length} {g.steps.length === 1 ? 'task' : 'tasks'}
-            </span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {g.steps.map(({ task, n }) => {
-              const fate = stepFate(task, colIdx, columns, keySets, going, targetIdx);
-              const style = FATE_STYLE[fate.kind];
-              const decKey = `${col.id}:${task.id}`;
-              const chosen = stepDecisions[decKey] ?? (going[colIdx] ? 'Move' : 'Keep');
-              return (
-                <div
-                  key={task.id}
-                  style={{
-                    background: '#fff',
-                    border: `1px solid ${fate.kind === 'moves' ? '#fde68a' : '#e2e8f0'}`,
-                    borderLeft: `3px solid ${fate.kind === 'moves' ? AMBER : fate.kind === 'stays' ? GREEN : INDIGO}`,
-                    borderRadius: 8,
-                    padding: '8px 10px',
-                  }}
-                >
-                  <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
-                    <span
-                      style={{
-                        fontSize: 9.5,
-                        fontFamily: 'ui-monospace, monospace',
-                        color: '#cbd5e1',
-                        flexShrink: 0,
-                        marginTop: 1,
-                      }}
-                    >
-                      {n}
-                    </span>
-                    <span style={{ fontSize: 10.5, lineHeight: 1.35, color: '#171717', flex: 1 }}>
-                      {task.name}
-                    </span>
+              <span
+                style={{
+                  fontSize: 9.5,
+                  fontWeight: 700,
+                  letterSpacing: '.06em',
+                  textTransform: 'uppercase',
+                  color: '#1e3a5f',
+                }}
+              >
+                {stream}
+              </span>
+              <span style={{ fontSize: 9, color: '#94a3b8' }}>
+                {total} tasks · {alignedKeys.length} same work across roles
+              </span>
+            </div>
+
+            {showAligned && alignedKeys.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 8 }}>
+                {alignedKeys.map((k) => (
+                  <div key={k} style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 8 }}>
+                    {columns.map((c, ci) => {
+                      const t = perCol[ci].find((x) => spineKey(x.name) === k);
+                      return t ? (
+                        <TaskCardCompact
+                          key={c.id}
+                          task={t}
+                          fate={stepFate(t, ci, columns, keySets, going, targetIdx)}
+                          onOpen={() => onOpenTask({ colIdx: ci, task: t })}
+                        />
+                      ) : (
+                        <GapCell key={c.id} />
+                      );
+                    })}
                   </div>
-                  {task.apps.length > 0 && (
-                    <div
-                      style={{
-                        fontSize: 9,
-                        fontFamily: 'ui-monospace, monospace',
-                        color: '#a3a3a3',
-                        marginTop: 3,
-                      }}
-                    >
-                      {task.apps.join(' · ')}
-                    </div>
-                  )}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 5,
-                      marginTop: 6,
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: 9,
-                        fontWeight: 700,
-                        color: style.fg,
-                        background: style.bg,
-                        borderRadius: 4,
-                        padding: '1px 5px',
-                      }}
-                    >
-                      {fate.label}
-                    </span>
-                    <span style={{ fontSize: 9, color: '#b6c2d1' }}>
-                      {fate.also.length
-                        ? `also done by ${fate.also.join(', ')}`
-                        : 'no other compared role'}
-                    </span>
+                ))}
+              </div>
+            )}
+
+            {showSingles && singles.some((l) => l.length > 0) && (
+              <div
+                style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 8, marginBottom: 4 }}
+              >
+                {columns.map((c, ci) => (
+                  <div key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    {singles[ci].map((t) => (
+                      <TaskCardCompact
+                        key={t.id}
+                        task={t}
+                        fate={stepFate(t, ci, columns, keySets, going, targetIdx)}
+                        onOpen={() => onOpenTask({ colIdx: ci, task: t })}
+                      />
+                    ))}
                   </div>
-                  {going[colIdx] && (
-                    <StepDecisionButtons
-                      chosen={chosen}
-                      onPick={(d) => onStepDecision(decKey, d)}
-                    />
-                  )}
-                </div>
-              );
-            })}
+                ))}
+              </div>
+            )}
           </div>
-        </div>
-      ))}
-      {groups.length === 0 && (
-        <div style={{ fontSize: 10, color: '#a3a3a3', padding: 6 }}>
-          No steps match this filter.
-        </div>
-      )}
+        );
+      })}
     </div>
   );
 }
@@ -232,9 +239,9 @@ export function TargetColumn({ steps }: { steps: TargetStep[] }) {
   let n = 0;
   for (const s of steps) {
     n += 1;
-    let g = groups.find((x) => x.name === s.group);
+    let g = groups.find((x) => x.name === s.stream);
     if (!g) {
-      g = { name: s.group, steps: [] };
+      g = { name: s.stream, steps: [] };
       groups.push(g);
     }
     g.steps.push({ ...s, n });
@@ -243,21 +250,21 @@ export function TargetColumn({ steps }: { steps: TargetStep[] }) {
     <div
       style={{
         minWidth: 0,
-        width: ROLE_COL_W + 20,
+        width: ROLE_COL_W + 14,
         background: '#f6faf7',
         border: '2px solid #a7f3d0',
         borderRadius: 10,
-        padding: 11,
+        padding: 9,
         boxSizing: 'border-box',
       }}
     >
       {groups.map((g) => (
-        <div key={g.name} style={{ marginBottom: 11 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '0 2px 6px' }}>
+        <div key={g.name} style={{ marginBottom: 9 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '0 2px 5px' }}>
             <span
               style={{
                 fontSize: 9,
-                fontWeight: 600,
+                fontWeight: 700,
                 letterSpacing: '.06em',
                 textTransform: 'uppercase',
                 color: '#4d7c60',
@@ -269,35 +276,35 @@ export function TargetColumn({ steps }: { steps: TargetStep[] }) {
               {g.steps.length} {g.steps.length === 1 ? 'task' : 'tasks'}
             </span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             {g.steps.map((s) => (
               <div
                 key={s.key}
                 style={{
                   background: '#fff',
                   border: '1px solid #bbe7cf',
-                  borderRadius: 8,
-                  padding: '8px 10px',
+                  borderRadius: 7,
+                  padding: '5px 8px',
                 }}
               >
                 <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
                   <span
                     style={{
-                      width: 15,
-                      height: 15,
+                      width: 14,
+                      height: 14,
                       borderRadius: 999,
                       background: '#047857',
                       color: '#fff',
                       fontSize: 8,
                       fontWeight: 800,
-                      lineHeight: '15px',
+                      lineHeight: '14px',
                       textAlign: 'center',
                       flexShrink: 0,
                     }}
                   >
                     {s.n}
                   </span>
-                  <span style={{ fontSize: 10.5, lineHeight: 1.35, color: '#14532d', flex: 1 }}>
+                  <span style={{ fontSize: 10.5, lineHeight: 1.3, color: '#14532d', flex: 1 }}>
                     {s.name}
                   </span>
                 </div>
@@ -306,7 +313,7 @@ export function TargetColumn({ steps }: { steps: TargetStep[] }) {
                     display: 'flex',
                     alignItems: 'center',
                     gap: 5,
-                    marginTop: 6,
+                    marginTop: 4,
                     flexWrap: 'wrap',
                   }}
                 >
@@ -314,7 +321,7 @@ export function TargetColumn({ steps }: { steps: TargetStep[] }) {
                     <span
                       key={src.id}
                       style={{
-                        fontSize: 9,
+                        fontSize: 8.5,
                         fontWeight: 600,
                         color: INDIGO,
                         background: '#f6f7fb',
@@ -322,13 +329,13 @@ export function TargetColumn({ steps }: { steps: TargetStep[] }) {
                         padding: '1px 5px',
                       }}
                     >
-                      {src.short} step
+                      {src.short}
                     </span>
                   ))}
                   <div style={{ flex: 1 }} />
                   <span
                     style={{
-                      fontSize: 9,
+                      fontSize: 8.5,
                       fontWeight: 700,
                       color:
                         s.badge === 'merged' ? '#047857' : s.badge === 'moved' ? AMBER : '#94a3b8',
@@ -353,5 +360,267 @@ export function TargetColumn({ steps }: { steps: TargetStep[] }) {
         </div>
       )}
     </div>
+  );
+}
+
+/** In-depth task detail — everything the compact card doesn't show. */
+export function RoleTaskModal({
+  open,
+  columns,
+  keySets,
+  going,
+  targetIdx,
+  stepDecisions,
+  onStepDecision,
+  onClose,
+}: {
+  open: OpenTask;
+  columns: RoleColumnInput[];
+  keySets: Set<string>[];
+  going: boolean[];
+  targetIdx: number;
+  stepDecisions: Record<string, StepDecision>;
+  onStepDecision: (key: string, d: StepDecision) => void;
+  onClose: () => void;
+}) {
+  const col = columns[open.colIdx];
+  const task = open.task;
+  const fate = stepFate(task, open.colIdx, columns, keySets, going, targetIdx);
+  const style = FATE_STYLE[fate.kind];
+  const k = spineKey(task.name);
+  const carriers = columns
+    .map((c, ci) => ({ c, ci, t: c.tasks.find((x) => spineKey(x.name) === k) }))
+    .filter((x): x is { c: RoleColumnInput; ci: number; t: RoleTask } => !!x.t);
+  const decKey = `${col.id}:${task.id}`;
+  const chosen = stepDecisions[decKey] ?? (going[open.colIdx] ? 'Move' : 'Keep');
+
+  return createPortal(
+    <div
+      role="presentation"
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(15,23,42,.34)',
+        zIndex: 60,
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        paddingTop: 110,
+      }}
+    >
+      <div
+        role="dialog"
+        aria-label={task.name}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 640,
+          maxWidth: 'calc(100% - 60px)',
+          background: '#fff',
+          borderRadius: 14,
+          boxShadow: '0 24px 60px rgba(15,23,42,.28)',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 12,
+            padding: '13px 16px',
+            borderBottom: '1px solid #eaeaea',
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: 9.5,
+                fontWeight: 700,
+                letterSpacing: '.07em',
+                textTransform: 'uppercase',
+                color: style.fg,
+              }}
+            >
+              {col.name} · {task.involvement}
+            </div>
+            <div style={{ fontSize: 14.5, fontWeight: 700, color: '#171717', marginTop: 3 }}>
+              {task.name}
+            </div>
+            <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 3 }}>
+              {[task.valueStream ?? 'Unmapped', task.l3, task.l4].filter(Boolean).join(' › ')}
+            </div>
+          </div>
+          <div style={{ flex: 1 }} />
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            style={{
+              font: 'inherit',
+              fontSize: 14,
+              color: '#a3a3a3',
+              background: 'none',
+              border: 'none',
+              padding: '2px 8px',
+              cursor: 'pointer',
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                color: style.fg,
+                background: style.bg,
+                borderRadius: 5,
+                padding: '2px 8px',
+              }}
+            >
+              {fate.label}
+            </span>
+            {going[open.colIdx] && (
+              <span style={{ fontSize: 11, color: '#525252' }}>
+                target: <b>{columns[targetIdx].name}</b>
+              </span>
+            )}
+          </div>
+
+          <div>
+            <div
+              style={{
+                fontSize: 9.5,
+                fontWeight: 600,
+                letterSpacing: '.06em',
+                textTransform: 'uppercase',
+                color: '#a3a3a3',
+                marginBottom: 4,
+              }}
+            >
+              Who does this work
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {carriers.map(({ c, t }) => (
+                <div
+                  key={c.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    border: '1px solid #f1f3f5',
+                    borderRadius: 7,
+                    padding: '5px 9px',
+                  }}
+                >
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#1e3a5f' }}>
+                    {roleShort(c.name)}
+                  </span>
+                  <span style={{ fontSize: 11.5, color: '#171717', flex: 1 }}>{c.name}</span>
+                  <span style={{ fontSize: 10.5, color: '#64748b' }}>{t.involvement}</span>
+                </div>
+              ))}
+              {carriers.length === 1 && (
+                <div style={{ fontSize: 10.5, color: '#94a3b8' }}>
+                  No other compared role does this work.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {task.apps.length > 0 && (
+            <div>
+              <div
+                style={{
+                  fontSize: 9.5,
+                  fontWeight: 600,
+                  letterSpacing: '.06em',
+                  textTransform: 'uppercase',
+                  color: '#a3a3a3',
+                  marginBottom: 4,
+                }}
+              >
+                Applications
+              </div>
+              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                {task.apps.map((app) => (
+                  <span
+                    key={app}
+                    style={{
+                      fontSize: 10.5,
+                      color: '#334155',
+                      background: '#f5f7fa',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: 5,
+                      padding: '2px 8px',
+                    }}
+                  >
+                    {app}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {going[open.colIdx] && (
+            <div>
+              <div
+                style={{
+                  fontSize: 9.5,
+                  fontWeight: 600,
+                  letterSpacing: '.06em',
+                  textTransform: 'uppercase',
+                  color: '#a3a3a3',
+                  marginBottom: 4,
+                }}
+              >
+                Decision for this task
+              </div>
+              <div style={{ display: 'flex', gap: 5 }}>
+                {(
+                  [
+                    ['Move', '→ target'],
+                    ['Keep', 'keep here'],
+                    ['Drop', 'drop'],
+                  ] as [StepDecision, string][]
+                ).map(([key, label]) => {
+                  const on = chosen === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => onStepDecision(decKey, key)}
+                      style={{
+                        font: 'inherit',
+                        fontSize: 10.5,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        borderRadius: 6,
+                        padding: '4px 10px',
+                        color: on ? '#fff' : '#525252',
+                        background: on
+                          ? key === 'Drop'
+                            ? '#dc2626'
+                            : key === 'Move'
+                              ? INDIGO
+                              : '#525252'
+                          : '#fff',
+                        border: `1px solid ${on ? 'transparent' : '#e5e5e5'}`,
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }

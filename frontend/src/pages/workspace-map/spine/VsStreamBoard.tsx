@@ -9,15 +9,21 @@ import VsNewProcessFlow, {
   defaultDecision,
   type ReconDecision,
 } from './VsNewProcessFlow';
-import { buildReconciliation, type ReconPhase, type ReconRow } from './spineCompare';
+import {
+  alignStages,
+  buildReconciliation,
+  type ReconPhase,
+  type ReconRow,
+  type StageSlot,
+} from './spineCompare';
 import { useStreamDetails, useStreamList, type StreamDetail } from './useSpineData';
 
-// Value-streams lens — the step reconciliation table: two compared streams,
-// one row per canonical unit of work, each stream's own step (with sequence,
-// owner and systems) side by side, a computed verdict (merge 2→1, order
-// differs, only-one-stream) and a per-row decision. The table closes with the
-// horizontal NEW PROCESS flow carrying the full detail of every surviving
-// step. Everything derives live from the L3→L4→L5 spine subtrees.
+// Value-streams lens — phase-by-level reconciliation, the same progressive
+// drill as the rest of the app: pick two streams (L2), land on their aligned
+// PHASES (L3), drill a phase into its aligned SUB-PROCESSES (L4), drill a
+// sub-process into the atomic STEP reconciliation table (L5) where the
+// verdicts and decisions live and the normalized new-process flow closes the
+// view. Breadcrumb pops back up. Everything derives live from the spine.
 
 const VERDICT_META: Record<ReconRow['verdict'], { fg: string; bg: string; border: string }> = {
   merge: { fg: INDIGO, bg: '#eef2ff', border: '#d6dcff' },
@@ -41,7 +47,42 @@ function verdictLabel(row: ReconRow, names: [string, string]): { label: string; 
 
 type ShowFilter = 'all' | 'diff' | 'merge' | 'solo';
 
-const GRID = '34px minmax(240px,1fr) 300px 300px 190px 168px';
+const STEP_GRID = '30px minmax(220px,1fr) 290px 290px 180px 160px';
+const LEVEL_GRID = '30px minmax(220px,1fr) 290px 290px 220px 90px';
+
+function VerdictPill({
+  fg,
+  bg,
+  border,
+  label,
+  note,
+}: {
+  fg: string;
+  bg: string;
+  border: string;
+  label: string;
+  note?: string;
+}) {
+  return (
+    <div>
+      <span
+        style={{
+          display: 'inline-block',
+          fontSize: 9.5,
+          fontWeight: 700,
+          color: fg,
+          background: bg,
+          border: `1px solid ${border}`,
+          borderRadius: 6,
+          padding: '2px 7px',
+        }}
+      >
+        {label}
+      </span>
+      {note && <div style={{ fontSize: 9.5, color: '#94a3b8', marginTop: 3 }}>{note}</div>}
+    </div>
+  );
+}
 
 function StreamCell({ step, tone }: { step: ReconRow['a']; tone: string }) {
   if (!step) return <span style={{ fontSize: 10.5, color: '#cbd5e1' }}>— not in this stream</span>;
@@ -49,14 +90,14 @@ function StreamCell({ step, tone }: { step: ReconRow['a']; tone: string }) {
     <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
       <span
         style={{
-          width: 17,
-          height: 17,
+          width: 16,
+          height: 16,
           borderRadius: 999,
           background: tone,
           color: '#fff',
           fontSize: 9,
           fontWeight: 800,
-          lineHeight: '17px',
+          lineHeight: '16px',
           textAlign: 'center',
           flexShrink: 0,
         }}
@@ -64,11 +105,24 @@ function StreamCell({ step, tone }: { step: ReconRow['a']; tone: string }) {
         {step.seq}
       </span>
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 10.5, lineHeight: 1.35, color: '#334155' }}>{step.name}</div>
-        <div style={{ fontSize: 9.5, color: '#94a3b8', marginTop: 2 }}>
+        <div style={{ fontSize: 10.5, lineHeight: 1.3, color: '#334155' }}>{step.name}</div>
+        <div style={{ fontSize: 9.5, color: '#94a3b8', marginTop: 1 }}>
           {[step.owner, step.apps.join(' · ')].filter(Boolean).join(' · ') || step.sub}
         </div>
       </div>
+    </div>
+  );
+}
+
+/** A drill-level cell: the stream's own node at this level (or a gap). */
+function LevelCell({ name, meta, tone }: { name: string | null; meta: string; tone: string }) {
+  if (!name) return <span style={{ fontSize: 10.5, color: '#cbd5e1' }}>— not in this stream</span>;
+  return (
+    <div style={{ minWidth: 0 }}>
+      <div style={{ fontSize: 11, fontWeight: 600, lineHeight: 1.3, color: '#171717' }}>
+        <span style={{ color: tone }}>●</span> {name}
+      </div>
+      <div style={{ fontSize: 9.5, color: '#94a3b8', marginTop: 1 }}>{meta}</div>
     </div>
   );
 }
@@ -96,7 +150,7 @@ function DecisionButtons({
               fontWeight: 600,
               cursor: 'pointer',
               borderRadius: 5,
-              padding: '3px 7px',
+              padding: '2px 7px',
               color: on ? '#fff' : '#525252',
               background: on
                 ? label === 'Drop'
@@ -116,6 +170,13 @@ function DecisionButtons({
   );
 }
 
+interface SubSlot {
+  key: string;
+  label: string;
+  a: { name: string; steps: number } | null;
+  b: { name: string; steps: number } | null;
+}
+
 export default function VsStreamBoard({
   lens,
   onLens,
@@ -126,6 +187,7 @@ export default function VsStreamBoard({
   const { data: streams, loading: listLoading, error: listError } = useStreamList();
   const [ids, setIds] = useViewState<string[]>('workspace.vs.ids', []);
   const [phaseKey, setPhaseKey] = useViewState<string | null>('workspace.vs.phase', null);
+  const [subKey, setSubKey] = useViewState<string | null>('workspace.vs.sub', null);
   const [filter, setFilter] = useViewState<ShowFilter>('workspace.vs.filter', 'all');
   const [decisions, setDecisions] = useViewState<Record<string, ReconDecision>>(
     'workspace.vs.decisions',
@@ -135,21 +197,20 @@ export default function VsStreamBoard({
   useEffect(() => {
     if (streams && streams.length > 1 && ids.length < 2) setIds([streams[0].id, streams[1].id]);
   }, [streams, ids.length, setIds]);
-  // A different pair starts clean — change-only so a restored comparison keeps
-  // its restored decisions on mount.
   useOnChange(ids.slice(0, 2).join(','), () => {
     setPhaseKey(null);
+    setSubKey(null);
     setDecisions({});
   });
 
   const pairIds = ids.slice(0, 2);
   const { data: details, loading, error } = useStreamDetails(pairIds);
-
   const pair: (StreamDetail | null)[] = useMemo(
     () => pairIds.map((id) => details?.[id] ?? null),
     [details, pairIds],
   );
   const [a, b] = pair;
+  const names: [string, string] = [a?.name ?? 'Stream A', b?.name ?? 'Stream B'];
 
   const phases: ReconPhase[] = useMemo(() => {
     if (!a || !b) return [];
@@ -160,63 +221,106 @@ export default function VsStreamBoard({
     return buildReconciliation(lane(a), lane(b));
   }, [a, b]);
 
-  const names: [string, string] = [a?.name ?? 'Stream A', b?.name ?? 'Stream B'];
+  /** The aligned L3 slots — same alignment the reconciliation uses. */
+  const slots: StageSlot[] = useMemo(() => {
+    if (!a || !b) return [];
+    return alignStages([
+      { lane: a.id, stages: a.areas },
+      { lane: b.id, stages: b.areas },
+    ]);
+  }, [a, b]);
+
+  const phase = phaseKey ? (phases.find((p) => p.key === phaseKey) ?? null) : null;
+  const slot = phaseKey ? (slots.find((s) => s.key === phaseKey) ?? null) : null;
+
+  /** Aligned L4 sub-processes of the drilled phase. */
+  const subSlots: SubSlot[] = useMemo(() => {
+    if (!slot || !a || !b) return [];
+    const stageOf = (d: StreamDetail) => d.areas.find((ar) => ar.id === slot.byLane.get(d.id));
+    const sa = stageOf(a);
+    const sb = stageOf(b);
+    const aligned = alignStages([
+      { lane: 'a', stages: (sa?.subs ?? []).map((s) => ({ id: s.id, name: s.name })) },
+      { lane: 'b', stages: (sb?.subs ?? []).map((s) => ({ id: s.id, name: s.name })) },
+    ]);
+    return aligned.map((sl) => {
+      const subA = sa?.subs.find((s) => s.id === sl.byLane.get('a')) ?? null;
+      const subB = sb?.subs.find((s) => s.id === sl.byLane.get('b')) ?? null;
+      return {
+        key: sl.key,
+        label: sl.label,
+        a: subA ? { name: subA.name, steps: subA.tasks.length } : null,
+        b: subB ? { name: subB.name, steps: subB.tasks.length } : null,
+      };
+    });
+  }, [slot, a, b]);
+
+  const sub = subKey ? (subSlots.find((s) => s.key === subKey) ?? null) : null;
+  const level: 'phases' | 'subs' | 'steps' = !phase ? 'phases' : !sub ? 'subs' : 'steps';
+
   const decisionOf = (row: ReconRow): ReconDecision => decisions[row.key] ?? defaultDecision(row);
 
-  const shownPhases = phaseKey ? phases.filter((p) => p.key === phaseKey) : phases;
-  const allRows = shownPhases.flatMap((p) => p.rows);
+  // Step rows in scope: the drilled phase, narrowed to the drilled sub.
+  const stepRows = useMemo(() => {
+    if (!phase) return [];
+    if (!sub) return phase.rows;
+    return phase.rows.filter(
+      (r) => (r.a && r.a.sub === sub.a?.name) || (r.b && r.b.sub === sub.b?.name),
+    );
+  }, [phase, sub]);
+
   const counts = {
-    all: allRows.length,
-    diff: allRows.filter((r) => r.verdict !== 'merge').length,
-    merge: allRows.filter((r) => r.verdict === 'merge' || r.verdict === 'order').length,
-    solo: allRows.filter((r) => !r.a || !r.b).length,
+    all: stepRows.length,
+    diff: stepRows.filter((r) => r.verdict !== 'merge').length,
+    merge: stepRows.filter((r) => r.verdict === 'merge' || r.verdict === 'order').length,
+    solo: stepRows.filter((r) => !r.a || !r.b).length,
   };
-  const rows = allRows.filter((r) => {
+  const shownSteps = stepRows.filter((r) => {
     if (filter === 'diff') return r.verdict !== 'merge';
     if (filter === 'merge') return r.verdict === 'merge' || r.verdict === 'order';
     if (filter === 'solo') return !r.a || !r.b;
     return true;
   });
 
-  const currentSteps = allRows.reduce((n, r) => n + (r.a ? 1 : 0) + (r.b ? 1 : 0), 0);
-  const normalized = allRows.reduce((n, r) => {
+  const scopeRows = level === 'phases' ? phases.flatMap((p) => p.rows) : stepRows;
+  const currentSteps = scopeRows.reduce((n, r) => n + (r.a ? 1 : 0) + (r.b ? 1 : 0), 0);
+  const normalized = scopeRows.reduce((n, r) => {
     const d = decisionOf(r);
     if (d === 'Drop') return n;
     if (d === 'Merge') return n + 1;
     return n + (r.a ? 1 : 0) + (r.b ? 1 : 0);
   }, 0);
-  const mergedCount = allRows.filter((r) => r.a && r.b && decisionOf(r) === 'Merge').length;
-  const orderCount = allRows.filter((r) => r.verdict === 'order').length;
-  const soloCount = allRows.filter((r) => !r.a || !r.b).length;
-  const decidedByHand = allRows.filter((r) => decisions[r.key]).length;
+  const mergedCount = scopeRows.filter((r) => r.a && r.b && decisionOf(r) === 'Merge').length;
+  const orderCount = scopeRows.filter((r) => r.verdict === 'order').length;
+  const soloCount = scopeRows.filter((r) => !r.a || !r.b).length;
 
   if (listLoading) return <LoadingState message="Loading value streams…" />;
   if (listError) return <ErrorMessage>{listError}</ErrorMessage>;
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
 
-  const streamSelect = (slot: 0 | 1) => (
+  const streamSelect = (slotIdx: 0 | 1) => (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
       <span
         style={{
           width: 7,
           height: 7,
           borderRadius: 999,
-          background: STREAM_TONES[slot],
+          background: STREAM_TONES[slotIdx],
           flexShrink: 0,
         }}
       />
       <Select
-        aria-label={`Stream ${slot === 0 ? 'A' : 'B'}`}
-        value={pairIds[slot] ?? ''}
+        aria-label={`Stream ${slotIdx === 0 ? 'A' : 'B'}`}
+        value={pairIds[slotIdx] ?? ''}
         onChange={(e) => {
           const next = [...pairIds];
-          next[slot] = e.target.value;
+          next[slotIdx] = e.target.value;
           setIds(next);
         }}
         style={{
           width: 'auto',
-          minWidth: 180,
-          maxWidth: 300,
+          minWidth: 170,
+          maxWidth: 290,
           height: 26,
           padding: '0 24px 0 9px',
           fontSize: 11.5,
@@ -226,7 +330,7 @@ export default function VsStreamBoard({
           <option
             key={s.id}
             value={s.id}
-            disabled={pairIds.includes(s.id) && s.id !== pairIds[slot]}
+            disabled={pairIds.includes(s.id) && s.id !== pairIds[slotIdx]}
           >
             {s.name} — {s.taskCount} steps
           </option>
@@ -234,6 +338,78 @@ export default function VsStreamBoard({
       </Select>
     </span>
   );
+
+  const crumb = (label: string, onClick: (() => void) | null, last: boolean) => (
+    <span key={label} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+      <button
+        type="button"
+        disabled={!onClick}
+        onClick={onClick ?? undefined}
+        style={{
+          font: 'inherit',
+          fontSize: 11.5,
+          fontWeight: last ? 700 : 500,
+          color: last ? '#171717' : '#0070AD',
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          cursor: onClick ? 'pointer' : 'default',
+          maxWidth: 300,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {label}
+      </button>
+      {!last && <span style={{ color: '#cbd5e1', fontSize: 11 }}>›</span>}
+    </span>
+  );
+
+  const headerCells = (last: { label: string; width?: string }[]) => (
+    <>
+      <div style={{ padding: '7px 6px', textAlign: 'center' }}>#</div>
+      <div style={{ padding: '7px 10px' }}>Unit of work (canonical wording)</div>
+      <div style={{ padding: '7px 10px', borderLeft: '1px solid #eaeaea', color: STREAM_TONES[0] }}>
+        {names[0]}
+      </div>
+      <div style={{ padding: '7px 10px', borderLeft: '1px solid #eaeaea', color: STREAM_TONES[1] }}>
+        {names[1]}
+      </div>
+      {last.map((c) => (
+        <div key={c.label} style={{ padding: '7px 10px', borderLeft: '1px solid #eaeaea' }}>
+          {c.label}
+        </div>
+      ))}
+    </>
+  );
+
+  const headRow = (grid: string, cells: React.ReactNode) => (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: grid,
+        background: '#fafafa',
+        borderBottom: '1px solid #eaeaea',
+        fontSize: 9.5,
+        fontWeight: 600,
+        letterSpacing: '.07em',
+        textTransform: 'uppercase',
+        color: '#a3a3a3',
+        position: 'sticky',
+        top: 0,
+        zIndex: 2,
+      }}
+    >
+      {cells}
+    </div>
+  );
+
+  const phaseStats = (p: ReconPhase) => {
+    const both = p.rows.filter((r) => r.a && r.b).length;
+    const only = p.rows.length - both;
+    return { both, only };
+  };
 
   return (
     <div
@@ -246,82 +422,74 @@ export default function VsStreamBoard({
     >
       <LensBar lens={lens} onLens={onLens} boards={[]} boardId={null} onBoard={() => undefined} />
       <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          flexWrap: 'wrap',
-          marginBottom: 10,
-        }}
+        style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}
       >
         <span style={{ fontSize: 11.5, fontWeight: 600, color: '#525252' }}>Compare</span>
         {streamSelect(0)}
         <span style={{ fontSize: 11, color: '#a3a3a3' }}>vs</span>
         {streamSelect(1)}
-        <Select
-          aria-label="Phase"
-          value={phaseKey ?? ''}
-          onChange={(e) => setPhaseKey(e.target.value || null)}
-          style={{
-            width: 'auto',
-            minWidth: 160,
-            maxWidth: 280,
-            height: 26,
-            padding: '0 24px 0 9px',
-            fontSize: 11.5,
-          }}
-        >
-          <option value="">All phases</option>
-          {phases.map((p) => (
-            <option key={p.key} value={p.key}>
-              Phase: {p.label}
-            </option>
-          ))}
-        </Select>
+        <span style={{ width: 1, height: 18, background: '#eaeaea', margin: '0 2px' }} />
+        {crumb(
+          'Phases',
+          level === 'phases'
+            ? null
+            : () => {
+                setPhaseKey(null);
+                setSubKey(null);
+              },
+          level === 'phases',
+        )}
+        {phase &&
+          crumb(phase.label, level === 'subs' ? null : () => setSubKey(null), level === 'subs')}
+        {sub && crumb(sub.label, null, true)}
         <div style={{ flex: 1 }} />
-        <span style={{ fontSize: 10.5, color: '#a3a3a3' }}>Show</span>
-        <div
-          style={{
-            display: 'flex',
-            height: 26,
-            border: '1px solid #eaeaea',
-            borderRadius: 6,
-            overflow: 'hidden',
-            background: '#fff',
-          }}
-        >
-          {(
-            [
-              ['all', 'All', counts.all],
-              ['diff', 'Differences', counts.diff],
-              ['merge', 'Shared', counts.merge],
-              ['solo', 'Only one stream', counts.solo],
-            ] as [ShowFilter, string, number][]
-          ).map(([key, label, count], i) => {
-            const on = filter === key;
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setFilter(key)}
-                style={{
-                  font: 'inherit',
-                  padding: '0 10px',
-                  fontSize: 11,
-                  lineHeight: '26px',
-                  cursor: 'pointer',
-                  border: 'none',
-                  borderLeft: i === 0 ? 'none' : '1px solid #eaeaea',
-                  background: on ? '#171717' : '#fff',
-                  color: on ? '#fff' : '#525252',
-                  fontWeight: on ? 600 : 400,
-                }}
-              >
-                {label} <span style={{ opacity: 0.55 }}>{count}</span>
-              </button>
-            );
-          })}
-        </div>
+        {level === 'steps' && (
+          <>
+            <span style={{ fontSize: 10.5, color: '#a3a3a3' }}>Show</span>
+            <div
+              style={{
+                display: 'flex',
+                height: 26,
+                border: '1px solid #eaeaea',
+                borderRadius: 6,
+                overflow: 'hidden',
+                background: '#fff',
+              }}
+            >
+              {(
+                [
+                  ['all', 'All', counts.all],
+                  ['diff', 'Differences', counts.diff],
+                  ['merge', 'Shared', counts.merge],
+                  ['solo', 'Only one stream', counts.solo],
+                ] as [ShowFilter, string, number][]
+              ).map(([key, label, count], i) => {
+                const on = filter === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setFilter(key)}
+                    style={{
+                      font: 'inherit',
+                      padding: '0 9px',
+                      fontSize: 11,
+                      lineHeight: '26px',
+                      cursor: 'pointer',
+                      border: 'none',
+                      borderLeft: i === 0 ? 'none' : '1px solid #eaeaea',
+                      background: on ? '#171717' : '#fff',
+                      color: on ? '#fff' : '#525252',
+                      fontWeight: on ? 600 : 400,
+                    }}
+                  >
+                    {label} <span style={{ opacity: 0.55 }}>{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
 
       <div
@@ -336,151 +504,301 @@ export default function VsStreamBoard({
         }}
       >
         {loading ? (
-          <div style={{ padding: 30, fontSize: 12.5, color: '#a3a3a3' }}>Loading flows…</div>
+          <div style={{ padding: 24, fontSize: 12.5, color: '#a3a3a3' }}>Loading flows…</div>
         ) : !a || !b ? (
-          <div style={{ padding: 30 }}>
+          <div style={{ padding: 24 }}>
             <EmptyState message="Pick two value streams to reconcile." />
           </div>
         ) : (
-          <div style={{ minWidth: 1200 }}>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: GRID,
-                background: '#fafafa',
-                borderBottom: '1px solid #eaeaea',
-                fontSize: 9.5,
-                fontWeight: 600,
-                letterSpacing: '.07em',
-                textTransform: 'uppercase',
-                color: '#a3a3a3',
-                position: 'sticky',
-                top: 0,
-                zIndex: 2,
-              }}
-            >
-              <div style={{ padding: '8px 6px', textAlign: 'center' }}>#</div>
-              <div style={{ padding: '8px 10px' }}>Unit of work (canonical wording)</div>
-              <div
-                style={{
-                  padding: '8px 10px',
-                  borderLeft: '1px solid #eaeaea',
-                  color: STREAM_TONES[0],
-                }}
-              >
-                {names[0]}
-              </div>
-              <div
-                style={{
-                  padding: '8px 10px',
-                  borderLeft: '1px solid #eaeaea',
-                  color: STREAM_TONES[1],
-                }}
-              >
-                {names[1]}
-              </div>
-              <div style={{ padding: '8px 10px', borderLeft: '1px solid #eaeaea' }}>Verdict</div>
-              <div style={{ padding: '8px 10px', borderLeft: '1px solid #eaeaea' }}>Decision</div>
-            </div>
+          <div style={{ minWidth: 1100 }}>
+            {level === 'phases' && (
+              <>
+                {headRow(LEVEL_GRID, headerCells([{ label: 'Coverage' }, { label: '' }]))}
+                {phases.map((p, i) => {
+                  const sl = slots.find((s) => s.key === p.key);
+                  const stA = a.areas.find((ar) => ar.id === sl?.byLane.get(a.id)) ?? null;
+                  const stB = b.areas.find((ar) => ar.id === sl?.byLane.get(b.id)) ?? null;
+                  const st = phaseStats(p);
+                  const meta =
+                    stA && stB ? VERDICT_META.merge : stA ? VERDICT_META.onlyA : VERDICT_META.onlyB;
+                  return (
+                    <button
+                      key={p.key}
+                      type="button"
+                      onClick={() => {
+                        setPhaseKey(p.key);
+                        setSubKey(null);
+                      }}
+                      style={{
+                        font: 'inherit',
+                        display: 'grid',
+                        gridTemplateColumns: LEVEL_GRID,
+                        width: '100%',
+                        textAlign: 'left',
+                        border: 'none',
+                        borderBottom: '1px solid #f1f3f5',
+                        background: '#fff',
+                        cursor: 'pointer',
+                        padding: 0,
+                      }}
+                    >
+                      <div
+                        style={{
+                          padding: '8px 6px',
+                          textAlign: 'center',
+                          fontSize: 11,
+                          fontFamily: 'ui-monospace, monospace',
+                          color: '#a3a3a3',
+                        }}
+                      >
+                        {i + 1}
+                      </div>
+                      <div style={{ padding: '8px 10px', minWidth: 0 }}>
+                        <div style={{ fontSize: 11.5, fontWeight: 700, color: '#171717' }}>
+                          {p.label}
+                        </div>
+                        <div style={{ fontSize: 9.5, color: '#94a3b8', marginTop: 1 }}>
+                          {p.rows.length} units of work in this phase
+                        </div>
+                      </div>
+                      <div style={{ padding: '8px 10px', borderLeft: '1px solid #f1f3f5' }}>
+                        <LevelCell
+                          name={stA?.name ?? null}
+                          meta={
+                            stA
+                              ? `${stA.subs.length} sub-processes · ${stA.subs.reduce((n, s) => n + s.tasks.length, 0)} steps`
+                              : ''
+                          }
+                          tone={STREAM_TONES[0]}
+                        />
+                      </div>
+                      <div style={{ padding: '8px 10px', borderLeft: '1px solid #f1f3f5' }}>
+                        <LevelCell
+                          name={stB?.name ?? null}
+                          meta={
+                            stB
+                              ? `${stB.subs.length} sub-processes · ${stB.subs.reduce((n, s) => n + s.tasks.length, 0)} steps`
+                              : ''
+                          }
+                          tone={STREAM_TONES[1]}
+                        />
+                      </div>
+                      <div style={{ padding: '8px 10px', borderLeft: '1px solid #f1f3f5' }}>
+                        <VerdictPill
+                          {...meta}
+                          label={
+                            stA && stB
+                              ? 'IN BOTH STREAMS'
+                              : stA
+                                ? `ONLY ${names[0].toUpperCase()}`
+                                : `ONLY ${names[1].toUpperCase()}`
+                          }
+                          note={`${st.both} shared units · ${st.only} in one stream`}
+                        />
+                      </div>
+                      <div
+                        style={{
+                          padding: '8px 10px',
+                          borderLeft: '1px solid #f1f3f5',
+                          fontSize: 11,
+                          color: '#0070AD',
+                          alignSelf: 'center',
+                        }}
+                      >
+                        Drill ›
+                      </div>
+                    </button>
+                  );
+                })}
+              </>
+            )}
 
-            {rows.map((r, i) => {
-              const meta = VERDICT_META[r.verdict];
-              const v = verdictLabel(r, names);
-              return (
-                <div
-                  key={r.key}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: GRID,
-                    borderBottom: '1px solid #f1f3f5',
-                    background: r.verdict === 'order' ? '#fffdf5' : '#fff',
-                  }}
-                >
-                  <div
-                    style={{
-                      padding: '9px 6px',
-                      textAlign: 'center',
-                      fontSize: 11,
-                      fontFamily: 'ui-monospace, monospace',
-                      color: '#a3a3a3',
-                    }}
-                  >
-                    {i + 1}
-                  </div>
-                  <div style={{ padding: '9px 10px', minWidth: 0 }}>
+            {level === 'subs' && phase && (
+              <>
+                {headRow(LEVEL_GRID, headerCells([{ label: 'Coverage' }, { label: '' }]))}
+                {subSlots.map((s, i) => {
+                  const meta =
+                    s.a && s.b ? VERDICT_META.merge : s.a ? VERDICT_META.onlyA : VERDICT_META.onlyB;
+                  return (
+                    <button
+                      key={s.key}
+                      type="button"
+                      onClick={() => setSubKey(s.key)}
+                      style={{
+                        font: 'inherit',
+                        display: 'grid',
+                        gridTemplateColumns: LEVEL_GRID,
+                        width: '100%',
+                        textAlign: 'left',
+                        border: 'none',
+                        borderBottom: '1px solid #f1f3f5',
+                        background: '#fff',
+                        cursor: 'pointer',
+                        padding: 0,
+                      }}
+                    >
+                      <div
+                        style={{
+                          padding: '8px 6px',
+                          textAlign: 'center',
+                          fontSize: 11,
+                          fontFamily: 'ui-monospace, monospace',
+                          color: '#a3a3a3',
+                        }}
+                      >
+                        {i + 1}
+                      </div>
+                      <div style={{ padding: '8px 10px', minWidth: 0 }}>
+                        <div style={{ fontSize: 11.5, fontWeight: 600, color: '#171717' }}>
+                          {s.label}
+                        </div>
+                        <div style={{ fontSize: 9.5, color: '#94a3b8', marginTop: 1 }}>
+                          sub-process
+                        </div>
+                      </div>
+                      <div style={{ padding: '8px 10px', borderLeft: '1px solid #f1f3f5' }}>
+                        <LevelCell
+                          name={s.a?.name ?? null}
+                          meta={s.a ? `${s.a.steps} steps` : ''}
+                          tone={STREAM_TONES[0]}
+                        />
+                      </div>
+                      <div style={{ padding: '8px 10px', borderLeft: '1px solid #f1f3f5' }}>
+                        <LevelCell
+                          name={s.b?.name ?? null}
+                          meta={s.b ? `${s.b.steps} steps` : ''}
+                          tone={STREAM_TONES[1]}
+                        />
+                      </div>
+                      <div style={{ padding: '8px 10px', borderLeft: '1px solid #f1f3f5' }}>
+                        <VerdictPill
+                          {...meta}
+                          label={
+                            s.a && s.b
+                              ? 'IN BOTH STREAMS'
+                              : s.a
+                                ? `ONLY ${names[0].toUpperCase()}`
+                                : `ONLY ${names[1].toUpperCase()}`
+                          }
+                        />
+                      </div>
+                      <div
+                        style={{
+                          padding: '8px 10px',
+                          borderLeft: '1px solid #f1f3f5',
+                          fontSize: 11,
+                          color: '#0070AD',
+                          alignSelf: 'center',
+                        }}
+                      >
+                        Drill ›
+                      </div>
+                    </button>
+                  );
+                })}
+              </>
+            )}
+
+            {level === 'steps' && (
+              <>
+                {headRow(STEP_GRID, headerCells([{ label: 'Verdict' }, { label: 'Decision' }]))}
+                {shownSteps.map((r, i) => {
+                  const meta = VERDICT_META[r.verdict];
+                  const v = verdictLabel(r, names);
+                  return (
                     <div
+                      key={r.key}
                       style={{
-                        fontSize: 11.5,
-                        fontWeight: 600,
-                        lineHeight: 1.35,
-                        color: '#171717',
+                        display: 'grid',
+                        gridTemplateColumns: STEP_GRID,
+                        borderBottom: '1px solid #f1f3f5',
+                        background: r.verdict === 'order' ? '#fffdf5' : '#fff',
                       }}
                     >
-                      {r.canonName}
+                      <div
+                        style={{
+                          padding: '7px 6px',
+                          textAlign: 'center',
+                          fontSize: 11,
+                          fontFamily: 'ui-monospace, monospace',
+                          color: '#a3a3a3',
+                        }}
+                      >
+                        {i + 1}
+                      </div>
+                      <div style={{ padding: '7px 10px', minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontSize: 11.5,
+                            fontWeight: 600,
+                            lineHeight: 1.3,
+                            color: '#171717',
+                          }}
+                        >
+                          {r.canonName}
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          padding: '7px 10px',
+                          borderLeft: '1px solid #f1f3f5',
+                          minWidth: 0,
+                        }}
+                      >
+                        <StreamCell step={r.a} tone={STREAM_TONES[0]} />
+                      </div>
+                      <div
+                        style={{
+                          padding: '7px 10px',
+                          borderLeft: '1px solid #f1f3f5',
+                          minWidth: 0,
+                        }}
+                      >
+                        <StreamCell step={r.b} tone={STREAM_TONES[1]} />
+                      </div>
+                      <div style={{ padding: '7px 10px', borderLeft: '1px solid #f1f3f5' }}>
+                        <VerdictPill {...meta} label={v.label} note={v.note} />
+                      </div>
+                      <div style={{ padding: '7px 10px', borderLeft: '1px solid #f1f3f5' }}>
+                        <DecisionButtons
+                          chosen={decisionOf(r)}
+                          onPick={(d) => setDecisions((c) => ({ ...c, [r.key]: d }))}
+                        />
+                      </div>
                     </div>
-                    <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>
-                      {r.phaseLabel}
-                    </div>
+                  );
+                })}
+                {shownSteps.length === 0 && (
+                  <div style={{ padding: 18, fontSize: 12, color: '#a3a3a3' }}>
+                    No steps match this filter.
                   </div>
-                  <div
-                    style={{ padding: '9px 10px', borderLeft: '1px solid #f1f3f5', minWidth: 0 }}
-                  >
-                    <StreamCell step={r.a} tone={STREAM_TONES[0]} />
-                  </div>
-                  <div
-                    style={{ padding: '9px 10px', borderLeft: '1px solid #f1f3f5', minWidth: 0 }}
-                  >
-                    <StreamCell step={r.b} tone={STREAM_TONES[1]} />
-                  </div>
-                  <div style={{ padding: '9px 10px', borderLeft: '1px solid #f1f3f5' }}>
-                    <span
-                      style={{
-                        display: 'inline-block',
-                        fontSize: 9.5,
-                        fontWeight: 700,
-                        color: meta.fg,
-                        background: meta.bg,
-                        border: `1px solid ${meta.border}`,
-                        borderRadius: 6,
-                        padding: '2px 7px',
-                      }}
-                    >
-                      {v.label}
-                    </span>
-                    <div style={{ fontSize: 9.5, color: '#94a3b8', marginTop: 4 }}>{v.note}</div>
-                  </div>
-                  <div style={{ padding: '9px 10px', borderLeft: '1px solid #f1f3f5' }}>
-                    <DecisionButtons
-                      chosen={decisionOf(r)}
-                      onPick={(d) => setDecisions((c) => ({ ...c, [r.key]: d }))}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-            {rows.length === 0 && (
-              <div style={{ padding: 24, fontSize: 12, color: '#a3a3a3' }}>
-                No steps match this filter.
-              </div>
+                )}
+              </>
             )}
 
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 16,
-                padding: '11px 14px',
+                gap: 14,
+                padding: '9px 12px',
                 background: '#f7f8fa',
                 borderTop: '1px solid #eaeaea',
                 flexWrap: 'wrap',
               }}
             >
-              <div style={{ fontSize: 12.5, color: '#525252' }}>
-                {phaseKey ? 'This phase' : 'These streams'}:{' '}
-                <b style={{ color: '#171717' }}>{currentSteps}</b> current steps →{' '}
-                <b style={{ color: GREEN, fontSize: 15 }}>{normalized}</b> normalized
+              <div style={{ fontSize: 12, color: '#525252' }}>
+                {level === 'phases'
+                  ? 'These streams'
+                  : level === 'subs'
+                    ? 'This phase'
+                    : sub
+                      ? 'This sub-process'
+                      : 'This phase'}
+                : <b style={{ color: '#171717' }}>{currentSteps}</b> current steps →{' '}
+                <b style={{ color: GREEN, fontSize: 14 }}>{normalized}</b> normalized
               </div>
-              <span style={{ width: 1, height: 20, background: '#e5e7eb' }} />
+              <span style={{ width: 1, height: 18, background: '#e5e7eb' }} />
               <div style={{ fontSize: 11.5, color: INDIGO }}>
                 <b>{mergedCount}</b> merged 2→1
               </div>
@@ -491,19 +809,30 @@ export default function VsStreamBoard({
                 <b>{soloCount}</b> carried over 1→1
               </div>
               <div style={{ flex: 1 }} />
-              <span style={{ fontSize: 11, color: '#525252' }}>
-                {decidedByHand} of {allRows.length} rows decided by hand · the rest use the
-                suggested verdict
-              </span>
+              {level !== 'steps' && (
+                <span style={{ fontSize: 11, color: '#94a3b8' }}>
+                  drill into a {level === 'phases' ? 'phase' : 'sub-process'} to decide step by step
+                </span>
+              )}
             </div>
 
-            <VsNewProcessFlow
-              phases={phases}
-              phaseKey={phaseKey}
-              onPhase={setPhaseKey}
-              decisionOf={decisionOf}
-              streamNames={names}
-            />
+            {level === 'steps' && phase && (
+              <VsNewProcessFlow
+                phases={[{ ...phase, rows: stepRows }]}
+                phaseKey={phase.key}
+                onPhase={(k) => {
+                  if (k === null) {
+                    setPhaseKey(null);
+                    setSubKey(null);
+                  } else {
+                    setPhaseKey(k);
+                    setSubKey(null);
+                  }
+                }}
+                decisionOf={decisionOf}
+                streamNames={names}
+              />
+            )}
           </div>
         )}
       </div>
