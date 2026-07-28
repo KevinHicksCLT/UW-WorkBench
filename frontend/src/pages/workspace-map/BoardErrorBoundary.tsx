@@ -22,6 +22,9 @@ export default class BoardErrorBoundary extends Component<
           This comparison hit an error rendering the board. The applications may have nothing in
           common yet — reset the comparison and try again.
         </ErrorMessage>
+        <div style={{ fontSize: 11, color: '#a3a3a3', fontFamily: 'ui-monospace, monospace' }}>
+          {String(this.state.error)}
+        </div>
         <Button
           onClick={() => {
             // Remount the board (parent bumps its key) so stale state can't

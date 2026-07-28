@@ -260,11 +260,14 @@ export function buildReconciliation(a: ReconLaneInput, b: ReconLaneInput): Recon
     seen.add(key);
     const lbs = bBy.get(key) ?? [];
     const n = Math.max(las.length, lbs.length);
-    for (let i = 0; i < n; i += 1) push(key, las[i] ?? null, lbs[i] ?? null);
+    // Same name repeated inside a stream: each occurrence is its own row, so
+    // the row key carries the occurrence index past the first.
+    for (let i = 0; i < n; i += 1)
+      push(i > 0 ? `${key}#${i}` : key, las[i] ?? null, lbs[i] ?? null);
   }
   for (const [key, lbs] of bBy) {
     if (seen.has(key)) continue;
-    for (const lb of lbs) push(key, null, lb);
+    lbs.forEach((lb, i) => push(i > 0 ? `${key}#${i}` : key, null, lb));
   }
 
   for (const p of phases) {

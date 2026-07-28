@@ -202,6 +202,7 @@ export function buildTarget(
   targetIdx: number,
   stepDecisions: Record<string, StepDecision>,
 ): { steps: TargetStep[]; merged: number; moved: number } {
+  if (columns.length === 0) return { steps: [], merged: 0, moved: 0 };
   const seen = new Map<string, TargetStep>();
   const ordered: TargetStep[] = [];
   let merged = 0;
