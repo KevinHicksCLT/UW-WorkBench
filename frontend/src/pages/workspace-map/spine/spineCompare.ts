@@ -80,6 +80,22 @@ function toks(s: string): string[] {
     .filter(Boolean);
 }
 
+/** Head nouns too generic to align phases on their own — "Tax Management" and
+ *  "Release Management" are NOT the same work. */
+const GENERIC_HEADS = new Set([
+  'management',
+  'planning',
+  'reporting',
+  'analysis',
+  'operations',
+  'process',
+  'processing',
+  'review',
+  'support',
+  'services',
+  'service',
+]);
+
 function similar(a: string, b: string): boolean {
   const ta = toks(a);
   const tb = toks(b);
@@ -89,8 +105,9 @@ function similar(a: string, b: string): boolean {
   const la = a.toLowerCase().trim();
   const lb = b.toLowerCase().trim();
   const headA = ta.at(-1);
-  // Same head noun aligns the phase ("Claims Intake" ↔ "Submission Intake").
-  const sameHead = !!headA && headA.length > 3 && headA === tb.at(-1);
+  // Same head noun aligns the phase ("Claims Intake" ↔ "Submission Intake") —
+  // but only a DISTINCTIVE head; generic heads need real token overlap too.
+  const sameHead = !!headA && headA.length > 3 && headA === tb.at(-1) && !GENERIC_HEADS.has(headA);
   return (union ? inter / union : 0) >= 0.5 || la.includes(lb) || lb.includes(la) || sameHead;
 }
 
