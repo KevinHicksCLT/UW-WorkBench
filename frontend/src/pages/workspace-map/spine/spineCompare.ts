@@ -121,11 +121,11 @@ export function alignStages(
   return slots.sort((a, b) => a.order - b.order);
 }
 
-// ── Two-stream step reconciliation (the Value-streams lens table) ───────────
-// Each row is one canonical unit of work; the two streams' own steps sit side
-// by side with their sequence inside the phase, and the verdict says whether
-// the step merges 2→1, arrives at a different point in the flow, or exists in
-// only one stream. All derived from the live L3→L4→L5 subtrees by name.
+// ── N-way step reconciliation (the Value-streams lens table) ────────────────
+// Each row is one canonical unit of work; every compared stream's own step
+// sits in its cell with its sequence inside the phase, and the verdict says
+// whether the step merges k→1, arrives at a different point in the flow, or
+// exists in only one stream. All derived from the live L3→L4→L5 subtrees.
 
 export interface ReconStep {
   id: string;
@@ -138,18 +138,22 @@ export interface ReconStep {
   sub: string;
 }
 
-export type ReconVerdict = 'merge' | 'order' | 'onlyA' | 'onlyB';
+export type ReconVerdict = 'merge' | 'order' | 'only';
 
 export interface ReconRow {
   key: string;
-  /** Canonical wording — the shorter of the two matched step names. */
+  /** Canonical wording — the shortest of the matched step names. */
   canonName: string;
   phaseKey: string;
   phaseLabel: string;
-  a: ReconStep | null;
-  b: ReconStep | null;
+  /** One cell per compared stream, in lane order. */
+  cells: (ReconStep | null)[];
+  /** How many streams carry the step. */
+  presentIn: number;
+  /** For 'only' rows: which lane carries it. */
+  onlyIdx: number | null;
   verdict: ReconVerdict;
-  /** |seqA − seqB| when both streams carry the step. */
+  /** max−min sequence spread across the carrying streams. */
   seqDelta: number;
 }
 
@@ -159,7 +163,7 @@ export interface ReconPhase {
   rows: ReconRow[];
 }
 
-interface ReconLaneInput {
+export interface ReconLaneInput {
   id: string;
   stages: {
     id: string;
@@ -175,17 +179,15 @@ interface ReconLaneInput {
 export const RESEQUENCE_DELTA = 2;
 
 /**
- * Reconcile two streams phase by phase. Phases are the aligned stage slots
- * (alignStages); inside each phase the two streams' steps match on spineKey.
- * A step whose twin lives in a DIFFERENT phase still pairs up — it reconciles
- * into the phase where stream A (or, failing that, B) carries it, flagged as
- * order-differs.
+ * Reconcile N streams phase by phase. Phases are the aligned stage slots
+ * (alignStages); inside each phase the streams' steps match on spineKey. A
+ * step whose twin lives in a DIFFERENT phase still lines up — it reconciles
+ * into the phase where the first carrying lane holds it, flagged as
+ * order-differs. Same name repeated inside one stream: each occurrence is its
+ * own row (occurrence-indexed key).
  */
-export function buildReconciliation(a: ReconLaneInput, b: ReconLaneInput): ReconPhase[] {
-  const slots = alignStages([
-    { lane: a.id, stages: a.stages },
-    { lane: b.id, stages: b.stages },
-  ]);
+export function buildReconciliation(lanes: ReconLaneInput[]): ReconPhase[] {
+  const slots = alignStages(lanes.map((l) => ({ lane: l.id, stages: l.stages })));
 
   interface Located {
     step: ReconStep;
@@ -221,59 +223,53 @@ export function buildReconciliation(a: ReconLaneInput, b: ReconLaneInput): Recon
     return out;
   };
 
-  const aBy = locate(a);
-  const bBy = locate(b);
+  const byLane = lanes.map(locate);
   const phases: ReconPhase[] = slots.map((s) => ({ key: s.key, label: s.label, rows: [] }));
-  const seen = new Set<string>();
 
-  const push = (key: string, la: Located | null, lb: Located | null) => {
-    const home = la ?? lb;
+  const push = (key: string, located: (Located | null)[]) => {
+    const home = located.find((l): l is Located => l !== null);
     if (!home) return;
     const phase = phases[home.phaseIdx];
-    const sa = la?.step ?? null;
-    const sb = lb?.step ?? null;
-    const crossPhase = la && lb && la.phaseIdx !== lb.phaseIdx;
-    const seqDelta = sa && sb ? Math.abs(sa.seq - sb.seq) : 0;
+    const cells = located.map((l) => l?.step ?? null);
+    const carrying = located.filter((l): l is Located => l !== null);
+    const presentIn = carrying.length;
+    const crossPhase = new Set(carrying.map((l) => l.phaseIdx)).size > 1;
+    const seqs = carrying.map((l) => l.step.seq);
+    const seqDelta = presentIn > 1 ? Math.max(...seqs) - Math.min(...seqs) : 0;
     const verdict: ReconVerdict =
-      sa && sb
-        ? crossPhase || seqDelta >= RESEQUENCE_DELTA
-          ? 'order'
-          : 'merge'
-        : sa
-          ? 'onlyA'
-          : 'onlyB';
-    const canonName =
-      sa && sb ? (sa.name.length <= sb.name.length ? sa.name : sb.name) : home.step.name;
+      presentIn > 1 ? (crossPhase || seqDelta >= RESEQUENCE_DELTA ? 'order' : 'merge') : 'only';
+    const canonName = carrying
+      .map((l) => l.step.name)
+      .reduce((best, n) => (n.length < best.length ? n : best));
     phase.rows.push({
       key: `${phase.key}:${key}`,
       canonName,
       phaseKey: phase.key,
       phaseLabel: phase.label,
-      a: sa,
-      b: sb,
+      cells,
+      presentIn,
+      onlyIdx: presentIn === 1 ? located.findIndex((l) => l !== null) : null,
       verdict,
       seqDelta,
     });
   };
 
-  for (const [key, las] of aBy) {
-    seen.add(key);
-    const lbs = bBy.get(key) ?? [];
-    const n = Math.max(las.length, lbs.length);
-    // Same name repeated inside a stream: each occurrence is its own row, so
-    // the row key carries the occurrence index past the first.
+  const allKeys = new Set<string>();
+  for (const m of byLane) for (const k of m.keys()) allKeys.add(k);
+  for (const key of allKeys) {
+    const lists = byLane.map((m) => m.get(key) ?? []);
+    const n = Math.max(...lists.map((l) => l.length));
     for (let i = 0; i < n; i += 1)
-      push(i > 0 ? `${key}#${i}` : key, las[i] ?? null, lbs[i] ?? null);
-  }
-  for (const [key, lbs] of bBy) {
-    if (seen.has(key)) continue;
-    lbs.forEach((lb, i) => push(i > 0 ? `${key}#${i}` : key, null, lb));
+      push(
+        i > 0 ? `${key}#${i}` : key,
+        lists.map((l) => l[i] ?? null),
+      );
   }
 
   for (const p of phases) {
     p.rows.sort(
       (x, y) =>
-        (x.a?.seq ?? x.b?.seq ?? 0) - (y.a?.seq ?? y.b?.seq ?? 0) ||
+        (x.cells.find(Boolean)?.seq ?? 0) - (y.cells.find(Boolean)?.seq ?? 0) ||
         x.canonName.localeCompare(y.canonName),
     );
   }

@@ -5,7 +5,7 @@ import {
   flowSteps,
 } from '../../../src/pages/workspace-map/spine/VsNewProcessFlow';
 
-// The Value-streams reconciliation engine: two streams' phase-aligned steps
+// The Value-streams reconciliation engine: N streams' phase-aligned steps
 // matched into canonical rows with merge / order-differs / only-one verdicts,
 // and the surviving steps flattened into the new-process flow.
 
@@ -58,90 +58,102 @@ const laneB = {
   ],
 };
 
-describe('buildReconciliation', () => {
-  it('pairs same-named steps and flags order differences', () => {
-    const phases = buildReconciliation(laneA, laneB);
+const laneC = {
+  id: 'noc',
+  stages: [
+    {
+      id: 'sC1',
+      name: 'Alert intake desk',
+      subs: [
+        {
+          name: 'NOC desk',
+          tasks: [
+            task('c1', 'Page the on-call engineer', 'NOC Operator'),
+            task('c2', 'Correlate related alerts', 'NOC Operator', ['PagerDuty']),
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+describe('buildReconciliation (N-way)', () => {
+  it('pairs same-named steps across two streams with per-lane cells', () => {
+    const phases = buildReconciliation([laneA, laneB]);
     expect(phases).toHaveLength(1);
     const rows = phases[0].rows;
 
     const correlate = rows.find((r) => r.canonName.startsWith('Correlate'));
-    expect(correlate?.a?.seq).toBe(3);
-    expect(correlate?.b?.seq).toBe(2);
-    expect(correlate?.verdict).toBe('merge'); // |3-2| < 2 — same point in flow
-
-    const route = rows.find((r) => r.canonName.startsWith('Route'));
-    expect(route?.verdict).toBe('merge');
-    expect(route?.a?.seq).toBe(4);
-    expect(route?.b?.seq).toBe(4);
+    expect(correlate?.cells[0]?.seq).toBe(3);
+    expect(correlate?.cells[1]?.seq).toBe(2);
+    expect(correlate?.presentIn).toBe(2);
+    expect(correlate?.verdict).toBe('merge'); // spread 1 < 2 — same point in flow
 
     const ack = rows.find((r) => r.canonName.startsWith('Acknowledge'));
-    expect(ack?.verdict).toBe('onlyA');
+    expect(ack?.verdict).toBe('only');
+    expect(ack?.onlyIdx).toBe(0);
     const score = rows.find((r) => r.canonName.startsWith('Score'));
-    expect(score?.verdict).toBe('onlyB');
+    expect(score?.onlyIdx).toBe(1);
+  });
+
+  it('reconciles three streams — presentIn counts every carrier', () => {
+    const phases = buildReconciliation([laneA, laneB, laneC]);
+    const rows = phases.flatMap((p) => p.rows);
+    const correlate = rows.find((r) => r.canonName.startsWith('Correlate'));
+    expect(correlate?.presentIn).toBe(3);
+    expect(correlate?.cells).toHaveLength(3);
+    expect(correlate?.cells[2]?.owner).toBe('NOC Operator');
+
+    const page = rows.find((r) => r.canonName.startsWith('Page'));
+    expect(page?.presentIn).toBe(1);
+    expect(page?.onlyIdx).toBe(2);
   });
 
   it('marks a pair as order-differs past the resequence delta', () => {
-    const a = {
-      id: 'x',
+    const mk = (id: string, names: string[]) => ({
+      id,
       stages: [
         {
-          id: 's1',
+          id: `${id}-s`,
           name: 'Phase',
-          subs: [
-            {
-              name: 'Sub',
-              tasks: [
-                task('a1', 'Tune the rules'),
-                task('a2', 'Step two'),
-                task('a3', 'Step three'),
-              ],
-            },
-          ],
+          subs: [{ name: 'Sub', tasks: names.map((n, i) => task(`${id}${i}`, n)) }],
         },
       ],
-    };
-    const b = {
-      id: 'y',
-      stages: [
-        {
-          id: 's2',
-          name: 'Phase',
-          subs: [
-            {
-              name: 'Sub',
-              tasks: [
-                task('b1', 'Step two'),
-                task('b2', 'Step three'),
-                task('b3', 'Tune the rules'),
-              ],
-            },
-          ],
-        },
-      ],
-    };
-    const rows = buildReconciliation(a, b)[0].rows;
+    });
+    const rows = buildReconciliation([
+      mk('x', ['Tune the rules', 'Step two', 'Step three']),
+      mk('y', ['Step two', 'Step three', 'Tune the rules']),
+    ])[0].rows;
     const tune = rows.find((r) => r.canonName.startsWith('Tune'));
     expect(tune?.verdict).toBe('order'); // #1 here, #3 there
   });
 });
 
 describe('flowSteps', () => {
-  it('merges, keeps both variants on Keep, and drops on Drop', () => {
-    const rows = buildReconciliation(laneA, laneB)[0].rows;
-    const merged = flowSteps(rows, defaultDecision, ['#0f766e', '#7c3aed'], ['#fff', '#fff']);
-    // 2 merged pairs + 2 solo = 6 rows → 6 steps under default decisions.
+  it('merges k→1, keeps every variant on Keep, drops on Drop', () => {
+    const rows = buildReconciliation([laneA, laneB])[0].rows;
+    const merged = flowSteps(rows, defaultDecision);
+    // 2 merged pairs + 2 solo-A-side + 2 solo-B-side = 6 steps.
     expect(merged).toHaveLength(6);
     const correlate = merged.find((s) => s.name.startsWith('Correlate'));
     expect(correlate?.sources).toHaveLength(2);
     expect(correlate?.badge).toBe('merged 2→1');
-    // Apps union on a merged step.
     expect(correlate?.apps).toContain('ServiceNow');
     expect(correlate?.apps).toContain('Azure');
 
-    const keepAll = flowSteps(rows, () => 'Keep', ['#0f766e', '#7c3aed'], ['#fff', '#fff']);
+    const keepAll = flowSteps(rows, () => 'Keep');
     expect(keepAll).toHaveLength(8); // every stream step carried separately
 
-    const dropAll = flowSteps(rows, () => 'Drop', ['#0f766e', '#7c3aed'], ['#fff', '#fff']);
+    const dropAll = flowSteps(rows, () => 'Drop');
     expect(dropAll).toHaveLength(0);
+  });
+
+  it('badges a three-way merge with every source', () => {
+    const rows = buildReconciliation([laneA, laneB, laneC]).flatMap((p) => p.rows);
+    const steps = flowSteps(rows, defaultDecision);
+    const correlate = steps.find((s) => s.name.startsWith('Correlate'));
+    expect(correlate?.badge).toBe('merged 3→1');
+    expect(correlate?.sources).toHaveLength(3);
+    expect(correlate?.apps).toEqual(expect.arrayContaining(['ServiceNow', 'Azure', 'PagerDuty']));
   });
 });

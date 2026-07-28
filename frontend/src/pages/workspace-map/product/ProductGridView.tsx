@@ -21,7 +21,7 @@ const MATCH_W = 84;
 const REC_W = 138;
 
 function cellStyle(delta: number | null): { label: string; bg: string; fg: string } {
-  if (delta === null) return { label: '—', bg: '#fafafa', fg: '#cbd5e1' };
+  if (delta === null) return { label: '—', bg: '#fafafa', fg: '#94a3b8' };
   if (delta === 0) return { label: '✓', bg: '#eff6ff', fg: '#1d4ed8' };
   if (delta <= 1) return { label: `Δ1`, bg: '#fef3c7', fg: '#92400e' };
   if (delta <= 3) return { label: `Δ${delta}`, bg: '#fde68a', fg: '#78350f' };
@@ -87,7 +87,7 @@ export default function ProductGridView({
               fontWeight: 600,
               letterSpacing: '.07em',
               textTransform: 'uppercase',
-              color: '#a3a3a3',
+              color: '#737373',
               flexShrink: 0,
             }}
           >
@@ -212,7 +212,7 @@ export default function ProductGridView({
             )}
           </div>
           <div style={{ flex: 1 }} />
-          <span style={{ fontSize: 10.5, color: '#a3a3a3' }}>
+          <span style={{ fontSize: 10.5, color: '#737373' }}>
             ✓ identical to canonical · Δn = n element groups differ · click a cell for its model
             detail
           </span>
@@ -238,7 +238,7 @@ export default function ProductGridView({
                   fontWeight: 600,
                   letterSpacing: '.07em',
                   textTransform: 'uppercase',
-                  color: '#a3a3a3',
+                  color: '#737373',
                 }}
               >
                 Product offering · version
@@ -307,11 +307,11 @@ export default function ProductGridView({
                       textAlign: 'left',
                     }}
                   >
-                    <span style={{ fontSize: 10, color: '#94a3b8' }}>{open ? '▾' : '▸'}</span>
+                    <span style={{ fontSize: 10, color: '#64748b' }}>{open ? '▾' : '▸'}</span>
                     <span style={{ fontSize: 11, fontWeight: 700, color: '#171717' }}>
                       {g.name}
                     </span>
-                    <span style={{ fontSize: 10, color: '#94a3b8' }}>
+                    <span style={{ fontSize: 10, color: '#64748b' }}>
                       {g.count} {g.count === 1 ? 'offering' : 'offerings'}
                     </span>
                     <div style={{ flex: 1 }} />
@@ -335,7 +335,7 @@ export default function ProductGridView({
                           <span style={{ fontSize: 10.5, fontWeight: 600, color: '#334155' }}>
                             {sub.name}
                           </span>
-                          <span style={{ fontSize: 9.5, color: '#94a3b8' }}>
+                          <span style={{ fontSize: 9.5, color: '#64748b' }}>
                             {sub.rows.length} {sub.rows.length === 1 ? 'offering' : 'offerings'} ·{' '}
                             {new Set(sub.rows.map((r) => r.productName)).size} product offerings
                           </span>
@@ -549,7 +549,7 @@ export default function ProductGridView({
                 fontWeight: 600,
                 letterSpacing: '.07em',
                 textTransform: 'uppercase',
-                color: '#a3a3a3',
+                color: '#737373',
                 margin: '14px 0 8px',
               }}
             >
@@ -566,7 +566,7 @@ export default function ProductGridView({
               <div style={{ fontSize: 12.5, fontWeight: 700, color: '#171717' }}>
                 {sel.productName} · {sel.version.name}
               </div>
-              <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 2 }}>
+              <div style={{ fontSize: 10.5, color: '#64748b', marginTop: 2 }}>
                 {sel.segmentName} › {sel.lobName} › {sel.productName}
               </div>
               <div style={{ display: 'flex', gap: 14, marginTop: 9 }}>
@@ -574,19 +574,19 @@ export default function ProductGridView({
                   <div style={{ fontSize: 15, fontWeight: 700, color: '#171717' }}>
                     {sel.elements}
                   </div>
-                  <div style={{ fontSize: 9.5, color: '#94a3b8' }}>elements</div>
+                  <div style={{ fontSize: 9.5, color: '#64748b' }}>elements</div>
                 </div>
                 <div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: '#1d4ed8' }}>
                     {sel.match}%
                   </div>
-                  <div style={{ fontSize: 9.5, color: '#94a3b8' }}>match canonical</div>
+                  <div style={{ fontSize: 9.5, color: '#64748b' }}>match canonical</div>
                 </div>
                 <div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: '#b45309' }}>
                     {sel.deltas}
                   </div>
-                  <div style={{ fontSize: 9.5, color: '#94a3b8' }}>deltas</div>
+                  <div style={{ fontSize: 9.5, color: '#64748b' }}>deltas</div>
                 </div>
               </div>
               {sel.deltas > 0 && (
@@ -597,7 +597,7 @@ export default function ProductGridView({
                       fontWeight: 600,
                       letterSpacing: '.06em',
                       textTransform: 'uppercase',
-                      color: '#a3a3a3',
+                      color: '#737373',
                       margin: '11px 0 6px',
                     }}
                   >
@@ -664,7 +664,7 @@ export default function ProductGridView({
             </div>
           </>
         )}
-        <div style={{ fontSize: 10.5, lineHeight: 1.5, color: '#94a3b8', marginTop: 12 }}>
+        <div style={{ fontSize: 10.5, lineHeight: 1.5, color: '#64748b', marginTop: 12 }}>
           Open the detail view on any LOB with 5 or fewer versions to see the full three-column
           current → normalize → greenfield board.
         </div>

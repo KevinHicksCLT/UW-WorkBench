@@ -12,6 +12,7 @@ import ProductGreenfieldColumn from './ProductGreenfieldColumn';
 import ProductGridView from './ProductGridView';
 import SpineFilterBar, {
   EMPTY_FILTERS,
+  normalizeFilters,
   scopeLobs,
   scopeVersions,
   type SpineFilters,
@@ -58,10 +59,12 @@ export default function ProductBoard({
   // View state persists per session (lib/viewState) so leaving the tab and
   // returning restores the exact scope, view and expansion.
   const [view, setView] = useViewState<ProductView>('workspace.product.view', 'auto');
-  const [filters, setFilters] = useViewState<SpineFilters>(
+  const [rawFilters, setFilters] = useViewState<SpineFilters>(
     'workspace.product.filters',
     EMPTY_FILTERS,
   );
+  // Older sessions persisted a single-version shape — normalize on read.
+  const filters = useMemo(() => normalizeFilters(rawFilters), [rawFilters]);
   const [matchFilter, setMatchFilter] = useViewState<MatchStatus | null>(
     'workspace.product.matchFilter',
     null,
@@ -116,7 +119,7 @@ export default function ProductBoard({
 
   /** Grid → detail jump: narrow the cascade to the version's offering. */
   const openDetail = (v: VersionColumn) => {
-    setFilters({ segment: v.segmentName, lobId: v.lobId, offering: v.productName, versionId: '' });
+    setFilters({ segment: v.segmentName, lobId: v.lobId, offering: v.productName, versionIds: [] });
     setView('detail');
   };
 

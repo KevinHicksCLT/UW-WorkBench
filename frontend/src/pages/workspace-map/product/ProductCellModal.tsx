@@ -152,7 +152,7 @@ export default function ProductCellModal({
             <div style={{ fontSize: 15, fontWeight: 700, color: '#171717', marginTop: 3 }}>
               {component} — {version.productName} · {version.name}
             </div>
-            <div style={{ fontSize: 11.5, color: '#94a3b8', marginTop: 3 }}>
+            <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 3 }}>
               {version.segmentName} › {version.lobName} › {version.productName} › {version.name} ·
               compared against the canonical {lobName} model
             </div>
@@ -163,7 +163,7 @@ export default function ProductCellModal({
                 </b>{' '}
                 {dimension.definition}
                 {dimension.systemOfRecord && (
-                  <span style={{ color: '#94a3b8' }}>
+                  <span style={{ color: '#64748b' }}>
                     {' '}
                     · system of record: {dimension.systemOfRecord}
                   </span>
@@ -212,7 +212,7 @@ export default function ProductCellModal({
               style={{
                 font: 'inherit',
                 fontSize: 14,
-                color: '#a3a3a3',
+                color: '#737373',
                 background: 'none',
                 border: 'none',
                 padding: '2px 8px',
@@ -263,14 +263,14 @@ export default function ProductCellModal({
             </span>
           ))}
           <div style={{ flex: 1 }} />
-          <span style={{ fontSize: 11, color: '#94a3b8' }}>
+          <span style={{ fontSize: 11, color: '#64748b' }}>
             Common folds into the canonical model · Varies and Unique need a decision
           </span>
         </div>
 
         <div style={{ overflow: 'auto', padding: '12px 14px', flex: 1, minHeight: 0 }}>
           {!row && (
-            <div style={{ fontSize: 12, color: '#a3a3a3', padding: 12 }}>
+            <div style={{ fontSize: 12, color: '#737373', padding: 12 }}>
               This version does not carry the {component} component.
             </div>
           )}
@@ -328,7 +328,7 @@ export default function ProductCellModal({
                       style={{
                         fontSize: 9.5,
                         fontFamily: 'ui-monospace, monospace',
-                        color: '#a3a3a3',
+                        color: '#737373',
                         marginTop: 5,
                       }}
                     >

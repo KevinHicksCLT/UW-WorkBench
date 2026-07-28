@@ -32,7 +32,7 @@ function VersionHead({ version }: { version: VersionColumn }) {
   return (
     <div style={{ padding: '8px 10px', borderRight: '1px solid #dcdfe4', minWidth: 0 }}>
       <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.3 }}>{version.name}</div>
-      <div style={{ fontSize: 10.5, color: '#a3a3a3', marginTop: 1 }}>{version.productName}</div>
+      <div style={{ fontSize: 10.5, color: '#737373', marginTop: 1 }}>{version.productName}</div>
     </div>
   );
 }
@@ -74,7 +74,7 @@ function ElementCard({
         {el.element}
       </div>
       {el.description && (
-        <div style={{ fontSize: 10, color: '#525252', lineHeight: 1.35, marginTop: 2 }}>
+        <div style={{ fontSize: 10.5, color: '#525252', lineHeight: 1.35, marginTop: 2 }}>
           {el.description}
         </div>
       )}
@@ -93,7 +93,7 @@ function ElementCard({
             style={{
               padding: '0 6px',
               borderRadius: 999,
-              fontSize: 9,
+              fontSize: 9.5,
               fontWeight: 700,
               color: '#fff',
               background: meta.fg,
@@ -107,8 +107,8 @@ function ElementCard({
         {el.livesIn && (
           <span
             style={{
-              fontSize: 9,
-              color: '#a3a3a3',
+              fontSize: 9.5,
+              color: '#737373',
               fontFamily: 'ui-monospace, monospace',
               wordBreak: 'break-all',
               minWidth: 0,
@@ -278,10 +278,10 @@ export default function ProductComparePanel(props: Props) {
           <div
             style={{
               padding: '8px 10px',
-              fontSize: 10,
+              fontSize: 10.5,
               fontWeight: 800,
               letterSpacing: '.08em',
-              color: '#a3a3a3',
+              color: '#737373',
               textTransform: 'uppercase',
               alignSelf: 'end',
             }}
@@ -340,8 +340,8 @@ export default function ProductComparePanel(props: Props) {
             const chevron = (
               <span
                 style={{
-                  color: '#a3a3a3',
-                  fontSize: 10,
+                  color: '#737373',
+                  fontSize: 10.5,
                   display: 'inline-block',
                   transform: open ? 'none' : 'rotate(-90deg)',
                   marginRight: 6,
@@ -493,7 +493,7 @@ export default function ProductComparePanel(props: Props) {
                     >
                       {versions.map((v) => (
                         <div key={v.id} style={{ padding: 6, minWidth: 0 }}>
-                          <span style={{ fontSize: 10, color: '#d4d4d4', padding: '2px 4px' }}>
+                          <span style={{ fontSize: 10.5, color: '#d4d4d4', padding: '2px 4px' }}>
                             —
                           </span>
                         </div>
@@ -507,7 +507,7 @@ export default function ProductComparePanel(props: Props) {
         </div>
 
         {single && (
-          <div style={{ fontSize: 11.5, color: '#a3a3a3', lineHeight: 1.5 }}>
+          <div style={{ fontSize: 11.5, color: '#737373', lineHeight: 1.5 }}>
             One version — its own decomposition. Add versions to compare.
           </div>
         )}

@@ -49,7 +49,7 @@ export function TraceBreadcrumb({
           ? `all ${versionCount} versions`
           : `${group.presentIn} of ${versionCount} versions`}
       </span>
-      <span style={{ color: '#a3a3a3', fontSize: 12 }}>→</span>
+      <span style={{ color: '#737373', fontSize: 12 }}>→</span>
       <span style={{ fontSize: 12.5, color: GREEN, fontWeight: 600 }}>{lobName} model</span>
       <span
         style={{
