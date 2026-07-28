@@ -34,16 +34,14 @@ import type {
 // dropdowns (1 Segment › 2 Line of business › 3 Product offering › 4 Version)
 // — whatever the cascade leaves in scope is what the board shows.
 //
-// Two faces, switched by the View control (Auto / Detail / Grid):
+// Two faces, picked automatically by scope size:
 //   • DETAIL — the three-column current → normalize → greenfield board
-//     (unchanged), the default whenever the scope is 5 or fewer versions.
+//     whenever the scope is 5 or fewer versions.
 //   • GRID — the portfolio board (every scoped version a row, every model
-//     component a column), the default past the 5-version threshold.
+//     component a column) past the 5-version threshold.
 
 /** Auto view boundary: ≤ this many versions renders the detail board. */
 export const DETAIL_THRESHOLD = 5;
-
-type ProductView = 'auto' | 'detail' | 'grid';
 
 export default function ProductBoard({
   lens,
@@ -58,7 +56,6 @@ export default function ProductBoard({
 
   // View state persists per session (lib/viewState) so leaving the tab and
   // returning restores the exact scope, view and expansion.
-  const [view, setView] = useViewState<ProductView>('workspace.product.view', 'auto');
   const [rawFilters, setFilters] = useViewState<SpineFilters>(
     'workspace.product.filters',
     EMPTY_FILTERS,
@@ -113,14 +110,12 @@ export default function ProductBoard({
     setSelected(null);
   });
 
-  // Auto view: the grid past the threshold, the detail board at or under it.
-  const autoView: 'detail' | 'grid' = versions.length > DETAIL_THRESHOLD ? 'grid' : 'detail';
-  const effectiveView = view === 'auto' ? autoView : view;
+  // The view follows the scope: grid past the threshold, detail at or under it.
+  const effectiveView: 'detail' | 'grid' = versions.length > DETAIL_THRESHOLD ? 'grid' : 'detail';
 
   /** Grid → detail jump: narrow the cascade to the version's offering. */
   const openDetail = (v: VersionColumn) => {
     setFilters({ segment: v.segmentName, lobId: v.lobId, offering: v.productName, versionIds: [] });
-    setView('detail');
   };
 
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -258,64 +253,14 @@ export default function ProductBoard({
     <LensBar lens={lens} onLens={onLens} boards={[]} boardId={null} onBoard={() => undefined} />
   );
 
-  const viewToggle = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
-      <span style={{ fontSize: 10.5, color: '#a3a3a3' }}>View</span>
-      <div
-        style={{
-          display: 'flex',
-          height: 26,
-          border: '1px solid #eaeaea',
-          borderRadius: 6,
-          overflow: 'hidden',
-          background: '#fff',
-        }}
-      >
-        {(
-          [
-            ['auto', `Auto · ${autoView}`],
-            ['detail', 'Detail'],
-            ['grid', 'Grid'],
-          ] as [ProductView, string][]
-        ).map(([key, label], i) => {
-          const on = view === key;
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setView(key)}
-              style={{
-                font: 'inherit',
-                padding: '0 11px',
-                fontSize: 11,
-                lineHeight: '26px',
-                cursor: 'pointer',
-                border: 'none',
-                borderLeft: i === 0 ? 'none' : '1px solid #eaeaea',
-                background: on ? '#171717' : '#fff',
-                color: on ? '#fff' : '#525252',
-                fontWeight: on ? 600 : 400,
-              }}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-
   const filterRow = (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-      <SpineFilterBar
-        lobs={lobs}
-        filters={filters}
-        onChange={setFilters}
-        scopeCount={versions.length}
-        totalCount={pool.length}
-      />
-      {viewToggle}
-    </div>
+    <SpineFilterBar
+      lobs={lobs}
+      filters={filters}
+      onChange={setFilters}
+      scopeCount={versions.length}
+      totalCount={pool.length}
+    />
   );
 
   if (versions.length === 0)
