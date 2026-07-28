@@ -1,215 +1,117 @@
-import { useEffect, useMemo, useState } from 'react';
-import { EmptyState, ErrorMessage, LoadingState } from '../../../components/ui';
-import { useApi } from '../../../lib/useApi';
+import { useEffect, useMemo } from 'react';
+import { EmptyState, ErrorMessage, LoadingState, Select } from '../../../components/ui';
 import { useOnChange, useViewState } from '../../../lib/viewState';
 import LensBar, { type WorkspaceLens } from '../LensBar';
-import { AMBER, INDIGO } from '../types';
-import { Picker, ConsolidationRail, type PoolOption } from './SpineBoard';
-import {
-  LaneChip,
-  MapCard,
-  NumBadge,
-  markDot,
-  HConnector,
-  VConnector,
-  type Mark,
-} from './mapCards';
-import {
-  alignStages,
-  compareSpineColumns,
-  spineKey,
-  type SpineComparison,
-  type SpineItem,
-  type StageSlot,
-} from './spineCompare';
+import { AMBER, GREEN, INDIGO } from '../types';
+import VsNewProcessFlow, {
+  STREAM_BGS,
+  STREAM_TONES,
+  defaultDecision,
+  type ReconDecision,
+} from './VsNewProcessFlow';
+import { buildReconciliation, type ReconPhase, type ReconRow } from './spineCompare';
 import { useStreamDetails, useStreamList, type StreamDetail } from './useSpineData';
 
-// Value-streams lens in the MAP's own card language (the Value Streams tab
-// itself is untouched): white rounded cards joined by connector lines, and the
-// map's progressive drill — each lane shows its L3 stage cards by default;
-// clicking a stage expands its numbered L4 row beneath; clicking an L4 drops
-// its numbered L5 task column. A computed NEW PROCESS lane sits between the
-// compared flows. The By-product toggle adds per-product sub-lanes that work
-// exactly the same — just more flows (blank until per-product processes exist).
+// Value-streams lens — the step reconciliation table: two compared streams,
+// one row per canonical unit of work, each stream's own step (with sequence,
+// owner and systems) side by side, a computed verdict (merge 2→1, order
+// differs, only-one-stream) and a per-row decision. The table closes with the
+// horizontal NEW PROCESS flow carrying the full detail of every surviving
+// step. Everything derives live from the L3→L4→L5 spine subtrees.
 
-interface LaneStage {
-  id: string;
-  name: string;
-  subs: { id: string; name: string; tasks: { id: string; name: string }[] }[];
-  tasks: { id: string; name: string }[];
+const VERDICT_META: Record<ReconRow['verdict'], { fg: string; bg: string; border: string }> = {
+  merge: { fg: INDIGO, bg: '#eef2ff', border: '#d6dcff' },
+  order: { fg: AMBER, bg: '#fffbeb', border: '#fde68a' },
+  onlyA: { fg: STREAM_TONES[0], bg: STREAM_BGS[0], border: '#99f6e4' },
+  onlyB: { fg: STREAM_TONES[1], bg: STREAM_BGS[1], border: '#ddd6fe' },
+};
+
+function verdictLabel(row: ReconRow, names: [string, string]): { label: string; note: string } {
+  if (row.verdict === 'merge')
+    return { label: 'MERGE 2→1', note: 'same work, same point in the flow' };
+  if (row.verdict === 'order')
+    return {
+      label: 'MERGE · ORDER DIFFERS',
+      note: `step #${row.a?.seq ?? '?'} here, #${row.b?.seq ?? '?'} there`,
+    };
+  if (row.verdict === 'onlyA')
+    return { label: `ONLY ${names[0].toUpperCase()}`, note: 'carry over 1→1' };
+  return { label: `ONLY ${names[1].toUpperCase()}`, note: 'carry over 1→1' };
 }
 
-interface Lane {
-  id: string;
-  title: string;
-  subtitle: string | null;
-  stages: LaneStage[];
-  /** Product sub-lanes carry no process yet — stages render dimmed. */
-  blank?: boolean;
-  tone?: string;
-}
+type ShowFilter = 'all' | 'diff' | 'merge' | 'solo';
 
-const LANE_LABEL_W = 150;
-const SLOT_W = 190;
+const GRID = '34px minmax(240px,1fr) 300px 300px 190px 168px';
 
-function laneStages(d: StreamDetail): LaneStage[] {
-  return d.areas.map((a) => ({
-    id: a.id,
-    name: a.name,
-    subs: a.subs,
-    tasks: a.subs.flatMap((s) => s.tasks),
-  }));
-}
-
-/** Normalized (new process) steps for one aligned slot. */
-function normalizedSteps(
-  slot: StageSlot,
-  lanes: Lane[],
-): { key: string; name: string; sources: number }[] {
-  const byKey = new Map<string, { name: string; sources: Set<string> }>();
-  for (const lane of lanes) {
-    if (lane.blank) continue;
-    const stageId = slot.byLane.get(lane.id);
-    const stage = stageId ? lane.stages.find((s) => s.id === stageId) : null;
-    for (const t of stage?.tasks ?? []) {
-      const k = spineKey(t.name);
-      const cur = byKey.get(k);
-      if (cur) {
-        cur.sources.add(lane.id);
-        if (t.name.length < cur.name.length) cur.name = t.name;
-      } else byKey.set(k, { name: t.name, sources: new Set([lane.id]) });
-    }
-  }
-  return [...byKey.entries()].map(([key, v]) => ({ key, name: v.name, sources: v.sources.size }));
-}
-
-/** Vertical L5 task column under an expanded L4 card (map style). */
-function TaskColumn({
-  tasks,
-  markFor,
-}: {
-  tasks: { id: string; name: string }[];
-  markFor: (id: string) => Mark;
-}) {
+function StreamCell({ step, tone }: { step: ReconRow['a']; tone: string }) {
+  if (!step) return <span style={{ fontSize: 10.5, color: '#cbd5e1' }}>— not in this stream</span>;
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', width: 180 }}>
-      {tasks.map((t, i) => (
-        <div key={t.id}>
-          {i > 0 && <VConnector />}
-          <div
-            style={{
-              boxSizing: 'border-box',
-              padding: '6px 8px',
-              borderRadius: 10,
-              background: '#fff',
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 1px 3px rgba(0,0,0,.06)',
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 6,
-              textAlign: 'left',
-            }}
-          >
-            <NumBadge n={i + 1} />
-            <span style={{ fontSize: 9.5, color: '#334155', lineHeight: 1.3, flex: 1 }}>
-              {t.name}
-            </span>
-            <span style={{ marginTop: 3 }}>{markDot(markFor(t.id))}</span>
-          </div>
+    <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+      <span
+        style={{
+          width: 17,
+          height: 17,
+          borderRadius: 999,
+          background: tone,
+          color: '#fff',
+          fontSize: 9,
+          fontWeight: 800,
+          lineHeight: '17px',
+          textAlign: 'center',
+          flexShrink: 0,
+        }}
+      >
+        {step.seq}
+      </span>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 10.5, lineHeight: 1.35, color: '#334155' }}>{step.name}</div>
+        <div style={{ fontSize: 9.5, color: '#94a3b8', marginTop: 2 }}>
+          {[step.owner, step.apps.join(' · ')].filter(Boolean).join(' · ') || step.sub}
         </div>
-      ))}
-      {tasks.length === 0 && (
-        <div style={{ fontSize: 9.5, color: '#a3a3a3', padding: 6 }}>No steps.</div>
-      )}
+      </div>
     </div>
   );
 }
 
-/** Expanded stage: the numbered L4 row, each card expandable into its L5 column. */
-function StageExpansion({
-  lane,
-  stage,
-  slot,
-  laneCount,
-  markFor,
+function DecisionButtons({
+  chosen,
+  onPick,
 }: {
-  lane: Lane;
-  stage: LaneStage;
-  slot: StageSlot | null;
-  laneCount: number;
-  markFor: (taskId: string) => Mark;
+  chosen: ReconDecision;
+  onPick: (d: ReconDecision) => void;
 }) {
-  const [openSub, setOpenSub] = useState<string | null>(null);
-  if (lane.blank || stage.subs.length === 0)
-    return (
-      <div
-        style={{
-          margin: '6px 0 10px',
-          padding: '10px 14px',
-          border: '1px dashed #dbe3ee',
-          borderRadius: 10,
-          fontSize: 10.5,
-          color: '#94a3b8',
-          background: '#fbfcfe',
-        }}
-      >
-        No process defined for this product yet.
-      </div>
-    );
+  const options: ReconDecision[] = ['Merge', 'Keep', 'Drop'];
   return (
-    <div style={{ margin: '6px 0 10px', paddingLeft: 6 }}>
-      <div style={{ fontSize: 9.5, color: '#64748b', marginBottom: 6 }}>
-        <b style={{ color: '#1e3a5f' }}>{stage.name}</b> — {stage.subs.length} sub-processes ·{' '}
-        {stage.tasks.length} steps
-        {slot && laneCount > 1 && (
-          <>
-            {' '}
-            · phase in {slot.byLane.size}/{laneCount} flows
-          </>
-        )}
-        <span style={{ color: '#a3a3a3' }}> — click a sub-process for its atomic steps</span>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-        {stage.subs.map((sub, i) => (
-          <div key={sub.id} style={{ display: 'flex', alignItems: 'flex-start' }}>
-            {i > 0 && <HConnector />}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 0, width: 180 }}>
-              <MapCard
-                onClick={() => setOpenSub(openSub === sub.id ? null : sub.id)}
-                selected={openSub === sub.id}
-                height={56}
-              >
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%' }}>
-                  <NumBadge n={i + 1} />
-                  <span
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 600,
-                      color: '#171717',
-                      lineHeight: 1.25,
-                      textAlign: 'left',
-                      flex: 1,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {sub.name}
-                  </span>
-                  <span style={{ fontSize: 8.5, color: '#94a3b8' }}>{sub.tasks.length}</span>
-                </span>
-              </MapCard>
-              {openSub === sub.id && (
-                <>
-                  <VConnector />
-                  <TaskColumn tasks={sub.tasks} markFor={markFor} />
-                </>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+    <div style={{ display: 'flex', gap: 4 }}>
+      {options.map((label) => {
+        const on = chosen === label;
+        return (
+          <button
+            key={label}
+            type="button"
+            onClick={() => onPick(label)}
+            style={{
+              font: 'inherit',
+              fontSize: 10,
+              fontWeight: 600,
+              cursor: 'pointer',
+              borderRadius: 5,
+              padding: '3px 7px',
+              color: on ? '#fff' : '#525252',
+              background: on
+                ? label === 'Drop'
+                  ? '#dc2626'
+                  : label === 'Merge'
+                    ? GREEN
+                    : '#525252'
+                : '#fff',
+              border: `1px solid ${on ? 'transparent' : '#e5e5e5'}`,
+            }}
+          >
+            {label}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -222,327 +124,116 @@ export default function VsStreamBoard({
   onLens: (l: WorkspaceLens) => void;
 }) {
   const { data: streams, loading: listLoading, error: listError } = useStreamList();
-  // Compared streams + drill state persist per session (lib/viewState) so the
-  // tab restores exactly on return.
   const [ids, setIds] = useViewState<string[]>('workspace.vs.ids', []);
-  const [byProduct, setByProduct] = useViewState<boolean>('workspace.vs.byProduct', false);
-  /** Per lane: which stage slot is expanded (progressive drill, one at a time). */
-  const [openStage, setOpenStage] = useViewState<Record<string, string | null>>(
-    'workspace.vs.openStage',
+  const [phaseKey, setPhaseKey] = useViewState<string | null>('workspace.vs.phase', null);
+  const [filter, setFilter] = useViewState<ShowFilter>('workspace.vs.filter', 'all');
+  const [decisions, setDecisions] = useViewState<Record<string, ReconDecision>>(
+    'workspace.vs.decisions',
     {},
   );
 
   useEffect(() => {
-    if (streams && streams.length > 1 && ids.length === 0) setIds([streams[0].id, streams[1].id]);
+    if (streams && streams.length > 1 && ids.length < 2) setIds([streams[0].id, streams[1].id]);
   }, [streams, ids.length, setIds]);
-  // Change-only: a restored comparison keeps its restored drill on mount.
-  useOnChange(`${ids.join(',')}|${byProduct}`, () => setOpenStage({}));
+  // A different pair starts clean — change-only so a restored comparison keeps
+  // its restored decisions on mount.
+  useOnChange(ids.slice(0, 2).join(','), () => {
+    setPhaseKey(null);
+    setDecisions({});
+  });
 
-  const { data: details, loading, error } = useStreamDetails(ids);
-  const { data: productData } = useApi<{
-    roots: { id: string; name: string; children: { id: string; name: string }[] }[];
-  }>(byProduct ? '/product-spine/table' : null);
-  const segments = useMemo(
-    () =>
-      (productData?.roots ?? []).flatMap((m) =>
-        m.children.map((s) => ({ id: s.id, name: s.name, market: m.name })),
-      ),
-    [productData],
+  const pairIds = ids.slice(0, 2);
+  const { data: details, loading, error } = useStreamDetails(pairIds);
+
+  const pair: (StreamDetail | null)[] = useMemo(
+    () => pairIds.map((id) => details?.[id] ?? null),
+    [details, pairIds],
   );
+  const [a, b] = pair;
 
-  const pool: PoolOption[] = useMemo(
-    () =>
-      (streams ?? []).map((s) => ({
-        id: s.id,
-        label: s.name,
-        group: s.domain ?? 'Other',
-        hint: `${s.taskCount} tasks`,
-      })),
-    [streams],
-  );
+  const phases: ReconPhase[] = useMemo(() => {
+    if (!a || !b) return [];
+    const lane = (d: StreamDetail) => ({
+      id: d.id,
+      stages: d.areas.map((ar) => ({ id: ar.id, name: ar.name, subs: ar.subs })),
+    });
+    return buildReconciliation(lane(a), lane(b));
+  }, [a, b]);
 
-  const streamLanes: Lane[] = useMemo(() => {
-    if (!details) return [];
-    return ids
-      .map((id) => details[id])
-      .filter(Boolean)
-      .map((d) => ({ id: d.id, title: d.name, subtitle: d.domain, stages: laneStages(d) }));
-  }, [details, ids]);
+  const names: [string, string] = [a?.name ?? 'Stream A', b?.name ?? 'Stream B'];
+  const decisionOf = (row: ReconRow): ReconDecision => decisions[row.key] ?? defaultDecision(row);
 
-  // Product sub-lanes are ordinary lanes — just more flows, blank for now.
-  const lanesWithProducts: Lane[] = useMemo(() => {
-    if (!byProduct) return streamLanes;
-    return streamLanes.flatMap((lane) => [
-      lane,
-      ...segments.map((seg) => ({
-        id: `${lane.id}:${seg.id}`,
-        title: seg.name,
-        subtitle: `${seg.market} · ${lane.title}`,
-        stages: lane.stages.map((s) => ({ ...s, subs: [], tasks: [] })),
-        blank: true,
-        tone: '#3b5bdb',
-      })),
-    ]);
-  }, [byProduct, streamLanes, segments]);
+  const shownPhases = phaseKey ? phases.filter((p) => p.key === phaseKey) : phases;
+  const allRows = shownPhases.flatMap((p) => p.rows);
+  const counts = {
+    all: allRows.length,
+    diff: allRows.filter((r) => r.verdict !== 'merge').length,
+    merge: allRows.filter((r) => r.verdict === 'merge' || r.verdict === 'order').length,
+    solo: allRows.filter((r) => !r.a || !r.b).length,
+  };
+  const rows = allRows.filter((r) => {
+    if (filter === 'diff') return r.verdict !== 'merge';
+    if (filter === 'merge') return r.verdict === 'merge' || r.verdict === 'order';
+    if (filter === 'solo') return !r.a || !r.b;
+    return true;
+  });
 
-  const items: SpineItem[] = useMemo(
-    () =>
-      streamLanes.flatMap((l) =>
-        l.stages.flatMap((s) =>
-          s.tasks.map((t) => ({
-            id: `${l.id}:${t.id}`,
-            name: t.name,
-            column: l.id,
-            group: s.name,
-          })),
-        ),
-      ),
-    [streamLanes],
-  );
-  const cmp: SpineComparison = useMemo(() => compareSpineColumns(items), [items]);
-  const slots = useMemo(
-    () => alignStages(streamLanes.map((l) => ({ lane: l.id, stages: l.stages }))),
-    [streamLanes],
-  );
-  const titleOf = (id: string) => streamLanes.find((l) => l.id === id)?.title ?? id;
-  const grid = `${LANE_LABEL_W}px repeat(${slots.length}, ${SLOT_W}px)`;
+  const currentSteps = allRows.reduce((n, r) => n + (r.a ? 1 : 0) + (r.b ? 1 : 0), 0);
+  const normalized = allRows.reduce((n, r) => {
+    const d = decisionOf(r);
+    if (d === 'Drop') return n;
+    if (d === 'Merge') return n + 1;
+    return n + (r.a ? 1 : 0) + (r.b ? 1 : 0);
+  }, 0);
+  const mergedCount = allRows.filter((r) => r.a && r.b && decisionOf(r) === 'Merge').length;
+  const orderCount = allRows.filter((r) => r.verdict === 'order').length;
+  const soloCount = allRows.filter((r) => !r.a || !r.b).length;
+  const decidedByHand = allRows.filter((r) => decisions[r.key]).length;
 
   if (listLoading) return <LoadingState message="Loading value streams…" />;
   if (listError) return <ErrorMessage>{listError}</ErrorMessage>;
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
 
-  const renderLane = (lane: Lane) => {
-    const sourceLaneId = lane.blank ? lane.id.split(':')[0] : lane.id;
-    const openKey = openStage[lane.id] ?? null;
-    const openSlot = slots.find((s) => s.key === openKey) ?? null;
-    const openStageDef = openSlot
-      ? (lane.stages.find((st) => st.id === openSlot.byLane.get(sourceLaneId)) ?? null)
-      : null;
-    return (
-      <div key={lane.id} style={{ marginBottom: 10 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: grid, gap: 8, alignItems: 'start' }}>
-          <LaneChip
-            title={lane.title}
-            meta={
-              lane.blank
-                ? (lane.subtitle ?? undefined)
-                : `${lane.subtitle ? `${lane.subtitle} · ` : ''}${lane.stages.reduce((n, s) => n + s.tasks.length, 0)} steps`
-            }
-            tone={lane.tone}
-          />
-          {slots.map((slot) => {
-            const stageId = slot.byLane.get(sourceLaneId);
-            const stage = stageId ? lane.stages.find((s) => s.id === stageId) : null;
-            if (!stage)
-              return (
-                <MapCard key={slot.key} dimmed>
-                  <span
-                    style={{
-                      fontSize: 9.5,
-                      fontWeight: 600,
-                      color: '#b6c2d1',
-                      lineHeight: 1.25,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {slot.label}
-                  </span>
-                  <span style={{ fontSize: 8.5, color: '#c3cedb' }}>not in this flow</span>
-                </MapCard>
-              );
-            const shared = lane.blank
-              ? 0
-              : stage.tasks.filter((t) => cmp.markOf.get(`${lane.id}:${t.id}`) === 'shared').length;
-            const dup = lane.blank
-              ? 0
-              : stage.tasks.filter((t) => cmp.markOf.get(`${lane.id}:${t.id}`) === 'dup').length;
-            return (
-              <MapCard
-                key={slot.key}
-                dimmed={lane.blank}
-                selected={openKey === slot.key}
-                onClick={() =>
-                  setOpenStage((c) => ({ ...c, [lane.id]: openKey === slot.key ? null : slot.key }))
-                }
-              >
-                <span
-                  style={{
-                    fontSize: 10.5,
-                    fontWeight: 600,
-                    color: lane.blank ? '#b6c2d1' : '#171717',
-                    lineHeight: 1.25,
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {stage.name}
-                </span>
-                <span style={{ fontSize: 8.5, color: lane.blank ? '#c3cedb' : '#94a3b8' }}>
-                  {lane.blank ? 'no process yet' : `${stage.tasks.length} steps`}
-                  {shared > 0 && <b style={{ color: INDIGO }}> · {shared}⇆</b>}
-                  {dup > 0 && <b style={{ color: AMBER }}> · {dup}!</b>}
-                </span>
-              </MapCard>
-            );
-          })}
-        </div>
-        {openStageDef && openSlot && (
-          <div style={{ display: 'grid', gridTemplateColumns: `${LANE_LABEL_W}px 1fr`, gap: 8 }}>
-            <div />
-            <StageExpansion
-              lane={lane}
-              stage={openStageDef}
-              slot={openSlot}
-              laneCount={streamLanes.length}
-              markFor={(tid) => cmp.markOf.get(`${lane.id}:${tid}`)}
-            />
-          </div>
-        )}
-        {openKey && !openStageDef && lane.blank && openSlot && (
-          <div style={{ display: 'grid', gridTemplateColumns: `${LANE_LABEL_W}px 1fr`, gap: 8 }}>
-            <div />
-            <div
-              style={{
-                margin: '6px 0 10px',
-                padding: '10px 14px',
-                border: '1px dashed #dbe3ee',
-                borderRadius: 10,
-                fontSize: 10.5,
-                color: '#94a3b8',
-                background: '#fbfcfe',
-              }}
-            >
-              No process defined for this product yet.
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderNewProcessLane = () => {
-    const laneId = '__new__';
-    const openKey = openStage[laneId] ?? null;
-    return (
-      <div
+  const streamSelect = (slot: 0 | 1) => (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+      <span
         style={{
-          margin: '2px 0 10px',
-          padding: '10px 0',
-          background: 'rgba(236,253,245,.7)',
-          borderRadius: 12,
-          outline: '2px solid #a7f3d0',
+          width: 7,
+          height: 7,
+          borderRadius: 999,
+          background: STREAM_TONES[slot],
+          flexShrink: 0,
+        }}
+      />
+      <Select
+        aria-label={`Stream ${slot === 0 ? 'A' : 'B'}`}
+        value={pairIds[slot] ?? ''}
+        onChange={(e) => {
+          const next = [...pairIds];
+          next[slot] = e.target.value;
+          setIds(next);
+        }}
+        style={{
+          width: 'auto',
+          minWidth: 180,
+          maxWidth: 300,
+          height: 26,
+          padding: '0 24px 0 9px',
+          fontSize: 11.5,
         }}
       >
-        <div style={{ display: 'grid', gridTemplateColumns: grid, gap: 8, alignItems: 'start' }}>
-          <LaneChip
-            title="New process"
-            meta={`normalized · ${cmp.normalized} steps`}
-            tone="#047857"
-          />
-          {slots.map((slot) => {
-            const steps = normalizedSteps(slot, streamLanes);
-            return (
-              <MapCard
-                key={slot.key}
-                tone="#bbe7cf"
-                selected={openKey === slot.key}
-                onClick={() =>
-                  setOpenStage((c) => ({ ...c, [laneId]: openKey === slot.key ? null : slot.key }))
-                }
-              >
-                <span
-                  style={{
-                    fontSize: 10.5,
-                    fontWeight: 600,
-                    color: '#14532d',
-                    lineHeight: 1.25,
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {slot.label}
-                </span>
-                <span style={{ fontSize: 8.5, color: '#4d7c60' }}>
-                  {steps.length} normalized · {slot.byLane.size}/{streamLanes.length} flows
-                </span>
-              </MapCard>
-            );
-          })}
-        </div>
-        {openKey &&
-          (() => {
-            const slot = slots.find((s) => s.key === openKey);
-            if (!slot) return null;
-            const steps = normalizedSteps(slot, streamLanes);
-            return (
-              <div
-                style={{ display: 'grid', gridTemplateColumns: `${LANE_LABEL_W}px 1fr`, gap: 8 }}
-              >
-                <div />
-                <div style={{ margin: '6px 0 4px', paddingLeft: 6 }}>
-                  <div style={{ fontSize: 9.5, color: '#4d7c60', marginBottom: 6 }}>
-                    <b style={{ color: '#14532d' }}>{slot.label}</b> — {steps.length} normalized
-                    steps · {steps.filter((s) => s.sources > 1).length} merged across flows
-                  </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxWidth: 1100 }}>
-                    {steps.map((s) => (
-                      <div
-                        key={s.key}
-                        style={{
-                          boxSizing: 'border-box',
-                          padding: '6px 8px',
-                          borderRadius: 10,
-                          background: '#fff',
-                          border: '1px solid #bbe7cf',
-                          boxShadow: '0 1px 3px rgba(0,0,0,.06)',
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: 6,
-                          width: 216,
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: 999,
-                            flexShrink: 0,
-                            marginTop: 4,
-                            background: s.sources > 1 ? INDIGO : '#86efac',
-                          }}
-                        />
-                        <span style={{ fontSize: 9.5, color: '#14532d', lineHeight: 1.3, flex: 1 }}>
-                          {s.name}
-                        </span>
-                        {s.sources > 1 && (
-                          <span style={{ fontSize: 8.5, fontWeight: 800, color: INDIGO }}>
-                            {s.sources}→1
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
-      </div>
-    );
-  };
-
-  const laneBlocks: React.ReactNode[] = [];
-  lanesWithProducts.forEach((lane) => laneBlocks.push(renderLane(lane)));
-  // NEW PROCESS lane renders LAST — every compared flow above feeds into it.
-  if (streamLanes.length > 0) {
-    laneBlocks.push(<div key="__new__">{renderNewProcessLane()}</div>);
-  }
+        {(streams ?? []).map((s) => (
+          <option
+            key={s.id}
+            value={s.id}
+            disabled={pairIds.includes(s.id) && s.id !== pairIds[slot]}
+          >
+            {s.name} — {s.taskCount} steps
+          </option>
+        ))}
+      </Select>
+    </span>
+  );
 
   return (
     <div
@@ -554,31 +245,83 @@ export default function VsStreamBoard({
       }}
     >
       <LensBar lens={lens} onLens={onLens} boards={[]} boardId={null} onBoard={() => undefined} />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <Picker noun="value stream" pool={pool} selectedIds={ids} onChangeSelection={setIds} />
-        <label
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          flexWrap: 'wrap',
+          marginBottom: 10,
+        }}
+      >
+        <span style={{ fontSize: 11.5, fontWeight: 600, color: '#525252' }}>Compare</span>
+        {streamSelect(0)}
+        <span style={{ fontSize: 11, color: '#a3a3a3' }}>vs</span>
+        {streamSelect(1)}
+        <Select
+          aria-label="Phase"
+          value={phaseKey ?? ''}
+          onChange={(e) => setPhaseKey(e.target.value || null)}
           style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 5,
-            fontSize: 12,
-            color: '#525252',
-            marginBottom: 10,
-            cursor: 'pointer',
+            width: 'auto',
+            minWidth: 160,
+            maxWidth: 280,
+            height: 26,
+            padding: '0 24px 0 9px',
+            fontSize: 11.5,
           }}
         >
-          <input
-            type="checkbox"
-            checked={byProduct}
-            onChange={(e) => setByProduct(e.target.checked)}
-          />
-          By product
-        </label>
-        <span style={{ fontSize: 10.5, color: '#64748b', marginBottom: 10 }}>
-          click a stage → its L4 sub-processes · click a sub-process → its L5 steps ·{' '}
-          <b style={{ color: INDIGO }}>●</b> shared · <b style={{ color: AMBER }}>●</b> dup within ·{' '}
-          <b style={{ color: '#93b7e0' }}>●</b> unique
-        </span>
+          <option value="">All phases</option>
+          {phases.map((p) => (
+            <option key={p.key} value={p.key}>
+              Phase: {p.label}
+            </option>
+          ))}
+        </Select>
+        <div style={{ flex: 1 }} />
+        <span style={{ fontSize: 10.5, color: '#a3a3a3' }}>Show</span>
+        <div
+          style={{
+            display: 'flex',
+            height: 26,
+            border: '1px solid #eaeaea',
+            borderRadius: 6,
+            overflow: 'hidden',
+            background: '#fff',
+          }}
+        >
+          {(
+            [
+              ['all', 'All', counts.all],
+              ['diff', 'Differences', counts.diff],
+              ['merge', 'Shared', counts.merge],
+              ['solo', 'Only one stream', counts.solo],
+            ] as [ShowFilter, string, number][]
+          ).map(([key, label, count], i) => {
+            const on = filter === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setFilter(key)}
+                style={{
+                  font: 'inherit',
+                  padding: '0 10px',
+                  fontSize: 11,
+                  lineHeight: '26px',
+                  cursor: 'pointer',
+                  border: 'none',
+                  borderLeft: i === 0 ? 'none' : '1px solid #eaeaea',
+                  background: on ? '#171717' : '#fff',
+                  color: on ? '#fff' : '#525252',
+                  fontWeight: on ? 600 : 400,
+                }}
+              >
+                {label} <span style={{ opacity: 0.55 }}>{count}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div
@@ -586,8 +329,6 @@ export default function VsStreamBoard({
           border: '1px solid #eaeaea',
           borderRadius: 12,
           background: '#fff',
-          backgroundImage: 'radial-gradient(circle,#ececec 1px,transparent 1px)',
-          backgroundSize: '24px 24px',
           overflow: 'auto',
           flex: 1,
           minHeight: 0,
@@ -596,22 +337,173 @@ export default function VsStreamBoard({
       >
         {loading ? (
           <div style={{ padding: 30, fontSize: 12.5, color: '#a3a3a3' }}>Loading flows…</div>
-        ) : streamLanes.length === 0 ? (
+        ) : !a || !b ? (
           <div style={{ padding: 30 }}>
-            <EmptyState message="Pick at least two value streams to compare." />
+            <EmptyState message="Pick two value streams to reconcile." />
           </div>
         ) : (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 24,
-              padding: 24,
-              width: 'max-content',
-            }}
-          >
-            <div>{laneBlocks}</div>
-            <ConsolidationRail cmp={cmp} titleOf={titleOf} />
+          <div style={{ minWidth: 1200 }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: GRID,
+                background: '#fafafa',
+                borderBottom: '1px solid #eaeaea',
+                fontSize: 9.5,
+                fontWeight: 600,
+                letterSpacing: '.07em',
+                textTransform: 'uppercase',
+                color: '#a3a3a3',
+                position: 'sticky',
+                top: 0,
+                zIndex: 2,
+              }}
+            >
+              <div style={{ padding: '8px 6px', textAlign: 'center' }}>#</div>
+              <div style={{ padding: '8px 10px' }}>Unit of work (canonical wording)</div>
+              <div
+                style={{
+                  padding: '8px 10px',
+                  borderLeft: '1px solid #eaeaea',
+                  color: STREAM_TONES[0],
+                }}
+              >
+                {names[0]}
+              </div>
+              <div
+                style={{
+                  padding: '8px 10px',
+                  borderLeft: '1px solid #eaeaea',
+                  color: STREAM_TONES[1],
+                }}
+              >
+                {names[1]}
+              </div>
+              <div style={{ padding: '8px 10px', borderLeft: '1px solid #eaeaea' }}>Verdict</div>
+              <div style={{ padding: '8px 10px', borderLeft: '1px solid #eaeaea' }}>Decision</div>
+            </div>
+
+            {rows.map((r, i) => {
+              const meta = VERDICT_META[r.verdict];
+              const v = verdictLabel(r, names);
+              return (
+                <div
+                  key={r.key}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: GRID,
+                    borderBottom: '1px solid #f1f3f5',
+                    background: r.verdict === 'order' ? '#fffdf5' : '#fff',
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: '9px 6px',
+                      textAlign: 'center',
+                      fontSize: 11,
+                      fontFamily: 'ui-monospace, monospace',
+                      color: '#a3a3a3',
+                    }}
+                  >
+                    {i + 1}
+                  </div>
+                  <div style={{ padding: '9px 10px', minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 11.5,
+                        fontWeight: 600,
+                        lineHeight: 1.35,
+                        color: '#171717',
+                      }}
+                    >
+                      {r.canonName}
+                    </div>
+                    <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>
+                      {r.phaseLabel}
+                    </div>
+                  </div>
+                  <div
+                    style={{ padding: '9px 10px', borderLeft: '1px solid #f1f3f5', minWidth: 0 }}
+                  >
+                    <StreamCell step={r.a} tone={STREAM_TONES[0]} />
+                  </div>
+                  <div
+                    style={{ padding: '9px 10px', borderLeft: '1px solid #f1f3f5', minWidth: 0 }}
+                  >
+                    <StreamCell step={r.b} tone={STREAM_TONES[1]} />
+                  </div>
+                  <div style={{ padding: '9px 10px', borderLeft: '1px solid #f1f3f5' }}>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        fontSize: 9.5,
+                        fontWeight: 700,
+                        color: meta.fg,
+                        background: meta.bg,
+                        border: `1px solid ${meta.border}`,
+                        borderRadius: 6,
+                        padding: '2px 7px',
+                      }}
+                    >
+                      {v.label}
+                    </span>
+                    <div style={{ fontSize: 9.5, color: '#94a3b8', marginTop: 4 }}>{v.note}</div>
+                  </div>
+                  <div style={{ padding: '9px 10px', borderLeft: '1px solid #f1f3f5' }}>
+                    <DecisionButtons
+                      chosen={decisionOf(r)}
+                      onPick={(d) => setDecisions((c) => ({ ...c, [r.key]: d }))}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+            {rows.length === 0 && (
+              <div style={{ padding: 24, fontSize: 12, color: '#a3a3a3' }}>
+                No steps match this filter.
+              </div>
+            )}
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 16,
+                padding: '11px 14px',
+                background: '#f7f8fa',
+                borderTop: '1px solid #eaeaea',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div style={{ fontSize: 12.5, color: '#525252' }}>
+                {phaseKey ? 'This phase' : 'These streams'}:{' '}
+                <b style={{ color: '#171717' }}>{currentSteps}</b> current steps →{' '}
+                <b style={{ color: GREEN, fontSize: 15 }}>{normalized}</b> normalized
+              </div>
+              <span style={{ width: 1, height: 20, background: '#e5e7eb' }} />
+              <div style={{ fontSize: 11.5, color: INDIGO }}>
+                <b>{mergedCount}</b> merged 2→1
+              </div>
+              <div style={{ fontSize: 11.5, color: AMBER }}>
+                <b>{orderCount}</b> arrive at a different point in the flow
+              </div>
+              <div style={{ fontSize: 11.5, color: '#64748b' }}>
+                <b>{soloCount}</b> carried over 1→1
+              </div>
+              <div style={{ flex: 1 }} />
+              <span style={{ fontSize: 11, color: '#525252' }}>
+                {decidedByHand} of {allRows.length} rows decided by hand · the rest use the
+                suggested verdict
+              </span>
+            </div>
+
+            <VsNewProcessFlow
+              phases={phases}
+              phaseKey={phaseKey}
+              onPhase={setPhaseKey}
+              decisionOf={decisionOf}
+              streamNames={names}
+            />
           </div>
         )}
       </div>

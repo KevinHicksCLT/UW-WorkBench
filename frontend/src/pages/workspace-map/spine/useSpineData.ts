@@ -12,6 +12,15 @@ export interface StreamSummary {
   taskCount: number;
 }
 
+export interface StreamTask {
+  id: string;
+  name: string;
+  /** Owner role's name (NodeRole role_ = Owner), when one is wired. */
+  owner: string | null;
+  /** Applications used at the step (NodeAppUsage), capped at 3. */
+  apps: string[];
+}
+
 export interface StreamDetail {
   id: string;
   name: string;
@@ -19,7 +28,7 @@ export interface StreamDetail {
   areas: {
     id: string;
     name: string;
-    subs: { id: string; name: string; tasks: { id: string; name: string }[] }[];
+    subs: { id: string; name: string; tasks: StreamTask[] }[];
   }[];
 }
 
@@ -47,6 +56,8 @@ export interface RoleDetail {
     valueStream: string | null;
     l3: string | null;
     l4: string | null;
+    /** Applications used at the task (NodeAppUsage), capped at 3. */
+    apps: string[];
   }[];
 }
 

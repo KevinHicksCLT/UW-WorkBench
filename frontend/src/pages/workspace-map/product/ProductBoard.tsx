@@ -9,6 +9,7 @@ import { useRowAlignment, type AlignRow } from '../useLayerAlignment';
 import ProductComparePanel from './ProductComparePanel';
 import ProductNormalizeColumn from './ProductNormalizeColumn';
 import ProductGreenfieldColumn from './ProductGreenfieldColumn';
+import ProductGridView from './ProductGridView';
 import { MATCH_META, buildComparison, lobOptions, allVersions } from './spine';
 import type {
   ElementGroup,
@@ -25,6 +26,19 @@ import type {
 // derives what is common across the versions, what varies, and what a single
 // normalized greenfield product model for that LOB looks like. Everything is
 // computed on read from /product-spine/table — no illustrative tables.
+//
+// Two faces, switched by the View control (Auto / Detail / Grid):
+//   • DETAIL — the three-column current → normalize → greenfield board
+//     (unchanged), the default whenever the compared scope is 5 or fewer
+//     product versions.
+//   • GRID — the adaptive portfolio board (every version a row, every model
+//     component a column, differences countable), the default past the
+//     5-version threshold.
+
+/** Auto view boundary: ≤ this many versions renders the detail board. */
+export const DETAIL_THRESHOLD = 5;
+
+type ProductView = 'auto' | 'detail' | 'grid';
 
 function TraceBreadcrumb({
   group,
@@ -227,6 +241,7 @@ export default function ProductBoard({
   // returning restores the exact comparison: LOB, picked versions, filter and
   // expanded bands. Picks are stored as an array (Sets don't serialize).
   const [lobId, setLobId] = useViewState<string | null>('workspace.product.lobId', null);
+  const [view, setView] = useViewState<ProductView>('workspace.product.view', 'auto');
   const [pickedArr, setPickedArr] = useViewState<string[] | null>('workspace.product.picked', null);
   const pickedVersionIds = useMemo(() => (pickedArr ? new Set(pickedArr) : null), [pickedArr]);
   const [matchFilter, setMatchFilter] = useViewState<MatchStatus | null>(
@@ -253,9 +268,13 @@ export default function ProductBoard({
   }, [lobs, lobId, setLobId]);
 
   // An actual LOB switch resets the comparison scope — change-only, so a
-  // restored LOB doesn't wipe the restored picks on mount.
+  // restored LOB doesn't wipe the restored picks on mount. The grid's
+  // "Compare in detail" jump lands here too: it stages its picks in a ref so
+  // the reset applies THEM instead of wiping back to the full LOB.
+  const pendingPick = useRef<string[] | null>(null);
   useOnChange(lobId, () => {
-    setPickedArr(null);
+    setPickedArr(pendingPick.current);
+    pendingPick.current = null;
     setMatchFilter(null);
     setSelected(null);
     setExpandedComponents({});
@@ -326,6 +345,22 @@ export default function ProductBoard({
     next.add(newId);
     setPickedArr([...next]);
     setSelected(null);
+  };
+
+  // Auto view: the grid past the threshold, the detail board at or under it.
+  const autoView: 'detail' | 'grid' = versions.length > DETAIL_THRESHOLD ? 'grid' : 'detail';
+  const effectiveView = view === 'auto' ? autoView : view;
+
+  const openDetail = (v: VersionColumn) => {
+    const home = lobs.find((l) => l.id === v.lobId);
+    const canonical = home?.versions[0];
+    const picks = canonical && canonical.id !== v.id ? [canonical.id, v.id] : [v.id];
+    if (v.lobId === lobId) setPickedArr(picks);
+    else {
+      pendingPick.current = picks;
+      setLobId(v.lobId);
+    }
+    setView('detail');
   };
 
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -493,6 +528,142 @@ export default function ProductBoard({
       </div>
     );
 
+  const viewToggle = (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        marginBottom: 10,
+        marginLeft: 'auto',
+      }}
+    >
+      <span style={{ fontSize: 10.5, color: '#a3a3a3' }}>View</span>
+      <div
+        style={{
+          display: 'flex',
+          height: 26,
+          border: '1px solid #eaeaea',
+          borderRadius: 6,
+          overflow: 'hidden',
+          background: '#fff',
+        }}
+      >
+        {(
+          [
+            ['auto', `Auto · ${autoView}`],
+            ['detail', 'Detail'],
+            ['grid', 'Grid'],
+          ] as [ProductView, string][]
+        ).map(([key, label], i) => {
+          const on = view === key;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setView(key)}
+              style={{
+                font: 'inherit',
+                padding: '0 11px',
+                fontSize: 11,
+                lineHeight: '26px',
+                cursor: 'pointer',
+                border: 'none',
+                borderLeft: i === 0 ? 'none' : '1px solid #eaeaea',
+                background: on ? '#171717' : '#fff',
+                color: on ? '#fff' : '#525252',
+                fontWeight: on ? 600 : 400,
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const banner =
+    effectiveView === 'grid'
+      ? {
+          tag: 'GRID',
+          tone: '#4f46e5',
+          bg: '#f5f7ff',
+          border: '#e0e7ff',
+          text: `${versions.length} versions in the compared scope is past the ${DETAIL_THRESHOLD}-version detail limit, so the board switched to the grid: every offering a row, every model component a column, every difference countable.`,
+          hint: `compare ${DETAIL_THRESHOLD} or fewer versions to drop back into detail`,
+        }
+      : {
+          tag: 'DETAIL',
+          tone: '#047857',
+          bg: '#f0fdf6',
+          border: '#bbe7cf',
+          text: `${lob.name} — the full current → normalize → greenfield board across every model component.`,
+          hint: `past ${DETAIL_THRESHOLD} compared versions the board switches to the grid`,
+        };
+
+  const bannerStrip = (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '7px 12px',
+        background: banner.bg,
+        border: `1px solid ${banner.border}`,
+        borderRadius: 8,
+        marginBottom: 10,
+      }}
+    >
+      <span
+        style={{
+          fontSize: 9.5,
+          fontWeight: 700,
+          color: '#fff',
+          background: banner.tone,
+          borderRadius: 5,
+          padding: '2px 7px',
+        }}
+      >
+        {banner.tag}
+      </span>
+      <span style={{ fontSize: 11.5, color: '#334155' }}>{banner.text}</span>
+      <div style={{ flex: 1 }} />
+      <span style={{ fontSize: 11, color: '#525252', whiteSpace: 'nowrap' }}>{banner.hint}</span>
+    </div>
+  );
+
+  if (effectiveView === 'grid')
+    return (
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: 'calc(100vh - 156px)',
+          minHeight: 480,
+        }}
+      >
+        {lensBar}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>{bannerStrip}</div>
+          {viewToggle}
+        </div>
+        <div
+          style={{
+            border: '1px solid #eaeaea',
+            borderRadius: 12,
+            background: '#fff',
+            overflow: 'hidden',
+            flex: 1,
+            minHeight: 0,
+            boxSizing: 'border-box',
+          }}
+        >
+          <ProductGridView lobs={lobs} onOpenDetail={openDetail} />
+        </div>
+      </div>
+    );
+
   return (
     <div
       style={{
@@ -503,14 +674,18 @@ export default function ProductBoard({
       }}
     >
       {lensBar}
-      <VersionPicker
-        pool={pool}
-        versionLevelName={versionLevelName}
-        selected={versions}
-        onReplace={replaceVersion}
-        onAdd={addVersion}
-        onRemove={removeVersion}
-      />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <VersionPicker
+          pool={pool}
+          versionLevelName={versionLevelName}
+          selected={versions}
+          onReplace={replaceVersion}
+          onAdd={addVersion}
+          onRemove={removeVersion}
+        />
+        {viewToggle}
+      </div>
+      {bannerStrip}
       {selected && (
         <TraceBreadcrumb group={selected} versionCount={versions.length} lobName={lob.name} />
       )}

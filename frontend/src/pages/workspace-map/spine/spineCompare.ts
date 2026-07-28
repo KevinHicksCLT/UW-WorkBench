@@ -121,6 +121,162 @@ export function alignStages(
   return slots.sort((a, b) => a.order - b.order);
 }
 
+// ── Two-stream step reconciliation (the Value-streams lens table) ───────────
+// Each row is one canonical unit of work; the two streams' own steps sit side
+// by side with their sequence inside the phase, and the verdict says whether
+// the step merges 2→1, arrives at a different point in the flow, or exists in
+// only one stream. All derived from the live L3→L4→L5 subtrees by name.
+
+export interface ReconStep {
+  id: string;
+  /** 1-based position inside the stream's own phase flow. */
+  seq: number;
+  name: string;
+  owner: string | null;
+  apps: string[];
+  /** The stream's own L4 sub-process the step sits under. */
+  sub: string;
+}
+
+export type ReconVerdict = 'merge' | 'order' | 'onlyA' | 'onlyB';
+
+export interface ReconRow {
+  key: string;
+  /** Canonical wording — the shorter of the two matched step names. */
+  canonName: string;
+  phaseKey: string;
+  phaseLabel: string;
+  a: ReconStep | null;
+  b: ReconStep | null;
+  verdict: ReconVerdict;
+  /** |seqA − seqB| when both streams carry the step. */
+  seqDelta: number;
+}
+
+export interface ReconPhase {
+  key: string;
+  label: string;
+  rows: ReconRow[];
+}
+
+interface ReconLaneInput {
+  id: string;
+  stages: {
+    id: string;
+    name: string;
+    subs: {
+      name: string;
+      tasks: { id: string; name: string; owner?: string | null; apps?: string[] }[];
+    }[];
+  }[];
+}
+
+/** A step arriving ≥ this many positions apart counts as resequenced. */
+export const RESEQUENCE_DELTA = 2;
+
+/**
+ * Reconcile two streams phase by phase. Phases are the aligned stage slots
+ * (alignStages); inside each phase the two streams' steps match on spineKey.
+ * A step whose twin lives in a DIFFERENT phase still pairs up — it reconciles
+ * into the phase where stream A (or, failing that, B) carries it, flagged as
+ * order-differs.
+ */
+export function buildReconciliation(a: ReconLaneInput, b: ReconLaneInput): ReconPhase[] {
+  const slots = alignStages([
+    { lane: a.id, stages: a.stages },
+    { lane: b.id, stages: b.stages },
+  ]);
+
+  interface Located {
+    step: ReconStep;
+    phaseIdx: number;
+  }
+  const locate = (lane: ReconLaneInput): Map<string, Located[]> => {
+    const out = new Map<string, Located[]>();
+    slots.forEach((slot, phaseIdx) => {
+      const stageId = slot.byLane.get(lane.id);
+      const stage = stageId ? lane.stages.find((s) => s.id === stageId) : null;
+      if (!stage) return;
+      let seq = 0;
+      for (const sub of stage.subs) {
+        for (const t of sub.tasks) {
+          seq += 1;
+          const k = spineKey(t.name);
+          const g = out.get(k) ?? [];
+          g.push({
+            step: {
+              id: t.id,
+              seq,
+              name: t.name,
+              owner: t.owner ?? null,
+              apps: t.apps ?? [],
+              sub: sub.name,
+            },
+            phaseIdx,
+          });
+          out.set(k, g);
+        }
+      }
+    });
+    return out;
+  };
+
+  const aBy = locate(a);
+  const bBy = locate(b);
+  const phases: ReconPhase[] = slots.map((s) => ({ key: s.key, label: s.label, rows: [] }));
+  const seen = new Set<string>();
+
+  const push = (key: string, la: Located | null, lb: Located | null) => {
+    const home = la ?? lb;
+    if (!home) return;
+    const phase = phases[home.phaseIdx];
+    const sa = la?.step ?? null;
+    const sb = lb?.step ?? null;
+    const crossPhase = la && lb && la.phaseIdx !== lb.phaseIdx;
+    const seqDelta = sa && sb ? Math.abs(sa.seq - sb.seq) : 0;
+    const verdict: ReconVerdict =
+      sa && sb
+        ? crossPhase || seqDelta >= RESEQUENCE_DELTA
+          ? 'order'
+          : 'merge'
+        : sa
+          ? 'onlyA'
+          : 'onlyB';
+    const canonName =
+      sa && sb ? (sa.name.length <= sb.name.length ? sa.name : sb.name) : home.step.name;
+    phase.rows.push({
+      key: `${phase.key}:${key}`,
+      canonName,
+      phaseKey: phase.key,
+      phaseLabel: phase.label,
+      a: sa,
+      b: sb,
+      verdict,
+      seqDelta,
+    });
+  };
+
+  for (const [key, las] of aBy) {
+    seen.add(key);
+    const lbs = bBy.get(key) ?? [];
+    const n = Math.max(las.length, lbs.length);
+    for (let i = 0; i < n; i += 1) push(key, las[i] ?? null, lbs[i] ?? null);
+  }
+  for (const [key, lbs] of bBy) {
+    if (seen.has(key)) continue;
+    for (const lb of lbs) push(key, null, lb);
+  }
+
+  for (const p of phases) {
+    p.rows.sort(
+      (x, y) =>
+        (x.a?.seq ?? x.b?.seq ?? 0) - (y.a?.seq ?? y.b?.seq ?? 0) ||
+        x.canonName.localeCompare(y.canonName),
+    );
+  }
+  return phases.filter((p) => p.rows.length > 0);
+}
+
 export function compareSpineColumns(items: SpineItem[]): SpineComparison {
   const byKey = new Map<string, SpineItem[]>();
   for (const it of items) {

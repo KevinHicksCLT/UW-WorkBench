@@ -11,6 +11,7 @@ import { cacheResponses } from '../../lib/responseCache.js';
 import { registerProductTableRoutes } from './table.js';
 import { registerProductNodeRoutes } from './node.js';
 import { registerProductDecisionRoutes } from './decisions.js';
+import { registerProductFrameworkRoutes } from './framework.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -26,5 +27,6 @@ router.use(cacheResponses(15_000));
 
 registerProductTableRoutes(router);
 registerProductNodeRoutes(router);
+registerProductFrameworkRoutes(router);
 
 export default router;

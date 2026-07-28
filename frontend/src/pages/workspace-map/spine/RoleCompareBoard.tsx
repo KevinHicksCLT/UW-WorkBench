@@ -1,49 +1,32 @@
 import { useEffect, useMemo } from 'react';
 import { EmptyState, ErrorMessage, LoadingState } from '../../../components/ui';
-import { useViewState } from '../../../lib/viewState';
+import { useDialogs } from '../../../lib/dialogs';
+import { useOnChange, useViewState } from '../../../lib/viewState';
 import LensBar, { type WorkspaceLens } from '../LensBar';
-import { AMBER, INDIGO } from '../types';
-import { Picker, ConsolidationRail, type PoolOption } from './SpineBoard';
-import { LaneChip, MapCard, TaskCard, clamp2 } from './mapCards';
-import { compareSpineColumns, type SpineComparison, type SpineItem } from './spineCompare';
-import { useRoleDetails, useRoleList, useStreamList, type RoleDetail } from './useSpineData';
+import { AMBER, GREEN, INDIGO } from '../types';
+import { Picker, type PoolOption } from './SpineBoard';
+import { RoleColumn, TargetColumn, ROLE_COL_W } from './RoleTaskColumns';
+import {
+  buildTarget,
+  columnKeySets,
+  dedupeTasks,
+  recommendedTarget,
+  roleFacts,
+  roleRecs,
+  roleShort,
+  type RoleColumnInput,
+  type RoleDecision,
+  type StepDecision,
+} from './roleConsolidation';
+import { useRoleDetails, useRoleList, useStreamList } from './useSpineData';
 
-// Roles lens — a TASK-level comparison in the map's card language, displayed
-// vertically: one column per picked role, the actual tasks compared head to
-// head. Shared tasks align on the same row across every role column (matched
-// on the fly by name); each role's unique work stacks below; a green
-// CONSOLIDATED column carries the normalized set (shared merged N→1).
-// Filters: Division narrows the role picker; Value stream narrows the TASKS
-// being compared.
+// Roles lens — one role at a time, its actual tasks, one decision. The spine
+// is the axis (value stream › L4 sub-process › L5 step): a card per compared
+// role carries the evidence and the decision (consolidate into the target /
+// deprecate / keep); below, every task column by column with its fate, and the
+// green TARGET ROLE column building the resulting role. All live graph data.
 
-const COL_W = 240;
-
-interface RoleColumn {
-  id: string;
-  title: string;
-  subtitle: string | null;
-  tasks: { id: string; name: string; involvement: string; valueStream: string | null }[];
-}
-
-function toColumn(d: RoleDetail): RoleColumn {
-  // One row per task — Owner wins over Participant when a role holds both.
-  const perTask = new Map<string, (typeof d.tasks)[number]>();
-  for (const t of d.tasks) {
-    const cur = perTask.get(t.id);
-    if (!cur || t.involvement === 'Owner') perTask.set(t.id, t);
-  }
-  return {
-    id: d.id,
-    title: d.name,
-    subtitle: [d.division, d.department].filter(Boolean).join(' › ') || null,
-    tasks: [...perTask.values()].map((t) => ({
-      id: t.id,
-      name: t.name,
-      involvement: t.involvement,
-      valueStream: t.valueStream,
-    })),
-  };
-}
+const ROLE_TONES = ['#0f766e', '#7c3aed', '#b45309', '#1d4ed8', '#64748b', '#0891b2'];
 
 const selectStyle = {
   border: '1px solid #e5e5e5',
@@ -54,6 +37,35 @@ const selectStyle = {
   maxWidth: 220,
 } as const;
 
+function actionButton(
+  label: string,
+  on: boolean,
+  danger: boolean,
+  primary: boolean,
+  onClick: () => void,
+) {
+  return (
+    <button
+      key={label}
+      type="button"
+      onClick={onClick}
+      style={{
+        font: 'inherit',
+        fontSize: 10.5,
+        fontWeight: 600,
+        cursor: 'pointer',
+        borderRadius: 6,
+        padding: '4px 9px',
+        color: on ? '#fff' : '#525252',
+        background: on ? (danger ? '#dc2626' : primary ? INDIGO : '#525252') : '#fff',
+        border: `1px solid ${on ? 'transparent' : '#e5e5e5'}`,
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
 export default function RoleCompareBoard({
   lens,
   onLens,
@@ -61,12 +73,23 @@ export default function RoleCompareBoard({
   lens: WorkspaceLens;
   onLens: (l: WorkspaceLens) => void;
 }) {
+  const dialogs = useDialogs();
   const { data: roles, loading: listLoading, error: listError } = useRoleList();
-  // Compared roles + dropdown filters persist per session (lib/viewState) so
-  // the tab restores exactly on return.
   const [ids, setIds] = useViewState<string[]>('workspace.role.ids', []);
   const [division, setDivision] = useViewState<string>('workspace.role.division', '');
   const [stream, setStream] = useViewState<string>('workspace.role.stream', '');
+  const [filter, setFilter] = useViewState<'all' | 'multi' | 'single'>(
+    'workspace.role.filter',
+    'all',
+  );
+  const [roleDecisions, setRoleDecisions] = useViewState<Record<string, RoleDecision>>(
+    'workspace.role.decisions',
+    {},
+  );
+  const [stepDecisions, setStepDecisions] = useViewState<Record<string, StepDecision>>(
+    'workspace.role.stepDecisions',
+    {},
+  );
 
   useEffect(() => {
     if (!roles || roles.length < 2 || ids.length > 0) return;
@@ -77,6 +100,10 @@ export default function RoleCompareBoard({
     const sibling = busiest.find((r) => r.id !== first.id && r.department === first.department);
     setIds([first.id, (sibling ?? busiest[1]).id]);
   }, [roles, ids.length, setIds]);
+  useOnChange(`${ids.join(',')}|${stream}`, () => {
+    setRoleDecisions({});
+    setStepDecisions({});
+  });
 
   const { data: details, loading, error } = useRoleDetails(ids);
 
@@ -84,9 +111,6 @@ export default function RoleCompareBoard({
     () => [...new Set((roles ?? []).map((r) => r.division).filter((d): d is string => !!d))].sort(),
     [roles],
   );
-  // Both filters narrow the ROLE DROPDOWN: Division by org home, Value stream
-  // by where the role actually works. Already-picked roles stay listed so the
-  // current comparison never breaks.
   const pool: PoolOption[] = useMemo(
     () =>
       (roles ?? [])
@@ -104,53 +128,89 @@ export default function RoleCompareBoard({
     [roles, division, stream, ids],
   );
 
-  const allColumns: RoleColumn[] = useMemo(() => {
+  const { data: streamList } = useStreamList();
+  const streams = useMemo(() => (streamList ?? []).map((s) => s.name).sort(), [streamList]);
+
+  const columns: RoleColumnInput[] = useMemo(() => {
     if (!details) return [];
     return ids
       .map((id) => details[id])
       .filter(Boolean)
-      .map(toColumn);
-  }, [details, ids]);
+      .map((d) => ({
+        id: d.id,
+        name: d.name,
+        subtitle: [d.division, d.department].filter(Boolean).join(' › ') || null,
+        tasks: dedupeTasks(d.tasks).filter(
+          (t) => !stream || (t.valueStream ?? 'Unmapped') === stream,
+        ),
+      }));
+  }, [details, ids, stream]);
 
-  // Value-stream filter options come from the full spine — it narrows both
-  // the role dropdown (above) and the TASKS being compared (below).
-  const { data: streamList } = useStreamList();
-  const streams = useMemo(() => (streamList ?? []).map((s) => s.name).sort(), [streamList]);
-  const columns: RoleColumn[] = useMemo(
-    () =>
-      allColumns.map((c) => ({
-        ...c,
-        tasks: stream ? c.tasks.filter((t) => (t.valueStream ?? 'Unmapped') === stream) : c.tasks,
-      })),
-    [allColumns, stream],
+  const facts = useMemo(() => roleFacts(columns), [columns]);
+  const keySets = useMemo(() => columnKeySets(columns), [columns]);
+  const recTargetIdx = useMemo(() => (columns.length ? recommendedTarget(columns) : 0), [columns]);
+  const recs = useMemo(
+    () => (columns.length ? roleRecs(columns, facts, recTargetIdx) : []),
+    [columns, facts, recTargetIdx],
   );
 
-  const items: SpineItem[] = useMemo(
-    () =>
-      columns.flatMap((c) =>
-        c.tasks.map((t) => ({
-          id: `${c.id}:${t.id}`,
-          name: t.name,
-          column: c.id,
-          group: t.valueStream ?? 'Unmapped',
-          tag: t.involvement,
-        })),
-      ),
-    [columns],
-  );
-  const cmp: SpineComparison = useMemo(() => compareSpineColumns(items), [items]);
-  const titleOf = (id: string) => columns.find((c) => c.id === id)?.title ?? id;
+  const decisionOf = (idx: number): RoleDecision =>
+    roleDecisions[columns[idx]?.id] ?? recs[idx]?.suggest ?? 'Keep';
+  // The target must survive: the recommended target unless the user keeps a
+  // different role while consolidating the recommended one away. Cheap
+  // derivations (≤ a few thousand string ops) — recomputed per render.
+  const targetIdx = (() => {
+    if (!columns.length) return 0;
+    if (decisionOf(recTargetIdx) === 'Keep') return recTargetIdx;
+    const surviving = columns.map((_, i) => i).filter((i) => decisionOf(i) === 'Keep');
+    if (surviving.length === 0) return recTargetIdx;
+    return surviving.sort((x, y) => facts[y].steps - facts[x].steps)[0];
+  })();
 
-  // Shared groups aligned row-wise; each role's leftover (unique + internal
-  // dup) stacks below its column.
-  const uniqueOf = (c: RoleColumn) =>
-    c.tasks.filter((t) => cmp.markOf.get(`${c.id}:${t.id}`) !== 'shared');
+  const going = columns.map((_, i) => i !== targetIdx && decisionOf(i) !== 'Keep');
+  const target = buildTarget(columns, going, targetIdx, stepDecisions);
+
+  const totalSteps = facts.reduce((n, f) => n + f.steps, 0);
+  const targetStreams = new Set(target.steps.map((s) => s.stream)).size;
+
+  // Where the compared roles work — one pill per value stream in scope.
+  const streamPills = useMemo(() => {
+    const by = new Map<string, { steps: number; shorts: Set<string> }>();
+    columns.forEach((c) => {
+      for (const t of c.tasks) {
+        const vs = t.valueStream ?? 'Unmapped';
+        const cur = by.get(vs) ?? { steps: 0, shorts: new Set<string>() };
+        cur.steps += 1;
+        cur.shorts.add(roleShort(c.name));
+        by.set(vs, cur);
+      }
+    });
+    return [...by.entries()]
+      .sort((a, b) => b[1].steps - a[1].steps)
+      .slice(0, 8)
+      .map(([name, v]) => ({ name, meta: `${v.steps} steps · ${[...v.shorts].join(', ')}` }));
+  }, [columns]);
+
+  const filterCounts = {
+    all: totalSteps,
+    multi: facts.reduce((n, f) => n + f.dup, 0),
+    single: facts.reduce((n, f) => n + f.only, 0),
+  };
 
   if (listLoading) return <LoadingState message="Loading roles…" />;
   if (listError) return <ErrorMessage>{listError}</ErrorMessage>;
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
 
-  const gridCols = `repeat(${columns.length + 1}, ${COL_W}px)`;
+  const gridCols = `repeat(${columns.length}, ${ROLE_COL_W}px) ${ROLE_COL_W + 20}px`;
+  const summary = columns
+    .map((c, i) => `${roleShort(c.name)} ${decisionOf(i).toLowerCase()}`)
+    .join(' · ');
+
+  const commit = () =>
+    dialogs.alert({
+      title: 'Commit role changes',
+      message: `${summary}. Result: ${target.steps.length} tasks in ${columns[targetIdx]?.name ?? 'the target role'} across ${targetStreams} value streams — ${target.merged} duplicate steps merged away, ${target.moved} moved across as-is. Committing into the live role graph is decision-preview only in this workspace.`,
+    });
 
   return (
     <div
@@ -190,10 +250,8 @@ export default function RoleCompareBoard({
           ))}
         </select>
         <Picker noun="role" pool={pool} selectedIds={ids} onChangeSelection={setIds} />
-        <span style={{ fontSize: 10.5, color: '#64748b', marginBottom: 10 }}>
-          tasks compared head to head · shared tasks align across columns ·{' '}
-          <b style={{ color: INDIGO }}>●</b> shared · <b style={{ color: AMBER }}>●</b> dup within ·{' '}
-          <b style={{ color: '#93b7e0' }}>●</b> unique
+        <span style={{ fontSize: 10.5, color: '#a3a3a3', marginBottom: 10 }}>
+          {totalSteps} atomic steps in scope · decide per role, the evidence is below
         </span>
       </div>
 
@@ -202,8 +260,6 @@ export default function RoleCompareBoard({
           border: '1px solid #eaeaea',
           borderRadius: 12,
           background: '#fff',
-          backgroundImage: 'radial-gradient(circle,#ececec 1px,transparent 1px)',
-          backgroundSize: '24px 24px',
           overflow: 'auto',
           flex: 1,
           minHeight: 0,
@@ -212,223 +268,441 @@ export default function RoleCompareBoard({
       >
         {loading ? (
           <div style={{ padding: 30, fontSize: 12.5, color: '#a3a3a3' }}>Loading roles…</div>
-        ) : columns.length === 0 ? (
+        ) : columns.length < 2 ? (
           <div style={{ padding: 30 }}>
             <EmptyState message="Pick at least two roles to compare." />
           </div>
         ) : (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 24,
-              padding: 24,
-              width: 'max-content',
-            }}
-          >
-            <div>
-              {/* Column headers */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: gridCols,
-                  gap: 10,
-                  marginBottom: 12,
-                }}
-              >
-                {columns.map((c) => {
-                  const stats = cmp.stats.find((s) => s.column === c.id);
-                  return (
-                    <div key={c.id}>
-                      <LaneChip
-                        title={c.title}
-                        meta={`${c.subtitle ? `${c.subtitle} · ` : ''}${c.tasks.length} tasks${stream ? ` in ${stream}` : ''}`}
-                      />
-                      {stats && (
-                        <div style={{ display: 'flex', gap: 8, marginTop: 4, fontSize: 10 }}>
-                          <b style={{ color: INDIGO }}>{stats.shared} shared</b>
-                          <b style={{ color: AMBER }}>{stats.withinDup} dup</b>
-                          <b style={{ color: '#64748b' }}>{stats.unique} unique</b>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-                <LaneChip
-                  title="Consolidated role"
-                  meta={`normalized · ${cmp.normalized} steps`}
-                  tone="#047857"
-                />
-              </div>
-
-              {/* Shared tasks — one row per match, aligned across the columns. */}
-              <div
+          <div style={{ width: 'max-content', minWidth: '100%' }}>
+            {/* Where these roles work */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '9px 16px',
+                borderBottom: '1px solid #eaeaea',
+                flexWrap: 'wrap',
+              }}
+            >
+              <span
                 style={{
                   fontSize: 10,
-                  fontWeight: 800,
-                  letterSpacing: '.06em',
-                  color: INDIGO,
+                  fontWeight: 600,
+                  letterSpacing: '.07em',
                   textTransform: 'uppercase',
-                  margin: '2px 0 6px',
+                  color: '#525252',
                 }}
               >
-                Shared tasks ({cmp.shared.length}) — same work in several roles
-              </div>
-              {cmp.shared.length === 0 && (
-                <div style={{ fontSize: 11, color: '#a3a3a3', marginBottom: 10 }}>
-                  No overlapping tasks between these roles{stream ? ` in ${stream}` : ''}.
-                </div>
-              )}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
-                {cmp.shared.map((g) => (
-                  <div
-                    key={g.key}
-                    style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 10 }}
-                  >
-                    {columns.map((c) => {
-                      const mine = g.byColumn.get(c.id);
-                      const t = mine?.[0];
-                      return t ? (
-                        <MapCard key={c.id} height={46}>
-                          <span
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 6,
-                              width: '100%',
-                              textAlign: 'left',
-                            }}
-                          >
-                            <span
-                              style={{
-                                width: 6,
-                                height: 6,
-                                borderRadius: 999,
-                                background: INDIGO,
-                                flexShrink: 0,
-                              }}
-                            />
-                            <span
-                              style={{
-                                fontSize: 9.5,
-                                color: '#171717',
-                                lineHeight: 1.25,
-                                flex: 1,
-                                ...clamp2,
-                              }}
-                            >
-                              {t.name}
-                            </span>
-                            <span style={{ fontSize: 8, color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                              {t.tag}
-                            </span>
-                          </span>
-                        </MapCard>
-                      ) : (
-                        <MapCard key={c.id} dimmed height={46}>
-                          <span style={{ fontSize: 8.5, color: '#c3cedb' }}>not in this role</span>
-                        </MapCard>
-                      );
-                    })}
-                    <MapCard height={46} tone="#bbe7cf">
-                      <span
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 6,
-                          width: '100%',
-                          textAlign: 'left',
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: 9.5,
-                            color: '#14532d',
-                            lineHeight: 1.25,
-                            flex: 1,
-                            ...clamp2,
-                          }}
-                        >
-                          {g.name}
-                        </span>
-                        <span
-                          style={{
-                            fontSize: 8.5,
-                            fontWeight: 800,
-                            color: INDIGO,
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {g.total}→1
-                        </span>
-                      </span>
-                    </MapCard>
-                  </div>
-                ))}
-              </div>
-
-              {/* Unique work — per role, stacked below its column. */}
-              <div
-                style={{
-                  fontSize: 10,
-                  fontWeight: 800,
-                  letterSpacing: '.06em',
-                  color: '#64748b',
-                  textTransform: 'uppercase',
-                  margin: '2px 0 6px',
-                }}
-              >
-                Role-specific tasks — carried over 1→1
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 10 }}>
-                {columns.map((c) => {
-                  const rest = uniqueOf(c);
-                  return (
-                    <div
-                      key={c.id}
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 4,
-                        maxHeight: 420,
-                        overflowY: 'auto',
-                      }}
-                    >
-                      {rest.map((t, i) => (
-                        <TaskCard
-                          key={t.id}
-                          n={i + 1}
-                          name={t.name}
-                          mark={cmp.markOf.get(`${c.id}:${t.id}`)}
-                          tag={t.involvement}
-                        />
-                      ))}
-                      {rest.length === 0 && (
-                        <div style={{ fontSize: 10, color: '#a3a3a3', padding: 6 }}>
-                          Everything this role does here is shared.
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-                <div
+                Where these roles work
+              </span>
+              {streamPills.map((p) => (
+                <span
+                  key={p.name}
                   style={{
-                    boxSizing: 'border-box',
-                    padding: '10px 12px',
-                    borderRadius: 10,
-                    background: 'rgba(236,253,245,.7)',
-                    outline: '2px solid #a7f3d0',
-                    fontSize: 10.5,
-                    color: '#14532d',
-                    alignSelf: 'flex-start',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 7,
+                    background: '#fff',
+                    border: '1px solid #eaeaea',
+                    borderRadius: 999,
+                    padding: '3px 11px',
+                    fontSize: 11,
+                    color: '#334155',
                   }}
                 >
-                  <b>{cmp.normalized}</b> normalized steps: {cmp.shared.length} merged from the
-                  shared rows above + every role-specific task carried over 1→1.
+                  <b style={{ fontWeight: 600 }}>{p.name}</b>
+                  <span style={{ color: '#94a3b8' }}>{p.meta}</span>
+                </span>
+              ))}
+              <div style={{ flex: 1 }} />
+              <div
+                style={{
+                  display: 'flex',
+                  height: 26,
+                  border: '1px solid #eaeaea',
+                  borderRadius: 6,
+                  overflow: 'hidden',
+                  background: '#fff',
+                }}
+              >
+                {(
+                  [
+                    ['all', 'All steps', filterCounts.all],
+                    ['multi', 'Another role does it too', filterCounts.multi],
+                    ['single', 'Only one role', filterCounts.single],
+                  ] as ['all' | 'multi' | 'single', string, number][]
+                ).map(([key, label, count], i) => {
+                  const on = filter === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setFilter(key)}
+                      style={{
+                        font: 'inherit',
+                        padding: '0 10px',
+                        fontSize: 11,
+                        lineHeight: '26px',
+                        cursor: 'pointer',
+                        border: 'none',
+                        borderLeft: i === 0 ? 'none' : '1px solid #eaeaea',
+                        background: on ? '#171717' : '#fff',
+                        color: on ? '#fff' : '#525252',
+                        fontWeight: on ? 600 : 400,
+                      }}
+                    >
+                      {label} <span style={{ opacity: 0.55 }}>{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Role cards + target card */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: gridCols,
+                gap: 12,
+                alignItems: 'stretch',
+                padding: '13px 16px',
+                borderBottom: '1px solid #eaeaea',
+                background: '#fafafa',
+              }}
+            >
+              {columns.map((c, i) => {
+                const rec = recs[i];
+                const tone = ROLE_TONES[i % ROLE_TONES.length];
+                const isTarget = i === targetIdx;
+                const recStyle = isTarget
+                  ? { fg: '#166534', bg: '#dcfce7', border: '#bbf7d0', label: 'TARGET' }
+                  : rec.rec === 'CONSOLIDATE'
+                    ? { fg: INDIGO, bg: '#eef2ff', border: '#d6dcff', label: 'CONSOLIDATE' }
+                    : { fg: '#166534', bg: '#dcfce7', border: '#bbf7d0', label: 'KEEP' };
+                const chosen = decisionOf(i);
+                return (
+                  <div
+                    key={c.id}
+                    style={{
+                      minWidth: 0,
+                      background: '#fff',
+                      border: '1px solid #eaeaea',
+                      borderLeft: `3px solid ${tone}`,
+                      borderRadius: 10,
+                      padding: '10px 12px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <span
+                        style={{
+                          fontSize: 12.5,
+                          fontWeight: 700,
+                          color: '#171717',
+                          flex: 1,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                        title={c.subtitle ?? undefined}
+                      >
+                        {c.name}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 9,
+                          fontWeight: 700,
+                          color: recStyle.fg,
+                          background: recStyle.bg,
+                          border: `1px solid ${recStyle.border}`,
+                          borderRadius: 5,
+                          padding: '2px 6px',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {recStyle.label}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 12, marginTop: 7 }}>
+                      <div>
+                        <div
+                          style={{
+                            fontSize: 15,
+                            fontWeight: 700,
+                            color: '#171717',
+                            lineHeight: 1.1,
+                          }}
+                        >
+                          {facts[i].steps}
+                        </div>
+                        <div style={{ fontSize: 9.5, color: '#94a3b8' }}>steps</div>
+                      </div>
+                      <div>
+                        <div
+                          style={{ fontSize: 15, fontWeight: 700, color: tone, lineHeight: 1.1 }}
+                        >
+                          {facts[i].streams}
+                        </div>
+                        <div style={{ fontSize: 9.5, color: '#94a3b8' }}>
+                          {facts[i].streams === 1 ? 'value stream' : 'value streams'}
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          style={{ fontSize: 15, fontWeight: 700, color: INDIGO, lineHeight: 1.1 }}
+                        >
+                          {facts[i].dup}
+                        </div>
+                        <div style={{ fontSize: 9.5, color: '#94a3b8' }}>
+                          another role also does
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          style={{ fontSize: 15, fontWeight: 700, color: AMBER, lineHeight: 1.1 }}
+                        >
+                          {facts[i].only}
+                        </div>
+                        <div style={{ fontSize: 9.5, color: '#94a3b8' }}>only it does</div>
+                      </div>
+                    </div>
+                    <div
+                      style={{ fontSize: 10.5, lineHeight: 1.45, color: '#334155', marginTop: 7 }}
+                    >
+                      {rec.reason}
+                    </div>
+                    <div style={{ display: 'flex', gap: 5, marginTop: 9, flexWrap: 'wrap' }}>
+                      {(['Consolidate', 'Deprecate', 'Keep'] as RoleDecision[]).map((label) =>
+                        actionButton(
+                          label === 'Consolidate' && !isTarget
+                            ? `Consolidate → ${roleShort(columns[targetIdx].name)}`
+                            : label,
+                          chosen === label,
+                          label === 'Deprecate',
+                          label === 'Consolidate',
+                          () => setRoleDecisions((cur) => ({ ...cur, [c.id]: label })),
+                        ),
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Target role result card */}
+              <div
+                style={{
+                  minWidth: 0,
+                  background: '#f6faf7',
+                  border: '2px solid #a7f3d0',
+                  borderRadius: 10,
+                  padding: '10px 12px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <span
+                    style={{
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      color: '#14532d',
+                      flex: 1,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {going.some(Boolean) ? columns[targetIdx].name : 'No change — every role stays'}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      color: '#fff',
+                      background: '#047857',
+                      borderRadius: 5,
+                      padding: '2px 6px',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    TARGET ROLE
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: 12, marginTop: 7 }}>
+                  <div>
+                    <div
+                      style={{ fontSize: 15, fontWeight: 700, color: '#14532d', lineHeight: 1.1 }}
+                    >
+                      {target.steps.length}
+                    </div>
+                    <div style={{ fontSize: 9.5, color: '#4d7c60' }}>tasks after</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: INDIGO, lineHeight: 1.1 }}>
+                      {target.merged}
+                    </div>
+                    <div style={{ fontSize: 9.5, color: '#4d7c60' }}>merged away</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: AMBER, lineHeight: 1.1 }}>
+                      {target.moved}
+                    </div>
+                    <div style={{ fontSize: 9.5, color: '#4d7c60' }}>moved in</div>
+                  </div>
+                  <div>
+                    <div
+                      style={{ fontSize: 15, fontWeight: 700, color: '#14532d', lineHeight: 1.1 }}
+                    >
+                      {targetStreams}
+                    </div>
+                    <div style={{ fontSize: 9.5, color: '#4d7c60' }}>value streams held</div>
+                  </div>
+                </div>
+                <div style={{ fontSize: 10.5, lineHeight: 1.45, color: '#14532d', marginTop: 7 }}>
+                  {going.some(Boolean)
+                    ? `${columns
+                        .filter((_, i) => going[i])
+                        .map((c) => roleShort(c.name))
+                        .join(
+                          ' + ',
+                        )} fold in here: ${target.merged} of their steps are the same work this role already performs, ${target.moved} transfer across unchanged.`
+                    : 'Pick Consolidate or Deprecate on a card and the resulting role builds here.'}
+                </div>
+                <div style={{ display: 'flex', gap: 5, marginTop: 9 }}>
+                  <button
+                    type="button"
+                    onClick={commit}
+                    style={{
+                      font: 'inherit',
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      color: '#fff',
+                      background: '#047857',
+                      border: 'none',
+                      borderRadius: 6,
+                      padding: '4px 9px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Commit consolidation
+                  </button>
                 </div>
               </div>
             </div>
-            <ConsolidationRail cmp={cmp} titleOf={titleOf} />
+
+            {/* Column-by-column task view */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '9px 16px',
+                borderBottom: '1px solid #eaeaea',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: '.07em',
+                  textTransform: 'uppercase',
+                  color: '#525252',
+                }}
+              >
+                Every task, column by column
+              </span>
+              <span style={{ fontSize: 11, color: '#94a3b8' }}>
+                aligned under the cards above · each task can be moved, kept or dropped on its own
+              </span>
+            </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: gridCols,
+                gap: 12,
+                alignItems: 'start',
+                padding: '14px 16px',
+                background: '#fafafa',
+              }}
+            >
+              {columns.map((c, i) => (
+                <RoleColumn
+                  key={c.id}
+                  col={c}
+                  colIdx={i}
+                  columns={columns}
+                  keySets={keySets}
+                  going={going}
+                  targetIdx={targetIdx}
+                  filter={filter}
+                  stepDecisions={stepDecisions}
+                  onStepDecision={(key, d) => setStepDecisions((cur) => ({ ...cur, [key]: d }))}
+                />
+              ))}
+              <TargetColumn steps={target.steps} />
+            </div>
+
+            {/* Decisions footer */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 16,
+                padding: '12px 16px',
+                background: '#f6faf7',
+                borderTop: '2px solid #a7f3d0',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div style={{ fontSize: 12.5, color: '#525252' }}>
+                Decisions so far: <b style={{ color: '#171717' }}>{summary}</b>
+              </div>
+              <span style={{ width: 1, height: 20, background: '#a7f3d0' }} />
+              <div style={{ fontSize: 11.5, color: GREEN }}>
+                <b>{target.steps.length}</b> steps after the change, from {totalSteps} today
+              </div>
+              <div style={{ fontSize: 11.5, color: INDIGO }}>
+                <b>{target.merged}</b> duplicate steps removed
+              </div>
+              <div style={{ fontSize: 11.5, color: AMBER }}>
+                <b>{target.moved}</b> steps that move across as-is
+              </div>
+              <div style={{ flex: 1 }} />
+              <button
+                type="button"
+                onClick={() => {
+                  setRoleDecisions({});
+                  setStepDecisions({});
+                }}
+                style={{
+                  font: 'inherit',
+                  fontSize: 11,
+                  color: '#525252',
+                  border: '1px solid #e5e5e5',
+                  background: '#fff',
+                  borderRadius: 6,
+                  padding: '6px 12px',
+                  cursor: 'pointer',
+                }}
+              >
+                Reset decisions
+              </button>
+              <button
+                type="button"
+                onClick={commit}
+                style={{
+                  font: 'inherit',
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  color: '#fff',
+                  background: '#171717',
+                  border: 'none',
+                  borderRadius: 6,
+                  padding: '6px 14px',
+                  cursor: 'pointer',
+                }}
+              >
+                Commit role changes
+              </button>
+            </div>
           </div>
         )}
       </div>

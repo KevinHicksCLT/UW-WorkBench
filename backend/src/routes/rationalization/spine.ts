@@ -4,7 +4,13 @@
 // participated tasks — so the boards compare live data, nothing authored.
 import type { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../../db/prisma.js';
-import { ancestorNames, processSubtree, streamAncestry } from '../../lib/resolvers/index.js';
+import {
+  ancestorNames,
+  appsForNodes,
+  processSubtree,
+  rolesForNodes,
+  streamAncestry,
+} from '../../lib/resolvers/index.js';
 import { activeCompanyId } from './helpers.js';
 
 export function registerSpineRoutes(router: Router) {
@@ -73,17 +79,24 @@ export function registerSpineRoutes(router: Router) {
         g.push(n);
         byParent.set(n.parentId ?? '', g);
       }
+      // Owner + applications per task, both in one batched resolver read each —
+      // the reconciliation table shows who performs a step and in which system.
+      const taskIds = nodes.filter((n) => n.isTask).map((n) => n.id);
+      const [roleBy, appBy] = await Promise.all([rolesForNodes(taskIds), appsForNodes(taskIds)]);
+      const toTask = (n: { id: string; displayValue: string }) => {
+        const owner = (roleBy.get(n.id) ?? []).find((r) => r.role_ === 'Owner');
+        const apps = [...new Set((appBy.get(n.id) ?? []).map((a) => a.name))].slice(0, 3);
+        return { id: n.id, name: n.displayValue, owner: owner?.name ?? null, apps };
+      };
       // Tasks can hang at any depth; each L3 branch flattens its leaf tasks
       // under the L4 (or the L3 itself when a branch skips a level).
       const areas = (byParent.get(root.id) ?? []).map((l3) => {
         const l4s = (byParent.get(l3.id) ?? []).filter((n) => !n.isTask);
         const looseTasks = (byParent.get(l3.id) ?? []).filter((n) => n.isTask);
         const subs = l4s.map((l4) => {
-          const collect = (id: string): { id: string; name: string }[] => {
+          const collect = (id: string): ReturnType<typeof toTask>[] => {
             const kids = byParent.get(id) ?? [];
-            return kids.flatMap((k) =>
-              k.isTask ? [{ id: k.id, name: k.displayValue }] : collect(k.id),
-            );
+            return kids.flatMap((k) => (k.isTask ? [toTask(k)] : collect(k.id)));
           };
           return { id: l4.id, name: l4.displayValue, tasks: collect(l4.id) };
         });
@@ -91,7 +104,7 @@ export function registerSpineRoutes(router: Router) {
           subs.push({
             id: `${l3.id}:direct`,
             name: l3.displayValue,
-            tasks: looseTasks.map((t) => ({ id: t.id, name: t.displayValue })),
+            tasks: looseTasks.map(toTask),
           });
         }
         return { id: l3.id, name: l3.displayValue, subs };
@@ -199,7 +212,7 @@ export function registerSpineRoutes(router: Router) {
         },
       });
       const nodeIds = [...new Set(links.map((l) => l.processNode.id))];
-      const names = await ancestorNames(nodeIds);
+      const [names, appBy] = await Promise.all([ancestorNames(nodeIds), appsForNodes(nodeIds)]);
 
       res.json({
         id: role.id,
@@ -215,6 +228,7 @@ export function registerSpineRoutes(router: Router) {
             valueStream: loc?.valueStreamName ?? null,
             l3: loc?.l3 ?? null,
             l4: loc?.l4 ?? null,
+            apps: [...new Set((appBy.get(l.processNode.id) ?? []).map((a) => a.name))].slice(0, 3),
           };
         }),
       });
