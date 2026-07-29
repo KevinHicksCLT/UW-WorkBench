@@ -147,7 +147,7 @@ export default function ProductGridView({
     colCount <= 8 ? 'rich' : colCount <= 18 ? 'medium' : 'tiny';
   const colMin = density === 'rich' ? 110 : density === 'medium' ? 64 : 40;
   const notesW = notesOpen ? 220 : 44;
-  const grid = `220px repeat(${colCount}, minmax(${colMin}px, 1fr)) 76px 84px 128px ${notesW}px`;
+  const grid = `220px repeat(${colCount}, minmax(${colMin}px, 1fr)) 22px 76px 84px 128px ${notesW}px`;
   // The header is exactly tall enough for the LONGEST angled label — every
   // label fully visible, nothing spilling out of the header band.
   const maxLabelChars = heat.columns.reduce((n, v) => Math.max(n, labelOf(v).length), 0);
@@ -346,7 +346,7 @@ export default function ProductGridView({
                       cursor: 'pointer',
                     }}
                   >
-                    ABBR
+                    {abbr ? '»' : '«'}
                   </button>
                 </div>
                 {heat.columns.map((v) => (
@@ -394,6 +394,7 @@ export default function ProductGridView({
                     </span>
                   </div>
                 ))}
+                <span aria-hidden style={{ alignSelf: 'end' }} />
                 {/* Solid chips ABOVE the angled labels so a leaning product
                     name can never run over these headings. */}
                 {['Elements', 'To decide', 'Progress'].map((h) => (
@@ -552,6 +553,7 @@ export default function ProductGridView({
                         </button>
                       );
                     })}
+                    <span aria-hidden />
                     <div
                       style={{
                         borderLeft: '1px solid #e2e8f0',

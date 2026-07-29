@@ -423,7 +423,7 @@ export default function ProductReviewList({
               cursor: 'pointer',
             }}
           >
-            ABBR
+            {abbr ? '»' : '«'}
           </button>
         )}
         <div
@@ -440,7 +440,7 @@ export default function ProductReviewList({
             [
               ['pending', 'Needs decision', counts.pending],
               ['decided', 'Decided', counts.decided],
-              ['auto', 'In model automatically', counts.auto],
+              ['auto', 'Common · auto-included', counts.auto],
               ['all', 'All', counts.all],
             ] as [ReviewFilter, string, number][]
           ).map(([key, label, count], i) => {
@@ -544,6 +544,7 @@ export default function ProductReviewList({
                 </span>
               </span>
             ))}
+            <span aria-hidden style={{ alignSelf: 'end' }} />
             {/* Solid chips ABOVE the angled labels so a leaning product name
                 can never run over these headings. */}
             {['Product line', 'Decision', 'Comment'].map((h) => (
@@ -644,6 +645,7 @@ export default function ProductReviewList({
                     />
                   </span>
                 ))}
+                <span aria-hidden />
                 <span style={{ fontSize: 11.5, color: '#404040', paddingRight: 8 }}>
                   {r.lobName}
                 </span>
@@ -682,8 +684,11 @@ export default function ProductReviewList({
                       })}
                     </div>
                   ) : (
-                    <span style={{ fontSize: 11, fontWeight: 600, color: '#166534' }}>
-                      In model automatically
+                    <span
+                      style={{ fontSize: 11, fontWeight: 600, color: '#166534' }}
+                      title="This element is identical in every product that carries it, so it folds into the canonical model without needing a reviewer decision."
+                    >
+                      Common — auto-included, no decision needed
                     </span>
                   )}
                 </div>
