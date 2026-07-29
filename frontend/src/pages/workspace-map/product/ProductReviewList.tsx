@@ -313,6 +313,13 @@ export default function ProductReviewList({
   };
 
   const gridCols = `minmax(240px,1fr) 110px repeat(${columns.length}, minmax(26px, 34px)) 150px 220px 200px`;
+  // Header exactly tall enough for the longest angled label — fully visible,
+  // never spilling out of the header band.
+  const maxLabelChars = columns.reduce(
+    (n, v) => Math.max(n, `${v.productName} · ${v.name}`.length),
+    0,
+  );
+  const headerH = Math.min(330, Math.max(90, Math.round(maxLabelChars * 5.6 * 0.79) + 26));
 
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
@@ -452,13 +459,18 @@ export default function ProductReviewList({
           <span
             key={v.id}
             title={`${v.productName} · ${v.name}`}
-            style={{ height: 130, position: 'relative', overflow: 'visible' }}
+            style={{
+              height: headerH,
+              position: 'relative',
+              overflow: 'visible',
+              borderLeft: '1px solid #e2e8f0',
+            }}
           >
             <span
               style={{
                 position: 'absolute',
                 bottom: 6,
-                left: 8,
+                left: 6,
                 transformOrigin: 'left bottom',
                 transform: 'rotate(-52deg)',
                 whiteSpace: 'nowrap',
@@ -467,6 +479,9 @@ export default function ProductReviewList({
                 textTransform: 'none',
                 fontWeight: 600,
                 color: '#404040',
+                maxWidth: Math.round((headerH - 14) / 0.79),
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}
             >
               {v.productName} · {v.name}
@@ -541,13 +556,23 @@ export default function ProductReviewList({
                       : `not in ${columns[i]?.productName ?? 'this product'}`
                   }
                   style={{
-                    height: 18,
-                    margin: '0 2px',
-                    borderRadius: 4,
-                    background: p ? '#86efac' : '#fff',
-                    border: p ? '1px solid #16a34a' : '1px solid #e5e7eb',
+                    alignSelf: 'stretch',
+                    display: 'flex',
+                    alignItems: 'center',
+                    borderLeft: '1px solid #e2e8f0',
+                    padding: '3px 3px',
                   }}
-                />
+                >
+                  <span
+                    style={{
+                      flex: 1,
+                      height: 18,
+                      borderRadius: 4,
+                      background: p ? '#86efac' : '#fff',
+                      border: p ? '1px solid #16a34a' : '1px solid #e5e7eb',
+                    }}
+                  />
+                </span>
               ))}
               <span style={{ fontSize: 11.5, color: '#404040', paddingRight: 8 }}>{r.lobName}</span>
               <div>

@@ -131,7 +131,13 @@ export default function ProductGridView({
   const colMin = density === 'rich' ? 110 : density === 'medium' ? 64 : 40;
   const notesW = notesOpen ? 220 : 44;
   const grid = `220px repeat(${colCount}, minmax(${colMin}px, 1fr)) 76px 84px 128px ${notesW}px`;
-  const headerH = density === 'rich' ? 120 : 150;
+  // The header is exactly tall enough for the LONGEST angled label — every
+  // label fully visible, nothing spilling out of the header band.
+  const maxLabelChars = heat.columns.reduce(
+    (n, v) => Math.max(n, `${v.productName} · ${v.name}`.length),
+    0,
+  );
+  const headerH = Math.min(330, Math.max(96, Math.round(maxLabelChars * 5.6 * 0.79) + 30));
 
   const openDrill = (component: string, filter: ReviewFilter) => {
     setDrillFilter(filter);
@@ -230,7 +236,7 @@ export default function ProductGridView({
                     key={v.id}
                     title={`${v.segmentName} › ${v.lobName} › ${v.productName} · ${v.name}`}
                     style={{
-                      borderLeft: '1px solid #eef1f4',
+                      borderLeft: '1px solid #e2e8f0',
                       height: headerH,
                       position: 'relative',
                       overflow: 'visible',
@@ -240,13 +246,16 @@ export default function ProductGridView({
                       style={{
                         position: 'absolute',
                         bottom: 8,
-                        left: 10,
+                        left: 8,
                         transformOrigin: 'left bottom',
                         transform: 'rotate(-52deg)',
                         whiteSpace: 'nowrap',
                         fontSize: 11,
                         fontWeight: 600,
                         color: '#404040',
+                        maxWidth: Math.round((headerH - 18) / 0.79),
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
                       }}
                     >
                       {v.productName} · {v.name}
@@ -258,7 +267,7 @@ export default function ProductGridView({
                     key={h}
                     style={{
                       padding: '8px 10px',
-                      borderLeft: '1px solid #eef1f4',
+                      borderLeft: '1px solid #e2e8f0',
                       fontSize: 10,
                       fontWeight: 600,
                       letterSpacing: '0.08em',
@@ -355,7 +364,7 @@ export default function ProductGridView({
                           onClick={() => openDrill(row.component, 'all')}
                           style={{
                             font: 'inherit',
-                            borderLeft: '1px solid #f4f6f8',
+                            borderLeft: '1px solid #e2e8f0',
                             borderTop: 'none',
                             borderRight: 'none',
                             borderBottom: 'none',
@@ -408,7 +417,7 @@ export default function ProductGridView({
                     })}
                     <div
                       style={{
-                        borderLeft: '1px solid #f4f6f8',
+                        borderLeft: '1px solid #e2e8f0',
                         fontSize: 12,
                         fontWeight: 600,
                         color: '#404040',
@@ -422,7 +431,7 @@ export default function ProductGridView({
                     </div>
                     <div
                       style={{
-                        borderLeft: '1px solid #f4f6f8',
+                        borderLeft: '1px solid #e2e8f0',
                         fontSize: 12,
                         fontWeight: 700,
                         color: rowPending > 0 ? '#b45309' : '#16a34a',
@@ -436,7 +445,7 @@ export default function ProductGridView({
                     </div>
                     <div
                       style={{
-                        borderLeft: '1px solid #f4f6f8',
+                        borderLeft: '1px solid #e2e8f0',
                         padding: '0 10px',
                         display: 'flex',
                         alignItems: 'center',
@@ -476,7 +485,7 @@ export default function ProductGridView({
                     </div>
                     <div
                       style={{
-                        borderLeft: '1px solid #f4f6f8',
+                        borderLeft: '1px solid #e2e8f0',
                         padding: '4px 10px',
                         display: 'flex',
                         alignItems: 'center',
