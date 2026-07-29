@@ -4,8 +4,30 @@
 // participated tasks — so the boards compare live data, nothing authored.
 import type { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../../db/prisma.js';
-import { ancestorNames, processSubtree, streamAncestry } from '../../lib/resolvers/index.js';
+import {
+  ancestorNames,
+  appsForNodes,
+  processSubtree,
+  rolesForNodes,
+  streamAncestry,
+} from '../../lib/resolvers/index.js';
+import { taskPlans } from '../../lib/workPlan.js';
 import { activeCompanyId } from './helpers.js';
+
+// ProcessNode.automatability → 1-5 agent-automatability score (1 Autonomous
+// Agent … 5 Human-only; ≤2 = an agent can do the task end-to-end). Same map
+// as routes/work.ts — legacy aliases kept for safety.
+const AGENT_SCORE: Record<string, number> = {
+  autonomous: 1,
+  workflow: 2,
+  augmented: 3,
+  assist: 4,
+  manual: 5,
+  automated: 1,
+  assisted: 4,
+};
+const agentScoreOf = (automatability: string | null): number | null =>
+  automatability ? (AGENT_SCORE[automatability] ?? null) : null;
 
 export function registerSpineRoutes(router: Router) {
   // GET /rationalization/spine/streams — every L2 value stream with its L1
@@ -73,17 +95,30 @@ export function registerSpineRoutes(router: Router) {
         g.push(n);
         byParent.set(n.parentId ?? '', g);
       }
+      // Owner + applications per task, both in one batched resolver read each —
+      // the reconciliation table shows who performs a step and in which system.
+      const taskIds = nodes.filter((n) => n.isTask).map((n) => n.id);
+      const [roleBy, appBy] = await Promise.all([rolesForNodes(taskIds), appsForNodes(taskIds)]);
+      const toTask = (n: { id: string; displayValue: string; automatability: string | null }) => {
+        const owner = (roleBy.get(n.id) ?? []).find((r) => r.role_ === 'Owner');
+        const apps = [...new Set((appBy.get(n.id) ?? []).map((a) => a.name))].slice(0, 3);
+        return {
+          id: n.id,
+          name: n.displayValue,
+          owner: owner?.name ?? null,
+          apps,
+          agent: agentScoreOf(n.automatability),
+        };
+      };
       // Tasks can hang at any depth; each L3 branch flattens its leaf tasks
       // under the L4 (or the L3 itself when a branch skips a level).
       const areas = (byParent.get(root.id) ?? []).map((l3) => {
         const l4s = (byParent.get(l3.id) ?? []).filter((n) => !n.isTask);
         const looseTasks = (byParent.get(l3.id) ?? []).filter((n) => n.isTask);
         const subs = l4s.map((l4) => {
-          const collect = (id: string): { id: string; name: string }[] => {
+          const collect = (id: string): ReturnType<typeof toTask>[] => {
             const kids = byParent.get(id) ?? [];
-            return kids.flatMap((k) =>
-              k.isTask ? [{ id: k.id, name: k.displayValue }] : collect(k.id),
-            );
+            return kids.flatMap((k) => (k.isTask ? [toTask(k)] : collect(k.id)));
           };
           return { id: l4.id, name: l4.displayValue, tasks: collect(l4.id) };
         });
@@ -91,7 +126,7 @@ export function registerSpineRoutes(router: Router) {
           subs.push({
             id: `${l3.id}:direct`,
             name: l3.displayValue,
-            tasks: looseTasks.map((t) => ({ id: t.id, name: t.displayValue })),
+            tasks: looseTasks.map(toTask),
           });
         }
         return { id: l3.id, name: l3.displayValue, subs };
@@ -103,6 +138,47 @@ export function registerSpineRoutes(router: Router) {
         domain: root.parent?.displayValue ?? null,
         areas,
       });
+    } catch (e) {
+      next(e);
+    }
+  });
+
+  // GET /rationalization/spine/task-steps?ids=a,b,c — Process-level-6 steps
+  // for a batch of L5 tasks: each task's Work Library plan checklist rows, in
+  // plan order. Lazy-loaded by the workspace lenses when a task expands.
+  router.get('/spine/task-steps', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const companyId = await activeCompanyId(req, res);
+      if (!companyId) return;
+      const ids = String(req.query.ids ?? '')
+        .split(',')
+        .filter(Boolean)
+        .slice(0, 60);
+      if (!ids.length) return res.json({});
+      const nodes = await prisma.processNode.findMany({
+        where: { id: { in: ids }, companyId },
+        select: { id: true },
+      });
+      const valid = nodes.map((n) => n.id);
+      const plans = await taskPlans(valid);
+      // Item-SPECIFIC steps only — generic template keys are shared plan
+      // boilerplate, not this task's work. Custom steps often embed their own
+      // "1. " numbering; strip it so the surface's numbering is the only one.
+      res.json(
+        Object.fromEntries(
+          valid.map((id) => {
+            const p = plans.get(id);
+            const steps = (p?.checklist ?? [])
+              .filter((r) => !r.generic)
+              .map((r, i) => ({
+                seq: i + 1,
+                name: r.key.replace(/^\s*\d+[.)]\s*/, ''),
+                detail: r.value,
+              }));
+            return [id, steps];
+          }),
+        ),
+      );
     } catch (e) {
       next(e);
     }
@@ -195,11 +271,11 @@ export function registerSpineRoutes(router: Router) {
         where: { roleId: role.id, processNode: { isTask: true } },
         select: {
           role_: true,
-          processNode: { select: { id: true, displayValue: true } },
+          processNode: { select: { id: true, displayValue: true, automatability: true } },
         },
       });
       const nodeIds = [...new Set(links.map((l) => l.processNode.id))];
-      const names = await ancestorNames(nodeIds);
+      const [names, appBy] = await Promise.all([ancestorNames(nodeIds), appsForNodes(nodeIds)]);
 
       res.json({
         id: role.id,
@@ -215,6 +291,8 @@ export function registerSpineRoutes(router: Router) {
             valueStream: loc?.valueStreamName ?? null,
             l3: loc?.l3 ?? null,
             l4: loc?.l4 ?? null,
+            apps: [...new Set((appBy.get(l.processNode.id) ?? []).map((a) => a.name))].slice(0, 3),
+            agent: agentScoreOf(l.processNode.automatability),
           };
         }),
       });

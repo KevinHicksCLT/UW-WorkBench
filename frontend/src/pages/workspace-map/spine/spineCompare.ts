@@ -80,7 +80,23 @@ function toks(s: string): string[] {
     .filter(Boolean);
 }
 
-function similar(a: string, b: string): boolean {
+/** Head nouns too generic to align phases on their own — "Tax Management" and
+ *  "Release Management" are NOT the same work. */
+const GENERIC_HEADS = new Set([
+  'management',
+  'planning',
+  'reporting',
+  'analysis',
+  'operations',
+  'process',
+  'processing',
+  'review',
+  'support',
+  'services',
+  'service',
+]);
+
+export function similar(a: string, b: string): boolean {
   const ta = toks(a);
   const tb = toks(b);
   const sb = new Set(tb);
@@ -89,8 +105,9 @@ function similar(a: string, b: string): boolean {
   const la = a.toLowerCase().trim();
   const lb = b.toLowerCase().trim();
   const headA = ta.at(-1);
-  // Same head noun aligns the phase ("Claims Intake" ↔ "Submission Intake").
-  const sameHead = !!headA && headA.length > 3 && headA === tb.at(-1);
+  // Same head noun aligns the phase ("Claims Intake" ↔ "Submission Intake") —
+  // but only a DISTINCTIVE head; generic heads need real token overlap too.
+  const sameHead = !!headA && headA.length > 3 && headA === tb.at(-1) && !GENERIC_HEADS.has(headA);
   return (union ? inter / union : 0) >= 0.5 || la.includes(lb) || lb.includes(la) || sameHead;
 }
 
@@ -119,6 +136,161 @@ export function alignStages(
     });
   });
   return slots.sort((a, b) => a.order - b.order);
+}
+
+// ── N-way step reconciliation (the Value-streams lens table) ────────────────
+// Each row is one canonical unit of work; every compared stream's own step
+// sits in its cell with its sequence inside the phase, and the verdict says
+// whether the step merges k→1, arrives at a different point in the flow, or
+// exists in only one stream. All derived from the live L3→L4→L5 subtrees.
+
+export interface ReconStep {
+  id: string;
+  /** 1-based position inside the stream's own phase flow. */
+  seq: number;
+  name: string;
+  owner: string | null;
+  apps: string[];
+  /** The stream's own L4 sub-process the step sits under. */
+  sub: string;
+}
+
+export type ReconVerdict = 'merge' | 'order' | 'only';
+
+export interface ReconRow {
+  key: string;
+  /** Canonical wording — the shortest of the matched step names. */
+  canonName: string;
+  phaseKey: string;
+  phaseLabel: string;
+  /** One cell per compared stream, in lane order. */
+  cells: (ReconStep | null)[];
+  /** How many streams carry the step. */
+  presentIn: number;
+  /** For 'only' rows: which lane carries it. */
+  onlyIdx: number | null;
+  verdict: ReconVerdict;
+  /** max−min sequence spread across the carrying streams. */
+  seqDelta: number;
+}
+
+export interface ReconPhase {
+  key: string;
+  label: string;
+  rows: ReconRow[];
+}
+
+export interface ReconLaneInput {
+  id: string;
+  stages: {
+    id: string;
+    name: string;
+    subs: {
+      name: string;
+      tasks: { id: string; name: string; owner?: string | null; apps?: string[] }[];
+    }[];
+  }[];
+}
+
+/** A step arriving ≥ this many positions apart counts as resequenced. */
+export const RESEQUENCE_DELTA = 2;
+
+/**
+ * Reconcile N streams phase by phase. Phases are the aligned stage slots
+ * (alignStages); inside each phase the streams' steps match on spineKey. A
+ * step whose twin lives in a DIFFERENT phase still lines up — it reconciles
+ * into the phase where the first carrying lane holds it, flagged as
+ * order-differs. Same name repeated inside one stream: each occurrence is its
+ * own row (occurrence-indexed key).
+ */
+export function buildReconciliation(lanes: ReconLaneInput[]): ReconPhase[] {
+  const slots = alignStages(lanes.map((l) => ({ lane: l.id, stages: l.stages })));
+
+  interface Located {
+    step: ReconStep;
+    phaseIdx: number;
+  }
+  const locate = (lane: ReconLaneInput): Map<string, Located[]> => {
+    const out = new Map<string, Located[]>();
+    slots.forEach((slot, phaseIdx) => {
+      const stageId = slot.byLane.get(lane.id);
+      const stage = stageId ? lane.stages.find((s) => s.id === stageId) : null;
+      if (!stage) return;
+      let seq = 0;
+      for (const sub of stage.subs) {
+        for (const t of sub.tasks) {
+          seq += 1;
+          const k = spineKey(t.name);
+          const g = out.get(k) ?? [];
+          g.push({
+            step: {
+              id: t.id,
+              seq,
+              name: t.name,
+              owner: t.owner ?? null,
+              apps: t.apps ?? [],
+              sub: sub.name,
+            },
+            phaseIdx,
+          });
+          out.set(k, g);
+        }
+      }
+    });
+    return out;
+  };
+
+  const byLane = lanes.map(locate);
+  const phases: ReconPhase[] = slots.map((s) => ({ key: s.key, label: s.label, rows: [] }));
+
+  const push = (key: string, located: (Located | null)[]) => {
+    const home = located.find((l): l is Located => l !== null);
+    if (!home) return;
+    const phase = phases[home.phaseIdx];
+    const cells = located.map((l) => l?.step ?? null);
+    const carrying = located.filter((l): l is Located => l !== null);
+    const presentIn = carrying.length;
+    const crossPhase = new Set(carrying.map((l) => l.phaseIdx)).size > 1;
+    const seqs = carrying.map((l) => l.step.seq);
+    const seqDelta = presentIn > 1 ? Math.max(...seqs) - Math.min(...seqs) : 0;
+    const verdict: ReconVerdict =
+      presentIn > 1 ? (crossPhase || seqDelta >= RESEQUENCE_DELTA ? 'order' : 'merge') : 'only';
+    const canonName = carrying
+      .map((l) => l.step.name)
+      .reduce((best, n) => (n.length < best.length ? n : best));
+    phase.rows.push({
+      key: `${phase.key}:${key}`,
+      canonName,
+      phaseKey: phase.key,
+      phaseLabel: phase.label,
+      cells,
+      presentIn,
+      onlyIdx: presentIn === 1 ? located.findIndex((l) => l !== null) : null,
+      verdict,
+      seqDelta,
+    });
+  };
+
+  const allKeys = new Set<string>();
+  for (const m of byLane) for (const k of m.keys()) allKeys.add(k);
+  for (const key of allKeys) {
+    const lists = byLane.map((m) => m.get(key) ?? []);
+    const n = Math.max(...lists.map((l) => l.length));
+    for (let i = 0; i < n; i += 1)
+      push(
+        i > 0 ? `${key}#${i}` : key,
+        lists.map((l) => l[i] ?? null),
+      );
+  }
+
+  for (const p of phases) {
+    p.rows.sort(
+      (x, y) =>
+        (x.cells.find(Boolean)?.seq ?? 0) - (y.cells.find(Boolean)?.seq ?? 0) ||
+        x.canonName.localeCompare(y.canonName),
+    );
+  }
+  return phases.filter((p) => p.rows.length > 0);
 }
 
 export function compareSpineColumns(items: SpineItem[]): SpineComparison {

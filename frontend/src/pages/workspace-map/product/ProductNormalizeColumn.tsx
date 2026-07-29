@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { api } from '../../../lib/api';
 import { GREEN, AMBER, INDIGO } from '../types';
 import ReviewModal, { REVIEW_STATUS, type ReviewStatusChip } from '../ReviewModal';
+import ImpactPanel from '../impact/ImpactPanel';
+import { useImpactGate } from '../impact/useImpactGate';
 import OverviewCard, { OVERVIEW_TONES } from './OverviewCard';
 import { MATCH_META, groupCitations } from './spine';
 import type {
@@ -60,7 +62,7 @@ function ColumnHeads({ names }: { names: string[] }) {
           style={{
             textAlign: 'center',
             padding: '3px 6px 4px',
-            fontSize: 10,
+            fontSize: 10.5,
             fontWeight: 800,
             letterSpacing: '.08em',
             color: '#171717',
@@ -76,7 +78,7 @@ function ColumnHeads({ names }: { names: string[] }) {
         style={{
           textAlign: 'center',
           padding: '3px 0 4px',
-          fontSize: 10,
+          fontSize: 10.5,
           fontWeight: 800,
           letterSpacing: '.08em',
           color: INDIGO,
@@ -121,14 +123,14 @@ function NormalizedCell({
       <span style={{ fontSize: 11, fontWeight: 700, color: '#1e1b4b', lineHeight: 1.25 }}>
         {name}
       </span>
-      <span style={{ fontSize: 10, color: '#525252' }}>{detail}</span>
+      <span style={{ fontSize: 10.5, color: '#525252' }}>{detail}</span>
       {citations.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 1, marginTop: 1 }}>
           {citations.map((c) => (
             <span
               key={c}
               style={{
-                fontSize: 9.5,
+                fontSize: 10.5,
                 color: '#6366f1',
                 fontFamily: 'ui-monospace, monospace',
                 lineHeight: 1.3,
@@ -150,7 +152,7 @@ function NormalizedCell({
             background: review ? AMBER : '#fff',
             border: `1px solid ${review ? AMBER : '#86efac'}`,
             color: review ? '#fff' : '#15803d',
-            fontSize: 9,
+            fontSize: 9.5,
             fontWeight: 700,
             whiteSpace: 'nowrap',
           }}
@@ -202,26 +204,39 @@ function ReviewActions({
   onResolved: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState<string | null>(null);
-  const [err, setErr] = useState('');
 
-  const resolve = async (status: string) => {
-    setErr('');
-    setSaving(status);
-    try {
-      await api.put('/product-spine/decisions', {
-        lobId,
-        component: group.component,
-        groupKey: group.key,
-        status,
-      });
-      onResolved();
-      setOpen(false);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : 'Failed');
-    } finally {
-      setSaving(null);
-    }
+  // Adopt/Variant decisions route through the common change-impact gate: the
+  // element's carrying versions + source systems are assessed and the write
+  // only fires once the user confirms from the report.
+  const gate = useImpactGate();
+  const resolve = (status: string) => {
+    const componentNodeIds = versions
+      .filter((v) => group.perVersion[v.id])
+      .map((v) => v.components.get(group.component)?.node.id)
+      .filter((id): id is string => !!id);
+    gate.run(
+      {
+        changeType: status === 'APPROVED' ? 'ADOPT' : status === 'HELD' ? 'HOLD' : 'RETIRE',
+        label: group.name,
+        subject: {
+          kind: 'product-element',
+          lobId,
+          component: group.component,
+          elementName: group.name,
+          componentNodeIds,
+        },
+      },
+      async () => {
+        await api.put('/product-spine/decisions', {
+          lobId,
+          component: group.component,
+          groupKey: group.key,
+          status,
+        });
+        onResolved();
+        setOpen(false);
+      },
+    );
   };
 
   const carriers = versions.filter((v) => group.perVersion[v.id]);
@@ -314,10 +329,11 @@ function ReviewActions({
               'It is left OUT of the normalized model unless adopted later.',
           },
         ]}
-        busyKey={saving}
-        error={err}
+        busyKey={null}
+        error=""
         onChoose={resolve}
       />
+      <ImpactPanel gate={gate} />
     </div>
   );
 }
@@ -382,7 +398,7 @@ function GroupCard({
                   }}
                 >
                   {!el ? (
-                    <span style={{ fontSize: 10.5, color: '#a3a3a3' }}>—</span>
+                    <span style={{ fontSize: 10.5, color: '#737373' }}>—</span>
                   ) : (
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 11.5, fontWeight: 700, lineHeight: 1.3 }}>
@@ -391,8 +407,8 @@ function GroupCard({
                       {el.livesIn && (
                         <div
                           style={{
-                            fontSize: 9.5,
-                            color: '#a3a3a3',
+                            fontSize: 10.5,
+                            color: '#737373',
                             fontFamily: 'ui-monospace, monospace',
                             wordBreak: 'break-all',
                           }}
@@ -506,8 +522,8 @@ function ComponentSection({
         <span style={{ fontSize: 13, fontWeight: 700 }}>
           <span
             style={{
-              color: '#a3a3a3',
-              fontSize: 10,
+              color: '#737373',
+              fontSize: 10.5,
               display: 'inline-block',
               transform: open ? 'none' : 'rotate(-90deg)',
               marginRight: 6,
@@ -538,7 +554,7 @@ function ComponentSection({
               />
             ))}
             {groups.length === 0 && (
-              <span style={{ fontSize: 11, color: '#a3a3a3', padding: '6px 2px' }}>
+              <span style={{ fontSize: 11, color: '#737373', padding: '6px 2px' }}>
                 nothing matches the current filter
               </span>
             )}
@@ -623,7 +639,7 @@ export default function ProductNormalizeColumn({
         track="#e0e7ff"
         segments={[
           { value: settled, color: INDIGO },
-          { value: heldCount, color: '#94a3b8' },
+          { value: heldCount, color: '#64748b' },
           { value: outstandingReview, color: MATCH_META.PARTIAL.fg },
         ]}
       >

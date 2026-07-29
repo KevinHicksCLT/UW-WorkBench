@@ -3,6 +3,7 @@ import ProductDrillToc from '../../components/ProductDrillToc';
 import ProductListExplorer from '../../components/ProductListExplorer';
 import ProductMapCanvas from '../../viz/product-map/ProductMapCanvas';
 import { ViewPills } from '../../components/TocView';
+import ProductFrameworkView from './ProductFrameworkView';
 
 // Product Models tab — mirrors the Organization / Value Streams tabs: a
 // segmented control toggles views of the SAME product spine
@@ -11,14 +12,17 @@ import { ViewPills } from '../../components/TocView';
 //   TOC  — (default) table of contents descent, one TocView per level.
 //   Map  — spatial drill-down map (ProductMapCanvas), like the org map.
 //   List — Excel-like drill-down grid with the component detail sidebar.
-type View = 'toc' | 'list' | 'map';
+//   Framework — the normalized product-model reference (segments, catalog,
+//               8 dimensions, archetypes, matrix, libraries, task map).
+type View = 'toc' | 'list' | 'map' | 'framework';
 
 export default function ProductModelHierarchy() {
-  // View state lives in the URL (`?view=map|list`) so back/forward and reload
-  // land the user back on the same spot.
+  // View state lives in the URL (`?view=map|list|framework`) so back/forward
+  // and reload land the user back on the same spot.
   const [searchParams, setSearchParams] = useSearchParams();
   const viewParam = searchParams.get('view');
-  const view: View = viewParam === 'map' || viewParam === 'list' ? viewParam : 'toc';
+  const view: View =
+    viewParam === 'map' || viewParam === 'list' || viewParam === 'framework' ? viewParam : 'toc';
 
   const setView = (v: View) => {
     setSearchParams(
@@ -36,6 +40,7 @@ export default function ProductModelHierarchy() {
     { key: 'toc' as const, label: 'TOC' },
     { key: 'map' as const, label: 'Map' },
     { key: 'list' as const, label: 'List' },
+    { key: 'framework' as const, label: 'Framework' },
   ];
 
   return (
@@ -57,6 +62,10 @@ export default function ProductModelHierarchy() {
           </div>
         ) : view === 'list' ? (
           <ProductListExplorer />
+        ) : view === 'framework' ? (
+          <div className="h-full min-h-0 px-4 pt-14 pb-4 sm:px-6 lg:px-8">
+            <ProductFrameworkView />
+          </div>
         ) : (
           <ProductMapCanvas />
         )}

@@ -13,89 +13,135 @@ type Query = { query: string; rowCount: number; error?: string };
 type Msg = { role: 'user' | 'assistant'; content: string; queries?: Query[] };
 
 const DEFAULT_SUGGESTIONS = [
-  'How many roles are there, by role level?',
-  'Which value streams have the most roles?',
-  'Which roles have the most checklist items?',
+  'How many tasks are in each value stream?',
+  'Which roles own the most tasks?',
+  'Where are our biggest automation opportunities?',
 ];
 
 const ORG_SUGGESTIONS = [
   'How many roles are there, by role level?',
   'Which departments have the most roles?',
-  'Which roles have the most checklist items?',
+  'Which divisions carry the most tasks?',
 ];
 
 const ROLES_SUGGESTIONS = [
   'Which roles participate in the most value streams?',
   'Which roles own the most standards?',
-  'Which departments have the most roles?',
+  'Which roles look overloaded with tasks?',
 ];
 
 const PROCESS_SUGGESTIONS = [
-  'Which value streams have the most process steps?',
-  'Which L4 processes have the most L5 steps?',
-  'Which roles lead the most process steps?',
+  'Which value streams have the most tasks?',
+  'Which sub-processes have the most tasks?',
+  'Which roles own the most tasks?',
 ];
 
 // Suggested starter questions per screen — first matching path prefix wins,
 // falling back to DEFAULT_SUGGESTIONS.
 const SUGGESTIONS_BY_SCREEN: [prefix: string, suggestions: string[]][] = [
-  ['/standards', [
-    'How many individual standards are there, by standards area?',
-    'List the individual actuarial standards we have to validate',
-    'Which roles own the most individual standards?',
-  ]],
+  [
+    '/standards',
+    [
+      'How many individual standards are there, by area?',
+      'Which standards have no accountable owner?',
+      'Which roles own the most individual standards?',
+    ],
+  ],
+  [
+    '/regulations',
+    [
+      'How many regulatory requirements apply, by regime?',
+      'Which value streams carry the most regulatory obligations?',
+      'Which roles are accountable for the most regulations?',
+    ],
+  ],
+  [
+    '/automatable',
+    [
+      'How many tasks are automatable today?',
+      'Which value streams have the highest automation potential?',
+      'Which roles would be most affected by automation?',
+    ],
+  ],
   ['/organization', ORG_SUGGESTIONS],
   ['/divisions', ORG_SUGGESTIONS],
   ['/departments', ORG_SUGGESTIONS],
   ['/roles', ROLES_SUGGESTIONS],
   ['/overview', PROCESS_SUGGESTIONS],
   ['/n/', PROCESS_SUGGESTIONS],
-  ['/metrics', [
-    'Which value streams have the most metrics?',
-    'How many metrics are there, by metric category?',
-    'Which roles own the most metrics?',
-  ]],
-  ['/applications', [
-    'Which applications have the highest total annual TCO?',
-    'How does application TCO break down by primary division?',
-    'Which value streams are linked to the most applications?',
-  ]],
-  ['/deliverables', [
-    'Which roles are named on the most deliverables and outputs?',
-    'Which L4 processes have the most inputs and outputs?',
-    'Which process steps involve external participants?',
-  ]],
-  ['/tasks', [
-    'Which roles are named on the most deliverables and outputs?',
-    'Which L4 processes have the most inputs and outputs?',
-    'Which process steps involve external participants?',
-  ]],
+  [
+    '/metrics',
+    [
+      'Which value streams have the most metrics?',
+      'How many metrics are there, by metric category?',
+      'Which roles own the most metrics?',
+    ],
+  ],
+  [
+    '/applications',
+    [
+      'Which applications have the highest total annual TCO?',
+      'How does application TCO break down by primary division?',
+      'Which value streams are linked to the most applications?',
+    ],
+  ],
+  [
+    '/deliverables',
+    [
+      'Which roles own the most deliverables?',
+      'Which value streams produce the most deliverables?',
+      'Which deliverables have no owning role?',
+    ],
+  ],
+  [
+    '/tasks',
+    [
+      'Which value streams have the most tasks?',
+      'How many tasks are automatable today?',
+      'Which tasks have no owner assigned?',
+    ],
+  ],
   // Workspace / portfolio screens — initiative checks come first since the
   // longer prefix is matched before the shorter '/portfolio'.
-  ['/initiatives/', [
-    "Summarize this initiative's benefits, costs and net benefit.",
-    'What are the open risks on this initiative?',
-    'Which strategic objectives does this initiative support?',
-  ]],
-  ['/programs/', [
-    'Which initiatives in this program are off track?',
-    'How do benefits and costs roll up across this program?',
-    'Which initiatives carry the most open risk?',
-  ]],
-  ['/portfolio', [
-    'Which initiatives have the highest net benefit?',
-    'How many initiatives are there by stage and by status?',
-    'Which programs are off track?',
-  ]],
-  ['/raid', [
-    'Which open risks have the highest severity?',
-    'How many RAID items are open by type?',
-    'Which initiatives carry the most open issues?',
-  ]],
+  [
+    '/initiatives/',
+    [
+      "Summarize this initiative's benefits, costs and net benefit.",
+      'What are the open risks on this initiative?',
+      'Which strategic objectives does this initiative support?',
+    ],
+  ],
+  [
+    '/programs/',
+    [
+      'Which initiatives in this program are off track?',
+      'How do benefits and costs roll up across this program?',
+      'Which initiatives carry the most open risk?',
+    ],
+  ],
+  [
+    '/portfolio',
+    [
+      'Which initiatives have the highest net benefit?',
+      'How many initiatives are there by stage and by status?',
+      'Which programs are off track?',
+    ],
+  ],
+  [
+    '/raid',
+    [
+      'Which open risks have the highest severity?',
+      'How many RAID items are open by type?',
+      'Which initiatives carry the most open issues?',
+    ],
+  ],
 ];
 
 function suggestionsFor(pathname: string): string[] {
-  return SUGGESTIONS_BY_SCREEN.find(([prefix]) => pathname.startsWith(prefix))?.[1] ?? DEFAULT_SUGGESTIONS;
+  return (
+    SUGGESTIONS_BY_SCREEN.find(([prefix]) => pathname.startsWith(prefix))?.[1] ??
+    DEFAULT_SUGGESTIONS
+  );
 }
 
 // Human-readable label for the screen the user is on, sent to the backend as
@@ -140,14 +186,17 @@ export default function AssistantWidget() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (open) scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+    if (open)
+      scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, loading, open]);
 
   // Focus the composer when the popup opens; close on Escape.
   useEffect(() => {
     if (!open) return;
     inputRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
@@ -162,7 +211,10 @@ export default function AssistantWidget() {
     setLoading(true);
     try {
       const history = next.map((m) => ({ role: m.role, content: m.content }));
-      const res = await api.post('/chat', { messages: history, pageContext: { path: pathname, label: pageLabelFor(pathname) } });
+      const res = await api.post('/chat', {
+        messages: history,
+        pageContext: { path: pathname, label: pageLabelFor(pathname) },
+      });
       setMessages([...next, { role: 'assistant', content: res.answer, queries: res.queries }]);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
@@ -182,11 +234,30 @@ export default function AssistantWidget() {
         className="fixed bottom-5 right-5 z-40 flex items-center justify-center h-12 w-12 rounded-full bg-[#171717] text-white shadow-lg hover:bg-[#404040] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#171717] transition-colors duration-150"
       >
         {open ? (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
         ) : (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
         )}
@@ -210,15 +281,26 @@ export default function AssistantWidget() {
                 on the line beneath. */}
             <div>
               <div className="flex items-baseline gap-2">
-                <img src="/capgemini-wordmark.svg" alt="Capgemini" className="h-[20px] w-auto translate-y-[5.5px]" />
-                <span className="font-semibold text-[#0070AD] text-[15px] tracking-tight whitespace-nowrap -translate-y-[1.5px]">Transformation Bridge</span>
+                <img
+                  src="/capgemini-wordmark.svg"
+                  alt="Capgemini"
+                  className="h-[20px] w-auto translate-y-[5.5px]"
+                />
+                <span className="font-semibold text-[#0070AD] text-[15px] tracking-tight whitespace-nowrap -translate-y-[1.5px]">
+                  Transformation Bridge
+                </span>
               </div>
-              <div className="text-[11px] text-[#a3a3a3] leading-tight mt-0.5">Get AI insights on the transformation</div>
+              <div className="text-[11px] text-[#a3a3a3] leading-tight mt-0.5">
+                Get AI insights on the transformation
+              </div>
             </div>
             <div className="flex items-center gap-1">
               {messages.length > 0 && (
                 <button
-                  onClick={() => { setMessages([]); setError(null); }}
+                  onClick={() => {
+                    setMessages([]);
+                    setError(null);
+                  }}
                   className="text-[11px] text-[#a3a3a3] hover:text-[#525252] px-2 py-1 transition-colors duration-150"
                 >
                   Clear
@@ -231,11 +313,31 @@ export default function AssistantWidget() {
                 className="hidden sm:inline-flex p-1.5 rounded-md text-[#a3a3a3] hover:text-[#171717] hover:bg-[#fafafa] transition-colors duration-150"
               >
                 {expanded ? (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
                     <path d="M9 9H4M9 9V4M9 9 4 4M15 9h5M15 9V4M15 9l5-5M9 15H4M9 15v5M9 15l-5 5M15 15h5M15 15v5M15 15l5 5" />
                   </svg>
                 ) : (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
                     <path d="M15 3h6v6M21 3l-7 7M9 21H3v-6M3 21l7-7" />
                   </svg>
                 )}
@@ -245,7 +347,16 @@ export default function AssistantWidget() {
                 aria-label="Close"
                 className="p-1.5 rounded-md text-[#a3a3a3] hover:text-[#171717] hover:bg-[#fafafa] transition-colors duration-150"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  aria-hidden="true"
+                >
                   <path d="M6 6l12 12M18 6L6 18" />
                 </svg>
               </button>
@@ -257,7 +368,8 @@ export default function AssistantWidget() {
             {messages.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center text-center gap-4">
                 <div className="text-xs text-[#737373] max-w-[16rem]">
-                  Ask about roles, value streams, processes, or checklists — or for analysis and recommendations. Facts come from the data; charts and tables render inline.
+                  Ask about roles, value streams, processes, or checklists — or for analysis and
+                  recommendations. Facts come from the data; charts and tables render inline.
                 </div>
                 <div className="flex flex-col gap-1.5 w-full">
                   {suggestionsFor(pathname).map((s) => (
@@ -304,14 +416,22 @@ export default function AssistantWidget() {
 
           {/* Composer */}
           <form
-            onSubmit={(e) => { e.preventDefault(); send(input); }}
+            onSubmit={(e) => {
+              e.preventDefault();
+              send(input);
+            }}
             className="border-t border-[#eaeaea] p-3 flex items-end gap-2"
           >
             <textarea
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input); } }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  send(input);
+                }
+              }}
               placeholder="Ask about the operating model…"
               rows={1}
               className="flex-1 resize-none rounded-xl border border-[#eaeaea] bg-white px-3.5 py-2 text-sm text-[#171717] placeholder:text-[#a3a3a3] focus:outline-none focus:ring-1 focus:ring-[#171717] focus:border-[#171717] transition-colors duration-150 max-h-32"
@@ -345,7 +465,9 @@ function QueryDisclosure({ queries }: { queries: Query[] }) {
         <div className="mt-1.5 space-y-1.5">
           {queries.map((q, i) => (
             <div key={i} className="rounded-lg border border-[#eaeaea] bg-[#fafafa] p-2.5">
-              <pre className="text-[11px] text-[#404040] whitespace-pre-wrap font-mono leading-relaxed">{q.query}</pre>
+              <pre className="text-[11px] text-[#404040] whitespace-pre-wrap font-mono leading-relaxed">
+                {q.query}
+              </pre>
               <div className={'mt-1 text-[10px] ' + (q.error ? 'text-red-500' : 'text-[#a3a3a3]')}>
                 {q.error ? `error: ${q.error}` : `${q.rowCount} row${q.rowCount === 1 ? '' : 's'}`}
               </div>

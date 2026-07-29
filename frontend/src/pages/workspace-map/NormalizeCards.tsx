@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { api } from '../../lib/api';
 import ReviewModal, { REVIEW_STATUS, type ReviewSource } from './ReviewModal';
+import ImpactPanel from './impact/ImpactPanel';
+import { useImpactGate } from './impact/useImpactGate';
 import { AMBER, INDIGO, findingMoves } from './types';
 import type { BoardApp, Finding, NormalizationEntry } from './types';
 
@@ -204,22 +206,28 @@ function ReviewActions({
   onResolved: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState<string | null>(null);
-  const [err, setErr] = useState('');
   const held = entry.matchStatus === 'HELD';
 
-  const resolve = async (matchStatus: string) => {
-    setErr('');
-    setSaving(matchStatus);
-    try {
-      await api.patch(`/rationalization/normalization-entries/${entry.id}`, { matchStatus });
-      onResolved();
-      setOpen(false);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : 'Failed');
-    } finally {
-      setSaving(null);
-    }
+  // Decisions route through the common change-impact gate: the entry's source
+  // board-apps resolve to estate applications server-side and the report shows
+  // everything they touch before the matchStatus is written.
+  const gate = useImpactGate();
+  const resolve = (matchStatus: string) => {
+    gate.run(
+      {
+        changeType: matchStatus === 'AUTO' ? 'CONSOLIDATE' : 'HOLD',
+        label: entry.name,
+        subject: {
+          kind: 'application',
+          rationalizationAppIds: entryAppIds(entry, findingsById),
+        },
+      },
+      async () => {
+        await api.patch(`/rationalization/normalization-entries/${entry.id}`, { matchStatus });
+        onResolved();
+        setOpen(false);
+      },
+    );
   };
 
   const sources: ReviewSource[] = apps.flatMap((a): ReviewSource[] => {
@@ -304,10 +312,11 @@ function ReviewActions({
               'normalized model (and its greenfield floor) until someone approves it.',
           },
         ]}
-        busyKey={saving}
-        error={err}
+        busyKey={null}
+        error=""
         onChoose={resolve}
       />
+      <ImpactPanel gate={gate} />
     </div>
   );
 }

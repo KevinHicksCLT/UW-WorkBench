@@ -16,7 +16,7 @@ export interface OverviewTone {
 
 export const OVERVIEW_TONES: Record<'current' | 'normalize' | 'greenfield', OverviewTone> = {
   current: {
-    border: '#cbd5e1',
+    border: '#94a3b8',
     background: '#f8fafc',
     tag: '#475569',
     shadow: '0 2px 8px rgba(100,116,139,.10)',
@@ -120,7 +120,7 @@ export default function OverviewCard({
       >
         <span
           style={{
-            fontSize: 9.5,
+            fontSize: 10.5,
             fontWeight: 700,
             letterSpacing: '.08em',
             color: tone.tag,
