@@ -272,7 +272,9 @@ export default function ProductReviewList({
   ) => Promise<void>;
   /** Fires when the table scrolls away from (or back to) the top — the
    *  surrounding chrome hides itself to give the table the height. */
-  onScrollDepth?: (deep: boolean) => void;
+  /** Raw scrollTop of the list's scroll surface — the parent owns the
+   *  direction/hysteresis logic so both heatmap surfaces behave identically. */
+  onScrollDepth?: (scrollTop: number) => void;
   /** Column label (full or abbreviated) — full name always on hover. */
   labelOf?: (v: VersionColumn) => string;
   abbr?: boolean;
@@ -329,7 +331,9 @@ export default function ProductReviewList({
   // Header exactly tall enough for the longest angled label — fully visible,
   // never spilling out of the header band.
   const maxLabelChars = columns.reduce((n, v) => Math.max(n, colLabel(v).length), 0);
-  const headerH = Math.min(330, Math.max(90, Math.round(maxLabelChars * 5.6 * 0.79) + 26));
+  // 6.6px/char is deliberately generous for the 10.5px label font — labels
+  // must never ellipsize unless the 400px hard cap is hit.
+  const headerH = Math.min(400, Math.max(90, Math.round(maxLabelChars * 6.6 * 0.79) + 30));
 
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
@@ -451,7 +455,7 @@ export default function ProductReviewList({
           scrolling keeps header and body in lockstep. */}
       <div
         style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}
-        onScroll={(e) => onScrollDepth?.(e.currentTarget.scrollTop > 12)}
+        onScroll={(e) => onScrollDepth?.(e.currentTarget.scrollTop)}
       >
         <div style={{ minWidth: '100%', width: 'max-content' }}>
           <div
@@ -544,9 +548,15 @@ export default function ProductReviewList({
                     textTransform: 'none',
                     fontWeight: 600,
                     color: '#404040',
-                    maxWidth: Math.round((headerH - 14) / 0.79),
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
+                    // Clamp only when the header hit its hard cap — below it,
+                    // headerH is sized so every label fits in full.
+                    ...(headerH >= 400
+                      ? {
+                          maxWidth: Math.round((headerH - 14) / 0.79),
+                          overflow: 'hidden' as const,
+                          textOverflow: 'ellipsis' as const,
+                        }
+                      : null),
                   }}
                 >
                   {colLabel(v)}

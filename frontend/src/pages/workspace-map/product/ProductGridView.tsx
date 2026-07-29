@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useViewState } from '../../../lib/viewState';
 import ProductReviewList, { type ReviewFilter } from './ProductReviewList';
@@ -123,7 +123,7 @@ export default function ProductGridView({
   const [drillFilter, setDrillFilter] = useState<ReviewFilter>('all');
   const [notesOpen, setNotesOpen] = useState(false);
   // Collapse product names to initials — the full name pops on hover (title).
-  const [abbr, setAbbr] = useViewState<boolean>('workspace.product.abbrCols', false);
+  const [abbr, setAbbr] = useViewState<boolean>('workspace.product.abbrCols', true);
   const labelOf = (v: (typeof heat.columns)[number]) =>
     abbr ? abbrevVersion(v) : `${v.productName} · ${v.name}`;
   // Table scrolled away from the top → every chrome row hides (restored the
@@ -134,6 +134,22 @@ export default function ProductGridView({
       if (cur !== deep) onImmersive?.(deep);
       return deep;
     });
+  };
+  // Direction-based with hysteresis: hide only after a real downward scroll,
+  // reappear after ~24px of deliberate upward scroll (or near the top). A bare
+  // position threshold jitters because hiding the chrome itself reflows the
+  // scroller and can swallow the show/hide transitions.
+  const scrollMem = useRef({ y: 0, up: 0 });
+  const handleScrollDepth = (y: number) => {
+    const m = scrollMem.current;
+    const dy = y - m.y;
+    m.y = y;
+    // Only a real downward move resets the upward accumulator — zero-delta
+    // events (layout reflow, scroll anchoring) must not break a slow up-drag.
+    if (dy < 0) m.up -= dy;
+    else if (dy > 0) m.up = 0;
+    if (y < 8 || m.up > 24) setDepth(false);
+    else if (dy > 0 && y > 60) setDepth(true);
   };
 
   const drillRow =
@@ -151,7 +167,9 @@ export default function ProductGridView({
   // The header is exactly tall enough for the LONGEST angled label — every
   // label fully visible, nothing spilling out of the header band.
   const maxLabelChars = heat.columns.reduce((n, v) => Math.max(n, labelOf(v).length), 0);
-  const headerH = Math.min(330, Math.max(96, Math.round(maxLabelChars * 5.6 * 0.79) + 30));
+  // 6.6px/char is deliberately generous for the 11px label font — labels must
+  // never ellipsize unless the 400px hard cap is hit.
+  const headerH = Math.min(400, Math.max(96, Math.round(maxLabelChars * 6.6 * 0.79) + 34));
 
   const openDrill = (component: string, filter: ReviewFilter) => {
     setDrillFilter(filter);
@@ -284,7 +302,7 @@ export default function ProductGridView({
           onDecide={(row, status, comment) =>
             onDecide(row.lobId, row.group.component, row.group.key, status, comment)
           }
-          onScrollDepth={setDepth}
+          onScrollDepth={handleScrollDepth}
           labelOf={labelOf}
           abbr={abbr}
           onToggleAbbr={() => setAbbr((a) => !a)}
@@ -294,7 +312,7 @@ export default function ProductGridView({
           {/* (2) The heatmap — products angled across the top, components down the side. */}
           <div
             style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}
-            onScroll={(e) => setDepth(e.currentTarget.scrollTop > 12)}
+            onScroll={(e) => handleScrollDepth(e.currentTarget.scrollTop)}
           >
             <div style={{ minWidth: '100%', width: 'max-content' }}>
               <div
@@ -385,9 +403,15 @@ export default function ProductGridView({
                         fontSize: 11,
                         fontWeight: 600,
                         color: '#404040',
-                        maxWidth: Math.round((headerH - 18) / 0.79),
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
+                        // Clamp only when the header hit its hard cap — below
+                        // it, headerH is sized so every label fits in full.
+                        ...(headerH >= 400
+                          ? {
+                              maxWidth: Math.round((headerH - 18) / 0.79),
+                              overflow: 'hidden' as const,
+                              textOverflow: 'ellipsis' as const,
+                            }
+                          : null),
                       }}
                     >
                       {labelOf(v)}
