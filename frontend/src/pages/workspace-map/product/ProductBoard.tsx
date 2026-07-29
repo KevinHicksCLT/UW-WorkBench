@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { LoadingState, ErrorMessage, EmptyState } from '../../../components/ui';
+import { api } from '../../../lib/api';
 import { useApi } from '../../../lib/useApi';
 import { useOnChange, useViewState } from '../../../lib/viewState';
 import LensBar, { type WorkspaceLens } from '../LensBar';
@@ -10,6 +11,7 @@ import ProductComparePanel from './ProductComparePanel';
 import ProductNormalizeColumn from './ProductNormalizeColumn';
 import ProductGreenfieldColumn from './ProductGreenfieldColumn';
 import ProductGridView from './ProductGridView';
+import { decisionKey } from './gridModel';
 import SpineFilterBar, {
   EMPTY_FILTERS,
   normalizeFilters,
@@ -26,7 +28,6 @@ import type {
   ProductDecision,
   ProductDecisionStatus,
   SpineTable,
-  VersionColumn,
 } from './spine';
 
 // The Products lens of the Workspace — comparison over the REAL product spine.
@@ -56,6 +57,10 @@ export default function ProductBoard({
 
   // View state persists per session (lib/viewState) so leaving the tab and
   // returning restores the exact scope, view and expansion.
+  const [view, setView] = useViewState<'auto' | 'detail' | 'grid'>(
+    'workspace.product.view',
+    'auto',
+  );
   const [rawFilters, setFilters] = useViewState<SpineFilters>(
     'workspace.product.filters',
     EMPTY_FILTERS,
@@ -98,6 +103,28 @@ export default function ProductBoard({
     return m;
   }, [decisionRows]);
 
+  // Portfolio-wide decisions — the grid's progress roll-up spans every LOB.
+  const { data: allDecisionRows, refetch: refetchAllDecisions } = useApi<ProductDecision[]>(
+    '/product-spine/decisions',
+  );
+  const decisionMap = useMemo(() => {
+    const m = new Map<string, ProductDecision>();
+    for (const d of allDecisionRows ?? []) if (d.lobId) m.set(decisionKey(d.lobId, d.groupKey), d);
+    return m;
+  }, [allDecisionRows]);
+
+  const decide = async (
+    lobId: string,
+    component: string,
+    groupKey: string,
+    status: ProductDecisionStatus,
+    comment?: string,
+  ) => {
+    await api.put('/product-spine/decisions', { lobId, component, groupKey, status, comment });
+    refetchAllDecisions();
+    refetchDecisions();
+  };
+
   // A different scope starts collapsed again — change-only, undefined while
   // the spine loads so the loading→loaded transition never counts.
   const scopeKey = useMemo(
@@ -108,15 +135,14 @@ export default function ProductBoard({
     setExpandedComponents({});
     setMatchFilter(null);
     setSelected(null);
+    // A new scope re-arms the default: detail ≤5 versions, grid past that.
+    setView('auto');
   });
 
-  // The view follows the scope: grid past the threshold, detail at or under it.
-  const effectiveView: 'detail' | 'grid' = versions.length > DETAIL_THRESHOLD ? 'grid' : 'detail';
-
-  /** Grid → detail jump: narrow the cascade to the version's offering. */
-  const openDetail = (v: VersionColumn) => {
-    setFilters({ segment: v.segmentName, lobId: v.lobId, offering: v.productName, versionIds: [] });
-  };
+  // Default by scope (grid past the threshold, detail at or under it); the
+  // Detail/Grid selector overrides until the scope changes again.
+  const autoView: 'detail' | 'grid' = versions.length > DETAIL_THRESHOLD ? 'grid' : 'detail';
+  const effectiveView = view === 'auto' ? autoView : view;
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const activeComponent = selected ? selected.component : null;
@@ -254,13 +280,58 @@ export default function ProductBoard({
   );
 
   const filterRow = (
-    <SpineFilterBar
-      lobs={lobs}
-      filters={filters}
-      onChange={setFilters}
-      scopeCount={versions.length}
-      totalCount={pool.length}
-    />
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+      <SpineFilterBar
+        lobs={lobs}
+        filters={filters}
+        onChange={setFilters}
+        scopeCount={versions.length}
+        totalCount={pool.length}
+      />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
+        <span style={{ fontSize: 11, color: '#525252' }}>View</span>
+        <div
+          style={{
+            display: 'flex',
+            height: 26,
+            border: '1px solid #d4d4d4',
+            borderRadius: 6,
+            overflow: 'hidden',
+            background: '#fff',
+          }}
+        >
+          {(
+            [
+              ['detail', 'Detail'],
+              ['grid', 'Grid'],
+            ] as ['detail' | 'grid', string][]
+          ).map(([key, label], i) => {
+            const on = effectiveView === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setView(key)}
+                style={{
+                  font: 'inherit',
+                  padding: '0 12px',
+                  fontSize: 11.5,
+                  lineHeight: '26px',
+                  cursor: 'pointer',
+                  border: 'none',
+                  borderLeft: i === 0 ? 'none' : '1px solid #eaeaea',
+                  background: on ? '#171717' : '#fff',
+                  color: on ? '#fff' : '#404040',
+                  fontWeight: on ? 600 : 500,
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 
   if (versions.length === 0)
@@ -346,7 +417,7 @@ export default function ProductBoard({
             boxSizing: 'border-box',
           }}
         >
-          <ProductGridView lobs={scopedLobs} onOpenDetail={openDetail} />
+          <ProductGridView lobs={scopedLobs} decisions={decisionMap} onDecide={decide} />
         </div>
       </div>
     );

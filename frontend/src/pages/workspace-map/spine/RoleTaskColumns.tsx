@@ -1,9 +1,12 @@
 import { createPortal } from 'react-dom';
 import { AMBER, GREEN, INDIGO } from '../types';
-import { spineKey } from './spineCompare';
 import {
+  AGENT_LABELS,
+  isAgentable,
+  isAgentAssisted,
   stepFate,
   roleShort,
+  type KeyOf,
   type RoleColumnInput,
   type RoleTask,
   type StepDecision,
@@ -12,12 +15,42 @@ import {
 } from './roleConsolidation';
 
 // The Roles lens' lower half — every task GROUPED BY VALUE STREAM, aligned
-// across the compared roles by semantic name match (spineKey): tasks that are
-// the same work sit on the same row, one cell per role; each role's own work
-// stacks below inside the stream section. Every card opens a detail modal.
-// The green target column builds the resulting role, grouped the same way.
+// across the compared roles by fuzzy semantic name match (keyOf): tasks that
+// are the same work sit on the same row, one cell per role; each role's own
+// work stacks below inside the stream section. Every card opens a detail
+// modal. The green target column builds the resulting role, grouped the same
+// way. Every card carries its agent-automatability badge — AI transformation
+// is the point of the page.
 
 export const ROLE_COL_W = 270;
+
+export type TaskFilter = 'all' | 'agent' | 'multi' | 'single';
+
+/** Agent-automatability chip: green = agent runs it, indigo = agent helps,
+ *  muted = human only / unscored. */
+export function AgentChip({ score, size = 8.5 }: { score: number | null; size?: number }) {
+  const style = isAgentable(score)
+    ? { fg: '#047857', bg: '#ecfdf5', label: 'AGENT' }
+    : isAgentAssisted(score)
+      ? { fg: '#4338ca', bg: '#eef2ff', label: 'CO-PILOT' }
+      : { fg: '#737373', bg: '#f5f5f5', label: 'HUMAN' };
+  return (
+    <span
+      title={score ? `${AGENT_LABELS[score]} (automatability ${score}/5)` : 'Not yet scored'}
+      style={{
+        fontSize: size,
+        fontWeight: 700,
+        color: style.fg,
+        background: style.bg,
+        borderRadius: 4,
+        padding: '1px 5px',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {style.label}
+    </span>
+  );
+}
 
 const FATE_STYLE: Record<StepFateKindKey, { fg: string; bg: string; edge: string }> = {
   stays: { fg: '#047857', bg: '#f0fdf6', edge: GREEN },
@@ -62,8 +95,9 @@ function TaskCardCompact({
     >
       <div style={{ fontSize: 10.5, lineHeight: 1.3, color: '#171717' }}>{task.name}</div>
       <div
-        style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4, flexWrap: 'wrap' }}
+        style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 3, flexWrap: 'wrap' }}
       >
+        <AgentChip score={task.agent} />
         <span
           style={{
             fontSize: 8.5,
@@ -108,6 +142,7 @@ function GapCell() {
 export function AlignedTaskGrid({
   columns,
   keySets,
+  keyOf,
   going,
   targetIdx,
   filter,
@@ -115,9 +150,10 @@ export function AlignedTaskGrid({
 }: {
   columns: RoleColumnInput[];
   keySets: Set<string>[];
+  keyOf: KeyOf;
   going: boolean[];
   targetIdx: number;
-  filter: 'all' | 'multi' | 'single';
+  filter: TaskFilter;
   onOpenTask: (open: OpenTask) => void;
 }) {
   // Streams ordered by total volume across the compared roles.
@@ -132,26 +168,31 @@ export function AlignedTaskGrid({
   const gridCols = `repeat(${columns.length}, ${ROLE_COL_W}px)`;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       {streams.map((stream) => {
-        // Per column: this stream's tasks keyed by spineKey.
+        // Per column: this stream's tasks (agent filter narrows to steps an
+        // agent can run end-to-end), keyed by the fuzzy canonical key.
         const perCol = columns.map((c) =>
-          c.tasks.filter((t) => (t.valueStream ?? 'Unmapped') === stream),
+          c.tasks.filter(
+            (t) =>
+              (t.valueStream ?? 'Unmapped') === stream &&
+              (filter !== 'agent' || isAgentable(t.agent)),
+          ),
         );
         // Aligned rows: keys carried by 2+ roles, in first-seen order.
         const seen = new Set<string>();
         const alignedKeys: string[] = [];
         perCol.forEach((tasks) => {
           for (const t of tasks) {
-            const k = spineKey(t.name);
+            const k = keyOf(t.name);
             if (seen.has(k)) continue;
             seen.add(k);
-            const carriers = perCol.filter((list) => list.some((x) => spineKey(x.name) === k));
+            const carriers = perCol.filter((list) => list.some((x) => keyOf(x.name) === k));
             if (carriers.length > 1) alignedKeys.push(k);
           }
         });
         const singles = perCol.map((tasks) =>
-          tasks.filter((t) => !alignedKeys.includes(spineKey(t.name))),
+          tasks.filter((t) => !alignedKeys.includes(keyOf(t.name))),
         );
         const total = perCol.reduce((n, l) => n + l.length, 0);
         if (total === 0) return null;
@@ -166,9 +207,9 @@ export function AlignedTaskGrid({
                 display: 'flex',
                 alignItems: 'baseline',
                 gap: 8,
-                padding: '5px 2px 4px',
+                padding: '4px 2px 3px',
                 borderBottom: '1px solid #eef1f4',
-                marginBottom: 6,
+                marginBottom: 5,
               }}
             >
               <span
@@ -188,16 +229,16 @@ export function AlignedTaskGrid({
             </div>
 
             {showAligned && alignedKeys.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 8 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 6 }}>
                 {alignedKeys.map((k) => (
-                  <div key={k} style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 8 }}>
+                  <div key={k} style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 6 }}>
                     {columns.map((c, ci) => {
-                      const t = perCol[ci].find((x) => spineKey(x.name) === k);
+                      const t = perCol[ci].find((x) => keyOf(x.name) === k);
                       return t ? (
                         <TaskCardCompact
                           key={c.id}
                           task={t}
-                          fate={stepFate(t, ci, columns, keySets, going, targetIdx)}
+                          fate={stepFate(t, ci, columns, keySets, going, targetIdx, keyOf)}
                           onOpen={() => onOpenTask({ colIdx: ci, task: t })}
                         />
                       ) : (
@@ -211,15 +252,15 @@ export function AlignedTaskGrid({
 
             {showSingles && singles.some((l) => l.length > 0) && (
               <div
-                style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 8, marginBottom: 4 }}
+                style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 6, marginBottom: 3 }}
               >
                 {columns.map((c, ci) => (
-                  <div key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  <div key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {singles[ci].map((t) => (
                       <TaskCardCompact
                         key={t.id}
                         task={t}
-                        fate={stepFate(t, ci, columns, keySets, going, targetIdx)}
+                        fate={stepFate(t, ci, columns, keySets, going, targetIdx, keyOf)}
                         onOpen={() => onOpenTask({ colIdx: ci, task: t })}
                       />
                     ))}
@@ -246,6 +287,7 @@ export function TargetColumn({ steps }: { steps: TargetStep[] }) {
     }
     g.steps.push({ ...s, n });
   }
+  const agentable = steps.filter((s) => isAgentable(s.agent)).length;
   return (
     <div
       style={{
@@ -258,6 +300,12 @@ export function TargetColumn({ steps }: { steps: TargetStep[] }) {
         boxSizing: 'border-box',
       }}
     >
+      {steps.length > 0 && (
+        <div style={{ fontSize: 10, color: '#14532d', margin: '0 2px 7px' }}>
+          <b>{agentable}</b> of the {steps.length} resulting tasks run agent-only
+          {steps.length ? ` (${Math.round((agentable / steps.length) * 100)}%)` : ''}.
+        </div>
+      )}
       {groups.map((g) => (
         <div key={g.name} style={{ marginBottom: 9 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '0 2px 5px' }}>
@@ -317,6 +365,7 @@ export function TargetColumn({ steps }: { steps: TargetStep[] }) {
                     flexWrap: 'wrap',
                   }}
                 >
+                  <AgentChip score={s.agent} />
                   {s.sources.map((src) => (
                     <span
                       key={src.id}
@@ -368,6 +417,7 @@ export function RoleTaskModal({
   open,
   columns,
   keySets,
+  keyOf,
   going,
   targetIdx,
   stepDecisions,
@@ -377,6 +427,7 @@ export function RoleTaskModal({
   open: OpenTask;
   columns: RoleColumnInput[];
   keySets: Set<string>[];
+  keyOf: KeyOf;
   going: boolean[];
   targetIdx: number;
   stepDecisions: Record<string, StepDecision>;
@@ -385,11 +436,11 @@ export function RoleTaskModal({
 }) {
   const col = columns[open.colIdx];
   const task = open.task;
-  const fate = stepFate(task, open.colIdx, columns, keySets, going, targetIdx);
+  const fate = stepFate(task, open.colIdx, columns, keySets, going, targetIdx, keyOf);
   const style = FATE_STYLE[fate.kind];
-  const k = spineKey(task.name);
+  const k = keyOf(task.name);
   const carriers = columns
-    .map((c, ci) => ({ c, ci, t: c.tasks.find((x) => spineKey(x.name) === k) }))
+    .map((c, ci) => ({ c, ci, t: c.tasks.find((x) => keyOf(x.name) === k) }))
     .filter((x): x is { c: RoleColumnInput; ci: number; t: RoleTask } => !!x.t);
   const decKey = `${col.id}:${task.id}`;
   const chosen = stepDecisions[decKey] ?? (going[open.colIdx] ? 'Move' : 'Keep');
@@ -488,6 +539,35 @@ export function RoleTaskModal({
                 target: <b>{columns[targetIdx].name}</b>
               </span>
             )}
+          </div>
+
+          <div>
+            <div
+              style={{
+                fontSize: 9.5,
+                fontWeight: 600,
+                letterSpacing: '.06em',
+                textTransform: 'uppercase',
+                color: '#a3a3a3',
+                marginBottom: 4,
+              }}
+            >
+              AI transformation
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <AgentChip score={task.agent} size={10} />
+              <span style={{ fontSize: 11.5, color: '#334155' }}>
+                {task.agent
+                  ? `${AGENT_LABELS[task.agent]} — automatability ${task.agent}/5. ${
+                      isAgentable(task.agent)
+                        ? 'An agent can perform this task end-to-end; no human needed in the loop.'
+                        : isAgentAssisted(task.agent)
+                          ? 'An agent accelerates this task but a human stays accountable.'
+                          : 'Human judgment work — an agent cannot take this over today.'
+                    }`
+                  : 'Not yet scored for agent automatability.'}
+              </span>
+            </div>
           </div>
 
           <div>

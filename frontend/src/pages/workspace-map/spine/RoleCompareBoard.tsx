@@ -11,11 +11,15 @@ import {
   TargetColumn,
   ROLE_COL_W,
   type OpenTask,
+  type TaskFilter,
 } from './RoleTaskColumns';
 import {
   buildTarget,
   columnKeySets,
   dedupeTasks,
+  isAgentable,
+  isAgentAssisted,
+  makeKeyOf,
   recommendedTarget,
   roleFacts,
   roleRecs,
@@ -84,10 +88,7 @@ export default function RoleCompareBoard({
   const [ids, setIds] = useViewState<string[]>('workspace.role.ids', []);
   const [division, setDivision] = useViewState<string>('workspace.role.division', '');
   const [stream, setStream] = useViewState<string>('workspace.role.stream', '');
-  const [filter, setFilter] = useViewState<'all' | 'multi' | 'single'>(
-    'workspace.role.filter',
-    'all',
-  );
+  const [filter, setFilter] = useViewState<TaskFilter>('workspace.role.filter', 'all');
   const [roleDecisions, setRoleDecisions] = useViewState<Record<string, RoleDecision>>(
     'workspace.role.decisions',
     {},
@@ -153,12 +154,18 @@ export default function RoleCompareBoard({
       }));
   }, [details, ids, stream]);
 
-  const facts = useMemo(() => roleFacts(columns), [columns]);
-  const keySets = useMemo(() => columnKeySets(columns), [columns]);
-  const recTargetIdx = useMemo(() => (columns.length ? recommendedTarget(columns) : 0), [columns]);
+  // Fuzzy canonical-key function over the compared set — the same task worded
+  // differently across roles still matches (exact matching made every rec KEEP).
+  const keyOf = useMemo(() => makeKeyOf(columns), [columns]);
+  const facts = useMemo(() => roleFacts(columns, keyOf), [columns, keyOf]);
+  const keySets = useMemo(() => columnKeySets(columns, keyOf), [columns, keyOf]);
+  const recTargetIdx = useMemo(
+    () => (columns.length ? recommendedTarget(columns, keyOf) : 0),
+    [columns, keyOf],
+  );
   const recs = useMemo(
-    () => (columns.length ? roleRecs(columns, facts, recTargetIdx) : []),
-    [columns, facts, recTargetIdx],
+    () => (columns.length ? roleRecs(columns, facts, recTargetIdx, keyOf) : []),
+    [columns, facts, recTargetIdx, keyOf],
   );
 
   const decisionOf = (idx: number): RoleDecision =>
@@ -175,10 +182,21 @@ export default function RoleCompareBoard({
   })();
 
   const going = columns.map((_, i) => i !== targetIdx && decisionOf(i) !== 'Keep');
-  const target = buildTarget(columns, going, targetIdx, stepDecisions);
+  const target = buildTarget(columns, going, targetIdx, stepDecisions, keyOf);
 
   const totalSteps = facts.reduce((n, f) => n + f.steps, 0);
   const targetStreams = new Set(target.steps.map((s) => s.stream)).size;
+
+  // Agent-automatability rollup — the page's headline: how much of this work
+  // can an AI agent take over completely?
+  const agent = useMemo(() => {
+    const all = columns.flatMap((c) => c.tasks);
+    const auto = all.filter((t) => isAgentable(t.agent)).length;
+    const assisted = all.filter((t) => isAgentAssisted(t.agent)).length;
+    return { auto, assisted, human: all.length - auto - assisted, total: all.length };
+  }, [columns]);
+  const agentPct = agent.total ? Math.round((agent.auto / agent.total) * 100) : 0;
+  const targetAgentable = target.steps.filter((s) => isAgentable(s.agent)).length;
 
   // Where the compared roles work — one pill per value stream in scope.
   const streamPills = useMemo(() => {
@@ -200,6 +218,7 @@ export default function RoleCompareBoard({
 
   const filterCounts = {
     all: totalSteps,
+    agent: agent.auto,
     multi: facts.reduce((n, f) => n + f.dup, 0),
     single: facts.reduce((n, f) => n + f.only, 0),
   };
@@ -281,13 +300,112 @@ export default function RoleCompareBoard({
           </div>
         ) : (
           <div style={{ width: 'max-content', minWidth: '100%' }}>
+            {/* AI transformation headline — the point of the page */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '8px 12px',
+                borderBottom: '1px solid #eaeaea',
+                background: '#f6faf7',
+                flexWrap: 'wrap',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '.07em',
+                  textTransform: 'uppercase',
+                  color: '#047857',
+                }}
+              >
+                AI transformation potential
+              </span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#047857' }}>
+                {agent.auto} of {agent.total} steps ({agentPct}%) run agent-only today
+              </span>
+              {/* Automatability split bar: agent / co-pilot / human */}
+              <span
+                style={{
+                  display: 'inline-flex',
+                  width: 160,
+                  height: 8,
+                  borderRadius: 999,
+                  overflow: 'hidden',
+                  background: '#e5e7eb',
+                }}
+                title={`${agent.auto} agent-only · ${agent.assisted} agent-assisted · ${agent.human} human-only or unscored`}
+              >
+                <span
+                  style={{
+                    width: `${agent.total ? (agent.auto / agent.total) * 100 : 0}%`,
+                    background: '#047857',
+                  }}
+                />
+                <span
+                  style={{
+                    width: `${agent.total ? (agent.assisted / agent.total) * 100 : 0}%`,
+                    background: INDIGO,
+                  }}
+                />
+              </span>
+              <span style={{ fontSize: 11, color: '#334155' }}>
+                <b style={{ color: INDIGO }}>{agent.assisted}</b> more run with an agent co-pilot ·{' '}
+                <b style={{ color: '#525252' }}>{agent.human}</b> stay human
+              </span>
+              {columns.map((c, i) => {
+                const share = facts[i].steps
+                  ? Math.round((facts[i].agentable / facts[i].steps) * 100)
+                  : 0;
+                return (
+                  <span
+                    key={c.id}
+                    style={{
+                      fontSize: 10.5,
+                      color: '#334155',
+                      background: '#fff',
+                      border: '1px solid #d1fae5',
+                      borderRadius: 999,
+                      padding: '2px 9px',
+                    }}
+                  >
+                    {roleShort(c.name)}{' '}
+                    <b style={{ color: '#047857' }}>
+                      {facts[i].agentable}/{facts[i].steps}
+                    </b>{' '}
+                    ({share}%)
+                  </span>
+                );
+              })}
+              <div style={{ flex: 1 }} />
+              <button
+                type="button"
+                onClick={() => setFilter(filter === 'agent' ? 'all' : 'agent')}
+                style={{
+                  font: 'inherit',
+                  fontSize: 10.5,
+                  fontWeight: 600,
+                  color: filter === 'agent' ? '#fff' : '#047857',
+                  background: filter === 'agent' ? '#047857' : '#fff',
+                  border: '1px solid #047857',
+                  borderRadius: 6,
+                  padding: '3px 10px',
+                  cursor: 'pointer',
+                }}
+              >
+                {filter === 'agent' ? 'Showing agent-only work' : 'Show agent-only work'}
+              </button>
+            </div>
+
             {/* Where these roles work */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
-                padding: '7px 14px',
+                padding: '5px 12px',
                 borderBottom: '1px solid #eaeaea',
                 flexWrap: 'wrap',
               }}
@@ -336,9 +454,10 @@ export default function RoleCompareBoard({
                 {(
                   [
                     ['all', 'All steps', filterCounts.all],
+                    ['agent', 'Agent can run it', filterCounts.agent],
                     ['multi', 'Another role does it too', filterCounts.multi],
                     ['single', 'Only one role', filterCounts.single],
-                  ] as ['all' | 'multi' | 'single', string, number][]
+                  ] as [TaskFilter, string, number][]
                 ).map(([key, label, count], i) => {
                   const on = filter === key;
                   return (
@@ -371,9 +490,9 @@ export default function RoleCompareBoard({
               style={{
                 display: 'grid',
                 gridTemplateColumns: gridCols,
-                gap: 10,
+                gap: 8,
                 alignItems: 'stretch',
-                padding: '10px 14px',
+                padding: '8px 12px',
                 borderBottom: '1px solid #eaeaea',
                 background: '#fafafa',
               }}
@@ -397,7 +516,7 @@ export default function RoleCompareBoard({
                       border: '1px solid #eaeaea',
                       borderLeft: `3px solid ${tone}`,
                       borderRadius: 10,
-                      padding: '10px 12px',
+                      padding: '8px 10px',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
@@ -430,7 +549,7 @@ export default function RoleCompareBoard({
                         {recStyle.label}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', gap: 12, marginTop: 7 }}>
+                    <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
                       <div>
                         <div
                           style={{
@@ -443,6 +562,19 @@ export default function RoleCompareBoard({
                           {facts[i].steps}
                         </div>
                         <div style={{ fontSize: 9.5, color: '#94a3b8' }}>steps</div>
+                      </div>
+                      <div>
+                        <div
+                          style={{
+                            fontSize: 15,
+                            fontWeight: 700,
+                            color: '#047857',
+                            lineHeight: 1.1,
+                          }}
+                        >
+                          {facts[i].agentable}
+                        </div>
+                        <div style={{ fontSize: 9.5, color: '#94a3b8' }}>agent can run</div>
                       </div>
                       <div>
                         <div
@@ -502,7 +634,7 @@ export default function RoleCompareBoard({
                   background: '#f6faf7',
                   border: '2px solid #a7f3d0',
                   borderRadius: 10,
-                  padding: '10px 12px',
+                  padding: '8px 10px',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
@@ -533,7 +665,7 @@ export default function RoleCompareBoard({
                     TARGET ROLE
                   </span>
                 </div>
-                <div style={{ display: 'flex', gap: 12, marginTop: 7 }}>
+                <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
                   <div>
                     <div
                       style={{ fontSize: 15, fontWeight: 700, color: '#14532d', lineHeight: 1.1 }}
@@ -541,6 +673,14 @@ export default function RoleCompareBoard({
                       {target.steps.length}
                     </div>
                     <div style={{ fontSize: 9.5, color: '#4d7c60' }}>tasks after</div>
+                  </div>
+                  <div>
+                    <div
+                      style={{ fontSize: 15, fontWeight: 700, color: '#047857', lineHeight: 1.1 }}
+                    >
+                      {targetAgentable}
+                    </div>
+                    <div style={{ fontSize: 9.5, color: '#4d7c60' }}>agent can run</div>
                   </div>
                   <div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: INDIGO, lineHeight: 1.1 }}>
@@ -560,7 +700,7 @@ export default function RoleCompareBoard({
                     >
                       {targetStreams}
                     </div>
-                    <div style={{ fontSize: 9.5, color: '#4d7c60' }}>value streams held</div>
+                    <div style={{ fontSize: 9.5, color: '#4d7c60' }}>streams</div>
                   </div>
                 </div>
                 <div style={{ fontSize: 10.5, lineHeight: 1.45, color: '#14532d', marginTop: 7 }}>
@@ -601,7 +741,7 @@ export default function RoleCompareBoard({
                 display: 'flex',
                 alignItems: 'center',
                 gap: 10,
-                padding: '7px 14px',
+                padding: '5px 12px',
                 borderBottom: '1px solid #eaeaea',
               }}
             >
@@ -624,9 +764,9 @@ export default function RoleCompareBoard({
             <div
               style={{
                 display: 'flex',
-                gap: 10,
+                gap: 8,
                 alignItems: 'flex-start',
-                padding: '10px 14px',
+                padding: '8px 12px',
                 background: '#fafafa',
               }}
             >
@@ -634,6 +774,7 @@ export default function RoleCompareBoard({
                 <AlignedTaskGrid
                   columns={columns}
                   keySets={keySets}
+                  keyOf={keyOf}
                   going={going}
                   targetIdx={targetIdx}
                   filter={filter}
@@ -649,7 +790,7 @@ export default function RoleCompareBoard({
                 display: 'flex',
                 alignItems: 'center',
                 gap: 14,
-                padding: '9px 14px',
+                padding: '7px 12px',
                 background: '#f6faf7',
                 borderTop: '2px solid #a7f3d0',
                 flexWrap: 'wrap',
@@ -715,6 +856,7 @@ export default function RoleCompareBoard({
           open={openTask}
           columns={columns}
           keySets={keySets}
+          keyOf={keyOf}
           going={going}
           targetIdx={targetIdx}
           stepDecisions={stepDecisions}

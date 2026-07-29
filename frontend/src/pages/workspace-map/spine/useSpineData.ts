@@ -19,6 +19,8 @@ export interface StreamTask {
   owner: string | null;
   /** Applications used at the step (NodeAppUsage), capped at 3. */
   apps: string[];
+  /** Agent-automatability score 1-5 (1 autonomous agent … 5 human-only). */
+  agent: number | null;
 }
 
 export interface StreamDetail {
@@ -58,6 +60,8 @@ export interface RoleDetail {
     l4: string | null;
     /** Applications used at the task (NodeAppUsage), capped at 3. */
     apps: string[];
+    /** Agent-automatability score 1-5 (1 autonomous agent … 5 human-only). */
+    agent: number | null;
   }[];
 }
 

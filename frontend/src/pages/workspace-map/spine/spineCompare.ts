@@ -96,7 +96,7 @@ const GENERIC_HEADS = new Set([
   'service',
 ]);
 
-function similar(a: string, b: string): boolean {
+export function similar(a: string, b: string): boolean {
   const ta = toks(a);
   const tb = toks(b);
   const sb = new Set(tb);

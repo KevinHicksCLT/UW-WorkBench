@@ -1,13 +1,15 @@
+import { spineKey, type StageSlot } from './spineCompare';
 import { streamTone } from './VsNewProcessFlow';
-import type { StageSlot } from './spineCompare';
 import type { StreamDetail } from './useSpineData';
 
-// The Value-streams lens' HIGH-LEVEL view — the map's own language: one lane
-// per compared stream (dark chip left), its real L3 phases as cards
-// horizontally; click a phase to drop its real L4 sub-processes open beneath.
-// Nothing repeats — each lane shows its own structure once, and the small
-// "k/N" badge on every card says how many compared streams carry the same
-// work. Clicking an L4 hands off to the comparison grid at that spot.
+// The Value-streams lens' HIGH-LEVEL view — one lane per compared stream
+// (dark chip left), its real L3 areas as cards horizontally. Any number of L3
+// areas can be open AT THE SAME TIME — a click expands the matching slot in
+// every compared lane at once — and inside an expansion each L4 sub-process
+// expands further to its L5 tasks (again mirrored across lanes, matched by
+// name). Pure process levels, no invented vocabulary: L2 stream › L3 area ›
+// L4 sub-process › L5 task. Comparison is a separate, deliberate act — the
+// Compare button up top, nothing auto-jumps.
 
 interface CardBadge {
   label: string;
@@ -44,22 +46,27 @@ export default function VsMapView({
   lanes,
   slots,
   laneCount,
-  openPhase,
-  onTogglePhase,
-  onOpenGrid,
+  openSlots,
+  onToggleSlot,
+  openSubs,
+  onToggleSub,
 }: {
   lanes: StreamDetail[];
   slots: StageSlot[];
   laneCount: number;
-  /** Currently drilled phase slot key (one at a time, shared across lanes). */
-  openPhase: string | null;
-  onTogglePhase: (slotKey: string | null) => void;
-  onOpenGrid: (phaseSlotKey: string) => void;
+  /** Expanded L3 slot keys — any number at once, shared across lanes. */
+  openSlots: string[];
+  onToggleSlot: (slotKey: string) => void;
+  /** Expanded L4 keys (`slotKey:spineKey(subName)`) — mirrored across lanes. */
+  openSubs: string[];
+  onToggleSub: (subKey: string) => void;
 }) {
   // slot key per (lane id, stage id) — powers the shared badges.
   const slotOf = new Map<string, StageSlot>();
   for (const s of slots)
     for (const [laneId, stageId] of s.byLane) slotOf.set(`${laneId}:${stageId}`, s);
+  const openSet = new Set(openSlots);
+  const openSubSet = new Set(openSubs);
 
   return (
     <div
@@ -76,6 +83,7 @@ export default function VsMapView({
       <div style={{ width: 'max-content', minWidth: '100%' }}>
         {lanes.map((lane, li) => {
           const tone = streamTone(li);
+          const openHere = slots.filter((s) => openSet.has(s.key));
           return (
             <div key={lane.id} style={{ marginBottom: 18 }}>
               <div style={{ display: 'flex', alignItems: 'flex-start' }}>
@@ -103,12 +111,12 @@ export default function VsMapView({
                     {lane.name}
                   </span>
                   <span style={{ fontSize: 9.5, color: '#a3a3a3', marginTop: 2 }}>
-                    {lane.areas.length} phases ·{' '}
+                    {lane.areas.length} L3 areas ·{' '}
                     {lane.areas.reduce(
                       (n, a) => n + a.subs.reduce((m, s) => m + s.tasks.length, 0),
                       0,
                     )}{' '}
-                    steps
+                    L5 tasks
                   </span>
                 </div>
                 <Connector w={24} />
@@ -117,13 +125,14 @@ export default function VsMapView({
                     const slot = slotOf.get(`${lane.id}:${area.id}`);
                     const present = slot?.byLane.size ?? 1;
                     const badge = coverageBadge(present, laneCount);
-                    const isOpen = !!slot && openPhase === slot.key;
+                    const isOpen = !!slot && openSet.has(slot.key);
                     const steps = area.subs.reduce((n, s) => n + s.tasks.length, 0);
                     return (
                       <button
                         key={area.id}
                         type="button"
-                        onClick={() => slot && onTogglePhase(isOpen ? null : slot.key)}
+                        onClick={() => slot && onToggleSlot(slot.key)}
+                        title="Expand this L3 area in every compared stream"
                         style={{
                           font: 'inherit',
                           position: 'relative',
@@ -181,7 +190,7 @@ export default function VsMapView({
                               fontVariantNumeric: 'tabular-nums',
                             }}
                           >
-                            {area.subs.length} L4 · {steps} steps
+                            {area.subs.length} L4 · {steps} L5
                           </span>
                           <span
                             style={{
@@ -193,7 +202,7 @@ export default function VsMapView({
                               borderRadius: 5,
                               padding: '0 4px',
                             }}
-                            title={`the same phase exists in ${present} of ${laneCount} compared streams`}
+                            title={`the same L3 area exists in ${present} of ${laneCount} compared streams`}
                           >
                             {badge.label}
                           </span>
@@ -204,50 +213,72 @@ export default function VsMapView({
                 </div>
               </div>
 
-              {/* Drilled phase: this lane's real L4s, once, with the grid hand-off. */}
-              {openPhase &&
-                (() => {
-                  const slot = slots.find((s) => s.key === openPhase);
-                  const area = lane.areas.find((a) => a.id === slot?.byLane.get(lane.id));
-                  if (!slot) return null;
-                  if (!area)
-                    return (
-                      <div
-                        style={{
-                          margin: '8px 0 0 174px',
-                          padding: '8px 12px',
-                          border: '1px dashed #d4d4d4',
-                          borderRadius: 8,
-                          fontSize: 10.5,
-                          color: '#737373',
-                          background: '#fff',
-                          width: 'fit-content',
-                        }}
-                      >
-                        This stream has no phase in this slot.
-                      </div>
-                    );
+              {/* Every open L3 area: this lane's real L4s, expandable to L5. */}
+              {openHere.map((slot) => {
+                const area = lane.areas.find((a) => a.id === slot.byLane.get(lane.id));
+                if (!area)
                   return (
                     <div
-                      style={{ display: 'flex', alignItems: 'flex-start', margin: '8px 0 0 174px' }}
+                      key={slot.key}
+                      style={{
+                        margin: '8px 0 0 174px',
+                        padding: '8px 12px',
+                        border: '1px dashed #d4d4d4',
+                        borderRadius: 8,
+                        fontSize: 10.5,
+                        color: '#737373',
+                        background: '#fff',
+                        width: 'fit-content',
+                      }}
                     >
-                      <div
-                        style={{ display: 'flex', gap: 8, alignItems: 'stretch', flexWrap: 'wrap' }}
-                      >
-                        {area.subs.map((sub, si) => (
+                      {slot.label} — this stream has no matching L3 area.
+                    </div>
+                  );
+                return (
+                  <div
+                    key={slot.key}
+                    style={{ display: 'flex', alignItems: 'flex-start', margin: '8px 0 0 174px' }}
+                  >
+                    <span
+                      style={{
+                        flexShrink: 0,
+                        alignSelf: 'flex-start',
+                        fontSize: 9,
+                        fontWeight: 700,
+                        letterSpacing: '.06em',
+                        textTransform: 'uppercase',
+                        color: tone,
+                        padding: '6px 8px 0 0',
+                        maxWidth: 110,
+                      }}
+                    >
+                      {area.name}
+                    </span>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: 8,
+                        alignItems: 'flex-start',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      {area.subs.map((sub, si) => {
+                        const subKey = `${slot.key}:${spineKey(sub.name)}`;
+                        const subOpen = openSubSet.has(subKey);
+                        return (
                           <button
                             key={sub.id}
                             type="button"
-                            onClick={() => onOpenGrid(slot.key)}
-                            title="Open the step comparison grid at this sub-process"
+                            onClick={() => onToggleSub(subKey)}
+                            title="Expand this L4 sub-process to its L5 tasks in every compared stream"
                             style={{
                               font: 'inherit',
-                              width: 160,
+                              width: subOpen ? 220 : 160,
                               boxSizing: 'border-box',
                               padding: '6px 9px',
                               borderRadius: 8,
                               background: '#fff',
-                              border: '1px solid #e2e8f0',
+                              border: subOpen ? `1.5px solid ${tone}` : '1px solid #e2e8f0',
                               borderLeft: `3px solid ${tone}`,
                               boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
                               cursor: 'pointer',
@@ -288,15 +319,63 @@ export default function VsMapView({
                                 {sub.name}
                               </span>
                               <span style={{ fontSize: 9, color: '#737373' }}>
-                                {sub.tasks.length} steps · compare ›
+                                {sub.tasks.length} L5 tasks · {subOpen ? 'collapse ▴' : 'expand ▾'}
                               </span>
+                              {subOpen && (
+                                <span
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 3,
+                                    marginTop: 6,
+                                    maxHeight: 200,
+                                    overflowY: 'auto',
+                                  }}
+                                >
+                                  {sub.tasks.map((t, ti) => (
+                                    <span
+                                      key={t.id}
+                                      title={t.owner ? `Owner: ${t.owner}` : undefined}
+                                      style={{
+                                        display: 'flex',
+                                        gap: 5,
+                                        alignItems: 'flex-start',
+                                        fontSize: 9,
+                                        lineHeight: 1.3,
+                                        color: '#334155',
+                                        background: '#f8fafc',
+                                        border: '1px solid #eef1f4',
+                                        borderRadius: 5,
+                                        padding: '3px 6px',
+                                      }}
+                                    >
+                                      <span
+                                        style={{
+                                          flexShrink: 0,
+                                          color: '#94a3b8',
+                                          fontVariantNumeric: 'tabular-nums',
+                                        }}
+                                      >
+                                        {ti + 1}.
+                                      </span>
+                                      <span style={{ flex: 1, minWidth: 0 }}>{t.name}</span>
+                                    </span>
+                                  ))}
+                                  {sub.tasks.length === 0 && (
+                                    <span style={{ fontSize: 9, color: '#94a3b8' }}>
+                                      No L5 tasks under this sub-process.
+                                    </span>
+                                  )}
+                                </span>
+                              )}
                             </span>
                           </button>
-                        ))}
-                      </div>
+                        );
+                      })}
                     </div>
-                  );
-                })()}
+                  </div>
+                );
+              })}
             </div>
           );
         })}

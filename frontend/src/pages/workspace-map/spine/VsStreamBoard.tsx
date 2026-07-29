@@ -4,7 +4,7 @@ import { useOnChange, useViewState } from '../../../lib/viewState';
 import LensBar, { type WorkspaceLens } from '../LensBar';
 import { Picker, type PoolOption } from './SpineBoard';
 import VsMapView from './VsMapView';
-import VsCompareGrid, { type RailEntry } from './VsCompareGrid';
+import VsCompareGrid, { type CompareLevel, type RailEntry } from './VsCompareGrid';
 import { defaultDecision, type ReconDecision } from './VsNewProcessFlow';
 import {
   alignStages,
@@ -16,13 +16,13 @@ import {
 } from './spineCompare';
 import { useStreamDetails, useStreamList, type StreamDetail } from './useSpineData';
 
-// Value-streams lens — the map at the top, the grid underneath: compare ANY
-// number of streams. The MAP view shows each compared stream as its own lane
-// (L2 chip → real L3 phases → drill a phase into its real L4s, nothing
-// repeated) with a k/N badge saying how many streams carry the same work.
-// Clicking an L4 hands off to the COMPARE GRID: sub-process rail, canonical
-// L5 tasks once each, one column per stream, merge/keep/drop per row, and the
-// normalized new-process flow. All live spine data.
+// Value-streams lens — compare ANY number of streams on pure process levels
+// (L2 stream › L3 area › L4 sub-process › L5 task; no invented vocabulary).
+// The MAP view shows each compared stream as its own lane; any number of L3
+// areas expand at once (mirrored across lanes) and L4s expand further to
+// their L5 tasks — browse the whole spine side by side. Comparison is the
+// user's own act: hit Compare, then pick WHICH LEVEL to reconcile at with the
+// L3/L4/L5 buttons. All live spine data.
 
 export default function VsStreamBoard({
   lens,
@@ -34,6 +34,9 @@ export default function VsStreamBoard({
   const { data: streams, loading: listLoading, error: listError } = useStreamList();
   const [ids, setIds] = useViewState<string[]>('workspace.vs.ids', []);
   const [mode, setMode] = useViewState<'map' | 'grid'>('workspace.vs.mode', 'map');
+  const [level, setLevel] = useViewState<CompareLevel>('workspace.vs.level', '5');
+  const [openSlots, setOpenSlots] = useViewState<string[]>('workspace.vs.openSlots', []);
+  const [openSubs, setOpenSubs] = useViewState<string[]>('workspace.vs.openSubs', []);
   const [phaseKey, setPhaseKey] = useViewState<string | null>('workspace.vs.phase', null);
   const [subKey, setSubKey] = useViewState<string | null>('workspace.vs.sub', null);
   const [decisions, setDecisions] = useViewState<Record<string, ReconDecision>>(
@@ -46,6 +49,15 @@ export default function VsStreamBoard({
   }, [streams, ids.length, setIds]);
   useOnChange(ids.join(','), () => {
     setMode('map');
+    setOpenSlots([]);
+    setOpenSubs([]);
+    setPhaseKey(null);
+    setSubKey(null);
+    setDecisions({});
+  });
+  // Row keys and phase slots are level-specific — changing the compare level
+  // resets the drill and the hand decisions.
+  useOnChange(level, () => {
     setPhaseKey(null);
     setSubKey(null);
     setDecisions({});
@@ -64,12 +76,16 @@ export default function VsStreamBoard({
         id: s.id,
         label: s.name,
         group: s.domain ?? 'Other',
-        hint: `${s.taskCount} steps`,
+        hint: `${s.taskCount} tasks`,
       })),
     [streams],
   );
 
-  const laneInputs: ReconLaneInput[] = useMemo(
+  // The map always shows the full L3→L4→L5 structure; the GRID reconciles at
+  // the user-picked level. L5 compares tasks inside aligned L3 areas (the
+  // original shape); L4 compares sub-processes inside aligned L3 areas; L3
+  // compares the areas themselves in one shared slot.
+  const mapInputs: ReconLaneInput[] = useMemo(
     () =>
       lanes.map((d) => ({
         id: d.id,
@@ -77,25 +93,53 @@ export default function VsStreamBoard({
       })),
     [lanes],
   );
+  const gridInputs: ReconLaneInput[] = useMemo(() => {
+    if (level === '5') return mapInputs;
+    if (level === '4')
+      return lanes.map((d) => ({
+        id: d.id,
+        stages: d.areas.map((ar) => ({
+          id: ar.id,
+          name: ar.name,
+          subs: [
+            {
+              name: ar.name,
+              tasks: ar.subs.map((s) => ({ id: s.id, name: s.name })),
+            },
+          ],
+        })),
+      }));
+    return lanes.map((d) => ({
+      id: d.id,
+      stages: [
+        {
+          id: `${d.id}:structure`,
+          name: 'All L3 areas',
+          subs: [{ name: 'L3 areas', tasks: d.areas.map((a) => ({ id: a.id, name: a.name })) }],
+        },
+      ],
+    }));
+  }, [lanes, level, mapInputs]);
+
   const phases: ReconPhase[] = useMemo(
-    () => (laneInputs.length >= 2 ? buildReconciliation(laneInputs) : []),
-    [laneInputs],
+    () => (gridInputs.length >= 2 ? buildReconciliation(gridInputs) : []),
+    [gridInputs],
   );
   const slots: StageSlot[] = useMemo(
     () =>
-      laneInputs.length >= 2
-        ? alignStages(laneInputs.map((l) => ({ lane: l.id, stages: l.stages })))
+      mapInputs.length >= 2
+        ? alignStages(mapInputs.map((l) => ({ lane: l.id, stages: l.stages })))
         : [],
-    [laneInputs],
+    [mapInputs],
   );
 
   const phase = phaseKey ? (phases.find((p) => p.key === phaseKey) ?? null) : null;
   const gridPhase = phase ?? phases[0] ?? null;
 
-  // Rail = the drilled phase's canonical L4 sub-processes: every distinct sub
-  // name the phase's rows reference, once, with its row count.
+  // Rail = the drilled area's canonical L4 sub-processes (L5 compare only):
+  // every distinct sub name the area's rows reference, once, with row count.
   const rail: RailEntry[] = useMemo(() => {
-    if (!gridPhase) return [];
+    if (!gridPhase || level !== '5') return [];
     const seen = new Map<string, number>();
     for (const r of gridPhase.rows) {
       for (const c of r.cells) {
@@ -105,13 +149,13 @@ export default function VsStreamBoard({
       }
     }
     return [...seen.entries()].map(([label, count]) => ({ key: label, label, count }));
-  }, [gridPhase]);
+  }, [gridPhase, level]);
 
   const gridRows: ReconRow[] = useMemo(() => {
     if (!gridPhase) return [];
-    if (!subKey) return gridPhase.rows;
+    if (!subKey || level !== '5') return gridPhase.rows;
     return gridPhase.rows.filter((r) => r.cells.some((c) => c && c.sub === subKey));
-  }, [gridPhase, subKey]);
+  }, [gridPhase, subKey, level]);
 
   const decisionOf = (row: ReconRow): ReconDecision => decisions[row.key] ?? defaultDecision(row);
 
@@ -121,6 +165,7 @@ export default function VsStreamBoard({
 
   const shared = phases.reduce((n, p) => n + p.rows.filter((r) => r.presentIn > 1).length, 0);
   const total = phases.reduce((n, p) => n + p.rows.length, 0);
+  const levelNoun = level === '3' ? 'L3 areas' : level === '4' ? 'L4 sub-processes' : 'L5 tasks';
 
   return (
     <div
@@ -180,8 +225,9 @@ export default function VsStreamBoard({
           })}
         </div>
         <span style={{ fontSize: 11, color: '#525252', marginBottom: 10 }}>
-          {total} units of work · <b style={{ color: '#4338ca' }}>{shared}</b> shared across streams
-          · badges show in how many of the {names.length} streams the same work exists
+          {mode === 'grid'
+            ? `comparing ${levelNoun}: ${total} units of work · ${shared} shared across the ${names.length} streams`
+            : `expand L3 areas and L4 sub-processes in place — the same level opens in every stream at once`}
         </span>
       </div>
 
@@ -209,19 +255,19 @@ export default function VsStreamBoard({
             lanes={lanes}
             slots={slots}
             laneCount={lanes.length}
-            openPhase={phaseKey}
-            onTogglePhase={(k) => {
-              setPhaseKey(k);
-              setSubKey(null);
-            }}
-            onOpenGrid={(k) => {
-              setPhaseKey(k);
-              setSubKey(null);
-              setMode('grid');
-            }}
+            openSlots={openSlots}
+            onToggleSlot={(k) =>
+              setOpenSlots((cur) => (cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]))
+            }
+            openSubs={openSubs}
+            onToggleSub={(k) =>
+              setOpenSubs((cur) => (cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]))
+            }
           />
         ) : gridPhase ? (
           <VsCompareGrid
+            level={level}
+            onLevel={setLevel}
             phase={gridPhase}
             phases={phases}
             onPhase={(k) => {
@@ -240,7 +286,7 @@ export default function VsStreamBoard({
           />
         ) : (
           <div style={{ padding: 24 }}>
-            <EmptyState message="No aligned phases between these streams yet." />
+            <EmptyState message="No aligned L3 areas between these streams yet." />
           </div>
         )}
       </div>

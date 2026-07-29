@@ -1,690 +1,554 @@
 import { useMemo, useState } from 'react';
 import { useViewState } from '../../../lib/viewState';
 import ProductCellModal from './ProductCellModal';
-import {
-  GRID_REC_META,
-  buildGridModel,
-  groupGridRows,
-  type GridGroupMode,
-  type GridRow,
-} from './gridModel';
-import type { LobOption, VersionColumn } from './spine';
+import ProductReviewList, { type ReviewFilter } from './ProductReviewList';
+import { buildHeatmap, type HeatRow, type Rag } from './gridModel';
+import { buildComparison } from './spine';
+import type { LobOption, ProductDecision, ProductDecisionStatus } from './spine';
 
-// The Products lens GRID view — every offering a row, every model component a
-// column, every difference against the LOB's canonical version countable.
-// Sorted Segment › LOB › Product offering › Version (or clustered by variance
-// band); click any cell for its element-level model detail.
+// The Products workspace GRID — the progress board:
+//   (1) an executive dashboard pinned on top (freeze-pane style): total
+//       elements, items needing a decision, decided, % complete — each stat
+//       drills into the filtered review list;
+//   (2) the transposed heatmap below: PRODUCTS as stovepipe columns, MODEL
+//       COMPONENTS as rows, RAG per row (green = rationalized, amber =
+//       started, red = untouched) with per-row totals and a collapsed Notes
+//       column on the far right;
+//   (3) click a row (or a stat) → the drill-down review list where every
+//       element is actioned (Adopt / Variant / Retire) and commented.
 
-const NAME_W = 250;
-const CELL_W = 64;
-const MATCH_W = 84;
-const REC_W = 138;
+const RAG_META: Record<Rag, { bg: string; fg: string; label: string }> = {
+  green: { bg: '#16a34a', fg: '#fff', label: 'rationalized' },
+  amber: { bg: '#f59e0b', fg: '#fff', label: 'started' },
+  red: { bg: '#dc2626', fg: '#fff', label: 'not started' },
+};
 
-function cellStyle(delta: number | null): { label: string; bg: string; fg: string } {
-  if (delta === null) return { label: '—', bg: '#fafafa', fg: '#94a3b8' };
-  if (delta === 0) return { label: '✓', bg: '#eff6ff', fg: '#1d4ed8' };
-  if (delta <= 1) return { label: `Δ1`, bg: '#fef3c7', fg: '#92400e' };
-  if (delta <= 3) return { label: `Δ${delta}`, bg: '#fde68a', fg: '#78350f' };
-  return { label: `Δ${delta}`, bg: '#fecaca', fg: '#991b1b' };
+function cellVisual(cell: { na: boolean } & { need: number; decided: number; total: number }): {
+  bg: string;
+  fg: string;
+  label: string;
+  title: string;
+} {
+  if (cell.na || cell.total === 0)
+    return { bg: '#f5f5f5', fg: '#a3a3a3', label: '—', title: 'not in this product' };
+  const pending = cell.need - cell.decided;
+  if (cell.need === 0)
+    return { bg: '#dcfce7', fg: '#166534', label: '✓', title: 'nothing to decide — all common' };
+  if (pending === 0)
+    return { bg: '#bbf7d0', fg: '#14532d', label: '✓', title: 'every element decided' };
+  if (cell.decided > 0)
+    return {
+      bg: '#fde68a',
+      fg: '#78350f',
+      label: String(pending),
+      title: `${pending} elements still to decide`,
+    };
+  return {
+    bg: '#fecaca',
+    fg: '#991b1b',
+    label: String(pending),
+    title: `${pending} elements to decide — not started`,
+  };
+}
+
+function StatTile({
+  label,
+  value,
+  tone,
+  onClick,
+  bar,
+}: {
+  label: string;
+  value: string;
+  tone: string;
+  onClick?: () => void;
+  bar?: number;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={!onClick}
+      style={{
+        font: 'inherit',
+        flex: 1,
+        minWidth: 150,
+        textAlign: 'left',
+        background: '#fff',
+        border: '1px solid #eaeaea',
+        borderRadius: 10,
+        padding: '8px 12px',
+        cursor: onClick ? 'pointer' : 'default',
+        boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+      }}
+      title={onClick ? 'open the filtered review list' : undefined}
+    >
+      <div style={{ fontSize: 19, fontWeight: 700, color: tone, lineHeight: 1.1 }}>{value}</div>
+      <div style={{ fontSize: 11, color: '#404040', marginTop: 2 }}>{label}</div>
+      {bar !== undefined && (
+        <div
+          style={{
+            height: 5,
+            background: '#e5e7eb',
+            borderRadius: 9,
+            marginTop: 6,
+            overflow: 'hidden',
+          }}
+        >
+          <span style={{ display: 'block', height: 5, width: `${bar}%`, background: tone }} />
+        </div>
+      )}
+    </button>
+  );
 }
 
 export default function ProductGridView({
   lobs,
-  onOpenDetail,
+  decisions,
+  onDecide,
 }: {
   lobs: LobOption[];
-  /** Drop back into the ≤threshold detail board on this version's LOB. */
-  onOpenDetail: (version: VersionColumn) => void;
+  /** All persisted decisions, keyed by decisionKey(lobId, groupKey). */
+  decisions: Map<string, ProductDecision>;
+  onDecide: (
+    lobId: string,
+    component: string,
+    groupKey: string,
+    status: ProductDecisionStatus,
+    comment?: string,
+  ) => Promise<void>;
 }) {
-  const model = useMemo(() => buildGridModel(lobs), [lobs]);
-  const [groupMode, setGroupMode] = useViewState<GridGroupMode>(
-    'workspace.product.gridGroup',
-    'spine',
-  );
-  const [selId, setSelId] = useViewState<string | null>('workspace.product.gridSel', null);
-  // Which model-component columns render — null means all. Hidden columns stay
-  // in the delta/match numbers (they filter the VIEW, not the derivation).
-  const [pickedCols, setPickedCols] = useViewState<string[] | null>(
-    'workspace.product.gridCols',
+  const heat = useMemo(() => buildHeatmap(lobs, decisions), [lobs, decisions]);
+  const [drill, setDrill] = useViewState<string | null>('workspace.product.drill', null);
+  const [drillFilter, setDrillFilter] = useState<ReviewFilter>('pending');
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [cell, setCell] = useState<{ lobId: string; versionId: string; component: string } | null>(
     null,
   );
-  const [colsOpen, setColsOpen] = useState(false);
-  const [closed, setClosed] = useState<Record<string, boolean>>({});
-  const [cell, setCell] = useState<{ row: GridRow; component: string } | null>(null);
 
-  const groups = useMemo(() => groupGridRows(model.rows, groupMode), [model, groupMode]);
-  const sel = model.rows.find((r) => r.version.id === selId) ?? model.rows[0] ?? null;
-  const visibleComponents = useMemo(
-    () => (pickedCols ? model.components.filter((c) => pickedCols.includes(c)) : model.components),
-    [model.components, pickedCols],
-  );
-  const toggleCol = (c: string) => {
-    const cur = pickedCols ?? model.components;
-    const next = cur.includes(c) ? cur.filter((x) => x !== c) : [...cur, c];
-    // Never hide everything; back to full set stores null (all).
-    if (next.length === 0) return;
-    setPickedCols(next.length === model.components.length ? null : next);
-  };
-  const gridCols = `${NAME_W}px repeat(${visibleComponents.length}, ${CELL_W}px) ${MATCH_W}px ${REC_W}px`;
+  const drillRow =
+    drill && drill !== '__all__' ? heat.rows.find((r) => r.component === drill) : null;
+  const allReviewRows = useMemo(() => heat.rows.flatMap((r) => r.reviewRows), [heat]);
+
+  const cellModal = useMemo(() => {
+    if (!cell) return null;
+    const lob = lobs.find((l) => l.id === cell.lobId);
+    const version = lob?.versions.find((v) => v.id === cell.versionId);
+    if (!lob || !version) return null;
+    return { lob, version, comparison: buildComparison(lob.versions) };
+  }, [cell, lobs]);
+
+  const pending = heat.totals.need - heat.totals.decided;
+  const notesW = notesOpen ? 220 : 46;
+  const grid = `230px repeat(${heat.columns.length}, 46px) 74px 84px 130px ${notesW}px`;
 
   return (
-    <div style={{ display: 'flex', alignItems: 'stretch', height: '100%', minHeight: 0 }}>
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '8px 14px',
-            borderBottom: '1px solid #eaeaea',
-            flexWrap: 'wrap',
-            flexShrink: 0,
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+      {/* (1) Executive dashboard — pinned like a frozen header row. */}
+      <div
+        style={{
+          display: 'flex',
+          gap: 10,
+          padding: '10px 14px',
+          borderBottom: '1px solid #eaeaea',
+          background: '#fafafa',
+          flexShrink: 0,
+          flexWrap: 'wrap',
+        }}
+      >
+        <StatTile
+          label="model elements in scope"
+          value={String(heat.totals.total)}
+          tone="#171717"
+          onClick={() => {
+            setDrill('__all__');
+            setDrillFilter('all');
           }}
-        >
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 600,
-              letterSpacing: '.07em',
-              textTransform: 'uppercase',
-              color: '#737373',
-              flexShrink: 0,
-            }}
-          >
-            Group
-          </span>
-          <div
-            style={{
-              display: 'flex',
-              height: 24,
-              border: '1px solid #eaeaea',
-              borderRadius: 6,
-              overflow: 'hidden',
-              background: '#fff',
-              flexShrink: 0,
-            }}
-          >
-            {(
-              [
-                ['spine', 'Segment › LOB › Offering'],
-                ['variance', 'Variance band'],
-              ] as [GridGroupMode, string][]
-            ).map(([key, label], i) => {
-              const on = groupMode === key;
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setGroupMode(key)}
-                  style={{
-                    font: 'inherit',
-                    padding: '0 10px',
-                    fontSize: 10.5,
-                    lineHeight: '24px',
-                    cursor: 'pointer',
-                    border: 'none',
-                    borderLeft: i === 0 ? 'none' : '1px solid #eaeaea',
-                    background: on ? '#171717' : '#fff',
-                    color: on ? '#fff' : '#525252',
-                    fontWeight: on ? 600 : 400,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-          <span style={{ width: 1, height: 18, background: '#eaeaea', margin: '0 4px' }} />
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <button
-              type="button"
-              onClick={() => setColsOpen((o) => !o)}
-              style={{
-                font: 'inherit',
-                height: 24,
-                padding: '0 10px',
-                fontSize: 10.5,
-                cursor: 'pointer',
-                border: '1px solid #eaeaea',
-                borderRadius: 6,
-                background: colsOpen ? '#171717' : '#fff',
-                color: colsOpen ? '#fff' : '#525252',
-              }}
-            >
-              Columns · {visibleComponents.length}/{model.components.length} ▾
-            </button>
-            {colsOpen && (
+        />
+        <StatTile
+          label="need a decision"
+          value={String(pending)}
+          tone={pending > 0 ? '#b45309' : '#16a34a'}
+          onClick={() => {
+            setDrill('__all__');
+            setDrillFilter('pending');
+          }}
+        />
+        <StatTile
+          label="decided"
+          value={String(heat.totals.decided)}
+          tone="#4f46e5"
+          onClick={() => {
+            setDrill('__all__');
+            setDrillFilter('decided');
+          }}
+        />
+        <StatTile
+          label={`complete — ${heat.totals.decided} of ${heat.totals.need} decisions made`}
+          value={`${heat.totals.pct}%`}
+          tone={heat.totals.pct >= 100 ? '#16a34a' : heat.totals.pct > 0 ? '#f59e0b' : '#dc2626'}
+          bar={heat.totals.pct}
+        />
+      </div>
+
+      {drill ? (
+        <ProductReviewList
+          title={drillRow ? drillRow.component : 'Every model element in scope'}
+          subtitle={
+            drillRow
+              ? `${drillRow.total} elements · ${drillRow.need - drillRow.decided} still to decide`
+              : `${heat.totals.total} elements across ${heat.rows.length} components · ${pending} still to decide`
+          }
+          columns={heat.columns}
+          rows={drillRow ? drillRow.reviewRows : allReviewRows}
+          defaultFilter={drillFilter}
+          onBack={() => setDrill(null)}
+          onDecide={(row, status, comment) =>
+            onDecide(row.lobId, row.group.component, row.group.key, status, comment)
+          }
+        />
+      ) : (
+        <>
+          {/* (2) The heatmap — products across the top, components down the side. */}
+          <div style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}>
+            <div style={{ width: 'max-content', minWidth: '100%' }}>
               <div
                 style={{
-                  position: 'absolute',
-                  top: 28,
-                  left: 0,
-                  zIndex: 5,
-                  background: '#fff',
-                  border: '1px solid #e5e5e5',
-                  borderRadius: 8,
-                  boxShadow: '0 8px 24px rgba(15,23,42,.14)',
-                  padding: '8px 10px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 4,
-                  minWidth: 200,
+                  display: 'grid',
+                  gridTemplateColumns: grid,
+                  alignItems: 'end',
+                  background: '#fafafa',
+                  borderBottom: '1px solid #e5e7eb',
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 3,
                 }}
               >
-                {model.components.map((c) => (
-                  <label
-                    key={c}
+                <div
+                  style={{
+                    padding: '8px 12px',
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    color: '#525252',
+                  }}
+                >
+                  Model component
+                </div>
+                {heat.columns.map((v) => (
+                  <div
+                    key={v.id}
+                    title={`${v.segmentName} › ${v.lobName} › ${v.productName} · ${v.name}`}
                     style={{
+                      borderLeft: '1px solid #eef1f4',
                       display: 'flex',
-                      alignItems: 'center',
-                      gap: 7,
-                      fontSize: 11.5,
-                      color: '#171717',
-                      cursor: 'pointer',
+                      justifyContent: 'center',
+                      paddingBottom: 6,
                     }}
                   >
-                    <input
-                      type="checkbox"
-                      checked={visibleComponents.includes(c)}
-                      onChange={() => toggleCol(c)}
-                    />
-                    {c}
-                  </label>
+                    <span
+                      style={{
+                        writingMode: 'vertical-rl',
+                        transform: 'rotate(180deg)',
+                        height: 128,
+                        fontSize: 10.5,
+                        fontWeight: 600,
+                        color: '#404040',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {v.productName} · {v.name}
+                    </span>
+                  </div>
+                ))}
+                {['Elements', 'To decide', 'Progress'].map((h) => (
+                  <div
+                    key={h}
+                    style={{
+                      padding: '8px 10px',
+                      borderLeft: '1px solid #eef1f4',
+                      fontSize: 10,
+                      fontWeight: 600,
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      color: '#525252',
+                      textAlign: h === 'Progress' ? 'left' : 'center',
+                    }}
+                  >
+                    {h}
+                  </div>
                 ))}
                 <button
                   type="button"
-                  onClick={() => setPickedCols(null)}
+                  onClick={() => setNotesOpen((o) => !o)}
+                  title={notesOpen ? 'collapse notes' : 'expand notes'}
                   style={{
                     font: 'inherit',
-                    fontSize: 10.5,
-                    color: '#0070AD',
-                    background: 'none',
+                    borderLeft: '1px solid #eef1f4',
                     border: 'none',
+                    background: 'transparent',
+                    padding: '8px 10px',
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    color: '#525252',
                     cursor: 'pointer',
                     textAlign: 'left',
-                    padding: '3px 0 0',
+                    whiteSpace: 'nowrap',
                   }}
                 >
-                  Show all
+                  {notesOpen ? 'Notes ▾' : '▸'}
                 </button>
               </div>
-            )}
-          </div>
-          <div style={{ flex: 1 }} />
-          <span style={{ fontSize: 10.5, color: '#737373' }}>
-            ✓ identical to canonical · Δn = n element groups differ · click a cell for its model
-            detail
-          </span>
-        </div>
 
-        <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-          <div style={{ width: 'max-content', minWidth: '100%' }}>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: gridCols,
-                background: '#fafafa',
-                borderBottom: '1px solid #e5e7eb',
-                position: 'sticky',
-                top: 0,
-                zIndex: 2,
-              }}
-            >
-              <div
-                style={{
-                  padding: '7px 10px',
-                  fontSize: 9.5,
-                  fontWeight: 600,
-                  letterSpacing: '.07em',
-                  textTransform: 'uppercase',
-                  color: '#737373',
-                }}
-              >
-                Product offering · version
-              </div>
-              {visibleComponents.map((c) => (
-                <div
-                  key={c}
-                  title={c}
-                  style={{
-                    padding: '7px 4px',
-                    borderLeft: '1px solid #e5e7eb',
-                    fontSize: 9,
-                    fontWeight: 600,
-                    lineHeight: 1.2,
-                    color: '#525252',
-                    textAlign: 'center',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {c.length > 10 ? `${c.slice(0, 9)}…` : c}
-                </div>
-              ))}
-              <div
-                style={{
-                  padding: '7px 6px',
-                  borderLeft: '1px solid #e5e7eb',
-                  fontSize: 9,
-                  fontWeight: 600,
-                  color: '#525252',
-                  textAlign: 'center',
-                }}
-              >
-                Match
-              </div>
-              <div
-                style={{
-                  padding: '7px 8px',
-                  borderLeft: '1px solid #e5e7eb',
-                  fontSize: 9,
-                  fontWeight: 600,
-                  color: '#525252',
-                }}
-              >
-                Recommendation
-              </div>
-            </div>
-
-            {groups.map((g) => {
-              const open = !closed[g.key];
-              return (
-                <div key={g.key}>
-                  <button
-                    type="button"
-                    onClick={() => setClosed((c) => ({ ...c, [g.key]: open }))}
+              {heat.rows.map((row: HeatRow) => {
+                const rag = RAG_META[row.rag];
+                const rowPending = row.need - row.decided;
+                return (
+                  <div
+                    key={row.component}
                     style={{
-                      font: 'inherit',
-                      display: 'flex',
+                      display: 'grid',
+                      gridTemplateColumns: grid,
                       alignItems: 'center',
-                      gap: 8,
-                      width: '100%',
-                      padding: '6px 10px',
-                      background: '#f4f6f8',
-                      border: 'none',
-                      borderBottom: '1px solid #e5e7eb',
-                      cursor: 'pointer',
-                      textAlign: 'left',
+                      borderBottom: '1px solid #f1f3f5',
                     }}
                   >
-                    <span style={{ fontSize: 10, color: '#64748b' }}>{open ? '▾' : '▸'}</span>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#171717' }}>
-                      {g.name}
-                    </span>
-                    <span style={{ fontSize: 10, color: '#64748b' }}>
-                      {g.count} {g.count === 1 ? 'offering' : 'offerings'}
-                    </span>
-                    <div style={{ flex: 1 }} />
-                    {g.canonNote && (
-                      <span style={{ fontSize: 10, color: '#4f46e5' }}>{g.canonNote}</span>
-                    )}
-                  </button>
-                  {open &&
-                    g.subs.map((sub) => (
-                      <div key={sub.key}>
-                        <div
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDrill(row.component);
+                        setDrillFilter(rowPending > 0 ? 'pending' : 'all');
+                      }}
+                      title="open this component's review list"
+                      style={{
+                        font: 'inherit',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '9px 12px',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                      }}
+                    >
+                      <span
+                        title={rag.label}
+                        style={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: 9999,
+                          background: rag.bg,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <span style={{ fontSize: 12.5, fontWeight: 600, color: '#171717' }}>
+                        {row.component}
+                      </span>
+                    </button>
+                    {row.cells.map((c) => {
+                      const vis = cellVisual(c);
+                      return (
+                        <button
+                          key={`${row.component}:${c.versionId}`}
+                          type="button"
+                          disabled={c.na || c.total === 0}
+                          title={vis.title}
+                          onClick={() =>
+                            setCell({
+                              lobId: c.lobId,
+                              versionId: c.versionId,
+                              component: row.component,
+                            })
+                          }
                           style={{
+                            font: 'inherit',
+                            borderLeft: '1px solid #f4f6f8',
+                            borderTop: 'none',
+                            borderRight: 'none',
+                            borderBottom: 'none',
+                            background: 'transparent',
+                            padding: 4,
+                            cursor: c.na || c.total === 0 ? 'default' : 'pointer',
                             display: 'flex',
-                            alignItems: 'center',
-                            gap: 8,
-                            padding: '4px 10px 4px 22px',
-                            background: '#fafbfc',
-                            borderBottom: '1px solid #eef1f4',
+                            justifyContent: 'center',
                           }}
                         >
-                          <span style={{ fontSize: 10.5, fontWeight: 600, color: '#334155' }}>
-                            {sub.name}
+                          <span
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: 32,
+                              height: 22,
+                              borderRadius: 5,
+                              background: vis.bg,
+                              color: vis.fg,
+                              fontSize: 10.5,
+                              fontWeight: 700,
+                            }}
+                          >
+                            {vis.label}
                           </span>
-                          <span style={{ fontSize: 9.5, color: '#64748b' }}>
-                            {sub.rows.length} {sub.rows.length === 1 ? 'offering' : 'offerings'} ·{' '}
-                            {new Set(sub.rows.map((r) => r.productName)).size} product offerings
-                          </span>
-                        </div>
-                        {sub.rows.map((r) => {
-                          const meta = GRID_REC_META[r.rec];
-                          const on = sel?.version.id === r.version.id;
-                          return (
-                            <div
-                              key={r.version.id}
-                              style={{
-                                display: 'grid',
-                                gridTemplateColumns: gridCols,
-                                borderBottom: '1px solid #f4f6f8',
-                                background: on ? '#f5f7ff' : '#fff',
-                              }}
-                            >
-                              <button
-                                type="button"
-                                onClick={() => setSelId(r.version.id)}
-                                style={{
-                                  font: 'inherit',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 7,
-                                  padding: '5px 10px',
-                                  minWidth: 0,
-                                  background: 'none',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  textAlign: 'left',
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    width: 6,
-                                    height: 6,
-                                    borderRadius: 999,
-                                    flexShrink: 0,
-                                    background: meta.dot,
-                                  }}
-                                />
-                                <span
-                                  style={{
-                                    fontSize: 11,
-                                    color: '#171717',
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                  }}
-                                >
-                                  {r.productName} · {r.version.name}
-                                </span>
-                              </button>
-                              {visibleComponents.map((compName) => {
-                                const c = r.cells.find((x) => x.component === compName) ?? {
-                                  component: compName,
-                                  delta: null,
-                                };
-                                const s = cellStyle(c.delta);
-                                return (
-                                  <button
-                                    key={c.component}
-                                    type="button"
-                                    disabled={c.delta === null}
-                                    onClick={() => setCell({ row: r, component: c.component })}
-                                    style={{
-                                      font: 'inherit',
-                                      borderLeft: '1px solid #f4f6f8',
-                                      borderTop: 'none',
-                                      borderRight: 'none',
-                                      borderBottom: 'none',
-                                      padding: 3,
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      cursor: c.delta === null ? 'default' : 'pointer',
-                                      background: 'transparent',
-                                    }}
-                                  >
-                                    <span
-                                      style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        width: '100%',
-                                        height: 20,
-                                        borderRadius: 4,
-                                        background: s.bg,
-                                        fontSize: 9,
-                                        fontWeight: 700,
-                                        color: s.fg,
-                                      }}
-                                    >
-                                      {s.label}
-                                    </span>
-                                  </button>
-                                );
-                              })}
-                              <div
-                                style={{
-                                  borderLeft: '1px solid #f4f6f8',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  fontSize: 10,
-                                  fontWeight: 700,
-                                  fontFamily: 'ui-monospace, monospace',
-                                  color:
-                                    r.match >= 85
-                                      ? '#1d4ed8'
-                                      : r.match >= 60
-                                        ? '#b45309'
-                                        : '#dc2626',
-                                }}
-                              >
-                                {r.match}%
-                              </div>
-                              <div
-                                style={{
-                                  borderLeft: '1px solid #f4f6f8',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  padding: '0 8px',
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    fontSize: 9,
-                                    fontWeight: 700,
-                                    color: meta.fg,
-                                    background: meta.bg,
-                                    border: `1px solid ${meta.border}`,
-                                    borderRadius: 5,
-                                    padding: '2px 6px',
-                                    whiteSpace: 'nowrap',
-                                  }}
-                                >
-                                  {meta.label}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })}
+                        </button>
+                      );
+                    })}
+                    <div
+                      style={{
+                        borderLeft: '1px solid #f4f6f8',
+                        textAlign: 'center',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: '#404040',
+                        fontVariantNumeric: 'tabular-nums',
+                        alignSelf: 'stretch',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {row.total}
+                    </div>
+                    <div
+                      style={{
+                        borderLeft: '1px solid #f4f6f8',
+                        textAlign: 'center',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: rowPending > 0 ? '#b45309' : '#16a34a',
+                        fontVariantNumeric: 'tabular-nums',
+                        alignSelf: 'stretch',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {rowPending}
+                    </div>
+                    <div
+                      style={{
+                        borderLeft: '1px solid #f4f6f8',
+                        padding: '0 10px',
+                        alignSelf: 'stretch',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 7,
+                      }}
+                    >
+                      <div
+                        style={{
+                          flex: 1,
+                          height: 6,
+                          background: '#e5e7eb',
+                          borderRadius: 9,
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <span
+                          style={{
+                            display: 'block',
+                            height: 6,
+                            width: `${row.pct}%`,
+                            background: rag.bg,
+                          }}
+                        />
                       </div>
-                    ))}
-                </div>
-              );
-            })}
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: '#404040',
+                          width: 34,
+                          textAlign: 'right',
+                          fontVariantNumeric: 'tabular-nums',
+                        }}
+                      >
+                        {row.pct}%
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        borderLeft: '1px solid #f4f6f8',
+                        padding: '4px 10px',
+                        alignSelf: 'stretch',
+                        display: 'flex',
+                        alignItems: 'center',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {notesOpen ? (
+                        <span
+                          style={{
+                            fontSize: 11,
+                            color: row.note ? '#404040' : '#a3a3a3',
+                            lineHeight: 1.35,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {row.note ?? '—'}
+                        </span>
+                      ) : (
+                        row.note && (
+                          <span title={row.note} style={{ fontSize: 12, color: '#737373' }}>
+                            💬
+                          </span>
+                        )
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Right rail */}
-      <div
-        style={{
-          width: 320,
-          flexShrink: 0,
-          borderLeft: '1px solid #eaeaea',
-          background: '#fafafa',
-          padding: 14,
-          overflow: 'auto',
-          boxSizing: 'border-box',
-        }}
-      >
-        <div
-          style={{
-            background: '#ecfdf5',
-            border: '2px solid #a7f3d0',
-            borderRadius: 11,
-            padding: '11px 13px',
-          }}
-        >
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: '#171717' }}>
-            Rationalization at {model.rows.length} offerings
-          </div>
-          <div style={{ fontSize: 12, color: '#525252', marginTop: 4 }}>
-            <b style={{ color: '#171717', fontSize: 15 }}>{model.totals.raw}</b> elements →{' '}
-            <b style={{ color: '#16a34a', fontSize: 15 }}>{model.totals.normalized}</b> normalized
-          </div>
           <div
             style={{
               display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+              padding: '7px 14px',
+              borderTop: '1px solid #eaeaea',
+              background: '#fafafa',
+              fontSize: 11,
+              color: '#404040',
+              flexShrink: 0,
               flexWrap: 'wrap',
-              gap: 9,
-              marginTop: 8,
-              fontSize: 10,
-              color: '#525252',
             }}
           >
             <span>
-              <b style={{ color: '#16a34a' }}>{model.totals.byRec.canonical}</b> keep as canonical
+              <span style={{ color: '#16a34a' }}>●</span> rationalized ·{' '}
+              <span style={{ color: '#f59e0b' }}>●</span> started ·{' '}
+              <span style={{ color: '#dc2626' }}>●</span> not started
             </span>
             <span>
-              <b style={{ color: '#4f46e5' }}>{model.totals.byRec.merge}</b> merge into a canonical
+              cell number = elements still to decide for that product · ✓ = nothing pending
             </span>
             <span>
-              <b style={{ color: '#b45309' }}>{model.totals.byRec.decide}</b> need a decision
-            </span>
-            <span>
-              <b style={{ color: '#dc2626' }}>{model.totals.byRec.retire}</b> retire candidates
+              click a component row for its review list · click a cell for that product's detail
             </span>
           </div>
-        </div>
+        </>
+      )}
 
-        {sel && (
-          <>
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: '.07em',
-                textTransform: 'uppercase',
-                color: '#737373',
-                margin: '14px 0 8px',
-              }}
-            >
-              Selected version
-            </div>
-            <div
-              style={{
-                background: '#fff',
-                border: '1px solid #eaeaea',
-                borderRadius: 10,
-                padding: 11,
-              }}
-            >
-              <div style={{ fontSize: 12.5, fontWeight: 700, color: '#171717' }}>
-                {sel.productName} · {sel.version.name}
-              </div>
-              <div style={{ fontSize: 10.5, color: '#64748b', marginTop: 2 }}>
-                {sel.segmentName} › {sel.lobName} › {sel.productName}
-              </div>
-              <div style={{ display: 'flex', gap: 14, marginTop: 9 }}>
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#171717' }}>
-                    {sel.elements}
-                  </div>
-                  <div style={{ fontSize: 9.5, color: '#64748b' }}>elements</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#1d4ed8' }}>
-                    {sel.match}%
-                  </div>
-                  <div style={{ fontSize: 9.5, color: '#64748b' }}>match canonical</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#b45309' }}>
-                    {sel.deltas}
-                  </div>
-                  <div style={{ fontSize: 9.5, color: '#64748b' }}>deltas</div>
-                </div>
-              </div>
-              {sel.deltas > 0 && (
-                <>
-                  <div
-                    style={{
-                      fontSize: 9.5,
-                      fontWeight: 600,
-                      letterSpacing: '.06em',
-                      textTransform: 'uppercase',
-                      color: '#737373',
-                      margin: '11px 0 6px',
-                    }}
-                  >
-                    Where it differs
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {sel.cells
-                      .filter((c) => (c.delta ?? 0) > 0)
-                      .slice(0, 4)
-                      .map((c) => (
-                        <button
-                          key={c.component}
-                          type="button"
-                          onClick={() => setCell({ row: sel, component: c.component })}
-                          style={{
-                            font: 'inherit',
-                            border: '1px solid #f1f3f5',
-                            borderLeft: `3px solid ${(c.delta ?? 0) > 3 ? '#dc2626' : '#b45309'}`,
-                            borderRadius: 7,
-                            padding: '6px 8px',
-                            cursor: 'pointer',
-                            background: '#fff',
-                            textAlign: 'left',
-                          }}
-                        >
-                          <div style={{ fontSize: 10.5, fontWeight: 600, color: '#171717' }}>
-                            {c.component}
-                          </div>
-                          <div
-                            style={{
-                              fontSize: 10,
-                              lineHeight: 1.4,
-                              color: '#525252',
-                              marginTop: 2,
-                            }}
-                          >
-                            {c.delta} element {c.delta === 1 ? 'group differs' : 'groups differ'} —
-                            open the detail
-                          </div>
-                        </button>
-                      ))}
-                  </div>
-                </>
-              )}
-              <div style={{ display: 'flex', gap: 6, marginTop: 11 }}>
-                <button
-                  type="button"
-                  onClick={() => onOpenDetail(sel.version)}
-                  style={{
-                    font: 'inherit',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: '#fff',
-                    background: '#171717',
-                    border: 'none',
-                    borderRadius: 6,
-                    padding: '5px 11px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Compare in detail
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-        <div style={{ fontSize: 10.5, lineHeight: 1.5, color: '#64748b', marginTop: 12 }}>
-          Open the detail view on any LOB with 5 or fewer versions to see the full three-column
-          current → normalize → greenfield board.
-        </div>
-      </div>
-
-      {cell && (
+      {cell && cellModal && (
         <ProductCellModal
-          version={cell.row.version}
+          version={cellModal.version}
           component={cell.component}
-          comparison={model.comparisons.get(cell.row.lobId) ?? buildGridFallback()}
-          lobId={cell.row.lobId}
-          lobName={cell.row.lobName}
-          onComponent={(component) => setCell({ row: cell.row, component })}
+          comparison={cellModal.comparison}
+          lobId={cellModal.lob.id}
+          lobName={cellModal.lob.name}
+          onComponent={(component) => setCell({ ...cell, component })}
           onClose={() => setCell(null)}
         />
       )}
     </div>
   );
-}
-
-function buildGridFallback() {
-  return { axis: [], rows: [], rawCount: 0, normalizedCount: 0, reviewCount: 0 };
 }

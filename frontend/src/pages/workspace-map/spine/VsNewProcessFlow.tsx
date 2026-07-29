@@ -118,7 +118,7 @@ export default function VsNewProcessFlow({
   const promote = () =>
     dialogs.alert({
       title: 'Promote new process',
-      message: `${steps.length} normalized steps across ${shown.length} phase${shown.length === 1 ? '' : 's'} — ${merged.length} merged from ${streamNames.length} streams (${resequenced} resequenced), ${carried} carried 1→1. Promotion into the live L4 spine is decision-preview only in this workspace; export the verdict table to take it forward.`,
+      message: `${steps.length} normalized steps across ${shown.length} L3 area${shown.length === 1 ? '' : 's'} — ${merged.length} merged from ${streamNames.length} streams (${resequenced} resequenced), ${carried} carried 1→1. Promotion into the live L4 spine is decision-preview only in this workspace; export the verdict table to take it forward.`,
     });
 
   return (
@@ -149,7 +149,7 @@ export default function VsNewProcessFlow({
         <span style={{ fontSize: 11.5, color: '#14532d', fontWeight: 600 }}>
           {phaseKey
             ? `${shown[0]?.label ?? ''} — ${steps.length} normalized steps`
-            : `All phases — ${steps.length} normalized steps`}
+            : `All L3 areas — ${steps.length} normalized steps`}
         </span>
         <span style={{ fontSize: 11, color: '#4d7c60' }}>
           {merged.length} merged · {carried} carried 1→1 · {resequenced} resequenced · single owner
@@ -286,7 +286,7 @@ export default function VsNewProcessFlow({
           ))}
           {steps.length === 0 && (
             <div style={{ fontSize: 11, color: '#4d7c60', padding: 8 }}>
-              Every step in this phase is dropped — nothing to promote.
+              Every step in this L3 area is dropped — nothing to promote.
             </div>
           )}
         </div>

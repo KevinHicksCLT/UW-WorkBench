@@ -13,6 +13,21 @@ import {
 } from '../../lib/resolvers/index.js';
 import { activeCompanyId } from './helpers.js';
 
+// ProcessNode.automatability → 1-5 agent-automatability score (1 Autonomous
+// Agent … 5 Human-only; ≤2 = an agent can do the task end-to-end). Same map
+// as routes/work.ts — legacy aliases kept for safety.
+const AGENT_SCORE: Record<string, number> = {
+  autonomous: 1,
+  workflow: 2,
+  augmented: 3,
+  assist: 4,
+  manual: 5,
+  automated: 1,
+  assisted: 4,
+};
+const agentScoreOf = (automatability: string | null): number | null =>
+  automatability ? (AGENT_SCORE[automatability] ?? null) : null;
+
 export function registerSpineRoutes(router: Router) {
   // GET /rationalization/spine/streams — every L2 value stream with its L1
   // domain and task count. The comparison picker's pool.
@@ -83,10 +98,16 @@ export function registerSpineRoutes(router: Router) {
       // the reconciliation table shows who performs a step and in which system.
       const taskIds = nodes.filter((n) => n.isTask).map((n) => n.id);
       const [roleBy, appBy] = await Promise.all([rolesForNodes(taskIds), appsForNodes(taskIds)]);
-      const toTask = (n: { id: string; displayValue: string }) => {
+      const toTask = (n: { id: string; displayValue: string; automatability: string | null }) => {
         const owner = (roleBy.get(n.id) ?? []).find((r) => r.role_ === 'Owner');
         const apps = [...new Set((appBy.get(n.id) ?? []).map((a) => a.name))].slice(0, 3);
-        return { id: n.id, name: n.displayValue, owner: owner?.name ?? null, apps };
+        return {
+          id: n.id,
+          name: n.displayValue,
+          owner: owner?.name ?? null,
+          apps,
+          agent: agentScoreOf(n.automatability),
+        };
       };
       // Tasks can hang at any depth; each L3 branch flattens its leaf tasks
       // under the L4 (or the L3 itself when a branch skips a level).
@@ -208,7 +229,7 @@ export function registerSpineRoutes(router: Router) {
         where: { roleId: role.id, processNode: { isTask: true } },
         select: {
           role_: true,
-          processNode: { select: { id: true, displayValue: true } },
+          processNode: { select: { id: true, displayValue: true, automatability: true } },
         },
       });
       const nodeIds = [...new Set(links.map((l) => l.processNode.id))];
@@ -229,6 +250,7 @@ export function registerSpineRoutes(router: Router) {
             l3: loc?.l3 ?? null,
             l4: loc?.l4 ?? null,
             apps: [...new Set((appBy.get(l.processNode.id) ?? []).map((a) => a.name))].slice(0, 3),
+            agent: agentScoreOf(l.processNode.automatability),
           };
         }),
       });

@@ -2,17 +2,27 @@ import { GREEN, INDIGO } from '../types';
 import VsNewProcessFlow, { streamBg, streamTone, type ReconDecision } from './VsNewProcessFlow';
 import type { ReconPhase, ReconRow } from './spineCompare';
 
-// The Value-streams lens' DETAIL view — the comparison grid the map hands off
-// to: sub-process rail on the left, canonical L5 tasks as rows (each task
-// appears ONCE) with one column per compared stream. A cell is the stream's
-// own sequence number for that task, or — when the stream doesn't do it.
-// Decisions live on the row; the normalized new-process flow closes the view.
+// The Value-streams lens' DETAIL view — the comparison grid. The user picks
+// the process level to reconcile at (L3 areas / L4 sub-processes / L5 tasks);
+// rows are that level's canonical units (each appears ONCE) with one column
+// per compared stream. A cell is the stream's own sequence number for the
+// unit, or — when the stream doesn't do it. Decisions live on the row; at L5
+// the normalized new-process flow closes the view. Pure process-level naming
+// throughout — no "phase" vocabulary.
 
 export interface RailEntry {
   key: string;
   label: string;
   count: number;
 }
+
+export type CompareLevel = '3' | '4' | '5';
+
+const LEVEL_META: Record<CompareLevel, { button: string; noun: string }> = {
+  '3': { button: 'L3 areas', noun: 'L3 area' },
+  '4': { button: 'L4 sub-processes', noun: 'L4 sub-process' },
+  '5': { button: 'L5 tasks', noun: 'L5 task' },
+};
 
 function DecisionButtons({
   chosen,
@@ -58,6 +68,8 @@ function DecisionButtons({
 }
 
 export default function VsCompareGrid({
+  level,
+  onLevel,
   phase,
   phases,
   onPhase,
@@ -71,6 +83,8 @@ export default function VsCompareGrid({
   onDecide,
   onBackToMap,
 }: {
+  level: CompareLevel;
+  onLevel: (l: CompareLevel) => void;
   phase: ReconPhase;
   phases: ReconPhase[];
   onPhase: (key: string) => void;
@@ -86,11 +100,14 @@ export default function VsCompareGrid({
 }) {
   const grid = `minmax(280px,1fr) repeat(${names.length}, 108px) 170px`;
   const decidedCount = rows.filter((r) => decisions[r.key]).length;
+  const meta = LEVEL_META[level];
+  const showRail = level === '5';
+  const showAreaPills = level !== '3';
 
   return (
     <div style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fafafa' }}>
       <div style={{ padding: '12px 16px 20px', minWidth: 700 + names.length * 110 }}>
-        {/* Phase pill row — every phase, the open one dark (design 2b's stream pills). */}
+        {/* Level buttons + L3-area pill row — the user picks what to compare. */}
         <div
           style={{
             display: 'flex',
@@ -130,124 +147,180 @@ export default function VsCompareGrid({
               margin: '0 2px',
             }}
           >
-            Phase
+            Compare
           </span>
-          {phases.map((p) => {
-            const on = p.key === phase.key;
-            return (
-              <button
-                key={p.key}
-                type="button"
-                onClick={() => onPhase(p.key)}
-                style={{
-                  font: 'inherit',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  borderRadius: 9999,
-                  padding: '4px 11px',
-                  fontSize: 11.5,
-                  fontWeight: 500,
-                  background: on ? '#171717' : '#fff',
-                  color: on ? '#fff' : '#525252',
-                  border: on ? '1px solid #171717' : '1px solid #eaeaea',
-                  whiteSpace: 'nowrap',
-                  cursor: 'pointer',
-                }}
-              >
-                {p.label}
-              </button>
-            );
-          })}
-        </div>
-
-        <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-          {/* Sub-process rail */}
           <div
             style={{
-              width: 250,
-              flexShrink: 0,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 2,
+              borderRadius: 9999,
               border: '1px solid #eaeaea',
-              borderRadius: 12,
               background: '#fff',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
-              padding: 10,
+              padding: 2,
             }}
           >
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                color: '#737373',
-                padding: '2px 10px 8px',
-              }}
-            >
-              Sub-processes (L4)
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <button
-                type="button"
-                onClick={() => onRail(null)}
+            {(['3', '4', '5'] as CompareLevel[]).map((l) => {
+              const on = l === level;
+              return (
+                <button
+                  key={l}
+                  type="button"
+                  onClick={() => onLevel(l)}
+                  style={{
+                    font: 'inherit',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    borderRadius: 9999,
+                    padding: '3px 11px',
+                    fontSize: 11,
+                    fontWeight: on ? 600 : 500,
+                    background: on ? '#171717' : 'transparent',
+                    color: on ? '#fff' : '#525252',
+                    border: 'none',
+                    whiteSpace: 'nowrap',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {LEVEL_META[l].button}
+                </button>
+              );
+            })}
+          </div>
+          {showAreaPills && (
+            <>
+              <span
                 style={{
-                  font: 'inherit',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  width: '100%',
-                  textAlign: 'left',
-                  borderRadius: 8,
-                  padding: '6px 10px',
-                  fontSize: 11.5,
-                  fontWeight: railKey === null ? 600 : 500,
-                  background: railKey === null ? '#171717' : 'transparent',
-                  color: railKey === null ? '#fff' : '#404040',
-                  border: 'none',
-                  cursor: 'pointer',
+                  fontSize: 10,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  color: '#737373',
+                  margin: '0 2px',
                 }}
               >
-                <span style={{ flex: 1, minWidth: 0 }}>All sub-processes</span>
-                <span style={{ fontSize: 10, opacity: 0.7, fontVariantNumeric: 'tabular-nums' }}>
-                  {phase.rows.length}
-                </span>
-              </button>
-              {rail.map((s) => {
-                const on = railKey === s.key;
+                L3 area
+              </span>
+              {phases.map((p) => {
+                const on = p.key === phase.key;
                 return (
                   <button
-                    key={s.key}
+                    key={p.key}
                     type="button"
-                    onClick={() => onRail(s.key)}
+                    onClick={() => onPhase(p.key)}
                     style={{
                       font: 'inherit',
-                      display: 'flex',
+                      display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 8,
-                      width: '100%',
-                      textAlign: 'left',
-                      borderRadius: 8,
-                      padding: '6px 10px',
+                      borderRadius: 9999,
+                      padding: '4px 11px',
                       fontSize: 11.5,
-                      fontWeight: on ? 600 : 500,
-                      background: on ? '#171717' : 'transparent',
-                      color: on ? '#fff' : '#404040',
-                      border: 'none',
+                      fontWeight: 500,
+                      background: on ? '#171717' : '#fff',
+                      color: on ? '#fff' : '#525252',
+                      border: on ? '1px solid #171717' : '1px solid #eaeaea',
+                      whiteSpace: 'nowrap',
                       cursor: 'pointer',
                     }}
                   >
-                    <span style={{ flex: 1, minWidth: 0 }}>{s.label}</span>
-                    <span
-                      style={{ fontSize: 10, opacity: 0.7, fontVariantNumeric: 'tabular-nums' }}
-                    >
-                      {s.count}
-                    </span>
+                    {p.label}
                   </button>
                 );
               })}
-            </div>
-          </div>
+            </>
+          )}
+        </div>
 
-          {/* Task × stream matrix */}
+        <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+          {/* Sub-process rail (task-level compare only) */}
+          {showRail && (
+            <div
+              style={{
+                width: 250,
+                flexShrink: 0,
+                border: '1px solid #eaeaea',
+                borderRadius: 12,
+                background: '#fff',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                padding: 10,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  color: '#737373',
+                  padding: '2px 10px 8px',
+                }}
+              >
+                Sub-processes (L4)
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <button
+                  type="button"
+                  onClick={() => onRail(null)}
+                  style={{
+                    font: 'inherit',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    width: '100%',
+                    textAlign: 'left',
+                    borderRadius: 8,
+                    padding: '6px 10px',
+                    fontSize: 11.5,
+                    fontWeight: railKey === null ? 600 : 500,
+                    background: railKey === null ? '#171717' : 'transparent',
+                    color: railKey === null ? '#fff' : '#404040',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ flex: 1, minWidth: 0 }}>All sub-processes</span>
+                  <span style={{ fontSize: 10, opacity: 0.7, fontVariantNumeric: 'tabular-nums' }}>
+                    {phase.rows.length}
+                  </span>
+                </button>
+                {rail.map((s) => {
+                  const on = railKey === s.key;
+                  return (
+                    <button
+                      key={s.key}
+                      type="button"
+                      onClick={() => onRail(s.key)}
+                      style={{
+                        font: 'inherit',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        width: '100%',
+                        textAlign: 'left',
+                        borderRadius: 8,
+                        padding: '6px 10px',
+                        fontSize: 11.5,
+                        fontWeight: on ? 600 : 500,
+                        background: on ? '#171717' : 'transparent',
+                        color: on ? '#fff' : '#404040',
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <span style={{ flex: 1, minWidth: 0 }}>{s.label}</span>
+                      <span
+                        style={{ fontSize: 10, opacity: 0.7, fontVariantNumeric: 'tabular-nums' }}
+                      >
+                        {s.count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Unit × stream matrix */}
           <div
             style={{
               flex: 1,
@@ -271,13 +344,14 @@ export default function VsCompareGrid({
               }}
             >
               <span style={{ fontSize: 13, fontWeight: 600, color: '#171717' }}>
-                {phase.label}
-                {railKey && rail.find((r) => r.key === railKey)
+                {level === '3' ? 'All L3 areas' : phase.label}
+                {showRail && railKey && rail.find((r) => r.key === railKey)
                   ? ` › ${rail.find((r) => r.key === railKey)?.label}`
                   : ''}
               </span>
               <span style={{ fontSize: 11, color: '#525252' }}>
-                {rows.length} canonical tasks — each appears once ·{' '}
+                {rows.length} canonical {meta.noun}
+                {rows.length === 1 ? '' : 's'} — each appears once ·{' '}
                 <b style={{ color: '#171717' }}>{decidedCount}</b> decided by hand
               </span>
             </div>
@@ -295,7 +369,7 @@ export default function VsCompareGrid({
                 color: '#737373',
               }}
             >
-              <span>Canonical task</span>
+              <span>Canonical {meta.noun}</span>
               {names.map((n, i) => (
                 <span key={n} style={{ textAlign: 'center', color: streamTone(i) }} title={n}>
                   {n.length > 12 ? `${n.slice(0, 11)}…` : n}
@@ -388,28 +462,30 @@ export default function VsCompareGrid({
             ))}
             {rows.length === 0 && (
               <div style={{ padding: 16, fontSize: 12, color: '#737373' }}>
-                No steps in this sub-process.
+                No {meta.noun}s here.
               </div>
             )}
           </div>
         </div>
 
-        <div
-          style={{
-            marginTop: 14,
-            border: '1px solid #eaeaea',
-            borderRadius: 12,
-            overflow: 'hidden',
-            background: '#fff',
-          }}
-        >
-          <VsNewProcessFlow
-            phases={[{ ...phase, rows }]}
-            phaseKey={phase.key}
-            decisionOf={decisionOf}
-            streamNames={names}
-          />
-        </div>
+        {level === '5' && (
+          <div
+            style={{
+              marginTop: 14,
+              border: '1px solid #eaeaea',
+              borderRadius: 12,
+              overflow: 'hidden',
+              background: '#fff',
+            }}
+          >
+            <VsNewProcessFlow
+              phases={[{ ...phase, rows }]}
+              phaseKey={phase.key}
+              decisionOf={decisionOf}
+              streamNames={names}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
