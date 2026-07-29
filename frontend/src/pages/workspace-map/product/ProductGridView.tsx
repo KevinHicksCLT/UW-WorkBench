@@ -116,6 +116,7 @@ export default function ProductGridView({
     groupKey: string,
     status: ProductDecisionStatus,
     comment?: string,
+    meta?: { elementName?: string; componentNodeIds?: string[] },
   ) => Promise<void>;
 }) {
   const heat = useMemo(() => buildHeatmap(lobs, decisions), [lobs, decisions]);
@@ -204,7 +205,9 @@ export default function ProductGridView({
           defaultFilter={drillFilter}
           onBack={() => setDrill(null)}
           onDecide={(row, status, comment) =>
-            onDecide(row.lobId, row.group.component, row.group.key, status, comment)
+            onDecide(row.lobId, row.group.component, row.group.key, status, comment, {
+              elementName: row.group.name,
+            })
           }
         />
       ) : (

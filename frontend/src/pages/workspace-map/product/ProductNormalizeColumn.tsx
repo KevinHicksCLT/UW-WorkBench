@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { api } from '../../../lib/api';
 import { GREEN, AMBER, INDIGO } from '../types';
 import ReviewModal, { REVIEW_STATUS, type ReviewStatusChip } from '../ReviewModal';
+import ImpactPanel from '../impact/ImpactPanel';
+import { useImpactGate } from '../impact/useImpactGate';
 import OverviewCard, { OVERVIEW_TONES } from './OverviewCard';
 import { MATCH_META, groupCitations } from './spine';
 import type {
@@ -202,26 +204,39 @@ function ReviewActions({
   onResolved: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState<string | null>(null);
-  const [err, setErr] = useState('');
 
-  const resolve = async (status: string) => {
-    setErr('');
-    setSaving(status);
-    try {
-      await api.put('/product-spine/decisions', {
-        lobId,
-        component: group.component,
-        groupKey: group.key,
-        status,
-      });
-      onResolved();
-      setOpen(false);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : 'Failed');
-    } finally {
-      setSaving(null);
-    }
+  // Adopt/Variant decisions route through the common change-impact gate: the
+  // element's carrying versions + source systems are assessed and the write
+  // only fires once the user confirms from the report.
+  const gate = useImpactGate();
+  const resolve = (status: string) => {
+    const componentNodeIds = versions
+      .filter((v) => group.perVersion[v.id])
+      .map((v) => v.components.get(group.component)?.node.id)
+      .filter((id): id is string => !!id);
+    gate.run(
+      {
+        changeType: status === 'APPROVED' ? 'ADOPT' : status === 'HELD' ? 'HOLD' : 'RETIRE',
+        label: group.name,
+        subject: {
+          kind: 'product-element',
+          lobId,
+          component: group.component,
+          elementName: group.name,
+          componentNodeIds,
+        },
+      },
+      async () => {
+        await api.put('/product-spine/decisions', {
+          lobId,
+          component: group.component,
+          groupKey: group.key,
+          status,
+        });
+        onResolved();
+        setOpen(false);
+      },
+    );
   };
 
   const carriers = versions.filter((v) => group.perVersion[v.id]);
@@ -314,10 +329,11 @@ function ReviewActions({
               'It is left OUT of the normalized model unless adopted later.',
           },
         ]}
-        busyKey={saving}
-        error={err}
+        busyKey={null}
+        error=""
         onChoose={resolve}
       />
+      <ImpactPanel gate={gate} />
     </div>
   );
 }

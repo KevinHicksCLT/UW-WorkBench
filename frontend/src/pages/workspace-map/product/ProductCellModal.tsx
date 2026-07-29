@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '../../../lib/api';
 import { useApi } from '../../../lib/useApi';
+import ImpactPanel from '../impact/ImpactPanel';
+import { useImpactGate } from '../impact/useImpactGate';
 import { MATCH_META, groupCitations } from './spine';
 import type {
   Comparison,
@@ -87,14 +89,33 @@ export default function ProductCellModal({
   const count = (s: ElementGroup['status']) => groups.filter((g) => g.status === s).length;
   const reviewable = groups.filter((g) => g.status === 'PARTIAL' || g.status === 'UNIQUE');
 
-  const decide = async (group: ElementGroup, status: ProductDecisionStatus) => {
-    await api.put('/product-spine/decisions', {
-      lobId,
-      component: group.component,
-      groupKey: group.key,
-      status,
-    });
-    refetch();
+  // Adopt/Variant chips route through the common change-impact gate — the
+  // element is assessed before the sign-off writes.
+  const gate = useImpactGate();
+  const decide = (group: ElementGroup, status: ProductDecisionStatus) => {
+    const node = version.components.get(group.component)?.node;
+    gate.run(
+      {
+        changeType: status === 'APPROVED' ? 'ADOPT' : status === 'HELD' ? 'HOLD' : 'RETIRE',
+        label: group.name,
+        subject: {
+          kind: 'product-element',
+          lobId,
+          component: group.component,
+          elementName: group.name,
+          componentNodeIds: node ? [node.id] : undefined,
+        },
+      },
+      async () => {
+        await api.put('/product-spine/decisions', {
+          lobId,
+          component: group.component,
+          groupKey: group.key,
+          status,
+        });
+        refetch();
+      },
+    );
   };
 
   return createPortal(
@@ -414,6 +435,7 @@ export default function ProductCellModal({
           </button>
         </div>
       </div>
+      <ImpactPanel gate={gate} />
     </div>,
     document.body,
   );

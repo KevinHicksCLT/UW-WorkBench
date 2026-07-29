@@ -20,6 +20,8 @@ import SpineFilterBar, {
   type SpineFilters,
 } from './SpineFilterBar';
 import { TraceBreadcrumb, ZoomBtn } from './boardChrome';
+import ImpactPanel from '../impact/ImpactPanel';
+import { useImpactGate } from '../impact/useImpactGate';
 import { buildComparison, lobOptions, allVersions } from './spine';
 import type {
   ElementGroup,
@@ -113,7 +115,13 @@ export default function ProductBoard({
     return m;
   }, [allDecisionRows]);
 
-  const decide = async (
+  // Every decision routes through the common change-impact gate: the element
+  // is assessed against the product spine and the estate (versions carrying
+  // it, source systems its livesIn names, prior sign-offs) and the PUT only
+  // fires on confirm. The returned promise settles on confirm OR cancel so a
+  // caller's saving spinner always releases.
+  const gate = useImpactGate();
+  const applyDecision = async (
     lobId: string,
     component: string,
     groupKey: string,
@@ -124,6 +132,37 @@ export default function ProductBoard({
     refetchAllDecisions();
     refetchDecisions();
   };
+  const decide = (
+    lobId: string,
+    component: string,
+    groupKey: string,
+    status: ProductDecisionStatus,
+    comment?: string,
+    meta?: { elementName?: string; componentNodeIds?: string[] },
+  ) =>
+    new Promise<void>((resolve) => {
+      gate.run(
+        {
+          changeType: status === 'APPROVED' ? 'ADOPT' : status === 'HELD' ? 'HOLD' : 'RETIRE',
+          label: meta?.elementName,
+          subject: {
+            kind: 'product-element',
+            lobId,
+            component,
+            elementName: meta?.elementName,
+            componentNodeIds: meta?.componentNodeIds,
+          },
+        },
+        async () => {
+          try {
+            await applyDecision(lobId, component, groupKey, status, comment);
+          } finally {
+            resolve();
+          }
+        },
+        () => resolve(),
+      );
+    });
 
   // A different scope starts collapsed again — change-only, undefined while
   // the spine loads so the loading→loaded transition never counts.
@@ -419,6 +458,7 @@ export default function ProductBoard({
         >
           <ProductGridView lobs={scopedLobs} decisions={decisionMap} onDecide={decide} />
         </div>
+        <ImpactPanel gate={gate} />
       </div>
     );
 
