@@ -20,19 +20,33 @@ const SCHEMA = process.env.CHATBOT_SCHEMA ?? 'public';
 if (!/^[a-z_][a-z0-9_]*$/.test(SCHEMA)) {
   throw new Error(`Invalid CHATBOT_SCHEMA: ${SCHEMA}`);
 }
-const STATEMENT_TIMEOUT_MS = 8000;
+const STATEMENT_TIMEOUT_MS = 15_000;
 const MAX_ROWS = 500; // rows returned to the model per query
 
-export type SqlResult = { columns: string[]; rows: unknown[][]; rowCount: number; truncated: boolean };
+export type SqlResult = {
+  columns: string[];
+  rows: unknown[][];
+  rowCount: number;
+  truncated: boolean;
+};
 
 let pool: pg.Pool | null = null;
 function getPool(): pg.Pool {
-  if (!process.env.DATABASE_URL_RO) {
-    throw Object.assign(new Error('Assistant is not configured (DATABASE_URL_RO missing)'), { status: 503 });
+  // Prefer the dedicated read-only role, but fall back to the app's own
+  // connection so the assistant ALWAYS reads the same Neon branch the app is
+  // showing (a stale DATABASE_URL_RO pointing at another branch made the bot
+  // answer from different data). On the fallback, safety still holds via the
+  // READ ONLY transaction + assertSelectOnly's sensitive-table blocklist.
+  const url = process.env.DATABASE_URL_RO || process.env.DATABASE_URL;
+  if (!url) {
+    throw Object.assign(
+      new Error('Assistant is not configured (DATABASE_URL_RO / DATABASE_URL missing)'),
+      { status: 503 },
+    );
   }
   if (!pool) {
     pool = new Pool({
-      connectionString: process.env.DATABASE_URL_RO,
+      connectionString: url,
       ssl: { rejectUnauthorized: false },
       max: 4,
       idleTimeoutMillis: 30_000,
@@ -65,6 +79,10 @@ async function exec(sql: string, maxRows: number): Promise<SqlResult> {
 // transaction and the role's missing grants are the real enforcement; this just
 // fails fast with a clear message and blocks multi-statement injection.
 const FORBIDDEN = /\b(insert|update|delete|drop|alter|truncate|grant|revoke|create|merge|copy)\b/i;
+// Tables the assistant must never read (credential hashes, API keys, migration
+// ledger). Mixed-case tables must be double-quoted to be reachable at all, so
+// matching the quoted identifier is sufficient.
+const SENSITIVE = /"(User|ApiKey)"|_prisma_migrations/;
 
 export function assertSelectOnly(sql: string): string {
   // Strip trailing semicolons (the trim already removed trailing whitespace, so
@@ -75,6 +93,7 @@ export function assertSelectOnly(sql: string): string {
   if (stmt.includes(';')) throw new Error('Only a single statement is allowed (no semicolons).');
   if (!/^(select|with)\b/i.test(stmt)) throw new Error('Only SELECT / WITH queries are allowed.');
   if (FORBIDDEN.test(stmt)) throw new Error('Only read-only SELECT queries are allowed.');
+  if (SENSITIVE.test(stmt)) throw new Error('That table is not accessible to the assistant.');
   return stmt;
 }
 

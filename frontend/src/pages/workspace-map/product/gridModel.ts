@@ -4,7 +4,14 @@
 // the LOB's canonical version. Built on buildComparison, the same engine the
 // three-column detail view uses — the grid is just its portfolio-wide face.
 
-import { buildComparison, type Comparison, type LobOption, type VersionColumn } from './spine';
+import {
+  buildComparison,
+  type Comparison,
+  type ElementGroup,
+  type LobOption,
+  type ProductDecision,
+  type VersionColumn,
+} from './spine';
 
 export interface GridCell {
   component: string;
@@ -145,6 +152,161 @@ export function buildGridModel(lobs: LobOption[]): GridModel {
   for (const r of rows) byRec[r.rec] += 1;
 
   return { components, rows, comparisons, totals: { raw, normalized, byRec } };
+}
+
+// ── Transposed progress heatmap (products = columns, components = rows) ─────
+// The review workflow's derivation: COMMON/SINGLE element groups fold into the
+// model automatically; PARTIAL/UNIQUE need a reviewer decision. A decision row
+// (any status) counts the group as decided. RAG per component: green when
+// nothing is pending, amber when partially decided, red when untouched.
+
+export type Rag = 'green' | 'amber' | 'red';
+
+export interface HeatCounts {
+  total: number;
+  auto: number;
+  need: number;
+  decided: number;
+}
+
+export interface HeatCell extends HeatCounts {
+  /** null when the version does not carry the component. */
+  na: boolean;
+  versionId: string;
+  lobId: string;
+}
+
+export interface ReviewRow {
+  lobId: string;
+  lobName: string;
+  group: ElementGroup;
+  needsDecision: boolean;
+  decision: ProductDecision | null;
+  /** Presence per heatmap column (version id order). */
+  presence: boolean[];
+}
+
+export interface HeatRow extends HeatCounts {
+  component: string;
+  rag: Rag;
+  pct: number;
+  cells: HeatCell[];
+  /** Latest reviewer comment on this component's groups, if any. */
+  note: string | null;
+  reviewRows: ReviewRow[];
+}
+
+export interface Heatmap {
+  columns: VersionColumn[];
+  rows: HeatRow[];
+  totals: HeatCounts & { pct: number };
+}
+
+export function decisionKey(lobId: string, groupKey: string): string {
+  return `${lobId}::${groupKey}`;
+}
+
+function pctOf(c: HeatCounts): number {
+  return c.need === 0 ? 100 : Math.round((c.decided / c.need) * 100);
+}
+
+function ragOf(c: HeatCounts): Rag {
+  if (c.need === 0 || c.decided >= c.need) return 'green';
+  return c.decided > 0 ? 'amber' : 'red';
+}
+
+/**
+ * Build the transposed heatmap for the scoped LOBs: one column per version,
+ * one row per model component, progress counted from the per-LOB comparisons
+ * plus the persisted decisions (keyed lobId::groupKey).
+ */
+export function buildHeatmap(lobs: LobOption[], decisions: Map<string, ProductDecision>): Heatmap {
+  const columns = lobs.flatMap((l) => l.versions);
+  const colIndex = new Map(columns.map((v, i) => [v.id, i]));
+  const rowBy = new Map<string, HeatRow>();
+  const order: string[] = [];
+
+  for (const lob of lobs) {
+    const comparison = buildComparison(lob.versions);
+    for (const compRow of comparison.rows) {
+      let row = rowBy.get(compRow.component);
+      if (!row) {
+        row = {
+          component: compRow.component,
+          total: 0,
+          auto: 0,
+          need: 0,
+          decided: 0,
+          rag: 'green',
+          pct: 100,
+          note: null,
+          cells: columns.map((v) => ({
+            na: !v.components.has(compRow.component),
+            versionId: v.id,
+            lobId: v.lobId,
+            total: 0,
+            auto: 0,
+            need: 0,
+            decided: 0,
+          })),
+          reviewRows: [],
+        };
+        rowBy.set(compRow.component, row);
+        order.push(compRow.component);
+      }
+      for (const g of compRow.groups) {
+        const needs = g.status === 'PARTIAL' || g.status === 'UNIQUE';
+        const decision = decisions.get(decisionKey(lob.id, g.key)) ?? null;
+        row.total += 1;
+        if (needs) {
+          row.need += 1;
+          if (decision) row.decided += 1;
+        } else {
+          row.auto += 1;
+        }
+        if (decision?.comment) row.note = decision.comment;
+        row.reviewRows.push({
+          lobId: lob.id,
+          lobName: lob.name,
+          group: g,
+          needsDecision: needs,
+          decision,
+          presence: columns.map((v) => g.perVersion[v.id] != null),
+        });
+        for (const v of lob.versions) {
+          if (g.perVersion[v.id] == null) continue;
+          const cell = row.cells[colIndex.get(v.id) ?? -1];
+          if (!cell) continue;
+          cell.total += 1;
+          if (needs) {
+            cell.need += 1;
+            if (decision) cell.decided += 1;
+          } else {
+            cell.auto += 1;
+          }
+        }
+      }
+    }
+  }
+
+  const rows: HeatRow[] = [];
+  for (const c of order) {
+    const row = rowBy.get(c);
+    if (!row) continue;
+    row.pct = pctOf(row);
+    row.rag = ragOf(row);
+    rows.push(row);
+  }
+  const totals = rows.reduce(
+    (acc, r) => ({
+      total: acc.total + r.total,
+      auto: acc.auto + r.auto,
+      need: acc.need + r.need,
+      decided: acc.decided + r.decided,
+    }),
+    { total: 0, auto: 0, need: 0, decided: 0 },
+  );
+  return { columns, rows, totals: { ...totals, pct: pctOf(totals) } };
 }
 
 export type GridGroupMode = 'spine' | 'variance';

@@ -62,11 +62,15 @@ export interface LobOption {
 export type MatchStatus = 'COMMON' | 'PARTIAL' | 'UNIQUE' | 'SINGLE';
 
 /** Reviewer sign-off for a varies/unique element group (GET /product-spine/decisions). */
-export type ProductDecisionStatus = 'APPROVED' | 'HELD';
+export type ProductDecisionStatus = 'APPROVED' | 'HELD' | 'RETIRED';
 export interface ProductDecision {
+  /** Owning LOB — present on the portfolio-wide (no lobId) fetch. */
+  lobId?: string;
   groupKey: string;
   component: string;
   status: ProductDecisionStatus;
+  comment?: string | null;
+  decidedBy?: string | null;
 }
 
 /** One normalized element — the same concern matched across versions. */

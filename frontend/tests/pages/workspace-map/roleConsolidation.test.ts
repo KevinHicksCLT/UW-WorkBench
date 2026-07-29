@@ -3,6 +3,7 @@ import {
   buildTarget,
   columnKeySets,
   dedupeTasks,
+  makeKeyOf,
   recommendedTarget,
   roleFacts,
   roleRecs,
@@ -13,7 +14,7 @@ import {
 } from '../../../src/pages/workspace-map/spine/roleConsolidation';
 
 // The Roles lens consolidation engine: facts, target recommendation, per-step
-// fates and the resulting target role.
+// fates and the resulting target role (fuzzy canonical keys via makeKeyOf).
 
 const t = (id: string, name: string, vs = 'Compliance', involvement = 'Owner'): RoleTask => ({
   id,
@@ -23,6 +24,7 @@ const t = (id: string, name: string, vs = 'Compliance', involvement = 'Owner'): 
   l3: 'Area',
   l4: 'Sub',
   apps: [],
+  agent: null,
 });
 
 const analyst: RoleColumnInput = {
@@ -42,24 +44,24 @@ const manager: RoleColumnInput = {
   tasks: [
     t('4', 'Aggregate compliance metrics'),
     t('5', 'Classify issue severity'),
-    t('6', 'Approve the compliance monitoring calendar'),
+    t('6', 'Approve the annual audit plan'),
     t('7', 'Escalate breaches to the risk committee', 'Governance'),
   ],
 };
+const cols = [analyst, manager];
+const keyOf = makeKeyOf(cols);
 
 describe('roleFacts / recommendedTarget', () => {
   it('counts duplicated vs sole work and picks the covering role as target', () => {
-    const cols = [analyst, manager];
-    const facts = roleFacts(cols);
+    const facts = roleFacts(cols, keyOf);
     expect(facts[0]).toMatchObject({ steps: 3, dup: 2, only: 1, streams: 2 });
     expect(facts[1]).toMatchObject({ steps: 4, dup: 2, only: 2, streams: 2 });
     // Equal coverage both ways (2 each) — the bigger role wins the tie.
-    expect(recommendedTarget(cols)).toBe(1);
+    expect(recommendedTarget(cols, keyOf)).toBe(1);
   });
 
   it('recommends consolidation only past the overlap threshold', () => {
-    const cols = [analyst, manager];
-    const recs = roleRecs(cols, roleFacts(cols), 1);
+    const recs = roleRecs(cols, roleFacts(cols, keyOf), 1, keyOf);
     expect(recs[1].rec).toBe('TARGET');
     // 2 of the analyst's 3 steps (67%) already live in the manager.
     expect(recs[0].rec).toBe('CONSOLIDATE');
@@ -68,19 +70,17 @@ describe('roleFacts / recommendedTarget', () => {
 
 describe('stepFate', () => {
   it('labels covered, moving and staying steps under the decisions', () => {
-    const cols = [analyst, manager];
-    const keySets = columnKeySets(cols);
+    const keySets = columnKeySets(cols, keyOf);
     const going = [true, false];
-    expect(stepFate(analyst.tasks[0], 0, cols, keySets, going, 1).kind).toBe('covered');
-    expect(stepFate(analyst.tasks[2], 0, cols, keySets, going, 1).kind).toBe('moves');
-    expect(stepFate(manager.tasks[2], 1, cols, keySets, going, 1).kind).toBe('stays');
+    expect(stepFate(analyst.tasks[0], 0, cols, keySets, going, 1, keyOf).kind).toBe('covered');
+    expect(stepFate(analyst.tasks[2], 0, cols, keySets, going, 1, keyOf).kind).toBe('moves');
+    expect(stepFate(manager.tasks[2], 1, cols, keySets, going, 1, keyOf).kind).toBe('stays');
   });
 });
 
 describe('buildTarget', () => {
   it('folds a consolidating role into the target with provenance', () => {
-    const cols = [analyst, manager];
-    const { steps, merged, moved } = buildTarget(cols, [true, false], 1, {});
+    const { steps, merged, moved } = buildTarget(cols, [true, false], 1, {}, keyOf);
     // Manager's 4 + analyst's 1 unique moved in; 2 analyst steps merged away.
     expect(steps).toHaveLength(5);
     expect(merged).toBe(2);
@@ -93,16 +93,15 @@ describe('buildTarget', () => {
   });
 
   it('honors per-step Keep and Drop overrides', () => {
-    const cols = [analyst, manager];
-    const { steps } = buildTarget(cols, [true, false], 1, { 'r1:3': 'Drop' });
+    const { steps } = buildTarget(cols, [true, false], 1, { 'r1:3': 'Drop' }, keyOf);
     expect(steps.find((s) => s.name.startsWith('Sample'))).toBeUndefined();
-    const kept = buildTarget(cols, [true, false], 1, { 'r1:3': 'Keep' });
+    const kept = buildTarget(cols, [true, false], 1, { 'r1:3': 'Keep' }, keyOf);
     expect(kept.steps.find((s) => s.name.startsWith('Sample'))).toBeUndefined();
     expect(kept.moved).toBe(0);
   });
 
   it('returns only the target set when nothing consolidates', () => {
-    const { steps, merged, moved } = buildTarget([analyst, manager], [false, false], 1, {});
+    const { steps, merged, moved } = buildTarget(cols, [false, false], 1, {}, keyOf);
     expect(steps).toHaveLength(4);
     expect(merged).toBe(0);
     expect(moved).toBe(0);
