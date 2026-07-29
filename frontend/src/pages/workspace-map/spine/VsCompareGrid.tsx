@@ -18,10 +18,10 @@ export interface RailEntry {
 
 export type CompareLevel = '3' | '4' | '5';
 
-const LEVEL_META: Record<CompareLevel, { button: string; noun: string }> = {
-  '3': { button: 'L3 areas', noun: 'L3 area' },
-  '4': { button: 'L4 sub-processes', noun: 'L4 sub-process' },
-  '5': { button: 'L5 tasks', noun: 'L5 task' },
+const LEVEL_META: Record<CompareLevel, { button: string; noun: string; plural: string }> = {
+  '3': { button: 'L3 areas', noun: 'L3 area', plural: 'L3 areas' },
+  '4': { button: 'L4 sub-processes', noun: 'L4 sub-process', plural: 'L4 sub-processes' },
+  '5': { button: 'L5 tasks', noun: 'L5 task', plural: 'L5 tasks' },
 };
 
 function DecisionButtons({
@@ -350,8 +350,8 @@ export default function VsCompareGrid({
                   : ''}
               </span>
               <span style={{ fontSize: 11, color: '#525252' }}>
-                {rows.length} canonical {meta.noun}
-                {rows.length === 1 ? '' : 's'} — each appears once ·{' '}
+                {rows.length} canonical {rows.length === 1 ? meta.noun : meta.plural} — each
+                appears once ·{' '}
                 <b style={{ color: '#171717' }}>{decidedCount}</b> decided by hand
               </span>
             </div>
@@ -462,7 +462,7 @@ export default function VsCompareGrid({
             ))}
             {rows.length === 0 && (
               <div style={{ padding: 16, fontSize: 12, color: '#737373' }}>
-                No {meta.noun}s here.
+                No {meta.plural} here.
               </div>
             )}
           </div>

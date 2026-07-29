@@ -141,7 +141,9 @@ export default function VsMapView({
                           padding: '8px 10px',
                           borderRadius: 10,
                           background: '#fff',
-                          border: isOpen ? `1.5px solid ${tone}` : '1px solid #e2e8f0',
+                          borderLeft: isOpen ? `1.5px solid ${tone}` : '1px solid #e2e8f0',
+                          borderRight: isOpen ? `1.5px solid ${tone}` : '1px solid #e2e8f0',
+                          borderBottom: isOpen ? `1.5px solid ${tone}` : '1px solid #e2e8f0',
                           borderTop: `3px solid ${tone}`,
                           boxShadow: isOpen ? `0 0 0 3px ${tone}22` : '0 2px 8px rgba(0,0,0,0.06)',
                           cursor: 'pointer',
@@ -278,7 +280,11 @@ export default function VsMapView({
                               padding: '6px 9px',
                               borderRadius: 8,
                               background: '#fff',
-                              border: subOpen ? `1.5px solid ${tone}` : '1px solid #e2e8f0',
+                              borderTop: subOpen ? `1.5px solid ${tone}` : '1px solid #e2e8f0',
+                              borderRight: subOpen ? `1.5px solid ${tone}` : '1px solid #e2e8f0',
+                              borderBottom: subOpen
+                                ? `1.5px solid ${tone}`
+                                : '1px solid #e2e8f0',
                               borderLeft: `3px solid ${tone}`,
                               boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
                               cursor: 'pointer',
