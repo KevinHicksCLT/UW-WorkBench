@@ -401,6 +401,31 @@ export default function ProductReviewList({
           <option value="name">Sort: element name</option>
           <option value="line">Sort: product line</option>
         </select>
+        {onToggleAbbr && (
+          <button
+            type="button"
+            onClick={onToggleAbbr}
+            title={
+              abbr
+                ? 'show full product names'
+                : 'collapse product names to initials — hover a column for the full name'
+            }
+            style={{
+              font: 'inherit',
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              color: abbr ? '#fff' : '#525252',
+              background: abbr ? '#171717' : '#fff',
+              border: '1px solid #d4d4d4',
+              borderRadius: 6,
+              padding: '5px 9px',
+              cursor: 'pointer',
+            }}
+          >
+            ABBR
+          </button>
+        )}
         <div
           style={{
             display: 'flex',
@@ -515,7 +540,7 @@ export default function ProductReviewList({
                     textOverflow: 'ellipsis',
                   }}
                 >
-                  {v.productName} · {v.name}
+                  {colLabel(v)}
                 </span>
               </span>
             ))}

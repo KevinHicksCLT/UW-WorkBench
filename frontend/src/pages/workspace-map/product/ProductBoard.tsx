@@ -89,6 +89,8 @@ export default function ProductBoard({
   // only peeks to slim its chrome while a review list is open.
   const [boardSearchParams] = useSearchParams();
   const drilled = boardSearchParams.get('pmDrill') !== null;
+  // Table scrolled → the board's own chrome rows hide too.
+  const [immersive, setImmersive] = useState(false);
   const crossLob = useMemo(() => new Set(versions.map((v) => v.lobId)).size > 1, [versions]);
   const comparison = useMemo(() => buildComparison(versions), [versions]);
   // The scope's home LOB: the first scoped version's line. Decisions and the
@@ -460,10 +462,11 @@ export default function ProductBoard({
           minHeight: 480,
         }}
       >
-        {lensBar}
-        {filterRow}
-        {/* Inside a review drill the banner is noise — the table gets its height. */}
-        {!drilled && bannerStrip}
+        {/* Scrolled into the table, every chrome row hides — scroll back to
+            the top and it all returns. */}
+        {!immersive && lensBar}
+        {!immersive && filterRow}
+        {!immersive && !drilled && bannerStrip}
         <div
           style={{
             border: '1px solid #eaeaea',
@@ -477,7 +480,12 @@ export default function ProductBoard({
             flexDirection: 'column',
           }}
         >
-          <ProductGridView lobs={scopedLobs} decisions={decisionMap} onDecide={decide} />
+          <ProductGridView
+            lobs={scopedLobs}
+            decisions={decisionMap}
+            onDecide={decide}
+            onImmersive={setImmersive}
+          />
         </div>
         <ImpactPanel gate={gate} />
       </div>

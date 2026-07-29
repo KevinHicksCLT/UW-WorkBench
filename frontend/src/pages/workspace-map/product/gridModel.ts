@@ -206,6 +206,24 @@ export function decisionKey(lobId: string, groupKey: string): string {
   return `${lobId}::${groupKey}`;
 }
 
+/** Compact column label — product initials + version token ("PPA6·v9").
+ *  The full name stays one hover away (title attribute on the header cell). */
+export function abbrevVersion(v: VersionColumn): string {
+  const initials = v.productName
+    .split(/[\s/–—-]+/)
+    .filter(Boolean)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 4);
+  const ver =
+    v.name
+      .split(/[\s—–]+/)
+      .filter(Boolean)[0]
+      ?.replace(/[^\w.-]/g, '') ?? '';
+  return ver ? `${initials}·${ver}` : initials;
+}
+
 function pctOf(c: HeatCounts): number {
   return c.need === 0 ? 100 : Math.round((c.decided / c.need) * 100);
 }
