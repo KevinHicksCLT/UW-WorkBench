@@ -11,6 +11,7 @@ import {
   rolesForNodes,
   streamAncestry,
 } from '../../lib/resolvers/index.js';
+import { taskPlans } from '../../lib/workPlan.js';
 import { activeCompanyId } from './helpers.js';
 
 // ProcessNode.automatability → 1-5 agent-automatability score (1 Autonomous
@@ -137,6 +138,42 @@ export function registerSpineRoutes(router: Router) {
         domain: root.parent?.displayValue ?? null,
         areas,
       });
+    } catch (e) {
+      next(e);
+    }
+  });
+
+  // GET /rationalization/spine/task-steps?ids=a,b,c — Process-level-6 steps
+  // for a batch of L5 tasks: each task's Work Library plan checklist rows, in
+  // plan order. Lazy-loaded by the workspace lenses when a task expands.
+  router.get('/spine/task-steps', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const companyId = await activeCompanyId(req, res);
+      if (!companyId) return;
+      const ids = String(req.query.ids ?? '')
+        .split(',')
+        .filter(Boolean)
+        .slice(0, 60);
+      if (!ids.length) return res.json({});
+      const nodes = await prisma.processNode.findMany({
+        where: { id: { in: ids }, companyId },
+        select: { id: true },
+      });
+      const valid = nodes.map((n) => n.id);
+      const plans = await taskPlans(valid);
+      res.json(
+        Object.fromEntries(
+          valid.map((id) => {
+            const p = plans.get(id);
+            const steps = (p?.checklist ?? []).map((r, i) => ({
+              seq: i + 1,
+              name: r.key,
+              detail: r.value,
+            }));
+            return [id, steps];
+          }),
+        ),
+      );
     } catch (e) {
       next(e);
     }

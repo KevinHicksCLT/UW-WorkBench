@@ -1,31 +1,26 @@
 import { useEffect, useMemo } from 'react';
 import { EmptyState, ErrorMessage, LoadingState } from '../../../components/ui';
+import { useDialogs } from '../../../lib/dialogs';
 import { useOnChange, useViewState } from '../../../lib/viewState';
 import LensBar, { type WorkspaceLens } from '../LensBar';
-import { Picker, type PoolOption } from './SpineBoard';
-import VsMapView from './VsMapView';
-import VsCompareGrid, { type CompareLevel, type RailEntry } from './VsCompareGrid';
-import { defaultDecision, type ReconDecision } from './VsNewProcessFlow';
-import {
-  alignStages,
-  buildReconciliation,
-  type ReconLaneInput,
-  type ReconPhase,
-  type ReconRow,
-  type ReconStep,
-  type StageSlot,
-} from './spineCompare';
-import { useStreamDetails, useStreamList, type StreamDetail } from './useSpineData';
 import ImpactPanel from '../impact/ImpactPanel';
 import { useImpactGate } from '../impact/useImpactGate';
+import { Picker, type PoolOption } from './SpineBoard';
+import VsMapView from './VsMapView';
+import VsCompareBoard, { type CompareLevel } from './VsCompareBoard';
+import { payloadToItem } from './VsBuilderPanel';
+import { type BuilderItem, type DragPayload } from './processBuilder';
+import { alignStages, type StageSlot } from './spineCompare';
+import { useStreamDetails, useStreamList, useTaskSteps, type StreamDetail } from './useSpineData';
 
 // Value-streams lens — compare ANY number of streams on pure process levels
-// (L2 stream › L3 area › L4 sub-process › L5 task; no invented vocabulary).
-// The MAP view shows each compared stream as its own lane; any number of L3
-// areas expand at once (mirrored across lanes) and L4s expand further to
-// their L5 tasks — browse the whole spine side by side. Comparison is the
-// user's own act: hit Compare, then pick WHICH LEVEL to reconcile at with the
-// L3/L4/L5 buttons. All live spine data.
+// (Process level 2 stream › 3 › 4 › 5 task › 6 Work Library step). The MAP
+// browses the spines side by side, expanding any number of PL3s at once and
+// drilling PL4 → PL5 → PL6 in place. COMPARE is the process editor: columns
+// of sequential cards at the chosen level, russian-doll nesting into lower
+// levels, and the drag-and-drop new-value-stream builder with a realtime
+// flow. Both views feed the same builder; promoting routes through the
+// common change-impact gate.
 
 export default function VsStreamBoard({
   lens,
@@ -34,18 +29,16 @@ export default function VsStreamBoard({
   lens: WorkspaceLens;
   onLens: (l: WorkspaceLens) => void;
 }) {
+  const dialogs = useDialogs();
   const { data: streams, loading: listLoading, error: listError } = useStreamList();
   const [ids, setIds] = useViewState<string[]>('workspace.vs.ids', []);
   const [mode, setMode] = useViewState<'map' | 'grid'>('workspace.vs.mode', 'map');
   const [level, setLevel] = useViewState<CompareLevel>('workspace.vs.level', '5');
   const [openSlots, setOpenSlots] = useViewState<string[]>('workspace.vs.openSlots', []);
   const [openSubs, setOpenSubs] = useViewState<string[]>('workspace.vs.openSubs', []);
-  const [phaseKey, setPhaseKey] = useViewState<string | null>('workspace.vs.phase', null);
-  const [subKey, setSubKey] = useViewState<string | null>('workspace.vs.sub', null);
-  const [decisions, setDecisions] = useViewState<Record<string, ReconDecision>>(
-    'workspace.vs.decisions',
-    {},
-  );
+  const [openTasks, setOpenTasks] = useViewState<string[]>('workspace.vs.openTasks', []);
+  const [builder, setBuilder] = useViewState<BuilderItem[]>('workspace.vs.builder', []);
+  const { load: loadSteps, stepsOf } = useTaskSteps();
 
   useEffect(() => {
     if (streams && streams.length > 1 && ids.length < 2) setIds([streams[0].id, streams[1].id]);
@@ -54,16 +47,8 @@ export default function VsStreamBoard({
     setMode('map');
     setOpenSlots([]);
     setOpenSubs([]);
-    setPhaseKey(null);
-    setSubKey(null);
-    setDecisions({});
-  });
-  // Row keys and phase slots are level-specific — changing the compare level
-  // resets the drill and the hand decisions.
-  useOnChange(level, () => {
-    setPhaseKey(null);
-    setSubKey(null);
-    setDecisions({});
+    setOpenTasks([]);
+    setBuilder([]);
   });
 
   const { data: details, loading, error } = useStreamDetails(ids);
@@ -71,7 +56,6 @@ export default function VsStreamBoard({
     () => ids.map((id) => details?.[id]).filter((d): d is StreamDetail => !!d),
     [details, ids],
   );
-  const names = lanes.map((l) => l.name);
 
   const pool: PoolOption[] = useMemo(
     () =>
@@ -84,112 +68,47 @@ export default function VsStreamBoard({
     [streams],
   );
 
-  // The map always shows the full L3→L4→L5 structure; the GRID reconciles at
-  // the user-picked level. L5 compares tasks inside aligned L3 areas (the
-  // original shape); L4 compares sub-processes inside aligned L3 areas; L3
-  // compares the areas themselves in one shared slot.
-  const mapInputs: ReconLaneInput[] = useMemo(
-    () =>
-      lanes.map((d) => ({
-        id: d.id,
-        stages: d.areas.map((ar) => ({ id: ar.id, name: ar.name, subs: ar.subs })),
-      })),
-    [lanes],
-  );
-  const gridInputs: ReconLaneInput[] = useMemo(() => {
-    if (level === '5') return mapInputs;
-    if (level === '4')
-      return lanes.map((d) => ({
-        id: d.id,
-        stages: d.areas.map((ar) => ({
-          id: ar.id,
-          name: ar.name,
-          subs: [
-            {
-              name: ar.name,
-              tasks: ar.subs.map((s) => ({ id: s.id, name: s.name })),
-            },
-          ],
-        })),
-      }));
-    return lanes.map((d) => ({
-      id: d.id,
-      stages: [
-        {
-          id: `${d.id}:structure`,
-          name: 'All L3 areas',
-          subs: [{ name: 'L3 areas', tasks: d.areas.map((a) => ({ id: a.id, name: a.name })) }],
-        },
-      ],
-    }));
-  }, [lanes, level, mapInputs]);
-
-  const phases: ReconPhase[] = useMemo(
-    () => (gridInputs.length >= 2 ? buildReconciliation(gridInputs) : []),
-    [gridInputs],
-  );
   const slots: StageSlot[] = useMemo(
     () =>
-      mapInputs.length >= 2
-        ? alignStages(mapInputs.map((l) => ({ lane: l.id, stages: l.stages })))
+      lanes.length >= 2
+        ? alignStages(
+            lanes.map((d) => ({
+              lane: d.id,
+              stages: d.areas.map((a) => ({ id: a.id, name: a.name })),
+            })),
+          )
         : [],
-    [mapInputs],
+    [lanes],
   );
 
-  const phase = phaseKey ? (phases.find((p) => p.key === phaseKey) ?? null) : null;
-  const gridPhase = phase ?? phases[0] ?? null;
+  const addToBuilder = (p: DragPayload) => setBuilder((cur) => [...cur, payloadToItem(p)]);
 
-  // Rail = the drilled area's canonical L4 sub-processes (L5 compare only):
-  // every distinct sub name the area's rows reference, once, with row count.
-  const rail: RailEntry[] = useMemo(() => {
-    if (!gridPhase || level !== '5') return [];
-    const seen = new Map<string, number>();
-    for (const r of gridPhase.rows) {
-      for (const c of r.cells) {
-        if (!c) continue;
-        seen.set(c.sub, (seen.get(c.sub) ?? 0) + 1);
-        break; // one rail credit per row — the first carrying stream names it
-      }
-    }
-    return [...seen.entries()].map(([label, count]) => ({ key: label, label, count }));
-  }, [gridPhase, level]);
-
-  const gridRows: ReconRow[] = useMemo(() => {
-    if (!gridPhase) return [];
-    if (!subKey || level !== '5') return gridPhase.rows;
-    return gridPhase.rows.filter((r) => r.cells.some((c) => c && c.sub === subKey));
-  }, [gridPhase, subKey, level]);
-
-  const decisionOf = (row: ReconRow): ReconDecision => decisions[row.key] ?? defaultDecision(row);
-
-  // Every Merge/Drop routes through the common change-impact gate: the row's
-  // real ProcessNode ids (one per carrying stream) are assessed against the
-  // live graph, and the decision only records once the user confirms from the
-  // report. Keep is a no-change decision — no gate.
+  // Promoting the composed process routes through the common change-impact
+  // gate: every builder item's real ProcessNode ids are assessed against the
+  // live graph before the promotion summary shows.
   const gate = useImpactGate();
-  const decideRow = (rowKey: string, d: ReconDecision) => {
-    const apply = () => setDecisions((c) => ({ ...c, [rowKey]: d }));
-    if (d === 'Keep') return apply();
-    const row = gridRows.find((r) => r.key === rowKey);
-    const nodeIds = row ? row.cells.filter((c): c is ReconStep => !!c).map((c) => c.id) : [];
-    if (!nodeIds.length) return apply();
+  const promote = () => {
+    const nodeIds = [...new Set(builder.flatMap((b) => b.nodeIds))];
+    const agentRun = builder.filter((b) => b.agent).length;
+    const summarize = () =>
+      dialogs.alert({
+        title: 'Promote new value stream',
+        message: `${builder.length} steps composed from ${new Set(builder.map((b) => b.source)).size} streams — ${agentRun} run agent-only. Promotion into the live spine is decision-preview only in this workspace; export the builder to take it forward.`,
+      });
+    if (!nodeIds.length) return summarize();
     gate.run(
       {
-        changeType: d === 'Drop' ? 'DROP' : 'MERGE',
-        label: row?.canonName,
+        changeType: 'MERGE',
+        label: 'New value stream',
         subject: { kind: 'process-nodes', nodeIds },
       },
-      apply,
+      summarize,
     );
   };
 
   if (listLoading) return <LoadingState message="Loading value streams…" />;
   if (listError) return <ErrorMessage>{listError}</ErrorMessage>;
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
-
-  const shared = phases.reduce((n, p) => n + p.rows.filter((r) => r.presentIn > 1).length, 0);
-  const total = phases.reduce((n, p) => n + p.rows.length, 0);
-  const levelNoun = level === '3' ? 'L3 areas' : level === '4' ? 'L4 sub-processes' : 'L5 tasks';
 
   return (
     <div
@@ -250,9 +169,25 @@ export default function VsStreamBoard({
         </div>
         <span style={{ fontSize: 11, color: '#525252', marginBottom: 10 }}>
           {mode === 'grid'
-            ? `comparing ${levelNoun}: ${total} units of work · ${shared} shared across the ${names.length} streams`
-            : `expand L3 areas and L4 sub-processes in place — the same level opens in every stream at once`}
+            ? 'click cards to nest deeper · drag into the builder to compose the new process'
+            : 'expand process levels in place — every stream opens together, down to level 6'}
         </span>
+        {builder.length > 0 && (
+          <span
+            style={{
+              fontSize: 10.5,
+              fontWeight: 600,
+              color: '#047857',
+              background: '#ecfdf5',
+              border: '1px solid #a7f3d0',
+              borderRadius: 999,
+              padding: '2px 10px',
+              marginBottom: 10,
+            }}
+          >
+            new process: {builder.length} steps
+          </span>
+        )}
       </div>
 
       <div
@@ -287,31 +222,29 @@ export default function VsStreamBoard({
             onToggleSub={(k) =>
               setOpenSubs((cur) => (cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]))
             }
-          />
-        ) : gridPhase ? (
-          <VsCompareGrid
-            level={level}
-            onLevel={setLevel}
-            phase={gridPhase}
-            phases={phases}
-            onPhase={(k) => {
-              setPhaseKey(k);
-              setSubKey(null);
+            openTasks={openTasks}
+            onToggleTask={(id) => {
+              setOpenTasks((cur) =>
+                cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id],
+              );
+              loadSteps([id]);
             }}
-            rail={rail}
-            railKey={subKey}
-            onRail={setSubKey}
-            rows={gridRows}
-            names={names}
-            decisions={decisions}
-            decisionOf={decisionOf}
-            onDecide={decideRow}
-            onBackToMap={() => setMode('map')}
+            stepsOf={stepsOf}
+            onAdd={addToBuilder}
           />
         ) : (
-          <div style={{ padding: 24 }}>
-            <EmptyState message="No aligned L3 areas between these streams yet." />
-          </div>
+          <VsCompareBoard
+            lanes={lanes}
+            level={level}
+            onLevel={setLevel}
+            items={builder}
+            onItemsChange={setBuilder}
+            onPromote={promote}
+            onAdd={addToBuilder}
+            stepsOf={stepsOf}
+            loadSteps={loadSteps}
+            onBackToMap={() => setMode('map')}
+          />
         )}
       </div>
       <ImpactPanel gate={gate} />

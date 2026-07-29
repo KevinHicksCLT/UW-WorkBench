@@ -1,24 +1,18 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { EmptyState, ErrorMessage, LoadingState } from '../../../components/ui';
 import { useDialogs } from '../../../lib/dialogs';
 import { useOnChange, useViewState } from '../../../lib/viewState';
 import LensBar, { type WorkspaceLens } from '../LensBar';
-import { AMBER, GREEN, INDIGO } from '../types';
+import ImpactPanel from '../impact/ImpactPanel';
+import { useImpactGate } from '../impact/useImpactGate';
+import { INDIGO } from '../types';
 import { Picker, type PoolOption } from './SpineBoard';
+import { RoleRail, RoleFlowStrip } from './RoleBuilderRail';
+import { RoleColumns, type TaskFilter } from './RoleTaskColumns';
+import { type BuilderItem, type DragPayload } from './processBuilder';
 import {
-  AlignedTaskGrid,
-  RoleTaskModal,
-  TargetColumn,
-  ROLE_COL_W,
-  type OpenTask,
-  type TaskFilter,
-} from './RoleTaskColumns';
-import {
-  buildTarget,
   columnKeySets,
   dedupeTasks,
-  isAgentable,
-  isAgentAssisted,
   makeKeyOf,
   recommendedTarget,
   roleFacts,
@@ -26,17 +20,17 @@ import {
   roleShort,
   type RoleColumnInput,
   type RoleDecision,
-  type StepDecision,
 } from './roleConsolidation';
-import { useRoleDetails, useRoleList, useStreamList } from './useSpineData';
-import ImpactPanel from '../impact/ImpactPanel';
-import { useImpactGate } from '../impact/useImpactGate';
+import { useRoleDetails, useRoleList, useStreamList, useTaskSteps } from './useSpineData';
 
-// Roles lens — one role at a time, its actual tasks, one decision. The spine
-// is the axis (value stream › L4 sub-process › L5 step): a card per compared
-// role carries the evidence and the decision (consolidate into the target /
-// deprecate / keep); below, every task column by column with its fate, and the
-// green TARGET ROLE column building the resulting role. All live graph data.
+// Roles lens — the role editor. Compact role cards carry the consolidation
+// evidence and decision (through the change-impact gate); below, one dense
+// column per role with its tasks in flow order, each expandable to its
+// Process level 6 Work Library steps. The right rail is the NEW STATE: drag
+// tasks into the New role box (kept manual work), the Agent box (an agent
+// runs it), or Delete (impact-assessed). The final sequence strip at the
+// bottom assembles the new role in real time — reorder, rename, flip
+// agent/manual, all editable.
 
 const ROLE_TONES = ['#0f766e', '#7c3aed', '#b45309', '#1d4ed8', '#64748b', '#0891b2'];
 
@@ -63,11 +57,11 @@ function actionButton(
       onClick={onClick}
       style={{
         font: 'inherit',
-        fontSize: 10.5,
+        fontSize: 10,
         fontWeight: 600,
         cursor: 'pointer',
-        borderRadius: 6,
-        padding: '4px 9px',
+        borderRadius: 5,
+        padding: '3px 8px',
         color: on ? '#fff' : '#525252',
         background: on ? (danger ? '#dc2626' : primary ? INDIGO : '#525252') : '#fff',
         border: `1px solid ${on ? 'transparent' : '#e5e5e5'}`,
@@ -95,11 +89,13 @@ export default function RoleCompareBoard({
     'workspace.role.decisions',
     {},
   );
-  const [stepDecisions, setStepDecisions] = useViewState<Record<string, StepDecision>>(
-    'workspace.role.stepDecisions',
-    {},
+  const [builder, setBuilder] = useViewState<BuilderItem[]>('workspace.role.builder', []);
+  const [deleted, setDeleted] = useViewState<{ name: string; source: string; nodeIds: string[] }[]>(
+    'workspace.role.deleted',
+    [],
   );
-  const [openTask, setOpenTask] = useState<OpenTask | null>(null);
+  const [openTasks, setOpenTasks] = useViewState<string[]>('workspace.role.openTasks', []);
+  const { load: loadSteps, stepsOf } = useTaskSteps();
 
   useEffect(() => {
     if (!roles || roles.length < 2 || ids.length > 0) return;
@@ -112,7 +108,9 @@ export default function RoleCompareBoard({
   }, [roles, ids.length, setIds]);
   useOnChange(`${ids.join(',')}|${stream}`, () => {
     setRoleDecisions({});
-    setStepDecisions({});
+    setBuilder([]);
+    setDeleted([]);
+    setOpenTasks([]);
   });
 
   const { data: details, loading, error } = useRoleDetails(ids);
@@ -156,8 +154,8 @@ export default function RoleCompareBoard({
       }));
   }, [details, ids, stream]);
 
-  // Fuzzy canonical-key function over the compared set — the same task worded
-  // differently across roles still matches (exact matching made every rec KEEP).
+  // Fuzzy canonical-key matching — the same task worded differently across
+  // roles still matches (exact matching made every rec degenerate to KEEP).
   const keyOf = useMemo(() => makeKeyOf(columns), [columns]);
   const facts = useMemo(() => roleFacts(columns, keyOf), [columns, keyOf]);
   const keySets = useMemo(() => columnKeySets(columns, keyOf), [columns, keyOf]);
@@ -172,11 +170,25 @@ export default function RoleCompareBoard({
 
   const decisionOf = (idx: number): RoleDecision =>
     roleDecisions[columns[idx]?.id] ?? recs[idx]?.suggest ?? 'Keep';
+  const targetIdx = (() => {
+    if (!columns.length) return 0;
+    if (decisionOf(recTargetIdx) === 'Keep') return recTargetIdx;
+    const surviving = columns.map((_, i) => i).filter((i) => decisionOf(i) === 'Keep');
+    if (surviving.length === 0) return recTargetIdx;
+    return surviving.sort((x, y) => facts[y].steps - facts[x].steps)[0];
+  })();
+  const going = columns.map((_, i) => i !== targetIdx && decisionOf(i) !== 'Keep');
 
-  // Role- and step-level decisions route through the common change-impact
-  // gate: consolidating/deprecating a role (or moving/dropping a step) first
-  // assesses what the role touches — sole ownerships, deliverables,
-  // governance, reports — and only records on confirm. Keep skips the gate.
+  const totalSteps = facts.reduce((n, f) => n + f.steps, 0);
+  const filterCounts = {
+    all: totalSteps,
+    agent: facts.reduce((n, f) => n + f.agentable, 0),
+    multi: facts.reduce((n, f) => n + f.dup, 0),
+    single: facts.reduce((n, f) => n + f.only, 0),
+  };
+
+  // Role decisions and destructive rail drops route through the common
+  // change-impact gate; the decision only records once confirmed.
   const gate = useImpactGate();
   const decideRole = (col: RoleColumnInput, label: RoleDecision) => {
     const apply = () => setRoleDecisions((cur) => ({ ...cur, [col.id]: label }));
@@ -190,87 +202,40 @@ export default function RoleCompareBoard({
       apply,
     );
   };
-  const decideStep = (key: string, d: StepDecision) => {
-    const apply = () => setStepDecisions((cur) => ({ ...cur, [key]: d }));
-    if (d === 'Keep') return apply();
-    // Step keys are `${Role.id}:${ProcessNode.id}` (cuids never contain ':').
-    const [roleId, taskId] = key.split(':');
-    if (!roleId || !taskId) return apply();
+  const deleteTask = (p: DragPayload) => {
     gate.run(
       {
-        changeType: d === 'Drop' ? 'DROP' : 'MOVE',
-        subject: { kind: 'role', roleId, taskIds: [taskId] },
+        changeType: 'DROP',
+        label: p.name,
+        subject: { kind: 'process-nodes', nodeIds: p.nodeIds },
       },
-      apply,
+      () => setDeleted((cur) => [...cur, { name: p.name, source: p.source, nodeIds: p.nodeIds }]),
     );
   };
-  // The target must survive: the recommended target unless the user keeps a
-  // different role while consolidating the recommended one away. Cheap
-  // derivations (≤ a few thousand string ops) — recomputed per render.
-  const targetIdx = (() => {
-    if (!columns.length) return 0;
-    if (decisionOf(recTargetIdx) === 'Keep') return recTargetIdx;
-    const surviving = columns.map((_, i) => i).filter((i) => decisionOf(i) === 'Keep');
-    if (surviving.length === 0) return recTargetIdx;
-    return surviving.sort((x, y) => facts[y].steps - facts[x].steps)[0];
-  })();
-
-  const going = columns.map((_, i) => i !== targetIdx && decisionOf(i) !== 'Keep');
-  const target = buildTarget(columns, going, targetIdx, stepDecisions, keyOf);
-
-  const totalSteps = facts.reduce((n, f) => n + f.steps, 0);
-  const targetStreams = new Set(target.steps.map((s) => s.stream)).size;
-
-  // Agent-automatability rollup — the page's headline: how much of this work
-  // can an AI agent take over completely?
-  const agent = useMemo(() => {
-    const all = columns.flatMap((c) => c.tasks);
-    const auto = all.filter((t) => isAgentable(t.agent)).length;
-    const assisted = all.filter((t) => isAgentAssisted(t.agent)).length;
-    return { auto, assisted, human: all.length - auto - assisted, total: all.length };
-  }, [columns]);
-  const agentPct = agent.total ? Math.round((agent.auto / agent.total) * 100) : 0;
-  const targetAgentable = target.steps.filter((s) => isAgentable(s.agent)).length;
-
-  // Where the compared roles work — one pill per value stream in scope.
-  const streamPills = useMemo(() => {
-    const by = new Map<string, { steps: number; shorts: Set<string> }>();
-    columns.forEach((c) => {
-      for (const t of c.tasks) {
-        const vs = t.valueStream ?? 'Unmapped';
-        const cur = by.get(vs) ?? { steps: 0, shorts: new Set<string>() };
-        cur.steps += 1;
-        cur.shorts.add(roleShort(c.name));
-        by.set(vs, cur);
-      }
-    });
-    return [...by.entries()]
-      .sort((a, b) => b[1].steps - a[1].steps)
-      .slice(0, 8)
-      .map(([name, v]) => ({ name, meta: `${v.steps} steps · ${[...v.shorts].join(', ')}` }));
-  }, [columns]);
-
-  const filterCounts = {
-    all: totalSteps,
-    agent: agent.auto,
-    multi: facts.reduce((n, f) => n + f.dup, 0),
-    single: facts.reduce((n, f) => n + f.only, 0),
+  const commit = () => {
+    const nodeIds = [...new Set(builder.flatMap((b) => b.nodeIds))];
+    const agentRun = builder.filter((b) => b.agent).length;
+    const summarize = () =>
+      dialogs.alert({
+        title: 'Commit new role',
+        message: `${builder.length} tasks in the new role — ${agentRun} run agent-only, ${builder.length - agentRun} stay manual, ${deleted.length} deleted from the model. Committing into the live role graph is decision-preview only in this workspace; export the sequence to take it forward.`,
+      });
+    if (!nodeIds.length) return summarize();
+    gate.run(
+      {
+        changeType: 'CONSOLIDATE',
+        label: 'New role',
+        subject: { kind: 'process-nodes', nodeIds },
+      },
+      summarize,
+    );
   };
 
   if (listLoading) return <LoadingState message="Loading roles…" />;
   if (listError) return <ErrorMessage>{listError}</ErrorMessage>;
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
 
-  const gridCols = `repeat(${columns.length}, ${ROLE_COL_W}px) ${ROLE_COL_W + 14}px`;
-  const summary = columns
-    .map((c, i) => `${roleShort(c.name)} ${decisionOf(i).toLowerCase()}`)
-    .join(' · ');
-
-  const commit = () =>
-    dialogs.alert({
-      title: 'Commit role changes',
-      message: `${summary}. Result: ${target.steps.length} tasks in ${columns[targetIdx]?.name ?? 'the target role'} across ${targetStreams} value streams — ${target.merged} duplicate steps merged away, ${target.moved} moved across as-is. Committing into the live role graph is decision-preview only in this workspace.`,
-    });
+  const cardGrid = `repeat(${columns.length}, minmax(240px, 340px))`;
 
   return (
     <div
@@ -282,12 +247,12 @@ export default function RoleCompareBoard({
       }}
     >
       <LensBar lens={lens} onLens={onLens} boards={[]} boardId={null} onBoard={() => undefined} />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <select
           value={division}
           onChange={(e) => setDivision(e.target.value)}
           aria-label="Division filter"
-          style={{ ...selectStyle, marginBottom: 10 }}
+          style={{ ...selectStyle, marginBottom: 8 }}
         >
           <option value="">All divisions</option>
           {divisions.map((d) => (
@@ -300,7 +265,7 @@ export default function RoleCompareBoard({
           value={stream}
           onChange={(e) => setStream(e.target.value)}
           aria-label="Value stream filter"
-          style={{ ...selectStyle, marginBottom: 10 }}
+          style={{ ...selectStyle, marginBottom: 8 }}
         >
           <option value="">All value streams</option>
           {streams.map((s) => (
@@ -310,9 +275,6 @@ export default function RoleCompareBoard({
           ))}
         </select>
         <Picker noun="role" pool={pool} selectedIds={ids} onChangeSelection={setIds} />
-        <span style={{ fontSize: 10.5, color: '#a3a3a3', marginBottom: 10 }}>
-          {totalSteps} atomic steps in scope · decide per role, the evidence is below
-        </span>
       </div>
 
       <div
@@ -320,584 +282,230 @@ export default function RoleCompareBoard({
           border: '1px solid #eaeaea',
           borderRadius: 12,
           background: '#fff',
-          overflow: 'auto',
           flex: 1,
           minHeight: 0,
           boxSizing: 'border-box',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
         }}
       >
         {loading ? (
-          <div style={{ padding: 30, fontSize: 12.5, color: '#a3a3a3' }}>Loading roles…</div>
+          <div style={{ padding: 24, fontSize: 12.5, color: '#a3a3a3' }}>Loading roles…</div>
         ) : columns.length < 2 ? (
-          <div style={{ padding: 30 }}>
+          <div style={{ padding: 24 }}>
             <EmptyState message="Pick at least two roles to compare." />
           </div>
         ) : (
-          <div style={{ width: 'max-content', minWidth: '100%' }}>
-            {/* AI transformation headline — the point of the page */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                padding: '8px 12px',
-                borderBottom: '1px solid #eaeaea',
-                background: '#f6faf7',
-                flexWrap: 'wrap',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: '.07em',
-                  textTransform: 'uppercase',
-                  color: '#047857',
-                }}
-              >
-                AI transformation potential
-              </span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#047857' }}>
-                {agent.auto} of {agent.total} steps ({agentPct}%) run agent-only today
-              </span>
-              {/* Automatability split bar: agent / co-pilot / human */}
-              <span
-                style={{
-                  display: 'inline-flex',
-                  width: 160,
-                  height: 8,
-                  borderRadius: 999,
-                  overflow: 'hidden',
-                  background: '#e5e7eb',
-                }}
-                title={`${agent.auto} agent-only · ${agent.assisted} agent-assisted · ${agent.human} human-only or unscored`}
-              >
-                <span
+          <>
+            <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+              <div style={{ width: 'max-content', minWidth: '100%' }}>
+                {/* Role decision cards — compact, one line of stats. */}
+                <div
                   style={{
-                    width: `${agent.total ? (agent.auto / agent.total) * 100 : 0}%`,
-                    background: '#047857',
-                  }}
-                />
-                <span
-                  style={{
-                    width: `${agent.total ? (agent.assisted / agent.total) * 100 : 0}%`,
-                    background: INDIGO,
-                  }}
-                />
-              </span>
-              <span style={{ fontSize: 11, color: '#334155' }}>
-                <b style={{ color: INDIGO }}>{agent.assisted}</b> more run with an agent co-pilot ·{' '}
-                <b style={{ color: '#525252' }}>{agent.human}</b> stay human
-              </span>
-              {columns.map((c, i) => {
-                const share = facts[i].steps
-                  ? Math.round((facts[i].agentable / facts[i].steps) * 100)
-                  : 0;
-                return (
-                  <span
-                    key={c.id}
-                    style={{
-                      fontSize: 10.5,
-                      color: '#334155',
-                      background: '#fff',
-                      border: '1px solid #d1fae5',
-                      borderRadius: 999,
-                      padding: '2px 9px',
-                    }}
-                  >
-                    {roleShort(c.name)}{' '}
-                    <b style={{ color: '#047857' }}>
-                      {facts[i].agentable}/{facts[i].steps}
-                    </b>{' '}
-                    ({share}%)
-                  </span>
-                );
-              })}
-              <div style={{ flex: 1 }} />
-              <button
-                type="button"
-                onClick={() => setFilter(filter === 'agent' ? 'all' : 'agent')}
-                style={{
-                  font: 'inherit',
-                  fontSize: 10.5,
-                  fontWeight: 600,
-                  color: filter === 'agent' ? '#fff' : '#047857',
-                  background: filter === 'agent' ? '#047857' : '#fff',
-                  border: '1px solid #047857',
-                  borderRadius: 6,
-                  padding: '3px 10px',
-                  cursor: 'pointer',
-                }}
-              >
-                {filter === 'agent' ? 'Showing agent-only work' : 'Show agent-only work'}
-              </button>
-            </div>
-
-            {/* Where these roles work */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '5px 12px',
-                borderBottom: '1px solid #eaeaea',
-                flexWrap: 'wrap',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: '.07em',
-                  textTransform: 'uppercase',
-                  color: '#525252',
-                }}
-              >
-                Where these roles work
-              </span>
-              {streamPills.map((p) => (
-                <span
-                  key={p.name}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 7,
-                    background: '#fff',
-                    border: '1px solid #eaeaea',
-                    borderRadius: 999,
-                    padding: '3px 11px',
-                    fontSize: 11,
-                    color: '#334155',
+                    display: 'grid',
+                    gridTemplateColumns: cardGrid,
+                    gap: 6,
+                    alignItems: 'stretch',
+                    padding: '6px 10px',
+                    borderBottom: '1px solid #eaeaea',
+                    background: '#fafafa',
                   }}
                 >
-                  <b style={{ fontWeight: 600 }}>{p.name}</b>
-                  <span style={{ color: '#94a3b8' }}>{p.meta}</span>
-                </span>
-              ))}
-              <div style={{ flex: 1 }} />
-              <div
-                style={{
-                  display: 'flex',
-                  height: 26,
-                  border: '1px solid #eaeaea',
-                  borderRadius: 6,
-                  overflow: 'hidden',
-                  background: '#fff',
-                }}
-              >
-                {(
-                  [
-                    ['all', 'All steps', filterCounts.all],
-                    ['agent', 'Agent can run it', filterCounts.agent],
-                    ['multi', 'Another role does it too', filterCounts.multi],
-                    ['single', 'Only one role', filterCounts.single],
-                  ] as [TaskFilter, string, number][]
-                ).map(([key, label, count], i) => {
-                  const on = filter === key;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setFilter(key)}
-                      style={{
-                        font: 'inherit',
-                        padding: '0 10px',
-                        fontSize: 11,
-                        lineHeight: '26px',
-                        cursor: 'pointer',
-                        border: 'none',
-                        borderLeft: i === 0 ? 'none' : '1px solid #eaeaea',
-                        background: on ? '#171717' : '#fff',
-                        color: on ? '#fff' : '#525252',
-                        fontWeight: on ? 600 : 400,
-                      }}
-                    >
-                      {label} <span style={{ opacity: 0.55 }}>{count}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                  {columns.map((c, i) => {
+                    const rec = recs[i];
+                    const tone = ROLE_TONES[i % ROLE_TONES.length];
+                    const isTarget = i === targetIdx;
+                    const recStyle = isTarget
+                      ? { fg: '#166534', bg: '#dcfce7', border: '#bbf7d0', label: 'TARGET' }
+                      : rec.rec === 'CONSOLIDATE'
+                        ? { fg: INDIGO, bg: '#eef2ff', border: '#d6dcff', label: 'CONSOLIDATE' }
+                        : { fg: '#166534', bg: '#dcfce7', border: '#bbf7d0', label: 'KEEP' };
+                    const chosen = decisionOf(i);
+                    return (
+                      <div
+                        key={c.id}
+                        style={{
+                          minWidth: 0,
+                          background: '#fff',
+                          border: '1px solid #eaeaea',
+                          borderLeft: `3px solid ${tone}`,
+                          borderRadius: 8,
+                          padding: '6px 9px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span
+                            style={{
+                              fontSize: 12,
+                              fontWeight: 700,
+                              color: '#171717',
+                              flex: 1,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                            title={`${c.name}${c.subtitle ? ` — ${c.subtitle}` : ''} · ${rec.reason}`}
+                          >
+                            {c.name}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: 8.5,
+                              fontWeight: 700,
+                              color: recStyle.fg,
+                              background: recStyle.bg,
+                              border: `1px solid ${recStyle.border}`,
+                              borderRadius: 5,
+                              padding: '1px 5px',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {recStyle.label}
+                          </span>
+                        </div>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            marginTop: 4,
+                            fontSize: 10,
+                            color: '#525252',
+                            flexWrap: 'wrap',
+                          }}
+                        >
+                          <span>
+                            <b style={{ color: '#171717' }}>{facts[i].steps}</b> steps
+                          </span>
+                          <span>
+                            <b style={{ color: '#047857' }}>{facts[i].agentable}</b> agent-runnable
+                          </span>
+                          <span>
+                            <b style={{ color: INDIGO }}>{facts[i].dup}</b> shared
+                          </span>
+                          <span>
+                            <b style={{ color: '#b45309' }}>{facts[i].only}</b> only here
+                          </span>
+                          <div style={{ flex: 1 }} />
+                          <span style={{ display: 'flex', gap: 4 }}>
+                            {(['Consolidate', 'Deprecate', 'Keep'] as RoleDecision[]).map((label) =>
+                              actionButton(
+                                label === 'Consolidate' && !isTarget
+                                  ? `→ ${roleShort(columns[targetIdx].name)}`
+                                  : label,
+                                chosen === label,
+                                label === 'Deprecate',
+                                label === 'Consolidate',
+                                () => decideRole(c, label),
+                              ),
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
 
-            {/* Role cards + target card */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: gridCols,
-                gap: 8,
-                alignItems: 'stretch',
-                padding: '8px 12px',
-                borderBottom: '1px solid #eaeaea',
-                background: '#fafafa',
-              }}
-            >
-              {columns.map((c, i) => {
-                const rec = recs[i];
-                const tone = ROLE_TONES[i % ROLE_TONES.length];
-                const isTarget = i === targetIdx;
-                const recStyle = isTarget
-                  ? { fg: '#166534', bg: '#dcfce7', border: '#bbf7d0', label: 'TARGET' }
-                  : rec.rec === 'CONSOLIDATE'
-                    ? { fg: INDIGO, bg: '#eef2ff', border: '#d6dcff', label: 'CONSOLIDATE' }
-                    : { fg: '#166534', bg: '#dcfce7', border: '#bbf7d0', label: 'KEEP' };
-                const chosen = decisionOf(i);
-                return (
+                {/* Filter row */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '4px 10px',
+                    borderBottom: '1px solid #eaeaea',
+                  }}
+                >
                   <div
-                    key={c.id}
                     style={{
-                      minWidth: 0,
-                      background: '#fff',
+                      display: 'flex',
+                      height: 24,
                       border: '1px solid #eaeaea',
-                      borderLeft: `3px solid ${tone}`,
-                      borderRadius: 10,
-                      padding: '8px 10px',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                      <span
-                        style={{
-                          fontSize: 12.5,
-                          fontWeight: 700,
-                          color: '#171717',
-                          flex: 1,
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}
-                        title={c.subtitle ?? undefined}
-                      >
-                        {c.name}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: 9,
-                          fontWeight: 700,
-                          color: recStyle.fg,
-                          background: recStyle.bg,
-                          border: `1px solid ${recStyle.border}`,
-                          borderRadius: 5,
-                          padding: '2px 6px',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {recStyle.label}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
-                      <div>
-                        <div
-                          style={{
-                            fontSize: 15,
-                            fontWeight: 700,
-                            color: '#171717',
-                            lineHeight: 1.1,
-                          }}
-                        >
-                          {facts[i].steps}
-                        </div>
-                        <div style={{ fontSize: 9.5, color: '#94a3b8' }}>steps</div>
-                      </div>
-                      <div>
-                        <div
-                          style={{
-                            fontSize: 15,
-                            fontWeight: 700,
-                            color: '#047857',
-                            lineHeight: 1.1,
-                          }}
-                        >
-                          {facts[i].agentable}
-                        </div>
-                        <div style={{ fontSize: 9.5, color: '#94a3b8' }}>agent can run</div>
-                      </div>
-                      <div>
-                        <div
-                          style={{ fontSize: 15, fontWeight: 700, color: tone, lineHeight: 1.1 }}
-                        >
-                          {facts[i].streams}
-                        </div>
-                        <div style={{ fontSize: 9.5, color: '#94a3b8' }}>
-                          {facts[i].streams === 1 ? 'value stream' : 'value streams'}
-                        </div>
-                      </div>
-                      <div>
-                        <div
-                          style={{ fontSize: 15, fontWeight: 700, color: INDIGO, lineHeight: 1.1 }}
-                        >
-                          {facts[i].dup}
-                        </div>
-                        <div style={{ fontSize: 9.5, color: '#94a3b8' }}>
-                          another role also does
-                        </div>
-                      </div>
-                      <div>
-                        <div
-                          style={{ fontSize: 15, fontWeight: 700, color: AMBER, lineHeight: 1.1 }}
-                        >
-                          {facts[i].only}
-                        </div>
-                        <div style={{ fontSize: 9.5, color: '#94a3b8' }}>only it does</div>
-                      </div>
-                    </div>
-                    <div
-                      style={{ fontSize: 10.5, lineHeight: 1.45, color: '#334155', marginTop: 7 }}
-                    >
-                      {rec.reason}
-                    </div>
-                    <div style={{ display: 'flex', gap: 5, marginTop: 9, flexWrap: 'wrap' }}>
-                      {(['Consolidate', 'Deprecate', 'Keep'] as RoleDecision[]).map((label) =>
-                        actionButton(
-                          label === 'Consolidate' && !isTarget
-                            ? `Consolidate → ${roleShort(columns[targetIdx].name)}`
-                            : label,
-                          chosen === label,
-                          label === 'Deprecate',
-                          label === 'Consolidate',
-                          () => decideRole(c, label),
-                        ),
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* Target role result card */}
-              <div
-                style={{
-                  minWidth: 0,
-                  background: '#f6faf7',
-                  border: '2px solid #a7f3d0',
-                  borderRadius: 10,
-                  padding: '8px 10px',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <span
-                    style={{
-                      fontSize: 12.5,
-                      fontWeight: 700,
-                      color: '#14532d',
-                      flex: 1,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {going.some(Boolean) ? columns[targetIdx].name : 'No change — every role stays'}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: 9,
-                      fontWeight: 700,
-                      color: '#fff',
-                      background: '#047857',
-                      borderRadius: 5,
-                      padding: '2px 6px',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    TARGET ROLE
-                  </span>
-                </div>
-                <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
-                  <div>
-                    <div
-                      style={{ fontSize: 15, fontWeight: 700, color: '#14532d', lineHeight: 1.1 }}
-                    >
-                      {target.steps.length}
-                    </div>
-                    <div style={{ fontSize: 9.5, color: '#4d7c60' }}>tasks after</div>
-                  </div>
-                  <div>
-                    <div
-                      style={{ fontSize: 15, fontWeight: 700, color: '#047857', lineHeight: 1.1 }}
-                    >
-                      {targetAgentable}
-                    </div>
-                    <div style={{ fontSize: 9.5, color: '#4d7c60' }}>agent can run</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: INDIGO, lineHeight: 1.1 }}>
-                      {target.merged}
-                    </div>
-                    <div style={{ fontSize: 9.5, color: '#4d7c60' }}>merged away</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: AMBER, lineHeight: 1.1 }}>
-                      {target.moved}
-                    </div>
-                    <div style={{ fontSize: 9.5, color: '#4d7c60' }}>moved in</div>
-                  </div>
-                  <div>
-                    <div
-                      style={{ fontSize: 15, fontWeight: 700, color: '#14532d', lineHeight: 1.1 }}
-                    >
-                      {targetStreams}
-                    </div>
-                    <div style={{ fontSize: 9.5, color: '#4d7c60' }}>streams</div>
-                  </div>
-                </div>
-                <div style={{ fontSize: 10.5, lineHeight: 1.45, color: '#14532d', marginTop: 7 }}>
-                  {going.some(Boolean)
-                    ? `${columns
-                        .filter((_, i) => going[i])
-                        .map((c) => roleShort(c.name))
-                        .join(
-                          ' + ',
-                        )} fold in here: ${target.merged} of their steps are the same work this role already performs, ${target.moved} transfer across unchanged.`
-                    : 'Pick Consolidate or Deprecate on a card and the resulting role builds here.'}
-                </div>
-                <div style={{ display: 'flex', gap: 5, marginTop: 9 }}>
-                  <button
-                    type="button"
-                    onClick={commit}
-                    style={{
-                      font: 'inherit',
-                      fontSize: 10.5,
-                      fontWeight: 600,
-                      color: '#fff',
-                      background: '#047857',
-                      border: 'none',
                       borderRadius: 6,
-                      padding: '4px 9px',
-                      cursor: 'pointer',
+                      overflow: 'hidden',
+                      background: '#fff',
                     }}
                   >
-                    Commit consolidation
-                  </button>
+                    {(
+                      [
+                        ['all', 'All steps', filterCounts.all],
+                        ['agent', 'Agent can run it', filterCounts.agent],
+                        ['multi', 'Another role does it too', filterCounts.multi],
+                        ['single', 'Only one role', filterCounts.single],
+                      ] as [TaskFilter, string, number][]
+                    ).map(([key, label, count], i) => {
+                      const on = filter === key;
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => setFilter(key)}
+                          style={{
+                            font: 'inherit',
+                            padding: '0 9px',
+                            fontSize: 10.5,
+                            lineHeight: '24px',
+                            cursor: 'pointer',
+                            border: 'none',
+                            borderLeft: i === 0 ? 'none' : '1px solid #eaeaea',
+                            background: on ? '#171717' : '#fff',
+                            color: on ? '#fff' : '#525252',
+                            fontWeight: on ? 600 : 400,
+                          }}
+                        >
+                          {label} <span style={{ opacity: 0.55 }}>{count}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <span style={{ fontSize: 9.5, color: '#94a3b8' }}>
+                    expand a task for its level-6 steps · drag any task into the rail on the right
+                  </span>
+                </div>
+
+                {/* Task columns + new-state rail */}
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: 8,
+                    alignItems: 'flex-start',
+                    padding: '8px 10px',
+                    background: '#fafafa',
+                  }}
+                >
+                  <RoleColumns
+                    columns={columns}
+                    keySets={keySets}
+                    keyOf={keyOf}
+                    going={going}
+                    targetIdx={targetIdx}
+                    filter={filter}
+                    openTasks={openTasks}
+                    onToggleTask={(id) => {
+                      setOpenTasks((cur) =>
+                        cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id],
+                      );
+                      loadSteps([id]);
+                    }}
+                    stepsOf={stepsOf}
+                  />
+                  <RoleRail
+                    items={builder}
+                    onChange={setBuilder}
+                    onDeleteTask={deleteTask}
+                    deleted={deleted}
+                    onRestore={(i) => setDeleted((cur) => cur.filter((_, x) => x !== i))}
+                    onCommit={commit}
+                  />
                 </div>
               </div>
             </div>
 
-            {/* Stream-grouped, semantically aligned task view */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '5px 12px',
-                borderBottom: '1px solid #eaeaea',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: '.07em',
-                  textTransform: 'uppercase',
-                  color: '#525252',
-                }}
-              >
-                Every task, grouped by value stream
-              </span>
-              <span style={{ fontSize: 11, color: '#94a3b8' }}>
-                same work aligns on the same row across the roles · click any card for its full
-                detail
-              </span>
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                gap: 8,
-                alignItems: 'flex-start',
-                padding: '8px 12px',
-                background: '#fafafa',
-              }}
-            >
-              <div style={{ flex: 'none' }}>
-                <AlignedTaskGrid
-                  columns={columns}
-                  keySets={keySets}
-                  keyOf={keyOf}
-                  going={going}
-                  targetIdx={targetIdx}
-                  filter={filter}
-                  onOpenTask={setOpenTask}
-                />
-              </div>
-              <TargetColumn steps={target.steps} />
-            </div>
-
-            {/* Decisions footer */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 14,
-                padding: '7px 12px',
-                background: '#f6faf7',
-                borderTop: '2px solid #a7f3d0',
-                flexWrap: 'wrap',
-              }}
-            >
-              <div style={{ fontSize: 12.5, color: '#525252' }}>
-                Decisions so far: <b style={{ color: '#171717' }}>{summary}</b>
-              </div>
-              <span style={{ width: 1, height: 20, background: '#a7f3d0' }} />
-              <div style={{ fontSize: 11.5, color: GREEN }}>
-                <b>{target.steps.length}</b> steps after the change, from {totalSteps} today
-              </div>
-              <div style={{ fontSize: 11.5, color: INDIGO }}>
-                <b>{target.merged}</b> duplicate steps removed
-              </div>
-              <div style={{ fontSize: 11.5, color: AMBER }}>
-                <b>{target.moved}</b> steps that move across as-is
-              </div>
-              <div style={{ flex: 1 }} />
-              <button
-                type="button"
-                onClick={() => {
-                  setRoleDecisions({});
-                  setStepDecisions({});
-                }}
-                style={{
-                  font: 'inherit',
-                  fontSize: 11,
-                  color: '#525252',
-                  border: '1px solid #e5e5e5',
-                  background: '#fff',
-                  borderRadius: 6,
-                  padding: '6px 12px',
-                  cursor: 'pointer',
-                }}
-              >
-                Reset decisions
-              </button>
-              <button
-                type="button"
-                onClick={commit}
-                style={{
-                  font: 'inherit',
-                  fontSize: 11.5,
-                  fontWeight: 600,
-                  color: '#fff',
-                  background: '#171717',
-                  border: 'none',
-                  borderRadius: 6,
-                  padding: '6px 14px',
-                  cursor: 'pointer',
-                }}
-              >
-                Commit role changes
-              </button>
-            </div>
-          </div>
+            <RoleFlowStrip items={builder} onChange={setBuilder} />
+          </>
         )}
       </div>
-
-      {openTask && columns[openTask.colIdx] && (
-        <RoleTaskModal
-          open={openTask}
-          columns={columns}
-          keySets={keySets}
-          keyOf={keyOf}
-          going={going}
-          targetIdx={targetIdx}
-          stepDecisions={stepDecisions}
-          onStepDecision={decideStep}
-          onClose={() => setOpenTask(null)}
-        />
-      )}
       <ImpactPanel gate={gate} />
     </div>
   );

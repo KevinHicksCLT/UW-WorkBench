@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../../../lib/api';
 import { useApi } from '../../../lib/useApi';
 
@@ -116,4 +116,44 @@ export function useStreamDetails(ids: string[]) {
 
 export function useRoleDetails(ids: string[]) {
   return useDetails<RoleDetail>('/rationalization/spine/roles', ids);
+}
+
+// ── Process level 6: a task's Work Library plan steps, lazy + cached ────────
+
+export interface TaskStep {
+  seq: number;
+  name: string;
+  detail: string | null;
+}
+
+/** Lazy batch loader for L6 steps. `load(ids)` fetches the not-yet-cached
+ *  tasks in one request; `stepsOf(id)` returns cached steps (undefined =
+ *  never requested, [] = requested, task has no plan steps). */
+export function useTaskSteps() {
+  const [cache, setCache] = useState<Record<string, TaskStep[]>>({});
+  const pending = useRef(new Set<string>());
+
+  const load = useCallback(
+    (ids: string[]) => {
+      const need = ids.filter((id) => !(id in cache) && !pending.current.has(id));
+      if (!need.length) return;
+      for (const id of need) pending.current.add(id);
+      api
+        .get<Record<string, TaskStep[]>>(`/rationalization/spine/task-steps?ids=${need.join(',')}`)
+        .then((res) => {
+          setCache((c) => {
+            const next = { ...c };
+            for (const id of need) next[id] = res[id] ?? [];
+            return next;
+          });
+        })
+        .finally(() => {
+          for (const id of need) pending.current.delete(id);
+        });
+    },
+    [cache],
+  );
+
+  const stepsOf = useCallback((id: string): TaskStep[] | undefined => cache[id], [cache]);
+  return { load, stepsOf };
 }
