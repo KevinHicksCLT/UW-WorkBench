@@ -7,6 +7,8 @@ import {
   stepFate,
   type KeyOf,
   type RoleColumnInput,
+  type RoleFacts,
+  type RoleRec,
   type RoleTask,
   type StepFate,
 } from './roleConsolidation';
@@ -21,6 +23,9 @@ import type { TaskStep } from './useSpineData';
 // dashboard.
 
 export const ROLE_COL_W = 280;
+
+/** Column accent per compared role — same cycle the decision cards use. */
+const ROLE_TONES = ['#0f766e', '#7c3aed', '#b45309', '#1d4ed8', '#64748b', '#0891b2'];
 
 export type TaskFilter = 'all' | 'agent' | 'multi' | 'single';
 
@@ -171,9 +176,13 @@ function TaskCard({
   );
 }
 
-/** One column per compared role: stream-grouped, sequential, expandable. */
+/** One column per compared role, HEADED by the role's own card (name, rec
+ *  badge, stats) — no repeated labels anywhere; the tasks fall beneath,
+ *  stream-grouped, sequential, expandable. */
 export function RoleColumns({
   columns,
+  facts,
+  recs,
   keySets,
   keyOf,
   going,
@@ -184,6 +193,8 @@ export function RoleColumns({
   stepsOf,
 }: {
   columns: RoleColumnInput[];
+  facts: RoleFacts[];
+  recs: RoleRec[];
   keySets: Set<string>[];
   keyOf: KeyOf;
   going: boolean[];
@@ -205,6 +216,7 @@ export function RoleColumns({
   return (
     <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
       {columns.map((col, ci) => {
+        const tone = ROLE_TONES[ci % ROLE_TONES.length];
         const tasks = col.tasks.filter((t) => visible(t, ci));
         // Stream groups in the role's own volume order — the sequence the
         // role's work actually flows through.
@@ -219,31 +231,150 @@ export function RoleColumns({
           g.tasks.push(t);
         }
         return (
-          <div key={col.id} style={{ width: ROLE_COL_W, flexShrink: 0 }}>
+          <div
+            key={col.id}
+            style={{
+              width: ROLE_COL_W,
+              flexShrink: 0,
+              boxSizing: 'border-box',
+              border: '1px solid #eaeaea',
+              borderTop: `3px solid ${tone}`,
+              borderRadius: 8,
+              background: '#fff',
+              padding: 6,
+            }}
+          >
+            {/* The role's card IS the column header — name, recommendation
+                and stats once, everything below is ITS work, sectioned by
+                value stream. */}
+            {(() => {
+              const rec = recs[ci];
+              const isTarget = ci === targetIdx;
+              const recStyle = isTarget
+                ? { fg: '#166534', bg: '#dcfce7', border: '#bbf7d0', label: 'TARGET' }
+                : rec?.rec === 'CONSOLIDATE'
+                  ? { fg: INDIGO, bg: '#eef2ff', border: '#d6dcff', label: 'CONSOLIDATE' }
+                  : { fg: '#166534', bg: '#dcfce7', border: '#bbf7d0', label: 'KEEP' };
+              const f = facts[ci];
+              return (
+                <div
+                  style={{
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 1,
+                    background: '#fff',
+                    borderBottom: `1px solid ${tone}33`,
+                    padding: '2px 2px 5px',
+                    marginBottom: 6,
+                  }}
+                  title={rec?.reason}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span
+                      style={{
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        color: tone,
+                        flex: 1,
+                        minWidth: 0,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {col.name}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 8.5,
+                        fontWeight: 700,
+                        color: recStyle.fg,
+                        background: recStyle.bg,
+                        border: `1px solid ${recStyle.border}`,
+                        borderRadius: 5,
+                        padding: '1px 5px',
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {recStyle.label}
+                    </span>
+                  </div>
+                  {f && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        gap: 8,
+                        marginTop: 3,
+                        fontSize: 9.5,
+                        color: '#525252',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <span>
+                        <b style={{ color: '#171717' }}>{f.steps}</b> steps
+                      </span>
+                      <span>
+                        <b style={{ color: '#047857' }}>{f.agentable}</b> agent-runnable
+                      </span>
+                      <span>
+                        <b style={{ color: INDIGO }}>{f.dup}</b> shared
+                      </span>
+                      <span>
+                        <b style={{ color: '#b45309' }}>{f.only}</b> only here
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
             {groups.map((g) => (
               <div key={g.stream} style={{ marginBottom: 6 }}>
                 <div
                   style={{
                     display: 'flex',
-                    alignItems: 'baseline',
-                    gap: 6,
-                    padding: '2px 2px 2px',
-                    borderBottom: '1px solid #eef1f4',
+                    alignItems: 'center',
+                    gap: 5,
+                    background: '#f5f7fa',
+                    border: '1px solid #e8edf3',
+                    borderRadius: 5,
+                    padding: '2px 6px',
                     marginBottom: 4,
                   }}
                 >
                   <span
                     style={{
+                      fontSize: 7,
+                      fontWeight: 700,
+                      letterSpacing: '.06em',
+                      color: '#64748b',
+                      background: '#fff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: 4,
+                      padding: '0 4px',
+                      flexShrink: 0,
+                    }}
+                    title={`Where ${col.name} performs these tasks`}
+                  >
+                    VALUE STREAM
+                  </span>
+                  <span
+                    style={{
                       fontSize: 9,
                       fontWeight: 700,
-                      letterSpacing: '.05em',
-                      textTransform: 'uppercase',
                       color: '#1e3a5f',
+                      minWidth: 0,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
                     }}
                   >
                     {g.stream}
                   </span>
-                  <span style={{ fontSize: 8.5, color: '#94a3b8' }}>{g.tasks.length}</span>
+                  <span style={{ fontSize: 8.5, color: '#94a3b8', flexShrink: 0 }}>
+                    {g.tasks.length} tasks
+                  </span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   {g.tasks.map((t) => (
