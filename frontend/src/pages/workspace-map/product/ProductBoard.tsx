@@ -136,11 +136,23 @@ export default function ProductBoard({
     lobId: string,
     component: string,
     groupKey: string,
-    status: ProductDecisionStatus,
+    status: ProductDecisionStatus | null,
     comment?: string,
     meta?: { elementName?: string; componentNodeIds?: string[] },
-  ) =>
-    new Promise<void>((resolve) => {
+  ) => {
+    // Withdrawing (status null) reverts to "needs a decision" — an undo, not a
+    // change to the model, so it skips the impact gate.
+    if (status === null) {
+      return api
+        .delete(
+          `/product-spine/decisions?lobId=${encodeURIComponent(lobId)}&groupKey=${encodeURIComponent(groupKey)}`,
+        )
+        .then(() => {
+          refetchAllDecisions();
+          refetchDecisions();
+        });
+    }
+    return new Promise<void>((resolve) => {
       gate.run(
         {
           changeType: status === 'APPROVED' ? 'ADOPT' : status === 'HELD' ? 'HOLD' : 'RETIRE',
@@ -163,6 +175,7 @@ export default function ProductBoard({
         () => resolve(),
       );
     });
+  };
 
   // A different scope starts collapsed again — change-only, undefined while
   // the spine loads so the loading→loaded transition never counts.

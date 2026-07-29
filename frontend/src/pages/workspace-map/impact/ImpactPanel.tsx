@@ -1,67 +1,145 @@
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { api } from '../../../lib/api';
 import {
   CATEGORY_LABELS,
   CHANGE_LABELS,
   DESTRUCTIVE,
   SEVERITY_META,
-  type Impact,
+  type ImpactReport,
   type ImpactSeverity,
 } from './types';
 import type { ImpactGate } from './useImpactGate';
 
 // The common change-impact panel — rendered by every lens's decision surface
-// over the same gate. Shows what the pending change touches (prioritized,
-// breaking first) and holds the actual write behind an explicit
-// "Proceed" confirmation. zIndex 70: it stacks ABOVE ReviewModal (60), which
+// over the same gate. The report reads as a board: one column per severity
+// (Breaking › High › Medium › Info) with the touched entities organized
+// beneath, plus a fast AI read of the whole report on top. Brand accents use
+// the Capgemini logo blue. zIndex 70: stacks ABOVE ReviewModal (60), which
 // stays open underneath while the user weighs the report.
+
+/** Capgemini wordmark blue (capgemini-wordmark.svg primary fill). */
+const LOGO_BLUE = '#0070AD';
 
 const SEVERITIES: ImpactSeverity[] = ['BREAKING', 'HIGH', 'MEDIUM', 'LOW'];
 
-function SeverityChip({ severity }: { severity: ImpactSeverity }) {
-  const m = SEVERITY_META[severity];
-  return (
-    <span
-      style={{
-        flexShrink: 0,
-        padding: '1px 7px',
-        borderRadius: 999,
-        background: m.bg,
-        border: `1px solid ${m.border}`,
-        color: m.fg,
-        fontSize: 9.5,
-        fontWeight: 700,
-        textTransform: 'uppercase',
-        letterSpacing: 0.3,
-      }}
-    >
-      {m.label}
-    </span>
-  );
-}
+/** Narrates the deterministic report via POST /impact/summary (Haiku behind a
+ *  hard 4s server race). Renders nothing when the AI is unavailable or slow —
+ *  the report itself is never blocked on this. */
+function AiAssessment({ report }: { report: ImpactReport }) {
+  const [text, setText] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-function ImpactRow({ impact }: { impact: Impact }) {
+  useEffect(() => {
+    let alive = true;
+    setText(null);
+    setLoading(true);
+    api
+      .post(
+        '/impact/summary',
+        {
+          subject: report.subject,
+          changeType: report.changeType,
+          summary: report.summary,
+          impacts: report.impacts.slice(0, 40).map((i) => ({
+            severity: i.severity,
+            category: i.category.slice(0, 40),
+            entityName: i.entityName.slice(0, 300),
+            description: i.description.slice(0, 500),
+          })),
+        },
+        { invalidate: 'none' },
+      )
+      .then((r) => {
+        if (!alive) return;
+        setText((r as { summary: string | null }).summary);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!alive) return;
+        setText(null);
+        setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [report]);
+
+  if (!loading && !text) return null;
   return (
     <div
       style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: 8,
-        padding: '7px 10px',
-        borderTop: '1px solid #f1f5f9',
+        margin: '10px 16px 0',
+        padding: '8px 12px',
+        borderRadius: 8,
+        background: '#f0f7fb',
+        borderLeft: `3px solid ${LOGO_BLUE}`,
       }}
     >
-      <SeverityChip severity={impact.severity} />
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: '#171717' }}>
-            {impact.entityName}
-          </span>
-          <span style={{ fontSize: 10, color: '#94a3b8' }}>
-            {CATEGORY_LABELS[impact.category] ?? impact.category}
-          </span>
-        </div>
-        <div style={{ fontSize: 11, color: '#525252', lineHeight: 1.45 }}>{impact.description}</div>
+      <div style={{ fontSize: 9.5, fontWeight: 700, color: LOGO_BLUE, letterSpacing: 0.5 }}>
+        AI ASSESSMENT
       </div>
+      <div style={{ fontSize: 11.5, color: '#334155', lineHeight: 1.5, marginTop: 3 }}>
+        {loading ? 'Reading the report against the operating model…' : text}
+      </div>
+    </div>
+  );
+}
+
+function SeverityColumn({ severity, report }: { severity: ImpactSeverity; report: ImpactReport }) {
+  const m = SEVERITY_META[severity];
+  const items = report.impacts.filter((i) => i.severity === severity);
+  return (
+    <div
+      style={{
+        minWidth: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+        borderRadius: 8,
+        border: `1px solid ${items.length ? m.border : '#f1f5f9'}`,
+        background: items.length ? m.bg : '#fafafa',
+        padding: 8,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+        <span
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            color: items.length ? m.fg : '#94a3b8',
+            textTransform: 'uppercase',
+            letterSpacing: 0.4,
+          }}
+        >
+          {m.label}
+        </span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: items.length ? m.fg : '#cbd5e1' }}>
+          {items.length}
+        </span>
+      </div>
+      {items.length === 0 && <div style={{ fontSize: 10.5, color: '#a3a3a3' }}>Nothing here.</div>}
+      {items.map((impact, i) => (
+        <div
+          key={`${impact.category}:${impact.entityId ?? impact.entityName}:${i}`}
+          style={{
+            background: '#fff',
+            border: '1px solid rgba(0,0,0,.06)',
+            borderRadius: 7,
+            padding: '6px 8px',
+          }}
+        >
+          <div style={{ fontSize: 11.5, fontWeight: 600, color: '#171717', lineHeight: 1.3 }}>
+            {impact.entityName}
+          </div>
+          <div style={{ fontSize: 9, color: '#94a3b8', marginTop: 1 }}>
+            {CATEGORY_LABELS[impact.category] ?? impact.category}
+          </div>
+          <div style={{ fontSize: 10.5, color: '#525252', lineHeight: 1.45, marginTop: 3 }}>
+            {impact.description}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -86,7 +164,7 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
         display: 'flex',
         alignItems: 'flex-start',
         justifyContent: 'center',
-        paddingTop: 70,
+        paddingTop: 60,
       }}
     >
       <div
@@ -95,9 +173,9 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
         aria-label={`Change impact assessment — ${subjectName}`}
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: 700,
+          width: 1020,
           maxWidth: 'calc(100% - 48px)',
-          maxHeight: 'calc(100vh - 110px)',
+          maxHeight: 'calc(100vh - 100px)',
           display: 'flex',
           flexDirection: 'column',
           background: '#fff',
@@ -108,7 +186,7 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
       >
         {/* Header */}
         <div style={{ padding: '12px 16px', borderBottom: '1px solid #eaeaea' }}>
-          <div style={{ fontSize: 10.5, fontWeight: 700, color: '#1d4ed8', letterSpacing: 0.4 }}>
+          <div style={{ fontSize: 10.5, fontWeight: 700, color: LOGO_BLUE, letterSpacing: 0.4 }}>
             CHANGE IMPACT ASSESSMENT
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3 }}>
@@ -122,7 +200,7 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
                 fontSize: 10.5,
                 fontWeight: 700,
                 color: '#fff',
-                background: destructive ? '#dc2626' : '#1d4ed8',
+                background: destructive ? '#dc2626' : LOGO_BLUE,
               }}
             >
               {verb}
@@ -160,83 +238,26 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
           )}
           {report && (
             <>
-              {/* Summary tiles */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(4, 1fr)',
-                  gap: 8,
-                  padding: '12px 16px 4px',
-                }}
-              >
-                {SEVERITIES.map((sev) => {
-                  const m = SEVERITY_META[sev];
-                  const n =
-                    sev === 'BREAKING'
-                      ? report.summary.breaking
-                      : sev === 'HIGH'
-                        ? report.summary.high
-                        : sev === 'MEDIUM'
-                          ? report.summary.medium
-                          : report.summary.low;
-                  return (
-                    <div
-                      key={sev}
-                      style={{
-                        borderRadius: 8,
-                        border: `1px solid ${n ? m.border : '#f1f5f9'}`,
-                        background: n ? m.bg : '#fafafa',
-                        padding: '7px 10px',
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: 17,
-                          fontWeight: 700,
-                          color: n ? m.fg : '#cbd5e1',
-                          lineHeight: 1.1,
-                        }}
-                      >
-                        {n}
-                      </div>
-                      <div style={{ fontSize: 9.5, fontWeight: 600, color: n ? m.fg : '#94a3b8' }}>
-                        {m.label}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              {report.summary.breaking > 0 && (
+              <AiAssessment report={report} />
+              {report.impacts.length === 0 ? (
+                <div style={{ padding: '18px 16px', fontSize: 12, color: '#737373' }}>
+                  Nothing else in the model touches this — the change is self-contained.
+                </div>
+              ) : (
                 <div
                   style={{
-                    margin: '8px 16px 0',
-                    padding: '7px 11px',
-                    borderRadius: 8,
-                    background: '#fef2f2',
-                    border: '1px solid #fecaca',
-                    color: '#991b1b',
-                    fontSize: 11.5,
-                    fontWeight: 600,
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    gap: 10,
+                    padding: '12px 16px 14px',
+                    alignItems: 'start',
                   }}
                 >
-                  {report.summary.breaking} breaking impact
-                  {report.summary.breaking === 1 ? '' : 's'} — these have no fallback today and need
-                  an explicit plan before this change ships.
+                  {SEVERITIES.map((sev) => (
+                    <SeverityColumn key={sev} severity={sev} report={report} />
+                  ))}
                 </div>
               )}
-              <div style={{ padding: '10px 6px 6px' }}>
-                {report.impacts.map((impact, i) => (
-                  <ImpactRow
-                    key={`${impact.category}:${impact.entityId ?? impact.entityName}:${i}`}
-                    impact={impact}
-                  />
-                ))}
-                {report.impacts.length === 0 && (
-                  <div style={{ padding: '14px 12px', fontSize: 12, color: '#737373' }}>
-                    Nothing else in the model touches this — the change is self-contained.
-                  </div>
-                )}
-              </div>
             </>
           )}
           {report && s.error && (
@@ -300,7 +321,7 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
               padding: '6px 16px',
               borderRadius: 7,
               border: 'none',
-              background: destructive ? '#dc2626' : '#171717',
+              background: destructive ? '#dc2626' : LOGO_BLUE,
               color: '#fff',
               cursor: s.busy || s.loading ? 'default' : 'pointer',
               opacity: s.busy || s.loading ? 0.6 : 1,
