@@ -3,7 +3,12 @@ import { useSearchParams } from 'react-router-dom';
 import { useViewState } from '../../../lib/viewState';
 import ProductReviewList, { type ReviewFilter } from './ProductReviewList';
 import { abbrevVersion, buildHeatmap, type HeatRow, type Rag } from './gridModel';
-import type { LobOption, ProductDecision, ProductDecisionStatus } from './spine';
+import type {
+  LobOption,
+  ProductDecision,
+  ProductDecisionRationale,
+  ProductDecisionStatus,
+} from './spine';
 
 // The Products workspace GRID — the progress board:
 //   (1) an executive dashboard pinned on top: total elements, items needing a
@@ -104,6 +109,8 @@ export default function ProductGridView({
     groupKey: string,
     status: ProductDecisionStatus | null,
     comment?: string,
+    meta?: { elementName?: string; componentNodeIds?: string[] },
+    rationale?: ProductDecisionRationale | null,
   ) => Promise<void>;
   /** Mirrors table scroll depth so the board can hide ITS chrome too. */
   onImmersive?: (deep: boolean) => void;
@@ -299,8 +306,16 @@ export default function ProductGridView({
             setDepth(false);
             setDrill(null);
           }}
-          onDecide={(row, status, comment) =>
-            onDecide(row.lobId, row.group.component, row.group.key, status, comment)
+          onDecide={(row, status, comment, rationale) =>
+            onDecide(
+              row.lobId,
+              row.group.component,
+              row.group.key,
+              status,
+              comment,
+              { elementName: row.group.name },
+              rationale,
+            )
           }
           onScrollDepth={handleScrollDepth}
           labelOf={labelOf}

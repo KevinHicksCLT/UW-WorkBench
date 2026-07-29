@@ -37,13 +37,30 @@ export interface Impact {
   count?: number;
 }
 
+/** Rationalization steer the walker derives from the subject's footprint —
+ *  advisory; the reviewer still makes the call. */
+export interface ImpactRecommendation {
+  option: 'RETAIN' | 'STANDARDIZE' | 'RETIRE';
+  reason: string;
+}
+
 export interface ImpactReport {
   subject: { kind: string; id: string | null; name: string; context: string | null };
   changeType: ChangeType;
   changeClass: 'destructive' | 'restructure' | 'adopt';
   summary: { breaking: number; high: number; medium: number; low: number; total: number };
   impacts: Impact[];
+  recommendation?: ImpactRecommendation;
 }
+
+export const RECOMMENDATION_META: Record<
+  ImpactRecommendation['option'],
+  { label: string; fg: string; bg: string; border: string }
+> = {
+  RETAIN: { label: 'Retain', fg: '#166534', bg: '#f0fdf4', border: '#86efac' },
+  STANDARDIZE: { label: 'Standardize', fg: '#92400e', bg: '#fffbeb', border: '#fcd34d' },
+  RETIRE: { label: 'Retire', fg: '#991b1b', bg: '#fef2f2', border: '#fecaca' },
+};
 
 export const SEVERITY_META: Record<
   ImpactSeverity,
@@ -83,4 +100,5 @@ export const CATEGORY_LABELS: Record<string, string> = {
   external: 'External parties',
   org: 'Organization',
   scope: 'Scope',
+  'knock-on': 'Knock-on areas',
 };

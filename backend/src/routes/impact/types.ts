@@ -57,18 +57,27 @@ export interface ImpactSubjectOut {
   context: string | null;
 }
 
+/** Rationalization steer (Retain / Standardize / Retire) the walker derives
+ *  from the subject's footprint — advisory, the reviewer still decides. */
+export interface ImpactRecommendation {
+  option: 'RETAIN' | 'STANDARDIZE' | 'RETIRE';
+  reason: string;
+}
+
 export interface ImpactReport {
   subject: ImpactSubjectOut;
   changeType: ChangeType;
   changeClass: ChangeClass;
   summary: { breaking: number; high: number; medium: number; low: number; total: number };
   impacts: Impact[];
+  recommendation?: ImpactRecommendation;
 }
 
 export function buildReport(
   subject: ImpactSubjectOut,
   changeType: ChangeType,
   impacts: Impact[],
+  recommendation?: ImpactRecommendation,
 ): ImpactReport {
   const order = (s: ImpactSeverity) => LADDER.indexOf(s);
   const sorted = [...impacts].sort(
@@ -90,6 +99,7 @@ export function buildReport(
       total: sorted.length,
     },
     impacts: sorted,
+    ...(recommendation ? { recommendation } : {}),
   };
 }
 
