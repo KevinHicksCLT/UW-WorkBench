@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useViewState } from '../../../lib/viewState';
 import ProductReviewList, { type ReviewFilter } from './ProductReviewList';
-import { buildHeatmap, type HeatRow, type Rag } from './gridModel';
+import { abbrevVersion, buildHeatmap, type HeatRow, type Rag } from './gridModel';
 import type { LobOption, ProductDecision, ProductDecisionStatus } from './spine';
 
 // The Products workspace GRID — the progress board:
@@ -91,6 +92,7 @@ export default function ProductGridView({
   lobs,
   decisions,
   onDecide,
+  onImmersive,
 }: {
   lobs: LobOption[];
   /** All persisted decisions, keyed by decisionKey(lobId, groupKey). */
@@ -103,6 +105,8 @@ export default function ProductGridView({
     status: ProductDecisionStatus | null,
     comment?: string,
   ) => Promise<void>;
+  /** Mirrors table scroll depth so the board can hide ITS chrome too. */
+  onImmersive?: (deep: boolean) => void;
 }) {
   const heat = useMemo(() => buildHeatmap(lobs, decisions), [lobs, decisions]);
   // The drill is URL state: pushing it creates a history entry, so the
@@ -118,6 +122,19 @@ export default function ProductGridView({
     });
   const [drillFilter, setDrillFilter] = useState<ReviewFilter>('all');
   const [notesOpen, setNotesOpen] = useState(false);
+  // Collapse product names to initials — the full name pops on hover (title).
+  const [abbr, setAbbr] = useViewState<boolean>('workspace.product.abbrCols', false);
+  const labelOf = (v: (typeof heat.columns)[number]) =>
+    abbr ? abbrevVersion(v) : `${v.productName} · ${v.name}`;
+  // Table scrolled away from the top → every chrome row hides (restored the
+  // moment the user scrolls back up).
+  const [immersive, setImmersive] = useState(false);
+  const setDepth = (deep: boolean) => {
+    setImmersive((cur) => {
+      if (cur !== deep) onImmersive?.(deep);
+      return deep;
+    });
+  };
 
   const drillRow =
     drill && drill !== '__all__' ? (heat.rows.find((r) => r.component === drill) ?? null) : null;
@@ -133,23 +150,21 @@ export default function ProductGridView({
   const grid = `220px repeat(${colCount}, minmax(${colMin}px, 1fr)) 76px 84px 128px ${notesW}px`;
   // The header is exactly tall enough for the LONGEST angled label — every
   // label fully visible, nothing spilling out of the header band.
-  const maxLabelChars = heat.columns.reduce(
-    (n, v) => Math.max(n, `${v.productName} · ${v.name}`.length),
-    0,
-  );
+  const maxLabelChars = heat.columns.reduce((n, v) => Math.max(n, labelOf(v).length), 0);
   const headerH = Math.min(330, Math.max(96, Math.round(maxLabelChars * 5.6 * 0.79) + 30));
 
   const openDrill = (component: string, filter: ReviewFilter) => {
     setDrillFilter(filter);
+    setDepth(false);
     setDrill(component);
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       {/* (1) Executive dashboard — pinned like a frozen header row. Collapses
-          to a slim clickable strip while a review list is open, so the table
-          gets the height. */}
-      {drill ? (
+          to a slim clickable strip while a review list is open, and hides
+          entirely once the table scrolls (back at the top it returns). */}
+      {immersive ? null : drill ? (
         <div
           style={{
             display: 'flex',
@@ -262,15 +277,25 @@ export default function ProductGridView({
           columns={heat.columns}
           rows={drillRow ? drillRow.reviewRows : allReviewRows}
           defaultFilter={drillFilter}
-          onBack={() => setDrill(null)}
+          onBack={() => {
+            setDepth(false);
+            setDrill(null);
+          }}
           onDecide={(row, status, comment) =>
             onDecide(row.lobId, row.group.component, row.group.key, status, comment)
           }
+          onScrollDepth={setDepth}
+          labelOf={labelOf}
+          abbr={abbr}
+          onToggleAbbr={() => setAbbr((a) => !a)}
         />
       ) : (
         <>
           {/* (2) The heatmap — products angled across the top, components down the side. */}
-          <div style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}>
+          <div
+            style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}
+            onScroll={(e) => setDepth(e.currentTarget.scrollTop > 12)}
+          >
             <div style={{ minWidth: '100%', width: 'max-content' }}>
               <div
                 style={{
@@ -294,9 +319,35 @@ export default function ProductGridView({
                     textTransform: 'uppercase',
                     color: '#525252',
                     alignSelf: 'end',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
                   }}
                 >
-                  Model component
+                  <span>Model component</span>
+                  <button
+                    type="button"
+                    onClick={() => setAbbr((a) => !a)}
+                    title={
+                      abbr
+                        ? 'show full product names'
+                        : 'collapse product names to initials — hover a column for the full name'
+                    }
+                    style={{
+                      font: 'inherit',
+                      fontSize: 9.5,
+                      fontWeight: 600,
+                      letterSpacing: '0.04em',
+                      color: abbr ? '#fff' : '#525252',
+                      background: abbr ? '#171717' : '#fff',
+                      border: '1px solid #d4d4d4',
+                      borderRadius: 5,
+                      padding: '2px 7px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    ABBR
+                  </button>
                 </div>
                 {heat.columns.map((v) => (
                   <div
@@ -325,7 +376,9 @@ export default function ProductGridView({
                       style={{
                         position: 'absolute',
                         bottom: 8,
-                        left: 8,
+                        // One line over: rise from the column's RIGHT divider
+                        // so the text hangs over its own column of cells.
+                        left: 'calc(100% + 4px)',
                         transformOrigin: 'left bottom',
                         transform: 'rotate(-52deg)',
                         whiteSpace: 'nowrap',
@@ -337,10 +390,12 @@ export default function ProductGridView({
                         textOverflow: 'ellipsis',
                       }}
                     >
-                      {v.productName} · {v.name}
+                      {labelOf(v)}
                     </span>
                   </div>
                 ))}
+                {/* Solid chips ABOVE the angled labels so a leaning product
+                    name can never run over these headings. */}
                 {['Elements', 'To decide', 'Progress'].map((h) => (
                   <div
                     key={h}
@@ -354,6 +409,9 @@ export default function ProductGridView({
                       color: '#525252',
                       textAlign: h === 'Progress' ? 'left' : 'center',
                       alignSelf: 'end',
+                      position: 'relative',
+                      zIndex: 2,
+                      background: '#fafafa',
                     }}
                   >
                     {h}

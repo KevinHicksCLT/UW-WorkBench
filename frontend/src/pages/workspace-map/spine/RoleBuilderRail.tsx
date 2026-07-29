@@ -261,101 +261,6 @@ export function RoleRail({
 
   return (
     <div style={{ display: 'flex', flexShrink: 0, alignSelf: 'stretch', gap: 0 }}>
-      {/* Target chooser — new role vs consolidate into an existing one. */}
-      <div
-        style={{
-          width: 150,
-          flexShrink: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 4,
-          border: '1px solid #eaeaea',
-          borderRadius: 10,
-          background: '#fff',
-          padding: 8,
-          alignSelf: 'flex-start',
-        }}
-      >
-        <span
-          style={{
-            fontSize: 9.5,
-            fontWeight: 700,
-            letterSpacing: '.06em',
-            textTransform: 'uppercase',
-            color: '#525252',
-          }}
-        >
-          Target
-        </span>
-        <span style={{ fontSize: 8.5, color: '#94a3b8', marginBottom: 2 }}>
-          Build a brand-new role, or consolidate into an existing one.
-        </span>
-        <button
-          type="button"
-          onClick={() => onTargetRole('')}
-          style={{
-            font: 'inherit',
-            textAlign: 'left',
-            fontSize: 10,
-            fontWeight: targetRoleId === '' ? 700 : 500,
-            color: targetRoleId === '' ? '#14532d' : '#525252',
-            background: targetRoleId === '' ? '#f6faf7' : '#fff',
-            border: `1px solid ${targetRoleId === '' ? '#a7f3d0' : '#eaeaea'}`,
-            borderRadius: 7,
-            padding: '4px 8px',
-            cursor: 'pointer',
-          }}
-        >
-          ＋ New role
-        </button>
-        {roleOptions.map((r) => {
-          const on = targetRoleId === r.id;
-          return (
-            <button
-              key={r.id}
-              type="button"
-              onClick={() => onTargetRole(r.id)}
-              title={`Consolidate into ${r.name} — it becomes the target role`}
-              style={{
-                font: 'inherit',
-                textAlign: 'left',
-                fontSize: 10,
-                fontWeight: on ? 700 : 500,
-                color: on ? '#3730a3' : '#525252',
-                background: on ? '#f6f7ff' : '#fff',
-                border: `1px solid ${on ? '#c7d2fe' : '#eaeaea'}`,
-                borderRadius: 7,
-                padding: '4px 8px',
-                cursor: 'pointer',
-                lineHeight: 1.3,
-              }}
-            >
-              ⇥ Consolidate into {r.name}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Arrows from the target choice into the new-role rail. */}
-      <div
-        style={{
-          width: 22,
-          flexShrink: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-start',
-          alignItems: 'center',
-          gap: 26,
-          paddingTop: 40,
-          color: '#94a3b8',
-          fontSize: 13,
-        }}
-      >
-        <span>→</span>
-        <span>→</span>
-        <span>→</span>
-      </div>
-
       <div
         style={{
           width: 280,
@@ -480,6 +385,98 @@ export function RoleRail({
         >
           {existingTarget ? `Commit consolidation into ${existingTarget.name}` : 'Commit new role'}
         </button>
+      </div>
+
+      {/* Arrow from the New role box into the target chooser on the right. */}
+      <div
+        style={{
+          width: 24,
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+          paddingTop: 44,
+          color: '#94a3b8',
+          fontSize: 15,
+        }}
+      >
+        <span title="The new role feeds its target">→</span>
+      </div>
+
+      {/* Target chooser — vertical, right of the rail: brand-new role or
+          consolidate into an existing one (that role becomes the target). */}
+      <div
+        style={{
+          width: 150,
+          flexShrink: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
+          border: '1px solid #eaeaea',
+          borderRadius: 10,
+          background: '#fff',
+          padding: 8,
+          alignSelf: 'flex-start',
+        }}
+      >
+        <span
+          style={{
+            fontSize: 9.5,
+            fontWeight: 700,
+            letterSpacing: '.06em',
+            textTransform: 'uppercase',
+            color: '#525252',
+          }}
+        >
+          Target
+        </span>
+        <span style={{ fontSize: 8.5, color: '#94a3b8', marginBottom: 2 }}>
+          Build a brand-new role, or consolidate into an existing one.
+        </span>
+        <button
+          type="button"
+          onClick={() => onTargetRole('')}
+          style={{
+            font: 'inherit',
+            textAlign: 'left',
+            fontSize: 10,
+            fontWeight: targetRoleId === '' ? 700 : 500,
+            color: targetRoleId === '' ? '#14532d' : '#525252',
+            background: targetRoleId === '' ? '#f6faf7' : '#fff',
+            border: `1px solid ${targetRoleId === '' ? '#a7f3d0' : '#eaeaea'}`,
+            borderRadius: 7,
+            padding: '4px 8px',
+            cursor: 'pointer',
+          }}
+        >
+          ＋ New role
+        </button>
+        {roleOptions.map((r) => {
+          const on = targetRoleId === r.id;
+          return (
+            <button
+              key={r.id}
+              type="button"
+              onClick={() => onTargetRole(r.id)}
+              title={`Consolidate into ${r.name} — it becomes the target role`}
+              style={{
+                font: 'inherit',
+                textAlign: 'left',
+                fontSize: 10,
+                fontWeight: on ? 700 : 500,
+                color: on ? '#3730a3' : '#525252',
+                background: on ? '#f6f7ff' : '#fff',
+                border: `1px solid ${on ? '#c7d2fe' : '#eaeaea'}`,
+                borderRadius: 7,
+                padding: '4px 8px',
+                cursor: 'pointer',
+                lineHeight: 1.3,
+              }}
+            >
+              ⇥ Consolidate into {r.name}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

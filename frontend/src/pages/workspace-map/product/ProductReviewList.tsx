@@ -252,6 +252,10 @@ export default function ProductReviewList({
   defaultFilter,
   onBack,
   onDecide,
+  onScrollDepth,
+  labelOf,
+  abbr,
+  onToggleAbbr,
 }: {
   title: string;
   subtitle: string;
@@ -266,6 +270,13 @@ export default function ProductReviewList({
     status: ProductDecisionStatus | null,
     comment?: string,
   ) => Promise<void>;
+  /** Fires when the table scrolls away from (or back to) the top — the
+   *  surrounding chrome hides itself to give the table the height. */
+  onScrollDepth?: (deep: boolean) => void;
+  /** Column label (full or abbreviated) — full name always on hover. */
+  labelOf?: (v: VersionColumn) => string;
+  abbr?: boolean;
+  onToggleAbbr?: () => void;
 }) {
   const [filter, setFilter] = useState<ReviewFilter>(defaultFilter);
   const [search, setSearch] = useState('');
@@ -313,12 +324,10 @@ export default function ProductReviewList({
   };
 
   const gridCols = `minmax(240px,1fr) 110px repeat(${columns.length}, minmax(26px, 34px)) 150px 220px 200px`;
+  const colLabel = labelOf ?? ((v: VersionColumn) => `${v.productName} · ${v.name}`);
   // Header exactly tall enough for the longest angled label — fully visible,
   // never spilling out of the header band.
-  const maxLabelChars = columns.reduce(
-    (n, v) => Math.max(n, `${v.productName} · ${v.name}`.length),
-    0,
-  );
+  const maxLabelChars = columns.reduce((n, v) => Math.max(n, colLabel(v).length), 0);
   const headerH = Math.min(330, Math.max(90, Math.round(maxLabelChars * 5.6 * 0.79) + 26));
 
   return (
@@ -439,7 +448,10 @@ export default function ProductReviewList({
       {/* One scroll surface for header + rows: the angled header sticks to the
           top while the table takes every remaining pixel, and horizontal
           scrolling keeps header and body in lockstep. */}
-      <div style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}>
+      <div
+        style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}
+        onScroll={(e) => onScrollDepth?.(e.currentTarget.scrollTop > 12)}
+      >
         <div style={{ minWidth: '100%', width: 'max-content' }}>
           <div
             style={{
@@ -487,7 +499,9 @@ export default function ProductReviewList({
                   style={{
                     position: 'absolute',
                     bottom: 6,
-                    left: 6,
+                    // One line over: the label rises from its column's RIGHT
+                    // divider, so the text hangs over its own column of cells.
+                    left: 'calc(100% + 4px)',
                     transformOrigin: 'left bottom',
                     transform: 'rotate(-52deg)',
                     whiteSpace: 'nowrap',
@@ -505,9 +519,24 @@ export default function ProductReviewList({
                 </span>
               </span>
             ))}
-            <span style={{ paddingBottom: 6, alignSelf: 'end' }}>Product line</span>
-            <span style={{ paddingBottom: 6, alignSelf: 'end' }}>Decision</span>
-            <span style={{ paddingBottom: 6, alignSelf: 'end' }}>Comment</span>
+            {/* Solid chips ABOVE the angled labels so a leaning product name
+                can never run over these headings. */}
+            {['Product line', 'Decision', 'Comment'].map((h) => (
+              <span
+                key={h}
+                style={{
+                  paddingBottom: 6,
+                  paddingTop: 4,
+                  paddingRight: 6,
+                  alignSelf: 'end',
+                  position: 'relative',
+                  zIndex: 2,
+                  background: '#fafafa',
+                }}
+              >
+                {h}
+              </span>
+            ))}
           </div>
 
           {/* Rows — compact: the title carries the depth behind a click. */}

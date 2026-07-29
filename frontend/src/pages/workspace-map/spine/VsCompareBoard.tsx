@@ -113,7 +113,7 @@ export default function VsCompareBoard({
       {
         title: u.name,
         level: String(Number(level) + 1) as NestFrame['level'],
-        columns: childColumns(lanes, { key: u.key, level }),
+        columns: childColumns(lanes, { key: u.key, name: u.name, level }),
       },
     ]);
 

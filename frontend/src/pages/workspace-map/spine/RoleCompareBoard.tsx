@@ -18,9 +18,7 @@ import {
   recommendedTarget,
   roleFacts,
   roleRecs,
-  roleShort,
   type RoleColumnInput,
-  type RoleDecision,
 } from './roleConsolidation';
 import { useRoleDetails, useRoleList, useStreamList, useTaskSteps } from './useSpineData';
 
@@ -44,35 +42,6 @@ const selectStyle = {
   maxWidth: 220,
 } as const;
 
-function actionButton(
-  label: string,
-  on: boolean,
-  danger: boolean,
-  primary: boolean,
-  onClick: () => void,
-) {
-  return (
-    <button
-      key={label}
-      type="button"
-      onClick={onClick}
-      style={{
-        font: 'inherit',
-        fontSize: 10,
-        fontWeight: 600,
-        cursor: 'pointer',
-        borderRadius: 5,
-        padding: '3px 8px',
-        color: on ? '#fff' : '#525252',
-        background: on ? (danger ? '#dc2626' : primary ? INDIGO : '#525252') : '#fff',
-        border: `1px solid ${on ? 'transparent' : '#e5e5e5'}`,
-      }}
-    >
-      {label}
-    </button>
-  );
-}
-
 export default function RoleCompareBoard({
   lens,
   onLens,
@@ -86,10 +55,6 @@ export default function RoleCompareBoard({
   const [division, setDivision] = useViewState<string>('workspace.role.division', '');
   const [stream, setStream] = useViewState<string>('workspace.role.stream', '');
   const [filter, setFilter] = useViewState<TaskFilter>('workspace.role.filter', 'all');
-  const [roleDecisions, setRoleDecisions] = useViewState<Record<string, RoleDecision>>(
-    'workspace.role.decisions',
-    {},
-  );
   const [builder, setBuilder] = useViewState<BuilderItem[]>('workspace.role.builder', []);
   const [builderName, setBuilderName] = useViewState<string>(
     'workspace.role.builderName',
@@ -114,7 +79,6 @@ export default function RoleCompareBoard({
     setIds([first.id, (sibling ?? busiest[1]).id]);
   }, [roles, ids.length, setIds]);
   useOnChange(`${ids.join(',')}|${stream}`, () => {
-    setRoleDecisions({});
     setBuilder([]);
     setDeleted([]);
     setOpenTasks([]);
@@ -176,16 +140,13 @@ export default function RoleCompareBoard({
     [columns, facts, recTargetIdx, keyOf],
   );
 
-  const decisionOf = (idx: number): RoleDecision =>
-    roleDecisions[columns[idx]?.id] ?? recs[idx]?.suggest ?? 'Keep';
-  const targetIdx = (() => {
-    if (!columns.length) return 0;
-    if (decisionOf(recTargetIdx) === 'Keep') return recTargetIdx;
-    const surviving = columns.map((_, i) => i).filter((i) => decisionOf(i) === 'Keep');
-    if (surviving.length === 0) return recTargetIdx;
-    return surviving.sort((x, y) => facts[y].steps - facts[x].steps)[0];
-  })();
-  const going = columns.map((_, i) => i !== targetIdx && decisionOf(i) !== 'Keep');
+  // The target follows the rail's Target chooser: an existing role picked
+  // there IS the target; otherwise the coverage-recommended one. Fate chips
+  // derive from the recommendations (the old per-card decision buttons are
+  // gone — the rail is the one decision surface).
+  const chosenTargetIdx = targetRoleId ? columns.findIndex((c) => c.id === targetRoleId) : -1;
+  const targetIdx = chosenTargetIdx >= 0 ? chosenTargetIdx : recTargetIdx;
+  const going = columns.map((_, i) => i !== targetIdx && (recs[i]?.suggest ?? 'Keep') !== 'Keep');
 
   // Filter counts are DISTINCT units of work (fuzzy canonical key), not raw
   // per-role rows — the same task carried by both roles counts once. "Agent
@@ -211,21 +172,9 @@ export default function RoleCompareBoard({
     };
   }, [columns, keyOf]);
 
-  // Role decisions and destructive rail drops route through the common
-  // change-impact gate; the decision only records once confirmed.
+  // Destructive rail drops and the commit route through the common
+  // change-impact gate; nothing records until confirmed.
   const gate = useImpactGate();
-  const decideRole = (col: RoleColumnInput, label: RoleDecision) => {
-    const apply = () => setRoleDecisions((cur) => ({ ...cur, [col.id]: label }));
-    if (label === 'Keep') return apply();
-    gate.run(
-      {
-        changeType: label === 'Deprecate' ? 'DEPRECATE' : 'CONSOLIDATE',
-        label: col.name,
-        subject: { kind: 'role', roleId: col.id },
-      },
-      apply,
-    );
-  };
   const deleteTask = (p: DragPayload) => {
     gate.run(
       {
@@ -353,7 +302,6 @@ export default function RoleCompareBoard({
                       : rec.rec === 'CONSOLIDATE'
                         ? { fg: INDIGO, bg: '#eef2ff', border: '#d6dcff', label: 'CONSOLIDATE' }
                         : { fg: '#166534', bg: '#dcfce7', border: '#bbf7d0', label: 'KEEP' };
-                    const chosen = decisionOf(i);
                     return (
                       <div
                         key={c.id}
@@ -418,20 +366,6 @@ export default function RoleCompareBoard({
                           </span>
                           <span>
                             <b style={{ color: '#b45309' }}>{facts[i].only}</b> only here
-                          </span>
-                          <div style={{ flex: 1 }} />
-                          <span style={{ display: 'flex', gap: 4 }}>
-                            {(['Consolidate', 'Deprecate', 'Keep'] as RoleDecision[]).map((label) =>
-                              actionButton(
-                                label === 'Consolidate' && !isTarget
-                                  ? `→ ${roleShort(columns[targetIdx].name)}`
-                                  : label,
-                                chosen === label,
-                                label === 'Deprecate',
-                                label === 'Consolidate',
-                                () => decideRole(c, label),
-                              ),
-                            )}
                           </span>
                         </div>
                       </div>

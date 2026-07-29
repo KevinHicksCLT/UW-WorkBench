@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { streamBg, streamTone } from './VsNewProcessFlow';
 import { LEVEL_SHORT, type DragPayload, type ProcessLevel } from './processBuilder';
-import { spineKey } from './spineCompare';
+import { similar, spineKey } from './spineCompare';
 import type { StreamDetail, TaskStep } from './useSpineData';
 
 // The compare view's russian nesting doll — click a card, a modal opens with
@@ -26,6 +26,9 @@ export interface NestColumn {
    *  the lane's ENTIRE set at this level instead — comparison never dead-ends
    *  just because the parent differs. */
   fallback?: boolean;
+  /** PL6 only: the lane has no task with the clicked name, so the column
+   *  shows the steps of its CLOSEST similar task — named here. */
+  approx?: string;
 }
 
 export interface NestFrame {
@@ -64,11 +67,13 @@ function allAt(lane: StreamDetail, level: ProcessLevel): NestUnit[] {
 
 /** Children of the matched unit one level down, per lane. A lane that does
  *  not carry the clicked unit falls back to ALL of its units at that level —
- *  compare across levels regardless of how the streams are structured. Only
- *  PL6 (steps of one specific task) has no sensible fallback. */
+ *  compare across levels regardless of how the streams are structured. At
+ *  PL6 (steps of one specific task) the fallback is the lane's CLOSEST
+ *  similar-named task; only when nothing similar exists does the column say
+ *  the work is unique to the other stream. */
 export function childColumns(
   lanes: StreamDetail[],
-  clicked: { key: string; level: ProcessLevel },
+  clicked: { key: string; name: string; level: ProcessLevel },
 ): NestColumn[] {
   return lanes.map((lane) => {
     if (clicked.level === '3') {
@@ -110,6 +115,19 @@ export function childColumns(
           return {
             stream: lane.name,
             units: [{ key: task.id, name: task.name, nodeIds: [task.id], childCount: -1 }],
+          };
+      }
+    }
+    // No exact task — the closest similar-named task keeps the comparison
+    // alive (token-overlap `similar`, the spine's one matching rule).
+    for (const area of lane.areas) {
+      for (const sub of area.subs) {
+        const near = sub.tasks.find((t) => similar(t.name, clicked.name));
+        if (near)
+          return {
+            stream: lane.name,
+            units: [{ key: near.id, name: near.name, nodeIds: [near.id], childCount: -1 }],
+            approx: near.name,
           };
       }
     }
@@ -269,6 +287,12 @@ export default function VsNestModal({
                       · no matching parent — all its Process level {frame.level}
                     </span>
                   )}
+                  {col.approx && (
+                    <span style={{ fontWeight: 500, color: '#64748b' }}>
+                      {' '}
+                      · closest match — no exact task
+                    </span>
+                  )}
                 </div>
                 {col.units === null ? (
                   <div
@@ -280,7 +304,8 @@ export default function VsNestModal({
                       color: '#94a3b8',
                     }}
                   >
-                    This stream doesn&apos;t carry {frame.title}.
+                    No task named — or similar to — “{frame.title}” exists in this stream. This work
+                    is unique to the other compared stream{lanes.length > 2 ? 's' : ''}.
                   </div>
                 ) : isSteps ? (
                   // PL6: the lane's matched task — its Work Library steps.
@@ -291,6 +316,11 @@ export default function VsNestModal({
                         key={task.key}
                         style={{ display: 'flex', flexDirection: 'column', gap: 4 }}
                       >
+                        {col.approx && (
+                          <div style={{ fontSize: 10, color: '#64748b', fontStyle: 'italic' }}>
+                            {task.name}
+                          </div>
+                        )}
                         {l6 === undefined ? (
                           <div style={{ fontSize: 10.5, color: '#94a3b8', padding: 4 }}>
                             Loading steps…
@@ -387,7 +417,11 @@ export default function VsNestModal({
                             onPush({
                               title: u.name,
                               level: String(Number(frame.level) + 1) as ProcessLevel,
-                              columns: childColumns(lanes, { key: u.key, level: frame.level }),
+                              columns: childColumns(lanes, {
+                                key: u.key,
+                                name: u.name,
+                                level: frame.level,
+                              }),
                             })
                           }
                           title={`Open the ${frame.level === '5' ? 'Process level 6 steps' : `Process level ${Number(frame.level) + 1} comparison`} for this unit`}
