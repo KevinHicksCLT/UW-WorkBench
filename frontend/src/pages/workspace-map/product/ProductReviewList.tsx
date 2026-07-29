@@ -436,259 +436,280 @@ export default function ProductReviewList({
         </div>
       </div>
 
-      {/* Column header — products at an angle, never truncated. */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: gridCols,
-          alignItems: 'end',
-          padding: '0 14px',
-          borderBottom: '1px solid #eaeaea',
-          background: '#fafafa',
-          fontSize: 10,
-          fontWeight: 600,
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          color: '#525252',
-          flexShrink: 0,
-        }}
-      >
-        <span style={{ paddingBottom: 6 }}>Element — click a title for its full detail</span>
-        <span style={{ paddingBottom: 6 }}>Status</span>
-        {columns.map((v) => (
-          <span
-            key={v.id}
-            title={`${v.productName} · ${v.name}`}
+      {/* One scroll surface for header + rows: the angled header sticks to the
+          top while the table takes every remaining pixel, and horizontal
+          scrolling keeps header and body in lockstep. */}
+      <div style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}>
+        <div style={{ minWidth: '100%', width: 'max-content' }}>
+          <div
             style={{
-              height: headerH,
-              position: 'relative',
-              overflow: 'visible',
-              borderLeft: '1px solid #e2e8f0',
+              display: 'grid',
+              gridTemplateColumns: gridCols,
+              alignItems: 'end',
+              padding: '0 14px',
+              borderBottom: '1px solid #eaeaea',
+              background: '#fafafa',
+              fontSize: 10,
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              color: '#525252',
+              position: 'sticky',
+              top: 0,
+              zIndex: 3,
+              minWidth: '100%',
             }}
           >
-            <span
-              style={{
-                position: 'absolute',
-                bottom: 6,
-                left: 6,
-                transformOrigin: 'left bottom',
-                transform: 'rotate(-52deg)',
-                whiteSpace: 'nowrap',
-                fontSize: 10.5,
-                letterSpacing: '0.02em',
-                textTransform: 'none',
-                fontWeight: 600,
-                color: '#404040',
-                maxWidth: Math.round((headerH - 14) / 0.79),
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {v.productName} · {v.name}
+            <span style={{ paddingBottom: 6, alignSelf: 'end' }}>
+              Element — click a title for its full detail
             </span>
-          </span>
-        ))}
-        <span style={{ paddingBottom: 6 }}>Product line</span>
-        <span style={{ paddingBottom: 6 }}>Decision</span>
-        <span style={{ paddingBottom: 6 }}>Comment</span>
-      </div>
+            <span style={{ paddingBottom: 6, alignSelf: 'end' }}>Status</span>
+            {columns.map((v) => (
+              <span
+                key={v.id}
+                title={`${v.productName} · ${v.name}`}
+                style={{ height: headerH, position: 'relative', overflow: 'visible' }}
+              >
+                {/* Divider parallel with the labels. */}
+                <span
+                  style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    width: Math.round(headerH / 0.788),
+                    height: 1,
+                    background: '#dbe1e8',
+                    transformOrigin: 'left bottom',
+                    transform: 'rotate(-52deg)',
+                  }}
+                />
+                <span
+                  style={{
+                    position: 'absolute',
+                    bottom: 6,
+                    left: 6,
+                    transformOrigin: 'left bottom',
+                    transform: 'rotate(-52deg)',
+                    whiteSpace: 'nowrap',
+                    fontSize: 10.5,
+                    letterSpacing: '0.02em',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    color: '#404040',
+                    maxWidth: Math.round((headerH - 14) / 0.79),
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {v.productName} · {v.name}
+                </span>
+              </span>
+            ))}
+            <span style={{ paddingBottom: 6, alignSelf: 'end' }}>Product line</span>
+            <span style={{ paddingBottom: 6, alignSelf: 'end' }}>Decision</span>
+            <span style={{ paddingBottom: 6, alignSelf: 'end' }}>Comment</span>
+          </div>
 
-      {/* Rows — compact: the title carries the depth behind a click. */}
-      <div style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}>
-        {shown.map((r) => {
-          const key = rowKey(r);
-          const meta = MATCH_META[r.group.status];
-          const saving = savingKey === key;
-          const editing = editingKey === key;
-          return (
-            <div
-              key={key}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: gridCols,
-                alignItems: 'center',
-                padding: '4px 14px',
-                borderBottom: '1px solid #f1f3f5',
-                background: r.needsDecision && !r.decision ? '#fffdf7' : '#fff',
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => setDetail(r)}
-                title="open the full element detail"
+          {/* Rows — compact: the title carries the depth behind a click. */}
+          {shown.map((r) => {
+            const key = rowKey(r);
+            const meta = MATCH_META[r.group.status];
+            const saving = savingKey === key;
+            const editing = editingKey === key;
+            return (
+              <div
+                key={key}
                 style={{
-                  font: 'inherit',
-                  fontSize: 12.5,
-                  fontWeight: 600,
-                  color: '#0070AD',
-                  background: 'none',
-                  border: 'none',
-                  padding: '2px 12px 2px 0',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  lineHeight: 1.3,
+                  display: 'grid',
+                  gridTemplateColumns: gridCols,
+                  alignItems: 'center',
+                  padding: '4px 14px',
+                  borderBottom: '1px solid #f1f3f5',
+                  background: r.needsDecision && !r.decision ? '#fffdf7' : '#fff',
                 }}
               >
-                {r.group.name}
-              </button>
-              <div>
-                <span
+                <button
+                  type="button"
+                  onClick={() => setDetail(r)}
+                  title="open the full element detail"
                   style={{
-                    display: 'inline-block',
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: meta.fg,
-                    background: meta.bg,
-                    border: `1px solid ${meta.border}`,
-                    borderRadius: 6,
-                    padding: '1px 7px',
+                    font: 'inherit',
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    color: '#0070AD',
+                    background: 'none',
+                    border: 'none',
+                    padding: '2px 12px 2px 0',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    lineHeight: 1.3,
                   }}
                 >
-                  {meta.label}
-                </span>
-              </div>
-              {r.presence.map((p, i) => (
-                <span
-                  key={`${key}:${i}`}
-                  title={
-                    p
-                      ? `${columns[i]?.productName ?? ''} carries this element`
-                      : `not in ${columns[i]?.productName ?? 'this product'}`
-                  }
-                  style={{
-                    alignSelf: 'stretch',
-                    display: 'flex',
-                    alignItems: 'center',
-                    borderLeft: '1px solid #e2e8f0',
-                    padding: '3px 3px',
-                  }}
-                >
+                  {r.group.name}
+                </button>
+                <div>
                   <span
                     style={{
-                      flex: 1,
-                      height: 18,
-                      borderRadius: 4,
-                      background: p ? '#86efac' : '#fff',
-                      border: p ? '1px solid #16a34a' : '1px solid #e5e7eb',
+                      display: 'inline-block',
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: meta.fg,
+                      background: meta.bg,
+                      border: `1px solid ${meta.border}`,
+                      borderRadius: 6,
+                      padding: '1px 7px',
                     }}
-                  />
-                </span>
-              ))}
-              <span style={{ fontSize: 11.5, color: '#404040', paddingRight: 8 }}>{r.lobName}</span>
-              <div>
-                {r.needsDecision ? (
-                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-                    {STATUS_ACTIONS.map(([status, label, tone]) => {
-                      const on = r.decision?.status === status;
-                      return (
-                        <button
-                          key={status}
-                          type="button"
-                          disabled={saving}
-                          title={
-                            on ? 'click again to withdraw this decision' : STATUS_LABEL[status]
-                          }
-                          onClick={() => void act(r, on ? null : status)}
-                          style={{
-                            font: 'inherit',
-                            fontSize: 11,
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            borderRadius: 6,
-                            padding: '2px 9px',
-                            color: on ? '#fff' : '#404040',
-                            background: on ? tone : '#fff',
-                            border: `1px solid ${on ? 'transparent' : '#d4d4d4'}`,
-                            opacity: saving ? 0.6 : 1,
-                          }}
-                        >
-                          {label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <span style={{ fontSize: 11, fontWeight: 600, color: '#166534' }}>
-                    In model automatically
+                  >
+                    {meta.label}
                   </span>
-                )}
-              </div>
-              <div style={{ paddingRight: 4 }}>
-                {editing ? (
-                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                    <input
-                      value={draft}
-                      onChange={(e) => setDraft(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') void act(r, r.decision?.status ?? 'HELD', draft);
-                        if (e.key === 'Escape') setEditingKey(null);
+                </div>
+                {r.presence.map((p, i) => (
+                  <span
+                    key={`${key}:${i}`}
+                    title={
+                      p
+                        ? `${columns[i]?.productName ?? ''} carries this element`
+                        : `not in ${columns[i]?.productName ?? 'this product'}`
+                    }
+                    style={{
+                      alignSelf: 'stretch',
+                      display: 'flex',
+                      alignItems: 'center',
+                      borderLeft: '1px solid #e2e8f0',
+                      padding: '3px 3px',
+                    }}
+                  >
+                    <span
+                      style={{
+                        flex: 1,
+                        height: 18,
+                        borderRadius: 4,
+                        background: p ? '#86efac' : '#fff',
+                        border: p ? '1px solid #16a34a' : '1px solid #e5e7eb',
                       }}
+                    />
+                  </span>
+                ))}
+                <span style={{ fontSize: 11.5, color: '#404040', paddingRight: 8 }}>
+                  {r.lobName}
+                </span>
+                <div>
+                  {r.needsDecision ? (
+                    <div
+                      style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}
+                    >
+                      {STATUS_ACTIONS.map(([status, label, tone]) => {
+                        const on = r.decision?.status === status;
+                        return (
+                          <button
+                            key={status}
+                            type="button"
+                            disabled={saving}
+                            title={
+                              on ? 'click again to withdraw this decision' : STATUS_LABEL[status]
+                            }
+                            onClick={() => void act(r, on ? null : status)}
+                            style={{
+                              font: 'inherit',
+                              fontSize: 11,
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              borderRadius: 6,
+                              padding: '2px 9px',
+                              color: on ? '#fff' : '#404040',
+                              background: on ? tone : '#fff',
+                              border: `1px solid ${on ? 'transparent' : '#d4d4d4'}`,
+                              opacity: saving ? 0.6 : 1,
+                            }}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <span style={{ fontSize: 11, fontWeight: 600, color: '#166534' }}>
+                      In model automatically
+                    </span>
+                  )}
+                </div>
+                <div style={{ paddingRight: 4 }}>
+                  {editing ? (
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <input
+                        value={draft}
+                        onChange={(e) => setDraft(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') void act(r, r.decision?.status ?? 'HELD', draft);
+                          if (e.key === 'Escape') setEditingKey(null);
+                        }}
+                        style={{
+                          font: 'inherit',
+                          fontSize: 11.5,
+                          border: '1px solid #d4d4d4',
+                          borderRadius: 6,
+                          padding: '3px 8px',
+                          flex: 1,
+                          minWidth: 0,
+                        }}
+                      />
+                      <button
+                        type="button"
+                        disabled={saving}
+                        onClick={() => void act(r, r.decision?.status ?? 'HELD', draft)}
+                        style={{
+                          font: 'inherit',
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: '#fff',
+                          background: '#171717',
+                          border: 'none',
+                          borderRadius: 6,
+                          padding: '3px 9px',
+                          cursor: 'pointer',
+                          opacity: saving ? 0.6 : 1,
+                        }}
+                      >
+                        {saving ? '…' : 'Save'}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingKey(key);
+                        setDraft(r.decision?.comment ?? '');
+                      }}
+                      title="leave a reviewer note"
                       style={{
                         font: 'inherit',
                         fontSize: 11.5,
-                        border: '1px solid #d4d4d4',
-                        borderRadius: 6,
-                        padding: '3px 8px',
-                        flex: 1,
-                        minWidth: 0,
-                      }}
-                    />
-                    <button
-                      type="button"
-                      disabled={saving}
-                      onClick={() => void act(r, r.decision?.status ?? 'HELD', draft)}
-                      style={{
-                        font: 'inherit',
-                        fontSize: 11,
-                        fontWeight: 600,
-                        color: '#fff',
-                        background: '#171717',
+                        color: r.decision?.comment ? '#171717' : '#737373',
+                        background: 'none',
                         border: 'none',
-                        borderRadius: 6,
-                        padding: '3px 9px',
                         cursor: 'pointer',
-                        opacity: saving ? 0.6 : 1,
+                        textAlign: 'left',
+                        padding: 0,
+                        lineHeight: 1.35,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 1,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
                       }}
                     >
-                      {saving ? '…' : 'Save'}
+                      {r.decision?.comment ?? '✎'}
                     </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingKey(key);
-                      setDraft(r.decision?.comment ?? '');
-                    }}
-                    title="leave a reviewer note"
-                    style={{
-                      font: 'inherit',
-                      fontSize: 11.5,
-                      color: r.decision?.comment ? '#171717' : '#737373',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      padding: 0,
-                      lineHeight: 1.35,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 1,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {r.decision?.comment ?? '✎'}
-                  </button>
-                )}
+                  )}
+                </div>
               </div>
+            );
+          })}
+          {shown.length === 0 && (
+            <div style={{ padding: 20, fontSize: 12.5, color: '#525252' }}>
+              Nothing matches this filter{search ? ' and search' : ''}.
             </div>
-          );
-        })}
-        {shown.length === 0 && (
-          <div style={{ padding: 20, fontSize: 12.5, color: '#525252' }}>
-            Nothing matches this filter{search ? ' and search' : ''}.
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {detail && (

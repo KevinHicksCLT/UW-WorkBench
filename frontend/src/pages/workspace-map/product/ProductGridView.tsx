@@ -145,44 +145,111 @@ export default function ProductGridView({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
-      {/* (1) Executive dashboard — pinned like a frozen header row. */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 10,
-          padding: '10px 14px',
-          borderBottom: '1px solid #eaeaea',
-          background: '#fafafa',
-          flexShrink: 0,
-          flexWrap: 'wrap',
-        }}
-      >
-        <StatTile
-          label="model elements in scope"
-          value={String(heat.totals.total)}
-          tone="#171717"
-          onClick={() => openDrill('__all__', 'all')}
-        />
-        <StatTile
-          label="need a decision"
-          value={String(pending)}
-          tone={pending > 0 ? '#b45309' : '#16a34a'}
-          onClick={() => openDrill('__all__', 'pending')}
-        />
-        <StatTile
-          label="decided"
-          value={String(heat.totals.decided)}
-          tone="#4f46e5"
-          onClick={() => openDrill('__all__', 'decided')}
-        />
-        <StatTile
-          label={`complete — ${heat.totals.decided} of ${heat.totals.need} decisions made`}
-          value={`${heat.totals.pct}%`}
-          tone={heat.totals.pct >= 100 ? '#16a34a' : heat.totals.pct > 0 ? '#f59e0b' : '#dc2626'}
-          bar={heat.totals.pct}
-        />
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+      {/* (1) Executive dashboard — pinned like a frozen header row. Collapses
+          to a slim clickable strip while a review list is open, so the table
+          gets the height. */}
+      {drill ? (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            padding: '5px 14px',
+            borderBottom: '1px solid #eaeaea',
+            background: '#fafafa',
+            flexShrink: 0,
+            flexWrap: 'nowrap',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            fontSize: 11.5,
+          }}
+        >
+          {(
+            [
+              [`${heat.totals.total} elements`, '#171717', 'all'],
+              [`${pending} need a decision`, pending > 0 ? '#b45309' : '#16a34a', 'pending'],
+              [`${heat.totals.decided} decided`, '#4f46e5', 'decided'],
+            ] as [string, string, ReviewFilter][]
+          ).map(([label, tone, f]) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => openDrill('__all__', f)}
+              style={{
+                font: 'inherit',
+                fontSize: 11.5,
+                fontWeight: 600,
+                color: tone,
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+          <div
+            style={{
+              width: 140,
+              flexShrink: 0,
+              height: 5,
+              background: '#e5e7eb',
+              borderRadius: 9,
+              overflow: 'hidden',
+            }}
+          >
+            <span
+              style={{
+                display: 'block',
+                height: 5,
+                width: `${heat.totals.pct}%`,
+                background:
+                  heat.totals.pct >= 100 ? '#16a34a' : heat.totals.pct > 0 ? '#f59e0b' : '#dc2626',
+              }}
+            />
+          </div>
+          <span style={{ fontSize: 11, color: '#404040' }}>{heat.totals.pct}% complete</span>
+        </div>
+      ) : (
+        <div
+          style={{
+            display: 'flex',
+            gap: 10,
+            padding: '10px 14px',
+            borderBottom: '1px solid #eaeaea',
+            background: '#fafafa',
+            flexShrink: 0,
+            flexWrap: 'wrap',
+          }}
+        >
+          <StatTile
+            label="model elements in scope"
+            value={String(heat.totals.total)}
+            tone="#171717"
+            onClick={() => openDrill('__all__', 'all')}
+          />
+          <StatTile
+            label="need a decision"
+            value={String(pending)}
+            tone={pending > 0 ? '#b45309' : '#16a34a'}
+            onClick={() => openDrill('__all__', 'pending')}
+          />
+          <StatTile
+            label="decided"
+            value={String(heat.totals.decided)}
+            tone="#4f46e5"
+            onClick={() => openDrill('__all__', 'decided')}
+          />
+          <StatTile
+            label={`complete — ${heat.totals.decided} of ${heat.totals.need} decisions made`}
+            value={`${heat.totals.pct}%`}
+            tone={heat.totals.pct >= 100 ? '#16a34a' : heat.totals.pct > 0 ? '#f59e0b' : '#dc2626'}
+            bar={heat.totals.pct}
+          />
+        </div>
+      )}
 
       {drill ? (
         <ProductReviewList
@@ -236,12 +303,24 @@ export default function ProductGridView({
                     key={v.id}
                     title={`${v.segmentName} › ${v.lobName} › ${v.productName} · ${v.name}`}
                     style={{
-                      borderLeft: '1px solid #e2e8f0',
                       height: headerH,
                       position: 'relative',
                       overflow: 'visible',
                     }}
                   >
+                    {/* Divider parallel with the labels. */}
+                    <span
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        width: Math.round(headerH / 0.788),
+                        height: 1,
+                        background: '#dbe1e8',
+                        transformOrigin: 'left bottom',
+                        transform: 'rotate(-52deg)',
+                      }}
+                    />
                     <span
                       style={{
                         position: 'absolute',

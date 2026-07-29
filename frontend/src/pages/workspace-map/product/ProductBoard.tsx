@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { LoadingState, ErrorMessage, EmptyState } from '../../../components/ui';
 import { api } from '../../../lib/api';
 import { useApi } from '../../../lib/useApi';
@@ -84,6 +85,10 @@ export default function ProductBoard({
 
   const versions = useMemo(() => scopeVersions(pool, filters), [pool, filters]);
   const scopedLobs = useMemo(() => scopeLobs(lobs, filters), [lobs, filters]);
+  // Grid drill state lives in the URL (owned by ProductGridView) — the board
+  // only peeks to slim its chrome while a review list is open.
+  const [boardSearchParams] = useSearchParams();
+  const drilled = boardSearchParams.get('pmDrill') !== null;
   const crossLob = useMemo(() => new Set(versions.map((v) => v.lobId)).size > 1, [versions]);
   const comparison = useMemo(() => buildComparison(versions), [versions]);
   // The scope's home LOB: the first scoped version's line. Decisions and the
@@ -457,7 +462,8 @@ export default function ProductBoard({
       >
         {lensBar}
         {filterRow}
-        {bannerStrip}
+        {/* Inside a review drill the banner is noise — the table gets its height. */}
+        {!drilled && bannerStrip}
         <div
           style={{
             border: '1px solid #eaeaea',
@@ -467,6 +473,8 @@ export default function ProductBoard({
             flex: 1,
             minHeight: 0,
             boxSizing: 'border-box',
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
           <ProductGridView lobs={scopedLobs} decisions={decisionMap} onDecide={decide} />
