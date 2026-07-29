@@ -108,7 +108,7 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
       >
         {/* Header */}
         <div style={{ padding: '12px 16px', borderBottom: '1px solid #eaeaea' }}>
-          <div style={{ fontSize: 10.5, fontWeight: 700, color: '#6366f1', letterSpacing: 0.4 }}>
+          <div style={{ fontSize: 10.5, fontWeight: 700, color: '#1d4ed8', letterSpacing: 0.4 }}>
             CHANGE IMPACT ASSESSMENT
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3 }}>
@@ -122,7 +122,7 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
                 fontSize: 10.5,
                 fontWeight: 700,
                 color: '#fff',
-                background: destructive ? '#dc2626' : '#4f46e5',
+                background: destructive ? '#dc2626' : '#1d4ed8',
               }}
             >
               {verb}
@@ -300,7 +300,7 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
               padding: '6px 16px',
               borderRadius: 7,
               border: 'none',
-              background: destructive ? '#dc2626' : '#4f46e5',
+              background: destructive ? '#dc2626' : '#171717',
               color: '#fff',
               cursor: s.busy || s.loading ? 'default' : 'pointer',
               opacity: s.busy || s.loading ? 0.6 : 1,
