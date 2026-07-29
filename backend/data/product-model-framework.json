@@ -1,0 +1,3322 @@
+{
+  "source": {
+    "carrier": "Liberty Mutual Insurance",
+    "title": "Liberty Mutual Insurance — Product & Segment Analysis and Derived Product Model",
+    "prepared": "Prepared 28 July 2026 | Source: Liberty Mutual public websites and public corporate disclosures only",
+    "workbook": "Liberty_Mutual_Product_Model_Analysis_Claude.xlsx",
+    "note": "Public-website extraction — example carrier product model. Capgemini analysis; confidence flags per row."
+  },
+  "readMe": {
+    "tldr": [
+      "Liberty Mutual publicly organizes itself into three strategic business units: US Retail Markets (USRM), Global Risk Solutions (GRS) and Liberty Mutual Investments (LMI). Only USRM and GRS write insurance products.",
+      "Across the public web estate we identified ~60 distinct product offerings spanning 4 buyer segments (individual/household, small business, mid-market, large/complex & global) and 3 non-insurance adjacencies (surety/guarantee, reinsurance, and services such as TPA, premium audit and risk control).",
+      "Those ~60 offerings collapse into SEVEN product archetypes. The archetype — not the line of business — is what actually determines how Coverages, Terms, Rating, Pricing, Underwriting Rules, Forms, Filings and Lifecycle behave. Two products in the same LOB (e.g. small-business workers comp vs. national-account workers comp) sit in different archetypes and need different data models.",
+      "The eight requested dimensions are NOT uniformly populated across archetypes. Filed rate/rule/form structures govern archetypes A1-A2; negotiated and manuscript structures govern A3-A4; surety (A5) is a three-party credit product where 'Coverage' and 'Rating' do not mean what they mean elsewhere; reinsurance (A6) is portfolio-level. A one-size product model will over-fit personal lines and break on specialty and surety.",
+      "The normalization key that works across all seven archetypes is: Product -> Coverage Part -> Coverage -> Limit/Deductible Option -> Rating Variable -> Rate Table -> Form -> Filing, with archetype-specific cardinality rules. Sheet 03 defines it; sheet 04 shows how each archetype instantiates it."
+    ],
+    "counters": [
+      {
+        "label": "Product offerings catalogued",
+        "value": "72"
+      },
+      {
+        "label": "of which US Retail Markets",
+        "value": "32"
+      },
+      {
+        "label": "of which Global Risk Solutions",
+        "value": "40"
+      },
+      {
+        "label": "Product archetypes derived",
+        "value": "7"
+      },
+      {
+        "label": "Atomic coverages / endorsements logged",
+        "value": "58"
+      },
+      {
+        "label": "Rating & pricing levers logged",
+        "value": "58"
+      },
+      {
+        "label": "US underwriting entities identified",
+        "value": "37"
+      },
+      {
+        "label": "Source URLs used",
+        "value": "14"
+      }
+    ]
+  },
+  "segments": [
+    {
+      "dimension": "Strategic business unit",
+      "segment": "US Retail Markets (USRM)",
+      "subSegment": "Personal Lines",
+      "serves": "Individuals & households, US",
+      "channels": "Direct (web, phone), exclusive/captive agents, independent agents (Safeco brand), affinity & employer programs",
+      "brands": "Liberty Mutual; Safeco",
+      "evidence": "38% private passenger auto / 38% homeowners of USRM 2025 NWP",
+      "confidence": "A"
+    },
+    {
+      "dimension": "Strategic business unit",
+      "segment": "US Retail Markets (USRM)",
+      "subSegment": "Small Commercial Lines",
+      "serves": "Small businesses, US",
+      "channels": "Direct (web, phone), independent agents, exclusive agents",
+      "brands": "Liberty Mutual",
+      "evidence": "24% 'small commercial and other' of USRM 2025 NWP",
+      "confidence": "A"
+    },
+    {
+      "dimension": "Strategic business unit",
+      "segment": "Global Risk Solutions (GRS)",
+      "subSegment": "GRS North America",
+      "serves": "Mid-size and large businesses, North America",
+      "channels": "Retail brokers, wholesale brokers, program administrators",
+      "brands": "Liberty Mutual; Ironshore",
+      "evidence": "Commercial property 13%, casualty 12%, WC 6% of GRS 2025 NWP",
+      "confidence": "A"
+    },
+    {
+      "dimension": "Strategic business unit",
+      "segment": "Global Risk Solutions (GRS)",
+      "subSegment": "Liberty Specialty Markets / Liberty International Insurance",
+      "serves": "Commercial & specialty risks outside North America",
+      "channels": "Brokers, Lloyd's market, local branches",
+      "brands": "Liberty Specialty Markets",
+      "evidence": "Specialty insurance 22% of GRS 2025 NWP",
+      "confidence": "A"
+    },
+    {
+      "dimension": "Strategic business unit",
+      "segment": "Global Risk Solutions (GRS)",
+      "subSegment": "Global Surety",
+      "serves": "Contractors, businesses and professionals requiring bonds, globally",
+      "channels": "Surety agents & brokers, National Bond Center",
+      "brands": "Liberty Mutual Surety",
+      "evidence": "Surety 11% of GRS 2025 NWP; #1 US and #1 global surety",
+      "confidence": "A"
+    },
+    {
+      "dimension": "Strategic business unit",
+      "segment": "Global Risk Solutions (GRS)",
+      "subSegment": "Liberty Mutual Reinsurance",
+      "serves": "Cedants (insurers), globally",
+      "channels": "Reinsurance intermediaries, direct",
+      "brands": "Liberty Mutual Reinsurance; Nationale Borg Reinsurance NV",
+      "evidence": "Reinsurance 17% of GRS 2025 NWP",
+      "confidence": "A"
+    },
+    {
+      "dimension": "Strategic business unit",
+      "segment": "Liberty Mutual Investments (LMI)",
+      "subSegment": "Investment management",
+      "serves": "Internal — Liberty Mutual Group balance sheet",
+      "channels": "n/a",
+      "brands": "Liberty Mutual Investments",
+      "evidence": "Deploys $100B+ of long-term capital; not an insurance product unit",
+      "confidence": "A"
+    },
+    {
+      "dimension": "Buyer segment",
+      "segment": "Individual / household",
+      "subSegment": "Personal lines buyer",
+      "serves": "Homeowners, renters, condo owners, landlords, drivers, powersports & marine owners, pet owners",
+      "channels": "Direct-to-consumer digital, phone, captive & independent agent",
+      "brands": "Liberty Mutual; Safeco",
+      "evidence": "Site offers self-service online quote & bind for auto, home, condo, renters, pet, motorcycle, life",
+      "confidence": "A"
+    },
+    {
+      "dimension": "Buyer segment",
+      "segment": "Small business",
+      "subSegment": "Small commercial buyer",
+      "serves": "10 named industries incl. construction, retail, medical office, manufacturing, wholesale, personal services, real estate, professional services, restaurants",
+      "channels": "Direct digital quote & bind, phone, independent agent",
+      "brands": "Liberty Mutual",
+      "evidence": "Dedicated small-business portal (mybusinessonline) and separate claims/service numbers",
+      "confidence": "A"
+    },
+    {
+      "dimension": "Buyer segment",
+      "segment": "Mid-market commercial",
+      "subSegment": "Mid-size business buyer",
+      "serves": "13 named industries incl. construction, energy, financial institutions, healthcare, life sciences, manufacturing, private equity, professional services, public entities, real estate, sharing economy & new mobility, technology, wholesale-distribution",
+      "channels": "Retail broker / agent, 'find an agent' broker locator",
+      "brands": "Liberty Mutual",
+      "evidence": "Liberty Remedy for Life Sciences launched May 2026 as a middle-market multi-line product",
+      "confidence": "A"
+    },
+    {
+      "dimension": "Buyer segment",
+      "segment": "Large & complex / global",
+      "subSegment": "Large-account and multinational buyer",
+      "serves": "National accounts, multinationals, public entities, infrastructure & energy-transition projects, private equity",
+      "channels": "Global & national brokers, wholesale/surplus lines brokers, Bermuda market",
+      "brands": "Liberty Mutual; Ironshore; Liberty Specialty Markets",
+      "evidence": "Multinational, Bermuda high-excess, infrastructure solutions, alternative risk and TPA offerings are all account-level",
+      "confidence": "A"
+    },
+    {
+      "dimension": "Distribution channel",
+      "segment": "Direct digital",
+      "subSegment": "Quote-and-bind online",
+      "serves": "Personal lines and small business",
+      "channels": "libertymutual.com self-service purchase",
+      "brands": "Liberty Mutual",
+      "evidence": "Online Purchase Discount (avg 12% off named auto coverages) is evidence of a channel-specific price",
+      "confidence": "A"
+    },
+    {
+      "dimension": "Distribution channel",
+      "segment": "Exclusive / captive agents",
+      "subSegment": "Liberty Mutual agents",
+      "serves": "Personal lines, small commercial",
+      "channels": "agents.libertymutual.com locator, personal-agent portal",
+      "brands": "Liberty Mutual",
+      "evidence": "Separate agent portals exist for personal and commercial",
+      "confidence": "A"
+    },
+    {
+      "dimension": "Distribution channel",
+      "segment": "Independent agents",
+      "subSegment": "IA channel",
+      "serves": "Personal lines and small commercial",
+      "channels": "Independent agency appointments (agency appointment form on site)",
+      "brands": "Safeco; Liberty Mutual",
+      "evidence": "Site offers 'find a local independent agent'; Safeco entities appear in the underwriting-company list",
+      "confidence": "A"
+    },
+    {
+      "dimension": "Distribution channel",
+      "segment": "Retail & wholesale brokers",
+      "subSegment": "Broker channel",
+      "serves": "Mid-market, large, specialty and E&S",
+      "channels": "Agent & broker dashboard, broker locator",
+      "brands": "Liberty Mutual; Ironshore",
+      "evidence": "Site notes some policies placed with surplus lines insurers via duly licensed surplus lines brokers",
+      "confidence": "A"
+    },
+    {
+      "dimension": "Distribution channel",
+      "segment": "Program administrators / MGAs",
+      "subSegment": "Delegated authority",
+      "serves": "Niche classes and portfolios",
+      "channels": "'Programs' solution on the commercial site",
+      "brands": "Liberty Mutual",
+      "evidence": "Delegated underwriting authority implies a distinct product-governance and audit model",
+      "confidence": "B"
+    },
+    {
+      "dimension": "Distribution channel",
+      "segment": "Affinity, association & employer programs",
+      "subSegment": "Affinity channel",
+      "serves": "Personal lines",
+      "channels": "Association, partner and affiliate programs; e.g. teachers auto insurance",
+      "brands": "Liberty Mutual",
+      "evidence": "Dedicated affinity/association/partner-program pages and an occupation-specific auto page",
+      "confidence": "A"
+    },
+    {
+      "dimension": "Distribution channel",
+      "segment": "Reinsurance intermediaries",
+      "subSegment": "Assumed reinsurance",
+      "serves": "Cedant insurers",
+      "channels": "Broker-placed treaty and facultative",
+      "brands": "Liberty Mutual Reinsurance; Nationale Borg",
+      "evidence": "Nationale Borg specialises in surety, credit and political risk reinsurance",
+      "confidence": "A"
+    }
+  ],
+  "catalog": [
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Personal vehicle",
+      "offering": "Personal auto / car insurance",
+      "buyer": "Individual / household",
+      "distribution": "Direct, captive agent, IA, affinity",
+      "archetype": "A1",
+      "evidence": "Core USRM product; 38% of USRM 2025 NWP",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Personal vehicle",
+      "offering": "Motorcycle insurance",
+      "buyer": "Individual / household",
+      "distribution": "Direct, agent",
+      "archetype": "A1",
+      "evidence": "Listed in vehicle product tree; bundle-eligible",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Personal vehicle",
+      "offering": "Boat & watercraft insurance",
+      "buyer": "Individual / household",
+      "distribution": "Agent, direct",
+      "archetype": "A1",
+      "evidence": "Listed in vehicle product tree",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Personal vehicle",
+      "offering": "Antique & classic car insurance",
+      "buyer": "Individual / household",
+      "distribution": "Agent",
+      "archetype": "A1",
+      "evidence": "Agreed-value style product; separate page",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Personal vehicle",
+      "offering": "ATV & off-road vehicle insurance",
+      "buyer": "Individual / household",
+      "distribution": "Agent, direct",
+      "archetype": "A1",
+      "evidence": "Listed in vehicle product tree",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Personal vehicle",
+      "offering": "RV insurance",
+      "buyer": "Individual / household",
+      "distribution": "Agent, direct",
+      "archetype": "A1",
+      "evidence": "Listed in vehicle product tree",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Personal vehicle",
+      "offering": "RightTrack telematics program",
+      "buyer": "Individual / household",
+      "distribution": "Direct, agent",
+      "archetype": "A1",
+      "evidence": "Program not product: enrolment discount plus final discount up to 30%; one-time or continuous monitoring variant",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Personal property",
+      "offering": "Homeowners insurance",
+      "buyer": "Individual / household",
+      "distribution": "Direct, captive agent, IA, affinity",
+      "archetype": "A1",
+      "evidence": "38% of USRM 2025 NWP",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Personal property",
+      "offering": "Renters insurance",
+      "buyer": "Individual / household",
+      "distribution": "Direct, agent",
+      "archetype": "A1",
+      "evidence": "Available in all 50 states + DC per third-party review",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Personal property",
+      "offering": "Condo insurance",
+      "buyer": "Individual / household",
+      "distribution": "Direct, agent",
+      "archetype": "A1",
+      "evidence": "Bundle-eligible with auto",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Personal property",
+      "offering": "Landlord insurance",
+      "buyer": "Individual investor",
+      "distribution": "Agent, direct",
+      "archetype": "A1",
+      "evidence": "Dwelling-fire style product for rental property",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Personal property",
+      "offering": "Mobile home insurance",
+      "buyer": "Individual / household",
+      "distribution": "Agent, direct",
+      "archetype": "A1",
+      "evidence": "Separate product page",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Personal property",
+      "offering": "Flood insurance",
+      "buyer": "Individual / household",
+      "distribution": "Agent, direct",
+      "archetype": "A1",
+      "evidence": "Listed as a Liberty Mutual property product; whether NFIP Write-Your-Own, private flood, or referral is not stated publicly — validate",
+      "confidence": "B"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Personal liability",
+      "offering": "Personal umbrella insurance",
+      "buyer": "Individual / household",
+      "distribution": "Agent, direct",
+      "archetype": "A1",
+      "evidence": "Excess over underlying auto/home limits",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Life",
+      "offering": "Term life insurance",
+      "buyer": "Individual / household",
+      "distribution": "Direct, agent",
+      "archetype": "A7",
+      "evidence": "Separate life product tree with term and whole variants",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Life",
+      "offering": "Whole life insurance",
+      "buyer": "Individual / household",
+      "distribution": "Direct, agent",
+      "archetype": "A7",
+      "evidence": "Separate life product tree",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Ancillary / specialty personal",
+      "offering": "Pet insurance",
+      "buyer": "Individual / household",
+      "distribution": "Direct",
+      "archetype": "A7",
+      "evidence": "Reimbursement-model product with waiting periods; underwriter/administrator not named on the page — validate whether third-party underwritten",
+      "confidence": "B"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Ancillary / specialty personal",
+      "offering": "Identity theft insurance",
+      "buyer": "Individual / household",
+      "distribution": "Direct, agent",
+      "archetype": "A7",
+      "evidence": "Separate page; likely endorsement or bundled service — validate",
+      "confidence": "B"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Affinity & programs",
+      "offering": "Association / employer / affiliate auto & home programs",
+      "buyer": "Group members & employees",
+      "distribution": "Affinity, partner programs",
+      "archetype": "A1",
+      "evidence": "Dedicated association, partner-program and affiliate-program pages; group discounts referenced",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Affinity & programs",
+      "offering": "Teachers auto insurance",
+      "buyer": "Occupation segment",
+      "distribution": "Direct, affinity",
+      "archetype": "A1",
+      "evidence": "Occupation-specific auto coverage page",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Personal Lines",
+      "family": "Bundles",
+      "offering": "Auto + home / auto + renters / auto + condo bundle",
+      "buyer": "Individual / household",
+      "distribution": "Direct, agent",
+      "archetype": "A1",
+      "evidence": "Multi-Policy Discount; advertised average saving of $950 for auto+home bundled online",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Small Commercial Lines",
+      "family": "Package",
+      "offering": "Business owner's policy (BOP)",
+      "buyer": "Small business",
+      "distribution": "Direct, IA, phone",
+      "archetype": "A2",
+      "evidence": "Flagship small-business package product",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Small Commercial Lines",
+      "family": "Casualty",
+      "offering": "General liability insurance",
+      "buyer": "Small business",
+      "distribution": "Direct, IA, phone",
+      "archetype": "A2",
+      "evidence": "Sold standalone and within BOP",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Small Commercial Lines",
+      "family": "Auto",
+      "offering": "Commercial auto insurance (small)",
+      "buyer": "Small business",
+      "distribution": "Direct, IA, phone",
+      "archetype": "A2",
+      "evidence": "Small-business commercial auto page",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Small Commercial Lines",
+      "family": "Workers compensation",
+      "offering": "Workers compensation insurance (small)",
+      "buyer": "Small business",
+      "distribution": "Direct, IA, phone",
+      "archetype": "A2",
+      "evidence": "Statutory product; bureau class-code rated",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Small Commercial Lines",
+      "family": "Property",
+      "offering": "Commercial property insurance",
+      "buyer": "Small business",
+      "distribution": "Direct, IA",
+      "archetype": "A2",
+      "evidence": "Sold standalone and within BOP",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Small Commercial Lines",
+      "family": "Marine",
+      "offering": "Inland marine insurance",
+      "buyer": "Small business",
+      "distribution": "Direct, IA",
+      "archetype": "A2",
+      "evidence": "Tools, equipment, property in transit",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Small Commercial Lines",
+      "family": "Agriculture",
+      "offering": "Farm insurance",
+      "buyer": "Farm / ranch owner",
+      "distribution": "IA",
+      "archetype": "A2",
+      "evidence": "Farm package product in the small-business tree",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Small Commercial Lines",
+      "family": "Cyber",
+      "offering": "Cyber insurance (small)",
+      "buyer": "Small business",
+      "distribution": "Direct, IA",
+      "archetype": "A2",
+      "evidence": "Small-business cyber page distinct from the commercial cyber solution",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Small Commercial Lines",
+      "family": "Excess",
+      "offering": "Commercial umbrella insurance (small)",
+      "buyer": "Small business",
+      "distribution": "Direct, IA",
+      "archetype": "A2",
+      "evidence": "Excess over BOP/GL/auto/WC",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "Small Commercial Lines",
+      "family": "Surety",
+      "offering": "Surety bond insurance (small)",
+      "buyer": "Small business / contractor",
+      "distribution": "IA, National Bond Center",
+      "archetype": "A5",
+      "evidence": "Small-business surety entry point into Global Surety products",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America",
+      "family": "Casualty",
+      "offering": "General liability",
+      "buyer": "Mid to large business",
+      "distribution": "Retail & wholesale broker",
+      "archetype": "A3",
+      "evidence": "Commercial solutions taxonomy",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America",
+      "family": "Casualty",
+      "offering": "Workers compensation",
+      "buyer": "Mid to large business",
+      "distribution": "Retail broker",
+      "archetype": "A3",
+      "evidence": "6% of GRS 2025 NWP; loss-sensitive structures typical at this size",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America",
+      "family": "Auto",
+      "offering": "Commercial auto & fleet",
+      "buyer": "Mid to large business",
+      "distribution": "Retail broker",
+      "archetype": "A3",
+      "evidence": "Fleet-rated; telematics/risk-control linked",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America",
+      "family": "Property",
+      "offering": "Commercial property",
+      "buyer": "Mid to large business",
+      "distribution": "Retail broker",
+      "archetype": "A3",
+      "evidence": "13% of GRS 2025 NWP; risk engineering referenced in insights",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America",
+      "family": "Property",
+      "offering": "Equipment breakdown",
+      "buyer": "Mid to large business",
+      "distribution": "Retail broker",
+      "archetype": "A3",
+      "evidence": "Boiler & machinery style coverage, often an endorsement or standalone",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America",
+      "family": "Excess",
+      "offering": "Umbrella & excess liability",
+      "buyer": "Mid to large business",
+      "distribution": "Retail & wholesale broker",
+      "archetype": "A3",
+      "evidence": "Layered above primary casualty",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America",
+      "family": "Marine",
+      "offering": "Inland marine",
+      "buyer": "Mid to large business",
+      "distribution": "Retail broker",
+      "archetype": "A3",
+      "evidence": "Contractors equipment, builders risk, cargo",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America",
+      "family": "Marine",
+      "offering": "Ocean marine",
+      "buyer": "Mid to large business",
+      "distribution": "Retail & wholesale broker",
+      "archetype": "A4",
+      "evidence": "Hull, cargo, marine liability; ancient non-bureau wordings",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America",
+      "family": "Alternative risk",
+      "offering": "Alternative risk solutions",
+      "buyer": "Large / complex",
+      "distribution": "Broker, captive manager",
+      "archetype": "A3",
+      "evidence": "Captive, fronting, large-deductible and loss-sensitive structures; drives collateral & true-up behaviour",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America",
+      "family": "Programs & delegated",
+      "offering": "Programs",
+      "buyer": "Program administrators / MGAs",
+      "distribution": "Delegated authority",
+      "archetype": "A6",
+      "evidence": "Delegated underwriting authority with carrier-level product governance",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America",
+      "family": "Services",
+      "offering": "Third party administration (TPA)",
+      "buyer": "Self-insureds, captives, programs",
+      "distribution": "Broker, direct",
+      "archetype": "A6",
+      "evidence": "Claims administration without risk transfer — fee product, not a rated policy",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America",
+      "family": "Multinational",
+      "offering": "Multinational programme",
+      "buyer": "Multinational business",
+      "distribution": "Global broker",
+      "archetype": "A3",
+      "evidence": "Controlled master programme with local admitted policies and FINPRO/DIC-DIL logic",
+      "confidence": "B"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America",
+      "family": "Infrastructure",
+      "offering": "Global infrastructure solutions",
+      "buyer": "Construction & energy-transition projects",
+      "distribution": "Global broker",
+      "archetype": "A3",
+      "evidence": "End-to-end project risk; explicitly linked to surety on the site",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America",
+      "family": "E&S",
+      "offering": "Excess and surplus lines",
+      "buyer": "Hard-to-place risks",
+      "distribution": "Wholesale / surplus lines broker",
+      "archetype": "A4",
+      "evidence": "10th largest US surplus lines carrier; non-admitted freedom of rate and form",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America / LSM",
+      "family": "Specialty — management & professional",
+      "offering": "Management liability (D&O, EPL, fiduciary)",
+      "buyer": "Mid to large business, PE",
+      "distribution": "Retail & wholesale broker",
+      "archetype": "A4",
+      "evidence": "Commercial solutions taxonomy",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America / LSM",
+      "family": "Specialty — management & professional",
+      "offering": "Professional liability / E&O",
+      "buyer": "Professional firms",
+      "distribution": "Retail & wholesale broker",
+      "archetype": "A4",
+      "evidence": "Claims-made structures",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America / LSM",
+      "family": "Specialty — management & professional",
+      "offering": "Cyber insurance (commercial)",
+      "buyer": "Mid to large business",
+      "distribution": "Retail & wholesale broker",
+      "archetype": "A4",
+      "evidence": "Distinct from the small-business cyber product",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America / LSM",
+      "family": "Specialty — transactional",
+      "offering": "Mergers & acquisitions / representations & warranties",
+      "buyer": "PE, corporate acquirers",
+      "distribution": "Specialist M&A broker",
+      "archetype": "A4",
+      "evidence": "Transactional risk; single-transaction term, not annual",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America / LSM",
+      "family": "Specialty — casualty",
+      "offering": "Healthcare liability",
+      "buyer": "Healthcare providers",
+      "distribution": "Retail & wholesale broker",
+      "archetype": "A4",
+      "evidence": "Medical professional liability",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America / LSM",
+      "family": "Specialty — casualty",
+      "offering": "Environmental liability",
+      "buyer": "Mid to large business",
+      "distribution": "Retail & wholesale broker",
+      "archetype": "A4",
+      "evidence": "Pollution legal liability, contractors pollution",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America / LSM",
+      "family": "Specialty — casualty",
+      "offering": "Specialty casualty",
+      "buyer": "Construction, energy, railroad, transportation",
+      "distribution": "Retail & wholesale broker",
+      "archetype": "A4",
+      "evidence": "Named on the specialty page as covering a diverse mix of industry classes",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America / LSM",
+      "family": "Specialty — niche",
+      "offering": "Fine art & specie",
+      "buyer": "Collectors, museums, vaults, cash-in-transit",
+      "distribution": "Specialist broker",
+      "archetype": "A4",
+      "evidence": "Named on the specialty page: art, jewellery, cash — in transit, on display or in storage",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America / LSM",
+      "family": "Specialty — niche",
+      "offering": "Financial risk (political risk, credit, non-payment)",
+      "buyer": "Financial institutions, governments, corporates",
+      "distribution": "Specialist broker",
+      "archetype": "A4",
+      "evidence": "Named on the specialty page: political events, debt defaults, bankruptcies",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America / LSM",
+      "family": "Specialty — niche",
+      "offering": "War & terrorism",
+      "buyer": "Property owners, multinationals",
+      "distribution": "Specialist broker",
+      "archetype": "A4",
+      "evidence": "Named on the specialty page: strikes, riots, business interruption",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America / LSM",
+      "family": "Specialty — niche",
+      "offering": "Equine & livestock",
+      "buyer": "Equine and livestock owners",
+      "distribution": "Specialist agent",
+      "archetype": "A4",
+      "evidence": "Named on the specialty page; online bill pay for US accounts",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America / LSM",
+      "family": "Specialty — accident & health",
+      "offering": "Medical stop loss",
+      "buyer": "Self-funded employers",
+      "distribution": "Benefits broker",
+      "archetype": "A4",
+      "evidence": "Protects self-funded health plans against large or catastrophic claims — health, not P&C, mechanics",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America / LSM",
+      "family": "Specialty — construction",
+      "offering": "Subcontractor default insurance (SDI)",
+      "buyer": "General contractors",
+      "distribution": "Construction broker",
+      "archetype": "A4",
+      "evidence": "Protects GCs against subcontractor non-performance; a surety-adjacent indemnity product",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America / LSM",
+      "family": "Specialty — industry solution",
+      "offering": "Liberty Remedy for Life Sciences",
+      "buyer": "Middle-market life sciences",
+      "distribution": "Retail broker",
+      "archetype": "A4",
+      "evidence": "Launched May 2026; integrated multi-line: products/completed ops liability with clinical trials & expanded access, E&O, paired GL",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS North America",
+      "family": "High excess",
+      "offering": "Liberty Mutual Bermuda high-excess capacity",
+      "buyer": "Large / complex",
+      "distribution": "Bermuda broker",
+      "archetype": "A4",
+      "evidence": "Bermuda-form high-excess products",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "Global Surety",
+      "family": "Contract surety",
+      "offering": "Contract bonds — bid, performance, payment",
+      "buyer": "Contractors",
+      "distribution": "Surety agent / broker",
+      "archetype": "A5",
+      "evidence": "Named on the surety page; projects of any size",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "Global Surety",
+      "family": "Commercial surety",
+      "offering": "Commercial bonds — court, licence & permit, fidelity",
+      "buyer": "Businesses & professionals",
+      "distribution": "Surety agent / broker",
+      "archetype": "A5",
+      "evidence": "Named on the surety page",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "Global Surety",
+      "family": "Specialty surety",
+      "offering": "International & reverse-flow bonds",
+      "buyer": "US firms bonding abroad; non-US firms in the US",
+      "distribution": "Global surety network",
+      "archetype": "A5",
+      "evidence": "Named on the surety page",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "Global Surety",
+      "family": "Product tier",
+      "offering": "Surety Xpress (small-account programme)",
+      "buyer": "Small contractors",
+      "distribution": "Surety agent",
+      "archetype": "A5",
+      "evidence": "Named in the surety case study as the small/midsize entry product",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "Global Surety",
+      "family": "Product tier",
+      "offering": "Surety Plus Vista (mid-tier programme)",
+      "buyer": "Small-to-midsize contractors scaling up",
+      "distribution": "Surety agent",
+      "archetype": "A5",
+      "evidence": "Named in the surety case study; used alongside SBA Preferred Surety Bond (Plan B)",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "Global Surety",
+      "family": "Government programme",
+      "offering": "SBA Preferred Surety Bond (Plan B) supported bonds",
+      "buyer": "Small & disadvantaged contractors",
+      "distribution": "Surety agent",
+      "archetype": "A5",
+      "evidence": "Named in the surety case study",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "Liberty Mutual Reinsurance",
+      "family": "Assumed reinsurance",
+      "offering": "Treaty & facultative reinsurance",
+      "buyer": "Cedant insurers",
+      "distribution": "Reinsurance intermediary, direct",
+      "archetype": "A6",
+      "evidence": "17% of GRS 2025 NWP",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "Liberty Mutual Reinsurance",
+      "family": "Assumed reinsurance",
+      "offering": "Nationale Borg Reinsurance NV — surety, credit & political risk reinsurance",
+      "buyer": "Cedant insurers",
+      "distribution": "Direct, intermediary",
+      "archetype": "A6",
+      "evidence": "Acquired by Liberty Mutual Insurance Company in 2019",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS — Services",
+      "family": "Service (fee-based)",
+      "offering": "Risk control / risk engineering",
+      "buyer": "Commercial policyholders",
+      "distribution": "Bundled with policy or fee-based",
+      "archetype": "S",
+      "evidence": "Listed under Services; a value-added service, not a rated coverage — but it generates underwriting rule inputs",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS — Services",
+      "family": "Service (fee-based)",
+      "offering": "Premium audit",
+      "buyer": "Commercial policyholders",
+      "distribution": "Bundled with policy",
+      "archetype": "S",
+      "evidence": "Listed under Services; the mechanism that converts estimated to earned exposure",
+      "confidence": "A"
+    },
+    {
+      "unit": "Global Risk Solutions (GRS)",
+      "subUnit": "GRS — Services",
+      "family": "Service (fee-based)",
+      "offering": "Billing & collections service",
+      "buyer": "Commercial policyholders",
+      "distribution": "Bundled",
+      "archetype": "S",
+      "evidence": "Listed under Services",
+      "confidence": "A"
+    },
+    {
+      "unit": "US Retail Markets (USRM)",
+      "subUnit": "USRM — Services",
+      "family": "Service (fee-based)",
+      "offering": "Liberty+ / prepare-and-prevent digital services",
+      "buyer": "Personal lines customers",
+      "distribution": "Digital",
+      "archetype": "S",
+      "evidence": "Customer engagement and loss-prevention content platform",
+      "confidence": "A"
+    }
+  ],
+  "dimensions": [
+    {
+      "n": 1,
+      "name": "Coverages",
+      "definition": "What the product promises to pay for, and how that promise is decomposed",
+      "atomicElements": [
+        "Coverage part / section",
+        "coverage code",
+        "peril or trigger basis (named peril, open peril, occurrence, claims-made, statutory)",
+        "insuring agreement",
+        "exclusions",
+        "conditions",
+        "sub-limits",
+        "extensions",
+        "endorsement-added coverages",
+        "territory"
+      ],
+      "naturalKey": "Coverage code + coverage-part code + product version",
+      "cardinality": "Coverage part 1:M Coverage; Coverage 1:M Limit/Deductible option; Coverage M:M Form",
+      "systemOfRecord": "Product master / PAS product model; forms library",
+      "designNote": "Consumer-facing coverage names are marketing labels, not coverage codes. The same economic coverage appears under different names by product (e.g. 'Additional Living Expenses' on home vs. renters). Normalize to an internal coverage code first."
+    },
+    {
+      "n": 2,
+      "name": "Terms",
+      "definition": "The boundaries of the promise: time, money and legal structure",
+      "atomicElements": [
+        "Policy term length & effective/expiry dates",
+        "limit structure (per occurrence, per claim, aggregate, per item, per location, blanket)",
+        "deductible / SIR / retention structure",
+        "attachment point & layer",
+        "coinsurance",
+        "valuation basis (ACV, replacement cost, agreed value, stated amount)",
+        "waiting periods",
+        "extended reporting period / tail",
+        "retroactive date",
+        "cancellation & notice provisions"
+      ],
+      "naturalKey": "Term option ID + product version + state",
+      "cardinality": "Policy 1:M Term; Coverage 1:1 Valuation basis; Layer 1:1 Attachment",
+      "systemOfRecord": "PAS; policy contract",
+      "designNote": "Terms are where archetypes diverge most sharply. A 6-month personal auto term and a single-transaction M&A policy cannot share a term model. Model term as an archetype-scoped entity, not a global one."
+    },
+    {
+      "n": 3,
+      "name": "Rating",
+      "definition": "The deterministic algorithm that turns risk characteristics into a technical premium",
+      "atomicElements": [
+        "Rating variable / characteristic",
+        "exposure base (vehicle, dwelling, payroll, sales, square footage, receipts, bond amount, headcount)",
+        "class code / class plan",
+        "territory & rating zone",
+        "rate table & rate per unit",
+        "relativity / factor",
+        "rating step & sequence",
+        "experience modification",
+        "loss-cost multiplier",
+        "model score inputs (insurance score, telematics score, cat model output)",
+        "minimum premium"
+      ],
+      "naturalKey": "Rating variable code + rate table ID + effective date + state + underwriting entity",
+      "cardinality": "Rate table 1:M Rate entry; Rating step ordered 1:M; Product 1:M Rating algorithm version",
+      "systemOfRecord": "Rating engine; rate table repository; actuarial pricing models",
+      "designNote": "Rating is versioned, state-scoped AND entity-scoped simultaneously. Most product-model failures are a missing dimension on the rate table key. The atomic unit is the rate entry, not the rate table."
+    },
+    {
+      "n": 4,
+      "name": "Pricing",
+      "definition": "What the customer is actually charged after commercial judgement is applied",
+      "atomicElements": [
+        "Technical/manual premium",
+        "discount & surcharge stack and application order",
+        "tier / company placement",
+        "scheduled rating credits & debits",
+        "IRPM",
+        "experience & retro adjustments",
+        "loss-sensitive structure (large deductible, retro rating, paid-loss, captive/fronting)",
+        "channel-specific price",
+        "commission & producer compensation",
+        "fees, taxes & surcharges",
+        "instalment plans",
+        "minimum & deposit premium",
+        "collateral requirement"
+      ],
+      "naturalKey": "Pricing rule ID + product version + state + channel + effective date",
+      "cardinality": "Premium 1:M Pricing adjustment (ordered); Account 1:M Loss-sensitive parameter",
+      "systemOfRecord": "Rating engine; billing; underwriting workbench; collateral system",
+      "designNote": "Separate rating from pricing rigorously. Rating is filed and deterministic; pricing carries underwriter judgement, channel economics and negotiation. Liberty Mutual's own site proves channel is a price dimension — the Online Purchase Discount is a channel discount, and 'Products, prices, and savings may vary based on state and how you purchase.'"
+    },
+    {
+      "n": 5,
+      "name": "Underwriting rules",
+      "definition": "Whether we will write it, on what paper, and who may decide",
+      "atomicElements": [
+        "Eligibility & appetite rules",
+        "class/industry acceptability",
+        "declination rules",
+        "referral rules & thresholds",
+        "underwriting authority (limit, hazard, LOB, geography)",
+        "required data & third-party data calls (MVR, loss history, credit, property prefill, inspection, financials, cat model)",
+        "tier & entity placement rules",
+        "risk-control survey requirement",
+        "reinsurance/treaty compliance check",
+        "sanctions & regulatory screening"
+      ],
+      "naturalKey": "Rule ID + rule version + state + entity + channel",
+      "cardinality": "Rule 1:M Condition; Rule 1:1 Outcome (accept/refer/decline/price); Authority grid 1:M Role",
+      "systemOfRecord": "Underwriting rules engine; underwriting workbench; third-party data services",
+      "designNote": "Two rule populations behave completely differently: automated straight-through rules (A1-A2) and human authority grids (A3-A6). Model both, and model the referral edge between them explicitly — that edge is where cycle time is lost."
+    },
+    {
+      "n": 6,
+      "name": "Forms",
+      "definition": "The legal document set that constitutes the contract",
+      "atomicElements": [
+        "Form number & edition date",
+        "form type (policy jacket, coverage form, declarations, endorsement, exclusion, schedule, notice, application, bond form, indemnity agreement, slip)",
+        "bureau vs. proprietary vs. manuscript origin",
+        "state applicability",
+        "attachment logic & mandatory/optional flag",
+        "print order",
+        "language variant"
+      ],
+      "naturalKey": "Form number + edition date + state",
+      "cardinality": "Form M:M Coverage; Form 1:M Filing; Policy 1:M Form instance",
+      "systemOfRecord": "Forms library / document composition system; PAS",
+      "designNote": "Form attachment logic is executable business logic, not metadata. It is also the single most reliable place to reverse-engineer a product model from the outside, because form numbers are filed and public."
+    },
+    {
+      "n": 7,
+      "name": "Filings",
+      "definition": "The regulatory permission that makes the product sellable",
+      "atomicElements": [
+        "Filing type (rate, rule, form, class plan, program)",
+        "SERFF tracking number",
+        "state & underwriting entity",
+        "filing status & disposition",
+        "filing method (prior approval, file-and-use, use-and-file, informational, exempt)",
+        "requested & approved effective dates",
+        "supporting actuarial exhibits",
+        "countrywide vs. state-specific",
+        "admitted vs. surplus lines exemption",
+        "bond rate filing",
+        "statutory residual-market obligations"
+      ],
+      "naturalKey": "SERFF number + state + entity + filing type",
+      "cardinality": "Filing 1:M Form; Filing 1:M Rate table; Entity 1:M Filing; Product M:M Filing",
+      "systemOfRecord": "Filing/compliance management system; SERFF",
+      "designNote": "The product is not one product. Liberty Mutual writes through 37 US underwriting entities (sheet 09), each a separate legal entity with its own filings. A 'product' is really product x state x entity x version — typically thousands of instances behind one marketing name. Under-modelling this is the most expensive mistake available."
+    },
+    {
+      "n": 8,
+      "name": "Lifecycle behaviour",
+      "definition": "How the contract and the money change state over time",
+      "atomicElements": [
+        "Lifecycle event (quote, submission, clearance, indication, bind/binder, issue, endorse, cancel, reinstate, renew, non-renew, lapse, expire)",
+        "event trigger & actor",
+        "effective-dating & backdating rules",
+        "pro-rata vs. short-rate calculation",
+        "out-of-sequence endorsement handling",
+        "premium audit & true-up",
+        "loss-sensitive/retro adjustment cycle",
+        "bordereaux & statement cycle",
+        "collateral review",
+        "renewal re-rate & re-underwrite logic",
+        "claim events and their feedback into rating & renewal"
+      ],
+      "naturalKey": "Event type + policy/transaction ID + effective date + sequence number",
+      "cardinality": "Policy 1:M Transaction (ordered, effective-dated); Transaction 1:M Premium change; Policy 1:M Claim",
+      "systemOfRecord": "PAS; billing; claims; audit; reinsurance administration",
+      "designNote": "Lifecycle is the dimension that most often breaks a normalized model, because effective-dating and out-of-sequence transactions make policy state bi-temporal. Model transaction sequence and effective date as first-class keys, not audit columns. Archetype-specific events (surety exoneration, retro adjustment, bordereaux) are not exceptions to handle later — they are why the model needs to be archetype-scoped."
+    }
+  ],
+  "frameworkNote": "Confidence C throughout this sheet: this is a normalized reference structure applied by analogy to standard P&C product architecture. It is Capgemini's proposed model, not Liberty Mutual's disclosed model. Validate against the client's own product master before use.",
+  "archetypes": [
+    {
+      "code": "A1",
+      "name": "Personal lines filed & rated",
+      "productsInScope": "Personal auto, homeowners, renters, condo, landlord, mobile home, motorcycle, boat, RV, ATV, classic car, personal umbrella",
+      "dimensions": {
+        "Coverages": "Standardized coverage grid: fixed base coverages plus a catalogue of optional coverages and endorsements. Coverage attaches to a rated risk unit (vehicle or dwelling) or to the policy.",
+        "Terms": "6 or 12 month term. Filed limit and deductible option sets. Occurrence/per-loss basis. Valuation basis is a coverage-level attribute (ACV vs. replacement cost vs. agreed value).",
+        "Rating": "Fully algorithmic multiplicative rating plan. Exposure base = vehicle or dwelling. Class plan on driver, vehicle, property and territory characteristics, plus insurance score and telematics score.",
+        "Pricing": "Filed rates plus a discount/surcharge stack, plus tier and entity placement. Channel is a price dimension. Effectively no per-risk underwriter judgement.",
+        "Underwriting rules": "Automated straight-through rules with third-party data calls (MVR, loss history, credit, property prefill, inspection). Eligibility, decline and tier-placement rules are all executable.",
+        "Forms": "Bureau-derived (ISO) plus proprietary coverage forms and endorsements, state-specific editions, declarations page composed at issue.",
+        "Filings": "Heavily filed: rate, rule and form filings per state per entity. Prior-approval states constrain speed to market. Residual market and statutory coverage obligations apply.",
+        "Lifecycle behaviour": "Quote > bind > issue > mid-term endorsement > automatic renewal with re-rate > cancel/reinstate/non-renew. Renewal is the dominant transaction by volume."
+      },
+      "rationale": "Highest transaction volume, lowest per-transaction complexity. Automation ceiling is high. The constraint is regulatory speed-to-market and state x entity combinatorics, not underwriting judgement."
+    },
+    {
+      "code": "A2",
+      "name": "Small commercial package",
+      "productsInScope": "BOP, small GL, small commercial auto, small workers comp, commercial property, inland marine, farm, small cyber, small umbrella",
+      "dimensions": {
+        "Coverages": "Pre-configured coverage bundles by class of business, with a constrained menu of optional coverages. Package interaction rules matter (what a BOP already includes).",
+        "Terms": "12 month term. Per-occurrence limits plus policy aggregate. Deductible options per coverage part. Exposure is estimated at inception and trued up.",
+        "Rating": "Class code driven (industry class plan mapped from business description / NAICS-style classification). Exposure bases: sales, payroll, square footage, vehicle count, receipts. Bureau loss cost x loss cost multiplier.",
+        "Pricing": "Rate x exposure per unit, plus scheduled rating credits/debits and IRPM within filed bounds. Package discounts. Some underwriter latitude, mostly bounded.",
+        "Underwriting rules": "Appetite/eligibility table by class code with straight-through processing and referral rules for out-of-appetite or over-threshold submissions. Loss-history and financial checks.",
+        "Forms": "Bureau (ISO/AAIS) plus proprietary package forms. Class-specific endorsements. Larger mandatory-form footprint than personal lines.",
+        "Filings": "Filed programs, class plans and rating rules per state per entity. Workers comp adds bureau/state-fund and statutory rate structures.",
+        "Lifecycle behaviour": "Quote > bind > issue > endorse > PREMIUM AUDIT (the defining event) > renewal > cancel/non-renew. Audit converts estimated to earned exposure and generates additional/return premium."
+      },
+      "rationale": "The archetype most often mis-modelled by treating it as 'personal lines with more fields'. The premium-audit true-up loop and the class-code appetite table are structurally new and must be first-class in the model."
+    },
+    {
+      "code": "A3",
+      "name": "Large commercial & loss-sensitive",
+      "productsInScope": "National-account workers comp, commercial auto & fleet, large GL, commercial property, multinational programmes, alternative risk, infrastructure",
+      "dimensions": {
+        "Coverages": "Account-level, layered, manuscript-capable. Coverage negotiated per account. Multi-line and multi-jurisdiction within one programme.",
+        "Terms": "12 month, sometimes multi-year. Deductible/SIR, aggregate stop-loss, corridor deductible, layer attachment. Terms are negotiated, not selected from a filed menu.",
+        "Rating": "Exposure rating plus experience rating (e.g. workers comp experience modification), loss-rating and burning-cost methods. Account-specific actuarial pricing model rather than a rate table lookup.",
+        "Pricing": "Negotiated. Loss-sensitive economics dominate: large deductible, retrospective rating, paid-loss, captive and fronting arrangements. Collateral and credit terms are part of the price.",
+        "Underwriting rules": "Individual account underwriting against an authority grid by limit, hazard and geography. Risk-control survey commonly required. Reinsurance/treaty compliance and referral to reinsurance.",
+        "Forms": "Bureau forms plus heavy manuscript endorsement use. Programme agreements (deductible agreement, payment agreement, collateral agreement) sit alongside the policy.",
+        "Filings": "Filed programmes plus individual-risk / (a)-rate filings and consent-to-rate mechanisms. Fronting and captive structures add filing and reinsurance-credit complexity.",
+        "Lifecycle behaviour": "Submission > clearance > indication > quote > binder > issue > programme agreements & collateral > premium audit > loss-sensitive true-up and retro adjustments over MANY YEARS > renewal."
+      },
+      "rationale": "The critical difference from A2 is that the financial relationship outlives the policy term by years. The data model must support retro adjustments and collateral reviews on expired policies. Cycle time here is dominated by human referral and negotiation, which is exactly where atomic-task instrumentation pays."
+    },
+    {
+      "code": "A4",
+      "name": "Specialty, E&S and Bermuda",
+      "productsInScope": "Management liability, professional liability, commercial cyber, environmental, healthcare liability, M&A/RWI, war & terrorism, fine art & specie, financial risk, ocean marine, stop loss, SDI, equine, Liberty Remedy, Bermuda high excess",
+      "dimensions": {
+        "Coverages": "Proprietary wordings. Claims-made as often as occurrence. Coverage IS the product differentiator — Liberty Mutual describes Liberty Remedy as built around bespoke coverage agreements, definitions, terms and conditions.",
+        "Terms": "Limit / attachment / retention rather than limit / deductible. Extended reporting periods and retroactive dates. Layered and quota-share participations. M&A/RWI is single-transaction, multi-year, not annual.",
+        "Rating": "Judgement and actuarial underwriting rather than a filed algorithm. Increased-limit factors, exposure models, benchmarking. Rating is an underwriter tool, not a system-of-record calculation.",
+        "Pricing": "Broker-negotiated per risk, with minimum premiums. Non-admitted business has freedom of rate and form. Market cycle and capacity drive price more than a filed rate change does.",
+        "Underwriting rules": "Individual risk underwriting with referral by limit, hazard class and aggregate/cat exposure. Sanctions and territory screening are material for war/terrorism, political risk and marine.",
+        "Forms": "Proprietary manuscript wordings and slips. Surplus lines disclosure and notice requirements. Version control of wordings is the core forms problem.",
+        "Filings": "Admitted specialty is filed; SURPLUS LINES IS EXEMPT from rate and form filing but carries surplus lines tax, stamping and diligent-search obligations. Bermuda-form products sit outside US filing altogether.",
+        "Lifecycle behaviour": "Submission > indication/quote > binder > issue > mid-term endorsement > run-off / tail election > renewal. Claims-made products create a reporting-period lifecycle distinct from the policy period."
+      },
+      "rationale": "The archetype where a personal-lines-shaped product model fails hardest. There is often no rate table and no filed form to anchor to. Anchor instead on the wording version and the layer/participation structure."
+    },
+    {
+      "code": "A5",
+      "name": "Surety & guarantee",
+      "productsInScope": "Contract bonds (bid, performance, payment), commercial bonds (court, licence & permit, fidelity), international & reverse-flow bonds, Surety Xpress, Surety Plus Vista, SBA Plan B",
+      "dimensions": {
+        "Coverages": "NOT indemnity insurance. A three-party obligation: surety guarantees the principal's performance to the obligee, and the principal indemnifies the surety. 'Coverage' maps to bond obligation type and penal sum.",
+        "Terms": "Term is the obligation period, often defined by the underlying contract or statute rather than an annual term. Single-bond limit plus an approved aggregate programme limit for the principal.",
+        "Rating": "Rate per $1,000 of contract or bond amount, varying by bond class and credit tier. Manual/filed surety rates. Not exposure-times-relativity in the P&C sense.",
+        "Pricing": "Priced off credit quality and programme capacity. Product tiering by account size is explicit (Xpress > Vista > standard). Government programmes (SBA Plan B) alter the economics.",
+        "Underwriting rules": "CREDIT underwriting, not risk underwriting: financial statements, working capital, bonding capacity, character, experience, backlog. General Indemnity Agreement and collateral. Treasury listing ($3.1B) and SFAA context define capacity.",
+        "Forms": "The bond form is typically dictated by the obligee or by statute — the carrier does not control it. Plus General Indemnity Agreement, riders, consents of surety.",
+        "Filings": "Bond rate filings. Treasury listing for federal bonds. SBA programme approval. Obligee-mandated statutory forms sit outside the carrier's filing control.",
+        "Lifecycle behaviour": "Principal prequalification & programme approval > bond request > bond issue > rider / limit increase > project completion > RELEASE / EXONERATION > (if default) claim on bond > salvage and indemnity RECOVERY from the principal."
+      },
+      "rationale": "Do not force surety into the P&C product model. The account (principal) and the programme, not the policy, are the primary entities. Recovery from the principal after a loss is a normal expected flow, which inverts the usual claims logic. Liberty Mutual is #1 in US and global surety, so this archetype is strategically over-weighted relative to its 11% GRS premium share."
+    },
+    {
+      "code": "A6",
+      "name": "Assumed reinsurance, delegated authority & TPA",
+      "productsInScope": "Treaty & facultative reinsurance, Nationale Borg (surety/credit/political risk reinsurance), Programs (MGA/delegated authority), third party administration",
+      "dimensions": {
+        "Coverages": "Scope is defined by the cedant's or programme's underlying portfolio, not by a coverage grid. Quota share, excess of loss, facultative. TPA carries no coverage at all — it is a fee service.",
+        "Terms": "Contract period (risks attaching vs. losses occurring), attachment and limit per occurrence and in aggregate, reinstatements, event definitions and hours clauses.",
+        "Rating": "Exposure and experience rating of the ceded portfolio, burning-cost and cat-model output. Rating happens at portfolio level, not risk level.",
+        "Pricing": "Negotiated rate-on-line, ceding commission, sliding-scale and profit commission. Price is a treaty economics negotiation.",
+        "Underwriting rules": "Cedant and programme-administrator due diligence, aggregate and cat modelling, delegated-authority binding limits and periodic underwriting audits of the delegate.",
+        "Forms": "Reinsurance slips and contract wordings; binding authority / programme agreements rather than policy forms.",
+        "Filings": "Generally outside state rate and form filing. Reinsurance credit, collateral and licensing rules apply instead. For delegated programmes, the carrier's own filings still govern the underlying policies.",
+        "Lifecycle behaviour": "Submission > quote > firm order > slip/binder > contract issue > PREMIUM AND LOSS BORDEREAUX/STATEMENT CYCLE > adjustment (sliding scale, profit commission) > commutation or renewal."
+      },
+      "rationale": "The bordereaux and statement cycle is the operational core and has no analogue in direct insurance. For delegated programmes there are two product models in play — the carrier's and the delegate's — and reconciling them is the real work."
+    },
+    {
+      "code": "A7",
+      "name": "Life & non-P&C ancillary",
+      "productsInScope": "Term life, whole life, pet insurance, identity theft",
+      "dimensions": {
+        "Coverages": "Life: death benefit plus riders. Pet: reimbursement of eligible veterinary cost subject to waiting periods and exclusions. Identity theft: expense reimbursement plus resolution service.",
+        "Terms": "Life: level term periods or whole-of-life; face amount; cash value. Pet: annual limit, deductible, reimbursement percentage, waiting periods. Different term logic entirely from P&C.",
+        "Rating": "Life: mortality tables, age, sex, smoker status, medical underwriting class. Pet: breed, age, species, geography. Neither uses a P&C exposure base.",
+        "Pricing": "Life: guaranteed vs. current premium scales, level premium over term. Pet: annual premium with age-based re-rating at renewal.",
+        "Underwriting rules": "Life: medical and financial underwriting, accelerated/automated underwriting engines, tele-interview, MIB/Rx/lab data. Materially different data set and regulator.",
+        "Forms": "Policy contract plus riders and application; life illustration requirements.",
+        "Filings": "Different regulatory regime: life insurance departments, policy-form and illustration filing, reserve and non-forfeiture requirements. Pet and identity theft are typically inland marine or A&H filings depending on state.",
+        "Lifecycle behaviour": "Application > underwriting > issue & delivery > premium billing > LAPSE and reinstatement > policy loans/surrender (life) > claim on death. Pet: annual renewal with age re-rate; claim per treatment."
+      },
+      "rationale": "Small premium share but disproportionate model complexity because the regulator, the underwriting data and the lifecycle all differ. The public site does not disclose which of these are third-party underwritten or administered — confirm before including them in a unified product model."
+    }
+  ],
+  "matrix": [
+    {
+      "product": "Personal auto",
+      "archetype": "A1",
+      "unit": "USRM Personal",
+      "dimensions": {
+        "Coverages": "~10 base + ~10 optional coverages, per-vehicle and per-policy",
+        "Terms": "6/12 mo; filed limit & deductible menus",
+        "Rating": "Algorithmic; vehicle exposure; insurance score + RightTrack telematics",
+        "Pricing": "13+ named discounts; tier & entity placement; channel-priced",
+        "Underwriting rules": "Straight-through; MVR/CLUE/credit/prefill",
+        "Forms": "ISO-derived + proprietary, state editions",
+        "Filings": "Rate/rule/form filed per state per entity; prior approval in many states",
+        "Lifecycle behaviour": "Quote-bind-issue-endorse-auto-renew-cancel"
+      },
+      "txnVolume": "Very high",
+      "automationPotential": "High",
+      "challenge": "State x entity x version combinatorics"
+    },
+    {
+      "product": "Homeowners",
+      "archetype": "A1",
+      "unit": "USRM Personal",
+      "dimensions": {
+        "Coverages": "Dwelling, other structures, personal property, loss of use, liability, medpay + ~6 named optional coverages",
+        "Terms": "12 mo; RC vs ACV valuation; percentage & flat deductibles",
+        "Rating": "Algorithmic; dwelling exposure; replacement-cost estimator; cat model",
+        "Pricing": "Discount stack; by-peril deductibles; tiering",
+        "Underwriting rules": "Straight-through + inspection/aerial imagery, roof age rules",
+        "Forms": "ISO-derived + proprietary",
+        "Filings": "Rate/rule/form filed per state per entity",
+        "Lifecycle behaviour": "Same as auto, plus cat-driven non-renewal"
+      },
+      "txnVolume": "Very high",
+      "automationPotential": "High",
+      "challenge": "Cat exposure management and roof/valuation rules"
+    },
+    {
+      "product": "Renters",
+      "archetype": "A1",
+      "unit": "USRM Personal",
+      "dimensions": {
+        "Coverages": "Personal property, personal liability & medpay, ALE + blanket jewellery, PP replacement cost, earthquake, electronics",
+        "Terms": "12 mo; ACV default with optional replacement cost",
+        "Rating": "Algorithmic; contents limit exposure; territory",
+        "Pricing": "Bundling, online purchase, claims-free 5yr, early shopper, autopay",
+        "Underwriting rules": "Fully automated, minimal data calls",
+        "Forms": "ISO-derived HO-4 style",
+        "Filings": "Filed per state per entity",
+        "Lifecycle behaviour": "Digital quote-bind; high churn; address-change endorsements"
+      },
+      "txnVolume": "High",
+      "automationPotential": "Very high",
+      "challenge": "Low premium per policy — cost-to-serve is the whole game"
+    },
+    {
+      "product": "Business owner's policy (BOP)",
+      "archetype": "A2",
+      "unit": "USRM Small Commercial",
+      "dimensions": {
+        "Coverages": "Property + GL package with class-specific bundles and optional coverages",
+        "Terms": "12 mo; occurrence + aggregate; per-coverage deductibles",
+        "Rating": "Class code + exposure (sales, sq ft, payroll); bureau loss cost x LCM",
+        "Pricing": "Scheduled credits/debits, IRPM, package discount",
+        "Underwriting rules": "Class appetite table; STP with referral rules",
+        "Forms": "ISO/AAIS package forms + proprietary",
+        "Filings": "Filed programme & class plan per state per entity",
+        "Lifecycle behaviour": "Quote-bind-issue-endorse-AUDIT-renew"
+      },
+      "txnVolume": "High",
+      "automationPotential": "Medium-high",
+      "challenge": "Class-code appetite table and the audit true-up loop"
+    },
+    {
+      "product": "Workers compensation (small)",
+      "archetype": "A2",
+      "unit": "USRM Small Commercial",
+      "dimensions": {
+        "Coverages": "Statutory Part One + employers liability Part Two",
+        "Terms": "12 mo; statutory benefits — no limit choice on Part One",
+        "Rating": "Bureau class code x payroll per $100; state loss costs; experience mod",
+        "Pricing": "LCM, schedule rating, dividend plans where filed",
+        "Underwriting rules": "Class eligibility; payroll & prior-loss verification",
+        "Forms": "Bureau/state-mandated WC forms",
+        "Filings": "Bureau loss costs, state rating bureaus, state funds & monopolistic states",
+        "Lifecycle behaviour": "Quote-bind-issue-endorse-AUDIT-renew; claims drive future mods"
+      },
+      "txnVolume": "High",
+      "automationPotential": "Medium",
+      "challenge": "Statutory coverage plus bureau rating means the carrier controls far less of the model than elsewhere"
+    },
+    {
+      "product": "Workers compensation (national account)",
+      "archetype": "A3",
+      "unit": "GRS North America",
+      "dimensions": {
+        "Coverages": "Statutory Part One + Part Two, multi-state, often multi-line programme",
+        "Terms": "12 mo; large deductible / SIR; aggregate stop",
+        "Rating": "Experience rating + loss rating; account actuarial model",
+        "Pricing": "Loss-sensitive: large deductible, retro rating, paid loss, captive; collateral & credit terms",
+        "Underwriting rules": "Account underwriting; authority grid; risk-control survey; reinsurance check",
+        "Forms": "Bureau + manuscript + programme agreements",
+        "Filings": "Filed programme + individual-risk filings; fronting/captive complexity",
+        "Lifecycle behaviour": "Submission-clearance-quote-binder-issue-collateral-AUDIT-RETRO TRUE-UP over years-renew"
+      },
+      "txnVolume": "Low",
+      "automationPotential": "Low-medium",
+      "challenge": "Financial relationship outlives the policy by years — retro adjustments on expired policies"
+    },
+    {
+      "product": "Commercial property (mid/large)",
+      "archetype": "A3",
+      "unit": "GRS North America",
+      "dimensions": {
+        "Coverages": "Blanket/scheduled property, BI, extra expense, equipment breakdown, extensions",
+        "Terms": "12 mo; blanket & per-location limits; percentage cat deductibles; margin clauses",
+        "Rating": "Exposure rating + cat modelling; risk engineering grade drives rate",
+        "Pricing": "Negotiated; layered & shared; capacity-driven",
+        "Underwriting rules": "Account UW; risk engineering survey (Liberty Mutual publicly emphasises risk engineering)",
+        "Forms": "Bureau + manuscript endorsements",
+        "Filings": "Filed + individual-risk rating; E&S layers exempt",
+        "Lifecycle behaviour": "Submission-quote-binder-issue-endorse-renew; survey recommendations tracked"
+      },
+      "txnVolume": "Low",
+      "automationPotential": "Low-medium",
+      "challenge": "Cat aggregation and engineering data are product inputs, not just underwriting notes"
+    },
+    {
+      "product": "Management liability (D&O)",
+      "archetype": "A4",
+      "unit": "GRS / LSM",
+      "dimensions": {
+        "Coverages": "Side A/B/C, EPL, fiduciary — proprietary wordings",
+        "Terms": "12 mo; claims-made; retention; ERP; retroactive date; layered/quota share",
+        "Rating": "Judgement + ILFs + benchmarking; no filed algorithm on E&S paper",
+        "Pricing": "Broker-negotiated; minimum premium; cycle-driven",
+        "Underwriting rules": "Individual UW; financials & governance review; referral by limit",
+        "Forms": "Proprietary manuscript wordings",
+        "Filings": "Admitted filed; E&S exempt from rate & form filing",
+        "Lifecycle behaviour": "Submission-quote-binder-issue-endorse-run-off/tail-renew"
+      },
+      "txnVolume": "Low",
+      "automationPotential": "Low",
+      "challenge": "Wording version, not form number, is the anchor entity"
+    },
+    {
+      "product": "Cyber (small vs commercial)",
+      "archetype": "A2 / A4",
+      "unit": "Both USRM SC and GRS",
+      "dimensions": {
+        "Coverages": "First-party (BI, extortion, restoration) + third-party liability; two DIFFERENT products under one name",
+        "Terms": "12 mo; sub-limited by insuring agreement; waiting-hour periods",
+        "Rating": "Small: class + revenue banded table. Large: judgement + security posture scanning",
+        "Pricing": "Small: filed rate table. Large: negotiated",
+        "Underwriting rules": "Small: automated with security questionnaire. Large: individual UW + external scan",
+        "Forms": "Proprietary wordings both sides",
+        "Filings": "Small: filed. Large: often E&S exempt",
+        "Lifecycle behaviour": "Similar shape but very different data & cycle time"
+      },
+      "txnVolume": "Medium",
+      "automationPotential": "Medium",
+      "challenge": "The clearest example of one marketing name spanning two archetypes — a trap for any unified product model"
+    },
+    {
+      "product": "Contract surety bond",
+      "archetype": "A5",
+      "unit": "Global Surety",
+      "dimensions": {
+        "Coverages": "Bid, performance, payment obligations — penal sum, not coverage limit",
+        "Terms": "Obligation period per underlying contract; single + aggregate programme limits",
+        "Rating": "Rate per $1,000 of bond/contract amount by class and credit tier",
+        "Pricing": "Credit-tier priced; product tier (Xpress/Vista/standard); SBA programmes",
+        "Underwriting rules": "CREDIT underwriting: financials, working capital, backlog, character; GIA + collateral",
+        "Forms": "Obligee/statutory bond forms (carrier does not control) + GIA + riders",
+        "Filings": "Bond rate filings; Treasury listing; SBA Plan B approval",
+        "Lifecycle behaviour": "Prequalify-programme approval-bond request-issue-rider-completion-RELEASE/EXONERATION-claim-RECOVERY"
+      },
+      "txnVolume": "Medium-high (bond count)",
+      "automationPotential": "Medium (Xpress)",
+      "challenge": "Account/programme is the primary entity, not the policy"
+    },
+    {
+      "product": "M&A / representations & warranties",
+      "archetype": "A4",
+      "unit": "GRS / LSM",
+      "dimensions": {
+        "Coverages": "Breach of seller reps in a specific transaction",
+        "Terms": "SINGLE TRANSACTION, multi-year policy period (often 3-6 years); retention; layered",
+        "Rating": "Rate-on-enterprise-value judgement pricing; no rate table",
+        "Pricing": "Deal-specific negotiation on a compressed timeline",
+        "Underwriting rules": "Deal diligence review; underwriting call; exclusions negotiated per deal",
+        "Forms": "Manuscript per transaction",
+        "Filings": "Predominantly E&S / non-admitted — exempt",
+        "Lifecycle behaviour": "Deal submission-NDA-underwriting call-quote-bind at signing-multi-year run-off-claim"
+      },
+      "txnVolume": "Very low",
+      "automationPotential": "Very low",
+      "challenge": "No annual renewal at all — breaks any model that assumes a renewal cycle"
+    },
+    {
+      "product": "Treaty reinsurance",
+      "archetype": "A6",
+      "unit": "Liberty Mutual Reinsurance",
+      "dimensions": {
+        "Coverages": "Portfolio-level participation, not risk-level coverage",
+        "Terms": "Contract year; risks-attaching vs losses-occurring; attachment/limit; reinstatements",
+        "Rating": "Exposure & experience rating of the ceded portfolio; cat models",
+        "Pricing": "Rate-on-line, ceding & profit commission — negotiated",
+        "Underwriting rules": "Cedant due diligence; aggregate & cat management",
+        "Forms": "Slips and contract wordings",
+        "Filings": "Outside state rate/form filing; reinsurance credit & collateral rules instead",
+        "Lifecycle behaviour": "Submission-quote-firm order-slip-contract-BORDEREAUX CYCLE-adjustment-commutation/renew"
+      },
+      "txnVolume": "Very low",
+      "automationPotential": "Low",
+      "challenge": "Bordereaux reconciliation is the operational core; no direct-insurance analogue"
+    }
+  ],
+  "coverages": [
+    {
+      "parent": "Personal auto",
+      "group": "Liability",
+      "coverage": "Bodily injury liability",
+      "baseOrOptional": "Base (statutory minimum applies)",
+      "structuralNote": "Per person / per occurrence limits",
+      "confidence": "A"
+    },
+    {
+      "parent": "Personal auto",
+      "group": "Liability",
+      "coverage": "Property damage liability",
+      "baseOrOptional": "Base (statutory minimum applies)",
+      "structuralNote": "Per occurrence limit",
+      "confidence": "A"
+    },
+    {
+      "parent": "Personal auto",
+      "group": "Injury",
+      "coverage": "Medical payments",
+      "baseOrOptional": "Base or optional by state",
+      "structuralNote": "Per person limit",
+      "confidence": "A"
+    },
+    {
+      "parent": "Personal auto",
+      "group": "Injury",
+      "coverage": "Personal injury protection (PIP)",
+      "baseOrOptional": "Statutory in no-fault states",
+      "structuralNote": "State-defined benefit structure; provider networks referenced",
+      "confidence": "A"
+    },
+    {
+      "parent": "Personal auto",
+      "group": "Uninsured/underinsured",
+      "coverage": "Uninsured motorist",
+      "baseOrOptional": "Base or optional by state",
+      "structuralNote": "Mirrors liability limits in many states",
+      "confidence": "A"
+    },
+    {
+      "parent": "Personal auto",
+      "group": "Physical damage",
+      "coverage": "Collision",
+      "baseOrOptional": "Optional",
+      "structuralNote": "Deductible options",
+      "confidence": "A"
+    },
+    {
+      "parent": "Personal auto",
+      "group": "Physical damage",
+      "coverage": "Comprehensive",
+      "baseOrOptional": "Optional",
+      "structuralNote": "Deductible options",
+      "confidence": "A"
+    },
+    {
+      "parent": "Personal auto",
+      "group": "Physical damage enhancement",
+      "coverage": "New car replacement",
+      "baseOrOptional": "Optional endorsement",
+      "structuralNote": "Eligibility by vehicle age/mileage",
+      "confidence": "A"
+    },
+    {
+      "parent": "Personal auto",
+      "group": "Physical damage enhancement",
+      "coverage": "Better car replacement",
+      "baseOrOptional": "Optional endorsement",
+      "structuralNote": "Replaces with a model year newer",
+      "confidence": "A"
+    },
+    {
+      "parent": "Personal auto",
+      "group": "Physical damage enhancement",
+      "coverage": "Original parts replacement",
+      "baseOrOptional": "Optional endorsement",
+      "structuralNote": "OEM parts guarantee",
+      "confidence": "A"
+    },
+    {
+      "parent": "Personal auto",
+      "group": "Physical damage enhancement",
+      "coverage": "Gap coverage",
+      "baseOrOptional": "Optional endorsement",
+      "structuralNote": "Loan/lease payoff differential",
+      "confidence": "A"
+    },
+    {
+      "parent": "Personal auto",
+      "group": "Service / expense",
+      "coverage": "Roadside assistance (towing & labor)",
+      "baseOrOptional": "Optional endorsement",
+      "structuralNote": "Service-based; additional charge applies if not on policy",
+      "confidence": "A"
+    },
+    {
+      "parent": "Personal auto",
+      "group": "Service / expense",
+      "coverage": "Rental car reimbursement",
+      "baseOrOptional": "Optional endorsement",
+      "structuralNote": "Daily/aggregate limit",
+      "confidence": "A"
+    },
+    {
+      "parent": "Personal auto",
+      "group": "Deductible feature",
+      "coverage": "Deductible fund / lower collision deductible",
+      "baseOrOptional": "Optional feature",
+      "structuralNote": "Deductible reduces over claims-free time",
+      "confidence": "A"
+    },
+    {
+      "parent": "Personal auto",
+      "group": "Claims/rating feature",
+      "coverage": "Accident forgiveness",
+      "baseOrOptional": "Optional feature",
+      "structuralNote": "Suppresses surcharge for a first at-fault accident",
+      "confidence": "A"
+    },
+    {
+      "parent": "Personal auto",
+      "group": "Claims/repair feature",
+      "coverage": "Lifetime repair guarantee",
+      "baseOrOptional": "Feature",
+      "structuralNote": "Guarantee on repairs at network shops",
+      "confidence": "A"
+    },
+    {
+      "parent": "Personal auto",
+      "group": "Territory extension",
+      "coverage": "Mexico coverage",
+      "baseOrOptional": "Optional endorsement",
+      "structuralNote": "Territorial extension",
+      "confidence": "A"
+    },
+    {
+      "parent": "Homeowners",
+      "group": "Property",
+      "coverage": "Dwelling",
+      "baseOrOptional": "Base",
+      "structuralNote": "Replacement cost estimator drives limit",
+      "confidence": "B"
+    },
+    {
+      "parent": "Homeowners",
+      "group": "Property",
+      "coverage": "Personal property",
+      "baseOrOptional": "Base",
+      "structuralNote": "Percentage of dwelling limit typical",
+      "confidence": "A"
+    },
+    {
+      "parent": "Homeowners",
+      "group": "Property valuation",
+      "coverage": "Personal property replacement cost",
+      "baseOrOptional": "Optional endorsement",
+      "structuralNote": "Removes depreciation",
+      "confidence": "A"
+    },
+    {
+      "parent": "Homeowners",
+      "group": "Expense",
+      "coverage": "Additional living expenses",
+      "baseOrOptional": "Base",
+      "structuralNote": "Limit or time-based",
+      "confidence": "A"
+    },
+    {
+      "parent": "Homeowners",
+      "group": "Water",
+      "coverage": "Water backup",
+      "baseOrOptional": "Optional endorsement",
+      "structuralNote": "Sub-limited",
+      "confidence": "A"
+    },
+    {
+      "parent": "Homeowners",
+      "group": "Utility",
+      "coverage": "Service line coverage",
+      "baseOrOptional": "Optional endorsement",
+      "structuralNote": "Buried utility lines",
+      "confidence": "A"
+    },
+    {
+      "parent": "Homeowners",
+      "group": "Equipment",
+      "coverage": "Home systems & appliance breakdown",
+      "baseOrOptional": "Optional endorsement",
+      "structuralNote": "Mechanical breakdown, not a peril loss",
+      "confidence": "A"
+    },
+    {
+      "parent": "Homeowners",
+      "group": "Code upgrade",
+      "coverage": "Ordinance or law",
+      "baseOrOptional": "Optional endorsement",
+      "structuralNote": "Referenced in Liberty Mutual resource content on older homes",
+      "confidence": "A"
+    },
+    {
+      "parent": "Renters",
+      "group": "Property",
+      "coverage": "Personal property",
+      "baseOrOptional": "Base",
+      "structuralNote": "ACV default; replacement cost optional",
+      "confidence": "A"
+    },
+    {
+      "parent": "Renters",
+      "group": "Liability",
+      "coverage": "Personal liability & medical payments",
+      "baseOrOptional": "Base",
+      "structuralNote": "Combined coverage page",
+      "confidence": "A"
+    },
+    {
+      "parent": "Renters",
+      "group": "Expense",
+      "coverage": "Additional living expenses",
+      "baseOrOptional": "Base",
+      "structuralNote": "Limit-based",
+      "confidence": "A"
+    },
+    {
+      "parent": "Renters",
+      "group": "Scheduled/blanket",
+      "coverage": "Blanket jewellery",
+      "baseOrOptional": "Optional endorsement",
+      "structuralNote": "Blanket limit without scheduling items",
+      "confidence": "A"
+    },
+    {
+      "parent": "Renters",
+      "group": "Property valuation",
+      "coverage": "Personal property replacement cost",
+      "baseOrOptional": "Optional endorsement",
+      "structuralNote": "Removes depreciation",
+      "confidence": "A"
+    },
+    {
+      "parent": "Renters",
+      "group": "Peril extension",
+      "coverage": "Earthquake damage",
+      "baseOrOptional": "Optional endorsement",
+      "structuralNote": "Separate peril with its own deductible",
+      "confidence": "A"
+    },
+    {
+      "parent": "Renters",
+      "group": "Property class",
+      "coverage": "Electronics",
+      "baseOrOptional": "Optional endorsement",
+      "structuralNote": "Named-class enhancement",
+      "confidence": "A"
+    },
+    {
+      "parent": "Personal umbrella",
+      "group": "Excess liability",
+      "coverage": "Excess personal liability",
+      "baseOrOptional": "Standalone product",
+      "structuralNote": "Requires underlying limits on auto/home",
+      "confidence": "B"
+    },
+    {
+      "parent": "BOP (small business)",
+      "group": "Package",
+      "coverage": "Commercial property + general liability package",
+      "baseOrOptional": "Base package",
+      "structuralNote": "Class-specific bundling",
+      "confidence": "A"
+    },
+    {
+      "parent": "Small commercial",
+      "group": "Casualty",
+      "coverage": "General liability",
+      "baseOrOptional": "Standalone or in package",
+      "structuralNote": "Occurrence + aggregate",
+      "confidence": "A"
+    },
+    {
+      "parent": "Small commercial",
+      "group": "Cyber",
+      "coverage": "Cyber (first & third party)",
+      "baseOrOptional": "Standalone",
+      "structuralNote": "Sub-limited by insuring agreement",
+      "confidence": "B"
+    },
+    {
+      "parent": "Small commercial",
+      "group": "Marine",
+      "coverage": "Inland marine (tools, equipment, transit)",
+      "baseOrOptional": "Standalone",
+      "structuralNote": "Scheduled or blanket",
+      "confidence": "A"
+    },
+    {
+      "parent": "Small commercial",
+      "group": "Excess",
+      "coverage": "Commercial umbrella",
+      "baseOrOptional": "Standalone",
+      "structuralNote": "Excess over scheduled underlying",
+      "confidence": "A"
+    },
+    {
+      "parent": "Commercial (mid/large)",
+      "group": "Property",
+      "coverage": "Equipment breakdown",
+      "baseOrOptional": "Standalone or endorsement",
+      "structuralNote": "Named on both small and commercial trees",
+      "confidence": "A"
+    },
+    {
+      "parent": "Commercial (mid/large)",
+      "group": "Casualty",
+      "coverage": "Environmental / pollution liability",
+      "baseOrOptional": "Standalone",
+      "structuralNote": "Claims-made typical",
+      "confidence": "B"
+    },
+    {
+      "parent": "Commercial (mid/large)",
+      "group": "Casualty",
+      "coverage": "Healthcare / medical professional liability",
+      "baseOrOptional": "Standalone",
+      "structuralNote": "Claims-made typical",
+      "confidence": "B"
+    },
+    {
+      "parent": "Commercial (mid/large)",
+      "group": "Management liability",
+      "coverage": "D&O / EPL / fiduciary",
+      "baseOrOptional": "Standalone",
+      "structuralNote": "Claims-made, layered",
+      "confidence": "B"
+    },
+    {
+      "parent": "Commercial (mid/large)",
+      "group": "Professional",
+      "coverage": "Professional liability / E&O",
+      "baseOrOptional": "Standalone",
+      "structuralNote": "Claims-made, retroactive date",
+      "confidence": "B"
+    },
+    {
+      "parent": "Specialty",
+      "group": "Transactional",
+      "coverage": "Representations & warranties",
+      "baseOrOptional": "Standalone",
+      "structuralNote": "Single transaction, multi-year",
+      "confidence": "B"
+    },
+    {
+      "parent": "Specialty",
+      "group": "Property/specie",
+      "coverage": "Fine art & specie (transit, display, storage)",
+      "baseOrOptional": "Standalone",
+      "structuralNote": "Named on the specialty page",
+      "confidence": "A"
+    },
+    {
+      "parent": "Specialty",
+      "group": "Financial",
+      "coverage": "Political risk / credit / non-payment",
+      "baseOrOptional": "Standalone",
+      "structuralNote": "Named on the specialty page",
+      "confidence": "A"
+    },
+    {
+      "parent": "Specialty",
+      "group": "Political violence",
+      "coverage": "War & terrorism (incl. strikes, riots, BI)",
+      "baseOrOptional": "Standalone",
+      "structuralNote": "Named on the specialty page",
+      "confidence": "A"
+    },
+    {
+      "parent": "Specialty",
+      "group": "Accident & health",
+      "coverage": "Medical stop loss",
+      "baseOrOptional": "Standalone",
+      "structuralNote": "Specific and aggregate attachment",
+      "confidence": "A"
+    },
+    {
+      "parent": "Specialty",
+      "group": "Construction",
+      "coverage": "Subcontractor default (SDI)",
+      "baseOrOptional": "Standalone",
+      "structuralNote": "Named on both specialty and surety pages",
+      "confidence": "A"
+    },
+    {
+      "parent": "Specialty",
+      "group": "Livestock",
+      "coverage": "Equine & livestock",
+      "baseOrOptional": "Standalone",
+      "structuralNote": "Named on the specialty page",
+      "confidence": "A"
+    },
+    {
+      "parent": "Specialty",
+      "group": "Multi-line industry solution",
+      "coverage": "Liberty Remedy: products/completed ops with clinical trials & expanded access, E&O, paired GL",
+      "baseOrOptional": "Integrated multi-line",
+      "structuralNote": "Launched May 2026 for middle-market life sciences",
+      "confidence": "A"
+    },
+    {
+      "parent": "Surety",
+      "group": "Contract bond",
+      "coverage": "Bid bond",
+      "baseOrOptional": "Bond obligation",
+      "structuralNote": "Penal sum, not a coverage limit",
+      "confidence": "A"
+    },
+    {
+      "parent": "Surety",
+      "group": "Contract bond",
+      "coverage": "Performance bond",
+      "baseOrOptional": "Bond obligation",
+      "structuralNote": "Penal sum tied to contract value",
+      "confidence": "A"
+    },
+    {
+      "parent": "Surety",
+      "group": "Contract bond",
+      "coverage": "Payment bond",
+      "baseOrOptional": "Bond obligation",
+      "structuralNote": "Protects subs and suppliers",
+      "confidence": "A"
+    },
+    {
+      "parent": "Surety",
+      "group": "Commercial bond",
+      "coverage": "Court bond",
+      "baseOrOptional": "Bond obligation",
+      "structuralNote": "Named on the surety page",
+      "confidence": "A"
+    },
+    {
+      "parent": "Surety",
+      "group": "Commercial bond",
+      "coverage": "Licence & permit bond",
+      "baseOrOptional": "Bond obligation",
+      "structuralNote": "Named on the surety page",
+      "confidence": "A"
+    },
+    {
+      "parent": "Surety",
+      "group": "Commercial bond",
+      "coverage": "Fidelity bond",
+      "baseOrOptional": "Bond obligation",
+      "structuralNote": "Named on the surety page",
+      "confidence": "A"
+    },
+    {
+      "parent": "Surety",
+      "group": "Specialty bond",
+      "coverage": "International / reverse-flow bond",
+      "baseOrOptional": "Bond obligation",
+      "structuralNote": "Named on the surety page",
+      "confidence": "A"
+    }
+  ],
+  "levers": [
+    {
+      "product": "Personal auto",
+      "leverType": "Rating variable",
+      "lever": "Vehicle characteristics (make, model, year, value, safety features)",
+      "dimension": "Rating",
+      "evidence": "Liberty Mutual resource content confirms make/model affects rate; EV battery & charging coverage content indicates powertrain segmentation",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Rating variable",
+      "lever": "Driver characteristics (age, experience, marital status where permitted)",
+      "dimension": "Rating",
+      "evidence": "Teen, senior, unmarried-couple and under-25 content on the site",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Rating variable",
+      "lever": "Driving record — violations and at-fault accidents",
+      "dimension": "Rating",
+      "evidence": "Violation Free Discount; content on speeding tickets and accident surcharges",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Rating variable",
+      "lever": "Claims history",
+      "dimension": "Rating",
+      "evidence": "Claims-Free Discount",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Rating variable",
+      "lever": "Credit-based insurance score",
+      "dimension": "Rating",
+      "evidence": "Liberty Mutual publishes content on whether credit score affects the rate",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Rating variable",
+      "lever": "Territory / garaging location",
+      "dimension": "Rating",
+      "evidence": "50 state-specific auto pages",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Rating variable",
+      "lever": "Annual mileage / usage",
+      "dimension": "Rating",
+      "evidence": "Low-mileage-driver guidance published",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Rating variable",
+      "lever": "Telematics driving score (RightTrack)",
+      "dimension": "Rating",
+      "evidence": "Applies only to certain coverages, not total premium. One-time monitoring fixes the score for the life of the policy; continuous monitoring updates it at each renewal",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Discount",
+      "lever": "RightTrack participation + final discount",
+      "dimension": "Pricing",
+      "evidence": "Enrolment discount plus final discount up to 30%; availability varies by state",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Discount",
+      "lever": "Multi-Policy (bundling)",
+      "dimension": "Pricing",
+      "evidence": "Advertised average $950 saving on auto+home bundled online; excluded in MA",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Discount",
+      "lever": "Multi-Car",
+      "dimension": "Pricing",
+      "evidence": "Two or more auto policies",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Discount",
+      "lever": "Homeowner",
+      "dimension": "Pricing",
+      "evidence": "Named discount",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Discount",
+      "lever": "Military (active, retired, reserve)",
+      "dimension": "Pricing",
+      "evidence": "Named discount",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Discount",
+      "lever": "Early Shopper",
+      "dimension": "Pricing",
+      "evidence": "Quote before current policy expires",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Discount",
+      "lever": "Good Student (GPA B or better)",
+      "dimension": "Pricing",
+      "evidence": "Named discount",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Discount",
+      "lever": "Student Away at School",
+      "dimension": "Pricing",
+      "evidence": "Named discount",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Discount",
+      "lever": "Claims-Free",
+      "dimension": "Pricing",
+      "evidence": "Named discount",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Discount",
+      "lever": "Violation Free",
+      "dimension": "Pricing",
+      "evidence": "Named discount",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Discount",
+      "lever": "Preferred Payment (autopay / pay-in-full or two payments)",
+      "dimension": "Pricing",
+      "evidence": "Named discount",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Discount",
+      "lever": "Online Purchase",
+      "dimension": "Pricing",
+      "evidence": "Up to 12% on average off named coverages: BI, physical damage, UM, UIM, medpay, PIP, collision, comprehensive, as applicable by state — a CHANNEL price, not a risk price",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Discount",
+      "lever": "Paperless",
+      "dimension": "Pricing",
+      "evidence": "Named discount",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Discount",
+      "lever": "Group / affinity (association, employer)",
+      "dimension": "Pricing",
+      "evidence": "Group discounts referenced in affinity material",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Pricing constraint",
+      "lever": "State law and regulatory permission",
+      "dimension": "Pricing",
+      "evidence": "Liberty Mutual states discounts are available where state laws and regulations allow and may vary by state and by how you purchase",
+      "confidence": "A"
+    },
+    {
+      "product": "Personal auto",
+      "leverType": "Pricing constraint",
+      "lever": "Individual underwriting / eligibility",
+      "dimension": "Underwriting",
+      "evidence": "Liberty Mutual states applicants are individually underwritten and not all applicants may qualify",
+      "confidence": "A"
+    },
+    {
+      "product": "Homeowners",
+      "leverType": "Rating variable",
+      "lever": "Dwelling replacement cost / coverage limit",
+      "dimension": "Rating",
+      "evidence": "Home insurance calculator published; 80% rule content",
+      "confidence": "A"
+    },
+    {
+      "product": "Homeowners",
+      "leverType": "Rating variable",
+      "lever": "Roof age & condition",
+      "dimension": "Rating",
+      "evidence": "Dedicated roofs-and-home-insurance resource page",
+      "confidence": "A"
+    },
+    {
+      "product": "Homeowners",
+      "leverType": "Rating variable",
+      "lever": "Construction, age and home characteristics",
+      "dimension": "Rating",
+      "evidence": "Historic-home and high-value-home content",
+      "confidence": "B"
+    },
+    {
+      "product": "Homeowners",
+      "leverType": "Rating variable",
+      "lever": "Territory / cat exposure",
+      "dimension": "Rating",
+      "evidence": "50 state pages; snow, hail, flood and wind content",
+      "confidence": "B"
+    },
+    {
+      "product": "Homeowners",
+      "leverType": "Rating variable",
+      "lever": "Claims history",
+      "dimension": "Rating",
+      "evidence": "Claims-free discount logic across property products",
+      "confidence": "A"
+    },
+    {
+      "product": "Homeowners",
+      "leverType": "Pricing",
+      "lever": "Deductible selection (flat and percentage)",
+      "dimension": "Pricing",
+      "evidence": "Home insurance deductible FAQ published",
+      "confidence": "A"
+    },
+    {
+      "product": "Homeowners",
+      "leverType": "Pricing",
+      "lever": "Inflation / replacement-cost trending",
+      "dimension": "Rating",
+      "evidence": "Liberty Mutual publishes content on how inflation affects insurance rates",
+      "confidence": "A"
+    },
+    {
+      "product": "Renters",
+      "leverType": "Discount",
+      "lever": "Bundling with auto/home",
+      "dimension": "Pricing",
+      "evidence": "Named",
+      "confidence": "A"
+    },
+    {
+      "product": "Renters",
+      "leverType": "Discount",
+      "lever": "Online purchase (buy direct from the website)",
+      "dimension": "Pricing",
+      "evidence": "Named in third-party review of Liberty Mutual renters",
+      "confidence": "A"
+    },
+    {
+      "product": "Renters",
+      "leverType": "Discount",
+      "lever": "Claims-free 5+ years",
+      "dimension": "Pricing",
+      "evidence": "Named in third-party review",
+      "confidence": "A"
+    },
+    {
+      "product": "Renters",
+      "leverType": "Discount",
+      "lever": "Early shopper",
+      "dimension": "Pricing",
+      "evidence": "Named in third-party review",
+      "confidence": "A"
+    },
+    {
+      "product": "Renters",
+      "leverType": "Discount",
+      "lever": "Autopay enrolment",
+      "dimension": "Pricing",
+      "evidence": "Named in third-party review",
+      "confidence": "A"
+    },
+    {
+      "product": "Small commercial",
+      "leverType": "Rating variable",
+      "lever": "Class of business / industry classification",
+      "dimension": "Rating",
+      "evidence": "10 named industry verticals with distinct product pages",
+      "confidence": "A"
+    },
+    {
+      "product": "Small commercial",
+      "leverType": "Rating variable",
+      "lever": "Exposure base — sales, payroll, square footage, receipts, vehicle count",
+      "dimension": "Rating",
+      "evidence": "Standard for BOP/GL/WC/auto; premium audit service exists to true these up",
+      "confidence": "B"
+    },
+    {
+      "product": "Small commercial",
+      "leverType": "Rating variable",
+      "lever": "Workers comp class code and payroll",
+      "dimension": "Rating",
+      "evidence": "Bureau-driven; audit-dependent",
+      "confidence": "B"
+    },
+    {
+      "product": "Small commercial",
+      "leverType": "Pricing",
+      "lever": "Scheduled rating credits/debits and IRPM",
+      "dimension": "Pricing",
+      "evidence": "Standard filed mechanism in small commercial",
+      "confidence": "C"
+    },
+    {
+      "product": "Small commercial",
+      "leverType": "Lifecycle-driven pricing",
+      "lever": "Premium audit true-up",
+      "dimension": "Pricing",
+      "evidence": "Premium audit is an explicitly named Liberty Mutual service",
+      "confidence": "A"
+    },
+    {
+      "product": "Mid/large commercial",
+      "leverType": "Rating",
+      "lever": "Experience modification (workers comp)",
+      "dimension": "Rating",
+      "evidence": "Bureau experience rating at this size",
+      "confidence": "C"
+    },
+    {
+      "product": "Mid/large commercial",
+      "leverType": "Rating",
+      "lever": "Loss rating / burning cost on account loss history",
+      "dimension": "Rating",
+      "evidence": "Standard for loss-sensitive accounts",
+      "confidence": "C"
+    },
+    {
+      "product": "Mid/large commercial",
+      "leverType": "Rating",
+      "lever": "Cat and property risk-engineering grade",
+      "dimension": "Rating",
+      "evidence": "Liberty Mutual publishes on risk engineering transforming property insurance",
+      "confidence": "A"
+    },
+    {
+      "product": "Mid/large commercial",
+      "leverType": "Pricing structure",
+      "lever": "Large deductible / SIR programme",
+      "dimension": "Pricing",
+      "evidence": "Alternative risk solutions is a named offering",
+      "confidence": "A"
+    },
+    {
+      "product": "Mid/large commercial",
+      "leverType": "Pricing structure",
+      "lever": "Retrospective rating and paid-loss plans",
+      "dimension": "Pricing",
+      "evidence": "Implied by alternative risk solutions",
+      "confidence": "B"
+    },
+    {
+      "product": "Mid/large commercial",
+      "leverType": "Pricing structure",
+      "lever": "Captive and fronting arrangements",
+      "dimension": "Pricing",
+      "evidence": "Implied by alternative risk solutions",
+      "confidence": "B"
+    },
+    {
+      "product": "Mid/large commercial",
+      "leverType": "Pricing structure",
+      "lever": "Collateral and credit terms",
+      "dimension": "Pricing",
+      "evidence": "Inherent to loss-sensitive programmes",
+      "confidence": "C"
+    },
+    {
+      "product": "Specialty / E&S",
+      "leverType": "Pricing",
+      "lever": "Freedom of rate and form on non-admitted paper",
+      "dimension": "Filings/Pricing",
+      "evidence": "Site discloses that some policies are placed with surplus lines insurers",
+      "confidence": "A"
+    },
+    {
+      "product": "Specialty / E&S",
+      "leverType": "Pricing",
+      "lever": "Increased limit factors and layer pricing",
+      "dimension": "Rating",
+      "evidence": "Standard for excess/layered specialty",
+      "confidence": "C"
+    },
+    {
+      "product": "Specialty / E&S",
+      "leverType": "Pricing",
+      "lever": "Minimum premium",
+      "dimension": "Pricing",
+      "evidence": "Standard for specialty",
+      "confidence": "C"
+    },
+    {
+      "product": "Surety",
+      "leverType": "Rating",
+      "lever": "Rate per $1,000 of bond / contract amount",
+      "dimension": "Rating",
+      "evidence": "Standard surety rating basis",
+      "confidence": "C"
+    },
+    {
+      "product": "Surety",
+      "leverType": "Rating",
+      "lever": "Bond class (contract vs commercial vs specialty)",
+      "dimension": "Rating",
+      "evidence": "Product tree confirms the class split",
+      "confidence": "A"
+    },
+    {
+      "product": "Surety",
+      "leverType": "Rating",
+      "lever": "Credit tier / financial strength of the principal",
+      "dimension": "Rating",
+      "evidence": "Case study describes underwriters working through financials and improving financial reporting",
+      "confidence": "A"
+    },
+    {
+      "product": "Surety",
+      "leverType": "Pricing / programme",
+      "lever": "Product tier: Xpress vs Surety Plus Vista vs standard",
+      "dimension": "Pricing",
+      "evidence": "Named in the surety case study as an account-size tiering ladder",
+      "confidence": "A"
+    },
+    {
+      "product": "Surety",
+      "leverType": "Pricing / programme",
+      "lever": "SBA Preferred Surety Bond (Plan B) support",
+      "dimension": "Pricing",
+      "evidence": "Named in the surety case study",
+      "confidence": "A"
+    },
+    {
+      "product": "Surety",
+      "leverType": "Capacity constraint",
+      "lever": "Treasury listing ($3.1B) and aggregate programme limit",
+      "dimension": "Underwriting",
+      "evidence": "Treasury listing stated on the surety page",
+      "confidence": "A"
+    },
+    {
+      "product": "Reinsurance",
+      "leverType": "Pricing",
+      "lever": "Rate on line, ceding commission, profit commission, sliding scale",
+      "dimension": "Pricing",
+      "evidence": "Standard treaty economics",
+      "confidence": "C"
+    }
+  ],
+  "lifecycle": [
+    {
+      "phase": "Pre-bind",
+      "event": "Quote / rate request",
+      "actor": "Prospect or agent",
+      "byArchetype": {
+        "A1 Personal": "Y",
+        "A2 Small comml": "Y",
+        "A3 Large comml": "Y",
+        "A4 Specialty/E&S": "Y",
+        "A5 Surety": "Y",
+        "A6 Reins/deleg": "Y",
+        "A7 Life/ancillary": "Y"
+      },
+      "whyItMatters": "Rate calculation with no contractual effect; A1-A2 real-time, A3-A6 an underwriter-produced indication"
+    },
+    {
+      "phase": "Pre-bind",
+      "event": "Submission & clearance",
+      "actor": "Broker -> carrier",
+      "byArchetype": {
+        "A1 Personal": "N",
+        "A2 Small comml": "Rare",
+        "A3 Large comml": "Y",
+        "A4 Specialty/E&S": "Y",
+        "A5 Surety": "Y",
+        "A6 Reins/deleg": "Y",
+        "A7 Life/ancillary": "N"
+      },
+      "whyItMatters": "Clearance (who owns the account / conflicting broker submissions) exists only where brokers compete for the same risk"
+    },
+    {
+      "phase": "Pre-bind",
+      "event": "Third-party data enrichment",
+      "actor": "System",
+      "byArchetype": {
+        "A1 Personal": "Y",
+        "A2 Small comml": "Y",
+        "A3 Large comml": "Y",
+        "A4 Specialty/E&S": "Y",
+        "A5 Surety": "Y",
+        "A6 Reins/deleg": "Partial",
+        "A7 Life/ancillary": "Y"
+      },
+      "whyItMatters": "A1: MVR/CLUE/credit/property prefill. A3-A4: financials, surveys, cat models. A5: credit bureau & financial statements. A7: medical/Rx/MIB"
+    },
+    {
+      "phase": "Pre-bind",
+      "event": "Referral to underwriter",
+      "actor": "System -> underwriter",
+      "byArchetype": {
+        "A1 Personal": "Exception",
+        "A2 Small comml": "Y",
+        "A3 Large comml": "Always",
+        "A4 Specialty/E&S": "Always",
+        "A5 Surety": "Always",
+        "A6 Reins/deleg": "Always",
+        "A7 Life/ancillary": "Y"
+      },
+      "whyItMatters": "The automation boundary. Instrumenting referral rate, referral reason and referral cycle time is the highest-value measurement in the whole lifecycle"
+    },
+    {
+      "phase": "Pre-bind",
+      "event": "Indication / quote issue",
+      "actor": "Underwriter",
+      "byArchetype": {
+        "A1 Personal": "Auto",
+        "A2 Small comml": "Auto/UW",
+        "A3 Large comml": "UW",
+        "A4 Specialty/E&S": "UW",
+        "A5 Surety": "UW",
+        "A6 Reins/deleg": "UW",
+        "A7 Life/ancillary": "UW"
+      },
+      "whyItMatters": "A4 quotes carry subjectivities that must be cleared before binding"
+    },
+    {
+      "phase": "Bind",
+      "event": "Binder issue",
+      "actor": "Underwriter / broker",
+      "byArchetype": {
+        "A1 Personal": "N",
+        "A2 Small comml": "Rare",
+        "A3 Large comml": "Y",
+        "A4 Specialty/E&S": "Y",
+        "A5 Surety": "N",
+        "A6 Reins/deleg": "Y",
+        "A7 Life/ancillary": "N"
+      },
+      "whyItMatters": "A binder is coverage before the policy document exists — a distinct contractual state most product models omit"
+    },
+    {
+      "phase": "Bind",
+      "event": "Bind / bond execution",
+      "actor": "Customer, agent or underwriter",
+      "byArchetype": {
+        "A1 Personal": "Y",
+        "A2 Small comml": "Y",
+        "A3 Large comml": "Y",
+        "A4 Specialty/E&S": "Y",
+        "A5 Surety": "Y (bond execution)",
+        "A6 Reins/deleg": "Y (firm order)",
+        "A7 Life/ancillary": "Y"
+      },
+      "whyItMatters": "A5 executes a bond against an approved programme rather than binding a policy"
+    },
+    {
+      "phase": "Bind",
+      "event": "Collateral & indemnity agreements",
+      "actor": "Underwriter / credit",
+      "byArchetype": {
+        "A1 Personal": "N",
+        "A2 Small comml": "N",
+        "A3 Large comml": "Y",
+        "A4 Specialty/E&S": "Rare",
+        "A5 Surety": "Y (GIA)",
+        "A6 Reins/deleg": "Y",
+        "A7 Life/ancillary": "N"
+      },
+      "whyItMatters": "A5 General Indemnity Agreement and A3 collateral agreements are contract artefacts outside the policy itself"
+    },
+    {
+      "phase": "Issue",
+      "event": "Policy / bond issue & document composition",
+      "actor": "System",
+      "byArchetype": {
+        "A1 Personal": "Y",
+        "A2 Small comml": "Y",
+        "A3 Large comml": "Y",
+        "A4 Specialty/E&S": "Y",
+        "A5 Surety": "Y",
+        "A6 Reins/deleg": "Y",
+        "A7 Life/ancillary": "Y"
+      },
+      "whyItMatters": "Form attachment logic executes here; this is where the Forms dimension becomes operational"
+    },
+    {
+      "phase": "Issue",
+      "event": "Programme & service agreements",
+      "actor": "Underwriter / service",
+      "byArchetype": {
+        "A1 Personal": "N",
+        "A2 Small comml": "N",
+        "A3 Large comml": "Y",
+        "A4 Specialty/E&S": "Rare",
+        "A5 Surety": "Y",
+        "A6 Reins/deleg": "Y",
+        "A7 Life/ancillary": "N"
+      },
+      "whyItMatters": "Deductible agreements, payment agreements, risk-control service plans, TPA service agreements"
+    },
+    {
+      "phase": "In-force",
+      "event": "Mid-term endorsement",
+      "actor": "Customer, agent or underwriter",
+      "byArchetype": {
+        "A1 Personal": "Y (high volume)",
+        "A2 Small comml": "Y",
+        "A3 Large comml": "Y",
+        "A4 Specialty/E&S": "Y",
+        "A5 Surety": "Y (rider)",
+        "A6 Reins/deleg": "Y",
+        "A7 Life/ancillary": "Y"
+      },
+      "whyItMatters": "Out-of-sequence endorsements are the classic source of premium-calculation defects; effective-dating must be bi-temporal"
+    },
+    {
+      "phase": "In-force",
+      "event": "Premium audit",
+      "actor": "Premium auditor",
+      "byArchetype": {
+        "A1 Personal": "N",
+        "A2 Small comml": "Y",
+        "A3 Large comml": "Y",
+        "A4 Specialty/E&S": "Rare",
+        "A5 Surety": "N",
+        "A6 Reins/deleg": "N",
+        "A7 Life/ancillary": "N"
+      },
+      "whyItMatters": "The defining A2/A3 event: converts estimated exposure to earned exposure and generates additional or return premium"
+    },
+    {
+      "phase": "In-force",
+      "event": "Risk control survey & recommendations",
+      "actor": "Risk engineer",
+      "byArchetype": {
+        "A1 Personal": "N",
+        "A2 Small comml": "Sometimes",
+        "A3 Large comml": "Y",
+        "A4 Specialty/E&S": "Y",
+        "A5 Surety": "N",
+        "A6 Reins/deleg": "N",
+        "A7 Life/ancillary": "N"
+      },
+      "whyItMatters": "Survey output feeds back into the Underwriting Rules and Rating dimensions — a loop, not a one-way service"
+    },
+    {
+      "phase": "In-force",
+      "event": "Bordereaux / statement cycle",
+      "actor": "Cedant or programme administrator",
+      "byArchetype": {
+        "A1 Personal": "N",
+        "A2 Small comml": "N",
+        "A3 Large comml": "N",
+        "A4 Specialty/E&S": "N",
+        "A5 Surety": "N",
+        "A6 Reins/deleg": "Y",
+        "A7 Life/ancillary": "N"
+      },
+      "whyItMatters": "Monthly or quarterly premium and loss reporting; reconciliation is the operational core of A6"
+    },
+    {
+      "phase": "In-force",
+      "event": "Collateral review",
+      "actor": "Credit / surety",
+      "byArchetype": {
+        "A1 Personal": "N",
+        "A2 Small comml": "N",
+        "A3 Large comml": "Y",
+        "A4 Specialty/E&S": "N",
+        "A5 Surety": "Y",
+        "A6 Reins/deleg": "Y",
+        "A7 Life/ancillary": "N"
+      },
+      "whyItMatters": "Recurs on a credit cycle independent of the policy cycle"
+    },
+    {
+      "phase": "In-force",
+      "event": "Cancellation & reinstatement",
+      "actor": "Customer or carrier",
+      "byArchetype": {
+        "A1 Personal": "Y",
+        "A2 Small comml": "Y",
+        "A3 Large comml": "Y",
+        "A4 Specialty/E&S": "Y",
+        "A5 Surety": "Y (rare)",
+        "A6 Reins/deleg": "Y",
+        "A7 Life/ancillary": "Y (lapse)"
+      },
+      "whyItMatters": "Pro-rata vs. short-rate calculation is a filed rule in A1-A2 and a negotiated term in A3-A4"
+    },
+    {
+      "phase": "In-force",
+      "event": "Claim / bond claim",
+      "actor": "Claimant",
+      "byArchetype": {
+        "A1 Personal": "Y",
+        "A2 Small comml": "Y",
+        "A3 Large comml": "Y",
+        "A4 Specialty/E&S": "Y",
+        "A5 Surety": "Y (inverted)",
+        "A6 Reins/deleg": "Y (cession)",
+        "A7 Life/ancillary": "Y"
+      },
+      "whyItMatters": "A5 inverts the logic: the surety pays the obligee and then RECOVERS from the principal under the indemnity agreement"
+    },
+    {
+      "phase": "Post-term",
+      "event": "Renewal re-rate & re-underwrite",
+      "actor": "System / underwriter",
+      "byArchetype": {
+        "A1 Personal": "Y (automatic)",
+        "A2 Small comml": "Y",
+        "A3 Large comml": "Y (negotiated)",
+        "A4 Specialty/E&S": "Y (negotiated)",
+        "A5 Surety": "Y (programme review)",
+        "A6 Reins/deleg": "Y",
+        "A7 Life/ancillary": "Y (age re-rate)"
+      },
+      "whyItMatters": "A1 renewal is automatic and re-rated; A3-A4 renewal is a fresh negotiation. Same word, different process"
+    },
+    {
+      "phase": "Post-term",
+      "event": "Non-renewal",
+      "actor": "Carrier",
+      "byArchetype": {
+        "A1 Personal": "Y",
+        "A2 Small comml": "Y",
+        "A3 Large comml": "Y",
+        "A4 Specialty/E&S": "Y",
+        "A5 Surety": "Y",
+        "A6 Reins/deleg": "Y",
+        "A7 Life/ancillary": "N"
+      },
+      "whyItMatters": "State notice rules constrain A1-A2 tightly; cat-driven non-renewal is a live property issue"
+    },
+    {
+      "phase": "Post-term",
+      "event": "Retrospective / loss-sensitive adjustment",
+      "actor": "Actuary / underwriter",
+      "byArchetype": {
+        "A1 Personal": "N",
+        "A2 Small comml": "Rare",
+        "A3 Large comml": "Y (multi-year)",
+        "A4 Specialty/E&S": "N",
+        "A5 Surety": "N",
+        "A6 Reins/deleg": "Y (sliding scale)",
+        "A7 Life/ancillary": "N"
+      },
+      "whyItMatters": "The A3 signature: premium keeps changing for YEARS after expiry. Any model that closes a policy at expiry cannot support this"
+    },
+    {
+      "phase": "Post-term",
+      "event": "Bond release / exoneration",
+      "actor": "Obligee",
+      "byArchetype": {
+        "A1 Personal": "N",
+        "A2 Small comml": "N",
+        "A3 Large comml": "N",
+        "A4 Specialty/E&S": "N",
+        "A5 Surety": "Y",
+        "A6 Reins/deleg": "N",
+        "A7 Life/ancillary": "N"
+      },
+      "whyItMatters": "Frees the surety's aggregate capacity for the principal — a capacity event, not a premium event"
+    },
+    {
+      "phase": "Post-term",
+      "event": "Extended reporting period / tail election",
+      "actor": "Insured",
+      "byArchetype": {
+        "A1 Personal": "N",
+        "A2 Small comml": "Rare",
+        "A3 Large comml": "Rare",
+        "A4 Specialty/E&S": "Y",
+        "A5 Surety": "N",
+        "A6 Reins/deleg": "N",
+        "A7 Life/ancillary": "N"
+      },
+      "whyItMatters": "Claims-made products have a reporting lifecycle that outlives the policy period"
+    },
+    {
+      "phase": "Post-term",
+      "event": "Commutation",
+      "actor": "Cedant / reinsurer",
+      "byArchetype": {
+        "A1 Personal": "N",
+        "A2 Small comml": "N",
+        "A3 Large comml": "N",
+        "A4 Specialty/E&S": "N",
+        "A5 Surety": "N",
+        "A6 Reins/deleg": "Y",
+        "A7 Life/ancillary": "N"
+      },
+      "whyItMatters": "Negotiated settlement of remaining liabilities on a treaty"
+    },
+    {
+      "phase": "Post-term",
+      "event": "Salvage, subrogation & indemnity recovery",
+      "actor": "Claims / recovery",
+      "byArchetype": {
+        "A1 Personal": "Y",
+        "A2 Small comml": "Y",
+        "A3 Large comml": "Y",
+        "A4 Specialty/E&S": "Y",
+        "A5 Surety": "Y (primary)",
+        "A6 Reins/deleg": "Y",
+        "A7 Life/ancillary": "N"
+      },
+      "whyItMatters": "For A5 this is not a recovery function bolted onto claims — it is the expected economic outcome of a bond claim"
+    }
+  ],
+  "entities": [
+    {
+      "name": "America First Insurance Company",
+      "naic": "12696",
+      "domicile": "New Hampshire",
+      "footprint": "11 states (AR, GA, KS, LA, MO, NH, NM, OK, SC, TN, TX)"
+    },
+    {
+      "name": "American Economy Insurance Company",
+      "naic": "19690",
+      "domicile": "Indiana",
+      "footprint": "All states except NJ, plus DC"
+    },
+    {
+      "name": "American Fire and Casualty Company",
+      "naic": "24066",
+      "domicile": "New Hampshire",
+      "footprint": "All states except HI, plus DC"
+    },
+    {
+      "name": "American States Insurance Company",
+      "naic": "19704",
+      "domicile": "Indiana",
+      "footprint": "All states and DC"
+    },
+    {
+      "name": "American States Preferred Insurance Company",
+      "naic": "37214",
+      "domicile": "Indiana",
+      "footprint": "40 states plus DC"
+    },
+    {
+      "name": "Consolidated Insurance Company",
+      "naic": "22640",
+      "domicile": "Indiana",
+      "footprint": "12 states"
+    },
+    {
+      "name": "Employers Insurance Company of Wausau",
+      "naic": "21458",
+      "domicile": "Wisconsin",
+      "footprint": "All states, DC, PR, USVI"
+    },
+    {
+      "name": "First National Insurance Company of America",
+      "naic": "24724",
+      "domicile": "New Hampshire",
+      "footprint": "All states and DC"
+    },
+    {
+      "name": "General Insurance Company of America",
+      "naic": "24732",
+      "domicile": "New Hampshire",
+      "footprint": "All states, DC, Guam, PR, USVI"
+    },
+    {
+      "name": "Insurance Company of Illinois",
+      "naic": "26700",
+      "domicile": "Illinois",
+      "footprint": "17 states plus DC"
+    },
+    {
+      "name": "Liberty County Mutual Insurance Company",
+      "naic": "19544",
+      "domicile": "Texas",
+      "footprint": "Texas only"
+    },
+    {
+      "name": "Liberty Insurance Corporation",
+      "naic": "42404",
+      "domicile": "Illinois",
+      "footprint": "All states and DC"
+    },
+    {
+      "name": "Liberty Insurance Underwriters Inc.",
+      "naic": "19917",
+      "domicile": "Illinois",
+      "footprint": "All states and DC"
+    },
+    {
+      "name": "Liberty Lloyds of Texas Insurance Company",
+      "naic": "11041",
+      "domicile": "Texas",
+      "footprint": "Texas only"
+    },
+    {
+      "name": "Liberty Mutual Fire Insurance Company",
+      "naic": "23025",
+      "domicile": "Texas",
+      "footprint": "All states, DC, PR"
+    },
+    {
+      "name": "Liberty Mutual Insurance Company",
+      "naic": "23043",
+      "domicile": "Massachusetts",
+      "footprint": "All states, DC, PR, USVI, N. Mariana Is., Canada"
+    },
+    {
+      "name": "Liberty Mutual Mid-Atlantic Insurance Corporation",
+      "naic": "14486",
+      "domicile": "Massachusetts",
+      "footprint": "15 states"
+    },
+    {
+      "name": "Liberty Mutual Personal Insurance Company",
+      "naic": "12484",
+      "domicile": "New Hampshire",
+      "footprint": "38 states plus DC"
+    },
+    {
+      "name": "Liberty Personal Insurance Company",
+      "naic": "11746",
+      "domicile": "New Hampshire",
+      "footprint": "17 states"
+    },
+    {
+      "name": "LM General Insurance Company",
+      "naic": "36447",
+      "domicile": "Illinois",
+      "footprint": "All states and DC except AK, HI, NJ"
+    },
+    {
+      "name": "LM Insurance Corporation",
+      "naic": "33600",
+      "domicile": "Illinois",
+      "footprint": "All states, DC, Guam, USVI, N. Mariana Is."
+    },
+    {
+      "name": "LM Property and Casualty Insurance Company",
+      "naic": "32352",
+      "domicile": "Indiana",
+      "footprint": "All states except NJ, plus DC"
+    },
+    {
+      "name": "Montgomery Mutual Insurance Company",
+      "naic": "14613",
+      "domicile": "Massachusetts",
+      "footprint": "10 states plus DC"
+    },
+    {
+      "name": "Ohio Security Insurance Company",
+      "naic": "24082",
+      "domicile": "New Hampshire",
+      "footprint": "All states except HI, plus DC"
+    },
+    {
+      "name": "Oregon Automobile Insurance Company",
+      "naic": "23922",
+      "domicile": "Oregon",
+      "footprint": "7 states (AK, ID, MT, NV, OR, UT, WA)"
+    },
+    {
+      "name": "Peerless Indemnity Insurance Company",
+      "naic": "18333",
+      "domicile": "Illinois",
+      "footprint": "All states and DC"
+    },
+    {
+      "name": "Peerless Insurance Company",
+      "naic": "24198",
+      "domicile": "New Hampshire",
+      "footprint": "All states except HI, plus DC"
+    },
+    {
+      "name": "Safeco Insurance Company of America",
+      "naic": "24740",
+      "domicile": "New Hampshire",
+      "footprint": "All states, DC, Guam"
+    },
+    {
+      "name": "Safeco Insurance Company of Indiana",
+      "naic": "11215",
+      "domicile": "Indiana",
+      "footprint": "45 states plus DC"
+    },
+    {
+      "name": "Safeco Insurance Company of Oregon",
+      "naic": "11071",
+      "domicile": "Oregon",
+      "footprint": "4 states (GA, LA, OR, WA)"
+    },
+    {
+      "name": "The First Liberty Insurance Corporation",
+      "naic": "33588",
+      "domicile": "Illinois",
+      "footprint": "All states, DC, Guam, USVI"
+    },
+    {
+      "name": "The Netherlands Insurance Company",
+      "naic": "24171",
+      "domicile": "New Hampshire",
+      "footprint": "All states except FL, plus DC"
+    },
+    {
+      "name": "The Ohio Casualty Insurance Company",
+      "naic": "24074",
+      "domicile": "New Hampshire",
+      "footprint": "All states and DC"
+    },
+    {
+      "name": "Wausau Business Insurance Company",
+      "naic": "26069",
+      "domicile": "Wisconsin",
+      "footprint": "All states and DC"
+    },
+    {
+      "name": "Wausau General Insurance Company",
+      "naic": "26425",
+      "domicile": "Wisconsin",
+      "footprint": "9 states"
+    },
+    {
+      "name": "Wausau Underwriters Insurance Company",
+      "naic": "26042",
+      "domicile": "Wisconsin",
+      "footprint": "All states, DC, USVI"
+    },
+    {
+      "name": "West American Insurance Company",
+      "naic": "44393",
+      "domicile": "Indiana",
+      "footprint": "All states except HI, plus DC"
+    }
+  ],
+  "taskMap": [
+    {
+      "dimension": "1 Coverages",
+      "process": "Product definition & configuration",
+      "actor": "Product Manager",
+      "tasks": "Define product intent, target class, coverage list",
+      "artifact": "Product roadmap / requirements doc",
+      "applications": "Product management tool, Confluence/SharePoint",
+      "instrumentation": "Coverage list agreed but not yet codified — decisions live in documents, not data"
+    },
+    {
+      "dimension": "1 Coverages",
+      "process": "Product definition & configuration",
+      "actor": "Product Configuration Analyst",
+      "tasks": "Create coverage code; set coverage part; set base/optional flag; map coverage to form; set rating hook",
+      "artifact": "Configured coverage in the product model",
+      "applications": "Policy admin system product configuration module; product model repository",
+      "instrumentation": "Highest-value instrumentation point: how many clicks and how many hand-offs to add ONE coverage to ONE state?"
+    },
+    {
+      "dimension": "2 Terms",
+      "process": "Product definition & configuration",
+      "actor": "Product Configuration Analyst",
+      "tasks": "Define limit option set; define deductible option set; set valuation basis; set term lengths",
+      "artifact": "Configured term options",
+      "applications": "PAS product configuration",
+      "instrumentation": "Option sets proliferate by state; this is where combinatorial explosion starts"
+    },
+    {
+      "dimension": "3 Rating",
+      "process": "Actuarial rate development",
+      "actor": "Pricing Actuary",
+      "tasks": "Extract exposure & loss data; fit model; select relativities; build rate table; produce indication",
+      "artifact": "Rate tables + actuarial indication",
+      "applications": "Actuarial modelling platform, data warehouse, Excel/R/Python",
+      "instrumentation": "The single longest cycle-time step in most carriers, and the least instrumented"
+    },
+    {
+      "dimension": "3 Rating",
+      "process": "Rate implementation",
+      "actor": "Rating Engine Developer / Config Analyst",
+      "tasks": "Load rate table; sequence rating steps; unit-test rate output vs actuarial expected; regression-test",
+      "artifact": "Deployed rating algorithm version",
+      "applications": "Rating engine, test harness, CI pipeline",
+      "instrumentation": "Actuarial-to-implementation reconciliation is a classic defect source and a prime automation candidate"
+    },
+    {
+      "dimension": "4 Pricing",
+      "process": "Pricing governance",
+      "actor": "Pricing Manager / Underwriting Leader",
+      "tasks": "Set discount stack and order; set tier & entity placement rules; set channel price differentials",
+      "artifact": "Approved pricing rule set",
+      "applications": "Rating engine, underwriting rules engine, pricing committee minutes",
+      "instrumentation": "Decision rights and approval routing are usually undocumented — map the actual approver, not the policy"
+    },
+    {
+      "dimension": "5 Underwriting rules",
+      "process": "Rule authoring",
+      "actor": "Underwriting Rules Analyst",
+      "tasks": "Author eligibility, decline and referral rules; set thresholds; configure third-party data calls",
+      "artifact": "Deployed rule set version",
+      "applications": "Underwriting rules engine, third-party data service configuration",
+      "instrumentation": "Rule count and rule overlap are strong proxies for product-model debt"
+    },
+    {
+      "dimension": "5 Underwriting rules",
+      "process": "Risk selection (execution)",
+      "actor": "Underwriter",
+      "tasks": "Review submission; order data; assess; refer or price; document rationale",
+      "artifact": "Quote / decline / referral",
+      "applications": "Underwriting workbench, external data portals, email, Excel",
+      "instrumentation": "Where the atomic-task lens pays most: underwriters typically touch 5-15 applications per submission. Count them"
+    },
+    {
+      "dimension": "6 Forms",
+      "process": "Forms drafting & management",
+      "actor": "Forms Analyst / Coverage Counsel",
+      "tasks": "Draft or amend wording; assign form number & edition; set state applicability; set attachment logic",
+      "artifact": "Filed-ready form + attachment rule",
+      "applications": "Forms library, document composition system, legal review workflow",
+      "instrumentation": "Attachment logic is executable business logic living in a document system — a structural weak point"
+    },
+    {
+      "dimension": "7 Filings",
+      "process": "Regulatory filing",
+      "actor": "Compliance / Filings Analyst",
+      "tasks": "Assemble filing package; select filing type; submit to state via SERFF; respond to objections; track disposition; notify implementation",
+      "artifact": "Approved filing + effective date",
+      "applications": "SERFF, filing management system, email",
+      "instrumentation": "Objection-response loops are pure cycle time and are almost never measured. Multiply by state x entity"
+    },
+    {
+      "dimension": "7 Filings",
+      "process": "Implementation release",
+      "actor": "Release Manager",
+      "tasks": "Schedule effective dates; align rate, rule and form versions; deploy; verify in production",
+      "artifact": "Live product version in one state for one entity",
+      "applications": "PAS, rating engine, release tooling",
+      "instrumentation": "The version-alignment check across rate/rule/form is the highest-risk manual control in the chain"
+    },
+    {
+      "dimension": "8 Lifecycle",
+      "process": "Quote & bind (personal / small commercial)",
+      "actor": "Customer or Agent",
+      "tasks": "Enter risk data; select coverages; view price; purchase",
+      "artifact": "Bound policy",
+      "applications": "Consumer web quote flow, agent portal, PAS",
+      "instrumentation": "Abandonment by step is the key measure; instrument the funnel, not the outcome"
+    },
+    {
+      "dimension": "8 Lifecycle",
+      "process": "Submission handling (commercial)",
+      "actor": "Broker / Underwriting Assistant",
+      "tasks": "Receive submission; clear account; index documents; create file; assign underwriter",
+      "artifact": "Cleared, assigned submission",
+      "applications": "Email, submission intake tool, clearance system, document management",
+      "instrumentation": "Highest-volume, lowest-value-add task cluster in commercial. Prime AI target and easiest to quantify"
+    },
+    {
+      "dimension": "8 Lifecycle",
+      "process": "Endorsement processing",
+      "actor": "Service Rep / Underwriter",
+      "tasks": "Receive request; validate; effective-date; re-rate; issue endorsement documents",
+      "artifact": "Endorsement transaction + premium change",
+      "applications": "PAS, billing, document composition",
+      "instrumentation": "Out-of-sequence handling is the defect hotspot; log the sequence, not just the change"
+    },
+    {
+      "dimension": "8 Lifecycle",
+      "process": "Premium audit",
+      "actor": "Premium Auditor",
+      "tasks": "Request records; verify exposure; reclassify; compute audited premium; issue audit endorsement",
+      "artifact": "Audited exposure + additional/return premium",
+      "applications": "Audit system, PAS, billing",
+      "instrumentation": "Disputed audits are a recoverable-revenue and NPS issue simultaneously"
+    },
+    {
+      "dimension": "8 Lifecycle",
+      "process": "Loss-sensitive / retro adjustment",
+      "actor": "Actuary / Programme Accountant",
+      "tasks": "Pull paid & incurred loss; apply retro formula; compute adjustment; bill or refund; review collateral",
+      "artifact": "Retro premium adjustment",
+      "applications": "Programme accounting, actuarial models, collateral system, billing",
+      "instrumentation": "Runs for years post-expiry; usually spreadsheet-bound and almost entirely uninstrumented"
+    },
+    {
+      "dimension": "8 Lifecycle",
+      "process": "Bond issuance & release (surety)",
+      "actor": "Surety Underwriter / Bond Center",
+      "tasks": "Verify programme capacity; execute bond; record obligee; track completion; process release",
+      "artifact": "Issued bond; released capacity",
+      "applications": "Surety system, agent portal, bond execution/e-seal tooling",
+      "instrumentation": "Capacity is the constrained resource, not premium — measure capacity turnaround, not policy count"
+    },
+    {
+      "dimension": "8 Lifecycle",
+      "process": "Bordereaux reconciliation (reinsurance / delegated)",
+      "actor": "Reinsurance / Programme Accountant",
+      "tasks": "Receive bordereau; validate format; reconcile premium & loss; post to ledger; query exceptions",
+      "artifact": "Reconciled statement",
+      "applications": "Reinsurance administration system, ledger, Excel, email",
+      "instrumentation": "The classic high-volume spreadsheet-and-email process; near-total automation candidate"
+    },
+    {
+      "dimension": "8 Lifecycle",
+      "process": "Renewal underwriting",
+      "actor": "Underwriter / System",
+      "tasks": "Re-rate; re-underwrite; check appetite; set renewal terms; issue offer or non-renew",
+      "artifact": "Renewal offer or non-renewal notice",
+      "applications": "PAS, rules engine, underwriting workbench",
+      "instrumentation": "A1 is automatic; A3-A4 is a full re-negotiation. Do not measure them with one metric"
+    },
+    {
+      "dimension": "8 Lifecycle",
+      "process": "Claim handling",
+      "actor": "Claims Adjuster",
+      "tasks": "Receive notice; verify coverage against the policy version; reserve; investigate; settle; recover",
+      "artifact": "Claim payment; recovery",
+      "applications": "Claims system, document management, provider networks, payment platform",
+      "instrumentation": "Coverage verification requires reading the AS-OF policy version — a direct dependency on getting the product model's versioning right"
+    }
+  ],
+  "sources": [
+    {
+      "source": "Liberty Mutual — homepage & product navigation",
+      "url": "https://www.libertymutual.com/",
+      "retrieved": "28 Jul 2026",
+      "evidenced": "Personal & small business product nav, bundling claims, channel options"
+    },
+    {
+      "source": "Liberty Mutual — full site map",
+      "url": "https://www.libertymutual.com/site-map",
+      "retrieved": "28 Jul 2026",
+      "evidenced": "Complete personal-lines and small-business product taxonomy, coverage pages, state pages"
+    },
+    {
+      "source": "Liberty Mutual — car insurance discounts",
+      "url": "https://www.libertymutual.com/vehicle/auto-insurance/discounts",
+      "retrieved": "28 Jul 2026",
+      "evidenced": "13 named auto discounts, RightTrack mechanics, online-purchase channel discount, state/underwriting disclaimers"
+    },
+    {
+      "source": "Liberty Mutual — insurer licensing / underwriting companies",
+      "url": "https://www.libertymutual.com/underwriting-companies",
+      "retrieved": "28 Jul 2026",
+      "evidenced": "37 US underwriting entities with NAIC numbers, domicile and licensed footprint"
+    },
+    {
+      "source": "Liberty Mutual Business Insurance — commercial solutions",
+      "url": "https://business.libertymutual.com/commercial-solutions",
+      "retrieved": "28 Jul 2026",
+      "evidenced": "23 mid/large commercial solutions, 13 industry verticals, services and claims taxonomy, surplus-lines disclosure"
+    },
+    {
+      "source": "Liberty Mutual Business Insurance — specialty",
+      "url": "https://business.libertymutual.com/commercial-solutions/specialty/",
+      "retrieved": "28 Jul 2026",
+      "evidenced": "7 specialty sub-lines and Liberty Mutual Bermuda high-excess"
+    },
+    {
+      "source": "Liberty Mutual Business Insurance — surety",
+      "url": "https://business.libertymutual.com/commercial-solutions/surety/",
+      "retrieved": "28 Jul 2026",
+      "evidenced": "Bond classes, Xpress / Surety Plus Vista tiers, SBA Plan B, Treasury listing, Nationale Borg, #1 US and global surety"
+    },
+    {
+      "source": "Liberty Mutual Group — Q1 2026 investor fact sheet",
+      "url": "https://www.libertymutualgroup.com/documents/q1-2026-fact-sheet.pdf",
+      "retrieved": "28 Jul 2026",
+      "evidenced": "Three-BU structure, 2025 NWP by segment and line, revenue, combined ratio, market rankings, 27-country footprint"
+    },
+    {
+      "source": "Liberty Mutual Group — GRS/LMI leadership realignment (2 Apr 2026)",
+      "url": "https://www.libertymutualgroup.com/about-lm/news/articles/liberty-mutual-insurance-announces-new-leadership-structure-align-global-risk-and-capital-capabilities",
+      "retrieved": "28 Jul 2026",
+      "evidenced": "Current three-SBU description; 2030 aspiration language"
+    },
+    {
+      "source": "Liberty Mutual Group — Liberty Remedy for Life Sciences launch (20 May 2026)",
+      "url": "https://www.libertymutualgroup.com/about-lm/news/articles/liberty-mutual-insurance-global-risk-solutions-announces-launch-liberty-remedy-life-sciencestm",
+      "retrieved": "28 Jul 2026",
+      "evidenced": "Named multi-line middle-market product; coverage composition; product-design-around-industry approach"
+    },
+    {
+      "source": "Liberty Mutual Business Insurance — global operations",
+      "url": "https://business.libertymutual.com/our-global-operations/",
+      "retrieved": "28 Jul 2026",
+      "evidenced": "GRS composition: GRS North America, Liberty Specialty Markets, Global Surety"
+    },
+    {
+      "source": "Liberty Mutual — bundling pages",
+      "url": "https://www.libertymutual.com/bundling",
+      "retrieved": "28 Jul 2026",
+      "evidenced": "Multi-policy vs multi-car terminology, bundle-eligible product list, $950 average saving claim"
+    },
+    {
+      "source": "Third-party review (corroboration only) — NerdWallet Liberty Mutual renters",
+      "url": "https://www.nerdwallet.com/insurance/renters/liberty-mutual-renters-insurance-review",
+      "retrieved": "28 Jul 2026",
+      "evidenced": "Corroborates renters discount list and adjacent product list. Used only for corroboration, not as a primary source"
+    },
+    {
+      "source": "Third-party review (corroboration only) — Insurify Liberty Mutual renters",
+      "url": "https://insurify.com/renters-insurance/companies/liberty-mutual/",
+      "retrieved": "28 Jul 2026",
+      "evidenced": "Corroborates renters coverage set and 50-state + DC availability"
+    }
+  ],
+  "entitiesNote": "WHY THIS SHEET MATTERS TO THE PRODUCT MODEL: a 'product' is not one thing. Take personal auto — one marketing name, sold through multiple entities, in up to 51 jurisdictions, each with its own filed rates, rules and forms, each versioned over time. The true grain of the product model is Product x State x Underwriting Entity x Version. With 37 entities visible here, a single marketing product can be thousands of distinct filed instances. Any product model keyed only on product name will collapse under this and produce silently wrong rates.",
+  "sourcesNote": "NOT consulted (and the highest-value next sources): SERFF state filing repositories; NAIC statutory annual statements (Schedule T, line-of-business exhibits); agent and broker portal product/appetite guides; A.M. Best and S&P company reports; state DOI rate filing dockets."
+}

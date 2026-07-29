@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../../../lib/api';
 import { useApi } from '../../../lib/useApi';
 
@@ -12,6 +12,17 @@ export interface StreamSummary {
   taskCount: number;
 }
 
+export interface StreamTask {
+  id: string;
+  name: string;
+  /** Owner role's name (NodeRole role_ = Owner), when one is wired. */
+  owner: string | null;
+  /** Applications used at the step (NodeAppUsage), capped at 3. */
+  apps: string[];
+  /** Agent-automatability score 1-5 (1 autonomous agent … 5 human-only). */
+  agent: number | null;
+}
+
 export interface StreamDetail {
   id: string;
   name: string;
@@ -19,7 +30,7 @@ export interface StreamDetail {
   areas: {
     id: string;
     name: string;
-    subs: { id: string; name: string; tasks: { id: string; name: string }[] }[];
+    subs: { id: string; name: string; tasks: StreamTask[] }[];
   }[];
 }
 
@@ -47,6 +58,10 @@ export interface RoleDetail {
     valueStream: string | null;
     l3: string | null;
     l4: string | null;
+    /** Applications used at the task (NodeAppUsage), capped at 3. */
+    apps: string[];
+    /** Agent-automatability score 1-5 (1 autonomous agent … 5 human-only). */
+    agent: number | null;
   }[];
 }
 
@@ -101,4 +116,44 @@ export function useStreamDetails(ids: string[]) {
 
 export function useRoleDetails(ids: string[]) {
   return useDetails<RoleDetail>('/rationalization/spine/roles', ids);
+}
+
+// ── Process level 6: a task's Work Library plan steps, lazy + cached ────────
+
+export interface TaskStep {
+  seq: number;
+  name: string;
+  detail: string | null;
+}
+
+/** Lazy batch loader for L6 steps. `load(ids)` fetches the not-yet-cached
+ *  tasks in one request; `stepsOf(id)` returns cached steps (undefined =
+ *  never requested, [] = requested, task has no plan steps). */
+export function useTaskSteps() {
+  const [cache, setCache] = useState<Record<string, TaskStep[]>>({});
+  const pending = useRef(new Set<string>());
+
+  const load = useCallback(
+    (ids: string[]) => {
+      const need = ids.filter((id) => !(id in cache) && !pending.current.has(id));
+      if (!need.length) return;
+      for (const id of need) pending.current.add(id);
+      api
+        .get<Record<string, TaskStep[]>>(`/rationalization/spine/task-steps?ids=${need.join(',')}`)
+        .then((res) => {
+          setCache((c) => {
+            const next = { ...c };
+            for (const id of need) next[id] = res[id] ?? [];
+            return next;
+          });
+        })
+        .finally(() => {
+          for (const id of need) pending.current.delete(id);
+        });
+    },
+    [cache],
+  );
+
+  const stepsOf = useCallback((id: string): TaskStep[] | undefined => cache[id], [cache]);
+  return { load, stepsOf };
 }

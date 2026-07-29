@@ -99,7 +99,7 @@ function GreenfieldSlot({
         <span
           style={{
             color: '#059669',
-            fontSize: 9,
+            fontSize: 9.5,
             display: 'inline-block',
             transform: open ? 'none' : 'rotate(-90deg)',
             flexShrink: 0,
@@ -131,7 +131,7 @@ function GreenfieldSlot({
           </span>
           <span
             style={{
-              fontSize: 10,
+              fontSize: 10.5,
               color: settled ? '#047857' : '#b45309',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
@@ -170,7 +170,7 @@ function GreenfieldSlot({
           }}
         >
           {normalized.length === 0 ? (
-            <span style={{ fontSize: 10.5, color: '#a3a3a3' }}>
+            <span style={{ fontSize: 10.5, color: '#737373' }}>
               Nothing in the model yet — {toDecide} element{toDecide === 1 ? '' : 's'} need a
               decision.
             </span>
@@ -199,7 +199,7 @@ function GreenfieldSlot({
                     <span style={{ fontSize: 11, fontWeight: 700, color: '#166534' }}>
                       {g.name}
                     </span>
-                    <span style={{ fontSize: 10, color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: 10.5, color: '#64748b', whiteSpace: 'nowrap' }}>
                       from {g.presentIn} version{g.presentIn === 1 ? '' : 's'}
                     </span>
                     {adopted && (
@@ -216,7 +216,7 @@ function GreenfieldSlot({
                     )}
                   </div>
                   {el?.description && (
-                    <span style={{ fontSize: 10, color: '#525252', lineHeight: 1.35 }}>
+                    <span style={{ fontSize: 10.5, color: '#525252', lineHeight: 1.35 }}>
                       {el.description}
                     </span>
                   )}
@@ -226,7 +226,7 @@ function GreenfieldSlot({
                         <span
                           key={c}
                           style={{
-                            fontSize: 9,
+                            fontSize: 9.5,
                             color: '#059669',
                             fontFamily: 'ui-monospace, monospace',
                             lineHeight: 1.3,
@@ -360,7 +360,7 @@ export default function ProductGreenfieldColumn({
           />
         ))}
         {comparison.rows.length === 0 && (
-          <div style={{ fontSize: 11, color: '#a3a3a3', textAlign: 'center', padding: '4px 2px' }}>
+          <div style={{ fontSize: 11, color: '#737373', textAlign: 'center', padding: '4px 2px' }}>
             Pick versions to derive the model.
           </div>
         )}

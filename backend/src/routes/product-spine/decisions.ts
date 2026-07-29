@@ -18,31 +18,67 @@ const putSchema = z.object({
   lobId: z.string().trim().min(1),
   component: z.string().trim().min(1),
   groupKey: z.string().trim().min(1),
-  status: z.enum(['APPROVED', 'HELD']),
+  status: z.enum(['APPROVED', 'HELD', 'RETIRED']),
+  comment: z.string().trim().max(2000).optional(),
 });
 
 export function registerProductDecisionRoutes(router: Router): void {
   // GET /product-spine/decisions?lobId=... — the reviewer's decisions for one
-  // compared LOB, so the board can flip each reviewed group's badge.
+  // compared LOB (or, with no lobId, every LOB — the portfolio heatmap's
+  // progress roll-up needs them all).
   router.get('/decisions', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const company = await activeCompany(req, { id: true });
       if (!company) return res.status(404).json({ error: 'No company' });
       const lobId = typeof req.query.lobId === 'string' ? req.query.lobId : '';
-      if (!lobId) return res.status(400).json({ error: 'lobId is required' });
 
       const rows = await prisma.productNormalizationDecision.findMany({
-        where: { companyId: company.id, lobNodeId: lobId },
-        select: { groupKey: true, component: true, status: true, updatedAt: true },
+        where: { companyId: company.id, ...(lobId ? { lobNodeId: lobId } : {}) },
+        select: {
+          lobNodeId: true,
+          groupKey: true,
+          component: true,
+          status: true,
+          comment: true,
+          decidedBy: true,
+          updatedAt: true,
+        },
       });
       res.json(
         rows.map((r) => ({
+          lobId: r.lobNodeId,
           groupKey: r.groupKey,
           component: r.component,
           status: r.status,
+          comment: r.comment,
+          decidedBy: r.decidedBy,
           decidedAt: r.updatedAt,
         })),
       );
+    } catch (e) {
+      next(e);
+    }
+  });
+
+  // DELETE /product-spine/decisions?lobId=…&groupKey=… — withdraw a decision
+  // (the element goes back to "needs a decision"; its comment goes with it).
+  router.delete('/decisions', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const company = await activeCompany(req, { id: true });
+      if (!company) return res.status(404).json({ error: 'No company' });
+      const lobId = typeof req.query.lobId === 'string' ? req.query.lobId : '';
+      const groupKey = typeof req.query.groupKey === 'string' ? req.query.groupKey : '';
+      if (!lobId || !groupKey)
+        return res.status(400).json({ error: 'lobId and groupKey are required' });
+
+      // Tenant walk before touching the row (404 on cross-tenant, never 403).
+      const existing = await prisma.productNormalizationDecision.findFirst({
+        where: { companyId: company.id, lobNodeId: lobId, groupKey },
+        select: { id: true },
+      });
+      if (!existing) return res.status(404).json({ error: 'No decision to withdraw' });
+      await prisma.productNormalizationDecision.delete({ where: { id: existing.id } });
+      res.json({ ok: true });
     } catch (e) {
       next(e);
     }
@@ -58,7 +94,7 @@ export function registerProductDecisionRoutes(router: Router): void {
       const company = await activeCompany(req, { id: true });
       if (!company) return res.status(404).json({ error: 'No company' });
 
-      const { lobId, component, groupKey, status } = parsed.data;
+      const { lobId, component, groupKey, status, comment } = parsed.data;
       // The LOB node must belong to the tenant's active company (tenant walk).
       const lob = await prisma.productNode.findFirst({
         where: { id: lobId, companyId: company.id },
@@ -75,15 +111,23 @@ export function registerProductDecisionRoutes(router: Router): void {
           component,
           groupKey,
           status,
+          comment: comment ?? null,
           decidedBy: req.user.email,
         },
-        update: { status, component, decidedBy: req.user.email },
-        select: { groupKey: true, component: true, status: true, updatedAt: true },
+        // An omitted comment keeps the existing note; an empty string clears it.
+        update: {
+          status,
+          component,
+          decidedBy: req.user.email,
+          ...(comment !== undefined ? { comment: comment || null } : {}),
+        },
+        select: { groupKey: true, component: true, status: true, comment: true, updatedAt: true },
       });
       res.json({
         groupKey: saved.groupKey,
         component: saved.component,
         status: saved.status,
+        comment: saved.comment,
         decidedAt: saved.updatedAt,
       });
     } catch (e) {

@@ -17,19 +17,25 @@ import { getSchemaSummary } from '../services/chatSchema.js';
 const router = Router();
 router.use(requireAuth);
 
-const MODEL = process.env.CHATBOT_MODEL ?? 'claude-sonnet-4-6';
-const MAX_TOOL_ITERATIONS = 6; // bound the agentic loop per request
+// Opus-tier by default — the assistant is a flagship feature and must reason
+// well over a large schema. Override per-deployment via CHATBOT_MODEL.
+const MODEL = process.env.CHATBOT_MODEL ?? 'claude-opus-5';
+const MAX_TOOL_ITERATIONS = 12; // bound the agentic loop per request
 // Web search lets the assistant do outside research; opt-out via CHATBOT_WEB_SEARCH=0.
 // If the account doesn't have it enabled, we transparently fall back (see below).
 const WEB_SEARCH_ENABLED = process.env.CHATBOT_WEB_SEARCH !== '0';
-const WEB_SEARCH_TOOL = { type: 'web_search_20250305', name: 'web_search', max_uses: 5 } as const;
+const WEB_SEARCH_TOOL = { type: 'web_search_20260209', name: 'web_search', max_uses: 5 } as const;
 
 let client: Anthropic | null = null;
 function anthropic(): Anthropic {
   if (!process.env.ANTHROPIC_API_KEY) {
-    throw Object.assign(new Error('Assistant is not configured (ANTHROPIC_API_KEY missing)'), { status: 503 });
+    throw Object.assign(new Error('Assistant is not configured (ANTHROPIC_API_KEY missing)'), {
+      status: 503,
+    });
   }
-  if (!client) client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  // maxRetries handles transient 429/529/5xx with exponential backoff before we
+  // ever surface an error to the user.
+  if (!client) client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 4 });
   return client;
 }
 
@@ -52,45 +58,79 @@ const RUN_SQL_TOOL: Anthropic.Tool = {
 const PLATFORM_NAME = process.env.PLATFORM_NAME ?? 'Capgemini Transformation Bridge';
 
 function buildSystemPrompt(schema: string): string {
-  const today = new Date().toISOString().slice(0, 10);
   return [
     `You are the analytics assistant embedded in the ${PLATFORM_NAME} — an operating-model`,
-    'platform describing a company as org units, roles, value streams, processes (L1–L5), I/O elements,',
-    'checklists, and metrics. You are a sharp, business-savvy advisor for leaders working through this',
-    'transformation — not just a SQL runner.',
-    '',
-    `Today is ${today}.`,
+    'platform that describes a company as a typed graph: org units, roles, value streams, processes',
+    '(L1–L5), deliverables, checklists, standards, regulations, applications, and metrics, plus a',
+    'strategic portfolio (programs, initiatives, benefits/costs, RAID). You are a sharp,',
+    'business-savvy advisor for leaders working through this transformation — not just a SQL runner.',
     '',
     'Grounding — the database comes FIRST, always:',
-    '- This company\'s database is your single source of truth. Treat EVERY question as being about THIS',
-    '  company\'s data unless it is unmistakably a general-knowledge question. Your FIRST action for any',
+    "- This company's database is your single source of truth. Treat EVERY question as being about THIS",
+    "  company's data unless it is unmistakably a general-knowledge question. Your FIRST action for any",
     '  question is to call run_sql and look — never answer from memory or general knowledge when the data',
     '  could hold the answer, and never fabricate or estimate a value that lives in the database.',
     '- If you are unsure whether the data covers a topic, CHECK: search likely tables and text columns',
     '  (ILIKE) before concluding it is not in the data. Only say "the data doesn\'t cover this" after',
     '  actually querying for it.',
-    '- Answer with the app\'s specific records — real names, counts, and rows from the queries — not with',
+    "- Answer with the app's specific records — real names, counts, and rows from the queries — not with",
     '  generic industry descriptions of what such data typically looks like.',
     '- Reasoning, recommendations, benchmarks, and industry context are welcome ON TOP of the queried data,',
     '  clearly separated from it (e.g. "The data shows X; in my assessment Y…"). They never replace it.',
+    '- Help the user make a DECISION, not just read numbers: when the question implies a choice or a',
+    '  concern (consolidation, risk, cost, coverage gaps), close with a one- or two-sentence assessment or',
+    '  recommendation grounded in the rows you saw.',
     '- Use web_search only when the user explicitly asks for outside research, or the question clearly needs',
     '  current external information the database cannot hold — and even then, query the database first so',
-    '  the answer stays anchored to this company\'s records. Cite what you found.',
+    "  the answer stays anchored to this company's records. Cite what you found.",
     '',
-    'Domain semantics — how users phrase questions about this data:',
-    '- "Standards" means the INDIVIDUAL standard/guideline items ("StandardItem" rows) — each one is',
-    '  effectively a single validation that must be tested — NOT the "Standard" documents/areas that group',
-    '  them. "How many actuarial standards are there?" → count the "StandardItem" rows of the matching',
-    '  "Standard" (match its name/department with ILIKE) and, when the list is reasonably short, list them.',
-    '  Mention the parent document only as context, never as the headline answer.',
-    '- Likewise "checklists" usually means the individual "ChecklistItem" rows, not their categories.',
+    'HOW THIS DATA MODEL WORKS — read carefully; users phrase questions in this vocabulary:',
+    '- Process spine: "ProcessNode" self-nests via "parentId". Its depth is named by "ProcessLevelType"',
+    '  (join "processLevelTypeId"; use "levelNumber"): L1 = domain, L2 = VALUE STREAM, L3 = area,',
+    '  L4 = sub-process, L5 = TASK ("isTask" = true leaves). "ProcessNodeClosure"(ancestorId,',
+    '  descendantId, depth) holds every ancestor/descendant pair including self (depth 0) — use it for',
+    '  rollups and subtree filters instead of recursive CTEs.',
+    '- Vocabulary: "value streams" = L2 nodes; "tasks" or "process steps" = "isTask" nodes; "areas" = L3;',
+    '  "sub-processes" = L4. "displayValue" is the human-readable name on spine tables; "dbValue" is internal.',
+    '- Org spine: "OrgUnit" self-nests (closure in "OrgUnitClosure"), depth named by "OrgLevelType"',
+    '  ("levelNumber": 2 = division, 3 = department). "Role" homes on "orgUnitId"; a role\'s division and',
+    "  department come from its org unit's ancestors, NOT from the process tree.",
+    '- Everything else is a JUNCTION wiring an entity to a ProcessNode or a Role — no free-text',
+    "  cross-references, always join FKs: \"NodeRole\" (role_ = 'Owner'|'Participant',",
+    '  validationStatus), "NodeDeliverable", "NodeChecklist", "NodeStandard", "NodeRegulation",',
+    '  "NodeAppUsage" (usageType), and role-direct "RoleDeliverable" (role_ = \'Owner\'|\'Contributor\'),',
+    '  "RoleStandard", "RoleRegulation".',
+    '- INHERITANCE: standards and regulations attach to L2/L3 nodes, never directly to L5 tasks.',
+    '  "Which standards/regulations apply to task X" = links on X\'s ancestors (walk "ProcessNodeClosure"',
+    "  upward) where excluded = false, minus X's own excluded = true overrides. The same applies to a",
+    '  role: what its tasks inherit.',
+    '- "Standards" means the individual testable leaf rows of "Standard" (isArea = false). Rows with',
+    '  isArea = true are department standards areas/charters that group them — mention the area only as',
+    '  context, never as the headline count. "Checklists" usually means "ChecklistItem" rows.',
+    '- Applications: "Application" rows (TCO and ownership fields live there) wired to tasks via',
+    '  "NodeAppUsage".',
+    '- Strategic portfolio (Workspace tab) is a parallel domain: "Program" → "Workstream" →',
+    '  "PortfolioInitiative", with "BenefitLine"/"CostLine"/"MetricValue", "RaidItem",',
+    '  "StrategicObjective", and the "Rationalization*" tables. Decide which domain a question belongs',
+    '  to (operating model vs portfolio) before querying.',
+    '- Product spine: "ProductNode"/"ProductLevelType"/"ProductNodeClosure" — the product hierarchy',
+    '  (segments → lines of business → products → versions → components).',
+    '',
+    'Example — tasks per value stream (adapt this closure pattern for most rollups):',
+    '  SELECT vs."displayValue" AS value_stream, COUNT(*) AS tasks',
+    '  FROM "ProcessNode" t',
+    '  JOIN "ProcessNodeClosure" c ON c."descendantId" = t.id',
+    '  JOIN "ProcessNode" vs ON vs.id = c."ancestorId"',
+    '  JOIN "ProcessLevelType" lt ON lt.id = vs."processLevelTypeId"',
+    '  WHERE t."isTask" = true AND lt."levelNumber" = 2',
+    '  GROUP BY 1 ORDER BY 2 DESC LIMIT 20',
     '',
     'SQL rules:',
     '- Keep SQL read-only (SELECT/WITH only) and always add a LIMIT (<= 500).',
-    `- The search_path is ${SCHEMA}, so reference tables unqualified — but mixed-case table names must be`,
-    '  double-quoted exactly as listed in the schema (e.g. FROM "Role", JOIN "ChecklistItem").',
-    '- Text columns often hold free-text "; "-joined lists (e.g. "IoItem"."keyRoles", "ProcessStep".leads);',
-    '  use ILIKE / pattern matching when helpful. Mixed-case column names also need double quotes.',
+    `- The search_path is ${SCHEMA}, so reference tables unqualified — but mixed-case table and column`,
+    '  names must be double-quoted exactly as listed in the schema (e.g. FROM "Role", t."isTask").',
+    '- Use ILIKE for name matching — users paraphrase labels. Aggregate in SQL (GROUP BY) rather than',
+    '  pulling raw rows when the question is a count/ranking.',
     '- If a query errors, read the message, fix the SQL, and retry. Only name source tables if the user asks how you know.',
     '',
     'Formatting — clean, minimal, executive style. Aim for a sharp consulting memo, NOT a decorated report:',
@@ -115,7 +155,9 @@ function buildSystemPrompt(schema: string): string {
 function formatRows(r: SqlResult): string {
   if (r.rowCount === 0) return 'No rows.';
   const header = r.columns.join(' | ');
-  const body = r.rows.map((row) => row.map((v) => (v === null ? '' : String(v))).join(' | ')).join('\n');
+  const body = r.rows
+    .map((row) => row.map((v) => (v === null ? '' : String(v))).join(' | '))
+    .join('\n');
   let out = `${header}\n${body}`;
   if (r.truncated) out += `\n… (${r.rowCount} rows total; showing first ${r.rows.length})`;
   if (out.length > 12_000) out = out.slice(0, 12_000) + '\n… (output truncated)';
@@ -136,11 +178,20 @@ const bodySchema = z.object({
 // can ground vague references and proactively surface page-relevant insight.
 function pageContextNote(ctx: { path: string; label: string }): string {
   return [
+    `Today is ${new Date().toISOString().slice(0, 10)}.`,
     `The user is currently viewing ${ctx.label} (route ${ctx.path}).`,
     'When their question uses "this", "here", "current" or is otherwise unscoped, interpret it against',
     'that view. After answering, you may add one short, relevant suggestion tied to this page if it helps.',
     'If a record id appears in the route, query that specific record before answering.',
   ].join(' ');
+}
+
+function extractText(content: Anthropic.ContentBlock[]): string {
+  return content
+    .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+    .map((b) => b.text)
+    .join('\n')
+    .trim();
 }
 
 // Runs the agentic loop. `withWebSearch` toggles the web_search server tool so we
@@ -151,23 +202,42 @@ async function converse(
   withWebSearch: boolean,
   contextNote?: string,
 ): Promise<{ answer: string; queries: { query: string; rowCount: number; error?: string }[] }> {
-  const convo: Anthropic.MessageParam[] = messages.map((m) => ({ role: m.role, content: m.content }));
+  const convo: Anthropic.MessageParam[] = messages.map((m) => ({
+    role: m.role,
+    content: m.content,
+  }));
   const executed: { query: string; rowCount: number; error?: string }[] = [];
-  const tools: Anthropic.ToolUnion[] = withWebSearch ? [RUN_SQL_TOOL, WEB_SEARCH_TOOL] : [RUN_SQL_TOOL];
+  const tools: Anthropic.ToolUnion[] = withWebSearch
+    ? [RUN_SQL_TOOL, WEB_SEARCH_TOOL]
+    : [RUN_SQL_TOOL];
   // The big schema prompt is cached; the page-context note is a small, uncached
-  // block so per-page variation doesn't bust the prompt cache.
-  const systemBlocks: Anthropic.TextBlockParam[] = [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }];
+  // block so per-page variation (and the date) doesn't bust the prompt cache.
+  const systemBlocks: Anthropic.TextBlockParam[] = [
+    { type: 'text', text: system, cache_control: { type: 'ephemeral' } },
+  ];
   if (contextNote) systemBlocks.push({ type: 'text', text: contextNote });
   let answer = '';
 
   for (let i = 0; i < MAX_TOOL_ITERATIONS; i++) {
     const resp = await anthropic().messages.create({
       model: MODEL,
-      max_tokens: 2000,
+      max_tokens: 8000,
       system: systemBlocks,
       tools,
       messages: convo,
     });
+
+    // A long server-tool (web search) turn can pause; append the assistant turn
+    // as-is and re-request — the API resumes where it left off.
+    if (resp.stop_reason === 'pause_turn') {
+      convo.push({ role: 'assistant', content: resp.content });
+      continue;
+    }
+
+    // Safety classifiers declined the request (e.g. asking for credential data).
+    if (resp.stop_reason === 'refusal') {
+      return { answer: 'I can’t help with that request.', queries: executed };
+    }
 
     if (resp.stop_reason === 'tool_use') {
       convo.push({ role: 'assistant', content: resp.content });
@@ -184,7 +254,12 @@ async function converse(
         } catch (e) {
           const msg = e instanceof Error ? e.message : 'Query failed';
           executed.push({ query, rowCount: 0, error: msg });
-          toolResults.push({ type: 'tool_result', tool_use_id: block.id, is_error: true, content: `Error: ${msg}` });
+          toolResults.push({
+            type: 'tool_result',
+            tool_use_id: block.id,
+            is_error: true,
+            content: `Error: ${msg}`,
+          });
         }
       }
       // Nothing to feed back (model only used server tools) → let it continue answering.
@@ -193,12 +268,30 @@ async function converse(
       continue;
     }
 
-    answer = resp.content
-      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-      .map((b) => b.text)
-      .join('\n')
-      .trim();
+    answer = extractText(resp.content);
     break;
+  }
+
+  // Iteration budget exhausted mid-investigation: force a final synthesis pass
+  // with no tools so the user gets a real answer from the data gathered so far
+  // instead of an apology.
+  if (!answer) {
+    convo.push({
+      role: 'user',
+      content:
+        'Stop querying now. Answer the question as well as you can from the data you have already ' +
+        'gathered above, clearly noting anything you could not verify.',
+    });
+    const final = await anthropic().messages.create({
+      model: MODEL,
+      max_tokens: 8000,
+      system: systemBlocks,
+      messages: convo,
+    });
+    answer =
+      final.stop_reason === 'refusal'
+        ? 'I can’t help with that request.'
+        : extractText(final.content);
   }
 
   return { answer, queries: executed };
@@ -215,9 +308,12 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
       result = await converse(system, messages, WEB_SEARCH_ENABLED, contextNote);
     } catch (e) {
-      // If web search isn't available on this account, retry once without it.
+      // If web search isn't available on this account/model, retry once without it.
       const msg = e instanceof Error ? e.message : '';
-      if (WEB_SEARCH_ENABLED && /web_search|server tool|not.*(enabled|allowed|support)/i.test(msg)) {
+      if (
+        WEB_SEARCH_ENABLED &&
+        /web_search|server tool|not.*(enabled|allowed|support)/i.test(msg)
+      ) {
         result = await converse(system, messages, false, contextNote);
       } else {
         throw e;
@@ -226,10 +322,26 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 
     let answer = result.answer;
     if (!answer) {
-      answer = 'I couldn’t finish that within the query budget for one turn. Try narrowing the question.';
+      answer = 'I couldn’t finish that one — try narrowing the question or asking it in two steps.';
     }
     res.json({ answer, queries: result.queries });
   } catch (e) {
+    // The SDK already retried transient failures; if we still land here, tell
+    // the user something human instead of leaking "overloaded_error" JSON.
+    if (e instanceof Anthropic.APIError) {
+      const status = e.status ?? 500;
+      if (status === 429 || status >= 500) {
+        next(
+          Object.assign(
+            new Error(
+              'The AI service is briefly overloaded — please try that again in a few seconds.',
+            ),
+            { status: 503 },
+          ),
+        );
+        return;
+      }
+    }
     next(e);
   }
 });
