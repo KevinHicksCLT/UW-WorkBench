@@ -19,25 +19,61 @@ export interface NestUnit {
   agent?: number | null;
 }
 
+export interface NestColumn {
+  stream: string;
+  units: NestUnit[] | null;
+  /** True when the lane doesn't carry the clicked unit and the column shows
+   *  the lane's ENTIRE set at this level instead — comparison never dead-ends
+   *  just because the parent differs. */
+  fallback?: boolean;
+}
+
 export interface NestFrame {
   /** The unit that was clicked (title of the frame). */
   title: string;
   /** The level SHOWN inside the frame (clicked level + 1). */
   level: ProcessLevel;
   /** One column per compared stream: its matching children, in order. */
-  columns: { stream: string; units: NestUnit[] | null }[];
+  columns: NestColumn[];
 }
 
-/** Children of the matched unit one level down, per lane. `null` = the lane
- *  does not carry the clicked unit at all. */
+/** Every unit a lane has at the given (child) level — the cross-parent
+ *  fallback pool. */
+function allAt(lane: StreamDetail, level: ProcessLevel): NestUnit[] {
+  if (level === '4')
+    return lane.areas.flatMap((a) =>
+      a.subs.map((s) => ({
+        key: spineKey(s.name),
+        name: s.name,
+        nodeIds: [s.id],
+        childCount: s.tasks.length,
+      })),
+    );
+  return lane.areas.flatMap((a) =>
+    a.subs.flatMap((s) =>
+      s.tasks.map((t) => ({
+        key: spineKey(t.name),
+        name: t.name,
+        nodeIds: [t.id],
+        childCount: -1,
+        agent: t.agent,
+      })),
+    ),
+  );
+}
+
+/** Children of the matched unit one level down, per lane. A lane that does
+ *  not carry the clicked unit falls back to ALL of its units at that level —
+ *  compare across levels regardless of how the streams are structured. Only
+ *  PL6 (steps of one specific task) has no sensible fallback. */
 export function childColumns(
   lanes: StreamDetail[],
   clicked: { key: string; level: ProcessLevel },
-): { stream: string; units: NestUnit[] | null }[] {
+): NestColumn[] {
   return lanes.map((lane) => {
     if (clicked.level === '3') {
       const area = lane.areas.find((a) => spineKey(a.name) === clicked.key);
-      if (!area) return { stream: lane.name, units: null };
+      if (!area) return { stream: lane.name, units: allAt(lane, '4'), fallback: true };
       return {
         stream: lane.name,
         units: area.subs.map((s) => ({
@@ -63,7 +99,7 @@ export function childColumns(
             })),
           };
       }
-      return { stream: lane.name, units: null };
+      return { stream: lane.name, units: allAt(lane, '5'), fallback: true };
     }
     // clicked.level === '5' → the frame shows PL6 steps; units resolved live
     // from the steps cache in the modal render (per-lane task id needed).
@@ -227,6 +263,12 @@ export default function VsNestModal({
                   }}
                 >
                   {col.stream}
+                  {col.fallback && (
+                    <span style={{ fontWeight: 500, color: '#64748b' }}>
+                      {' '}
+                      · no matching parent — all its Process level {frame.level}
+                    </span>
+                  )}
                 </div>
                 {col.units === null ? (
                   <div
@@ -255,7 +297,7 @@ export default function VsNestModal({
                           </div>
                         ) : l6.length === 0 ? (
                           <div style={{ fontSize: 10.5, color: '#94a3b8', padding: 4 }}>
-                            No Work Library steps on this task yet.
+                            No task-specific steps on this task yet.
                           </div>
                         ) : (
                           l6.map((s) => (
@@ -306,7 +348,14 @@ export default function VsNestModal({
                     );
                   })
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 4,
+                      ...(col.fallback ? { maxHeight: 430, overflowY: 'auto' as const } : {}),
+                    }}
+                  >
                     {col.units.map((u, ui) => (
                       <div
                         key={`${u.key}:${ui}`}

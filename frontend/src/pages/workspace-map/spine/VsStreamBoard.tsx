@@ -38,6 +38,10 @@ export default function VsStreamBoard({
   const [openSubs, setOpenSubs] = useViewState<string[]>('workspace.vs.openSubs', []);
   const [openTasks, setOpenTasks] = useViewState<string[]>('workspace.vs.openTasks', []);
   const [builder, setBuilder] = useViewState<BuilderItem[]>('workspace.vs.builder', []);
+  const [builderName, setBuilderName] = useViewState<string>(
+    'workspace.vs.builderName',
+    'New value stream',
+  );
   const { load: loadSteps, stepsOf } = useTaskSteps();
 
   useEffect(() => {
@@ -92,14 +96,14 @@ export default function VsStreamBoard({
     const agentRun = builder.filter((b) => b.agent).length;
     const summarize = () =>
       dialogs.alert({
-        title: 'Promote new value stream',
-        message: `${builder.length} steps composed from ${new Set(builder.map((b) => b.source)).size} streams — ${agentRun} run agent-only. Promotion into the live spine is decision-preview only in this workspace; export the builder to take it forward.`,
+        title: `Promote “${builderName}”`,
+        message: `${builderName}: ${builder.length} steps composed from ${new Set(builder.map((b) => b.source)).size} streams — ${agentRun} run agent-only. Promotion into the live spine is decision-preview only in this workspace; export the builder to take it forward.`,
       });
     if (!nodeIds.length) return summarize();
     gate.run(
       {
         changeType: 'MERGE',
-        label: 'New value stream',
+        label: builderName,
         subject: { kind: 'process-nodes', nodeIds },
       },
       summarize,
@@ -185,7 +189,7 @@ export default function VsStreamBoard({
               marginBottom: 10,
             }}
           >
-            new process: {builder.length} steps
+            {builderName}: {builder.length} steps
           </span>
         )}
       </div>
@@ -239,6 +243,8 @@ export default function VsStreamBoard({
             onLevel={setLevel}
             items={builder}
             onItemsChange={setBuilder}
+            builderName={builderName}
+            onRenameBuilder={setBuilderName}
             onPromote={promote}
             onAdd={addToBuilder}
             stepsOf={stepsOf}

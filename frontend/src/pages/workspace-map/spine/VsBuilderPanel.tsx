@@ -36,13 +36,16 @@ export function payloadToItem(p: {
 
 export default function VsBuilderPanel({
   title,
+  onRenameTitle,
   hint,
   items,
   onChange,
   onPromote,
   promoteLabel,
 }: {
+  /** The new process' NAME — user-editable, never a hardcoded "New process". */
   title: string;
+  onRenameTitle: (name: string) => void;
   hint: string;
   items: BuilderItem[];
   onChange: (items: BuilderItem[]) => void;
@@ -52,6 +55,14 @@ export default function VsBuilderPanel({
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [overIdx, setOverIdx] = useState<number | null>(null);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState('');
+
+  const commitTitle = () => {
+    setEditingTitle(false);
+    const name = titleDraft.trim();
+    if (name) onRenameTitle(name);
+  };
 
   const dropAt = (e: React.DragEvent, index: number | null) => {
     e.preventDefault();
@@ -95,7 +106,53 @@ export default function VsBuilderPanel({
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-        <span style={{ fontSize: 11.5, fontWeight: 700, color: '#14532d' }}>{title}</span>
+        {editingTitle ? (
+          <input
+            autoFocus
+            value={titleDraft}
+            onChange={(e) => setTitleDraft(e.target.value)}
+            onBlur={commitTitle}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') commitTitle();
+              if (e.key === 'Escape') setEditingTitle(false);
+            }}
+            aria-label="New process name"
+            style={{
+              flex: 1,
+              minWidth: 0,
+              font: 'inherit',
+              fontSize: 11.5,
+              fontWeight: 700,
+              color: '#14532d',
+              border: '1px solid #a7f3d0',
+              borderRadius: 4,
+              padding: '1px 5px',
+              background: '#fff',
+            }}
+          />
+        ) : (
+          <button
+            type="button"
+            title="Click to rename the new process"
+            onClick={() => {
+              setEditingTitle(true);
+              setTitleDraft(title);
+            }}
+            style={{
+              font: 'inherit',
+              fontSize: 11.5,
+              fontWeight: 700,
+              color: '#14532d',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'text',
+              textAlign: 'left',
+            }}
+          >
+            {title} <span style={{ fontWeight: 500, color: '#8fb8a0', fontSize: 9 }}>✎</span>
+          </button>
+        )}
         <div style={{ flex: 1 }} />
         {items.length > 0 && (
           <button

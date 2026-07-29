@@ -13,6 +13,7 @@ import { type BuilderItem, type DragPayload } from './processBuilder';
 import {
   columnKeySets,
   dedupeTasks,
+  isAgentable,
   makeKeyOf,
   recommendedTarget,
   roleFacts,
@@ -90,6 +91,12 @@ export default function RoleCompareBoard({
     {},
   );
   const [builder, setBuilder] = useViewState<BuilderItem[]>('workspace.role.builder', []);
+  const [builderName, setBuilderName] = useViewState<string>(
+    'workspace.role.builderName',
+    'New role',
+  );
+  // '' = brand-new role; a role id = consolidate INTO that existing role.
+  const [targetRoleId, setTargetRoleId] = useViewState<string>('workspace.role.targetRole', '');
   const [deleted, setDeleted] = useViewState<{ name: string; source: string; nodeIds: string[] }[]>(
     'workspace.role.deleted',
     [],
@@ -111,6 +118,7 @@ export default function RoleCompareBoard({
     setBuilder([]);
     setDeleted([]);
     setOpenTasks([]);
+    setTargetRoleId('');
   });
 
   const { data: details, loading, error } = useRoleDetails(ids);
@@ -179,13 +187,29 @@ export default function RoleCompareBoard({
   })();
   const going = columns.map((_, i) => i !== targetIdx && decisionOf(i) !== 'Keep');
 
-  const totalSteps = facts.reduce((n, f) => n + f.steps, 0);
-  const filterCounts = {
-    all: totalSteps,
-    agent: facts.reduce((n, f) => n + f.agentable, 0),
-    multi: facts.reduce((n, f) => n + f.dup, 0),
-    single: facts.reduce((n, f) => n + f.only, 0),
-  };
+  // Filter counts are DISTINCT units of work (fuzzy canonical key), not raw
+  // per-role rows — the same task carried by both roles counts once. "Agent
+  // can run it" = at least one carrier scores automatability ≤ 2 (autonomous
+  // agent / agentic workflow) on the 1-5 ProcessNode scale.
+  const filterCounts = useMemo(() => {
+    const info = new Map<string, { cols: Set<number>; agent: boolean }>();
+    columns.forEach((c, ci) => {
+      for (const t of c.tasks) {
+        const k = keyOf(t.name);
+        const e = info.get(k) ?? { cols: new Set<number>(), agent: false };
+        e.cols.add(ci);
+        if (isAgentable(t.agent)) e.agent = true;
+        info.set(k, e);
+      }
+    });
+    const rows = [...info.values()];
+    return {
+      all: rows.length,
+      agent: rows.filter((r) => r.agent).length,
+      multi: rows.filter((r) => r.cols.size > 1).length,
+      single: rows.filter((r) => r.cols.size === 1).length,
+    };
+  }, [columns, keyOf]);
 
   // Role decisions and destructive rail drops route through the common
   // change-impact gate; the decision only records once confirmed.
@@ -212,21 +236,29 @@ export default function RoleCompareBoard({
       () => setDeleted((cur) => [...cur, { name: p.name, source: p.source, nodeIds: p.nodeIds }]),
     );
   };
+  const targetRole = targetRoleId ? (columns.find((c) => c.id === targetRoleId) ?? null) : null;
+  const effectiveName = targetRole?.name ?? builderName;
   const commit = () => {
     const nodeIds = [...new Set(builder.flatMap((b) => b.nodeIds))];
     const agentRun = builder.filter((b) => b.agent).length;
     const summarize = () =>
       dialogs.alert({
-        title: 'Commit new role',
-        message: `${builder.length} tasks in the new role — ${agentRun} run agent-only, ${builder.length - agentRun} stay manual, ${deleted.length} deleted from the model. Committing into the live role graph is decision-preview only in this workspace; export the sequence to take it forward.`,
+        title: targetRole ? `Consolidate into ${targetRole.name}` : `Commit “${builderName}”`,
+        message: `${builder.length} tasks ${targetRole ? `consolidate into the existing role ${targetRole.name}` : `in ${builderName}`} — ${agentRun} run agent-only, ${builder.length - agentRun} stay manual, ${deleted.length} deleted from the model. Committing into the live role graph is decision-preview only in this workspace; export the sequence to take it forward.`,
       });
     if (!nodeIds.length) return summarize();
     gate.run(
-      {
-        changeType: 'CONSOLIDATE',
-        label: 'New role',
-        subject: { kind: 'process-nodes', nodeIds },
-      },
+      targetRole
+        ? {
+            changeType: 'CONSOLIDATE',
+            label: targetRole.name,
+            subject: { kind: 'role', roleId: targetRole.id, taskIds: nodeIds },
+          }
+        : {
+            changeType: 'CONSOLIDATE',
+            label: builderName,
+            subject: { kind: 'process-nodes', nodeIds },
+          },
       summarize,
     );
   };
@@ -429,18 +461,39 @@ export default function RoleCompareBoard({
                   >
                     {(
                       [
-                        ['all', 'All steps', filterCounts.all],
-                        ['agent', 'Agent can run it', filterCounts.agent],
-                        ['multi', 'Another role does it too', filterCounts.multi],
-                        ['single', 'Only one role', filterCounts.single],
-                      ] as [TaskFilter, string, number][]
-                    ).map(([key, label, count], i) => {
+                        [
+                          'all',
+                          'All work',
+                          filterCounts.all,
+                          'Distinct units of work across the compared roles — the same task in both roles counts once',
+                        ],
+                        [
+                          'agent',
+                          'Agent can run it',
+                          filterCounts.agent,
+                          'Tasks whose automatability score is 1 (autonomous agent) or 2 (agentic workflow) on the 1-5 scale stored per task in the operating model — an agent performs them end-to-end, no human in the loop',
+                        ],
+                        [
+                          'multi',
+                          'Another role does it too',
+                          filterCounts.multi,
+                          'Distinct work carried by two or more of the compared roles (fuzzy name match)',
+                        ],
+                        [
+                          'single',
+                          'Only one role',
+                          filterCounts.single,
+                          'Distinct work only one compared role carries',
+                        ],
+                      ] as [TaskFilter, string, number, string][]
+                    ).map(([key, label, count, tip], i) => {
                       const on = filter === key;
                       return (
                         <button
                           key={key}
                           type="button"
                           onClick={() => setFilter(key)}
+                          title={tip}
                           style={{
                             font: 'inherit',
                             padding: '0 9px',
@@ -491,6 +544,11 @@ export default function RoleCompareBoard({
                     stepsOf={stepsOf}
                   />
                   <RoleRail
+                    name={builderName}
+                    onRename={setBuilderName}
+                    targetRoleId={targetRoleId}
+                    onTargetRole={setTargetRoleId}
+                    roleOptions={columns.map((c) => ({ id: c.id, name: c.name }))}
                     items={builder}
                     onChange={setBuilder}
                     onDeleteTask={deleteTask}
@@ -502,7 +560,7 @@ export default function RoleCompareBoard({
               </div>
             </div>
 
-            <RoleFlowStrip items={builder} onChange={setBuilder} />
+            <RoleFlowStrip name={effectiveName} items={builder} onChange={setBuilder} />
           </>
         )}
       </div>

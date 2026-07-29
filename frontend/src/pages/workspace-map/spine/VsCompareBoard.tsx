@@ -70,6 +70,8 @@ export default function VsCompareBoard({
   onLevel,
   items,
   onItemsChange,
+  builderName,
+  onRenameBuilder,
   onPromote,
   onAdd,
   stepsOf,
@@ -81,6 +83,8 @@ export default function VsCompareBoard({
   onLevel: (l: CompareLevel) => void;
   items: BuilderItem[];
   onItemsChange: (items: BuilderItem[]) => void;
+  builderName: string;
+  onRenameBuilder: (name: string) => void;
   onPromote: () => void;
   onAdd: (p: DragPayload) => void;
   stepsOf: (taskId: string) => TaskStep[] | undefined;
@@ -405,7 +409,8 @@ export default function VsCompareBoard({
           })}
 
           <VsBuilderPanel
-            title="New value stream"
+            title={builderName}
+            onRenameTitle={onRenameBuilder}
             hint="The consolidated / new process. Drag cards in, reorder, rename, delete — the flow below updates live."
             items={items}
             onChange={onItemsChange}
@@ -425,7 +430,9 @@ export default function VsCompareBoard({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: '#14532d' }}>New process flow</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#14532d' }}>
+            {builderName} — flow
+          </span>
           <span style={{ fontSize: 9.5, color: '#4d7c60' }}>
             {items.length === 0
               ? 'builds here in real time as you compose the new value stream'

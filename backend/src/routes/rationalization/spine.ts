@@ -161,15 +161,20 @@ export function registerSpineRoutes(router: Router) {
       });
       const valid = nodes.map((n) => n.id);
       const plans = await taskPlans(valid);
+      // Item-SPECIFIC steps only — generic template keys are shared plan
+      // boilerplate, not this task's work. Custom steps often embed their own
+      // "1. " numbering; strip it so the surface's numbering is the only one.
       res.json(
         Object.fromEntries(
           valid.map((id) => {
             const p = plans.get(id);
-            const steps = (p?.checklist ?? []).map((r, i) => ({
-              seq: i + 1,
-              name: r.key,
-              detail: r.value,
-            }));
+            const steps = (p?.checklist ?? [])
+              .filter((r) => !r.generic)
+              .map((r, i) => ({
+                seq: i + 1,
+                name: r.key.replace(/^\s*\d+[.)]\s*/, ''),
+                detail: r.value,
+              }));
             return [id, steps];
           }),
         ),

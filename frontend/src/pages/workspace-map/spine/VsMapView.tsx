@@ -465,7 +465,7 @@ export default function VsMapView({
                                           </div>
                                         ) : l6.length === 0 ? (
                                           <div style={{ fontSize: 8.5, color: '#94a3b8' }}>
-                                            No Work Library steps on this task yet.
+                                            No task-specific steps on this task yet.
                                           </div>
                                         ) : (
                                           l6.map((s) => (

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   hasDragPayload,
   newUid,
@@ -30,6 +30,7 @@ export function payloadToRoleItem(p: DragPayload, agent: boolean): BuilderItem {
 
 function DropBox({
   title,
+  titleNode,
   hint,
   accent,
   items,
@@ -39,6 +40,8 @@ function DropBox({
   children,
 }: {
   title: string;
+  /** Optional richer header (e.g. the editable new-role name). */
+  titleNode?: ReactNode;
   hint: string;
   accent: { border: string; bg: string; fg: string };
   items: BuilderItem[];
@@ -77,7 +80,9 @@ function DropBox({
       }}
     >
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-        <span style={{ fontSize: 10.5, fontWeight: 700, color: accent.fg }}>{title}</span>
+        {titleNode ?? (
+          <span style={{ fontSize: 10.5, fontWeight: 700, color: accent.fg }}>{title}</span>
+        )}
         <span style={{ fontSize: 8.5, color: '#94a3b8' }}>{items.length}</span>
       </div>
       <div style={{ fontSize: 8.5, color: '#64748b' }}>{hint}</div>
@@ -131,6 +136,11 @@ function RailChip({ item, onRemove }: { item: BuilderItem; onRemove: () => void 
 }
 
 export function RoleRail({
+  name,
+  onRename,
+  targetRoleId,
+  onTargetRole,
+  roleOptions,
   items,
   onChange,
   onDeleteTask,
@@ -138,6 +148,15 @@ export function RoleRail({
   onRestore,
   onCommit,
 }: {
+  /** The new role's NAME — user-editable, never a hardcoded "New role". */
+  name: string;
+  onRename: (name: string) => void;
+  /** '' = building a brand-new role; a role id = consolidating INTO that
+   *  existing role (it becomes the target and names the rail). */
+  targetRoleId: string;
+  onTargetRole: (roleId: string) => void;
+  /** The compared roles — the candidates for an existing target. */
+  roleOptions: { id: string; name: string }[];
   items: BuilderItem[];
   onChange: (items: BuilderItem[]) => void;
   /** A task card dropped on Delete — parent gates it, then records it. */
@@ -147,6 +166,90 @@ export function RoleRail({
   onCommit: () => void;
 }) {
   const [overDelete, setOverDelete] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
+  const existingTarget = roleOptions.find((r) => r.id === targetRoleId) ?? null;
+  const commitName = () => {
+    setEditingName(false);
+    const n = nameDraft.trim();
+    if (n) onRename(n);
+  };
+  const nameNode = existingTarget ? (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+      <span
+        style={{
+          fontSize: 10.5,
+          fontWeight: 700,
+          color: '#14532d',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        {existingTarget.name}
+      </span>
+      <span
+        style={{
+          fontSize: 7.5,
+          fontWeight: 700,
+          color: '#3730a3',
+          background: '#eef2ff',
+          border: '1px solid #d6dcff',
+          borderRadius: 4,
+          padding: '0 4px',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        EXISTING TARGET
+      </span>
+    </span>
+  ) : editingName ? (
+    <input
+      autoFocus
+      value={nameDraft}
+      onChange={(e) => setNameDraft(e.target.value)}
+      onBlur={commitName}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') commitName();
+        if (e.key === 'Escape') setEditingName(false);
+      }}
+      aria-label="New role name"
+      style={{
+        flex: 1,
+        minWidth: 0,
+        font: 'inherit',
+        fontSize: 10.5,
+        fontWeight: 700,
+        color: '#14532d',
+        border: '1px solid #a7f3d0',
+        borderRadius: 4,
+        padding: '1px 5px',
+        background: '#fff',
+      }}
+    />
+  ) : (
+    <button
+      type="button"
+      title="Click to rename the new role"
+      onClick={() => {
+        setEditingName(true);
+        setNameDraft(name);
+      }}
+      style={{
+        font: 'inherit',
+        fontSize: 10.5,
+        fontWeight: 700,
+        color: '#14532d',
+        background: 'none',
+        border: 'none',
+        padding: 0,
+        cursor: 'text',
+        textAlign: 'left',
+      }}
+    >
+      {name} <span style={{ fontWeight: 500, color: '#8fb8a0', fontSize: 8.5 }}>✎</span>
+    </button>
+  );
   const setAgent = (uid: string, agent: boolean) =>
     onChange(items.map((it) => (it.uid === uid ? { ...it, agent: agent || undefined } : it)));
   const addFrom = (p: DragPayload, agent: boolean) => {
@@ -157,138 +260,238 @@ export function RoleRail({
   };
 
   return (
-    <div
-      style={{
-        width: 280,
-        flexShrink: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
-        alignSelf: 'stretch',
-      }}
-    >
-      <DropBox
-        title="New role"
-        hint="Kept manual work — what the consolidated / new role does itself."
-        accent={{ border: '#a7f3d0', bg: '#f6faf7', fg: '#14532d' }}
-        items={items.filter((it) => !it.agent)}
-        onDropPayload={(p) => addFrom(p, false)}
-        onDropUid={(uid) => setAgent(uid, false)}
-        emptyText="Drag tasks here to keep them in the new role."
-      >
-        {(it) => (
-          <RailChip
-            key={it.uid}
-            item={it}
-            onRemove={() => onChange(items.filter((x) => x.uid !== it.uid))}
-          />
-        )}
-      </DropBox>
-
-      <DropBox
-        title="Agent box"
-        hint="An agent runs these autonomously — no human in the loop."
-        accent={{ border: '#c7d2fe', bg: '#f6f7ff', fg: '#3730a3' }}
-        items={items.filter((it) => it.agent)}
-        onDropPayload={(p) => addFrom(p, true)}
-        onDropUid={(uid) => setAgent(uid, true)}
-        emptyText="Drag agent-runnable tasks here."
-      >
-        {(it) => (
-          <RailChip
-            key={it.uid}
-            item={it}
-            onRemove={() => onChange(items.filter((x) => x.uid !== it.uid))}
-          />
-        )}
-      </DropBox>
-
+    <div style={{ display: 'flex', flexShrink: 0, alignSelf: 'stretch', gap: 0 }}>
+      {/* Target chooser — new role vs consolidate into an existing one. */}
       <div
-        onDragOver={(e) => {
-          if (hasDragPayload(e) || e.dataTransfer.types.includes(UID_MIME)) {
-            e.preventDefault();
-            setOverDelete(true);
-          }
-        }}
-        onDragLeave={() => setOverDelete(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setOverDelete(false);
-          const uid = e.dataTransfer.getData(UID_MIME);
-          if (uid) return onChange(items.filter((x) => x.uid !== uid));
-          const p = readDragPayload(e);
-          if (p) onDeleteTask(p);
-        }}
         style={{
-          border: `2px dashed ${overDelete ? '#dc2626' : '#fecaca'}`,
+          width: 150,
+          flexShrink: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
+          border: '1px solid #eaeaea',
           borderRadius: 10,
-          background: overDelete ? '#fff' : '#fff7f7',
+          background: '#fff',
           padding: 8,
+          alignSelf: 'flex-start',
         }}
       >
-        <span style={{ fontSize: 10.5, fontWeight: 700, color: '#991b1b' }}>Delete</span>
-        <div style={{ fontSize: 8.5, color: '#64748b', marginTop: 2 }}>
-          Drop a task to remove it from the operating model — impact is assessed first.
-        </div>
-        {deleted.map((d, i) => (
-          <div
-            key={`${d.name}:${i}`}
-            style={{
-              display: 'flex',
-              gap: 5,
-              alignItems: 'center',
-              marginTop: 4,
-              fontSize: 9.5,
-              color: '#991b1b',
-            }}
-          >
-            <span style={{ flex: 1, minWidth: 0, textDecoration: 'line-through' }}>{d.name}</span>
+        <span
+          style={{
+            fontSize: 9.5,
+            fontWeight: 700,
+            letterSpacing: '.06em',
+            textTransform: 'uppercase',
+            color: '#525252',
+          }}
+        >
+          Target
+        </span>
+        <span style={{ fontSize: 8.5, color: '#94a3b8', marginBottom: 2 }}>
+          Build a brand-new role, or consolidate into an existing one.
+        </span>
+        <button
+          type="button"
+          onClick={() => onTargetRole('')}
+          style={{
+            font: 'inherit',
+            textAlign: 'left',
+            fontSize: 10,
+            fontWeight: targetRoleId === '' ? 700 : 500,
+            color: targetRoleId === '' ? '#14532d' : '#525252',
+            background: targetRoleId === '' ? '#f6faf7' : '#fff',
+            border: `1px solid ${targetRoleId === '' ? '#a7f3d0' : '#eaeaea'}`,
+            borderRadius: 7,
+            padding: '4px 8px',
+            cursor: 'pointer',
+          }}
+        >
+          ＋ New role
+        </button>
+        {roleOptions.map((r) => {
+          const on = targetRoleId === r.id;
+          return (
             <button
+              key={r.id}
               type="button"
-              onClick={() => onRestore(i)}
+              onClick={() => onTargetRole(r.id)}
+              title={`Consolidate into ${r.name} — it becomes the target role`}
               style={{
                 font: 'inherit',
-                fontSize: 8.5,
-                color: '#64748b',
-                background: 'none',
-                border: 'none',
+                textAlign: 'left',
+                fontSize: 10,
+                fontWeight: on ? 700 : 500,
+                color: on ? '#3730a3' : '#525252',
+                background: on ? '#f6f7ff' : '#fff',
+                border: `1px solid ${on ? '#c7d2fe' : '#eaeaea'}`,
+                borderRadius: 7,
+                padding: '4px 8px',
                 cursor: 'pointer',
-                padding: 0,
+                lineHeight: 1.3,
               }}
             >
-              restore
+              ⇥ Consolidate into {r.name}
             </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <button
-        type="button"
-        onClick={onCommit}
-        disabled={items.length === 0 && deleted.length === 0}
+      {/* Arrows from the target choice into the new-role rail. */}
+      <div
         style={{
-          font: 'inherit',
-          fontSize: 11,
-          fontWeight: 600,
-          color: '#fff',
-          background: items.length || deleted.length ? '#047857' : '#a7c5b4',
-          border: 'none',
-          borderRadius: 6,
-          padding: '6px 12px',
-          cursor: items.length || deleted.length ? 'pointer' : 'default',
+          width: 22,
+          flexShrink: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-start',
+          alignItems: 'center',
+          gap: 26,
+          paddingTop: 40,
+          color: '#94a3b8',
+          fontSize: 13,
         }}
       >
-        Commit new role
-      </button>
+        <span>→</span>
+        <span>→</span>
+        <span>→</span>
+      </div>
+
+      <div
+        style={{
+          width: 280,
+          flexShrink: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+          alignSelf: 'stretch',
+        }}
+      >
+        <DropBox
+          title={existingTarget ? existingTarget.name : name}
+          titleNode={nameNode}
+          hint="Kept manual work — what the consolidated / new role does itself."
+          accent={{ border: '#a7f3d0', bg: '#f6faf7', fg: '#14532d' }}
+          items={items.filter((it) => !it.agent)}
+          onDropPayload={(p) => addFrom(p, false)}
+          onDropUid={(uid) => setAgent(uid, false)}
+          emptyText="Drag tasks here to keep them in the new role."
+        >
+          {(it) => (
+            <RailChip
+              key={it.uid}
+              item={it}
+              onRemove={() => onChange(items.filter((x) => x.uid !== it.uid))}
+            />
+          )}
+        </DropBox>
+
+        <DropBox
+          title="Agent box"
+          hint="An agent runs these autonomously — no human in the loop."
+          accent={{ border: '#c7d2fe', bg: '#f6f7ff', fg: '#3730a3' }}
+          items={items.filter((it) => it.agent)}
+          onDropPayload={(p) => addFrom(p, true)}
+          onDropUid={(uid) => setAgent(uid, true)}
+          emptyText="Drag agent-runnable tasks here."
+        >
+          {(it) => (
+            <RailChip
+              key={it.uid}
+              item={it}
+              onRemove={() => onChange(items.filter((x) => x.uid !== it.uid))}
+            />
+          )}
+        </DropBox>
+
+        <div
+          onDragOver={(e) => {
+            if (hasDragPayload(e) || e.dataTransfer.types.includes(UID_MIME)) {
+              e.preventDefault();
+              setOverDelete(true);
+            }
+          }}
+          onDragLeave={() => setOverDelete(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setOverDelete(false);
+            const uid = e.dataTransfer.getData(UID_MIME);
+            if (uid) return onChange(items.filter((x) => x.uid !== uid));
+            const p = readDragPayload(e);
+            if (p) onDeleteTask(p);
+          }}
+          style={{
+            border: `2px dashed ${overDelete ? '#dc2626' : '#fecaca'}`,
+            borderRadius: 10,
+            background: overDelete ? '#fff' : '#fff7f7',
+            padding: 8,
+          }}
+        >
+          <span style={{ fontSize: 10.5, fontWeight: 700, color: '#991b1b' }}>Delete</span>
+          <div style={{ fontSize: 8.5, color: '#64748b', marginTop: 2 }}>
+            Drop a task to remove it from the operating model — impact is assessed first.
+          </div>
+          {deleted.map((d, i) => (
+            <div
+              key={`${d.name}:${i}`}
+              style={{
+                display: 'flex',
+                gap: 5,
+                alignItems: 'center',
+                marginTop: 4,
+                fontSize: 9.5,
+                color: '#991b1b',
+              }}
+            >
+              <span style={{ flex: 1, minWidth: 0, textDecoration: 'line-through' }}>{d.name}</span>
+              <button
+                type="button"
+                onClick={() => onRestore(i)}
+                style={{
+                  font: 'inherit',
+                  fontSize: 8.5,
+                  color: '#64748b',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
+              >
+                restore
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={onCommit}
+          disabled={items.length === 0 && deleted.length === 0}
+          style={{
+            font: 'inherit',
+            fontSize: 11,
+            fontWeight: 600,
+            color: '#fff',
+            background: items.length || deleted.length ? '#047857' : '#a7c5b4',
+            border: 'none',
+            borderRadius: 6,
+            padding: '6px 12px',
+            cursor: items.length || deleted.length ? 'pointer' : 'default',
+          }}
+        >
+          {existingTarget ? `Commit consolidation into ${existingTarget.name}` : 'Commit new role'}
+        </button>
+      </div>
     </div>
   );
 }
 
 /** The final sequence — the new role's work in execution order, editable. */
 export function RoleFlowStrip({
+  name,
   items,
   onChange,
 }: {
+  name: string;
   items: BuilderItem[];
   onChange: (items: BuilderItem[]) => void;
 }) {
@@ -331,7 +534,7 @@ export function RoleFlowStrip({
     >
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
         <span style={{ fontSize: 11, fontWeight: 700, color: '#14532d' }}>
-          New role — final sequence
+          {name} — final sequence
         </span>
         <span style={{ fontSize: 9.5, color: '#4d7c60' }}>
           {items.length === 0
