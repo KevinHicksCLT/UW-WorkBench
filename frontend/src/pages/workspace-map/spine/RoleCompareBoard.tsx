@@ -29,6 +29,8 @@ import {
   type StepDecision,
 } from './roleConsolidation';
 import { useRoleDetails, useRoleList, useStreamList } from './useSpineData';
+import ImpactPanel from '../impact/ImpactPanel';
+import { useImpactGate } from '../impact/useImpactGate';
 
 // Roles lens — one role at a time, its actual tasks, one decision. The spine
 // is the axis (value stream › L4 sub-process › L5 step): a card per compared
@@ -170,6 +172,38 @@ export default function RoleCompareBoard({
 
   const decisionOf = (idx: number): RoleDecision =>
     roleDecisions[columns[idx]?.id] ?? recs[idx]?.suggest ?? 'Keep';
+
+  // Role- and step-level decisions route through the common change-impact
+  // gate: consolidating/deprecating a role (or moving/dropping a step) first
+  // assesses what the role touches — sole ownerships, deliverables,
+  // governance, reports — and only records on confirm. Keep skips the gate.
+  const gate = useImpactGate();
+  const decideRole = (col: RoleColumnInput, label: RoleDecision) => {
+    const apply = () => setRoleDecisions((cur) => ({ ...cur, [col.id]: label }));
+    if (label === 'Keep') return apply();
+    gate.run(
+      {
+        changeType: label === 'Deprecate' ? 'DEPRECATE' : 'CONSOLIDATE',
+        label: col.name,
+        subject: { kind: 'role', roleId: col.id },
+      },
+      apply,
+    );
+  };
+  const decideStep = (key: string, d: StepDecision) => {
+    const apply = () => setStepDecisions((cur) => ({ ...cur, [key]: d }));
+    if (d === 'Keep') return apply();
+    // Step keys are `${Role.id}:${ProcessNode.id}` (cuids never contain ':').
+    const [roleId, taskId] = key.split(':');
+    if (!roleId || !taskId) return apply();
+    gate.run(
+      {
+        changeType: d === 'Drop' ? 'DROP' : 'MOVE',
+        subject: { kind: 'role', roleId, taskIds: [taskId] },
+      },
+      apply,
+    );
+  };
   // The target must survive: the recommended target unless the user keeps a
   // different role while consolidating the recommended one away. Cheap
   // derivations (≤ a few thousand string ops) — recomputed per render.
@@ -619,7 +653,7 @@ export default function RoleCompareBoard({
                           chosen === label,
                           label === 'Deprecate',
                           label === 'Consolidate',
-                          () => setRoleDecisions((cur) => ({ ...cur, [c.id]: label })),
+                          () => decideRole(c, label),
                         ),
                       )}
                     </div>
@@ -860,10 +894,11 @@ export default function RoleCompareBoard({
           going={going}
           targetIdx={targetIdx}
           stepDecisions={stepDecisions}
-          onStepDecision={(key, d) => setStepDecisions((cur) => ({ ...cur, [key]: d }))}
+          onStepDecision={decideStep}
           onClose={() => setOpenTask(null)}
         />
       )}
+      <ImpactPanel gate={gate} />
     </div>
   );
 }

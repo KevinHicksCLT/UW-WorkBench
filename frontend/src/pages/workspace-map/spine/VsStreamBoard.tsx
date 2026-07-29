@@ -12,9 +12,12 @@ import {
   type ReconLaneInput,
   type ReconPhase,
   type ReconRow,
+  type ReconStep,
   type StageSlot,
 } from './spineCompare';
 import { useStreamDetails, useStreamList, type StreamDetail } from './useSpineData';
+import ImpactPanel from '../impact/ImpactPanel';
+import { useImpactGate } from '../impact/useImpactGate';
 
 // Value-streams lens — compare ANY number of streams on pure process levels
 // (L2 stream › L3 area › L4 sub-process › L5 task; no invented vocabulary).
@@ -159,6 +162,27 @@ export default function VsStreamBoard({
 
   const decisionOf = (row: ReconRow): ReconDecision => decisions[row.key] ?? defaultDecision(row);
 
+  // Every Merge/Drop routes through the common change-impact gate: the row's
+  // real ProcessNode ids (one per carrying stream) are assessed against the
+  // live graph, and the decision only records once the user confirms from the
+  // report. Keep is a no-change decision — no gate.
+  const gate = useImpactGate();
+  const decideRow = (rowKey: string, d: ReconDecision) => {
+    const apply = () => setDecisions((c) => ({ ...c, [rowKey]: d }));
+    if (d === 'Keep') return apply();
+    const row = gridRows.find((r) => r.key === rowKey);
+    const nodeIds = row ? row.cells.filter((c): c is ReconStep => !!c).map((c) => c.id) : [];
+    if (!nodeIds.length) return apply();
+    gate.run(
+      {
+        changeType: d === 'Drop' ? 'DROP' : 'MERGE',
+        label: row?.canonName,
+        subject: { kind: 'process-nodes', nodeIds },
+      },
+      apply,
+    );
+  };
+
   if (listLoading) return <LoadingState message="Loading value streams…" />;
   if (listError) return <ErrorMessage>{listError}</ErrorMessage>;
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
@@ -281,7 +305,7 @@ export default function VsStreamBoard({
             names={names}
             decisions={decisions}
             decisionOf={decisionOf}
-            onDecide={(rowKey, d) => setDecisions((c) => ({ ...c, [rowKey]: d }))}
+            onDecide={decideRow}
             onBackToMap={() => setMode('map')}
           />
         ) : (
@@ -290,6 +314,7 @@ export default function VsStreamBoard({
           </div>
         )}
       </div>
+      <ImpactPanel gate={gate} />
     </div>
   );
 }
