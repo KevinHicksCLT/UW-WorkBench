@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   MATCH_META,
   groupCitations,
@@ -7,11 +8,12 @@ import {
 } from './spine';
 import type { ReviewRow } from './gridModel';
 
-// The Products workspace's drill-down review list — the level where work
-// actually happens: every element group behind a heatmap row (or the whole
-// pending backlog), scrollable / sortable / filterable, with the decision
-// actions (Adopt into the model · Keep as variant · Retire) and a reviewer
-// comment on each line item.
+// The Products workspace's drill-down review list — compact rows (title only;
+// the title is a link that opens the full element detail modal), a real
+// presence GRID (green block = the product carries the element, empty box =
+// it doesn't), the decision actions (Adopt · Variant · Retire — click the
+// active one again to withdraw it) and a reviewer comment per line.
+// Navigation is breadcrumb + browser back — no bespoke back button.
 
 export type ReviewFilter = 'pending' | 'decided' | 'auto' | 'all';
 
@@ -21,10 +23,10 @@ const STATUS_ACTIONS: [ProductDecisionStatus, string, string][] = [
   ['RETIRED', 'Retire', '#dc2626'],
 ];
 
-const STATUS_LABEL: Record<ProductDecisionStatus, { label: string; fg: string; bg: string }> = {
-  APPROVED: { label: 'Adopted into model', fg: '#3730a3', bg: '#eef2ff' },
-  HELD: { label: 'Kept as variant', fg: '#404040', bg: '#f5f5f5' },
-  RETIRED: { label: 'Retired', fg: '#991b1b', bg: '#fef2f2' },
+const STATUS_LABEL: Record<ProductDecisionStatus, string> = {
+  APPROVED: 'Adopted into model',
+  HELD: 'Kept as variant',
+  RETIRED: 'Retired',
 };
 
 type SortKey = 'status' | 'name' | 'line';
@@ -32,6 +34,214 @@ type SortKey = 'status' | 'name' | 'line';
 function rowText(r: ReviewRow): string {
   const el = Object.values(r.group.perVersion).find(Boolean);
   return `${r.group.name} ${el?.description ?? ''} ${r.lobName}`.toLowerCase();
+}
+
+/** Full element detail — everything the compact row hides. */
+function ElementDetailModal({
+  row,
+  columns,
+  onClose,
+}: {
+  row: ReviewRow;
+  columns: VersionColumn[];
+  onClose: () => void;
+}) {
+  const meta = MATCH_META[row.group.status];
+  const cites = groupCitations(row.group);
+  return createPortal(
+    <div
+      role="presentation"
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(15,23,42,.34)',
+        zIndex: 60,
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        paddingTop: 100,
+      }}
+    >
+      <div
+        role="dialog"
+        aria-label={row.group.name}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 760,
+          maxWidth: 'calc(100% - 60px)',
+          maxHeight: 'calc(100vh - 140px)',
+          display: 'flex',
+          flexDirection: 'column',
+          background: '#fff',
+          borderRadius: 14,
+          boxShadow: '0 24px 60px rgba(15,23,42,.28)',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 12,
+            padding: '13px 16px',
+            borderBottom: '1px solid #eaeaea',
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: 9.5,
+                fontWeight: 700,
+                letterSpacing: '.07em',
+                textTransform: 'uppercase',
+                color: meta.fg,
+              }}
+            >
+              {row.group.component} · {meta.label}
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#171717', marginTop: 3 }}>
+              {row.group.name}
+            </div>
+            <div style={{ fontSize: 11.5, color: '#525252', marginTop: 3 }}>
+              {row.lobName} · in {row.group.presentIn} of {columns.length} products in scope
+            </div>
+          </div>
+          <div style={{ flex: 1 }} />
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            style={{
+              font: 'inherit',
+              fontSize: 14,
+              color: '#737373',
+              background: 'none',
+              border: 'none',
+              padding: '2px 8px',
+              cursor: 'pointer',
+            }}
+          >
+            ×
+          </button>
+        </div>
+        <div
+          style={{
+            overflow: 'auto',
+            padding: '12px 16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+          }}
+        >
+          {cites.length > 0 && (
+            <div>
+              <div
+                style={{
+                  fontSize: 9.5,
+                  fontWeight: 600,
+                  letterSpacing: '.06em',
+                  textTransform: 'uppercase',
+                  color: '#737373',
+                  marginBottom: 4,
+                }}
+              >
+                Lives in
+              </div>
+              <div
+                style={{
+                  fontSize: 11.5,
+                  fontFamily: 'ui-monospace, monospace',
+                  color: '#404040',
+                  lineHeight: 1.5,
+                }}
+              >
+                {cites.join(' · ')}
+              </div>
+            </div>
+          )}
+          <div>
+            <div
+              style={{
+                fontSize: 9.5,
+                fontWeight: 600,
+                letterSpacing: '.06em',
+                textTransform: 'uppercase',
+                color: '#737373',
+                marginBottom: 4,
+              }}
+            >
+              Per product
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {columns.map((v) => {
+                const el = row.group.perVersion[v.id];
+                return (
+                  <div
+                    key={v.id}
+                    style={{
+                      display: 'flex',
+                      gap: 10,
+                      alignItems: 'flex-start',
+                      border: '1px solid #f1f3f5',
+                      borderLeft: `3px solid ${el ? '#16a34a' : '#e5e7eb'}`,
+                      borderRadius: 7,
+                      padding: '6px 10px',
+                      background: el ? '#fff' : '#fafafa',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 11.5,
+                        fontWeight: 600,
+                        color: el ? '#171717' : '#737373',
+                        width: 250,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {v.productName} · {v.name}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 11.5,
+                        color: el ? '#404040' : '#a3a3a3',
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      {el ? (el.description ?? el.element) : 'not carried'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          {row.decision?.comment && (
+            <div>
+              <div
+                style={{
+                  fontSize: 9.5,
+                  fontWeight: 600,
+                  letterSpacing: '.06em',
+                  textTransform: 'uppercase',
+                  color: '#737373',
+                  marginBottom: 4,
+                }}
+              >
+                Reviewer comment
+              </div>
+              <div style={{ fontSize: 12, color: '#404040', lineHeight: 1.5 }}>
+                {row.decision.comment}
+                {row.decision.decidedBy ? (
+                  <span style={{ color: '#737373' }}> — {row.decision.decidedBy}</span>
+                ) : null}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
 }
 
 export default function ProductReviewList({
@@ -48,12 +258,19 @@ export default function ProductReviewList({
   columns: VersionColumn[];
   rows: ReviewRow[];
   defaultFilter: ReviewFilter;
+  /** Breadcrumb root ("Products") — also reachable via browser back. */
   onBack: () => void;
-  onDecide: (row: ReviewRow, status: ProductDecisionStatus, comment?: string) => Promise<void>;
+  /** status null = withdraw the decision (undo). */
+  onDecide: (
+    row: ReviewRow,
+    status: ProductDecisionStatus | null,
+    comment?: string,
+  ) => Promise<void>;
 }) {
   const [filter, setFilter] = useState<ReviewFilter>(defaultFilter);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('status');
+  const [detail, setDetail] = useState<ReviewRow | null>(null);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [savingKey, setSavingKey] = useState<string | null>(null);
@@ -83,54 +300,59 @@ export default function ProductReviewList({
     });
   }, [rows, filter, search, sort]);
 
-  const saveComment = async (r: ReviewRow) => {
-    setSavingKey(`${r.lobId}:${r.group.key}`);
+  const rowKey = (r: ReviewRow) => `${r.lobId}:${r.group.key}`;
+
+  const act = async (r: ReviewRow, status: ProductDecisionStatus | null, comment?: string) => {
+    setSavingKey(rowKey(r));
     try {
-      await onDecide(r, r.decision?.status ?? 'HELD', draft);
+      await onDecide(r, status, comment);
       setEditingKey(null);
     } finally {
       setSavingKey(null);
     }
   };
 
-  const rowKey = (r: ReviewRow) => `${r.lobId}:${r.group.key}`;
+  const gridCols = `minmax(240px,1fr) 110px repeat(${columns.length}, minmax(26px, 34px)) 150px 220px 200px`;
 
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-      {/* Toolbar */}
+      {/* Toolbar — breadcrumb + list controls. */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: 10,
-          padding: '9px 14px',
+          padding: '8px 14px',
           borderBottom: '1px solid #eaeaea',
           flexWrap: 'wrap',
           flexShrink: 0,
           background: '#fff',
         }}
       >
-        <button
-          type="button"
-          onClick={onBack}
-          style={{
-            font: 'inherit',
-            fontSize: 12,
-            fontWeight: 600,
-            color: '#171717',
-            background: '#fff',
-            border: '1px solid #d4d4d4',
-            borderRadius: 9999,
-            padding: '4px 12px',
-            cursor: 'pointer',
-          }}
+        <nav
+          aria-label="Breadcrumb"
+          style={{ display: 'flex', alignItems: 'baseline', gap: 6, minWidth: 0 }}
         >
-          ‹ Heatmap
-        </button>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#171717' }}>{title}</div>
-          <div style={{ fontSize: 11, color: '#525252' }}>{subtitle}</div>
-        </div>
+          <button
+            type="button"
+            onClick={onBack}
+            style={{
+              font: 'inherit',
+              fontSize: 12.5,
+              fontWeight: 500,
+              color: '#0070AD',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+            }}
+          >
+            Products
+          </button>
+          <span style={{ color: '#a3a3a3', fontSize: 11 }}>›</span>
+          <span style={{ fontSize: 13.5, fontWeight: 700, color: '#171717' }}>{title}</span>
+          <span style={{ fontSize: 11, color: '#525252', marginLeft: 6 }}>{subtitle}</span>
+        </nav>
         <div style={{ flex: 1 }} />
         <input
           type="search"
@@ -143,7 +365,7 @@ export default function ProductReviewList({
             border: '1px solid #d4d4d4',
             borderRadius: 8,
             padding: '5px 10px',
-            width: 200,
+            width: 190,
           }}
         />
         <select
@@ -207,13 +429,13 @@ export default function ProductReviewList({
         </div>
       </div>
 
-      {/* Column header */}
+      {/* Column header — products at an angle, never truncated. */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: `minmax(260px,1fr) 130px repeat(${columns.length}, 34px) 150px 236px 240px`,
+          gridTemplateColumns: gridCols,
           alignItems: 'end',
-          padding: '4px 14px 6px',
+          padding: '0 14px',
           borderBottom: '1px solid #eaeaea',
           background: '#fafafa',
           fontSize: 10,
@@ -224,42 +446,43 @@ export default function ProductReviewList({
           flexShrink: 0,
         }}
       >
-        <span>Element</span>
-        <span>Status</span>
+        <span style={{ paddingBottom: 6 }}>Element — click a title for its full detail</span>
+        <span style={{ paddingBottom: 6 }}>Status</span>
         {columns.map((v) => (
           <span
             key={v.id}
             title={`${v.productName} · ${v.name}`}
-            style={{
-              writingMode: 'vertical-rl',
-              transform: 'rotate(180deg)',
-              height: 84,
-              fontSize: 9.5,
-              letterSpacing: '0.02em',
-              textTransform: 'none',
-              fontWeight: 600,
-              color: '#404040',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              justifySelf: 'center',
-            }}
+            style={{ height: 130, position: 'relative', overflow: 'visible' }}
           >
-            {v.productName} · {v.name}
+            <span
+              style={{
+                position: 'absolute',
+                bottom: 6,
+                left: 8,
+                transformOrigin: 'left bottom',
+                transform: 'rotate(-52deg)',
+                whiteSpace: 'nowrap',
+                fontSize: 10.5,
+                letterSpacing: '0.02em',
+                textTransform: 'none',
+                fontWeight: 600,
+                color: '#404040',
+              }}
+            >
+              {v.productName} · {v.name}
+            </span>
           </span>
         ))}
-        <span>Product line</span>
-        <span>Decision</span>
-        <span>Comment</span>
+        <span style={{ paddingBottom: 6 }}>Product line</span>
+        <span style={{ paddingBottom: 6 }}>Decision</span>
+        <span style={{ paddingBottom: 6 }}>Comment</span>
       </div>
 
-      {/* Rows */}
+      {/* Rows — compact: the title carries the depth behind a click. */}
       <div style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}>
         {shown.map((r) => {
           const key = rowKey(r);
           const meta = MATCH_META[r.group.status];
-          const el = Object.values(r.group.perVersion).find(Boolean);
-          const cites = groupCitations(r.group);
           const saving = savingKey === key;
           const editing = editingKey === key;
           return (
@@ -267,35 +490,32 @@ export default function ProductReviewList({
               key={key}
               style={{
                 display: 'grid',
-                gridTemplateColumns: `minmax(260px,1fr) 130px repeat(${columns.length}, 34px) 150px 236px 240px`,
+                gridTemplateColumns: gridCols,
                 alignItems: 'center',
-                padding: '7px 14px',
+                padding: '4px 14px',
                 borderBottom: '1px solid #f1f3f5',
                 background: r.needsDecision && !r.decision ? '#fffdf7' : '#fff',
               }}
             >
-              <div style={{ minWidth: 0, paddingRight: 12 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: '#171717', lineHeight: 1.3 }}>
-                  {r.group.name}
-                </div>
-                {el?.description && (
-                  <div style={{ fontSize: 11, color: '#525252', marginTop: 2, lineHeight: 1.4 }}>
-                    {el.description}
-                  </div>
-                )}
-                {cites.length > 0 && (
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontFamily: 'ui-monospace, monospace',
-                      color: '#737373',
-                      marginTop: 3,
-                    }}
-                  >
-                    {cites.slice(0, 2).join(' · ')}
-                  </div>
-                )}
-              </div>
+              <button
+                type="button"
+                onClick={() => setDetail(r)}
+                title="open the full element detail"
+                style={{
+                  font: 'inherit',
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  color: '#0070AD',
+                  background: 'none',
+                  border: 'none',
+                  padding: '2px 12px 2px 0',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  lineHeight: 1.3,
+                }}
+              >
+                {r.group.name}
+              </button>
               <div>
                 <span
                   style={{
@@ -306,7 +526,7 @@ export default function ProductReviewList({
                     background: meta.bg,
                     border: `1px solid ${meta.border}`,
                     borderRadius: 6,
-                    padding: '2px 8px',
+                    padding: '1px 7px',
                   }}
                 >
                   {meta.label}
@@ -315,21 +535,24 @@ export default function ProductReviewList({
               {r.presence.map((p, i) => (
                 <span
                   key={`${key}:${i}`}
-                  title={p ? 'carried by this version' : 'not in this version'}
+                  title={
+                    p
+                      ? `${columns[i]?.productName ?? ''} carries this element`
+                      : `not in ${columns[i]?.productName ?? 'this product'}`
+                  }
                   style={{
-                    justifySelf: 'center',
-                    width: 10,
-                    height: 10,
-                    borderRadius: 9999,
-                    background: p ? '#4f46e5' : '#fff',
-                    border: p ? '1px solid #4f46e5' : '1px dashed #a3a3a3',
+                    height: 18,
+                    margin: '0 2px',
+                    borderRadius: 4,
+                    background: p ? '#86efac' : '#fff',
+                    border: p ? '1px solid #16a34a' : '1px solid #e5e7eb',
                   }}
                 />
               ))}
               <span style={{ fontSize: 11.5, color: '#404040', paddingRight: 8 }}>{r.lobName}</span>
               <div>
                 {r.needsDecision ? (
-                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
                     {STATUS_ACTIONS.map(([status, label, tone]) => {
                       const on = r.decision?.status === status;
                       return (
@@ -337,14 +560,17 @@ export default function ProductReviewList({
                           key={status}
                           type="button"
                           disabled={saving}
-                          onClick={() => void onDecide(r, status)}
+                          title={
+                            on ? 'click again to withdraw this decision' : STATUS_LABEL[status]
+                          }
+                          onClick={() => void act(r, on ? null : status)}
                           style={{
                             font: 'inherit',
                             fontSize: 11,
                             fontWeight: 600,
                             cursor: 'pointer',
                             borderRadius: 6,
-                            padding: '3px 9px',
+                            padding: '2px 9px',
                             color: on ? '#fff' : '#404040',
                             background: on ? tone : '#fff',
                             border: `1px solid ${on ? 'transparent' : '#d4d4d4'}`,
@@ -361,64 +587,46 @@ export default function ProductReviewList({
                     In model automatically
                   </span>
                 )}
-                {r.decision && (
-                  <div style={{ fontSize: 10, color: '#737373', marginTop: 3 }}>
-                    {STATUS_LABEL[r.decision.status].label}
-                    {r.decision.decidedBy ? ` · ${r.decision.decidedBy}` : ''}
-                  </div>
-                )}
               </div>
               <div style={{ paddingRight: 4 }}>
                 {editing ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <textarea
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <input
                       value={draft}
                       onChange={(e) => setDraft(e.target.value)}
-                      rows={2}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') void act(r, r.decision?.status ?? 'HELD', draft);
+                        if (e.key === 'Escape') setEditingKey(null);
+                      }}
                       style={{
                         font: 'inherit',
                         fontSize: 11.5,
                         border: '1px solid #d4d4d4',
                         borderRadius: 6,
-                        padding: '4px 8px',
-                        resize: 'vertical',
+                        padding: '3px 8px',
+                        flex: 1,
+                        minWidth: 0,
                       }}
                     />
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button
-                        type="button"
-                        disabled={saving}
-                        onClick={() => void saveComment(r)}
-                        style={{
-                          font: 'inherit',
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: '#fff',
-                          background: '#171717',
-                          border: 'none',
-                          borderRadius: 6,
-                          padding: '3px 10px',
-                          cursor: 'pointer',
-                          opacity: saving ? 0.6 : 1,
-                        }}
-                      >
-                        {saving ? 'Saving…' : 'Save'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingKey(null)}
-                        style={{
-                          font: 'inherit',
-                          fontSize: 11,
-                          color: '#525252',
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        Cancel
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      disabled={saving}
+                      onClick={() => void act(r, r.decision?.status ?? 'HELD', draft)}
+                      style={{
+                        font: 'inherit',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: '#fff',
+                        background: '#171717',
+                        border: 'none',
+                        borderRadius: 6,
+                        padding: '3px 9px',
+                        cursor: 'pointer',
+                        opacity: saving ? 0.6 : 1,
+                      }}
+                    >
+                      {saving ? '…' : 'Save'}
+                    </button>
                   </div>
                 ) : (
                   <button
@@ -427,7 +635,7 @@ export default function ProductReviewList({
                       setEditingKey(key);
                       setDraft(r.decision?.comment ?? '');
                     }}
-                    title={r.needsDecision ? 'Leave a reviewer note' : 'Leave a note'}
+                    title="leave a reviewer note"
                     style={{
                       font: 'inherit',
                       fontSize: 11.5,
@@ -437,14 +645,14 @@ export default function ProductReviewList({
                       cursor: 'pointer',
                       textAlign: 'left',
                       padding: 0,
-                      lineHeight: 1.4,
+                      lineHeight: 1.35,
                       display: '-webkit-box',
-                      WebkitLineClamp: 3,
+                      WebkitLineClamp: 1,
                       WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
                     }}
                   >
-                    {r.decision?.comment ?? '✎ Add comment'}
+                    {r.decision?.comment ?? '✎'}
                   </button>
                 )}
               </div>
@@ -457,6 +665,10 @@ export default function ProductReviewList({
           </div>
         )}
       </div>
+
+      {detail && (
+        <ElementDetailModal row={detail} columns={columns} onClose={() => setDetail(null)} />
+      )}
     </div>
   );
 }

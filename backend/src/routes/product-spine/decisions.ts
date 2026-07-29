@@ -60,6 +60,30 @@ export function registerProductDecisionRoutes(router: Router): void {
     }
   });
 
+  // DELETE /product-spine/decisions?lobId=…&groupKey=… — withdraw a decision
+  // (the element goes back to "needs a decision"; its comment goes with it).
+  router.delete('/decisions', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const company = await activeCompany(req, { id: true });
+      if (!company) return res.status(404).json({ error: 'No company' });
+      const lobId = typeof req.query.lobId === 'string' ? req.query.lobId : '';
+      const groupKey = typeof req.query.groupKey === 'string' ? req.query.groupKey : '';
+      if (!lobId || !groupKey)
+        return res.status(400).json({ error: 'lobId and groupKey are required' });
+
+      // Tenant walk before touching the row (404 on cross-tenant, never 403).
+      const existing = await prisma.productNormalizationDecision.findFirst({
+        where: { companyId: company.id, lobNodeId: lobId, groupKey },
+        select: { id: true },
+      });
+      if (!existing) return res.status(404).json({ error: 'No decision to withdraw' });
+      await prisma.productNormalizationDecision.delete({ where: { id: existing.id } });
+      res.json({ ok: true });
+    } catch (e) {
+      next(e);
+    }
+  });
+
   // PUT /product-spine/decisions — upsert one group's decision.
   router.put('/decisions', async (req: Request, res: Response, next: NextFunction) => {
     try {

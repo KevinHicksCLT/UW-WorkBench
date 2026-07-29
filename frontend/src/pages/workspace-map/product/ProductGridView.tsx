@@ -1,54 +1,39 @@
 import { useMemo, useState } from 'react';
-import { useViewState } from '../../../lib/viewState';
-import ProductCellModal from './ProductCellModal';
+import { useSearchParams } from 'react-router-dom';
 import ProductReviewList, { type ReviewFilter } from './ProductReviewList';
 import { buildHeatmap, type HeatRow, type Rag } from './gridModel';
-import { buildComparison } from './spine';
 import type { LobOption, ProductDecision, ProductDecisionStatus } from './spine';
 
 // The Products workspace GRID — the progress board:
-//   (1) an executive dashboard pinned on top (freeze-pane style): total
-//       elements, items needing a decision, decided, % complete — each stat
-//       drills into the filtered review list;
-//   (2) the transposed heatmap below: PRODUCTS as stovepipe columns, MODEL
-//       COMPONENTS as rows, RAG per row (green = rationalized, amber =
-//       started, red = untouched) with per-row totals and a collapsed Notes
-//       column on the far right;
-//   (3) click a row (or a stat) → the drill-down review list where every
-//       element is actioned (Adopt / Variant / Retire) and commented.
+//   (1) an executive dashboard pinned on top: total elements, items needing a
+//       decision, decided, % complete — each stat drills into the filtered
+//       review list;
+//   (2) the transposed heatmap below: PRODUCTS as angled column headers
+//       (never truncated), MODEL COMPONENTS as rows, RAG per row, cells that
+//       stretch to the page and carry real insight while few products are in
+//       scope (shrinking to bare counts as the scope grows);
+//   (3) any click — component row, cell or dashboard stat — lands on the
+//       drill-down review list. The drill lives in the URL (?pmDrill=…), so
+//       the browser back button pops it like any navigation.
 
-const RAG_META: Record<Rag, { bg: string; fg: string; label: string }> = {
-  green: { bg: '#16a34a', fg: '#fff', label: 'rationalized' },
-  amber: { bg: '#f59e0b', fg: '#fff', label: 'started' },
-  red: { bg: '#dc2626', fg: '#fff', label: 'not started' },
+const RAG_META: Record<Rag, { bg: string; label: string }> = {
+  green: { bg: '#16a34a', label: 'rationalized' },
+  amber: { bg: '#f59e0b', label: 'started' },
+  red: { bg: '#dc2626', label: 'not started' },
 };
 
-function cellVisual(cell: { na: boolean } & { need: number; decided: number; total: number }): {
+const DRILL_PARAM = 'pmDrill';
+
+function cellVisual(cell: { na: boolean; need: number; decided: number; total: number }): {
   bg: string;
   fg: string;
-  label: string;
-  title: string;
+  pending: number;
 } {
-  if (cell.na || cell.total === 0)
-    return { bg: '#f5f5f5', fg: '#a3a3a3', label: '—', title: 'not in this product' };
   const pending = cell.need - cell.decided;
-  if (cell.need === 0)
-    return { bg: '#dcfce7', fg: '#166534', label: '✓', title: 'nothing to decide — all common' };
-  if (pending === 0)
-    return { bg: '#bbf7d0', fg: '#14532d', label: '✓', title: 'every element decided' };
-  if (cell.decided > 0)
-    return {
-      bg: '#fde68a',
-      fg: '#78350f',
-      label: String(pending),
-      title: `${pending} elements still to decide`,
-    };
-  return {
-    bg: '#fecaca',
-    fg: '#991b1b',
-    label: String(pending),
-    title: `${pending} elements to decide — not started`,
-  };
+  if (cell.na || cell.total === 0) return { bg: '#f5f5f5', fg: '#a3a3a3', pending: 0 };
+  if (cell.need === 0 || pending === 0) return { bg: '#bbf7d0', fg: '#14532d', pending: 0 };
+  if (cell.decided > 0) return { bg: '#fde68a', fg: '#78350f', pending };
+  return { bg: '#fecaca', fg: '#991b1b', pending };
 }
 
 function StatTile({
@@ -110,38 +95,48 @@ export default function ProductGridView({
   lobs: LobOption[];
   /** All persisted decisions, keyed by decisionKey(lobId, groupKey). */
   decisions: Map<string, ProductDecision>;
+  /** status null = withdraw the decision (undo). */
   onDecide: (
     lobId: string,
     component: string,
     groupKey: string,
-    status: ProductDecisionStatus,
+    status: ProductDecisionStatus | null,
     comment?: string,
-    meta?: { elementName?: string; componentNodeIds?: string[] },
   ) => Promise<void>;
 }) {
   const heat = useMemo(() => buildHeatmap(lobs, decisions), [lobs, decisions]);
-  const [drill, setDrill] = useViewState<string | null>('workspace.product.drill', null);
-  const [drillFilter, setDrillFilter] = useState<ReviewFilter>('pending');
+  // The drill is URL state: pushing it creates a history entry, so the
+  // browser back button (and the header Back) pops out of the list.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const drill = searchParams.get(DRILL_PARAM);
+  const setDrill = (value: string | null) =>
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (value) next.set(DRILL_PARAM, value);
+      else next.delete(DRILL_PARAM);
+      return next;
+    });
+  const [drillFilter, setDrillFilter] = useState<ReviewFilter>('all');
   const [notesOpen, setNotesOpen] = useState(false);
-  const [cell, setCell] = useState<{ lobId: string; versionId: string; component: string } | null>(
-    null,
-  );
 
   const drillRow =
-    drill && drill !== '__all__' ? heat.rows.find((r) => r.component === drill) : null;
+    drill && drill !== '__all__' ? (heat.rows.find((r) => r.component === drill) ?? null) : null;
   const allReviewRows = useMemo(() => heat.rows.flatMap((r) => r.reviewRows), [heat]);
 
-  const cellModal = useMemo(() => {
-    if (!cell) return null;
-    const lob = lobs.find((l) => l.id === cell.lobId);
-    const version = lob?.versions.find((v) => v.id === cell.versionId);
-    if (!lob || !version) return null;
-    return { lob, version, comparison: buildComparison(lob.versions) };
-  }, [cell, lobs]);
-
   const pending = heat.totals.need - heat.totals.decided;
-  const notesW = notesOpen ? 220 : 46;
-  const grid = `230px repeat(${heat.columns.length}, 46px) 74px 84px 130px ${notesW}px`;
+  const colCount = heat.columns.length;
+  // Density steps: rich cells while the scope is small, bare counts at scale.
+  const density: 'rich' | 'medium' | 'tiny' =
+    colCount <= 8 ? 'rich' : colCount <= 18 ? 'medium' : 'tiny';
+  const colMin = density === 'rich' ? 110 : density === 'medium' ? 64 : 40;
+  const notesW = notesOpen ? 220 : 44;
+  const grid = `220px repeat(${colCount}, minmax(${colMin}px, 1fr)) 76px 84px 128px ${notesW}px`;
+  const headerH = density === 'rich' ? 120 : 150;
+
+  const openDrill = (component: string, filter: ReviewFilter) => {
+    setDrillFilter(filter);
+    setDrill(component);
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
@@ -161,28 +156,19 @@ export default function ProductGridView({
           label="model elements in scope"
           value={String(heat.totals.total)}
           tone="#171717"
-          onClick={() => {
-            setDrill('__all__');
-            setDrillFilter('all');
-          }}
+          onClick={() => openDrill('__all__', 'all')}
         />
         <StatTile
           label="need a decision"
           value={String(pending)}
           tone={pending > 0 ? '#b45309' : '#16a34a'}
-          onClick={() => {
-            setDrill('__all__');
-            setDrillFilter('pending');
-          }}
+          onClick={() => openDrill('__all__', 'pending')}
         />
         <StatTile
           label="decided"
           value={String(heat.totals.decided)}
           tone="#4f46e5"
-          onClick={() => {
-            setDrill('__all__');
-            setDrillFilter('decided');
-          }}
+          onClick={() => openDrill('__all__', 'decided')}
         />
         <StatTile
           label={`complete — ${heat.totals.decided} of ${heat.totals.need} decisions made`}
@@ -197,7 +183,7 @@ export default function ProductGridView({
           title={drillRow ? drillRow.component : 'Every model element in scope'}
           subtitle={
             drillRow
-              ? `${drillRow.total} elements · ${drillRow.need - drillRow.decided} still to decide`
+              ? `${drillRow.total} elements · ${drillRow.decided} decided · ${drillRow.need - drillRow.decided} still to decide`
               : `${heat.totals.total} elements across ${heat.rows.length} components · ${pending} still to decide`
           }
           columns={heat.columns}
@@ -205,16 +191,14 @@ export default function ProductGridView({
           defaultFilter={drillFilter}
           onBack={() => setDrill(null)}
           onDecide={(row, status, comment) =>
-            onDecide(row.lobId, row.group.component, row.group.key, status, comment, {
-              elementName: row.group.name,
-            })
+            onDecide(row.lobId, row.group.component, row.group.key, status, comment)
           }
         />
       ) : (
         <>
-          {/* (2) The heatmap — products across the top, components down the side. */}
+          {/* (2) The heatmap — products angled across the top, components down the side. */}
           <div style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}>
-            <div style={{ width: 'max-content', minWidth: '100%' }}>
+            <div style={{ minWidth: '100%', width: 'max-content' }}>
               <div
                 style={{
                   display: 'grid',
@@ -225,6 +209,7 @@ export default function ProductGridView({
                   position: 'sticky',
                   top: 0,
                   zIndex: 3,
+                  minWidth: '100%',
                 }}
               >
                 <div
@@ -235,6 +220,7 @@ export default function ProductGridView({
                     letterSpacing: '0.08em',
                     textTransform: 'uppercase',
                     color: '#525252',
+                    alignSelf: 'end',
                   }}
                 >
                   Model component
@@ -245,22 +231,22 @@ export default function ProductGridView({
                     title={`${v.segmentName} › ${v.lobName} › ${v.productName} · ${v.name}`}
                     style={{
                       borderLeft: '1px solid #eef1f4',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      paddingBottom: 6,
+                      height: headerH,
+                      position: 'relative',
+                      overflow: 'visible',
                     }}
                   >
                     <span
                       style={{
-                        writingMode: 'vertical-rl',
-                        transform: 'rotate(180deg)',
-                        height: 128,
-                        fontSize: 10.5,
+                        position: 'absolute',
+                        bottom: 8,
+                        left: 10,
+                        transformOrigin: 'left bottom',
+                        transform: 'rotate(-52deg)',
+                        whiteSpace: 'nowrap',
+                        fontSize: 11,
                         fontWeight: 600,
                         color: '#404040',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
                       }}
                     >
                       {v.productName} · {v.name}
@@ -279,6 +265,7 @@ export default function ProductGridView({
                       textTransform: 'uppercase',
                       color: '#525252',
                       textAlign: h === 'Progress' ? 'left' : 'center',
+                      alignSelf: 'end',
                     }}
                   >
                     {h}
@@ -290,7 +277,6 @@ export default function ProductGridView({
                   title={notesOpen ? 'collapse notes' : 'expand notes'}
                   style={{
                     font: 'inherit',
-                    borderLeft: '1px solid #eef1f4',
                     border: 'none',
                     background: 'transparent',
                     padding: '8px 10px',
@@ -302,6 +288,7 @@ export default function ProductGridView({
                     cursor: 'pointer',
                     textAlign: 'left',
                     whiteSpace: 'nowrap',
+                    alignSelf: 'end',
                   }}
                 >
                   {notesOpen ? 'Notes ▾' : '▸'}
@@ -317,23 +304,21 @@ export default function ProductGridView({
                     style={{
                       display: 'grid',
                       gridTemplateColumns: grid,
-                      alignItems: 'center',
+                      alignItems: 'stretch',
                       borderBottom: '1px solid #f1f3f5',
+                      minWidth: '100%',
                     }}
                   >
                     <button
                       type="button"
-                      onClick={() => {
-                        setDrill(row.component);
-                        setDrillFilter(rowPending > 0 ? 'pending' : 'all');
-                      }}
+                      onClick={() => openDrill(row.component, 'all')}
                       title="open this component's review list"
                       style={{
                         font: 'inherit',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 8,
-                        padding: '9px 12px',
+                        padding: '10px 12px',
                         background: 'none',
                         border: 'none',
                         cursor: 'pointer',
@@ -356,19 +341,18 @@ export default function ProductGridView({
                     </button>
                     {row.cells.map((c) => {
                       const vis = cellVisual(c);
+                      const na = c.na || c.total === 0;
                       return (
                         <button
                           key={`${row.component}:${c.versionId}`}
                           type="button"
-                          disabled={c.na || c.total === 0}
-                          title={vis.title}
-                          onClick={() =>
-                            setCell({
-                              lobId: c.lobId,
-                              versionId: c.versionId,
-                              component: row.component,
-                            })
+                          disabled={na}
+                          title={
+                            na
+                              ? 'not in this product'
+                              : `${c.total} elements · ${c.decided} of ${c.need} decisions made — open the review list`
                           }
+                          onClick={() => openDrill(row.component, 'all')}
                           style={{
                             font: 'inherit',
                             borderLeft: '1px solid #f4f6f8',
@@ -376,27 +360,48 @@ export default function ProductGridView({
                             borderRight: 'none',
                             borderBottom: 'none',
                             background: 'transparent',
-                            padding: 4,
-                            cursor: c.na || c.total === 0 ? 'default' : 'pointer',
+                            padding: 3,
+                            cursor: na ? 'default' : 'pointer',
                             display: 'flex',
-                            justifyContent: 'center',
                           }}
                         >
                           <span
                             style={{
+                              flex: 1,
                               display: 'flex',
+                              flexDirection: 'column',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              width: 32,
-                              height: 22,
                               borderRadius: 5,
                               background: vis.bg,
                               color: vis.fg,
-                              fontSize: 10.5,
-                              fontWeight: 700,
+                              minHeight: density === 'rich' ? 38 : 24,
+                              padding: density === 'rich' ? '3px 4px' : 0,
+                              lineHeight: 1.15,
                             }}
                           >
-                            {vis.label}
+                            {na ? (
+                              <span style={{ fontSize: 10.5, fontWeight: 700 }}>—</span>
+                            ) : density === 'rich' ? (
+                              <>
+                                <span style={{ fontSize: 12.5, fontWeight: 700 }}>
+                                  {vis.pending === 0 ? '✓' : vis.pending}
+                                </span>
+                                <span style={{ fontSize: 9, fontWeight: 500 }}>
+                                  {vis.pending === 0
+                                    ? `${c.total} elements in`
+                                    : `to decide of ${c.total}`}
+                                </span>
+                              </>
+                            ) : density === 'medium' ? (
+                              <span style={{ fontSize: 10.5, fontWeight: 700 }}>
+                                {vis.pending === 0 ? '✓' : `${vis.pending}/${c.need}`}
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: 10, fontWeight: 700 }}>
+                                {vis.pending === 0 ? '✓' : vis.pending}
+                              </span>
+                            )}
                           </span>
                         </button>
                       );
@@ -404,12 +409,10 @@ export default function ProductGridView({
                     <div
                       style={{
                         borderLeft: '1px solid #f4f6f8',
-                        textAlign: 'center',
                         fontSize: 12,
                         fontWeight: 600,
                         color: '#404040',
                         fontVariantNumeric: 'tabular-nums',
-                        alignSelf: 'stretch',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -420,12 +423,10 @@ export default function ProductGridView({
                     <div
                       style={{
                         borderLeft: '1px solid #f4f6f8',
-                        textAlign: 'center',
                         fontSize: 12,
                         fontWeight: 700,
                         color: rowPending > 0 ? '#b45309' : '#16a34a',
                         fontVariantNumeric: 'tabular-nums',
-                        alignSelf: 'stretch',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -437,7 +438,6 @@ export default function ProductGridView({
                       style={{
                         borderLeft: '1px solid #f4f6f8',
                         padding: '0 10px',
-                        alignSelf: 'stretch',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 7,
@@ -478,7 +478,6 @@ export default function ProductGridView({
                       style={{
                         borderLeft: '1px solid #f4f6f8',
                         padding: '4px 10px',
-                        alignSelf: 'stretch',
                         display: 'flex',
                         alignItems: 'center',
                         overflow: 'hidden',
@@ -531,26 +530,9 @@ export default function ProductGridView({
               <span style={{ color: '#f59e0b' }}>●</span> started ·{' '}
               <span style={{ color: '#dc2626' }}>●</span> not started
             </span>
-            <span>
-              cell number = elements still to decide for that product · ✓ = nothing pending
-            </span>
-            <span>
-              click a component row for its review list · click a cell for that product's detail
-            </span>
+            <span>every click lands on the review list — decisions and comments live there</span>
           </div>
         </>
-      )}
-
-      {cell && cellModal && (
-        <ProductCellModal
-          version={cellModal.version}
-          component={cell.component}
-          comparison={cellModal.comparison}
-          lobId={cellModal.lob.id}
-          lobName={cellModal.lob.name}
-          onComponent={(component) => setCell({ ...cell, component })}
-          onClose={() => setCell(null)}
-        />
       )}
     </div>
   );
