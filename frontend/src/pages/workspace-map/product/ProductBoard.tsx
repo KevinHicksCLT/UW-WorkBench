@@ -29,7 +29,6 @@ import type {
   LobOption,
   MatchStatus,
   ProductDecision,
-  ProductDecisionRationale,
   ProductDecisionStatus,
   SpineTable,
 } from './spine';
@@ -135,16 +134,8 @@ export default function ProductBoard({
     groupKey: string,
     status: ProductDecisionStatus,
     comment?: string,
-    rationale?: ProductDecisionRationale | null,
   ) => {
-    await api.put('/product-spine/decisions', {
-      lobId,
-      component,
-      groupKey,
-      status,
-      comment,
-      ...(rationale !== undefined ? { rationale } : {}),
-    });
+    await api.put('/product-spine/decisions', { lobId, component, groupKey, status, comment });
     refetchAllDecisions();
     refetchDecisions();
   };
@@ -155,7 +146,6 @@ export default function ProductBoard({
     status: ProductDecisionStatus | null,
     comment?: string,
     meta?: { elementName?: string; componentNodeIds?: string[] },
-    rationale?: ProductDecisionRationale | null,
   ) => {
     // Withdrawing (status null) reverts to "needs a decision" — an undo, not a
     // change to the model, so it skips the impact gate.
@@ -184,7 +174,7 @@ export default function ProductBoard({
         },
         async () => {
           try {
-            await applyDecision(lobId, component, groupKey, status, comment, rationale);
+            await applyDecision(lobId, component, groupKey, status, comment);
           } finally {
             resolve();
           }

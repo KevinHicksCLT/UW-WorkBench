@@ -12,24 +12,10 @@ import {
   pushCapped,
   type ChangeType,
   type Impact,
-  type ImpactRecommendation,
   type ImpactReport,
 } from './types.js';
 
 const ITEM_CAP = 10;
-
-/** Knock-on rework areas per model component (impact-analysis steps 3 & 7) —
- *  what to re-verify downstream when an element in this component changes.
- *  Matched loosely against the component name; the last entry is the default. */
-const KNOCK_ON: [RegExp, string[]][] = [
-  [/coverage/i, ['Forms & filings', 'Rating', 'Underwriting rules', 'Policy admin config']],
-  [/underwriting|rule/i, ['Underwriting workbench', 'Rating', 'Regression test packs']],
-  [/form|document/i, ['Compliance filings', 'Document generation', 'Regression test packs']],
-  [/rating|price|premium/i, ['Rating engine', 'Actuarial models', 'Regression test packs']],
-  [/limit|deductible/i, ['Rating', 'Forms & filings', 'Policy admin config']],
-  [/eligibility|appetite/i, ['Underwriting rules', 'Distribution / portal screens']],
-  [/./, ['Product configuration', 'Regression test packs']],
-];
 
 export interface ProductSubject {
   lobId: string;
@@ -115,7 +101,6 @@ export async function assessProduct(
       carriers.set(version.id, { versionName: version.displayValue, status: version.status });
     for (const e of relevant) if (e.livesIn) livesIn.add(e.livesIn);
   }
-  const live = [...carriers.values()].filter((c) => c.status === 'Active' || c.status === 'Bound');
   if (carriers.size) {
     const names = [...carriers.values()].map((c) => c.versionName);
     impacts.push({
@@ -127,30 +112,9 @@ export async function assessProduct(
       description: `${names.slice(0, 8).join(', ')}${names.length > 8 ? '…' : ''} — each realigns under this decision.`,
       count: carriers.size,
     });
-    // Business-value footprint (impact-analysis step 4): how much of the
-    // portfolio the element actually reaches — distinct product offerings and
-    // live vs draft spread — so a $250K outlier and a $200M standard read
-    // differently before the decision is made.
-    const productById = new Map(
-      nodes.filter((n) => n.productLevelType.levelNumber === 3).map((n) => [n.id, n.displayValue]),
+    const live = [...carriers.values()].filter(
+      (c) => c.status === 'Active' || c.status === 'Bound',
     );
-    const productNames = new Set<string>();
-    for (const id of carriers.keys()) {
-      const parent = versionById.get(id)?.parentId;
-      const name = parent ? productById.get(parent) : undefined;
-      if (name) productNames.add(name);
-    }
-    if (productNames.size) {
-      impacts.push({
-        severity: grade('MEDIUM', cls),
-        category: 'products',
-        entityType: 'ProductNode',
-        entityId: null,
-        entityName: `Footprint — ${productNames.size} product offering${productNames.size === 1 ? '' : 's'}, ${live.length} live version${live.length === 1 ? '' : 's'}`,
-        description: `${[...productNames].slice(0, 6).join(', ')}${productNames.size > 6 ? '…' : ''} — the business value at stake before rationalizing.`,
-        count: productNames.size,
-      });
-    }
     if (live.length && cls === 'destructive') {
       impacts.push({
         severity: 'BREAKING',
@@ -255,22 +219,6 @@ export async function assessProduct(
     });
   }
 
-  // Knock-on rework areas (impact-analysis steps 3 & 7): the downstream
-  // artifacts a change in this component always touches — filings, rating,
-  // rules, test packs — surfaced as one line so the sequel work is priced in.
-  const areas = KNOCK_ON.find(([re]) => re.test(subject.component))?.[1] ?? [];
-  if (areas.length && carriers.size) {
-    impacts.push({
-      severity: grade('MEDIUM', cls),
-      category: 'knock-on',
-      entityType: 'ReworkArea',
-      entityId: null,
-      entityName: areas.join(' · '),
-      description: `A ${subject.component} change re-opens these areas in every carrying version — verify each before the decision lands.`,
-      count: areas.length,
-    });
-  }
-
   impacts.push({
     severity: 'LOW',
     category: 'scope',
@@ -279,36 +227,6 @@ export async function assessProduct(
     entityName: label ?? `${subject.component} · ${lob.displayValue}`,
     description: `${versions.length} version${versions.length === 1 ? '' : 's'} under ${lob.displayValue}, ${comps.length} carrying the ${subject.component} component.`,
   });
-
-  // Rationalization steer (impact-analysis steps 5–6): every outlier resolves
-  // to Retain / Standardize / Retire — derived from footprint + live status,
-  // advisory only.
-  let recommendation: ImpactRecommendation | undefined;
-  if (carriers.size) {
-    if (carriers.size === versions.length && versions.length > 1) {
-      recommendation = {
-        option: 'STANDARDIZE',
-        reason: 'Carried by every compared version — fold it into the canonical model.',
-      };
-    } else if (carriers.size === 1 && live.length === 0) {
-      recommendation = {
-        option: 'RETIRE',
-        reason:
-          'Outlier in a single version with no live (Active/Bound) business — retire unless a recorded reason (regulatory, market, segment) says otherwise.',
-      };
-    } else if (carriers.size === 1) {
-      recommendation = {
-        option: 'RETAIN',
-        reason:
-          'Single-version outlier with in-force business — record why it exists (regulatory / market / legacy) before standardizing it away.',
-      };
-    } else {
-      recommendation = {
-        option: 'STANDARDIZE',
-        reason: `Minor variation — ${carriers.size} of ${versions.length} versions carry it; align the rest to the enterprise standard.`,
-      };
-    }
-  }
 
   return buildReport(
     {
@@ -319,6 +237,5 @@ export async function assessProduct(
     },
     changeType,
     impacts,
-    recommendation,
   );
 }

@@ -26,7 +26,7 @@ export interface ReviewChoice {
   label: string;
   /** Plain-language consequence of picking this choice. */
   explain: string;
-  tone: 'adopt' | 'hold' | 'retire';
+  tone: 'adopt' | 'hold';
   /** Marks the decision already in force — shown, not clickable. */
   current?: boolean;
 }
@@ -41,7 +41,6 @@ export interface ReviewStatusChip {
 const CHOICE_TONES = {
   adopt: { bg: '#f0fdf4', border: '#86efac', fg: '#15803d', icon: '✓' },
   hold: { bg: '#fffbeb', border: '#fcd34d', fg: '#92400e', icon: '⏸' },
-  retire: { bg: '#fef2f2', border: '#fecaca', fg: '#991b1b', icon: '✕' },
 } as const;
 
 function ChoiceCard({

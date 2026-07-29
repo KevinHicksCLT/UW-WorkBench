@@ -368,11 +368,10 @@ export default function ProductCellModal({
                     >
                       {(
                         [
-                          ['Adopt', 'APPROVED', '#4f46e5'],
-                          ['Variant', 'HELD', '#525252'],
-                          ['Retire', 'RETIRED', '#dc2626'],
-                        ] as [string, ProductDecisionStatus, string][]
-                      ).map(([label, status, tone]) => {
+                          ['Adopt', 'APPROVED'],
+                          ['Variant', 'HELD'],
+                        ] as [string, ProductDecisionStatus][]
+                      ).map(([label, status]) => {
                         const on = decided === status;
                         return (
                           <button
@@ -387,7 +386,7 @@ export default function ProductCellModal({
                               borderRadius: 5,
                               padding: '2px 7px',
                               color: on ? '#fff' : '#525252',
-                              background: on ? tone : '#fff',
+                              background: on ? (label === 'Adopt' ? '#4f46e5' : '#525252') : '#fff',
                               border: `1px solid ${on ? 'transparent' : '#e5e5e5'}`,
                             }}
                           >

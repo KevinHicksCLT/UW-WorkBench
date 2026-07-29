@@ -14,22 +14,11 @@ import { z } from 'zod';
 import { prisma } from '../../db/prisma.js';
 import { activeCompany } from '../explorer/helpers.js';
 
-/** Impact-analysis step 2 — why the element exists in the first place. */
-const RATIONALES = [
-  'REGULATORY',
-  'MARKET',
-  'DISTRIBUTION',
-  'LEGACY',
-  'SEGMENT',
-  'ACCIDENTAL',
-] as const;
-
 const putSchema = z.object({
   lobId: z.string().trim().min(1),
   component: z.string().trim().min(1),
   groupKey: z.string().trim().min(1),
   status: z.enum(['APPROVED', 'HELD', 'RETIRED']),
-  rationale: z.enum(RATIONALES).nullable().optional(),
   comment: z.string().trim().max(2000).optional(),
 });
 
@@ -50,7 +39,6 @@ export function registerProductDecisionRoutes(router: Router): void {
           groupKey: true,
           component: true,
           status: true,
-          rationale: true,
           comment: true,
           decidedBy: true,
           updatedAt: true,
@@ -62,7 +50,6 @@ export function registerProductDecisionRoutes(router: Router): void {
           groupKey: r.groupKey,
           component: r.component,
           status: r.status,
-          rationale: r.rationale,
           comment: r.comment,
           decidedBy: r.decidedBy,
           decidedAt: r.updatedAt,
@@ -107,7 +94,7 @@ export function registerProductDecisionRoutes(router: Router): void {
       const company = await activeCompany(req, { id: true });
       if (!company) return res.status(404).json({ error: 'No company' });
 
-      const { lobId, component, groupKey, status, rationale, comment } = parsed.data;
+      const { lobId, component, groupKey, status, comment } = parsed.data;
       // The LOB node must belong to the tenant's active company (tenant walk).
       const lob = await prisma.productNode.findFirst({
         where: { id: lobId, companyId: company.id },
@@ -124,32 +111,22 @@ export function registerProductDecisionRoutes(router: Router): void {
           component,
           groupKey,
           status,
-          rationale: rationale ?? null,
           comment: comment ?? null,
           decidedBy: req.user.email,
         },
-        // An omitted comment/rationale keeps the existing value; null/empty clears it.
+        // An omitted comment keeps the existing note; an empty string clears it.
         update: {
           status,
           component,
           decidedBy: req.user.email,
-          ...(rationale !== undefined ? { rationale } : {}),
           ...(comment !== undefined ? { comment: comment || null } : {}),
         },
-        select: {
-          groupKey: true,
-          component: true,
-          status: true,
-          rationale: true,
-          comment: true,
-          updatedAt: true,
-        },
+        select: { groupKey: true, component: true, status: true, comment: true, updatedAt: true },
       });
       res.json({
         groupKey: saved.groupKey,
         component: saved.component,
         status: saved.status,
-        rationale: saved.rationale,
         comment: saved.comment,
         decidedAt: saved.updatedAt,
       });

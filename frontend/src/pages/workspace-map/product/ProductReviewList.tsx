@@ -2,9 +2,7 @@ import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   MATCH_META,
-  RATIONALE_LABELS,
   groupCitations,
-  type ProductDecisionRationale,
   type ProductDecisionStatus,
   type VersionColumn,
 } from './spine';
@@ -217,25 +215,6 @@ function ElementDetailModal({
               })}
             </div>
           </div>
-          {row.decision?.rationale && (
-            <div>
-              <div
-                style={{
-                  fontSize: 9.5,
-                  fontWeight: 600,
-                  letterSpacing: '.06em',
-                  textTransform: 'uppercase',
-                  color: '#737373',
-                  marginBottom: 4,
-                }}
-              >
-                Why it exists
-              </div>
-              <div style={{ fontSize: 12, color: '#404040' }}>
-                {RATIONALE_LABELS[row.decision.rationale]}
-              </div>
-            </div>
-          )}
           {row.decision?.comment && (
             <div>
               <div
@@ -290,7 +269,6 @@ export default function ProductReviewList({
     row: ReviewRow,
     status: ProductDecisionStatus | null,
     comment?: string,
-    rationale?: ProductDecisionRationale | null,
   ) => Promise<void>;
   /** Fires when the table scrolls away from (or back to) the top — the
    *  surrounding chrome hides itself to give the table the height. */
@@ -337,15 +315,10 @@ export default function ProductReviewList({
 
   const rowKey = (r: ReviewRow) => `${r.lobId}:${r.group.key}`;
 
-  const act = async (
-    r: ReviewRow,
-    status: ProductDecisionStatus | null,
-    comment?: string,
-    rationale?: ProductDecisionRationale | null,
-  ) => {
+  const act = async (r: ReviewRow, status: ProductDecisionStatus | null, comment?: string) => {
     setSavingKey(rowKey(r));
     try {
-      await onDecide(r, status, comment, rationale);
+      await onDecide(r, status, comment);
       setEditingKey(null);
     } finally {
       setSavingKey(null);
@@ -353,7 +326,7 @@ export default function ProductReviewList({
   };
 
   const colMin = columns.length <= 8 ? 110 : columns.length <= 18 ? 64 : 40;
-  const gridCols = `300px 110px repeat(${columns.length}, minmax(${colMin}px, 1fr)) 22px 150px 220px 165px 200px`;
+  const gridCols = `300px 110px repeat(${columns.length}, minmax(${colMin}px, 1fr)) 22px 150px 220px 200px`;
   const colLabel = labelOf ?? ((v: VersionColumn) => `${v.productName} · ${v.name}`);
   // Header exactly tall enough for the longest angled label — fully visible,
   // never spilling out of the header band.
@@ -593,7 +566,7 @@ export default function ProductReviewList({
             <span aria-hidden style={{ alignSelf: 'end' }} />
             {/* Solid chips ABOVE the angled labels so a leaning product name
                 can never run over these headings. */}
-            {['Product line', 'Decision', 'Why it exists', 'Comment'].map((h) => (
+            {['Product line', 'Decision', 'Comment'].map((h) => (
               <span
                 key={h}
                 style={{
@@ -736,52 +709,6 @@ export default function ProductReviewList({
                     >
                       Common — auto-included, no decision needed
                     </span>
-                  )}
-                </div>
-                {/* Why it exists (impact-analysis step 2) — recorded with the
-                    decision; unlocked once a decision row exists to attach to. */}
-                <div style={{ paddingRight: 8 }}>
-                  {r.needsDecision ? (
-                    <select
-                      aria-label="Why does this element exist?"
-                      value={r.decision?.rationale ?? ''}
-                      disabled={!r.decision || saving}
-                      title={
-                        r.decision
-                          ? 'why this element exists — saved with the decision'
-                          : 'decide first, then record why the element exists'
-                      }
-                      onChange={(e) =>
-                        void act(
-                          r,
-                          r.decision?.status ?? 'HELD',
-                          undefined,
-                          (e.target.value || null) as ProductDecisionRationale | null,
-                        )
-                      }
-                      style={{
-                        font: 'inherit',
-                        fontSize: 11,
-                        width: '100%',
-                        border: '1px solid #d4d4d4',
-                        borderRadius: 6,
-                        padding: '2px 4px',
-                        background: '#fff',
-                        color: r.decision?.rationale ? '#171717' : '#737373',
-                        opacity: r.decision ? 1 : 0.55,
-                      }}
-                    >
-                      <option value="">why it exists…</option>
-                      {(
-                        Object.entries(RATIONALE_LABELS) as [ProductDecisionRationale, string][]
-                      ).map(([token, label]) => (
-                        <option key={token} value={token}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <span aria-hidden />
                   )}
                 </div>
                 <div style={{ paddingRight: 4 }}>

@@ -5,7 +5,6 @@ import {
   CATEGORY_LABELS,
   CHANGE_LABELS,
   DESTRUCTIVE,
-  RECOMMENDATION_META,
   SEVERITY_META,
   type ImpactReport,
   type ImpactSeverity,
@@ -82,96 +81,6 @@ function AiAssessment({ report }: { report: ImpactReport }) {
       </div>
       <div style={{ fontSize: 11.5, color: '#334155', lineHeight: 1.5, marginTop: 3 }}>
         {loading ? 'Reading the report against the operating model…' : text}
-      </div>
-    </div>
-  );
-}
-
-/** The executive read of the analysis: every outlier walks the same ladder —
- *  why it exists → what value it provides → what breaks → retain / standardize
- *  / retire. Rendered for product-element subjects so the report reads as a
- *  decision packet, not just a list of touched entities. */
-function DecisionFlow() {
-  const steps = [
-    'Outlier detected',
-    'Why does it exist?',
-    'What value does it provide?',
-    'What breaks if changed?',
-    'Retain · Standardize · Retire',
-  ];
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: 4,
-        margin: '10px 16px 0',
-        fontSize: 9.5,
-        fontWeight: 600,
-        letterSpacing: 0.3,
-        color: '#64748b',
-      }}
-    >
-      {steps.map((s, i) => (
-        <span key={s} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-          {i > 0 && <span style={{ color: '#cbd5e1' }}>→</span>}
-          <span
-            style={{
-              padding: '2px 8px',
-              borderRadius: 999,
-              background: i === steps.length - 1 ? '#f0f7fb' : '#f8fafc',
-              border: `1px solid ${i === steps.length - 1 ? '#bae0f2' : '#e2e8f0'}`,
-              color: i === steps.length - 1 ? LOGO_BLUE : undefined,
-            }}
-          >
-            {s}
-          </span>
-        </span>
-      ))}
-    </div>
-  );
-}
-
-/** The walker's rationalization steer — advisory, the reviewer decides. */
-function Recommendation({ report }: { report: ImpactReport }) {
-  const rec = report.recommendation;
-  if (!rec) return null;
-  const m = RECOMMENDATION_META[rec.option];
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: 10,
-        margin: '10px 16px 0',
-        padding: '8px 12px',
-        borderRadius: 8,
-        background: m.bg,
-        border: `1px solid ${m.border}`,
-      }}
-    >
-      <span
-        style={{
-          padding: '2px 10px',
-          borderRadius: 999,
-          fontSize: 10.5,
-          fontWeight: 700,
-          color: '#fff',
-          background: m.fg,
-          whiteSpace: 'nowrap',
-          marginTop: 1,
-        }}
-      >
-        {m.label}
-      </span>
-      <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 9.5, fontWeight: 700, color: m.fg, letterSpacing: 0.5 }}>
-          RECOMMENDATION
-        </div>
-        <div style={{ fontSize: 11.5, color: '#334155', lineHeight: 1.5, marginTop: 2 }}>
-          {rec.reason}
-        </div>
       </div>
     </div>
   );
@@ -329,8 +238,6 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
           )}
           {report && (
             <>
-              {report.subject.kind === 'product-element' && <DecisionFlow />}
-              <Recommendation report={report} />
               <AiAssessment report={report} />
               {report.impacts.length === 0 ? (
                 <div style={{ padding: '18px 16px', fontSize: 12, color: '#737373' }}>

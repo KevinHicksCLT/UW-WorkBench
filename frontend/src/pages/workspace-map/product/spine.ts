@@ -63,29 +63,12 @@ export type MatchStatus = 'COMMON' | 'PARTIAL' | 'UNIQUE' | 'SINGLE';
 
 /** Reviewer sign-off for a varies/unique element group (GET /product-spine/decisions). */
 export type ProductDecisionStatus = 'APPROVED' | 'HELD' | 'RETIRED';
-
-/** Why the element exists in the first place (impact-analysis step 2) —
- *  recorded with the decision so "nobody remembers why this exists" stops
- *  being the answer. */
-export type ProductDecisionRationale =
-  'REGULATORY' | 'MARKET' | 'DISTRIBUTION' | 'LEGACY' | 'SEGMENT' | 'ACCIDENTAL';
-
-export const RATIONALE_LABELS: Record<ProductDecisionRationale, string> = {
-  REGULATORY: 'Regulatory',
-  MARKET: 'Market-driven',
-  DISTRIBUTION: 'Distribution-driven',
-  LEGACY: 'Legacy artifact',
-  SEGMENT: 'Customer segment',
-  ACCIDENTAL: 'Accidental duplication',
-};
-
 export interface ProductDecision {
   /** Owning LOB — present on the portfolio-wide (no lobId) fetch. */
   lobId?: string;
   groupKey: string;
   component: string;
   status: ProductDecisionStatus;
-  rationale?: ProductDecisionRationale | null;
   comment?: string | null;
   decidedBy?: string | null;
 }
@@ -132,14 +115,14 @@ export const MATCH_META: Record<
     fg: '#b45309',
     bg: '#fffbeb',
     border: '#fde68a',
-    hint: 'minor variation — in some versions, review',
+    hint: 'in some versions — review',
   },
   UNIQUE: {
     label: 'Unique',
     fg: '#475569',
     bg: '#f8fafc',
     border: '#cbd5e1',
-    hint: 'outlier — one version only',
+    hint: 'one version only',
   },
   SINGLE: {
     label: 'Element',

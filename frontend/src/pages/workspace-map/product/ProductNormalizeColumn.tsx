@@ -247,9 +247,7 @@ function ReviewActions({
       ? { label: 'Adopted', fg: '#15803d', bg: '#dcfce7', border: '#86efac' }
       : decision === 'HELD'
         ? REVIEW_STATUS.held
-        : decision === 'RETIRED'
-          ? { label: 'Retired', fg: '#991b1b', bg: '#fef2f2', border: '#fecaca' }
-          : REVIEW_STATUS.review;
+        : REVIEW_STATUS.review;
 
   return (
     <div
@@ -267,9 +265,7 @@ function ReviewActions({
           ? 'Adopted — part of the normalized model.'
           : decision === 'HELD'
             ? 'Held as a version variant — not in the model.'
-            : decision === 'RETIRED'
-              ? 'Retired — removed from every version.'
-              : `In ${group.presentIn} of ${versions.length} versions — needs a decision.`}
+            : `In ${group.presentIn} of ${versions.length} versions — needs a decision.`}
       </span>
       <button
         type="button"
@@ -332,15 +328,6 @@ function ReviewActions({
               `Stays specific to ${carrierNames || 'its versions'} as a jurisdiction/version variant. ` +
               'It is left OUT of the normalized model unless adopted later.',
           },
-          {
-            key: 'RETIRED',
-            label: 'Retire the element',
-            tone: 'retire',
-            current: decision === 'RETIRED',
-            explain:
-              'Removed altogether — no version keeps it and it never enters the normalized model. ' +
-              'For outliers with no regulatory, market or premium reason to exist.',
-          },
         ]}
         busyKey={null}
         error=""
@@ -384,9 +371,7 @@ function GroupCard({
           ? 'APPROVED'
           : decision === 'HELD'
             ? 'HELD'
-            : decision === 'RETIRED'
-              ? 'RETIRED'
-              : null;
+            : null;
   return (
     <div
       data-anchor={`nz:${group.component}:${group.key}`}
