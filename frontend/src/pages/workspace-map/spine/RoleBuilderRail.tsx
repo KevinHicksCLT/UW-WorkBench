@@ -261,6 +261,97 @@ export function RoleRail({
 
   return (
     <div style={{ display: 'flex', flexShrink: 0, alignSelf: 'stretch', gap: 0 }}>
+      {/* Target chooser — left of the rail: brand-new role or consolidate
+          into an existing one (that role becomes the target). */}
+      <div
+        style={{
+          width: 150,
+          flexShrink: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
+          border: '1px solid #eaeaea',
+          borderRadius: 10,
+          background: '#fff',
+          padding: 8,
+          alignSelf: 'flex-start',
+        }}
+      >
+        <span
+          style={{
+            fontSize: 9.5,
+            fontWeight: 700,
+            letterSpacing: '.06em',
+            textTransform: 'uppercase',
+            color: '#525252',
+          }}
+        >
+          Target
+        </span>
+        <span style={{ fontSize: 8.5, color: '#94a3b8', marginBottom: 2 }}>
+          Build a brand-new role, or consolidate into an existing one.
+        </span>
+        <button
+          type="button"
+          onClick={() => onTargetRole('')}
+          style={{
+            font: 'inherit',
+            textAlign: 'left',
+            fontSize: 10,
+            fontWeight: targetRoleId === '' ? 700 : 500,
+            color: targetRoleId === '' ? '#14532d' : '#525252',
+            background: targetRoleId === '' ? '#f6faf7' : '#fff',
+            border: `1px solid ${targetRoleId === '' ? '#a7f3d0' : '#eaeaea'}`,
+            borderRadius: 7,
+            padding: '4px 8px',
+            cursor: 'pointer',
+          }}
+        >
+          ＋ New role
+        </button>
+        {roleOptions.map((r) => {
+          const on = targetRoleId === r.id;
+          return (
+            <button
+              key={r.id}
+              type="button"
+              onClick={() => onTargetRole(r.id)}
+              title={`Consolidate into ${r.name} — it becomes the target role`}
+              style={{
+                font: 'inherit',
+                textAlign: 'left',
+                fontSize: 10,
+                fontWeight: on ? 700 : 500,
+                color: on ? '#3730a3' : '#525252',
+                background: on ? '#f6f7ff' : '#fff',
+                border: `1px solid ${on ? '#c7d2fe' : '#eaeaea'}`,
+                borderRadius: 7,
+                padding: '4px 8px',
+                cursor: 'pointer',
+                lineHeight: 1.3,
+              }}
+            >
+              ⇥ Consolidate into {r.name}
+            </button>
+          );
+        })}
+      </div>
+
+      <div
+        style={{
+          width: 22,
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+          paddingTop: 44,
+          color: '#94a3b8',
+          fontSize: 14,
+        }}
+      >
+        <span title="The target choice shapes the new role">→</span>
+      </div>
+
       <div
         style={{
           width: 280,
@@ -387,7 +478,7 @@ export function RoleRail({
         </button>
       </div>
 
-      {/* Arrow from the New role box into the target chooser on the right. */}
+      {/* Arrow from the New role box into the vertical final sequence. */}
       <div
         style={{
           width: 24,
@@ -400,90 +491,21 @@ export function RoleRail({
           fontSize: 15,
         }}
       >
-        <span title="The new role feeds its target">→</span>
+        <span title="The boxes assemble into the final sequence">→</span>
       </div>
 
-      {/* Target chooser — vertical, right of the rail: brand-new role or
-          consolidate into an existing one (that role becomes the target). */}
-      <div
-        style={{
-          width: 150,
-          flexShrink: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 4,
-          border: '1px solid #eaeaea',
-          borderRadius: 10,
-          background: '#fff',
-          padding: 8,
-          alignSelf: 'flex-start',
-        }}
-      >
-        <span
-          style={{
-            fontSize: 9.5,
-            fontWeight: 700,
-            letterSpacing: '.06em',
-            textTransform: 'uppercase',
-            color: '#525252',
-          }}
-        >
-          Target
-        </span>
-        <span style={{ fontSize: 8.5, color: '#94a3b8', marginBottom: 2 }}>
-          Build a brand-new role, or consolidate into an existing one.
-        </span>
-        <button
-          type="button"
-          onClick={() => onTargetRole('')}
-          style={{
-            font: 'inherit',
-            textAlign: 'left',
-            fontSize: 10,
-            fontWeight: targetRoleId === '' ? 700 : 500,
-            color: targetRoleId === '' ? '#14532d' : '#525252',
-            background: targetRoleId === '' ? '#f6faf7' : '#fff',
-            border: `1px solid ${targetRoleId === '' ? '#a7f3d0' : '#eaeaea'}`,
-            borderRadius: 7,
-            padding: '4px 8px',
-            cursor: 'pointer',
-          }}
-        >
-          ＋ New role
-        </button>
-        {roleOptions.map((r) => {
-          const on = targetRoleId === r.id;
-          return (
-            <button
-              key={r.id}
-              type="button"
-              onClick={() => onTargetRole(r.id)}
-              title={`Consolidate into ${r.name} — it becomes the target role`}
-              style={{
-                font: 'inherit',
-                textAlign: 'left',
-                fontSize: 10,
-                fontWeight: on ? 700 : 500,
-                color: on ? '#3730a3' : '#525252',
-                background: on ? '#f6f7ff' : '#fff',
-                border: `1px solid ${on ? '#c7d2fe' : '#eaeaea'}`,
-                borderRadius: 7,
-                padding: '4px 8px',
-                cursor: 'pointer',
-                lineHeight: 1.3,
-              }}
-            >
-              ⇥ Consolidate into {r.name}
-            </button>
-          );
-        })}
-      </div>
+      <RoleFlowColumn
+        name={existingTarget ? existingTarget.name : name}
+        items={items}
+        onChange={onChange}
+      />
     </div>
   );
 }
 
-/** The final sequence — the new role's work in execution order, editable. */
-export function RoleFlowStrip({
+/** The final sequence — VERTICAL column right of the rail: the new role's
+ *  work in execution order, agent steps called out, fully editable. */
+function RoleFlowColumn({
   name,
   items,
   onChange,
@@ -523,169 +545,187 @@ export function RoleFlowStrip({
         }
       }}
       style={{
-        borderTop: '2px solid #a7f3d0',
-        background: '#f6faf7',
-        padding: '8px 14px 10px',
+        width: 240,
         flexShrink: 0,
+        border: '2px solid #a7f3d0',
+        borderRadius: 10,
+        background: '#f6faf7',
+        padding: 8,
+        alignSelf: 'flex-start',
+        boxSizing: 'border-box',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: '#14532d' }}>
+      <div style={{ marginBottom: 6 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#14532d' }}>
           {name} — final sequence
-        </span>
-        <span style={{ fontSize: 9.5, color: '#4d7c60' }}>
+        </div>
+        <div style={{ fontSize: 8.5, color: '#4d7c60', marginTop: 2 }}>
           {items.length === 0
             ? 'assembles here in real time — manual and agent steps in the order they happen'
             : `${items.length} steps · ${items.filter((i) => i.agent).length} agent · ${items.filter((i) => !i.agent).length} manual — drag to reorder, click a name to rename, click the tag to flip agent/manual`}
-        </span>
+        </div>
       </div>
-      <div style={{ overflowX: 'auto' }}>
-        <div style={{ display: 'flex', alignItems: 'stretch', width: 'max-content' }}>
-          {items.map((s, i) => (
-            <div key={s.uid} style={{ display: 'flex', alignItems: 'center' }}>
-              {i > 0 && (
-                <span style={{ width: 12, height: 1.5, background: '#bbe7cf', flexShrink: 0 }} />
-              )}
-              <div
-                draggable
-                onDragStart={(e) => e.dataTransfer.setData(UID_MIME, s.uid)}
-                onDragOver={(e) => {
-                  if (e.dataTransfer.types.includes(UID_MIME)) e.preventDefault();
-                }}
-                onDrop={(e) => {
-                  const uid = e.dataTransfer.getData(UID_MIME);
-                  if (uid && uid !== s.uid) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    moveBefore(uid, s.uid);
-                  }
-                }}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'stretch',
+          maxHeight: 560,
+          overflowY: 'auto',
+        }}
+      >
+        {items.map((s, i) => (
+          <div key={s.uid} style={{ display: 'flex', flexDirection: 'column' }}>
+            {i > 0 && (
+              <span
                 style={{
-                  width: 180,
-                  boxSizing: 'border-box',
-                  background: s.agent ? '#f6f7ff' : '#fff',
-                  border: `1px solid ${s.agent ? '#c7d2fe' : '#bbe7cf'}`,
-                  borderTop: `3px solid ${s.agent ? '#4338ca' : '#047857'}`,
-                  borderRadius: 8,
-                  padding: '5px 8px',
-                  cursor: 'grab',
+                  width: 1.5,
+                  height: 10,
+                  background: '#bbe7cf',
+                  flexShrink: 0,
+                  alignSelf: 'center',
                 }}
-              >
-                <div style={{ display: 'flex', gap: 5, alignItems: 'flex-start' }}>
-                  <span
-                    style={{
-                      flexShrink: 0,
-                      width: 14,
-                      height: 14,
-                      borderRadius: 999,
-                      background: s.agent ? '#4338ca' : '#047857',
-                      color: '#fff',
-                      fontSize: 8,
-                      fontWeight: 800,
-                      lineHeight: '14px',
-                      textAlign: 'center',
+              />
+            )}
+            <div
+              draggable
+              onDragStart={(e) => e.dataTransfer.setData(UID_MIME, s.uid)}
+              onDragOver={(e) => {
+                if (e.dataTransfer.types.includes(UID_MIME)) e.preventDefault();
+              }}
+              onDrop={(e) => {
+                const uid = e.dataTransfer.getData(UID_MIME);
+                if (uid && uid !== s.uid) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  moveBefore(uid, s.uid);
+                }
+              }}
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                background: s.agent ? '#f6f7ff' : '#fff',
+                border: `1px solid ${s.agent ? '#c7d2fe' : '#bbe7cf'}`,
+                borderLeft: `3px solid ${s.agent ? '#4338ca' : '#047857'}`,
+                borderRadius: 8,
+                padding: '5px 8px',
+                cursor: 'grab',
+              }}
+            >
+              <div style={{ display: 'flex', gap: 5, alignItems: 'flex-start' }}>
+                <span
+                  style={{
+                    flexShrink: 0,
+                    width: 14,
+                    height: 14,
+                    borderRadius: 999,
+                    background: s.agent ? '#4338ca' : '#047857',
+                    color: '#fff',
+                    fontSize: 8,
+                    fontWeight: 800,
+                    lineHeight: '14px',
+                    textAlign: 'center',
+                  }}
+                >
+                  {i + 1}
+                </span>
+                {editing === s.uid ? (
+                  <input
+                    autoFocus
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onBlur={() => commitRename(s.uid)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') commitRename(s.uid);
+                      if (e.key === 'Escape') setEditing(null);
                     }}
-                  >
-                    {i + 1}
-                  </span>
-                  {editing === s.uid ? (
-                    <input
-                      autoFocus
-                      value={draft}
-                      onChange={(e) => setDraft(e.target.value)}
-                      onBlur={() => commitRename(s.uid)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') commitRename(s.uid);
-                        if (e.key === 'Escape') setEditing(null);
-                      }}
-                      style={{
-                        flex: 1,
-                        minWidth: 0,
-                        font: 'inherit',
-                        fontSize: 9.5,
-                        border: '1px solid #a7f3d0',
-                        borderRadius: 4,
-                        padding: '0 3px',
-                      }}
-                    />
-                  ) : (
-                    <button
-                      type="button"
-                      title="Click to rename"
-                      onClick={() => {
-                        setEditing(s.uid);
-                        setDraft(s.name);
-                      }}
-                      style={{
-                        font: 'inherit',
-                        flex: 1,
-                        minWidth: 0,
-                        textAlign: 'left',
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        cursor: 'text',
-                        fontSize: 9.5,
-                        lineHeight: 1.3,
-                        color: '#14532d',
-                      }}
-                    >
-                      {s.name}
-                    </button>
-                  )}
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      font: 'inherit',
+                      fontSize: 9.5,
+                      border: '1px solid #a7f3d0',
+                      borderRadius: 4,
+                      padding: '0 3px',
+                    }}
+                  />
+                ) : (
                   <button
                     type="button"
-                    aria-label={`Remove ${s.name}`}
-                    onClick={() => onChange(items.filter((x) => x.uid !== s.uid))}
+                    title="Click to rename"
+                    onClick={() => {
+                      setEditing(s.uid);
+                      setDraft(s.name);
+                    }}
                     style={{
                       font: 'inherit',
-                      flexShrink: 0,
-                      fontSize: 10,
-                      color: '#94a3b8',
+                      flex: 1,
+                      minWidth: 0,
+                      textAlign: 'left',
                       background: 'none',
                       border: 'none',
-                      cursor: 'pointer',
                       padding: 0,
+                      cursor: 'text',
+                      fontSize: 9.5,
+                      lineHeight: 1.3,
+                      color: '#14532d',
                     }}
                   >
-                    ×
+                    {s.name}
                   </button>
-                </div>
-                <div style={{ display: 'flex', gap: 4, marginTop: 3, paddingLeft: 19 }}>
-                  <button
-                    type="button"
-                    title="Flip between agent-run and manual"
-                    onClick={() =>
-                      onChange(
-                        items.map((x) =>
-                          x.uid === s.uid ? { ...x, agent: x.agent ? undefined : true } : x,
-                        ),
-                      )
-                    }
-                    style={{
-                      font: 'inherit',
-                      fontSize: 7.5,
-                      fontWeight: 700,
-                      color: s.agent ? '#4338ca' : '#64748b',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: 0,
-                    }}
-                  >
-                    {s.agent ? 'AGENT' : 'MANUAL'}
-                  </button>
-                  <span style={{ fontSize: 7.5, color: '#94a3b8' }}>· {s.source}</span>
-                </div>
+                )}
+                <button
+                  type="button"
+                  aria-label={`Remove ${s.name}`}
+                  onClick={() => onChange(items.filter((x) => x.uid !== s.uid))}
+                  style={{
+                    font: 'inherit',
+                    flexShrink: 0,
+                    fontSize: 10,
+                    color: '#94a3b8',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              <div style={{ display: 'flex', gap: 4, marginTop: 3, paddingLeft: 19 }}>
+                <button
+                  type="button"
+                  title="Flip between agent-run and manual"
+                  onClick={() =>
+                    onChange(
+                      items.map((x) =>
+                        x.uid === s.uid ? { ...x, agent: x.agent ? undefined : true } : x,
+                      ),
+                    )
+                  }
+                  style={{
+                    font: 'inherit',
+                    fontSize: 7.5,
+                    fontWeight: 700,
+                    color: s.agent ? '#4338ca' : '#64748b',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                >
+                  {s.agent ? 'AGENT' : 'MANUAL'}
+                </button>
+                <span style={{ fontSize: 7.5, color: '#94a3b8' }}>· {s.source}</span>
               </div>
             </div>
-          ))}
-          {items.length === 0 && (
-            <div style={{ fontSize: 10.5, color: '#4d7c60', padding: '4px 2px' }}>
-              No steps yet — drag tasks into the New role or Agent box.
-            </div>
-          )}
-        </div>
+          </div>
+        ))}
+        {items.length === 0 && (
+          <div style={{ fontSize: 10.5, color: '#4d7c60', padding: '4px 2px' }}>
+            No steps yet — drag tasks into the New role or Agent box.
+          </div>
+        )}
       </div>
     </div>
   );

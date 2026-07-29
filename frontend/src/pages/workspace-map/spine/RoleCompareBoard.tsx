@@ -7,7 +7,7 @@ import ImpactPanel from '../impact/ImpactPanel';
 import { useImpactGate } from '../impact/useImpactGate';
 import { INDIGO } from '../types';
 import { Picker, type PoolOption } from './SpineBoard';
-import { RoleRail, RoleFlowStrip } from './RoleBuilderRail';
+import { RoleRail } from './RoleBuilderRail';
 import { RoleColumns, type TaskFilter } from './RoleTaskColumns';
 import { type BuilderItem, type DragPayload } from './processBuilder';
 import {
@@ -186,7 +186,6 @@ export default function RoleCompareBoard({
     );
   };
   const targetRole = targetRoleId ? (columns.find((c) => c.id === targetRoleId) ?? null) : null;
-  const effectiveName = targetRole?.name ?? builderName;
   const commit = () => {
     const nodeIds = [...new Set(builder.flatMap((b) => b.nodeIds))];
     const agentRun = builder.filter((b) => b.agent).length;
@@ -493,8 +492,6 @@ export default function RoleCompareBoard({
                 </div>
               </div>
             </div>
-
-            <RoleFlowStrip name={effectiveName} items={builder} onChange={setBuilder} />
           </>
         )}
       </div>
