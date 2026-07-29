@@ -346,7 +346,7 @@ export default function ProductGridView({
                       cursor: 'pointer',
                     }}
                   >
-                    {abbr ? '»' : '«'}
+                    {abbr ? '⌄' : '⌃'}
                   </button>
                 </div>
                 {heat.columns.map((v) => (

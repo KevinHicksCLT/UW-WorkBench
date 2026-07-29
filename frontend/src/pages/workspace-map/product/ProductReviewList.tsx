@@ -323,7 +323,8 @@ export default function ProductReviewList({
     }
   };
 
-  const gridCols = `minmax(240px,1fr) 110px repeat(${columns.length}, minmax(26px, 34px)) 150px 220px 200px`;
+  const colMin = columns.length <= 8 ? 110 : columns.length <= 18 ? 64 : 40;
+  const gridCols = `300px 110px repeat(${columns.length}, minmax(${colMin}px, 1fr)) 22px 150px 220px 200px`;
   const colLabel = labelOf ?? ((v: VersionColumn) => `${v.productName} · ${v.name}`);
   // Header exactly tall enough for the longest angled label — fully visible,
   // never spilling out of the header band.
@@ -401,31 +402,6 @@ export default function ProductReviewList({
           <option value="name">Sort: element name</option>
           <option value="line">Sort: product line</option>
         </select>
-        {onToggleAbbr && (
-          <button
-            type="button"
-            onClick={onToggleAbbr}
-            title={
-              abbr
-                ? 'show full product names'
-                : 'collapse product names to initials — hover a column for the full name'
-            }
-            style={{
-              font: 'inherit',
-              fontSize: 10,
-              fontWeight: 600,
-              letterSpacing: '0.04em',
-              color: abbr ? '#fff' : '#525252',
-              background: abbr ? '#171717' : '#fff',
-              border: '1px solid #d4d4d4',
-              borderRadius: 6,
-              padding: '5px 9px',
-              cursor: 'pointer',
-            }}
-          >
-            {abbr ? '»' : '«'}
-          </button>
-        )}
         <div
           style={{
             display: 'flex',
@@ -497,8 +473,41 @@ export default function ProductReviewList({
               minWidth: '100%',
             }}
           >
-            <span style={{ paddingBottom: 6, alignSelf: 'end' }}>
-              Element — click a title for its full detail
+            <span
+              style={{
+                paddingBottom: 6,
+                alignSelf: 'end',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
+              <span>Element</span>
+              {onToggleAbbr && (
+                <button
+                  type="button"
+                  onClick={onToggleAbbr}
+                  title={
+                    abbr
+                      ? 'expand the product names'
+                      : 'collapse the product names to initials — hover a column for the full name'
+                  }
+                  style={{
+                    font: 'inherit',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    lineHeight: 1,
+                    color: '#525252',
+                    background: '#fff',
+                    border: '1px solid #d4d4d4',
+                    borderRadius: 5,
+                    padding: '2px 6px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {abbr ? '⌄' : '⌃'}
+                </button>
+              )}
             </span>
             <span style={{ paddingBottom: 6, alignSelf: 'end' }}>Status</span>
             {columns.map((v) => (
