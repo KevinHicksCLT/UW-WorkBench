@@ -55,7 +55,7 @@ export default function ProductNodeDetail() {
                   This node doesn&rsquo;t exist (or is no longer part of the product hierarchy).
                 </p>
                 <Link to="/product-models" className="text-[#2563eb] font-medium hover:underline">
-                  Back to Product Models
+                  Back to Products
                 </Link>
               </>
             }

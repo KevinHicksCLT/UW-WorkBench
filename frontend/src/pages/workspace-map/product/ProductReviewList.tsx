@@ -508,7 +508,7 @@ export default function ProductReviewList({
                 gap: 8,
               }}
             >
-              <span>Coverages</span>
+              <span>Products</span>
               {onToggleAbbr && (
                 <button
                   type="button"

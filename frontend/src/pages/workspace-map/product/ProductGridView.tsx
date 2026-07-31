@@ -396,7 +396,7 @@ export default function ProductGridView({
                     gap: 8,
                   }}
                 >
-                  <span>Form / component</span>
+                  <span>Products</span>
                   <button
                     type="button"
                     onClick={() => setAbbr((a) => !a)}
