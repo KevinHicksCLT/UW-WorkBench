@@ -458,8 +458,11 @@ export default function ProductBoard({
         style={{
           display: 'flex',
           flexDirection: 'column',
-          height: 'calc(100vh - 156px)',
-          minHeight: 480,
+          height: 'calc(100vh - 178px)',
+          // Low floor on purpose: a 480px floor pushed the board past the fold
+          // on half-height windows, and with the wheel captured by the inner
+          // scroller the clipped bottom was unreachable (scroll bug).
+          minHeight: 300,
         }}
       >
         {/* Scrolled into the table, every chrome row hides — scroll back to
@@ -496,8 +499,8 @@ export default function ProductBoard({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        height: 'calc(100vh - 156px)',
-        minHeight: 480,
+        height: 'calc(100vh - 178px)',
+        minHeight: 300,
       }}
     >
       {lensBar}
