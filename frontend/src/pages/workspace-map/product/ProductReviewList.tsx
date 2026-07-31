@@ -8,25 +8,28 @@ import {
 } from './spine';
 import type { ReviewRow } from './gridModel';
 
-// The Products workspace's drill-down review list — compact rows (title only;
-// the title is a link that opens the full element detail modal), a real
+// The Products workspace's drill-down review list — the decision queue.
+// Compact rows (the title opens the full element detail modal), a real
 // presence GRID (green block = the product carries the element, empty box =
-// it doesn't), the decision actions (Adopt · Variant · Retire — click the
-// active one again to withdraw it) and a reviewer comment per line.
+// it doesn't), the decision actions (Retain · Standardize · Retire — click
+// the active one again to withdraw it) and a reviewer comment per line.
 // Navigation is breadcrumb + browser back — no bespoke back button.
 
-export type ReviewFilter = 'pending' | 'decided' | 'auto' | 'all';
+export type ReviewFilter = 'pending' | 'decided' | 'auto' | 'similar' | 'unique' | 'all';
 
+// Decision vocabulary: Retain = keep as a product-specific variant (HELD),
+// Standardize = fold into the single enterprise definition (APPROVED),
+// Retire = drop from the target model (RETIRED). API statuses unchanged.
 const STATUS_ACTIONS: [ProductDecisionStatus, string, string][] = [
-  ['APPROVED', 'Adopt', '#4f46e5'],
-  ['HELD', 'Variant', '#525252'],
+  ['HELD', 'Retain', '#0f766e'],
+  ['APPROVED', 'Standardize', '#4f46e5'],
   ['RETIRED', 'Retire', '#dc2626'],
 ];
 
 const STATUS_LABEL: Record<ProductDecisionStatus, string> = {
-  APPROVED: 'Adopted into model',
-  HELD: 'Kept as variant',
-  RETIRED: 'Retired',
+  APPROVED: 'Standardize — single enterprise coverage definition',
+  HELD: 'Retain — kept as a product-specific variant',
+  RETIRED: 'Retire — dropped from the target model',
 };
 
 type SortKey = 'status' | 'name' | 'line';
@@ -115,7 +118,7 @@ function ElementDetailModal({
             style={{
               font: 'inherit',
               fontSize: 14,
-              color: '#737373',
+              color: '#525252',
               background: 'none',
               border: 'none',
               padding: '2px 8px',
@@ -142,7 +145,7 @@ function ElementDetailModal({
                   fontWeight: 600,
                   letterSpacing: '.06em',
                   textTransform: 'uppercase',
-                  color: '#737373',
+                  color: '#525252',
                   marginBottom: 4,
                 }}
               >
@@ -150,9 +153,9 @@ function ElementDetailModal({
               </div>
               <div
                 style={{
-                  fontSize: 11.5,
+                  fontSize: 12,
                   fontFamily: 'ui-monospace, monospace',
-                  color: '#404040',
+                  color: '#262626',
                   lineHeight: 1.5,
                 }}
               >
@@ -167,7 +170,7 @@ function ElementDetailModal({
                 fontWeight: 600,
                 letterSpacing: '.06em',
                 textTransform: 'uppercase',
-                color: '#737373',
+                color: '#525252',
                 marginBottom: 4,
               }}
             >
@@ -192,9 +195,9 @@ function ElementDetailModal({
                   >
                     <span
                       style={{
-                        fontSize: 11.5,
+                        fontSize: 12,
                         fontWeight: 600,
-                        color: el ? '#171717' : '#737373',
+                        color: el ? '#171717' : '#525252',
                         width: 250,
                         flexShrink: 0,
                       }}
@@ -203,8 +206,8 @@ function ElementDetailModal({
                     </span>
                     <span
                       style={{
-                        fontSize: 11.5,
-                        color: el ? '#404040' : '#a3a3a3',
+                        fontSize: 12,
+                        color: el ? '#262626' : '#525252',
                         lineHeight: 1.45,
                       }}
                     >
@@ -223,7 +226,7 @@ function ElementDetailModal({
                   fontWeight: 600,
                   letterSpacing: '.06em',
                   textTransform: 'uppercase',
-                  color: '#737373',
+                  color: '#525252',
                   marginBottom: 4,
                 }}
               >
@@ -232,7 +235,7 @@ function ElementDetailModal({
               <div style={{ fontSize: 12, color: '#404040', lineHeight: 1.5 }}>
                 {row.decision.comment}
                 {row.decision.decidedBy ? (
-                  <span style={{ color: '#737373' }}> — {row.decision.decidedBy}</span>
+                  <span style={{ color: '#525252' }}> — {row.decision.decidedBy}</span>
                 ) : null}
               </div>
             </div>
@@ -246,10 +249,10 @@ function ElementDetailModal({
 
 export default function ProductReviewList({
   title,
-  subtitle,
   columns,
   rows,
   defaultFilter,
+  stats,
   onBack,
   onDecide,
   onScrollDepth,
@@ -258,7 +261,8 @@ export default function ProductReviewList({
   onToggleAbbr,
 }: {
   title: string;
-  subtitle: string;
+  /** Organized stats band rendered directly under the toolbar. */
+  stats?: React.ReactNode;
   columns: VersionColumn[];
   rows: ReviewRow[];
   defaultFilter: ReviewFilter;
@@ -272,9 +276,10 @@ export default function ProductReviewList({
   ) => Promise<void>;
   /** Fires when the table scrolls away from (or back to) the top — the
    *  surrounding chrome hides itself to give the table the height. */
-  /** Raw scrollTop of the list's scroll surface — the parent owns the
-   *  direction/hysteresis logic so both heatmap surfaces behave identically. */
-  onScrollDepth?: (scrollTop: number) => void;
+  /** Raw scrollTop + scrollable overflow of the list's scroll surface — the
+   *  parent owns the direction/hysteresis logic so both heatmap surfaces
+   *  behave identically. */
+  onScrollDepth?: (scrollTop: number, overflow?: number) => void;
   /** Column label (full or abbreviated) — full name always on hover. */
   labelOf?: (v: VersionColumn) => string;
   abbr?: boolean;
@@ -292,6 +297,8 @@ export default function ProductReviewList({
     pending: rows.filter((r) => r.needsDecision && !r.decision).length,
     decided: rows.filter((r) => r.needsDecision && r.decision).length,
     auto: rows.filter((r) => !r.needsDecision).length,
+    similar: rows.filter((r) => r.group.status === 'PARTIAL').length,
+    unique: rows.filter((r) => r.group.status === 'UNIQUE').length,
     all: rows.length,
   };
 
@@ -301,6 +308,8 @@ export default function ProductReviewList({
       if (filter === 'pending' && (!r.needsDecision || r.decision)) return false;
       if (filter === 'decided' && (!r.needsDecision || !r.decision)) return false;
       if (filter === 'auto' && r.needsDecision) return false;
+      if (filter === 'similar' && r.group.status !== 'PARTIAL') return false;
+      if (filter === 'unique' && r.group.status !== 'UNIQUE') return false;
       if (q && !rowText(r).includes(q)) return false;
       return true;
     });
@@ -325,8 +334,10 @@ export default function ProductReviewList({
     }
   };
 
-  const colMin = columns.length <= 8 ? 110 : columns.length <= 18 ? 64 : 40;
-  const gridCols = `300px 110px repeat(${columns.length}, minmax(${colMin}px, 1fr)) 22px 150px 220px 200px`;
+  // FIXED presence-cell width (never minmax/1fr): a 2-product scope renders
+  // the same compact cells as a 26-product one instead of page-wide bars.
+  // No Status column — the presence blocks carry the status color directly.
+  const gridCols = `320px repeat(${columns.length}, 44px) 22px 140px 236px 200px`;
   const colLabel = labelOf ?? ((v: VersionColumn) => `${v.productName} · ${v.name}`);
   // Header exactly tall enough for the longest angled label — fully visible,
   // never spilling out of the header band.
@@ -372,7 +383,6 @@ export default function ProductReviewList({
           </button>
           <span style={{ color: '#a3a3a3', fontSize: 11 }}>›</span>
           <span style={{ fontSize: 13.5, fontWeight: 700, color: '#171717' }}>{title}</span>
-          <span style={{ fontSize: 11, color: '#525252', marginLeft: 6 }}>{subtitle}</span>
         </nav>
         <div style={{ flex: 1 }} />
         <input
@@ -420,7 +430,9 @@ export default function ProductReviewList({
             [
               ['pending', 'Needs decision', counts.pending],
               ['decided', 'Decided', counts.decided],
-              ['auto', 'Common · auto-included', counts.auto],
+              ['auto', 'Common', counts.auto],
+              ['similar', 'Similar', counts.similar],
+              ['unique', 'Unique', counts.unique],
               ['all', 'All', counts.all],
             ] as [ReviewFilter, string, number][]
           ).map(([key, label, count], i) => {
@@ -450,12 +462,20 @@ export default function ProductReviewList({
         </div>
       </div>
 
+      {/* Organized stats band — scope numbers directly under the toolbar. */}
+      {stats}
+
       {/* One scroll surface for header + rows: the angled header sticks to the
           top while the table takes every remaining pixel, and horizontal
           scrolling keeps header and body in lockstep. */}
       <div
         style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}
-        onScroll={(e) => onScrollDepth?.(e.currentTarget.scrollTop)}
+        onScroll={(e) =>
+          onScrollDepth?.(
+            e.currentTarget.scrollTop,
+            e.currentTarget.scrollHeight - e.currentTarget.clientHeight,
+          )
+        }
       >
         <div style={{ minWidth: '100%', width: 'max-content' }}>
           <div
@@ -466,11 +486,11 @@ export default function ProductReviewList({
               padding: '0 14px',
               borderBottom: '1px solid #eaeaea',
               background: '#fafafa',
-              fontSize: 10,
-              fontWeight: 600,
+              fontSize: 10.5,
+              fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
-              color: '#525252',
+              color: '#374151',
               position: 'sticky',
               top: 0,
               zIndex: 3,
@@ -513,7 +533,6 @@ export default function ProductReviewList({
                 </button>
               )}
             </span>
-            <span style={{ paddingBottom: 6, alignSelf: 'end' }}>Status</span>
             {columns.map((v) => (
               <span
                 key={v.id}
@@ -543,11 +562,11 @@ export default function ProductReviewList({
                     transformOrigin: 'left bottom',
                     transform: 'rotate(-52deg)',
                     whiteSpace: 'nowrap',
-                    fontSize: 10.5,
+                    fontSize: 11,
                     letterSpacing: '0.02em',
                     textTransform: 'none',
                     fontWeight: 600,
-                    color: '#404040',
+                    color: '#262626',
                     // Clamp only when the header hit its hard cap — below it,
                     // headerH is sized so every label fits in full.
                     ...(headerH >= 400
@@ -608,9 +627,9 @@ export default function ProductReviewList({
                   title="open the full element detail"
                   style={{
                     font: 'inherit',
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: 600,
-                    color: '#0070AD',
+                    color: '#00619a',
                     background: 'none',
                     border: 'none',
                     padding: '2px 12px 2px 0',
@@ -621,28 +640,14 @@ export default function ProductReviewList({
                 >
                   {r.group.name}
                 </button>
-                <div>
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: meta.fg,
-                      background: meta.bg,
-                      border: `1px solid ${meta.border}`,
-                      borderRadius: 6,
-                      padding: '1px 7px',
-                    }}
-                  >
-                    {meta.label}
-                  </span>
-                </div>
+                {/* Presence blocks carry the status color directly — green
+                    common, amber similar, red unique (no separate column). */}
                 {r.presence.map((p, i) => (
                   <span
                     key={`${key}:${i}`}
                     title={
                       p
-                        ? `${columns[i]?.productName ?? ''} carries this element`
+                        ? `${columns[i]?.productName ?? ''} carries this ${meta.label.toLowerCase()} element`
                         : `not in ${columns[i]?.productName ?? 'this product'}`
                     }
                     style={{
@@ -658,20 +663,18 @@ export default function ProductReviewList({
                         flex: 1,
                         height: 18,
                         borderRadius: 4,
-                        background: p ? '#86efac' : '#fff',
-                        border: p ? '1px solid #16a34a' : '1px solid #e5e7eb',
+                        background: p ? meta.bg : '#fff',
+                        border: p ? `1.5px solid ${meta.fg}` : '1px solid #e5e7eb',
                       }}
                     />
                   </span>
                 ))}
                 <span aria-hidden />
-                <span style={{ fontSize: 11.5, color: '#404040', paddingRight: 8 }}>
-                  {r.lobName}
-                </span>
+                <span style={{ fontSize: 12, color: '#262626', paddingRight: 8 }}>{r.lobName}</span>
                 <div>
                   {r.needsDecision ? (
                     <div
-                      style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}
+                      style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center' }}
                     >
                       {STATUS_ACTIONS.map(([status, label, tone]) => {
                         const on = r.decision?.status === status;
@@ -686,28 +689,28 @@ export default function ProductReviewList({
                             onClick={() => void act(r, on ? null : status)}
                             style={{
                               font: 'inherit',
-                              fontSize: 11,
+                              fontSize: 11.5,
                               fontWeight: 600,
                               cursor: 'pointer',
                               borderRadius: 6,
-                              padding: '2px 9px',
-                              color: on ? '#fff' : '#404040',
+                              padding: '3px 10px',
+                              color: on ? '#fff' : tone,
                               background: on ? tone : '#fff',
-                              border: `1px solid ${on ? 'transparent' : '#d4d4d4'}`,
+                              border: `1px solid ${on ? 'transparent' : tone}`,
                               opacity: saving ? 0.6 : 1,
                             }}
                           >
-                            {label}
+                            {on ? `✓ ${label}` : label}
                           </button>
                         );
                       })}
                     </div>
                   ) : (
                     <span
-                      style={{ fontSize: 11, fontWeight: 600, color: '#166534' }}
-                      title="This element is identical in every product that carries it, so it folds into the canonical model without needing a reviewer decision."
+                      style={{ fontSize: 11.5, fontWeight: 600, color: '#166534' }}
+                      title="This element is identical in every product that carries it, so it standardizes into the canonical model without needing a reviewer decision."
                     >
-                      Common — auto-included, no decision needed
+                      Common — auto-standardized, no decision needed
                     </span>
                   )}
                 </div>
@@ -761,8 +764,8 @@ export default function ProductReviewList({
                       title="leave a reviewer note"
                       style={{
                         font: 'inherit',
-                        fontSize: 11.5,
-                        color: r.decision?.comment ? '#171717' : '#737373',
+                        fontSize: 12,
+                        color: r.decision?.comment ? '#171717' : '#525252',
                         background: 'none',
                         border: 'none',
                         cursor: 'pointer',

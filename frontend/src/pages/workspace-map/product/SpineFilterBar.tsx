@@ -180,11 +180,26 @@ export default function SpineFilterBar({
         style={SELECT_STYLE}
       >
         <option value="">All lines</option>
-        {lobPool.map((l) => (
-          <option key={l.id} value={l.id}>
-            {l.name}
-          </option>
-        ))}
+        {/* The same LOB name exists under several segments (Auto / Motor in
+            Personal Lines, SMB, Commercial…) — group by segment so the list
+            reads as a hierarchy instead of duplicates. */}
+        {filters.segment
+          ? lobPool.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
+            ))
+          : segments.map((s) => (
+              <optgroup key={s} label={s}>
+                {lobPool
+                  .filter((l) => l.segmentName === s)
+                  .map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.name}
+                    </option>
+                  ))}
+              </optgroup>
+            ))}
       </Select>
       <Step n={3} label="Product offering" />
       <Select

@@ -99,30 +99,33 @@ export interface Comparison {
   reviewCount: number;
 }
 
+// Traffic-light semantics: Common = green (in every product in scope),
+// Similar = amber (carried widely but configured differently — pick a target
+// standard), Unique = red (only one or two products carry it).
 export const MATCH_META: Record<
   MatchStatus,
   { label: string; fg: string; bg: string; border: string; hint: string }
 > = {
   COMMON: {
     label: 'Common',
-    fg: '#1d4ed8',
-    bg: '#eff6ff',
-    border: '#bfdbfe',
-    hint: 'in every compared version',
+    fg: '#166534',
+    bg: '#dcfce7',
+    border: '#86efac',
+    hint: 'in every product in scope — standardizes automatically',
   },
   PARTIAL: {
-    label: 'Varies',
-    fg: '#b45309',
-    bg: '#fffbeb',
-    border: '#fde68a',
-    hint: 'in some versions — review',
+    label: 'Similar',
+    fg: '#92400e',
+    bg: '#fef3c7',
+    border: '#fcd34d',
+    hint: 'carried by most products but configured differently — choose a target standard',
   },
   UNIQUE: {
     label: 'Unique',
-    fg: '#475569',
-    bg: '#f8fafc',
-    border: '#cbd5e1',
-    hint: 'one version only',
+    fg: '#991b1b',
+    bg: '#fee2e2',
+    border: '#fca5a5',
+    hint: 'in only one or two products in scope',
   },
   SINGLE: {
     label: 'Element',
@@ -305,10 +308,12 @@ export function buildComparison(versions: VersionColumn[]): Comparison {
     }
     const list = [...groups.values()];
     for (const g of list) {
+      // UNIQUE covers one-or-two-product elements (unless that IS every
+      // product in scope); anything wider but not universal is SIMILAR.
       if (single) g.status = 'SINGLE';
       else if (g.presentIn === versions.length) g.status = 'COMMON';
-      else if (g.presentIn > 1) g.status = 'PARTIAL';
-      else g.status = 'UNIQUE';
+      else if (g.presentIn <= 2) g.status = 'UNIQUE';
+      else g.status = 'PARTIAL';
       if (g.status === 'PARTIAL' || g.status === 'UNIQUE') reviewCount += 1;
     }
     normalizedCount += list.length;

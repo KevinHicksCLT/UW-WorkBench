@@ -205,7 +205,7 @@ function ReviewActions({
 }) {
   const [open, setOpen] = useState(false);
 
-  // Adopt/Variant decisions route through the common change-impact gate: the
+  // Standardize/Retain decisions route through the common change-impact gate: the
   // element's carrying versions + source systems are assessed and the write
   // only fires once the user confirms from the report.
   const gate = useImpactGate();
@@ -244,9 +244,9 @@ function ReviewActions({
   const carrierNames = carriers.map((v) => v.name).join(', ');
   const chip: ReviewStatusChip =
     decision === 'APPROVED'
-      ? { label: 'Adopted', fg: '#15803d', bg: '#dcfce7', border: '#86efac' }
+      ? { label: 'Standardized', fg: '#15803d', bg: '#dcfce7', border: '#86efac' }
       : decision === 'HELD'
-        ? REVIEW_STATUS.held
+        ? { label: 'Retained', fg: '#0f766e', bg: '#f0fdfa', border: '#99f6e4' }
         : REVIEW_STATUS.review;
 
   return (
@@ -262,9 +262,9 @@ function ReviewActions({
     >
       <span style={{ fontSize: 10.5, color: '#92400e', flex: 1 }}>
         {decision === 'APPROVED'
-          ? 'Adopted — part of the normalized model.'
+          ? 'Standardized — part of the normalized model.'
           : decision === 'HELD'
-            ? 'Held as a version variant — not in the model.'
+            ? 'Retained as a version variant — not in the model.'
             : `In ${group.presentIn} of ${versions.length} versions — needs a decision.`}
       </span>
       <button
@@ -293,8 +293,8 @@ function ReviewActions({
         context={`${group.component} · carried by ${group.presentIn} of ${versions.length} compared versions`}
         question={
           group.status === 'UNIQUE'
-            ? `Only ${carrierNames || 'one version'} carries this element. Should the single normalized model adopt it for every version, or is it a jurisdiction/version-specific variant?`
-            : `${group.presentIn} of ${versions.length} versions carry this element. Should the normalized model adopt it everywhere, or keep it a variant of the versions that have it?`
+            ? `Only ${carrierNames || 'one or two versions'} carries this element. Should the single normalized model standardize it for every version, or is it retained as a jurisdiction/version-specific variant?`
+            : `${group.presentIn} of ${versions.length} versions carry this element. Should the normalized model standardize it everywhere, or retain it as a variant of the versions that have it?`
         }
         sources={versions.map((v) => {
           const el = group.perVersion[v.id];
@@ -312,21 +312,21 @@ function ReviewActions({
         choices={[
           {
             key: 'APPROVED',
-            label: 'Adopt into the model',
+            label: 'Standardize into the model',
             tone: 'adopt',
             current: decision === 'APPROVED',
             explain:
-              `“${group.name}” becomes part of the single normalized model — all ${versions.length} ` +
+              `“${group.name}” becomes the single enterprise definition — all ${versions.length} ` +
               `versions align to it${missing > 0 ? `, including the ${missing} that don't carry it today` : ''}. `,
           },
           {
             key: 'HELD',
-            label: 'Keep as a version variant',
+            label: 'Retain as a version variant',
             tone: 'hold',
             current: decision === 'HELD',
             explain:
               `Stays specific to ${carrierNames || 'its versions'} as a jurisdiction/version variant. ` +
-              'It is left OUT of the normalized model unless adopted later.',
+              'It is left OUT of the normalized model unless standardized later.',
           },
         ]}
         busyKey={null}
@@ -368,9 +368,9 @@ function GroupCard({
       : group.status === 'SINGLE'
         ? '1→1 · PASS-THROUGH'
         : approved
-          ? 'APPROVED'
+          ? 'STANDARDIZED'
           : decision === 'HELD'
-            ? 'HELD'
+            ? 'RETAINED'
             : null;
   return (
     <div
@@ -429,7 +429,7 @@ function GroupCard({
                 ? `all ${versions.length} versions carry this — folds into one element`
                 : group.status === 'SINGLE'
                   ? 'single version — carries straight into the model'
-                  : `only in ${group.presentIn} of ${versions.length} — adopt everywhere or keep as ${
+                  : `only in ${group.presentIn} of ${versions.length} — standardize everywhere or retain as ${
                       missing.length > 0 ? 'a version variant' : 'variant'
                     }`
             }
