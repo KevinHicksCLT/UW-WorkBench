@@ -152,7 +152,7 @@ export default function ProductGridView({
   // position threshold jitters because hiding the chrome itself reflows the
   // scroller and can swallow the show/hide transitions.
   const scrollMem = useRef({ y: 0, up: 0 });
-  const handleScrollDepth = (y: number) => {
+  const handleScrollDepth = (y: number, overflow = Infinity) => {
     const m = scrollMem.current;
     const dy = y - m.y;
     m.y = y;
@@ -161,7 +161,12 @@ export default function ProductGridView({
     if (dy < 0) m.up -= dy;
     else if (dy > 0) m.up = 0;
     if (y < 8 || m.up > 24) setDepth(false);
-    else if (dy > 0 && y > 60) setDepth(true);
+    // Hide the chrome only when there is substantially more to scroll than
+    // the chrome itself is tall. On short windows with a small overflow,
+    // hiding the chrome makes the content FIT, the browser clamps scrollTop
+    // back to 0, the chrome pops back — an oscillation that reads as "the
+    // page won't scroll". The guard keeps the chrome put in that regime.
+    else if (dy > 0 && y > 60 && overflow > 240) setDepth(true);
   };
 
   const drillRow =
@@ -193,79 +198,123 @@ export default function ProductGridView({
     setDrill(component);
   };
 
+  // Stats for the open drill — the DRILLED component's own numbers when one
+  // is open, the whole scope's when reviewing everything. Rendered by the
+  // review list directly under its toolbar as one organized band.
+  const scope = drillRow ?? heat.totals;
+  const scopePct = drillRow ? drillRow.pct : heat.totals.pct;
+  const scopePending = scope.need - scope.decided;
+  const statPill = (
+    label: string,
+    fg: string,
+    bg: string,
+    border: string,
+    f: ReviewFilter,
+  ): JSX.Element => (
+    <button
+      key={label}
+      type="button"
+      onClick={() => openDrill(drill ?? '__all__', f)}
+      title="filter the list"
+      style={{
+        font: 'inherit',
+        fontSize: 11.5,
+        fontWeight: 700,
+        color: fg,
+        background: bg,
+        border: `1px solid ${border}`,
+        borderRadius: 999,
+        padding: '2px 10px',
+        cursor: 'pointer',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {label}
+    </button>
+  );
+  const statsBand = immersive ? null : (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '7px 14px',
+        borderBottom: '1px solid #eaeaea',
+        background: '#fafafa',
+        flexShrink: 0,
+        flexWrap: 'wrap',
+      }}
+    >
+      <span style={{ fontSize: 12.5, fontWeight: 700, color: '#171717', whiteSpace: 'nowrap' }}>
+        {colCount} products
+      </span>
+      <span style={{ color: '#9ca3af' }}>·</span>
+      <span style={{ fontSize: 12.5, fontWeight: 700, color: '#171717', whiteSpace: 'nowrap' }}>
+        {scope.total} elements
+      </span>
+      <span style={{ width: 1, height: 16, background: '#d4d4d4', margin: '0 4px' }} />
+      {statPill(
+        `${scope.common} common`,
+        MATCH_META.COMMON.fg,
+        MATCH_META.COMMON.bg,
+        MATCH_META.COMMON.border,
+        'auto',
+      )}
+      {statPill(
+        `${scope.similar} similar`,
+        MATCH_META.PARTIAL.fg,
+        MATCH_META.PARTIAL.bg,
+        MATCH_META.PARTIAL.border,
+        'similar',
+      )}
+      {statPill(
+        `${scope.unique} unique`,
+        MATCH_META.UNIQUE.fg,
+        MATCH_META.UNIQUE.bg,
+        MATCH_META.UNIQUE.border,
+        'unique',
+      )}
+      <span style={{ width: 1, height: 16, background: '#d4d4d4', margin: '0 4px' }} />
+      {statPill(
+        `${scopePending} to decide`,
+        scopePending > 0 ? '#92400e' : '#166534',
+        scopePending > 0 ? '#fef3c7' : '#dcfce7',
+        scopePending > 0 ? '#fcd34d' : '#86efac',
+        'pending',
+      )}
+      {statPill(`${scope.decided} decided`, '#3730a3', '#eef2ff', '#d6dcff', 'decided')}
+      <div style={{ flex: 1 }} />
+      <div
+        style={{
+          width: 140,
+          flexShrink: 0,
+          height: 6,
+          background: '#e5e7eb',
+          borderRadius: 9,
+          overflow: 'hidden',
+        }}
+      >
+        <span
+          style={{
+            display: 'block',
+            height: 6,
+            width: `${scopePct}%`,
+            background: scopePct >= 100 ? '#16a34a' : scopePct > 0 ? '#f59e0b' : '#dc2626',
+          }}
+        />
+      </div>
+      <span style={{ fontSize: 12, fontWeight: 600, color: '#262626', whiteSpace: 'nowrap' }}>
+        {scopePct}% complete
+      </span>
+    </div>
+  );
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-      {/* (1) Executive dashboard — pinned like a frozen header row. Collapses
-          to a slim clickable strip while a review list is open, and hides
-          entirely once the table scrolls (back at the top it returns). */}
-      {immersive ? null : drill ? (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-            padding: '5px 14px',
-            borderBottom: '1px solid #eaeaea',
-            background: '#fafafa',
-            flexShrink: 0,
-            flexWrap: 'nowrap',
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-            fontSize: 11.5,
-          }}
-        >
-          {(
-            [
-              [`${colCount} products`, '#171717', 'all'],
-              [`${heat.totals.total} elements`, '#171717', 'all'],
-              [`${heat.totals.common} common`, MATCH_META.COMMON.fg, 'auto'],
-              [`${heat.totals.similar} similar`, MATCH_META.PARTIAL.fg, 'similar'],
-              [`${heat.totals.unique} unique`, MATCH_META.UNIQUE.fg, 'unique'],
-              [`${pending} decisions required`, pending > 0 ? '#b45309' : '#16a34a', 'pending'],
-              [`${heat.totals.decided} decided`, '#4f46e5', 'decided'],
-            ] as [string, string, ReviewFilter][]
-          ).map(([label, tone, f]) => (
-            <button
-              key={label}
-              type="button"
-              onClick={() => openDrill('__all__', f)}
-              style={{
-                font: 'inherit',
-                fontSize: 11.5,
-                fontWeight: 600,
-                color: tone,
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                cursor: 'pointer',
-              }}
-            >
-              {label}
-            </button>
-          ))}
-          <div
-            style={{
-              width: 140,
-              flexShrink: 0,
-              height: 5,
-              background: '#e5e7eb',
-              borderRadius: 9,
-              overflow: 'hidden',
-            }}
-          >
-            <span
-              style={{
-                display: 'block',
-                height: 5,
-                width: `${heat.totals.pct}%`,
-                background:
-                  heat.totals.pct >= 100 ? '#16a34a' : heat.totals.pct > 0 ? '#f59e0b' : '#dc2626',
-              }}
-            />
-          </div>
-          <span style={{ fontSize: 11, color: '#404040' }}>{heat.totals.pct}% complete</span>
-        </div>
-      ) : (
+      {/* (1) Executive dashboard — pinned like a frozen header row. Hidden
+          while a review list is open (the list carries the stats band) and
+          once the table scrolls (back at the top it returns). */}
+      {immersive || drill ? null : (
         <div
           style={{
             display: 'flex',
@@ -319,15 +368,13 @@ export default function ProductGridView({
 
       {drill ? (
         <ProductReviewList
+          // Keyed by drill + filter so a stats-pill click re-arms the filter.
+          key={`${drill}|${drillFilter}`}
           title={drillRow ? drillRow.component : 'Every model element in scope'}
-          subtitle={
-            drillRow
-              ? `${drillRow.total} elements · ${drillRow.common} common · ${drillRow.similar} similar · ${drillRow.unique} unique · ${drillRow.decided} decided · ${drillRow.need - drillRow.decided} still to decide`
-              : `${heat.totals.total} elements across ${heat.rows.length} components · ${heat.totals.common} common · ${heat.totals.similar} similar · ${heat.totals.unique} unique · ${pending} still to decide`
-          }
           columns={heat.columns}
           rows={drillRow ? drillRow.reviewRows : allReviewRows}
           defaultFilter={drillFilter}
+          stats={statsBand}
           onBack={() => {
             setDepth(false);
             setDrill(null);
@@ -345,7 +392,12 @@ export default function ProductGridView({
           {/* (2) The heatmap — products angled across the top, components down the side. */}
           <div
             style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}
-            onScroll={(e) => handleScrollDepth(e.currentTarget.scrollTop)}
+            onScroll={(e) =>
+              handleScrollDepth(
+                e.currentTarget.scrollTop,
+                e.currentTarget.scrollHeight - e.currentTarget.clientHeight,
+              )
+            }
           >
             <div style={{ minWidth: '100%', width: 'max-content' }}>
               <div
@@ -529,16 +581,6 @@ export default function ProductGridView({
                         textAlign: 'left',
                       }}
                     >
-                      <span
-                        title={rag.label}
-                        style={{
-                          width: 10,
-                          height: 10,
-                          borderRadius: 9999,
-                          background: rag.bg,
-                          flexShrink: 0,
-                        }}
-                      />
                       <span style={{ minWidth: 0 }}>
                         <span
                           style={{
@@ -766,12 +808,6 @@ export default function ProductGridView({
               <span style={{ color: MATCH_META.UNIQUE.fg, fontWeight: 600 }}>■ unique</span> — in
               1–2 products
             </span>
-            <span>
-              row dot: <span style={{ color: '#16a34a' }}>●</span> rationalized ·{' '}
-              <span style={{ color: '#f59e0b' }}>●</span> started ·{' '}
-              <span style={{ color: '#dc2626' }}>●</span> not started
-            </span>
-            <span>every click lands on the review list — decisions and comments live there</span>
           </div>
         </>
       )}

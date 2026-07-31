@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { LoadingState, ErrorMessage, EmptyState } from '../../../components/ui';
 import { api } from '../../../lib/api';
 import { useApi } from '../../../lib/useApi';
@@ -85,10 +84,6 @@ export default function ProductBoard({
 
   const versions = useMemo(() => scopeVersions(pool, filters), [pool, filters]);
   const scopedLobs = useMemo(() => scopeLobs(lobs, filters), [lobs, filters]);
-  // Grid drill state lives in the URL (owned by ProductGridView) — the board
-  // only peeks to slim its chrome while a review list is open.
-  const [boardSearchParams] = useSearchParams();
-  const drilled = boardSearchParams.get('pmDrill') !== null;
   // Table scrolled → the board's own chrome rows hide too.
   const [immersive, setImmersive] = useState(false);
   const crossLob = useMemo(() => new Set(versions.map((v) => v.lobId)).size > 1, [versions]);
@@ -402,56 +397,6 @@ export default function ProductBoard({
       </div>
     );
 
-  const banner =
-    effectiveView === 'grid'
-      ? {
-          tag: 'GRID',
-          tone: '#4f46e5',
-          bg: '#f5f7ff',
-          border: '#e0e7ff',
-          text: `${versions.length} versions in scope is past the ${DETAIL_THRESHOLD}-version detail limit, so the board shows the grid: every version a row, every model component a column, every difference countable.`,
-          hint: `narrow the filters to ${DETAIL_THRESHOLD} or fewer versions for the detail board`,
-        }
-      : {
-          tag: 'DETAIL',
-          tone: '#047857',
-          bg: '#f0fdf6',
-          border: '#bbe7cf',
-          text: `${crossLob ? `${lob?.name ?? ''} + other lines` : (lob?.name ?? '')} — the full current → normalize → greenfield board across every model component.`,
-          hint: `past ${DETAIL_THRESHOLD} versions in scope the board switches to the grid`,
-        };
-
-  const bannerStrip = (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '5px 10px',
-        background: banner.bg,
-        border: `1px solid ${banner.border}`,
-        borderRadius: 8,
-        marginBottom: 8,
-      }}
-    >
-      <span
-        style={{
-          fontSize: 9.5,
-          fontWeight: 700,
-          color: '#fff',
-          background: banner.tone,
-          borderRadius: 5,
-          padding: '2px 7px',
-        }}
-      >
-        {banner.tag}
-      </span>
-      <span style={{ fontSize: 11.5, color: '#334155' }}>{banner.text}</span>
-      <div style={{ flex: 1 }} />
-      <span style={{ fontSize: 11, color: '#525252', whiteSpace: 'nowrap' }}>{banner.hint}</span>
-    </div>
-  );
-
   if (effectiveView === 'grid')
     return (
       <div
@@ -469,7 +414,6 @@ export default function ProductBoard({
             the top and it all returns. */}
         {!immersive && lensBar}
         {!immersive && filterRow}
-        {!immersive && !drilled && bannerStrip}
         <div
           style={{
             border: '1px solid #eaeaea',
@@ -505,7 +449,6 @@ export default function ProductBoard({
     >
       {lensBar}
       {filterRow}
-      {bannerStrip}
       {selected && lob && (
         <TraceBreadcrumb group={selected} versionCount={versions.length} lobName={lob.name} />
       )}

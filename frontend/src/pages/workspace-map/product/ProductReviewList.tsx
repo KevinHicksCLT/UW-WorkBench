@@ -118,7 +118,7 @@ function ElementDetailModal({
             style={{
               font: 'inherit',
               fontSize: 14,
-              color: '#737373',
+              color: '#525252',
               background: 'none',
               border: 'none',
               padding: '2px 8px',
@@ -145,7 +145,7 @@ function ElementDetailModal({
                   fontWeight: 600,
                   letterSpacing: '.06em',
                   textTransform: 'uppercase',
-                  color: '#737373',
+                  color: '#525252',
                   marginBottom: 4,
                 }}
               >
@@ -153,9 +153,9 @@ function ElementDetailModal({
               </div>
               <div
                 style={{
-                  fontSize: 11.5,
+                  fontSize: 12,
                   fontFamily: 'ui-monospace, monospace',
-                  color: '#404040',
+                  color: '#262626',
                   lineHeight: 1.5,
                 }}
               >
@@ -170,7 +170,7 @@ function ElementDetailModal({
                 fontWeight: 600,
                 letterSpacing: '.06em',
                 textTransform: 'uppercase',
-                color: '#737373',
+                color: '#525252',
                 marginBottom: 4,
               }}
             >
@@ -195,9 +195,9 @@ function ElementDetailModal({
                   >
                     <span
                       style={{
-                        fontSize: 11.5,
+                        fontSize: 12,
                         fontWeight: 600,
-                        color: el ? '#171717' : '#737373',
+                        color: el ? '#171717' : '#525252',
                         width: 250,
                         flexShrink: 0,
                       }}
@@ -206,8 +206,8 @@ function ElementDetailModal({
                     </span>
                     <span
                       style={{
-                        fontSize: 11.5,
-                        color: el ? '#404040' : '#a3a3a3',
+                        fontSize: 12,
+                        color: el ? '#262626' : '#525252',
                         lineHeight: 1.45,
                       }}
                     >
@@ -226,7 +226,7 @@ function ElementDetailModal({
                   fontWeight: 600,
                   letterSpacing: '.06em',
                   textTransform: 'uppercase',
-                  color: '#737373',
+                  color: '#525252',
                   marginBottom: 4,
                 }}
               >
@@ -235,7 +235,7 @@ function ElementDetailModal({
               <div style={{ fontSize: 12, color: '#404040', lineHeight: 1.5 }}>
                 {row.decision.comment}
                 {row.decision.decidedBy ? (
-                  <span style={{ color: '#737373' }}> — {row.decision.decidedBy}</span>
+                  <span style={{ color: '#525252' }}> — {row.decision.decidedBy}</span>
                 ) : null}
               </div>
             </div>
@@ -249,10 +249,10 @@ function ElementDetailModal({
 
 export default function ProductReviewList({
   title,
-  subtitle,
   columns,
   rows,
   defaultFilter,
+  stats,
   onBack,
   onDecide,
   onScrollDepth,
@@ -261,7 +261,8 @@ export default function ProductReviewList({
   onToggleAbbr,
 }: {
   title: string;
-  subtitle: string;
+  /** Organized stats band rendered directly under the toolbar. */
+  stats?: React.ReactNode;
   columns: VersionColumn[];
   rows: ReviewRow[];
   defaultFilter: ReviewFilter;
@@ -275,9 +276,10 @@ export default function ProductReviewList({
   ) => Promise<void>;
   /** Fires when the table scrolls away from (or back to) the top — the
    *  surrounding chrome hides itself to give the table the height. */
-  /** Raw scrollTop of the list's scroll surface — the parent owns the
-   *  direction/hysteresis logic so both heatmap surfaces behave identically. */
-  onScrollDepth?: (scrollTop: number) => void;
+  /** Raw scrollTop + scrollable overflow of the list's scroll surface — the
+   *  parent owns the direction/hysteresis logic so both heatmap surfaces
+   *  behave identically. */
+  onScrollDepth?: (scrollTop: number, overflow?: number) => void;
   /** Column label (full or abbreviated) — full name always on hover. */
   labelOf?: (v: VersionColumn) => string;
   abbr?: boolean;
@@ -334,7 +336,8 @@ export default function ProductReviewList({
 
   // FIXED presence-cell width (never minmax/1fr): a 2-product scope renders
   // the same compact cells as a 26-product one instead of page-wide bars.
-  const gridCols = `320px 96px repeat(${columns.length}, 44px) 22px 140px 236px 200px`;
+  // No Status column — the presence blocks carry the status color directly.
+  const gridCols = `320px repeat(${columns.length}, 44px) 22px 140px 236px 200px`;
   const colLabel = labelOf ?? ((v: VersionColumn) => `${v.productName} · ${v.name}`);
   // Header exactly tall enough for the longest angled label — fully visible,
   // never spilling out of the header band.
@@ -380,7 +383,6 @@ export default function ProductReviewList({
           </button>
           <span style={{ color: '#a3a3a3', fontSize: 11 }}>›</span>
           <span style={{ fontSize: 13.5, fontWeight: 700, color: '#171717' }}>{title}</span>
-          <span style={{ fontSize: 11.5, color: '#404040', marginLeft: 6 }}>{subtitle}</span>
         </nav>
         <div style={{ flex: 1 }} />
         <input
@@ -460,12 +462,20 @@ export default function ProductReviewList({
         </div>
       </div>
 
+      {/* Organized stats band — scope numbers directly under the toolbar. */}
+      {stats}
+
       {/* One scroll surface for header + rows: the angled header sticks to the
           top while the table takes every remaining pixel, and horizontal
           scrolling keeps header and body in lockstep. */}
       <div
         style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}
-        onScroll={(e) => onScrollDepth?.(e.currentTarget.scrollTop)}
+        onScroll={(e) =>
+          onScrollDepth?.(
+            e.currentTarget.scrollTop,
+            e.currentTarget.scrollHeight - e.currentTarget.clientHeight,
+          )
+        }
       >
         <div style={{ minWidth: '100%', width: 'max-content' }}>
           <div
@@ -523,7 +533,6 @@ export default function ProductReviewList({
                 </button>
               )}
             </span>
-            <span style={{ paddingBottom: 6, alignSelf: 'end' }}>Status</span>
             {columns.map((v) => (
               <span
                 key={v.id}
@@ -631,28 +640,14 @@ export default function ProductReviewList({
                 >
                   {r.group.name}
                 </button>
-                <div>
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      fontSize: 10.5,
-                      fontWeight: 700,
-                      color: meta.fg,
-                      background: meta.bg,
-                      border: `1px solid ${meta.border}`,
-                      borderRadius: 6,
-                      padding: '1px 8px',
-                    }}
-                  >
-                    {meta.label}
-                  </span>
-                </div>
+                {/* Presence blocks carry the status color directly — green
+                    common, amber similar, red unique (no separate column). */}
                 {r.presence.map((p, i) => (
                   <span
                     key={`${key}:${i}`}
                     title={
                       p
-                        ? `${columns[i]?.productName ?? ''} carries this element`
+                        ? `${columns[i]?.productName ?? ''} carries this ${meta.label.toLowerCase()} element`
                         : `not in ${columns[i]?.productName ?? 'this product'}`
                     }
                     style={{
@@ -668,8 +663,8 @@ export default function ProductReviewList({
                         flex: 1,
                         height: 18,
                         borderRadius: 4,
-                        background: p ? '#86efac' : '#fff',
-                        border: p ? '1px solid #16a34a' : '1px solid #e5e7eb',
+                        background: p ? meta.bg : '#fff',
+                        border: p ? `1.5px solid ${meta.fg}` : '1px solid #e5e7eb',
                       }}
                     />
                   </span>
