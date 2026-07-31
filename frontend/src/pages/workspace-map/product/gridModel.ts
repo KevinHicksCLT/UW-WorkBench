@@ -167,6 +167,10 @@ export interface HeatCounts {
   auto: number;
   need: number;
   decided: number;
+  /** Status mix — common + similar + unique always sums to total. */
+  common: number;
+  similar: number;
+  unique: number;
 }
 
 export interface HeatCell extends HeatCounts {
@@ -255,6 +259,9 @@ export function buildHeatmap(lobs: LobOption[], decisions: Map<string, ProductDe
           auto: 0,
           need: 0,
           decided: 0,
+          common: 0,
+          similar: 0,
+          unique: 0,
           rag: 'green',
           pct: 100,
           note: null,
@@ -266,6 +273,9 @@ export function buildHeatmap(lobs: LobOption[], decisions: Map<string, ProductDe
             auto: 0,
             need: 0,
             decided: 0,
+            common: 0,
+            similar: 0,
+            unique: 0,
           })),
           reviewRows: [],
         };
@@ -274,8 +284,11 @@ export function buildHeatmap(lobs: LobOption[], decisions: Map<string, ProductDe
       }
       for (const g of compRow.groups) {
         const needs = g.status === 'PARTIAL' || g.status === 'UNIQUE';
+        const mix: 'common' | 'similar' | 'unique' =
+          g.status === 'PARTIAL' ? 'similar' : g.status === 'UNIQUE' ? 'unique' : 'common';
         const decision = decisions.get(decisionKey(lob.id, g.key)) ?? null;
         row.total += 1;
+        row[mix] += 1;
         if (needs) {
           row.need += 1;
           if (decision) row.decided += 1;
@@ -296,6 +309,7 @@ export function buildHeatmap(lobs: LobOption[], decisions: Map<string, ProductDe
           const cell = row.cells[colIndex.get(v.id) ?? -1];
           if (!cell) continue;
           cell.total += 1;
+          cell[mix] += 1;
           if (needs) {
             cell.need += 1;
             if (decision) cell.decided += 1;
@@ -321,8 +335,11 @@ export function buildHeatmap(lobs: LobOption[], decisions: Map<string, ProductDe
       auto: acc.auto + r.auto,
       need: acc.need + r.need,
       decided: acc.decided + r.decided,
+      common: acc.common + r.common,
+      similar: acc.similar + r.similar,
+      unique: acc.unique + r.unique,
     }),
-    { total: 0, auto: 0, need: 0, decided: 0 },
+    { total: 0, auto: 0, need: 0, decided: 0, common: 0, similar: 0, unique: 0 },
   );
   return { columns, rows, totals: { ...totals, pct: pctOf(totals) } };
 }

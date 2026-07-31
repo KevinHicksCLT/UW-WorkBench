@@ -2,8 +2,13 @@ import { useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useViewState } from '../../../lib/viewState';
 import ProductReviewList, { type ReviewFilter } from './ProductReviewList';
-import { abbrevVersion, buildHeatmap, type HeatRow, type Rag } from './gridModel';
-import type { LobOption, ProductDecision, ProductDecisionStatus } from './spine';
+import { abbrevVersion, buildHeatmap, type HeatCell, type HeatRow, type Rag } from './gridModel';
+import {
+  MATCH_META,
+  type LobOption,
+  type ProductDecision,
+  type ProductDecisionStatus,
+} from './spine';
 
 // The Products workspace GRID — the progress board:
 //   (1) an executive dashboard pinned on top: total elements, items needing a
@@ -25,16 +30,23 @@ const RAG_META: Record<Rag, { bg: string; label: string }> = {
 
 const DRILL_PARAM = 'pmDrill';
 
-function cellVisual(cell: { na: boolean; need: number; decided: number; total: number }): {
-  bg: string;
-  fg: string;
-  pending: number;
-} {
+// Cell color = the status mix inside it (traffic light): any Unique element →
+// red, else any Similar → amber, else all-Common → green. The figure inside
+// stays the decision workload (pending count, ✓ when nothing is left).
+function cellVisual(cell: HeatCell): { bg: string; fg: string; pending: number } {
   const pending = cell.need - cell.decided;
-  if (cell.na || cell.total === 0) return { bg: '#f5f5f5', fg: '#a3a3a3', pending: 0 };
-  if (cell.need === 0 || pending === 0) return { bg: '#bbf7d0', fg: '#14532d', pending: 0 };
-  if (cell.decided > 0) return { bg: '#fde68a', fg: '#78350f', pending };
-  return { bg: '#fecaca', fg: '#991b1b', pending };
+  if (cell.na || cell.total === 0) return { bg: '#f5f5f5', fg: '#737373', pending: 0 };
+  if (cell.unique > 0) return { bg: '#fecaca', fg: '#7f1d1d', pending };
+  if (cell.similar > 0) return { bg: '#fde68a', fg: '#78350f', pending };
+  return { bg: '#bbf7d0', fg: '#14532d', pending };
+}
+
+function cellTitle(cell: HeatCell): string {
+  const pending = cell.need - cell.decided;
+  return (
+    `${cell.total} elements — ${cell.common} common · ${cell.similar} similar · ${cell.unique} unique` +
+    ` · ${pending > 0 ? `${pending} still to decide` : 'no decisions outstanding'} — open the review list`
+  );
 }
 
 function StatTile({
@@ -69,8 +81,8 @@ function StatTile({
       }}
       title={onClick ? 'open the filtered review list' : undefined}
     >
-      <div style={{ fontSize: 19, fontWeight: 700, color: tone, lineHeight: 1.1 }}>{value}</div>
-      <div style={{ fontSize: 11, color: '#404040', marginTop: 2 }}>{label}</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: tone, lineHeight: 1.1 }}>{value}</div>
+      <div style={{ fontSize: 12, fontWeight: 500, color: '#374151', marginTop: 2 }}>{label}</div>
       {bar !== undefined && (
         <div
           style={{
@@ -158,12 +170,16 @@ export default function ProductGridView({
 
   const pending = heat.totals.need - heat.totals.decided;
   const colCount = heat.columns.length;
-  // Density steps: rich cells while the scope is small, bare counts at scale.
+  const pctOfTotal = (n: number) =>
+    heat.totals.total === 0 ? 0 : Math.round((n / heat.totals.total) * 100);
+  // Density steps: slightly richer cells while the scope is small, bare counts
+  // at scale — but always FIXED widths (never minmax/1fr): a 2-product scope
+  // renders the same compact cells as a 26-product one instead of stretching.
   const density: 'rich' | 'medium' | 'tiny' =
     colCount <= 8 ? 'rich' : colCount <= 18 ? 'medium' : 'tiny';
-  const colMin = density === 'rich' ? 110 : density === 'medium' ? 64 : 40;
+  const colW = density === 'rich' ? 104 : density === 'medium' ? 68 : 48;
   const notesW = notesOpen ? 220 : 44;
-  const grid = `220px repeat(${colCount}, minmax(${colMin}px, 1fr)) 22px 76px 84px 128px ${notesW}px`;
+  const grid = `250px repeat(${colCount}, ${colW}px) 22px 76px 84px 128px ${notesW}px`;
   // The header is exactly tall enough for the LONGEST angled label — every
   // label fully visible, nothing spilling out of the header band.
   const maxLabelChars = heat.columns.reduce((n, v) => Math.max(n, labelOf(v).length), 0);
@@ -200,8 +216,12 @@ export default function ProductGridView({
         >
           {(
             [
+              [`${colCount} products`, '#171717', 'all'],
               [`${heat.totals.total} elements`, '#171717', 'all'],
-              [`${pending} need a decision`, pending > 0 ? '#b45309' : '#16a34a', 'pending'],
+              [`${heat.totals.common} common`, MATCH_META.COMMON.fg, 'auto'],
+              [`${heat.totals.similar} similar`, MATCH_META.PARTIAL.fg, 'similar'],
+              [`${heat.totals.unique} unique`, MATCH_META.UNIQUE.fg, 'unique'],
+              [`${pending} decisions required`, pending > 0 ? '#b45309' : '#16a34a', 'pending'],
               [`${heat.totals.decided} decided`, '#4f46e5', 'decided'],
             ] as [string, string, ReviewFilter][]
           ).map(([label, tone, f]) => (
@@ -257,26 +277,39 @@ export default function ProductGridView({
             flexWrap: 'wrap',
           }}
         >
+          <StatTile label="products in scope" value={String(colCount)} tone="#171717" />
           <StatTile
-            label="model elements in scope"
+            label={`coverage elements across ${heat.rows.length} sections`}
             value={String(heat.totals.total)}
             tone="#171717"
             onClick={() => openDrill('__all__', 'all')}
           />
           <StatTile
-            label="need a decision"
+            label={`common — in every product (${heat.totals.common})`}
+            value={`${pctOfTotal(heat.totals.common)}%`}
+            tone={MATCH_META.COMMON.fg}
+            onClick={() => openDrill('__all__', 'auto')}
+          />
+          <StatTile
+            label={`similar — configured differently (${heat.totals.similar})`}
+            value={`${pctOfTotal(heat.totals.similar)}%`}
+            tone={MATCH_META.PARTIAL.fg}
+            onClick={() => openDrill('__all__', 'similar')}
+          />
+          <StatTile
+            label={`unique — in 1–2 products (${heat.totals.unique})`}
+            value={`${pctOfTotal(heat.totals.unique)}%`}
+            tone={MATCH_META.UNIQUE.fg}
+            onClick={() => openDrill('__all__', 'unique')}
+          />
+          <StatTile
+            label="decisions required"
             value={String(pending)}
             tone={pending > 0 ? '#b45309' : '#16a34a'}
             onClick={() => openDrill('__all__', 'pending')}
           />
           <StatTile
-            label="decided"
-            value={String(heat.totals.decided)}
-            tone="#4f46e5"
-            onClick={() => openDrill('__all__', 'decided')}
-          />
-          <StatTile
-            label={`complete — ${heat.totals.decided} of ${heat.totals.need} decisions made`}
+            label={`normalization — ${heat.totals.decided} of ${heat.totals.need} decisions made`}
             value={`${heat.totals.pct}%`}
             tone={heat.totals.pct >= 100 ? '#16a34a' : heat.totals.pct > 0 ? '#f59e0b' : '#dc2626'}
             bar={heat.totals.pct}
@@ -289,8 +322,8 @@ export default function ProductGridView({
           title={drillRow ? drillRow.component : 'Every model element in scope'}
           subtitle={
             drillRow
-              ? `${drillRow.total} elements · ${drillRow.decided} decided · ${drillRow.need - drillRow.decided} still to decide`
-              : `${heat.totals.total} elements across ${heat.rows.length} components · ${pending} still to decide`
+              ? `${drillRow.total} elements · ${drillRow.common} common · ${drillRow.similar} similar · ${drillRow.unique} unique · ${drillRow.decided} decided · ${drillRow.need - drillRow.decided} still to decide`
+              : `${heat.totals.total} elements across ${heat.rows.length} components · ${heat.totals.common} common · ${heat.totals.similar} similar · ${heat.totals.unique} unique · ${pending} still to decide`
           }
           columns={heat.columns}
           rows={drillRow ? drillRow.reviewRows : allReviewRows}
@@ -331,11 +364,11 @@ export default function ProductGridView({
                 <div
                   style={{
                     padding: '8px 12px',
-                    fontSize: 10,
-                    fontWeight: 600,
+                    fontSize: 10.5,
+                    fontWeight: 700,
                     letterSpacing: '0.08em',
                     textTransform: 'uppercase',
-                    color: '#525252',
+                    color: '#374151',
                     alignSelf: 'end',
                     display: 'flex',
                     alignItems: 'center',
@@ -400,9 +433,9 @@ export default function ProductGridView({
                         transformOrigin: 'left bottom',
                         transform: 'rotate(-52deg)',
                         whiteSpace: 'nowrap',
-                        fontSize: 11,
+                        fontSize: 11.5,
                         fontWeight: 600,
-                        color: '#404040',
+                        color: '#262626',
                         // Clamp only when the header hit its hard cap — below
                         // it, headerH is sized so every label fits in full.
                         ...(headerH >= 400
@@ -427,11 +460,11 @@ export default function ProductGridView({
                     style={{
                       padding: '8px 10px',
                       borderLeft: '1px solid #e2e8f0',
-                      fontSize: 10,
-                      fontWeight: 600,
+                      fontSize: 10.5,
+                      fontWeight: 700,
                       letterSpacing: '0.08em',
                       textTransform: 'uppercase',
-                      color: '#525252',
+                      color: '#374151',
                       textAlign: h === 'Progress' ? 'left' : 'center',
                       alignSelf: 'end',
                       position: 'relative',
@@ -506,8 +539,37 @@ export default function ProductGridView({
                           flexShrink: 0,
                         }}
                       />
-                      <span style={{ fontSize: 12.5, fontWeight: 600, color: '#171717' }}>
-                        {row.component}
+                      <span style={{ minWidth: 0 }}>
+                        <span
+                          style={{
+                            display: 'block',
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: '#171717',
+                            lineHeight: 1.25,
+                          }}
+                        >
+                          {row.component}
+                        </span>
+                        {/* Coverage counts for the section — the same traffic
+                            light the cells use, so the row reads at a glance. */}
+                        <span
+                          style={{
+                            display: 'block',
+                            fontSize: 11,
+                            fontWeight: 600,
+                            marginTop: 1,
+                            fontVariantNumeric: 'tabular-nums',
+                          }}
+                        >
+                          <span style={{ color: MATCH_META.COMMON.fg }}>{row.common} common</span>
+                          <span style={{ color: '#9ca3af' }}> · </span>
+                          <span style={{ color: MATCH_META.PARTIAL.fg }}>
+                            {row.similar} similar
+                          </span>
+                          <span style={{ color: '#9ca3af' }}> · </span>
+                          <span style={{ color: MATCH_META.UNIQUE.fg }}>{row.unique} unique</span>
+                        </span>
                       </span>
                     </button>
                     {row.cells.map((c) => {
@@ -518,11 +580,7 @@ export default function ProductGridView({
                           key={`${row.component}:${c.versionId}`}
                           type="button"
                           disabled={na}
-                          title={
-                            na
-                              ? 'not in this product'
-                              : `${c.total} elements · ${c.decided} of ${c.need} decisions made — open the review list`
-                          }
+                          title={na ? 'not in this product' : cellTitle(c)}
                           onClick={() => openDrill(row.component, 'all')}
                           style={{
                             font: 'inherit',
@@ -552,24 +610,27 @@ export default function ProductGridView({
                             }}
                           >
                             {na ? (
-                              <span style={{ fontSize: 10.5, fontWeight: 700 }}>—</span>
+                              <span style={{ fontSize: 11, fontWeight: 700 }}>—</span>
                             ) : density === 'rich' ? (
                               <>
-                                <span style={{ fontSize: 12.5, fontWeight: 700 }}>
+                                <span style={{ fontSize: 13, fontWeight: 700 }}>
                                   {vis.pending === 0 ? '✓' : vis.pending}
                                 </span>
-                                <span style={{ fontSize: 9, fontWeight: 500 }}>
+                                <span style={{ fontSize: 9.5, fontWeight: 600 }}>
                                   {vis.pending === 0
                                     ? `${c.total} elements in`
                                     : `to decide of ${c.total}`}
                                 </span>
+                                <span style={{ fontSize: 9, fontWeight: 600, opacity: 0.85 }}>
+                                  {c.common}C · {c.similar}S · {c.unique}U
+                                </span>
                               </>
                             ) : density === 'medium' ? (
-                              <span style={{ fontSize: 10.5, fontWeight: 700 }}>
+                              <span style={{ fontSize: 11, fontWeight: 700 }}>
                                 {vis.pending === 0 ? '✓' : `${vis.pending}/${c.need}`}
                               </span>
                             ) : (
-                              <span style={{ fontSize: 10, fontWeight: 700 }}>
+                              <span style={{ fontSize: 10.5, fontWeight: 700 }}>
                                 {vis.pending === 0 ? '✓' : vis.pending}
                               </span>
                             )}
@@ -581,9 +642,9 @@ export default function ProductGridView({
                     <div
                       style={{
                         borderLeft: '1px solid #e2e8f0',
-                        fontSize: 12,
+                        fontSize: 12.5,
                         fontWeight: 600,
-                        color: '#404040',
+                        color: '#262626',
                         fontVariantNumeric: 'tabular-nums',
                         display: 'flex',
                         alignItems: 'center',
@@ -635,9 +696,9 @@ export default function ProductGridView({
                       </div>
                       <span
                         style={{
-                          fontSize: 11,
+                          fontSize: 11.5,
                           fontWeight: 600,
-                          color: '#404040',
+                          color: '#262626',
                           width: 34,
                           textAlign: 'right',
                           fontVariantNumeric: 'tabular-nums',
@@ -691,14 +752,22 @@ export default function ProductGridView({
               padding: '7px 14px',
               borderTop: '1px solid #eaeaea',
               background: '#fafafa',
-              fontSize: 11,
-              color: '#404040',
+              fontSize: 11.5,
+              color: '#374151',
               flexShrink: 0,
               flexWrap: 'wrap',
             }}
           >
             <span>
-              <span style={{ color: '#16a34a' }}>●</span> rationalized ·{' '}
+              cells: <span style={{ color: MATCH_META.COMMON.fg, fontWeight: 600 }}>■ common</span>{' '}
+              — in every product ·{' '}
+              <span style={{ color: MATCH_META.PARTIAL.fg, fontWeight: 600 }}>■ similar</span> —
+              configured differently ·{' '}
+              <span style={{ color: MATCH_META.UNIQUE.fg, fontWeight: 600 }}>■ unique</span> — in
+              1–2 products
+            </span>
+            <span>
+              row dot: <span style={{ color: '#16a34a' }}>●</span> rationalized ·{' '}
               <span style={{ color: '#f59e0b' }}>●</span> started ·{' '}
               <span style={{ color: '#dc2626' }}>●</span> not started
             </span>
