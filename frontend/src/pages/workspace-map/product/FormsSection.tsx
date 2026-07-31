@@ -46,7 +46,7 @@ export default function FormsSection({
           <div key={section.layer} style={{ display: 'contents' }}>
             <SectionBand
               label={`${FORM_LAYER_META[section.layer].label} (${section.rows.length})`}
-              detail={FORM_LAYER_META[section.layer].hint}
+              detail={FORM_LAYER_META[section.layer].hint || undefined}
             />
             {section.rows.map((row) => (
               <FormRows

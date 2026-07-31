@@ -31,8 +31,8 @@ export const FORM_LAYER_ORDER: FormLayer[] = ['core', 'state', 'product'];
 
 export const FORM_LAYER_META: Record<FormLayer, { label: string; hint: string }> = {
   core: {
-    label: 'Core national forms',
-    hint: 'countrywide forms — the reusable enterprise base',
+    label: 'Countrywide forms',
+    hint: '',
   },
   state: {
     label: 'State-required variations',
@@ -87,10 +87,26 @@ export interface FormRow extends FormRowData {
   contents: FormContentGroup[];
 }
 
+/** Drill payload: the aggregated rows plus each review row's group label so
+ *  the review list can band non-coverage items the way the register does. */
+export interface FormsDrillPayload extends FormRowData {
+  /** review-row key (`lobId:groupKey`) → group label ("Form", "Coverages", …). */
+  groupOf: Record<string, string>;
+}
+
+/** Review-list group band order for forms drills. */
+export const DRILL_GROUP_ORDER = [
+  'Form',
+  CONTENT_META.coverage.label,
+  CONTENT_META.covpart.label,
+  CONTENT_META.endorsement.label,
+  CONTENT_META.clause.label,
+];
+
 export interface FormsModel {
   sections: { layer: FormLayer; rows: FormRow[] }[];
   /** Drill resolution: key → aggregated row (form + its contents). */
-  byKey: Map<string, FormRowData>;
+  byKey: Map<string, FormsDrillPayload>;
   counts: Record<FormLayer, number>;
 }
 
@@ -256,13 +272,16 @@ function baseScore(r: ReviewRow): number {
 }
 
 /** Aggregate a form + its contents into the drill payload (review list scope
- *  + stats band numbers). */
-function aggregate(form: FormRowData, contents: FormContentGroup[]): FormRowData {
-  const agg: FormRowData = {
+ *  + stats band numbers + per-row group labels for the banded list). */
+function aggregate(form: FormRowData, contents: FormContentGroup[]): FormsDrillPayload {
+  const groupOf: Record<string, string> = {};
+  const agg: FormsDrillPayload = {
     ...form,
     cells: form.cells.map((c) => ({ ...c })),
     reviewRows: [...form.reviewRows],
+    groupOf,
   };
+  for (const r of agg.reviewRows) groupOf[rowKeyOf(r)] = 'Form';
   const seen = new Set(agg.reviewRows.map(rowKeyOf));
   for (const g of contents)
     for (const row of g.rows)
@@ -272,6 +291,7 @@ function aggregate(form: FormRowData, contents: FormContentGroup[]): FormRowData
         seen.add(k);
         agg.reviewRows.push(r);
         addCounts(agg, row);
+        groupOf[k] = CONTENT_META[g.kind].label;
       }
   agg.rag = ragOf(agg);
   agg.pct = pctOf(agg);
@@ -312,7 +332,7 @@ export function buildFormsModel(heat: Heatmap): FormsModel | null {
     if (!cur || (curRow && baseScore(r) > baseScore(curRow.r))) baseByLob.set(r.lobId, r.group.key);
   }
 
-  const byKey = new Map<string, FormRowData>();
+  const byKey = new Map<string, FormsDrillPayload>();
   const sections: FormsModel['sections'] = FORM_LAYER_ORDER.map((layer) => ({ layer, rows: [] }));
   const counts: Record<FormLayer, number> = { core: 0, state: 0, product: 0 };
 
@@ -395,7 +415,14 @@ export function buildFormsModel(heat: Heatmap): FormsModel | null {
     // Drill payload = the form + everything it contains.
     byKey.set(own.key, aggregate(own, contents));
     for (const g of contents)
-      for (const row of g.rows) if (!byKey.has(row.key)) byKey.set(row.key, row);
+      for (const row of g.rows)
+        if (!byKey.has(row.key))
+          byKey.set(row.key, {
+            ...row,
+            groupOf: Object.fromEntries(
+              row.reviewRows.map((rr) => [rowKeyOf(rr), CONTENT_META[g.kind].label]),
+            ),
+          });
   }
 
   for (const s of sections)

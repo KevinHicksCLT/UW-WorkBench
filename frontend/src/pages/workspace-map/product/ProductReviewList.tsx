@@ -258,6 +258,8 @@ export default function ProductReviewList({
   labelOf,
   abbr,
   onToggleAbbr,
+  groupOf,
+  groupOrder,
 }: {
   title: string;
   /** Organized stats band rendered directly under the toolbar. */
@@ -277,6 +279,11 @@ export default function ProductReviewList({
   labelOf?: (v: VersionColumn) => string;
   abbr?: boolean;
   onToggleAbbr?: () => void;
+  /** Group label per row key (`lobId:groupKey`) — anything beyond coverages
+   *  gets banded the way the forms register bands its sections. */
+  groupOf?: Record<string, string>;
+  /** Band order; groups not listed sort last alphabetically. */
+  groupOrder?: string[];
 }) {
   const [filter, setFilter] = useState<ReviewFilter>(defaultFilter);
   const [search, setSearch] = useState('');
@@ -307,13 +314,23 @@ export default function ProductReviewList({
       return true;
     });
     const rank = (r: ReviewRow) => (r.needsDecision ? (r.decision ? 1 : 0) : 2);
+    // Grouped lists band first (group order), then the picked sort inside
+    // each band — mirrors the forms register's section bands.
+    const groupRank = (r: ReviewRow) => {
+      if (!groupOf) return 0;
+      const g = groupOf[`${r.lobId}:${r.group.key}`] ?? '';
+      const i = groupOrder?.indexOf(g) ?? -1;
+      return i >= 0 ? i : (groupOrder?.length ?? 0);
+    };
     return [...filtered].sort((a, b) => {
+      const g = groupRank(a) - groupRank(b);
+      if (g !== 0) return g;
       if (sort === 'status') return rank(a) - rank(b) || a.group.name.localeCompare(b.group.name);
       if (sort === 'line')
         return a.lobName.localeCompare(b.lobName) || a.group.name.localeCompare(b.group.name);
       return a.group.name.localeCompare(b.group.name);
     });
-  }, [rows, filter, search, sort]);
+  }, [rows, filter, search, sort, groupOf, groupOrder]);
 
   const rowKey = (r: ReviewRow) => `${r.lobId}:${r.group.key}`;
 
@@ -380,7 +397,7 @@ export default function ProductReviewList({
         <div style={{ flex: 1 }} />
         <input
           type="search"
-          placeholder="Search elements…"
+          placeholder="Search coverages…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{
@@ -406,7 +423,7 @@ export default function ProductReviewList({
           }}
         >
           <option value="status">Sort: needs decision first</option>
-          <option value="name">Sort: element name</option>
+          <option value="name">Sort: coverage name</option>
           <option value="line">Sort: product line</option>
         </select>
         <div
@@ -491,7 +508,7 @@ export default function ProductReviewList({
                 gap: 8,
               }}
             >
-              <span>Element</span>
+              <span>Coverages</span>
               {onToggleAbbr && (
                 <button
                   type="button"
@@ -588,184 +605,218 @@ export default function ProductReviewList({
             ))}
           </div>
 
-          {/* Rows — compact: the title carries the depth behind a click. */}
-          {shown.map((r) => {
+          {/* Rows — compact: the title carries the depth behind a click.
+              Grouped drills band the list (Form / Coverages / Coverage parts /
+              Endorsements / Clauses) the way the forms register does. */}
+          {shown.map((r, i) => {
             const key = rowKey(r);
             const meta = MATCH_META[r.group.status];
             const saving = savingKey === key;
             const editing = editingKey === key;
+            const group = groupOf?.[key] ?? null;
+            const prevGroup = i > 0 ? (groupOf?.[rowKey(shown[i - 1])] ?? null) : undefined;
+            const band = groupOf && group !== prevGroup ? group : null;
             return (
-              <div
-                key={key}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: gridCols,
-                  alignItems: 'center',
-                  padding: '4px 14px',
-                  borderBottom: '1px solid #f1f3f5',
-                  background: r.needsDecision && !r.decision ? '#fffdf7' : '#fff',
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => setDetail(r)}
-                  title="open the full element detail"
-                  style={{
-                    font: 'inherit',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: '#00619a',
-                    background: 'none',
-                    border: 'none',
-                    padding: '2px 12px 2px 0',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {r.group.name}
-                </button>
-                {/* Presence blocks carry the status color directly — green
-                    common, amber similar, red unique (no separate column). */}
-                {r.presence.map((p, i) => (
-                  <span
-                    key={`${key}:${i}`}
-                    title={
-                      p
-                        ? `${columns[i]?.productName ?? ''} carries this ${meta.label.toLowerCase()} element`
-                        : `not in ${columns[i]?.productName ?? 'this product'}`
-                    }
+              <div key={key} style={{ display: 'contents' }}>
+                {band && (
+                  <div
                     style={{
-                      alignSelf: 'stretch',
                       display: 'flex',
-                      alignItems: 'center',
-                      borderLeft: '1px solid #e2e8f0',
-                      padding: '3px 3px',
+                      alignItems: 'baseline',
+                      gap: 8,
+                      padding: '5px 14px 4px',
+                      background: '#f3f4f6',
+                      borderBottom: '1px solid #e5e7eb',
+                      minWidth: '100%',
                     }}
                   >
                     <span
                       style={{
-                        flex: 1,
-                        height: 18,
-                        borderRadius: 4,
-                        background: p ? meta.bg : '#fff',
-                        border: p ? `1.5px solid ${meta.fg}` : '1px solid #e5e7eb',
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        color: '#111827',
                       }}
-                    />
-                  </span>
-                ))}
-                <span aria-hidden />
-                <span style={{ fontSize: 12, color: '#262626', paddingRight: 8 }}>{r.lobName}</span>
-                <div>
-                  {r.needsDecision ? (
-                    <div
-                      style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center' }}
                     >
-                      {STATUS_ACTIONS.map(([status, label, tone]) => {
-                        const on = r.decision?.status === status;
-                        return (
-                          <button
-                            key={status}
-                            type="button"
-                            disabled={saving}
-                            title={
-                              on ? 'click again to withdraw this decision' : STATUS_LABEL[status]
-                            }
-                            onClick={() => void act(r, on ? null : status)}
-                            style={{
-                              font: 'inherit',
-                              fontSize: 11.5,
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              borderRadius: 6,
-                              padding: '3px 10px',
-                              color: on ? '#fff' : tone,
-                              background: on ? tone : '#fff',
-                              border: `1px solid ${on ? 'transparent' : tone}`,
-                              opacity: saving ? 0.6 : 1,
-                            }}
-                          >
-                            {on ? `✓ ${label}` : label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <span
-                      style={{ fontSize: 11.5, fontWeight: 600, color: '#166534' }}
-                      title="This element is identical in every product that carries it, so it standardizes into the canonical model without needing a reviewer decision."
-                    >
-                      Common — auto-standardized, no decision needed
+                      {band} ({shown.filter((x) => (groupOf?.[rowKey(x)] ?? null) === group).length}
+                      )
                     </span>
-                  )}
-                </div>
-                <div style={{ paddingRight: 4 }}>
-                  {editing ? (
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                      <input
-                        value={draft}
-                        onChange={(e) => setDraft(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') void act(r, r.decision?.status ?? 'HELD', draft);
-                          if (e.key === 'Escape') setEditingKey(null);
-                        }}
+                  </div>
+                )}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: gridCols,
+                    alignItems: 'center',
+                    padding: '4px 14px',
+                    borderBottom: '1px solid #f1f3f5',
+                    background: r.needsDecision && !r.decision ? '#fffdf7' : '#fff',
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setDetail(r)}
+                    title="open the full coverage detail"
+                    style={{
+                      font: 'inherit',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: '#00619a',
+                      background: 'none',
+                      border: 'none',
+                      padding: '2px 12px 2px 0',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {r.group.name}
+                  </button>
+                  {/* Presence blocks carry the status color directly — green
+                    common, amber similar, red unique (no separate column). */}
+                  {r.presence.map((p, i) => (
+                    <span
+                      key={`${key}:${i}`}
+                      title={
+                        p
+                          ? `${columns[i]?.productName ?? ''} carries this ${meta.label.toLowerCase()} coverage`
+                          : `not in ${columns[i]?.productName ?? 'this product'}`
+                      }
+                      style={{
+                        alignSelf: 'stretch',
+                        display: 'flex',
+                        alignItems: 'center',
+                        borderLeft: '1px solid #e2e8f0',
+                        padding: '3px 3px',
+                      }}
+                    >
+                      <span
                         style={{
-                          font: 'inherit',
-                          fontSize: 11.5,
-                          border: '1px solid #d4d4d4',
-                          borderRadius: 6,
-                          padding: '3px 8px',
                           flex: 1,
-                          minWidth: 0,
+                          height: 18,
+                          borderRadius: 4,
+                          background: p ? meta.bg : '#fff',
+                          border: p ? `1.5px solid ${meta.fg}` : '1px solid #e5e7eb',
                         }}
                       />
+                    </span>
+                  ))}
+                  <span aria-hidden />
+                  <span style={{ fontSize: 12, color: '#262626', paddingRight: 8 }}>
+                    {r.lobName}
+                  </span>
+                  <div>
+                    {r.needsDecision ? (
+                      <div
+                        style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center' }}
+                      >
+                        {STATUS_ACTIONS.map(([status, label, tone]) => {
+                          const on = r.decision?.status === status;
+                          return (
+                            <button
+                              key={status}
+                              type="button"
+                              disabled={saving}
+                              title={
+                                on ? 'click again to withdraw this decision' : STATUS_LABEL[status]
+                              }
+                              onClick={() => void act(r, on ? null : status)}
+                              style={{
+                                font: 'inherit',
+                                fontSize: 11.5,
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                borderRadius: 6,
+                                padding: '3px 10px',
+                                color: on ? '#fff' : tone,
+                                background: on ? tone : '#fff',
+                                border: `1px solid ${on ? 'transparent' : tone}`,
+                                opacity: saving ? 0.6 : 1,
+                              }}
+                            >
+                              {on ? `✓ ${label}` : label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <span
+                        style={{ fontSize: 11.5, fontWeight: 600, color: '#166534' }}
+                        title="This coverage is identical in every product that carries it, so it standardizes into the canonical model without needing a reviewer decision."
+                      >
+                        Common — auto-standardized, no decision needed
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ paddingRight: 4 }}>
+                    {editing ? (
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <input
+                          value={draft}
+                          onChange={(e) => setDraft(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') void act(r, r.decision?.status ?? 'HELD', draft);
+                            if (e.key === 'Escape') setEditingKey(null);
+                          }}
+                          style={{
+                            font: 'inherit',
+                            fontSize: 11.5,
+                            border: '1px solid #d4d4d4',
+                            borderRadius: 6,
+                            padding: '3px 8px',
+                            flex: 1,
+                            minWidth: 0,
+                          }}
+                        />
+                        <button
+                          type="button"
+                          disabled={saving}
+                          onClick={() => void act(r, r.decision?.status ?? 'HELD', draft)}
+                          style={{
+                            font: 'inherit',
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: '#fff',
+                            background: '#171717',
+                            border: 'none',
+                            borderRadius: 6,
+                            padding: '3px 9px',
+                            cursor: 'pointer',
+                            opacity: saving ? 0.6 : 1,
+                          }}
+                        >
+                          {saving ? '…' : 'Save'}
+                        </button>
+                      </div>
+                    ) : (
                       <button
                         type="button"
-                        disabled={saving}
-                        onClick={() => void act(r, r.decision?.status ?? 'HELD', draft)}
+                        onClick={() => {
+                          setEditingKey(key);
+                          setDraft(r.decision?.comment ?? '');
+                        }}
+                        title="leave a reviewer note"
                         style={{
                           font: 'inherit',
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: '#fff',
-                          background: '#171717',
+                          fontSize: 12,
+                          color: r.decision?.comment ? '#171717' : '#525252',
+                          background: 'none',
                           border: 'none',
-                          borderRadius: 6,
-                          padding: '3px 9px',
                           cursor: 'pointer',
-                          opacity: saving ? 0.6 : 1,
+                          textAlign: 'left',
+                          padding: 0,
+                          lineHeight: 1.35,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 1,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
                         }}
                       >
-                        {saving ? '…' : 'Save'}
+                        {r.decision?.comment ?? '✎'}
                       </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingKey(key);
-                        setDraft(r.decision?.comment ?? '');
-                      }}
-                      title="leave a reviewer note"
-                      style={{
-                        font: 'inherit',
-                        fontSize: 12,
-                        color: r.decision?.comment ? '#171717' : '#525252',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        padding: 0,
-                        lineHeight: 1.35,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 1,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {r.decision?.comment ?? '✎'}
-                    </button>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             );

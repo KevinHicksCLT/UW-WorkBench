@@ -26,7 +26,7 @@ export function cellVisual(cell: HeatCell): { bg: string; fg: string; pending: n
 export function cellTitle(cell: HeatCell): string {
   const pending = cell.need - cell.decided;
   return (
-    `${cell.total} elements — ${cell.common} common · ${cell.similar} similar · ${cell.unique} unique` +
+    `${cell.total} coverages — ${cell.common} common · ${cell.similar} similar · ${cell.unique} unique` +
     ` · ${pending > 0 ? `${pending} still to decide` : 'no decisions outstanding'} — open the review list`
   );
 }
@@ -122,7 +122,7 @@ export function HeatGridRow({
                     {vis.pending === 0 ? '✓' : vis.pending}
                   </span>
                   <span style={{ fontSize: 9.5, fontWeight: 600 }}>
-                    {vis.pending === 0 ? `${c.total} elements in` : `to decide of ${c.total}`}
+                    {vis.pending === 0 ? `${c.total} coverages in` : `to decide of ${c.total}`}
                   </span>
                   <span style={{ fontSize: 9, fontWeight: 600, opacity: 0.85 }}>
                     {c.common}C · {c.similar}S · {c.unique}U

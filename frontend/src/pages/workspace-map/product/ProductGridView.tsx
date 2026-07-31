@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useViewState } from '../../../lib/viewState';
 import ProductReviewList, { type ReviewFilter } from './ProductReviewList';
 import { abbrevVersion, buildHeatmap, type HeatRow } from './gridModel';
-import { buildFormsModel, ROLLED_UP_COMPONENTS } from './formsModel';
+import { buildFormsModel, DRILL_GROUP_ORDER, ROLLED_UP_COMPONENTS } from './formsModel';
 import FormsSection from './FormsSection';
 import { HeatGridRow, SectionBand } from './gridRow';
 import {
@@ -15,7 +15,7 @@ import {
 
 // The Products workspace GRID — the progress board, FORMS-FIRST (Form
 // rationalization design):
-//   (1) an executive dashboard pinned on top: total elements, items needing a
+//   (1) an executive dashboard pinned on top: total coverages, items needing a
 //       decision, decided, % complete — each stat drills into the filtered
 //       review list;
 //   (2) the transposed heatmap below in two sections sharing one grid:
@@ -228,7 +228,7 @@ export default function ProductGridView({
       </span>
       <span style={{ color: '#9ca3af' }}>·</span>
       <span style={{ fontSize: 12.5, fontWeight: 700, color: '#171717', whiteSpace: 'nowrap' }}>
-        {scope.total} elements
+        {scope.total} coverages
       </span>
       <span style={{ width: 1, height: 16, background: '#d4d4d4', margin: '0 4px' }} />
       {statPill(
@@ -305,7 +305,7 @@ export default function ProductGridView({
         >
           <StatTile label="products in scope" value={String(colCount)} tone="#171717" />
           <StatTile
-            label={`coverage elements across ${heat.rows.length} sections`}
+            label={`coverages across ${heat.rows.length} sections`}
             value={String(heat.totals.total)}
             tone="#171717"
             onClick={() => openDrill('__all__', 'all')}
@@ -347,7 +347,7 @@ export default function ProductGridView({
         <ProductReviewList
           // Keyed by drill + filter so a stats-pill click re-arms the filter.
           key={`${drill}|${drillFilter}`}
-          title={drillRow?.component ?? formsDrillRow?.label ?? 'Every model element in scope'}
+          title={drillRow?.component ?? formsDrillRow?.label ?? 'Everything in scope'}
           columns={heat.columns}
           rows={drillRow?.reviewRows ?? formsDrillRow?.reviewRows ?? allReviewRows}
           defaultFilter={drillFilter}
@@ -359,6 +359,10 @@ export default function ProductGridView({
           labelOf={labelOf}
           abbr={abbr}
           onToggleAbbr={() => setAbbr((a) => !a)}
+          // Forms drills band the list by what the form contains (anything
+          // beyond coverages groups like the register sections).
+          groupOf={formsDrillRow?.groupOf}
+          groupOrder={DRILL_GROUP_ORDER}
         />
       ) : (
         <>
@@ -471,7 +475,7 @@ export default function ProductGridView({
                 <span aria-hidden style={{ alignSelf: 'end' }} />
                 {/* Solid chips ABOVE the angled labels so a leaning product
                     name can never run over these headings. */}
-                {['Elements', 'To decide', 'Progress'].map((h) => (
+                {['Coverages', 'To decide', 'Progress'].map((h) => (
                   <div
                     key={h}
                     style={{
@@ -523,7 +527,7 @@ export default function ProductGridView({
               {model && (
                 <SectionBand
                   label="Forms"
-                  detail={`${model.counts.core} core national · ${model.counts.state} state-required · ${model.counts.product} product-specific — expand a form for its coverages, coverage parts, endorsements and clauses`}
+                  detail={`${model.counts.core} countrywide · ${model.counts.state} state-required · ${model.counts.product} product-specific — expand a form for its coverages, coverage parts, endorsements and clauses`}
                 />
               )}
               {model && (
