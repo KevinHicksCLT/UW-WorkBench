@@ -109,6 +109,8 @@ export interface LeanVersion {
   lobId: string;
   lobName: string;
   segmentName: string;
+  /** Jurisdictions this version covers — drives the state filter. */
+  states: string[];
 }
 
 export interface LeanLob {

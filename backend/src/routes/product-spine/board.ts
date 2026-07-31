@@ -151,6 +151,7 @@ export function registerProductBoardRoutes(router: Router): void {
           lobId: v.lobId,
           lobName: v.lobName,
           segmentName: v.segmentName,
+          states: v.states,
         })),
       }));
 

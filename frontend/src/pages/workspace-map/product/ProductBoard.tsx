@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { LoadingState, ErrorMessage, EmptyState } from '../../../components/ui';
 import { api } from '../../../lib/api';
 import { useApi } from '../../../lib/useApi';
@@ -208,12 +209,19 @@ export default function ProductBoard({
     () => (board ? versions.map((v) => v.id).join('+') : undefined),
     [board, versions],
   );
+  const [, setSearchParams] = useSearchParams();
   useOnChange(scopeKey, () => {
     setExpandedComponents({});
     setMatchFilter(null);
     setSelected(null);
-    // A new scope re-arms the default: detail ≤5 versions, grid past that.
+    // A new scope re-arms the default: detail ≤5 versions, grid past that —
+    // and drops any open drill, whose row set belonged to the old scope.
     setView('auto');
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete('pmDrill');
+      return next;
+    });
   });
 
   const canvasRef = useRef<HTMLDivElement>(null);

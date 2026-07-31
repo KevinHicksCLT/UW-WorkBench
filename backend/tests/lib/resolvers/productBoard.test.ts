@@ -48,6 +48,7 @@ const version = (
   lobId: lob.id,
   lobName: lob.name,
   segmentName: lob.segment,
+  states: /US-([A-Z]{2})/.exec(name) ? [/US-([A-Z]{2})/.exec(name)![1]] : [],
   components: new Map(
     Object.entries(comps).map(([comp, els], i) => [
       comp,
@@ -63,14 +64,26 @@ const twoVersionLob = (): SpineLob => ({
   name: lobDef.name,
   segmentName: lobDef.segment,
   versions: [
-    version('v1', 'v1 — US-CA', lobDef, {
-      Coverages: ['Dwelling', 'Contents', 'Loss of use'],
-      Rating: ['Territory factor', 'Protection class'],
-    }),
-    version('v2', 'v2 — US-OH', lobDef, {
-      Coverages: ['Dwelling', 'Contents', 'Wind deductible'],
-      Rating: ['Territory factor', 'Protection class'],
-    }),
+    version(
+      'v1',
+      'v1 — US-CA',
+      lobDef,
+      {
+        Coverages: ['Dwelling', 'Contents', 'Loss of use'],
+        Rating: ['Territory factor', 'Protection class'],
+      },
+      'HO-3',
+    ),
+    version(
+      'v2',
+      'v2 — US-OH',
+      lobDef,
+      {
+        Coverages: ['Dwelling', 'Contents', 'Wind deductible'],
+        Rating: ['Territory factor', 'Protection class'],
+      },
+      'HO-5',
+    ),
   ],
 });
 
@@ -171,10 +184,91 @@ describe('buildHeatmap', () => {
     // One shared concern → the folded cell counts it once.
     expect(forms.cells[0].total).toBe(forms.total);
     expect(forms.cells[0].na).toBe(false);
+    // A single-product LOB has nothing to normalize ACROSS products — its
+    // groups are SINGLE, not unique noise in the decision queue.
+    expect(heat.totals.need).toBe(0);
+    expect(heat.totals.unique).toBe(0);
+  });
+
+  it('judges commonality across PRODUCTS — a countrywide concern carried by every product is COMMON even with state-form versions in the LOB', () => {
+    const lobM = { id: 'lobM', name: 'Auto', segment: 'Personal Lines' };
+    const multi: SpineLob = {
+      id: lobM.id,
+      name: lobM.name,
+      segmentName: lobM.segment,
+      versions: [
+        version(
+          'a-cw',
+          'v1 — Countrywide',
+          lobM,
+          { Forms: ['Personal auto policy — countrywide base form'] },
+          'Standard Auto',
+        ),
+        version(
+          'a-ma',
+          'v1 — US-MA',
+          lobM,
+          { Forms: ['State policy form — Massachusetts'] },
+          'Standard Auto',
+        ),
+        version(
+          'b-cw',
+          'v1 — Countrywide',
+          lobM,
+          { Forms: ['Personal auto policy — countrywide base form'] },
+          'Non-Standard Auto',
+        ),
+        version(
+          'b-mi',
+          'v1 — US-MI',
+          lobM,
+          { Forms: ['State policy form — Michigan'] },
+          'Non-Standard Auto',
+        ),
+      ],
+    };
+    const heat = buildHeatmap([multi], new Map());
+    const forms = heat.rows.find((r) => r.component === 'Forms')!;
+    const base = forms.reviewRows.find((r) => r.group.name.includes('countrywide base form'))!;
+    // Carried by BOTH products' countrywide versions → COMMON, despite being
+    // absent from the two state-form versions.
+    expect(base.group.status).toBe('COMMON');
+    // Each state form is carried by one product → UNIQUE (needs a decision).
+    const ma = forms.reviewRows.find((r) => r.group.name.includes('Massachusetts'))!;
+    expect(ma.group.status).toBe('UNIQUE');
   });
 });
 
 describe('scopeLobs', () => {
+  it('keeps countrywide versions whose covered states match the state filter', () => {
+    const lobC = { id: 'lobC', name: 'Auto', segment: 'Personal Lines' };
+    const cw = version('cw', 'v1 — Countrywide', lobC, { Coverages: ['Dwelling'] }, 'Auto');
+    cw.states = ['CA', 'TX', 'OH'];
+    const ma = version(
+      'ma',
+      'v1 — US-MA',
+      lobC,
+      { Forms: ['State policy form — Massachusetts'] },
+      'Auto',
+    );
+    const lob: SpineLob = {
+      id: lobC.id,
+      name: lobC.name,
+      segmentName: lobC.segment,
+      versions: [cw, ma],
+    };
+    const scoped = scopeLobs([lob], {
+      segments: [],
+      lobIds: [],
+      offerings: [],
+      states: ['CA'],
+      versionTokens: [],
+      versionIds: [],
+    });
+    // CA keeps the countrywide version (its filings cover CA); MA's state form drops.
+    expect(scoped[0]?.versions.map((v) => v.id)).toEqual(['cw']);
+  });
+
   it('applies the cascade filters and drops emptied LOBs', () => {
     const lob = twoVersionLob();
     const scoped = scopeLobs([lob], {
@@ -186,6 +280,7 @@ describe('scopeLobs', () => {
       versionIds: [],
     });
     expect(scoped).toHaveLength(1);
+    // v1 (US-CA state form) covers CA; v2 (US-OH) does not.
     expect(scoped[0].versions.map((v) => v.id)).toEqual(['v1']);
     const none = scopeLobs([lob], {
       segments: ['Commercial'],

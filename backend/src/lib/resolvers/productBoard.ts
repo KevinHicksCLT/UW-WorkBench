@@ -40,6 +40,12 @@ export interface SpineVersion {
   lobId: string;
   lobName: string;
   segmentName: string;
+  /** Jurisdictions this version covers: attributes.states for a countrywide
+   *  version (the states its filings make it live in), the single parsed
+   *  state for a state-form version. Drives the state filter — picking CA
+   *  must keep every product WRITTEN in CA, not only products whose CA
+   *  regulation forces its own form. */
+  states: string[];
   components: Map<string, SpineComponent>;
 }
 
@@ -291,12 +297,17 @@ export function buildComparison(versions: SpineVersion[]): Comparison {
 
 const pass = (picked: string[], value: string) => picked.length === 0 || picked.includes(value);
 
+function coversState(v: SpineVersion, picked: string[]): boolean {
+  if (picked.length === 0) return true;
+  return picked.some((s) => (s === NO_STATE ? stateOf(v.name) === NO_STATE : v.states.includes(s)));
+}
+
 export function versionInScope(v: SpineVersion, f: SpineFilters): boolean {
   return (
     pass(f.segments, v.segmentName) &&
     pass(f.lobIds, v.lobId) &&
     pass(f.offerings, v.productName) &&
-    pass(f.states, stateOf(v.name)) &&
+    coversState(v, f.states) &&
     pass(f.versionTokens, versionTokenOf(v.name)) &&
     pass(f.versionIds, v.id)
   );
@@ -372,6 +383,24 @@ export function buildHeatmap(lobs: SpineLob[], decisions: Map<string, DecisionLi
 
   for (const lob of lobs) {
     const comparison = buildComparison(lob.versions);
+    // Match status is judged across PRODUCTS, exactly as the legend states
+    // ("common — in every product"). buildComparison grouped by version;
+    // with per-state versions in the spine that misreads every countrywide
+    // concern (carried by each product's countrywide version but absent from
+    // its state-form versions) as unique. Re-judge each group by distinct
+    // product carriage before anything is counted.
+    const productOf = new Map(lob.versions.map((v) => [v.id, v.productName]));
+    const productsInLob = new Set(productOf.values()).size;
+    for (const row of comparison.rows) {
+      for (const g of row.groups) {
+        const carrying = new Set(Object.keys(g.perVersion).map((vid) => productOf.get(vid) ?? vid))
+          .size;
+        if (productsInLob === 1) g.status = 'SINGLE';
+        else if (carrying === productsInLob) g.status = 'COMMON';
+        else if (carrying <= 2) g.status = 'UNIQUE';
+        else g.status = 'PARTIAL';
+      }
+    }
     for (const compRow of comparison.rows) {
       let row = rowBy.get(compRow.component);
       if (!row) {
@@ -487,6 +516,16 @@ interface MemoEntry {
 const SPINE_TTL_MS = 10_000;
 const spineMemo = new Map<string, MemoEntry>();
 
+function parseStates(attributes: unknown, name: string): string[] {
+  const attrs = attributes as { states?: unknown } | null;
+  if (attrs && Array.isArray(attrs.states)) {
+    const list = attrs.states.filter((x): x is string => typeof x === 'string');
+    if (list.length) return list;
+  }
+  const parsed = stateOf(name);
+  return parsed === NO_STATE ? [] : [parsed];
+}
+
 function parseElements(attributes: unknown): SpineElement[] {
   const attrs = attributes as { elements?: unknown } | null;
   if (!attrs || !Array.isArray(attrs.elements)) return [];
@@ -570,6 +609,7 @@ export async function loadSpine(companyId: string): Promise<LoadedSpine> {
             lobId: lob.id,
             lobName: lob.displayValue,
             segmentName: segment.displayValue,
+            states: parseStates(version.attributes, version.displayValue),
             components,
           });
         }

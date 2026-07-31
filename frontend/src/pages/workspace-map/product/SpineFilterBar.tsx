@@ -39,6 +39,16 @@ export function stateOf(v: VersionColumn): string {
   return /US-([A-Z]{2})\b/.exec(v.name)?.[1] ?? NO_STATE;
 }
 
+/** Every jurisdiction the version COVERS — a countrywide version lists the
+ *  states its filings make it live in, a state-form version its one state.
+ *  Picking CA keeps every product written in CA, not only the products whose
+ *  CA regulation forces its own policy form. */
+export function coveredStates(v: VersionColumn): string[] {
+  if (v.states && v.states.length > 0) return v.states;
+  const parsed = stateOf(v);
+  return parsed === NO_STATE ? [] : [parsed];
+}
+
 /** Version/edition token from a version name ("v9 — US-CA" → v9; "2026" → 2026). */
 export function versionTokenOf(v: VersionColumn): string {
   return v.name.split(/[\s—–]+/).filter(Boolean)[0] ?? v.name;
@@ -68,12 +78,19 @@ export function normalizeFilters(
 
 const pass = (picked: string[], value: string) => picked.length === 0 || picked.includes(value);
 
+function coversState(v: VersionColumn, picked: string[]): boolean {
+  if (picked.length === 0) return true;
+  return picked.some((s) =>
+    s === NO_STATE ? stateOf(v) === NO_STATE : coveredStates(v).includes(s),
+  );
+}
+
 function versionInScope(v: VersionColumn, f: SpineFilters): boolean {
   return (
     pass(f.segments, v.segmentName) &&
     pass(f.lobIds, v.lobId) &&
     pass(f.offerings, v.productName) &&
-    pass(f.states, stateOf(v)) &&
+    coversState(v, f.states) &&
     pass(f.versionTokens, versionTokenOf(v)) &&
     pass(f.versionIds, v.id)
   );
@@ -349,9 +366,9 @@ export default function SpineFilterBar({
     ).values(),
   ];
   const offeringPool = [...new Set(poolFor('offerings').map((v) => v.productName))];
-  const statePool = [...new Set(poolFor('states').map(stateOf))].sort((a, b) =>
-    a === NO_STATE ? 1 : b === NO_STATE ? -1 : a.localeCompare(b),
-  );
+  const statePool = [
+    ...new Set(poolFor('states').flatMap((v) => [...coveredStates(v), stateOf(v)])),
+  ].sort((a, b) => (a === NO_STATE ? 1 : b === NO_STATE ? -1 : a.localeCompare(b)));
   const tokenPool = [...new Set(poolFor('versionTokens').map(versionTokenOf))].sort();
   const productPool = poolFor('versionIds');
 
@@ -416,7 +433,7 @@ export default function SpineFilterBar({
         allLabel="All states"
         options={statePool.map((s) => ({
           value: s,
-          label: s === NO_STATE ? 'Countrywide / no state' : `US-${s}`,
+          label: s === NO_STATE ? 'Countrywide / no state' : /^[A-Z]{2}$/.test(s) ? `US-${s}` : s,
         }))}
         picked={filters.states}
         onChange={(v) => set('states', v)}

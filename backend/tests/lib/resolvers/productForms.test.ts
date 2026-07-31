@@ -41,6 +41,7 @@ const version = (
   lobId: lob.id,
   lobName: lob.name,
   segmentName: lob.segment,
+  states: /US-([A-Z]{2})/.exec(name) ? [/US-([A-Z]{2})/.exec(name)![1]] : [],
   components: new Map(
     Object.entries(comps).map(([comp, els], i) => [
       comp,

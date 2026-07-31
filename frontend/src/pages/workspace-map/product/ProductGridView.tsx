@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { LoadingState, ErrorMessage } from '../../../components/ui';
+import { LoadingState } from '../../../components/ui';
 import { useApi } from '../../../lib/useApi';
 import { useViewState } from '../../../lib/viewState';
 import ProductReviewList, { type ReviewFilter } from './ProductReviewList';
@@ -273,7 +273,7 @@ export default function ProductGridView({
 
       {drill ? (
         reviewError ? (
-          <ErrorMessage>{reviewError}</ErrorMessage>
+          <LoadingState message="That view is no longer available — returning to the board…" />
         ) : !review ? (
           <LoadingState message={reviewLoading ? 'Loading the review list…' : 'Preparing…'} />
         ) : (
